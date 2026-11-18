@@ -6,7 +6,8 @@
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/workbench#generate:message-types",
+        "@zotlit/item-query#generate:schema"
       ],
       "env": [
         "$TURBO_EXTENDS$",

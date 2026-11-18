@@ -1,0 +1,136 @@
+// The community directory scanner's ESLint run as it sees a publish
+// repository: the type-aware branch of `buildScannerEslintConfig` in
+// obsidianmd/obsidian-workflows `src/lint.ts` at
+// 8167caed39664214d82c86fdfa32e06d8d55f61d, which applies when the
+// repository has a root tsconfig.json. `toWarns` and the rule blocks are
+// copied from it; `SCANNER_IGNORES` is shared with eslint.config.js.
+//
+// `pnpm release:check-shell` runs it from the root of a generated shell, so
+// `cwd()` is the shell's root, as it is for the scanner.
+import obsidianmd from "eslint-plugin-obsidianmd";
+import { globalIgnores } from "eslint/config";
+import { cwd } from "node:process";
+import tseslint from "typescript-eslint";
+
+import { SCANNER_IGNORES } from "#scanner-eslint";
+
+function toWarns(config) {
+  if (!config) return config;
+  if (!Array.isArray(config) && typeof config[Symbol.iterator] === "function") {
+    return [...config].map(toWarns);
+  }
+  if (Array.isArray(config)) return config.map(toWarns);
+  const result = { ...config };
+  if (result.extends) result.extends = toWarns(result.extends);
+  if (result.rules) {
+    result.rules = Object.fromEntries(
+      Object.entries(result.rules).map(([key, value]) => {
+        if (key.startsWith("eslint-comments/")) return [key, value];
+        if (value === "error" || value === 2) return [key, "warn"];
+        if (Array.isArray(value) && (value[0] === "error" || value[0] === 2))
+          return [key, ["warn", ...value.slice(1)]];
+        return [key, value];
+      }),
+    );
+  }
+  return result;
+}
+
+export default [
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: [
+            "eslint.config.js",
+            "eslint.config.mjs",
+            "eslint.config.mts",
+          ],
+        },
+        tsconfigRootDir: cwd(),
+        extraFileExtensions: [".json"],
+      },
+    },
+  },
+  ...toWarns(obsidianmd.configs.recommended),
+  {
+    linterOptions: {
+      noInlineConfig: false,
+      reportUnusedDisableDirectives: "off",
+      reportUnusedInlineConfigs: "off",
+    },
+  },
+  {
+    files: ["**/*.{ts,cts,mts,tsx,js,cjs,mjs,jsx}"],
+    rules: {
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-unsanitized/method": "error",
+      "no-unsanitized/property": "error",
+      "obsidianmd/regex-lookbehind": "error",
+      "obsidianmd/no-forbidden-elements": "error",
+      "no-undef": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/no-base-to-string": "off",
+      "import/no-unresolved": "off",
+      "obsidianmd/validate-manifest": "off",
+      "obsidianmd/validate-license": "off",
+      "obsidianmd/commands/no-command-in-command-id": "off",
+      "obsidianmd/commands/no-plugin-id-in-command-id": "off",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    rules: {
+      "obsidianmd/ui/sentence-case": "off",
+      "obsidianmd/ui/sentence-case-json": "off",
+      "obsidianmd/ui/sentence-case-locale-module": "off",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    rules: {
+      "eslint-comments/require-description": "error",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+      obsidianmd: obsidianmd,
+    },
+    rules: {
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-return": "warn",
+      "obsidianmd/commands/no-command-in-command-id": "warn",
+      "obsidianmd/commands/no-plugin-id-in-command-id": "warn",
+      "obsidianmd/settings-tab/no-manual-html-headings": "error",
+      "obsidianmd/settings-tab/no-problematic-settings-headings": "error",
+      "obsidianmd/sample-names": "error",
+      "obsidianmd/no-sample-code": "error",
+      "obsidianmd/platform": "error",
+      "obsidianmd/no-plugin-as-component": "error",
+      "obsidianmd/detach-leaves": "error",
+      "obsidianmd/no-static-styles-assignment": "error",
+      "obsidianmd/no-view-references-in-plugin": "error",
+      "obsidianmd/no-unsupported-api": "error",
+    },
+  },
+  globalIgnores(SCANNER_IGNORES),
+  {
+    ignores: [
+      "eslint.config.scanner.mjs",
+      "main.js",
+      "styles.css",
+      "manifest.json",
+    ],
+  },
+];

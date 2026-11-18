@@ -6,7 +6,8 @@ import { Effect } from "effect";
 //   (no flag)   the packages the branch changed since it left `next` or
 //               `main`, and their dependents.
 //   --release   every package, the desktop End-to-end Run and worker check,
-//               plus the Obsidian guideline review (ADR 0020).
+//               plus the Obsidian guideline review (ADR 0020) and the check
+//               of the publish repository's shell (check-shell.ts).
 //               `pnpm land --to main` runs it before it moves `main`,
 //               `release.ts` before the version commit, and
 //               `release.yml` before it publishes (desktop checks skip there).
@@ -109,6 +110,9 @@ await step("Test", async () => {
 if (release) {
   await desktopChecks();
   await step("Obsidian guideline review", () => sh`pnpm review`);
+  // The publish repository's shell, built from the packed bundle package,
+  // must reproduce the release build and pass the scanner's lint.
+  await step("Publish shell", () => sh`pnpm release:check-shell`);
 }
 
 /**

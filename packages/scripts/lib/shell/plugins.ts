@@ -1,0 +1,40 @@
+// The Obsidian plugins ZotLit publishes, each from a host app of this
+// workspace to its own publish repository. Every fact that differs per plugin
+// lives in its entry here or in its host app's package.json.
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+
+/** One published plugin. */
+export interface PublishedPlugin {
+  /**
+   * The host app's folder, relative to the workspace root. Its package.json
+   * holds the version and the manifest fields, and its production build
+   * writes the bundle package into `dist/package/`.
+   */
+  readonly app: string;
+  /** The npm package that carries the plugin's bundle, versioned as the plugin. */
+  readonly bundlePackage: string;
+  /** The publish repository, `owner/name`: the plugin's releases and its directory entry. */
+  readonly repository: string;
+  /** The plugin's `versions.json`, relative to the workspace root. */
+  readonly versions: string;
+  /** The README the publish repository shows, relative to the workspace root. */
+  readonly readme: string;
+  /** Whether the publish repository hosts the docs site's Giscus discussions. */
+  readonly giscus: boolean;
+}
+
+export const PUBLISHED_PLUGINS = {
+  desktop: {
+    app: "apps/obsidian",
+    bundlePackage: "@zotlit/obsidian-plugin",
+    repository: RELEASE_REPOSITORY,
+    versions: "versions.json",
+    readme: "README.md",
+    giscus: true,
+  },
+} as const satisfies Record<string, PublishedPlugin>;
+
+export type PublishedPluginName = keyof typeof PUBLISHED_PLUGINS;
+
+/** Where a host app's production build writes the bundle package. */
+export const BUNDLE_PACKAGE_DIR = "dist/package";

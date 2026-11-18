@@ -5,6 +5,7 @@ import { join, relative } from "node:path";
 import tseslint from "typescript-eslint";
 
 import { pluginPackages } from "@zotlit/scripts/plugin-packages";
+import { SCANNER_IGNORES } from "@zotlit/scripts/scanner-eslint";
 
 import pkg from "./apps/obsidian/package.json" with { type: "json" };
 
@@ -15,8 +16,8 @@ import pkg from "./apps/obsidian/package.json" with { type: "json" };
  * Mirrors the type-aware branch of `buildScannerEslintConfig` in
  * obsidianmd/obsidian-workflows `src/lint.ts` at
  * 8167caed39664214d82c86fdfa32e06d8d55f61d. To resync, compare that function
- * with this file: `SCANNER_IGNORES`, `toWarns` and the scanner rule blocks are
- * copied from it.
+ * with this file: `toWarns` and the scanner rule blocks are copied from it,
+ * and `SCANNER_IGNORES` (packages/scripts/lib/scanner-eslint.ts) too.
  *
  * `pnpm review` runs ESLint with `--quiet`, so it reports the error-level
  * findings that block a release. The scanner's warnings stay advisory.
@@ -31,45 +32,6 @@ import pkg from "./apps/obsidian/package.json" with { type: "json" };
  *
  * @see docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md
  */
-
-const SCANNER_IGNORES = [
-  "node_modules",
-  "dist",
-  "build",
-  "pkg",
-  "test-vault",
-  ".obsidian",
-  "**/.obsidian/**",
-  "esbuild.config.mjs",
-  "version-bump.mjs",
-  "**/*.test.*",
-  "**/*.tests.*",
-  "**/*.spec.*",
-  "**/*.specs.*",
-  "**/test/**",
-  "**/tests/**",
-  "**/__tests__/**",
-  "**/mocks/**",
-  "**/__mocks__/**",
-  "**/*.cjs",
-  "**/*.mjs",
-  "**/*.cts",
-  "**/*.mts",
-  "**/vite*",
-  "**/scripts/**",
-  "**/docs/**",
-  "**/i18n/**",
-  "**/i18next/**",
-  "**/locale/**",
-  "**/locales/**",
-  "**/translations/**",
-  "**/l10n/**",
-  ".pnpm-store",
-  "**/*.spec.ts",
-  "**/testUtils**",
-  "automation/**",
-  "e2e-tests/**",
-];
 
 /** Every severity below `eslint-comments/*` drops to warn, as the scanner does. */
 function toWarns(config) {

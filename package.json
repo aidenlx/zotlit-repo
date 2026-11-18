@@ -9,6 +9,8 @@
   "type": "module",
   "scripts": {
     "release": "pnpm --filter @zotlit/scripts release",
+    "release:shell": "node packages/scripts/scripts/generate-shell.ts",
+    "release:check-shell": "node packages/scripts/scripts/check-shell.ts",
     "build:plugin": "turbo run build --filter=@zotlit/obsidian --output-logs=full",
     "desktop-slot": "node packages/scripts/scripts/desktop-slot.ts",
     "land": "node packages/scripts/scripts/land.ts",

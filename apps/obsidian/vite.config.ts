@@ -1,8 +1,8 @@
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { builtinModules } from "node:module";
-import { join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
@@ -24,6 +24,15 @@ import {
 } from "@zotlit/scripts/obsidian-manifest";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
+import { buildPlugin, HOST_MODULES } from "@zotlit/scripts/shell/build";
+import {
+  writeBundlePackage,
+  writeShellEntry,
+} from "@zotlit/scripts/shell/bundle-package";
+import {
+  BUNDLE_PACKAGE_DIR,
+  PUBLISHED_PLUGINS,
+} from "@zotlit/scripts/shell/plugins";
 
 import packageJson from "./package.json" with { type: "json" };
 import {
@@ -64,6 +73,8 @@ const pluginCode = [
 const fullContractIRPath = fileURLToPath(
   import.meta.resolve("@zotlit/db/contract/ir.json"),
 );
+/** The plugin this app publishes, and the bundle package its production build writes. */
+const publishedPlugin = PUBLISHED_PLUGINS.desktop;
 
 // Resolved once per Vite process, so a watch rebuild never re-runs the cross-check.
 const pandocEngine = await resolvePandocEnginePin();
@@ -86,7 +97,11 @@ function getDevVaultPluginDir(pluginId: string) {
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
   const isDev = mode === "development";
+  // A production build writes the bundle package, which the publish
+  // repository builds main.js from, and then builds dist/main.js from that
+  // package the same way. A development build writes main.js directly.
   const outDir = isProd ? "dist" : "dist-dev";
+  const bundleDir = isProd ? BUNDLE_PACKAGE_DIR : outDir;
   const i18nDevServerPort = isDev
     ? parseI18nDevServerPort(process.env.I18N_DEV_SERVER)
     : undefined;
@@ -124,35 +139,22 @@ export default defineConfig(({ mode }) => {
       reportCompressedSize: false,
       lib: {
         entry: resolve(import.meta.dirname, "src/zt-main.ts"),
-        formats: ["cjs"],
+        // The bundle package is an ES module; the publish build makes it CommonJS.
+        formats: [isProd ? "es" : "cjs"],
         fileName: () => "main.js",
         cssFileName: "styles",
       },
-      outDir,
+      outDir: bundleDir,
       emptyOutDir: true,
       // Obsidian's loader retains inline maps with the evaluated source text.
       sourcemap: !isProd,
-      minify: isProd,
+      // The publish build minifies main.js; the stylesheet is final here.
+      minify: false,
+      cssMinify: isProd,
       target: "es2025",
       copyPublicDir: false,
       rolldownOptions: {
-        external: [
-          "obsidian",
-          "electron",
-          "@electron/remote",
-          "@codemirror/autocomplete",
-          "@codemirror/collab",
-          "@codemirror/commands",
-          "@codemirror/language",
-          "@codemirror/lint",
-          "@codemirror/search",
-          "@codemirror/state",
-          "@codemirror/view",
-          "@lezer/common",
-          "@lezer/highlight",
-          "@lezer/lr",
-          ...builtins,
-        ],
+        external: HOST_MODULES,
         output: {
           banner: jsBanner,
           // Effect 4.1.0 under Rolldown 1.1 otherwise leaves modules reached through
@@ -228,7 +230,12 @@ export default defineConfig(({ mode }) => {
           target: "es2025",
         },
       }),
-      obsidianBuildPlugin(isDev),
+      obsidianBuildPlugin({
+        isDev,
+        isProd,
+        outDir: resolve(import.meta.dirname, outDir),
+        bundleDir: resolve(import.meta.dirname, bundleDir),
+      }),
       Boolean(process.env.ANALYZE) &&
         unstableRolldownAdapter(
           analyzer({
@@ -240,6 +247,54 @@ export default defineConfig(({ mode }) => {
     ],
   };
 });
+
+/**
+ * Completes the bundle package in `bundleDir`, beside the main.js and
+ * styles.css Vite wrote there, and builds `outDir`'s main.js and styles.css
+ * from it with the publish repository's own build script.
+ */
+async function buildFromBundlePackage(
+  packageJson: { version: string; description: string; author: string },
+  bundleDir: string,
+  outDir: string,
+): Promise<void> {
+  await writeBundlePackage({
+    plugin: publishedPlugin,
+    app: packageJson,
+    dir: bundleDir,
+    workspaceRoot,
+  });
+  await stageResources(join(bundleDir, "resources"));
+  const entry = await writeShellEntry(join(outDir, "shell"), publishedPlugin);
+  await buildPlugin({
+    entry,
+    styles: join(bundleDir, "styles.css"),
+    outDir,
+    alias: { [publishedPlugin.bundlePackage]: join(bundleDir, "main.js") },
+  });
+}
+
+/**
+ * Everything the installed plugin downloads at runtime from the Resource
+ * Release (ADR 0019): the Language Packs other than the bundled base locale,
+ * the template data JSON Schemas, and the Item Query Schema.
+ */
+async function stageResources(dir: string): Promise<void> {
+  await mkdir(dir, { recursive: true });
+  const contractDir = dirname(fullContractIRPath);
+  const sources = [
+    ...(await readdir(messagesDirectory))
+      .filter((name) => name.endsWith(".json") && name !== "en.json")
+      .map((name) => join(messagesDirectory, name)),
+    ...(await readdir(contractDir))
+      .filter((name) => name.endsWith(".schema.json"))
+      .map((name) => join(contractDir, name)),
+    join(workspaceRoot, "packages/item-query/generated/query.schema.json"),
+  ];
+  await Promise.all(
+    sources.map((source) => cp(source, join(dir, basename(source)))),
+  );
+}
 
 /** Opt-in via I18N_DEV_SERVER=true (or a port number); defaults to 9092. */
 /**
@@ -265,17 +320,29 @@ function parseI18nDevServerPort(value: string | undefined): number | undefined {
   return Number.isInteger(port) && port > 0 ? port : 9092;
 }
 
-function obsidianBuildPlugin(isDev: boolean): Plugin {
+function obsidianBuildPlugin({
+  isDev,
+  isProd,
+  outDir,
+  bundleDir,
+}: {
+  isDev: boolean;
+  isProd: boolean;
+  /** The folder Obsidian loads the plugin from. */
+  outDir: string;
+  /** The folder Vite writes this build's main.js and styles.css into. */
+  bundleDir: string;
+}): Plugin {
   const packageJsonPath = join(import.meta.dirname, "package.json");
   return {
     name: "obsidian-build",
     buildStart() {
       this.addWatchFile(packageJsonPath);
     },
-    async writeBundle(options) {
-      const outDir = options.dir ?? "dist";
-
+    async writeBundle() {
       const packageJson = JSON.parse(await readFile(packageJsonPath, "utf-8"));
+      if (isProd) await buildFromBundlePackage(packageJson, bundleDir, outDir);
+
       const manifestJson = parseManifest(packageJson);
       if (isDev) manifestJson.version = deriveDevVersion(manifestJson.version);
       await writeFile(
