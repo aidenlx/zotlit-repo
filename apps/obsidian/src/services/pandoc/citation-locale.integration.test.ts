@@ -3,7 +3,10 @@
 
 import { describe, expect, it } from "vitest";
 
-import { openCitationVault, TIMEOUT } from "./__fixtures__/citation-surfaces";
+import {
+  openCitationVault,
+  TIMEOUT,
+} from "./__fixtures__/citation-surfaces.ts";
 
 const STYLE_ID = "http://www.zotero.org/styles/localized";
 

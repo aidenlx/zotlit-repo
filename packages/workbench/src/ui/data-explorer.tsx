@@ -1,4 +1,8 @@
-import type { DisplayNode, TemplateEngine, TreeState } from "#/explorer/index";
+import type {
+  DisplayNode,
+  TemplateEngine,
+  TreeState,
+} from "#explorer/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { Effect } from "effect";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -8,32 +12,36 @@ import { createPortal } from "react-dom";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { useWorkbenchModel } from "./editor";
-import { explorerSections, listPropertyLabels } from "./explorer-sections";
-import type { ExplorerReader } from "./explorer-sections";
-import { DisplayTree } from "./explorer-tree";
-import type { DisplaySection, FieldRowState } from "./explorer-tree";
-import { FieldDetails, placeFieldDetails } from "./field-details";
-import { fieldForm, fieldForms, TEMPLATE_INSERTION } from "./field-insertion";
+import { useWorkbenchModel } from "./editor.tsx";
+import { explorerSections, listPropertyLabels } from "./explorer-sections.ts";
+import type { ExplorerReader } from "./explorer-sections.ts";
+import { DisplayTree } from "./explorer-tree.tsx";
+import type { DisplaySection, FieldRowState } from "./explorer-tree.tsx";
+import { FieldDetails, placeFieldDetails } from "./field-details.tsx";
+import {
+  fieldForm,
+  fieldForms,
+  TEMPLATE_INSERTION,
+} from "./field-insertion.ts";
 import type {
   FieldForm,
   FieldInsertionContext,
   FieldInsertOptions,
-} from "./field-insertion";
-import { useFieldsPanelRows } from "./fields-panel";
-import { useContainerName, useTooltip, useWorkbenchHost } from "./host";
+} from "./field-insertion.ts";
+import { useFieldsPanelRows } from "./fields-panel.tsx";
+import { useContainerName, useTooltip, useWorkbenchHost } from "./host.tsx";
 import type {
   WorkbenchClipboardError,
   WorkbenchMenuItem,
   WorkbenchMenuRequest,
-} from "./host";
+} from "./host.tsx";
 // Both hosts use this field discovery tree. The host owns clipboard, insertion,
 // export, popup presentation, and the controlled filtering/expansion state.
-import { useWorkbenchMessages } from "./messages";
-import type { WorkbenchMessageLabel } from "./messages";
-import { announceFields } from "./model";
-import type { TemplateRoot } from "./model";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchMessages } from "./messages.tsx";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
+import { announceFields } from "./model.ts";
+import type { TemplateRoot } from "./model.ts";
+import { useIcon, useParts } from "./theme.tsx";
 
 import {
   buildDisplayTree,
@@ -42,7 +50,7 @@ import {
   formatPath,
   setFilter,
   toggleNode,
-} from "#/explorer/index";
+} from "#explorer/index.ts";
 
 /**
  * How one insert goes: `keepOpen` as {@link FieldInsertOptions} has it, and

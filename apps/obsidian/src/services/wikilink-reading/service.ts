@@ -6,65 +6,68 @@ import { Effect, Layer } from "effect";
 import { setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { renderProfileRecovery } from "@/lib/profile-recovery";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { renderProfileRecovery } from "@/lib/profile-recovery.ts";
 import {
   rerenderReadingViewsIn,
   retireReadingSurface,
-} from "@/lib/reading-surface";
+} from "@/lib/reading-surface.ts";
 import {
   LiveSections,
   isDraftMarkdown,
   markdownViewOf,
   sectionRange,
-} from "@/lib/reading-view";
+} from "@/lib/reading-view.ts";
 import {
   WikilinkDisplaySettings,
   citationOfRun,
   citationTarget,
   wikilinkCitation,
-} from "@/lib/wikilink-citation";
-import type { LiteratureNoteTarget, RunMember } from "@/lib/wikilink-citation";
-import type { CitationLookupAnswer } from "@/services/citation-index/service";
-import { CitationPopover } from "@/services/citation-popover/service";
+} from "@/lib/wikilink-citation.ts";
+import type {
+  LiteratureNoteTarget,
+  RunMember,
+} from "@/lib/wikilink-citation.ts";
+import type { CitationLookupAnswer } from "@/services/citation-index/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   citationContent,
   sectionCoordinates,
   showCitation,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import type {
   DocumentCitations,
   ShownCitation,
-} from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
+} from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import {
   clickWikilinkCitation,
   hoverWikilinkCitation,
   markCitationClick,
-} from "@/services/citekey-navigation";
-import type { CitationHover } from "@/services/citekey-navigation";
+} from "@/services/citekey-navigation/index.ts";
+import type { CitationHover } from "@/services/citekey-navigation/index.ts";
 import {
   NoteIndex,
   literatureNoteTargetIn,
-} from "@/services/note-index/service";
-import type { Held } from "@/services/query-client/service";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/note-index/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   hasInternalLink,
   renderCitationRuns,
   sectionCitationRuns,
   sectionLinktexts,
-} from "./render";
-import type { SectionRuns } from "./render";
+} from "./render.ts";
+import type { SectionRuns } from "./render.ts";
 import "./style.css";
 
 /**

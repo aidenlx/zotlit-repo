@@ -1,10 +1,10 @@
 // Resolved Profile values and the binding overlay used by note rendering.
 
-import { formatProfileStamp } from "@/lib/profile-stamp";
-import type { ProfileSelector, ProfileStamp } from "@/lib/profile-stamp";
-import type { Settings } from "@/services/settings/schema";
+import { formatProfileStamp } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector, ProfileStamp } from "@/lib/profile-stamp.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import type { LiteratureNoteProfile } from "./service";
+import type { LiteratureNoteProfile } from "./service.ts";
 
 export interface ResolvedLiteratureNoteProfileBindings {
   readonly "note.literature-folder": string;

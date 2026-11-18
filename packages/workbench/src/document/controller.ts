@@ -1,4 +1,4 @@
-import type { PartialContext } from "#/render/partial-preview";
+import type { PartialContext } from "#render/partial-preview.ts";
 import {
   history,
   isolateHistory,
@@ -38,7 +38,7 @@ import {
   updateLiteratureNotePackMetadata,
 } from "@zotlit/templates/literature-note-pack";
 
-import { jsonSliceHistory } from "./json-source";
+import { jsonSliceHistory } from "./json-source.ts";
 import {
   managedEntryEdit,
   managedFrontmatterEntries,
@@ -46,21 +46,21 @@ import {
   manifestNodeRange,
   manifestScalarSlice,
   manifestValueEdit,
-} from "./manifest-patch";
+} from "./manifest-patch.ts";
 import type {
   ManagedEntryAction,
   ManagedEntrySource,
   ManifestScalar,
   WorkbenchSliceRange,
-} from "./manifest-patch";
-import { noteRegions, RESERVED_CALL_NAMES } from "./regions";
-import type { NoteRegions } from "./regions";
-import { yamlValue } from "./scalar-source";
-import { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec";
-import type { SliceCodec } from "./slice-codec";
+} from "./manifest-patch.ts";
+import { noteRegions, RESERVED_CALL_NAMES } from "./regions.ts";
+import type { NoteRegions } from "./regions.ts";
+import { yamlValue } from "./scalar-source.ts";
+import { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec.ts";
+import type { SliceCodec } from "./slice-codec.ts";
 
-import { pairingState, pairingHistory } from "#/language/pairing-state";
-import { DEFAULT_PARTIAL_CONTEXT } from "#/render/partial-preview";
+import { pairingState, pairingHistory } from "#language/pairing-state.ts";
+import { DEFAULT_PARTIAL_CONTEXT } from "#render/partial-preview.ts";
 
 /** The pane that edits one Managed Frontmatter entry's expression. */
 export type WorkbenchEntrySliceId = `entry:${number}`;
@@ -96,7 +96,7 @@ export interface WorkbenchAnnotationSection {
   readonly source: WorkbenchSliceRange;
 }
 
-export type { WorkbenchSliceRange } from "./manifest-patch";
+export type { WorkbenchSliceRange } from "./manifest-patch.ts";
 
 /** The slice one Managed Frontmatter entry's expression is edited through. */
 export function entrySlice(position: number): WorkbenchEntrySliceId {

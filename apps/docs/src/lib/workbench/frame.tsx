@@ -22,7 +22,7 @@ import {
 } from "@zotlit/workbench/ui";
 import type { WorkbenchPanels } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Popover,
   PopoverContent,
@@ -30,11 +30,11 @@ import {
   PopoverTitle,
   PopoverDescription,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/popover.tsx";
 import { m } from "@/paraglide/messages.js";
 
-import { ConnectionBar } from "./connection-bar";
-import { WEB_THEME } from "./theme";
+import { ConnectionBar } from "./connection-bar.tsx";
+import { WEB_THEME } from "./theme.tsx";
 
 /** A pane section, which fills the place the layout gives it. */
 const PANE_CLASS = "flex min-h-0 min-w-0 flex-1 flex-col";

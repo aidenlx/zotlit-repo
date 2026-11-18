@@ -2,13 +2,13 @@
 import { Cause, Effect } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler } from "@/lib/cli-command";
-import { catchRejection } from "@/lib/cli-params";
-import { withLogCategory } from "@/lib/effect-log";
+import type { CliCommandHandler } from "@/lib/cli-command.ts";
+import { catchRejection } from "@/lib/cli-params.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 import type {
   CitationIndex,
   DocumentCitationSet,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
 import {
   ambiguousCitekeyDiagnostic,
@@ -23,24 +23,24 @@ import {
   reportAnnotationUses,
   reportGroups,
   reportOccurrences,
-} from "./envelope";
+} from "./envelope.ts";
 import type {
   CitationsCommand,
   CitationsIdentity,
   Diagnostic,
   ReferenceEntry,
   EnvelopeTail,
-} from "./envelope";
-import { renderCitationsGuide } from "./guide";
+} from "./envelope.ts";
+import { renderCitationsGuide } from "./guide.ts";
 import {
   parseAnnotationUsesRequest,
   parseCitedByRequest,
   parseGuideRequest,
   parseReferencesRequest,
   targetMismatch,
-} from "./request";
+} from "./request.ts";
 
-export type { CitationsIdentity } from "./envelope";
+export type { CitationsIdentity } from "./envelope.ts";
 export const CITED_BY_COMMAND = "zotlit:cited-by" as const;
 export const REFERENCES_COMMAND = "zotlit:references" as const;
 export const ANNOTATION_USES_COMMAND = "zotlit:annotation-uses" as const;

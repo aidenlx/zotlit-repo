@@ -1,9 +1,9 @@
 // Whether Zotero lists ZotLit Companion as installed, re-read when the researcher may have installed it.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { held } from "@/lib/view-atoms.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** Zotero may write its add-on list after Obsidian starts: retry briefly. */
 const RETRY_SECONDS = [0, 1, 2, 4, 8];

@@ -8,9 +8,9 @@ import type {
 } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { openSettingsTab, revealSetting } from "./open-settings";
+import { openSettingsTab, revealSetting } from "./open-settings.ts";
 
 const TAB_ID = "zotlit";
 

@@ -2,9 +2,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
 
-import { planReadParents } from "./read-parent";
+import { planReadParents } from "./read-parent.ts";
 
 const DATA_DIR = "/Volumes/External/Zotero";
 const DB_PATH = join(DATA_DIR, "zotero.sqlite");

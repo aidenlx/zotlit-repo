@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from "vitest";
 
-import { themeHook } from "@/lib/theme-hooks";
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 
-import { creationToolbar, renderCreationToolbar } from "./creation-toolbar";
+import { creationToolbar, renderCreationToolbar } from "./creation-toolbar.ts";
 import type {
   CreationToolbarControl,
   CreationToolbarControlId,
-} from "./creation-toolbar";
-import { MARK_TOOLS } from "./tools";
-import type { MarkTool } from "./tools";
+} from "./creation-toolbar.ts";
+import { MARK_TOOLS } from "./tools.ts";
+import type { MarkTool } from "./tools.ts";
 
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 

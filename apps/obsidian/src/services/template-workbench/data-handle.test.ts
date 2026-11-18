@@ -2,22 +2,25 @@ import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
 import { expect } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { NoteIndex } from "@/services/note-index/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { workbenchContext } from "./__fixtures__";
-import { bindTemplateData } from "./data-handle";
+import { workbenchContext } from "./__fixtures__.ts";
+import { bindTemplateData } from "./data-handle.ts";
 
 /** My Library, which holds no item. */
 const SEED = `

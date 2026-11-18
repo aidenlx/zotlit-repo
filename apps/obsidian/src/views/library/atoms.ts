@@ -3,16 +3,16 @@
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
-import { QueryService } from "@/services/item-query/service";
-import { LibraryScope } from "@/services/library-scope/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { LibraryNode } from "./document";
-import { ShowInLibrary } from "./show-in-library";
-import { libraryOf, sameLibrary } from "./tree";
+import type { LibraryNode } from "./document.ts";
+import { ShowInLibrary } from "./show-in-library.ts";
+import { libraryOf, sameLibrary } from "./tree.ts";
 
 /** The Library View can open after the pane that asked for it closes. */
 export const showInLibraryCommand = Atom.keepAlive(

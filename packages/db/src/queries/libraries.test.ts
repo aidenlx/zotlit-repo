@@ -1,13 +1,13 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { openScenarioDatabase } from "@/test-scenario";
-import { createFixtureSchema } from "@/test-utils";
+import { getLibraries, getLibraryByGroupID } from "./libraries.ts";
 
-import { getLibraries, getLibraryByGroupID } from "./libraries";
+import { relations } from "#drizzle/relations.ts";
+import { openScenarioDatabase } from "#test-scenario/index.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 const SEED = `
   insert into libraries (libraryID, type) values (1, 'user'), (4, 'group'), (5, 'group');

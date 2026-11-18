@@ -1,5 +1,18 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import type { Item } from "#queries/items.ts";
+import { drizzle } from "drizzle-orm/node-sqlite";
+import { DatabaseSync } from "node:sqlite";
+import { describe, expect, it } from "vitest";
+
+import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
+import fixture from "@zotlit/zotero-types/fixtures/item-to-csl.json" with { type: "json" };
+import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
+
+import { itemToCsl } from "./zt-csl-item.ts";
+
 // Differential coverage: Zotero's own corpus through storage, hydration, CSL.
-import { relations } from "@drizzle/relations";
+import { relations } from "#drizzle/relations.ts";
 import {
   creators,
   creatorTypes,
@@ -11,24 +24,11 @@ import {
   itemTypeCreatorTypes,
   itemTypes,
   libraries,
-} from "@drizzle/schema";
-import { drizzle } from "drizzle-orm/node-sqlite";
-import { DatabaseSync } from "node:sqlite";
-import { describe, expect, it } from "vitest";
-
-import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
-import fixture from "@zotlit/zotero-types/fixtures/item-to-csl.json" with { type: "json" };
-import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import { CHILD_ITEM_TYPES } from "@/lib/item-types";
-import type { CreatorFieldMode } from "@/lib/zt-creator";
-import { getItemsByLibrary } from "@/queries/items";
-import type { Item } from "@/queries/items";
-import { createFixtureSchema } from "@/test-utils";
-
-import { itemToCsl } from "./zt-csl-item";
+} from "#drizzle/schema.ts";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
+import { getItemsByLibrary } from "#queries/items.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 interface NativeCreator {
   creatorType: string;

@@ -3,10 +3,10 @@
 import { Duration, Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { isOlderThan, sweepTempDirectory } from "@/lib/temp-sweep";
-import type { ReapTempsOptions } from "@/lib/temp-sweep";
+import { isOlderThan, sweepTempDirectory } from "@/lib/temp-sweep.ts";
+import type { ReapTempsOptions } from "@/lib/temp-sweep.ts";
 
-import { CSL_STAGING_EXT, cslStoreDirectory } from "./csl";
+import { CSL_STAGING_EXT, cslStoreDirectory } from "./csl.ts";
 
 /**
  * How long a materialized Resolved CSL Style stands unused before it is

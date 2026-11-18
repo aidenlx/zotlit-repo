@@ -9,10 +9,10 @@ import {
 import type { IndexedItem } from "@zotlit/db";
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine";
-import type { ItemHit } from "./engine";
-import { makeCreator as creator, makeIndexedItem as item } from "./fixtures";
-import { layerSegmenterNone } from "./segmenter";
+import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine.ts";
+import type { ItemHit } from "./engine.ts";
+import { makeCreator as creator, makeIndexedItem as item } from "./fixtures.ts";
+import { layerSegmenterNone } from "./segmenter.ts";
 
 describe("item search engine", () => {
   it("ranks empty searches by Last Activity and request Uses before the limit", async () => {

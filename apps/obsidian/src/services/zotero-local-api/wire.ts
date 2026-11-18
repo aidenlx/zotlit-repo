@@ -15,7 +15,7 @@ import type {
   ResolvedAnnotationTypeName,
 } from "@zotlit/db";
 
-import { parseJson } from "@/lib/zotero-http";
+import { parseJson } from "@/lib/zotero-http.ts";
 
 /**
  * The one API version this client speaks. A data route answers `501` to any

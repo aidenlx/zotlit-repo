@@ -2,12 +2,15 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Scope, Stream } from "effect";
 import { describe, expect, it as plainIt, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 
-import { libraryScopeInvalidNotice, watchLibraryScopeInvalid } from "./notices";
-import { DEFAULT_LIBRARY_SCOPE } from "./scope";
-import type { LibraryScopeState } from "./service";
+import {
+  libraryScopeInvalidNotice,
+  watchLibraryScopeInvalid,
+} from "./notices.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "./scope.ts";
+import type { LibraryScopeState } from "./service.ts";
 
 describe("libraryScopeInvalidNotice", () => {
   plainIt(

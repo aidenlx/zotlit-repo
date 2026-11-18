@@ -1,8 +1,8 @@
-import { Menu, TFile, TFolder } from "@mock/obsidian";
+import { Menu, TFile, TFolder } from "@mock/obsidian.ts";
 import { describe, expect, it, vi } from "vitest";
 
-import { fileMenuHandler } from "./__fixtures__/file-menu";
-import type { FileMenuContext, FileMenuSegment } from "./file-menu";
+import { fileMenuHandler } from "./__fixtures__/file-menu.ts";
+import type { FileMenuContext, FileMenuSegment } from "./file-menu.ts";
 
 function fileOf(extension: string): TFile {
   const file = new TFile();

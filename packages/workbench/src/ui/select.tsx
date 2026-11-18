@@ -1,7 +1,7 @@
 // Native selection semantics; the host supplies its control surface and glyph.
 import type { ComponentProps } from "react";
 
-import { useIcon, useParts } from "./theme";
+import { useIcon, useParts } from "./theme.tsx";
 
 export function WorkbenchSelect({
   className,

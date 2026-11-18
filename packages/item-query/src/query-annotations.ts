@@ -11,7 +11,7 @@ import {
   readAnnotationUniverseRows,
 } from "@zotlit/db/item-query";
 
-import { lowerAnnotationCandidate } from "./annotation-candidates";
+import { lowerAnnotationCandidate } from "./annotation-candidates.ts";
 import {
   ANNOTATION_FIELDS,
   ANNOTATION_PARENTS,
@@ -20,19 +20,19 @@ import {
   annotationFilterRegistry,
   annotationSortableField,
   DEFAULT_ANNOTATION_FIELDS,
-} from "./annotation-fields";
-import type { QueryAnnotation } from "./annotation-fields";
-import { ANNOTATION_LOADING } from "./annotation-hydration";
-import type { QueryDataset } from "./dataset";
-import type { DatasetRun } from "./execution";
-import { matches as isMatch } from "./filter-evaluate";
-import { planFilter, planSubexpression } from "./filter-plan";
-import { projectColumns } from "./formulas";
-import { parentPathResolver, parentRootName } from "./parent-records";
-import { ATTACHMENTS } from "./query-attachments";
-import { ITEMS } from "./query-items";
-import { openRecordLoader } from "./record-loader";
-import type { ItemQueryRequest } from "./request";
+} from "./annotation-fields.ts";
+import type { QueryAnnotation } from "./annotation-fields.ts";
+import { ANNOTATION_LOADING } from "./annotation-hydration.ts";
+import type { QueryDataset } from "./dataset.ts";
+import type { DatasetRun } from "./execution.ts";
+import { matches as isMatch } from "./filter-evaluate.ts";
+import { planFilter, planSubexpression } from "./filter-plan.ts";
+import { projectColumns } from "./formulas.ts";
+import { parentPathResolver, parentRootName } from "./parent-records.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { ITEMS } from "./query-items.ts";
+import { openRecordLoader } from "./record-loader.ts";
+import type { ItemQueryRequest } from "./request.ts";
 
 /** Annotation Query: one Annotation Row for each non-trashed Annotation. */
 export const ANNOTATIONS: QueryDataset<ItemQueryRequest> = {

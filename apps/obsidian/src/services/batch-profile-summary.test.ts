@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { batchProfileSummary } from "./batch-profile-summary";
+import { batchProfileSummary } from "./batch-profile-summary.ts";
 
 describe("batch Profile summary", () => {
   it.each([

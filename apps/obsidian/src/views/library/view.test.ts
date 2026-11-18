@@ -10,7 +10,7 @@ import {
   resetMockPlatform,
   setMockPlatform,
   TextComponent,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import type {
   App,
@@ -27,71 +27,74 @@ import { makeItem } from "@zotlit/db/test-utils";
 import { testItemSeed } from "@zotlit/item-query";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
-import { testEvent, testEvents } from "@/lib/__fixtures__/event-stream";
-import { keymapApp, pressTop } from "@/lib/__fixtures__/keymap";
+import { testEvent, testEvents } from "@/lib/__fixtures__/event-stream.ts";
+import { keymapApp, pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import type { SearchHit, SearchOptions } from "@/services/item-lookup/service";
-import { ItemLookup } from "@/services/item-lookup/service";
+} from "@/lib/__fixtures__/obsidian-host.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import type {
+  SearchHit,
+  SearchOptions,
+} from "@/services/item-lookup/service.ts";
+import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewValue,
-} from "@/services/item-query/query-view";
-import { QueryService } from "@/services/item-query/service";
-import { resolvedLibraryScopeAtom } from "@/services/library-scope/atoms";
+} from "@/services/item-query/query-view.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { resolvedLibraryScopeAtom } from "@/services/library-scope/atoms.ts";
 import type {
   AvailableLibrary,
   LibraryScope,
   LibrarySelector,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import { selectorKey } from "@/services/library-scope/scope";
-import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service";
-import { NoteFeature } from "@/services/note-feature/service";
-import { notedItemKeysAtom } from "@/services/note-index/atoms";
-import { NoteIndex } from "@/services/note-index/service";
-import type { NoteIndexChange } from "@/services/note-index/service";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
-import { useLedgerAtom } from "@/services/use-ledger/atoms";
-import { UseLedger } from "@/services/use-ledger/service";
-import type { Ledger, UseKind } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+} from "@/services/library-scope/scope.ts";
+import { selectorKey } from "@/services/library-scope/scope.ts";
+import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { NoteIndexChange } from "@/services/note-index/service.ts";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { useLedgerAtom } from "@/services/use-ledger/atoms.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import type { Ledger, UseKind } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
-} from "@/services/zotero-reads/atoms";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service";
-import { stubbedReads } from "@/services/zotero-reads/test-utils";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes";
+} from "@/services/zotero-reads/atoms.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
+import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import {
   fakeQuery,
   requested,
-} from "@/views/query-view/__fixtures__/query-run";
-import { waitFor } from "@/views/welcome/__fixtures__";
-import { openWelcomeView } from "@/views/welcome/register";
+} from "@/views/query-view/__fixtures__/query-run.ts";
+import { waitFor } from "@/views/welcome/__fixtures__.ts";
+import { openWelcomeView } from "@/views/welcome/register.ts";
 
-import { holdNow, useAt, makeLibraryHost } from "./__fixtures__";
-import { nodeKey } from "./document";
-import type { LibraryNode } from "./document";
-import { itemActions } from "./item-actions";
-import { openLibraryView, registerLibraryView } from "./register";
-import { LibraryView } from "./view";
-import type { LibraryViewDeps } from "./view";
+import { holdNow, useAt, makeLibraryHost } from "./__fixtures__.ts";
+import { nodeKey } from "./document.ts";
+import type { LibraryNode } from "./document.ts";
+import { itemActions } from "./item-actions.ts";
+import { openLibraryView, registerLibraryView } from "./register.ts";
+import { LibraryView } from "./view.ts";
+import type { LibraryViewDeps } from "./view.ts";
 
 const EMPTY = {
   kind: "result",
@@ -642,7 +645,7 @@ async function pluginData(
   }));
   const nativeEvents = testEvent<ZoteroReadsEvent>();
   const nativeStates =
-    testEvent<import("@/services/zotero-reads/service").ZoteroReadsState>();
+    testEvent<import("@/services/zotero-reads/service.ts").ZoteroReadsState>();
   const events = nativeEvents.stream;
   const publish = (event: ZoteroReadsEvent) => {
     nativeStates.emit({

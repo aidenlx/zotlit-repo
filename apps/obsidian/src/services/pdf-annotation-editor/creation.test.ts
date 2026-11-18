@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { EditorView } from "@codemirror/view";
-import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { PdfTextStructure } from "@zotlit/pdf-structure";
@@ -10,25 +10,25 @@ import type {
   TextSelection,
 } from "@zotlit/pdf-structure";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { useFakeTimers } from "@/services/annotation-repository/__fixtures__";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   TextPosition,
   WritablePosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import {
   blockedReason,
   MAX_POSITION_LENGTH,
   writePosition,
-} from "@/services/annotation-repository/write";
-import { createRefused } from "@/services/zotero-local-api/__fixtures__";
-import type { ZoteroRequest } from "@/services/zotero-local-api/__fixtures__";
-import { pressSubmit } from "@/views/annot-view/__fixtures__/editor-app";
+} from "@/services/annotation-repository/write.ts";
+import { createRefused } from "@/services/zotero-local-api/__fixtures__.ts";
+import type { ZoteroRequest } from "@/services/zotero-local-api/__fixtures__.ts";
+import { pressSubmit } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
 import {
   annotation,
@@ -37,11 +37,15 @@ import {
   readerOverZotero,
   readerSurfaces,
   toolColors,
-} from "./__fixtures__";
-import { current, update } from "./reader-surface-model";
-import { arm, ingestCapability, selectTextDraft } from "./reader-surface-state";
-import type { OverlayPageView } from "./render";
-import type { ToolColorStore } from "./tools";
+} from "./__fixtures__.ts";
+import { current, update } from "./reader-surface-model.ts";
+import {
+  arm,
+  ingestCapability,
+  selectTextDraft,
+} from "./reader-surface-state.ts";
+import type { OverlayPageView } from "./render.ts";
+import type { ToolColorStore } from "./tools.ts";
 
 /** The Fixture's own underline on `rougier-2014.pdf`, in PDF points. */
 const QUOTE = [

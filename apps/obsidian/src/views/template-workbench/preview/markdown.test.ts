@@ -9,12 +9,12 @@ import { afterEach, expect, it, vi } from "vitest";
 import { emptyRender } from "@zotlit/workbench/render";
 import { WorkbenchMessagesProvider } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { isDraftMarkdown } from "@/lib/reading-view";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { isDraftMarkdown } from "@/lib/reading-view.ts";
 
-import { NativeMarkdown } from "./markdown";
-import type { NativeRenderResult } from "./render";
+import { NativeMarkdown } from "./markdown.tsx";
+import type { NativeRenderResult } from "./render.ts";
 
 const renderer = vi.hoisted(() => ({ render: vi.fn() }));
 const app = stubService<App>("App", {

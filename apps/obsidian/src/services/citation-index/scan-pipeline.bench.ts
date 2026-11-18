@@ -30,16 +30,16 @@ import { expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { effectTestParseClient } from "@/lib/__fixtures__/parse-client";
-import { yieldToMain } from "@/lib/yield-to-main";
-import type { ParseReply } from "@/services/citation-parse/client";
+import { effectTestParseClient } from "@/lib/__fixtures__/parse-client.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import type { ParseReply } from "@/services/citation-parse/client.ts";
 
 // oxlint-disable-next-line no-restricted-imports -- this Node benchmark uses the guarded build tooling outside src.
-import { scanBenchmarkWorker } from "../../../scripts/scan-benchmark-worker";
-import { scanCitekeyOccurrences } from "./__fixtures__/legacy-citekey-scan";
-import { syntheticNote } from "./__fixtures__/scan-pipeline-note";
-import { scanNote } from "./scan-note";
-import { createCitationIndexHarness } from "./test-harness";
+import { scanBenchmarkWorker } from "../../../scripts/scan-benchmark-worker.ts";
+import { scanCitekeyOccurrences } from "./__fixtures__/legacy-citekey-scan.ts";
+import { syntheticNote } from "./__fixtures__/scan-pipeline-note.ts";
+import { scanNote } from "./scan-note.ts";
+import { createCitationIndexHarness } from "./test-harness.ts";
 
 const RUNS = 15;
 const SIZES = [10_000, 100_000, 1_000_000];

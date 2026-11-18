@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
-import { textFieldWording } from "@/views/annot-view/card-controls";
-import { createFieldEditor } from "@/views/annot-view/field-editor";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
+import { textFieldWording } from "@/views/annot-view/card-controls.ts";
+import { createFieldEditor } from "@/views/annot-view/field-editor.ts";
 
-import { annotation, pageView, readerOverZotero } from "./__fixtures__";
-import { historyVerbOf } from "./reader-keymap";
-import { createTextDraftArea } from "./text-draft";
+import { annotation, pageView, readerOverZotero } from "./__fixtures__.ts";
+import { historyVerbOf } from "./reader-keymap.ts";
+import { createTextDraftArea } from "./text-draft.ts";
 
 const MARK: AnnotationRecord = annotation("PARA7777", "highlight", {
   pageIndex: 0,

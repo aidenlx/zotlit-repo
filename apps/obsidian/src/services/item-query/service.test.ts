@@ -26,24 +26,27 @@ import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 import { delimited } from "@zotlit/shared/delimited";
 
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
-import { UseLedger } from "@/services/use-ledger/service";
-import type { Ledger } from "@/services/use-ledger/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import type { ConnectionOpener } from "@/services/zotero-reads/connection";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import type { Ledger } from "@/services/use-ledger/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import type { ConnectionOpener } from "@/services/zotero-reads/connection.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { buildQueryService, layerTestQueryService } from "./__fixtures__";
-import { queryCancelledText } from "./contract";
-import { QueryService } from "./service";
-import type { QueryJob } from "./worker-protocol";
+import { buildQueryService, layerTestQueryService } from "./__fixtures__.ts";
+import { queryCancelledText } from "./contract.ts";
+import { QueryService } from "./service.ts";
+import type { QueryJob } from "./worker-protocol.ts";
 
 /** The scenario database, held for the case's scope. */
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[0]) =>

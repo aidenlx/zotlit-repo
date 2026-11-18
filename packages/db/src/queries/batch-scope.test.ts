@@ -1,17 +1,17 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { createFixtureSchema } from "@/test-utils";
 
 import {
   getCollectionIDByKey,
   getIndexedItemIDsByCollection,
   getNoteItemIDsByCollection,
   getNoteItemIDsByLibrary,
-} from "./batch-scope";
+} from "./batch-scope.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 const ROOT = "COLL0100";
 

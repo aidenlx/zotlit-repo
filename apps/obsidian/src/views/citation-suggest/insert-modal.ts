@@ -1,18 +1,18 @@
 import { Keymap } from "obsidian";
 import type { Editor, TFile } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { ItemSearchModal } from "@/services/item-lookup/search-modal";
-import type { SearchHit } from "@/services/item-lookup/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { ItemSearchModal } from "@/services/item-lookup/search-modal.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
 
-import { readDocumentCitedKeys } from "./document-citations";
+import { readDocumentCitedKeys } from "./document-citations.ts";
 import {
   commitCitationInsert,
   resolveCitationInsert,
   writeCitation,
-} from "./editor-suggest";
-import type { CitationSuggestDeps } from "./register";
+} from "./editor-suggest.ts";
+import type { CitationSuggestDeps } from "./register.ts";
 
 /**
  * Command-driven citation picker: search the library in a popup and insert the

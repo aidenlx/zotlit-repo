@@ -5,18 +5,18 @@ import { TestClock } from "effect/testing";
 import type { CachedMetadata, CliData } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import { Template } from "@/services/template/service";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import { Template } from "@/services/template/service.ts";
 
 import {
   fixtureServices,
   workbenchContext,
   workbenchIdentity,
-} from "./__fixtures__";
-import { TEMPLATE_INSPECT_COMMAND } from "./inspect";
-import { INSPECT_DIAGNOSTICS, inspectFlags } from "./inspect-contract";
-import { registerTemplateWorkbench } from "./register";
+} from "./__fixtures__.ts";
+import { INSPECT_DIAGNOSTICS, inspectFlags } from "./inspect-contract.ts";
+import { TEMPLATE_INSPECT_COMMAND } from "./inspect.ts";
+import { registerTemplateWorkbench } from "./register.ts";
 
 const BOOKS = "templates/zotlit-profile.books.md";
 const PARTIAL = "templates/zotlit-partial.summary.md";

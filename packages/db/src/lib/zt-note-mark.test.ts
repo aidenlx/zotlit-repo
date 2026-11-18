@@ -5,7 +5,7 @@ import {
   parseCitationData,
   parseEmbeddedCitationItems,
   parseItemUri,
-} from "./zt-note-mark";
+} from "./zt-note-mark.ts";
 
 /** URL-encode `payload` the way Zotero stores it in a data attribute. */
 function encode(payload: unknown): string {

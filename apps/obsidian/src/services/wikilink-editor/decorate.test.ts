@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { LiteratureNoteTarget } from "@/lib/wikilink-citation";
+import type { LiteratureNoteTarget } from "@/lib/wikilink-citation.ts";
 
-import { wikilinkDecorations } from "./decorate";
-import type { WikilinkDisplayContext } from "./decorate";
-import type { WikilinkSpan } from "./scan";
+import { wikilinkDecorations } from "./decorate.ts";
+import type { WikilinkDisplayContext } from "./decorate.ts";
+import type { WikilinkSpan } from "./scan.ts";
 
 /** A scanned link at fixed offsets: `[[` at 0, the interior from 2. */
 function span(

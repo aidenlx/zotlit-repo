@@ -2,19 +2,19 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { ExcerptPreparation } from "@/services/excerpt-image/prepare";
-import type { NoteIndex } from "@/services/note-index/service";
-import type { Profile } from "@/services/profile/service";
-import type { PluginSettings } from "@/services/settings/service";
-import { plainTemplateError } from "@/services/template/errors";
-import type { Template } from "@/services/template/service";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import type { NoteIndex } from "@/services/note-index/service.ts";
+import type { Profile } from "@/services/profile/service.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import { plainTemplateError } from "@/services/template/errors.ts";
+import type { Template } from "@/services/template/service.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { renderAnnotationCitation } from "./annotation-citation";
-import type { AnnotationCitation } from "./annotation-citation";
-import { renderCitation } from "./citation";
+import { renderAnnotationCitation } from "./annotation-citation.ts";
+import type { AnnotationCitation } from "./annotation-citation.ts";
+import { renderCitation } from "./citation.ts";
 
 /** The services the citations and the annotation insert read. */
 export type NoteCitationServices =

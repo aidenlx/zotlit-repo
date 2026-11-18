@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { zoteroPrefFixture } from "./__fixtures__";
+import { zoteroPrefFixture } from "./__fixtures__.ts";
 
 // Unload can leave consumers holding the native service after runtime disposal.
 it.effect(

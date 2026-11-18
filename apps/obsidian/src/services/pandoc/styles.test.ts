@@ -1,5 +1,5 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import { it as effectIt } from "@effect/vitest";
 import { Effect, FileSystem, Layer, PlatformError } from "effect";
 import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
@@ -10,13 +10,13 @@ import { describe, expect, it } from "vitest";
 import {
   listInstalledStyles,
   listInstalledStylesOrNone,
-} from "./installed-styles";
+} from "./installed-styles.ts";
 import {
   InstalledStyleCache as EffectStyleCache,
   resolveInstalledStyle as resolveStyleEffect,
   styleHasEntryMarkers,
-} from "./styles";
-import type { ResolvedCslStyle } from "./styles";
+} from "./styles.ts";
+import type { ResolvedCslStyle } from "./styles.ts";
 
 /**
  * Content reads left before the filesystem refuses, which puts a resolution in

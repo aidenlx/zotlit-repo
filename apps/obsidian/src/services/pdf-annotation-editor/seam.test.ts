@@ -10,7 +10,7 @@ import {
   SCANNED_CONTENT,
   TEXT_CHUNK,
   UNPATCHED_CONTENT,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 import {
   onPageRendered,
   pageViewOf,
@@ -20,8 +20,8 @@ import {
   probePageView,
   probeRenderEvent,
   probeTextContent,
-} from "./seam";
-import type { PdfSeamProbeId } from "./seam";
+} from "./seam.ts";
+import type { PdfSeamProbeId } from "./seam.ts";
 
 /** The eleven probes of the seam re-verification numbered P1 to P11. */
 const ALL_PROBES: PdfSeamProbeId[] = [

@@ -1,19 +1,10 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { TemplateItemResolvers } from "#lib/context/zt-template-item.ts";
+import type { Annotation } from "#lib/zt-annot.ts";
+import type { TagMemo } from "#queries/tags.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import type { TemplateItemResolvers } from "@/lib/context/zt-template-item";
-import type { Annotation } from "@/lib/zt-annot";
-import { CollectionCache } from "@/lib/zt-collection";
-import { getAnnotationsByParent } from "@/queries/annotations";
-import { getAttachmentByItemId } from "@/queries/attachments";
-import { getItemsByKey } from "@/queries/items";
-import { resolveItemTagsByIDs } from "@/queries/tags";
-import type { TagMemo } from "@/queries/tags";
-import { createFixtureSchema } from "@/test-utils";
 
 import {
   buildAnnotationParents,
@@ -24,8 +15,17 @@ import {
   fetchAnnotationsTemplateData,
   fetchNoteContext,
   fetchNoteSource,
-} from "./note-context";
-import type { AnnotationResolvers, NoteResolvers } from "./note-context";
+} from "./note-context.ts";
+import type { AnnotationResolvers, NoteResolvers } from "./note-context.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { CollectionCache } from "#lib/zt-collection.ts";
+import { getAnnotationsByParent } from "#queries/annotations.ts";
+import { getAttachmentByItemId } from "#queries/attachments.ts";
+import { getItemsByKey } from "#queries/items.ts";
+import { resolveItemTagsByIDs } from "#queries/tags.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

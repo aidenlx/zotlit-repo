@@ -1,7 +1,7 @@
 // A ResizeObserver from the window that shows the elements it observes.
 //
 // @see apps/obsidian/policies/popout-windows.md
-import { disposable } from "./disposables";
+import { disposable } from "./disposables.ts";
 
 /**
  * Observes the size of `targets` from the window that shows `owner`, and

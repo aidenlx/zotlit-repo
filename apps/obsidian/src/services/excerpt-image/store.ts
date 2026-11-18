@@ -4,10 +4,10 @@ import { PreventSchedulerYield } from "effect/Scheduler";
 import { openDB } from "idb";
 import type { DBSchema } from "idb";
 
-import { ExcerptCacheWriteError } from "./error";
-import { detectExcerptImageFormat, isExcerptImage } from "./format";
-import type { ExcerptImage, ExcerptImageFormat } from "./format";
-import type { ExcerptCache, ExcerptEntry, ExcerptIdentity } from "./service";
+import { ExcerptCacheWriteError } from "./error.ts";
+import { detectExcerptImageFormat, isExcerptImage } from "./format.ts";
+import type { ExcerptImage, ExcerptImageFormat } from "./format.ts";
+import type { ExcerptCache, ExcerptEntry, ExcerptIdentity } from "./service.ts";
 
 export const EXCERPT_CACHE_BUDGET = 256 * 1024 * 1024;
 // Persisted version: packages/scripts/lib/format-versions.ts.

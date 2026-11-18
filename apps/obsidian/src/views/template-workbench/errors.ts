@@ -1,8 +1,8 @@
 // What the Template Workbench View's reads and previews fail with.
 import { Schema } from "effect";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { formatErrorMessage } from "@/lib/toast";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { formatErrorMessage } from "@/lib/toast.ts";
 
 /**
  * The chosen Item cannot be read: it is not in the library, it is a child

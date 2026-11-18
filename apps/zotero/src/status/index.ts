@@ -2,18 +2,18 @@
 
 import { getLogger } from "@logtape/logtape";
 
-import { requireMessage } from "@/lib/l10n";
-import type { WalCheckpoint } from "@/notify/freshness";
-import { prefs } from "@/prefs";
-import type { FluentMessageId } from "@/types/fluent";
+import { requireMessage } from "@/lib/l10n.ts";
+import type { WalCheckpoint } from "@/notify/freshness.ts";
+import { prefs } from "@/prefs/index.ts";
+import type { FluentMessageId } from "@/types/fluent.ts";
 
 import databaseIcon from "./database.svg?inline";
 import {
   databaseIconState,
   databaseStatusMenuModel,
   manualOutcomeMessages,
-} from "./model";
-import type { DatabaseIconState } from "./model";
+} from "./model.ts";
+import type { DatabaseIconState } from "./model.ts";
 
 const logger = getLogger(["zotlit", "zotero", "database-status"]);
 

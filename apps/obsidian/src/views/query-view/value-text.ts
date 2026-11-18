@@ -5,8 +5,8 @@ import { valueText } from "@zotlit/item-query";
 // CSV…" all read it from here, so each shows and finds the same text. The
 // text of a value comes from `@zotlit/item-query`, as the CLI export writes
 // it; the label of a property comes from view-properties.
-import type { QueryViewValue } from "@/services/item-query/query-view";
-import { itemTypeLabel } from "@/services/profile-selection/describe";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
+import { itemTypeLabel } from "@/services/profile-selection/describe.ts";
 
 /** One value as the text of a cell. */
 export function cellText(

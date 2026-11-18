@@ -9,7 +9,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { HTMLAttributes } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 
 type BannerVariant = "rainbow" | "normal";

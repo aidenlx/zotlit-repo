@@ -3,18 +3,18 @@
 // holds the controller in use, the reader's choices, the side panels, and the
 // render scheduler.
 
-import type { WorkbenchDocumentAtoms } from "#/document/atoms";
-import type { WorkbenchDocumentController } from "#/document/controller";
+import type { WorkbenchDocumentAtoms } from "#document/atoms.ts";
+import type { WorkbenchDocumentController } from "#document/controller.ts";
 import type {
   CitationExampleId,
   CitationPreviewSelection,
-} from "#/render/citation-examples";
-import type { PartialPreviewSelection } from "#/render/partial-preview";
-import type { WorkbenchReportContext } from "#/render/report";
-import type { RenderRequest, RenderResources } from "#/render/request";
-import type { TemplateRenderResult } from "#/render/result";
-import type { AnnotationExample } from "#/render/sample-annotations";
-import type { ItemSnapshot } from "#/snapshot/index";
+} from "#render/citation-examples.ts";
+import type { PartialPreviewSelection } from "#render/partial-preview.ts";
+import type { WorkbenchReportContext } from "#render/report.ts";
+import type { RenderRequest, RenderResources } from "#render/request.ts";
+import type { TemplateRenderResult } from "#render/result.ts";
+import type { AnnotationExample } from "#render/sample-annotations.ts";
+import type { ItemSnapshot } from "#snapshot/index.ts";
 import { Cause, Effect } from "effect";
 import type * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -27,21 +27,21 @@ import type { MatchTree } from "@zotlit/templates/facade";
 import {
   annotationExamples,
   sampleAnnotationParent,
-} from "./annotation-samples";
-import type { AnnotationExamples } from "./annotation-samples";
+} from "./annotation-samples.ts";
+import type { AnnotationExamples } from "./annotation-samples.ts";
 import type {
   WorkbenchClipboardError,
   WorkbenchHostError,
   WorkbenchMatchData,
   WorkbenchMatchResult,
-} from "./host";
-import type { WorkbenchInsertTarget } from "./host";
+} from "./host.tsx";
+import type { WorkbenchInsertTarget } from "./host.tsx";
 import {
   hideFields,
   INITIAL_PANELS,
   pinFields,
   placePanels,
-} from "./panel-layout";
+} from "./panel-layout.ts";
 import type {
   FieldsPanelState,
   FieldsPin,
@@ -50,22 +50,22 @@ import type {
   PanelPlacement,
   ViewSize,
   WorkbenchPanels,
-} from "./panel-layout";
-import { patch, patchAt } from "./patch";
-import { makeRenderSchedulerAtoms } from "./scheduler-atoms";
+} from "./panel-layout.ts";
+import { patch, patchAt } from "./patch.ts";
+import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 import type {
   RenderSchedulerAtoms,
   RenderSchedulerInput,
-} from "./scheduler-atoms";
-import type { SliceReveal } from "./slice-editor";
-import type { WorkbenchTab } from "./tabs";
+} from "./scheduler-atoms.ts";
+import type { SliceReveal } from "./slice-editor.tsx";
+import type { WorkbenchTab } from "./tabs.ts";
 
-import { workbenchDocumentAtoms } from "#/document/atoms";
+import { workbenchDocumentAtoms } from "#document/atoms.ts";
 import {
   CITATION_EXAMPLE_ITEM,
   DEFAULT_CITATION_EXAMPLE,
-} from "#/render/citation-examples";
-import { isPartialContext } from "#/render/partial-preview";
+} from "#render/citation-examples.ts";
+import { isPartialContext } from "#render/partial-preview.ts";
 
 /** The template root a pane edits, which the Explorer and the preview follow. */
 export type TemplateRoot = "note" | "annotation" | "filename" | "citation";

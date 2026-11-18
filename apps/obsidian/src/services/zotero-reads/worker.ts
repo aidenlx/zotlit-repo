@@ -6,14 +6,14 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Logger, Ref } from "effect";
 import { RpcServer, RpcWorker } from "effect/rpc";
 
-import { layerLibraryLogPort, makePortLogger } from "@/lib/effect-log-port";
-import { prepareRead } from "@/services/database/read-source";
+import { layerLibraryLogPort, makePortLogger } from "@/lib/effect-log-port.ts";
+import { prepareRead } from "@/services/database/read-source.ts";
 
-import { handlersLayer } from "./handlers";
-import { WorkerInitSchema, ZoteroReads } from "./rpc";
-import { readSegmenterFromOpfs } from "./segmenter";
-import { layerSource } from "./source";
-import { launchWorker } from "./worker-launch";
+import { handlersLayer } from "./handlers.ts";
+import { WorkerInitSchema, ZoteroReads } from "./rpc.ts";
+import { readSegmenterFromOpfs } from "./segmenter.ts";
+import { layerSource } from "./source.ts";
+import { launchWorker } from "./worker-launch.ts";
 
 /**
  * The handlers and the source start from the settings the renderer sent with

@@ -12,8 +12,8 @@ import {
 import type { Events } from "obsidian";
 import { expect } from "vitest";
 
-import { LogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
+import { LogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
 
 // Each host event owns its failure; the next event still reaches the handler.
 it.effect.each(["failure", "defect", "throw"] as const)(

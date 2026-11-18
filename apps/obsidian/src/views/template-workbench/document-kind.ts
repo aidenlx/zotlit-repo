@@ -8,7 +8,7 @@ import type { WorkbenchDocumentKind } from "@zotlit/workbench/document";
 import {
   classifyTemplateFolderFile,
   inTemplateFolder,
-} from "@/services/template/defaults";
+} from "@/services/template/defaults.ts";
 
 /**
  * The kind the Template Workbench View opens `file` as. Every kind the

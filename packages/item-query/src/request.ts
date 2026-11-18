@@ -4,24 +4,24 @@ import { Effect } from "effect";
 
 import { parseIndexedKey } from "@zotlit/db";
 
-import type { QueryDataset } from "./dataset";
-import type { Diagnostic } from "./diagnose";
-import { ItemQueryError } from "./error";
-import type { ItemQueryErrorCode } from "./error";
-import type { ItemQueryFault } from "./fault";
-import type { FieldNeeds, QueryItem, SortKey } from "./fields";
-import type { FilterPlan } from "./filter-plan";
-import { formulaOrderFault, planFormulas } from "./formulas";
+import type { QueryDataset } from "./dataset.ts";
+import type { Diagnostic } from "./diagnose.ts";
+import { ItemQueryError } from "./error.ts";
+import type { ItemQueryErrorCode } from "./error.ts";
+import type { ItemQueryFault } from "./fault.ts";
+import type { FieldNeeds, QueryItem, SortKey } from "./fields.ts";
+import type { FilterPlan } from "./filter-plan.ts";
+import { formulaOrderFault, planFormulas } from "./formulas.ts";
 import type {
   FormulaFaultPolicy,
   FormulaSourceCheck,
   PlannedColumn,
   PlannedFormula,
-} from "./formulas";
-import type { NameDictionary } from "./name-dictionary";
-import { canGroup, planPath, readPath } from "./projection";
-import type { PlannedPath } from "./projection";
-import type { QueryClock } from "./query-clock";
+} from "./formulas.ts";
+import type { NameDictionary } from "./name-dictionary.ts";
+import { canGroup, planPath, readPath } from "./projection.ts";
+import type { PlannedPath } from "./projection.ts";
+import type { QueryClock } from "./query-clock.ts";
 
 /**
  * One Target Library, resolved by the caller. `libraryID` is local to the

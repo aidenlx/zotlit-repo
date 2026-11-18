@@ -4,15 +4,15 @@ import { ButtonComponent } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { batchGroups } from "@/services/batch-scope";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { batchGroups } from "@/services/batch-scope.ts";
 
-import { section } from "./dom";
-import { BatchModal, FlatManifest, HierarchyManifest } from "./index";
-import type { BatchProfileChoice } from "./index";
-import type { BatchRunControls, BatchRunResult } from "./index";
+import { section } from "./dom.ts";
+import { BatchModal, FlatManifest, HierarchyManifest } from "./index.ts";
+import type { BatchProfileChoice } from "./index.ts";
+import type { BatchRunControls, BatchRunResult } from "./index.ts";
 
 function observeButtons() {
   using stack = new DisposableStack();

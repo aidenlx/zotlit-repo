@@ -10,7 +10,7 @@ import type { TemplateRenderResult } from "@zotlit/workbench/render";
 // The Preview reads the editor's one render and the model's preview settings.
 import { m } from "@/paraglide/messages.js";
 
-import { renderInThread, open } from "./page-test-host";
+import { renderInThread, open } from "./page-test-host.tsx";
 
 describe("preview scheduling", () => {
   function choose(scope: HTMLElement, label: string, value: string) {

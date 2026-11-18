@@ -4,7 +4,7 @@ import { isMap, isNode, isScalar, parseDocument } from "yaml";
 import {
   literatureNoteTemplateManifestRange,
   parseLiteratureNoteTemplate,
-} from "./literature-note-template";
+} from "./literature-note-template.ts";
 
 /** @throws When either document is invalid, including orphaned aliases. */
 export function updateLiteratureNoteTemplateManifestKey(

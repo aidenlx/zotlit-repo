@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { QueryViewRow } from "@/services/item-query/query-view";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
 
-import { parseQueryFile } from "./query-file";
-import { resultTable, toCSV, toHTML, toTSV } from "./table";
-import { viewProperties } from "./view-properties";
+import { parseQueryFile } from "./query-file.ts";
+import { resultTable, toCSV, toHTML, toTSV } from "./table.ts";
+import { viewProperties } from "./view-properties.ts";
 
 /** The columns of `paths`, as a view of Items with no Display Names names them. */
 const columns = (paths: readonly string[]) => {

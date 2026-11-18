@@ -7,7 +7,7 @@ import type {
   ContractIR,
   ContractReference,
   ContractRootIR,
-} from "#contract/ir";
+} from "#contract/ir.ts";
 
 import type { ContractRoot } from "../../src/contract/roots.ts";
 import { reachableTypes } from "./json-schema.ts";

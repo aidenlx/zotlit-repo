@@ -1,29 +1,29 @@
 // A Welcome test host over in-memory Obsidian sources and controllable Effect services.
 import { Effect, Layer, Stream } from "effect";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { layerQueryClients } from "@/services/query-client/service";
-import { Release } from "@/services/release/service";
-import { layerPluginSettings } from "@/services/settings/service";
-import { TemplateMigration } from "@/services/template/migration";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { layerQueryClients } from "@/services/query-client/service.ts";
+import { Release } from "@/services/release/service.ts";
+import { layerPluginSettings } from "@/services/settings/service.ts";
+import { TemplateMigration } from "@/services/template/migration.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadsEvent,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/service.ts";
 
-import { connectionLifecycleAtom } from "./connection";
-import { holdWelcomeModel, makeWelcomeModel } from "./model";
+import { connectionLifecycleAtom } from "./connection.ts";
+import { holdWelcomeModel, makeWelcomeModel } from "./model.ts";
 
 export async function waitFor(assertion: () => void): Promise<void> {
   for (let attempt = 0; ; attempt += 1) {

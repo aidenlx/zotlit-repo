@@ -10,7 +10,7 @@
 // editions themselves: the router (client and server), the `/llms.mdx` route
 // handler, the build's prerender list, and the Worker's Accept negotiation.
 
-import { changelogFeedRoute } from "./shared.js";
+import { changelogFeedRoute } from "./shared.ts";
 
 /** The content sections that publish a Markdown edition. */
 export const markdownSections = ["docs", "changelog", "blog", "learn"] as const;

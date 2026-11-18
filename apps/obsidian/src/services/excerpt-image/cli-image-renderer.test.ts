@@ -1,7 +1,10 @@
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
-import { runInElectron, testElectron } from "./__fixtures__/electron-renderer";
+import {
+  runInElectron,
+  testElectron,
+} from "./__fixtures__/electron-renderer.ts";
 
 it.skipIf(!testElectron)(
   "answers Annotation images and diagnostics in the Electron renderer",

@@ -10,24 +10,24 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openScope } from "@/lib/effect-scope";
-import * as m from "@/lib/i18n/generated/messages";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { stateEditor } from "@/views/annot-view/__fixtures__/editor";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openScope } from "@/lib/effect-scope.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
 
-import type { AnnotationHit } from "./annotation-search";
-import { AnnotationEditorSuggest } from "./annotation-suggest";
-import type { AnnotationSuggestDeps } from "./annotation-suggest";
+import type { AnnotationHit } from "./annotation-search.ts";
+import { AnnotationEditorSuggest } from "./annotation-suggest.ts";
+import type { AnnotationSuggestDeps } from "./annotation-suggest.ts";
 import {
   annotationTriggerError,
   annotationTriggerProblem,
   resolveAnnotationTrigger,
-} from "./annotation-trigger";
-import { resolveCitationTrigger } from "./editor-suggest";
+} from "./annotation-trigger.ts";
+import { resolveCitationTrigger } from "./editor-suggest.ts";
 
 /** The Fixture's highlight on the Rougier PDF, as the search finds it. */
 const hit: AnnotationHit = {

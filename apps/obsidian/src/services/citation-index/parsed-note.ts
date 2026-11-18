@@ -5,13 +5,13 @@ import type { TFile } from "obsidian";
 import { rewriteScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import { Vault } from "@/lib/obsidian-vault";
-import { CitationParse } from "@/services/citation-parse/service";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
 
-import { occurrencesEqual } from "./scan";
-import type { CitationOccurrence } from "./scan";
-import type { NoteScanRecord } from "./scan-note";
-import type { FileScan } from "./store";
+import type { NoteScanRecord } from "./scan-note.ts";
+import { occurrencesEqual } from "./scan.ts";
+import type { CitationOccurrence } from "./scan.ts";
+import type { FileScan } from "./store.ts";
 
 export function annotationCitations(
   scan: Pick<FileScan, "annotations"> | null,

@@ -7,10 +7,10 @@ import {
 } from "@logtape/logtape";
 import type { LogLevel, Sink, TextFormatter } from "@logtape/logtape";
 
-import { MAIN_BUNDLE_NAME } from "@/constant";
-import { prefs } from "@/prefs";
+import { MAIN_BUNDLE_NAME } from "@/constant.ts";
+import { prefs } from "@/prefs/index.ts";
 
-import { logToBrowserConsole } from "./zotero-log";
+import { logToBrowserConsole } from "./zotero-log.js";
 
 const LOG_SOURCE_NAME = `zotlit-${MAIN_BUNDLE_NAME}`;
 

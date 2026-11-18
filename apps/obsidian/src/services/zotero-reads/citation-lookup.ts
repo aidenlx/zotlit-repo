@@ -11,19 +11,19 @@ import {
 } from "@zotlit/db";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
-import { withLogCategory } from "@/lib/effect-log-category";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
 import type {
   CitationLookupRequest,
   CitationLookupWireAnswer,
   AnnotationParent,
-} from "@/services/citation-index/lookup";
-import { CitekeySnapshot } from "@/services/citation-index/snapshot";
-import { resolveLibraryScope } from "@/services/library-scope/scope";
-import type { LibraryScope } from "@/services/library-scope/scope";
+} from "@/services/citation-index/lookup.ts";
+import { CitekeySnapshot } from "@/services/citation-index/snapshot.ts";
+import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 
-import { toDbUnavailable } from "./connection";
-import type { Connection } from "./connection";
-import type { DbUnavailable } from "./rpc";
+import { toDbUnavailable } from "./connection.ts";
+import type { Connection } from "./connection.ts";
+import type { DbUnavailable } from "./rpc.ts";
 
 export const CITEKEY_WINDOW = 1000;
 

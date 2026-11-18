@@ -3,19 +3,19 @@ import { expect, it, vi } from "vitest";
 
 import * as db from "@zotlit/db";
 
-import { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
-import { makeCitationLookup } from "./citation-lookup";
-import { Connection, layerRcRef } from "./connection";
-import type { HandlersOptions } from "./handlers";
-import type { ZoteroReadsClient } from "./in-process";
+import { makeCitationLookup } from "./citation-lookup.ts";
+import { Connection, layerRcRef } from "./connection.ts";
+import type { HandlersOptions } from "./handlers.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
   worksSql,
-} from "./test-utils";
+} from "./test-utils.ts";
 
 const seed =
   () => `${seedWorksSql([{ itemID: 1, key: "PERSONAL", citationKey: "shared" }])}

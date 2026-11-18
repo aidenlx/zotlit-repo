@@ -3,7 +3,7 @@
 // path is on the docs site; a host joins it to the site it links to. The
 // community link is the host's own `communityUrl`, which the Problems area
 // offers too.
-import type { WorkbenchMessageLabel } from "./messages";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
 
 interface HelpPage {
   readonly label: WorkbenchMessageLabel;

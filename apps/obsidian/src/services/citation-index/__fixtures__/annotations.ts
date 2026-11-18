@@ -1,4 +1,4 @@
-import { seedWorksSql, worksSql } from "@/services/zotero-reads/test-utils";
+import { seedWorksSql, worksSql } from "@/services/zotero-reads/test-utils.ts";
 
 export const annotationRows = `${seedWorksSql([
   { itemID: 1, key: "ABCD2345", citationKey: "doe2024" },

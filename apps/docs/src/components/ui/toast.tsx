@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button.tsx";
+import { cn } from "@/lib/cn.ts";
 import { m } from "@/paraglide/messages.js";
 
 const toast = ToastPrimitive.createToastManager();

@@ -11,7 +11,10 @@
     "isolatedModules": true,
     "isolatedDeclarations": true,
     // Node runs workspace TypeScript by stripping its types, so every
-    // construct must erase to JavaScript.
-    "erasableSyntaxOnly": true
+    // relative import names its file and every construct erases to JavaScript.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    // Type checking only: the app bundlers compile the source.
+    "noEmit": true
   }
 }

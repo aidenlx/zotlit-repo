@@ -1,12 +1,12 @@
 import { expect, it } from "vitest";
 
-import { redPng } from "./__fixtures__/png";
+import { redPng } from "./__fixtures__/png.ts";
 import {
   chromiumLosslessWebp,
   paddedWebp,
   sizedWebp,
-} from "./__fixtures__/webp";
-import { usableExcerptWebp } from "./webp";
+} from "./__fixtures__/webp.ts";
+import { usableExcerptWebp } from "./webp.ts";
 
 function offsetOf(bytes: Uint8Array, fourcc: string): number {
   const target = Buffer.from(fourcc, "ascii");

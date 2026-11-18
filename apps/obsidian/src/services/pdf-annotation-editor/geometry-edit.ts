@@ -8,8 +8,8 @@ import type {
   PdfTextPosition,
 } from "@zotlit/db";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import { writePosition } from "@/services/annotation-repository/write";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import { writePosition } from "@/services/annotation-repository/write.ts";
 
 import {
   anchorCorner,
@@ -17,9 +17,9 @@ import {
   turnAbout,
   turnBy,
   turnedBounds,
-} from "./free-text-layout";
-import type { Corner, FitMode, TextMeasure } from "./free-text-layout";
-import type { Point } from "./hit-test";
+} from "./free-text-layout.ts";
+import type { Corner, FitMode, TextMeasure } from "./free-text-layout.ts";
+import type { Point } from "./hit-test.ts";
 
 /**
  * A Mark Handle, by the edges of the position's bounding rect it moves, named

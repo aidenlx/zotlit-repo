@@ -2,8 +2,11 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
-import { runInElectron, testElectron } from "./__fixtures__/electron-renderer";
-import type { RefreshReport } from "./refresh.browser-test";
+import {
+  runInElectron,
+  testElectron,
+} from "./__fixtures__/electron-renderer.ts";
+import type { RefreshReport } from "./refresh.browser-test.ts";
 
 const HOST = resolve(import.meta.dirname, "__fixtures__/renderer-host.ts");
 

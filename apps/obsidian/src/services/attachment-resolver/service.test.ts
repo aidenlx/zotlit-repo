@@ -5,16 +5,16 @@ import { expect } from "vitest";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
 
-import { toInstant } from "@/lib/effect-clock";
+import { toInstant } from "@/lib/effect-clock.ts";
 
 import {
   DATA_DIR,
   nextAnnouncement,
   openResolver,
   resolverFixture,
-} from "./__fixtures__";
-import type { ResolverHarnessOptions } from "./__fixtures__";
-import { buildPathIndex } from "./service";
+} from "./__fixtures__.ts";
+import type { ResolverHarnessOptions } from "./__fixtures__.ts";
+import { buildPathIndex } from "./service.ts";
 
 // The Fixture's own attachment rows are the oracle: the same item ids, keys and
 // parents it builds, with its three roots given literal paths. Two rows depart

@@ -3,13 +3,13 @@ import { Effect, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { filterTag } from "@/lib/effect-stream";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { viewRuntime, held } from "@/lib/view-atoms";
+import { filterTag } from "@/lib/effect-stream.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { viewRuntime, held } from "@/lib/view-atoms.ts";
 
-import { Profile } from "./service";
-import type { ProfileState, LiteratureNoteProfile } from "./service";
+import { Profile } from "./service.ts";
+import type { ProfileState, LiteratureNoteProfile } from "./service.ts";
 
 export const profileStateAtom = held(
   Stream.unwrap(Effect.map(Profile, (service) => service.changes)),

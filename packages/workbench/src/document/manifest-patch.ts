@@ -7,7 +7,7 @@ import type { Document, Node, Pair, YAMLMap } from "yaml";
 
 import { literatureNoteTemplateManifestRange } from "@zotlit/templates/facade";
 
-import { scalarSource, scalarStyle } from "./scalar-source";
+import { scalarSource, scalarStyle } from "./scalar-source.ts";
 
 /**
  * The value kinds a form control writes into the manifest. A multi-line YAML

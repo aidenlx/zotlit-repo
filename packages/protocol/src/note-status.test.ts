@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { noteStatusResponseSchema } from "./note-status";
+import { noteStatusResponseSchema } from "./note-status.ts";
 
 describe("noteStatusResponseSchema", () => {
   it("parses a valid payload", () => {

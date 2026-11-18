@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { registerCitationsCli } from "./register";
+import { registerCitationsCli } from "./register.ts";
 
 it.effect("publishes all citation commands and their parameter help", () =>
   Effect.gen(function* () {

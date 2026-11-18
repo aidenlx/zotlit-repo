@@ -10,7 +10,7 @@ import {
 // @vitest-environment happy-dom
 import { m } from "@/paraglide/messages.js";
 
-import { ResultSheet, parseNote } from "./reading-view";
+import { ResultSheet, parseNote } from "./reading-view.tsx";
 
 // The rendering map is the only module that imports the parser packages' node
 // types, so the tree shape reaches this test through `parseNote` alone.

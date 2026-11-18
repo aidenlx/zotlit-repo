@@ -2,35 +2,38 @@
 import type { Scope } from "effect";
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { ParseClient } from "@/services/citation-parse/client";
-import { CitationParse } from "@/services/citation-parse/service";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { ParseClient } from "@/services/citation-parse/client.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
 import {
   layerLibraryScope,
   LibraryScope,
-} from "@/services/library-scope/service";
-import type { LibraryScopeState } from "@/services/library-scope/service";
-import { NoteIndex } from "@/services/note-index/service";
+} from "@/services/library-scope/service.ts";
+import type { LibraryScopeState } from "@/services/library-scope/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
 import {
   layerQueryClients,
   QueryClients,
-} from "@/services/query-client/service";
+} from "@/services/query-client/service.ts";
 import {
   layerPluginSettings,
   PluginSettings,
-} from "@/services/settings/service";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/settings/service.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 
-import { CitationLookup, layerCitationLookup } from "./lookup-service";
-import { CitationIndex, layerCitationIndex } from "./service";
-import type { CitekeyStore } from "./store";
-import type { LibraryScopeStub } from "./test-harness";
+import { CitationLookup, layerCitationLookup } from "./lookup-service.ts";
+import { CitationIndex, layerCitationIndex } from "./service.ts";
+import type { CitekeyStore } from "./store.ts";
+import type { LibraryScopeStub } from "./test-harness.ts";
 
 export async function citationLookupFixture(
   deps: {

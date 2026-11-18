@@ -4,9 +4,9 @@
 // share no source today (v2 sources live under `/docs`, v1 sources never do),
 // so the order only guards a v2 move against a future v1 wildcard.
 
-import type { RedirectRule } from "./v1-redirects.js";
-import { buildV1Redirects, renderRedirectsFile } from "./v1-redirects.js";
-import { buildV2Redirects, V2_MOVES } from "./v2-redirects.js";
+import type { RedirectRule } from "./v1-redirects.ts";
+import { buildV1Redirects, renderRedirectsFile } from "./v1-redirects.ts";
+import { buildV2Redirects, V2_MOVES } from "./v2-redirects.ts";
 
 /** Every redirect rule, in match order. */
 export function buildRedirects(moves = V2_MOVES): RedirectRule[] {

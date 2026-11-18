@@ -2,11 +2,11 @@
 
 import type { SettingDefinition } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { PandocEngine } from "@/services/pandoc/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { managedBinaryDefinition } from "./managed-binary";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { managedBinaryDefinition } from "./managed-binary.ts";
 
 /** The engine row, in the Pandoc engine's own words. */
 export function pandocEngineDefinition(

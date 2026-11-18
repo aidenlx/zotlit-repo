@@ -1,7 +1,7 @@
 // The typed reason for a stop the user chose, apart from the unload interrupt.
 import { Schema } from "effect";
 
-import { AbortError } from "@/lib/abort-error";
+import { AbortError } from "@/lib/abort-error.ts";
 
 /**
  * The user stopped the work: they closed the dialog it ran for. It is no

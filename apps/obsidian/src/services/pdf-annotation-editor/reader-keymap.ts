@@ -13,7 +13,7 @@
 import { Scope } from "obsidian";
 import type { App, Modifier } from "obsidian";
 
-import { inTextEntry } from "./capability-affordance";
+import { inTextEntry } from "./capability-affordance.ts";
 
 /** Which way one keystroke steps through the Annotation History. */
 export type HistoryVerb = "undo" | "redo";

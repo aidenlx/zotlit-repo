@@ -1,37 +1,37 @@
-import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service";
-import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service";
+import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service.ts";
+import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service.ts";
 // The real note importer layer over a test's Profile, Note Index, Template,
 // Zotero paths, Obsidian host and excerpt preparation.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { FileManagerSource } from "@/lib/obsidian-file-manager";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
-import type { VaultSource } from "@/lib/obsidian-vault";
-import type { WorkspaceSource } from "@/lib/obsidian-workspace";
-import { layerAttachmentImportOver } from "@/services/attachment-import/__fixtures__";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { FileManagerSource } from "@/lib/obsidian-file-manager.ts";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
+import type { VaultSource } from "@/lib/obsidian-vault.ts";
+import type { WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+import { layerAttachmentImportOver } from "@/services/attachment-import/__fixtures__.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
   layerExcerptPreparation,
-} from "@/services/excerpt-image/prepare";
+} from "@/services/excerpt-image/prepare.ts";
 import type {
   NoteExcerptOptions,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare";
-import { layerNoteImporter, NoteImporter } from "@/services/note-import/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
-import type { TemplateOperations } from "@/services/template/service";
-import type { Settings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+} from "@/services/excerpt-image/prepare.ts";
+import { layerNoteImporter, NoteImporter } from "@/services/note-import/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
+import type { Settings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 /**
  * The real Attachment Import over the importer's vault, with these settings,

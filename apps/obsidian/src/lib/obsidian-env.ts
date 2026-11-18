@@ -4,7 +4,7 @@ import { Context, Effect, Layer } from "effect";
 import { apiVersion, getLanguage, Platform } from "obsidian";
 import type { FileSystemAdapter } from "obsidian";
 
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
 /** Obsidian's platform flags, as `Platform` holds them. */
 export type ObsidianPlatform = Readonly<typeof Platform>;

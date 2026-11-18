@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-import { LearnHeader } from "@/components/learn/learn-header";
-import { RedirectNotice } from "@/components/redirect-notice";
+import { LearnHeader } from "@/components/learn/learn-header.tsx";
+import { RedirectNotice } from "@/components/redirect-notice.tsx";
 
 export const Route = createFileRoute("/learn")({
   component: LearnShell,

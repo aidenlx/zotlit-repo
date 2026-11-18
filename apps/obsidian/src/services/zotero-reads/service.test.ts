@@ -2,13 +2,13 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Queue, Stream } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { readsFixture } from "./__fixtures__";
-import { layerRcRef } from "./connection";
-import { DbUnavailable } from "./rpc";
-import type { ChangeEvent } from "./rpc";
-import { inProcessClient, memoryOpener } from "./test-utils";
+import { readsFixture } from "./__fixtures__.ts";
+import { layerRcRef } from "./connection.ts";
+import { DbUnavailable } from "./rpc.ts";
+import type { ChangeEvent } from "./rpc.ts";
+import { inProcessClient, memoryOpener } from "./test-utils.ts";
 
 const versioned = (open: number) => `
   insert into libraries (libraryID, type, version, clientVersion)

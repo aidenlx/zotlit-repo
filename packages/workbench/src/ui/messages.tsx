@@ -2,7 +2,7 @@
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
-import type { WorkbenchMessages } from "./generated/messages";
+import type { WorkbenchMessages } from "./generated/messages.ts";
 
 const MessagesContext = createContext<WorkbenchMessages | null>(null);
 

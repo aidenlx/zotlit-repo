@@ -14,32 +14,32 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import { answerOf, makeViewRunner } from "@/lib/view-runner";
-import type { SearchHit } from "@/services/item-lookup/service";
-import type { TemplateDataLoadResult } from "@/services/template-workbench/data";
-import { workbenchAnnotationChoice } from "@/views/template-workbench/item-choice";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { answerOf, makeViewRunner } from "@/lib/view-runner.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
+import { workbenchAnnotationChoice } from "@/views/template-workbench/item-choice.ts";
 
-import { makeExplorerHost, waitFor } from "./__fixtures__";
+import { makeExplorerHost, waitFor } from "./__fixtures__.ts";
 import type {
   ExplorerHost,
   ExplorerReads,
   ExplorerSessionHandle,
-} from "./__fixtures__";
-import { ExplorerActionsContext } from "./actions";
-import type { ExplorerActions } from "./actions";
-import { Explorer } from "./Explorer";
+} from "./__fixtures__.ts";
+import { ExplorerActionsContext } from "./actions.ts";
+import type { ExplorerActions } from "./actions.ts";
+import { Explorer } from "./Explorer.tsx";
 import {
   annotationIndexedKey,
   ExplorerModelContext,
   setCollapsedSections,
   setFilter,
   toggleNode,
-} from "./model";
-import type { ExplorerModel } from "./model";
+} from "./model.ts";
+import type { ExplorerModel } from "./model.ts";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 /** What the next Item list's read of the recent Items answers. */

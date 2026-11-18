@@ -4,10 +4,10 @@ import type { RpcMessage } from "effect/rpc";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { cancellableParse, makeParseHarness } from "./__fixtures__";
-import { ParseWorkerDied } from "./client";
-import { makeRecoveringParseClient } from "./recovering-client";
-import { connectParseWorker } from "./worker-host";
+import { cancellableParse, makeParseHarness } from "./__fixtures__.ts";
+import { ParseWorkerDied } from "./client.ts";
+import { makeRecoveringParseClient } from "./recovering-client.ts";
+import { connectParseWorker } from "./worker-host.ts";
 
 vi.mock("virtual:citation-parse-worker", () => ({ default: "" }));
 

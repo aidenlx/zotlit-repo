@@ -10,12 +10,12 @@
 // @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
 import { setTooltip } from "obsidian";
 
-import { observeResize } from "@/lib/observe-resize";
-import { paneDivider } from "@/lib/pane-divider";
-import { pointerDrag } from "@/lib/pointer-drag";
-import type { PointerDrag } from "@/lib/pointer-drag";
+import { observeResize } from "@/lib/observe-resize.ts";
+import { paneDivider } from "@/lib/pane-divider.ts";
+import { pointerDrag } from "@/lib/pointer-drag.ts";
+import type { PointerDrag } from "@/lib/pointer-drag.ts";
 
-import { cardWidthBounds } from "./document";
+import { cardWidthBounds } from "./document.ts";
 
 /** How far one arrow key moves the edge, in pixels. */
 const STEP = 16;

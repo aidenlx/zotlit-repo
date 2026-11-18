@@ -1,12 +1,12 @@
 // Literature Note file-menu entry that opens the Item's PDF Attachment(s).
 
-import { openAttachments } from "@/lib/attachment-open";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { FileMenuSegment } from "@/services/file-menu";
+import { openAttachments } from "@/lib/attachment-open.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
 
-import type { AttachmentOpenDeps } from "./actions";
-import { openGesture, pdfPickerReader } from "./actions";
+import type { AttachmentOpenDeps } from "./actions.ts";
+import { openGesture, pdfPickerReader } from "./actions.ts";
 
 /**
  * The `open-pdf` entry on a Literature Note's file menu. A pointer click shows

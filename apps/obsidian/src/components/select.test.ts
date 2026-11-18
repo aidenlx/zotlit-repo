@@ -6,12 +6,12 @@ import { act } from "preact/test-utils";
 import { createElement as h } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { pressTop } from "@/lib/__fixtures__/keymap";
-import { AppContext } from "@/lib/app-context";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
+import { pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
-import { Select } from "./select";
-import type { SelectOption } from "./select";
+import { Select } from "./select.tsx";
+import type { SelectOption } from "./select.tsx";
 
 vi.mock("obsidian", async (importOriginal) => ({
   ...(await importOriginal<typeof import("obsidian")>()),

@@ -1,7 +1,7 @@
 // Template context for input, using each language’s delimiter rules.
-import { etaRange } from "./eta-syntax";
-import { liquidCodeRange, liquidRanges } from "./liquid-ranges";
-import type { SuggestionConfig } from "./suggestions";
+import { etaRange } from "./eta-syntax.ts";
+import { liquidCodeRange, liquidRanges } from "./liquid-ranges.ts";
+import type { SuggestionConfig } from "./suggestions.ts";
 
 type Context = "text" | "code" | "literal";
 

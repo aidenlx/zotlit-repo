@@ -2,10 +2,10 @@
 
 import type { Attachment } from "@zotlit/db";
 
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
-import type { ObsidianOpenableAttachment } from "./resolve";
-import { toObsidianOpenableAttachments } from "./resolve";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
+import { toObsidianOpenableAttachments } from "./resolve.ts";
 
 /**
  * Attachments already fetched from the database, narrowed to the

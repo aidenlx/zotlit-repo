@@ -18,23 +18,23 @@
 // @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
 import { useMemo, useRef, useState } from "react";
 
+import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
 import {
   Chooser,
   chooserIconButton,
   useChooserOpenPage,
   useChooserPage,
-} from "@/components/chooser";
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic";
-import { Icon } from "@/components/obsidian/icon";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
+} from "@/components/chooser.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { ConfigureViewFields, viewActions } from "./configure-view";
-import { layoutOf, layoutsFor } from "./layouts";
-import { useQueryViewState } from "./model";
-import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button";
-import type { QueryView } from "./view";
+import { ConfigureViewFields, viewActions } from "./configure-view.tsx";
+import { layoutOf, layoutsFor } from "./layouts.ts";
+import { useQueryViewState } from "./model.ts";
+import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button.tsx";
+import type { QueryView } from "./view.tsx";
 
 /** The drag payload of a view row: its place in the file's list. */
 const VIEW_ROW_DRAG_TYPE = "application/x-zotlit-query-view";

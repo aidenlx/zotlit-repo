@@ -3,16 +3,16 @@ import { createServerFn } from "@tanstack/react-start";
 import type { Root } from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 
-import { DocsSubnav } from "@/components/docs-subnav";
+import { DocsSubnav } from "@/components/docs-subnav.tsx";
 import {
   Sidebar,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
-} from "@/layouts/docs/slots/sidebar";
-import { validateSiteLocale } from "@/lib/i18n";
-import { baseOptions } from "@/lib/layout.shared";
-import { source } from "@/lib/source";
+} from "@/layouts/docs/slots/sidebar.tsx";
+import { validateSiteLocale } from "@/lib/i18n.ts";
+import { baseOptions } from "@/lib/layout.shared.tsx";
+import { source } from "@/lib/source.ts";
 import { getLocale } from "@/paraglide/runtime.js";
 
 // The sidebar tree crosses the server boundary as JSON. Its `name` and `icon`

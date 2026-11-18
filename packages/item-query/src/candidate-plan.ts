@@ -12,10 +12,10 @@ import type {
   ItemQueryReaderError,
 } from "@zotlit/db/item-query";
 
-import { isStoredStringField } from "./fields";
-import type { FilterNode } from "./filter-plan";
-import { lowerIndexedKeySelection } from "./indexed-key-selection";
-import type { TargetLibrary } from "./request";
+import { isStoredStringField } from "./fields.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import { lowerIndexedKeySelection } from "./indexed-key-selection.ts";
+import type { TargetLibrary } from "./request.ts";
 
 /** How the engine gets a candidate set for a filter. */
 export type CandidatePlan<Leaf = CandidateLeaf> =

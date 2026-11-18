@@ -4,9 +4,9 @@ import { around } from "monkey-around";
 import { Setting } from "obsidian";
 import type { GraphControlSection, GraphEngine, GraphOptions } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
-import { targetOnce } from "./install";
+import { targetOnce } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 

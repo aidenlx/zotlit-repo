@@ -10,19 +10,19 @@ import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
 
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope";
+import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import {
   answer,
   answerCustomFields,
   answerView,
   QueryOutputError,
-} from "./answer";
-import type { QueryWriter } from "./answer";
-import { diagnostic, failure } from "./contract";
-import { createTrace, finishTrace } from "./trace";
-import type { WorkerMeasurement } from "./trace";
-import type { QueryAnswer, QueryJob } from "./worker-protocol";
+} from "./answer.ts";
+import type { QueryWriter } from "./answer.ts";
+import { diagnostic, failure } from "./contract.ts";
+import { createTrace, finishTrace } from "./trace.ts";
+import type { WorkerMeasurement } from "./trace.ts";
+import type { QueryAnswer, QueryJob } from "./worker-protocol.ts";
 
 /** The connection of one Query Job and the identity its envelope reports. */
 export interface QueryJobEnv {

@@ -12,7 +12,7 @@ import {
   migrateV8ToV9,
   migrateV9ToV10,
   migrateV10ToV11,
-} from "./migrate";
+} from "./migrate.ts";
 
 describe("migrateLegacyV0", () => {
   it("returns an empty object for non-plain inputs", () => {

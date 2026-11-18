@@ -21,7 +21,7 @@ import {
   LogCategory,
   LogTimestamp,
   withLogCategory,
-} from "@/lib/effect-log-category";
+} from "@/lib/effect-log-category.ts";
 
 /** The lowest worker log level a [`ReadsConfig`] can select. */
 export type PortLogLevel =

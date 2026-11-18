@@ -1,6 +1,6 @@
 // Hand-written types for the pinned `structure.js` copy, which ships as JS.
 
-import type { StructuredChar, ZoteroChar } from "@/chars";
+import type { StructuredChar, ZoteroChar } from "#chars.ts";
 
 /**
  * Deduplicates a page's characters on `c` plus its rectangle, regroups them

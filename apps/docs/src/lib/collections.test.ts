@@ -91,7 +91,7 @@ export const fixtureSchema = v.object({ ...docsSchema.entries, description: v.op
     throw new Error("The collection test requires Vite's SSR runner.");
   }
   const load = () =>
-    ssr.runner.import<typeof import("./collections")>("/collections.ts");
+    ssr.runner.import<typeof import("./collections.ts")>("/collections.ts");
   const collections = await load();
   expect(collections.docs.docs.map((page) => page.title)).toEqual(["Fixture"]);
   expect(collections.docs.getMeta("meta.json")?.title).toBe("Fixture sidebar");

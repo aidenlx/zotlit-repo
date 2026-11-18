@@ -2,9 +2,9 @@ import type { Effect } from "effect";
 import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
 
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { modalAnswer } from "@/lib/modal-answer";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { modalAnswer } from "@/lib/modal-answer.ts";
 
 export interface ConfirmOptions {
   title: string;

@@ -13,11 +13,11 @@ import {
   SampleSuggester,
 } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import { m } from "@/paraglide/messages.js";
 
-import type { SampleItem } from "./fields";
-import { itemChoice } from "./page-model";
+import type { SampleItem } from "./fields.ts";
+import { itemChoice } from "./page-model.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

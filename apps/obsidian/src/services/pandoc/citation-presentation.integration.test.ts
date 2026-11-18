@@ -3,8 +3,8 @@
 
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
 
 import {
   EXPORT_BODY,
@@ -12,7 +12,7 @@ import {
   openCitationVault,
   SECOND_CITATION_KEY,
   TIMEOUT,
-} from "./__fixtures__/citation-surfaces";
+} from "./__fixtures__/citation-surfaces.ts";
 
 const VAULT_STYLE_ID = "http://www.zotero.org/styles/vault-prose";
 const NOTE_STYLE_ID = "http://www.zotero.org/styles/note-numbered";

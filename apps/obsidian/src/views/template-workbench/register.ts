@@ -2,30 +2,33 @@ import "./style.css";
 import { MarkdownView, Platform, TFile } from "obsidian";
 import type { App, Plugin, WorkspaceLeaf } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { profileRecoveryNotice } from "@/lib/profile-recovery";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { FileMenuSegment } from "@/services/file-menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type {
   DefaultProfileTarget,
   NativeProfileTarget,
-} from "@/services/local-bridge/customize";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+} from "@/services/local-bridge/customize.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 import {
   profileStateAtom,
   fileProfileValueAtom,
-} from "@/services/profile/atoms";
-import { templateFolderAtom } from "@/services/settings/atoms";
+} from "@/services/profile/atoms.ts";
+import { templateFolderAtom } from "@/services/settings/atoms.ts";
 
-import { explainNoOpen, startTemplateWorkbenchAction } from "./actions";
-import type { WorkbenchActionDeps, WorkbenchOpen } from "./actions";
-import { templateDocumentKind } from "./document-kind";
-import { noteEmbedPlaceholders } from "./embed-placeholder";
-import { customizeProfile, openTemplateWorkbench } from "./open";
-import type { WorkbenchOpenOptions } from "./open";
-import { TEMPLATE_WORKBENCH_VIEW_TYPE, TemplateWorkbenchView } from "./view";
-import type { TemplateWorkbenchDeps } from "./view";
+import { explainNoOpen, startTemplateWorkbenchAction } from "./actions.ts";
+import type { WorkbenchActionDeps, WorkbenchOpen } from "./actions.ts";
+import { templateDocumentKind } from "./document-kind.ts";
+import { noteEmbedPlaceholders } from "./embed-placeholder.ts";
+import { customizeProfile, openTemplateWorkbench } from "./open.ts";
+import type { WorkbenchOpenOptions } from "./open.ts";
+import {
+  TEMPLATE_WORKBENCH_VIEW_TYPE,
+  TemplateWorkbenchView,
+} from "./view.tsx";
+import type { TemplateWorkbenchDeps } from "./view.tsx";
 
 type RegistrationDeps = TemplateWorkbenchDeps &
   WorkbenchActionDeps & {

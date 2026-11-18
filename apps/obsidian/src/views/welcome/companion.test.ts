@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it } from "vitest";
 
-import { makeWelcomeHost, waitFor } from "./__fixtures__";
-import { companionInstalledAtom } from "./companion";
+import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
+import { companionInstalledAtom } from "./companion.ts";
 
 it("reads ZotLit Companion as installed from the Zotero add-on list", async () => {
   await using host = await makeWelcomeHost({ companionInstalled: () => true });

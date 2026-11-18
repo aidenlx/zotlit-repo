@@ -1,18 +1,18 @@
 import { PluginSettingTab } from "obsidian";
 import type { Plugin, SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { advancedPageItems } from "./advanced";
-import { attachmentPageItems } from "./attachments";
-import { citationsPageItems } from "./citations";
-import type { SettingsControlKey, SettingTabContext } from "./context";
-import { controlValue, writeControlValue } from "./controls";
-import { noteImportPageItems } from "./note-import";
-import { literatureNoteItems, profilesPage } from "./profiles";
-import { readerPageItems } from "./reader";
-import { resourcesGroup } from "./resources";
-import { zoteroPageItems } from "./zotero";
+import { advancedPageItems } from "./advanced.ts";
+import { attachmentPageItems } from "./attachments.ts";
+import { citationsPageItems } from "./citations.ts";
+import type { SettingsControlKey, SettingTabContext } from "./context.ts";
+import { controlValue, writeControlValue } from "./controls.ts";
+import { noteImportPageItems } from "./note-import.ts";
+import { literatureNoteItems, profilesPage } from "./profiles.ts";
+import { readerPageItems } from "./reader.ts";
+import { resourcesGroup } from "./resources.ts";
+import { zoteroPageItems } from "./zotero.ts";
 
 /**
  * ZotLit's declarative tab. It holds no state of its own: every callback

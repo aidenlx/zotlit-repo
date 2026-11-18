@@ -8,8 +8,8 @@ import {
   layerSegmenterJieba,
   layerSegmenterNone,
   Segmenter,
-} from "./segmenter";
-import type { SegmenterUnavailable } from "./segmenter";
+} from "./segmenter.ts";
+import type { SegmenterUnavailable } from "./segmenter.ts";
 
 /** An installed Chinese Segmenter binary: the file `<directory>/<name>` of a binary store. */
 export interface SegmenterBinary {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { releaseNoteUrl } from "./constants";
+import { releaseNoteUrl } from "./constants.ts";
 
 describe("releaseNoteUrl", () => {
   it("builds the per-version changelog URL with the raw semver slug", () => {

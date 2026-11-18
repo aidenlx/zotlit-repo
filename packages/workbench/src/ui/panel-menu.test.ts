@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { INITIAL_PANELS } from "./panel-layout";
-import type { WorkbenchPanels } from "./panel-layout";
-import { panelSizeMenus } from "./panel-menu";
-import { m } from "./test-messages";
+import { INITIAL_PANELS } from "./panel-layout.ts";
+import type { WorkbenchPanels } from "./panel-layout.ts";
+import { panelSizeMenus } from "./panel-menu.ts";
+import { m } from "./test-messages.ts";
 
 const BOTH: WorkbenchPanels = {
   ...INITIAL_PANELS,

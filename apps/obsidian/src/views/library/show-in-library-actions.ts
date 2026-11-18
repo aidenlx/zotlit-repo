@@ -4,16 +4,16 @@
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import type { FileMenuSegment } from "@/services/file-menu";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
-import { ShowInLibrary } from "./show-in-library";
+import { ShowInLibrary } from "./show-in-library.ts";
 
 /** The "Show item in Zotero library" command, on the active Literature Note. */
 export const layerShowInLibraryActions: Layer.Layer<

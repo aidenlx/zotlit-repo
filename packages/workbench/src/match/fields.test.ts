@@ -6,8 +6,8 @@ import {
   freshFilterRow,
   parseFilterRow,
   withOperator,
-} from "./fields";
-import type { FilterField, FilterFieldKind } from "./fields";
+} from "./fields.ts";
+import type { FilterField, FilterFieldKind } from "./fields.ts";
 
 const ANNOTATION_KINDS: FilterFieldKind[] = [
   "color",

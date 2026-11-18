@@ -21,21 +21,21 @@ import {
   parseIndexedKey,
 } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { portCall } from "@/lib/legacy-port";
-import { Notifier, withOutcome } from "@/lib/notifier";
-import { ObsidianEnv } from "@/lib/obsidian-env";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { portCall } from "@/lib/legacy-port.ts";
+import { Notifier, withOutcome } from "@/lib/notifier.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import {
   AttachmentResolver,
   indexedWithin,
-} from "@/services/attachment-resolver/service";
-import type { AttachmentLookup } from "@/services/attachment-resolver/service";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/attachment-resolver/service.ts";
+import type { AttachmentLookup } from "@/services/attachment-resolver/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import type { ObsidianOpenableAttachment } from "./resolve";
-import { filename, obsidianOpenPath } from "./resolve";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
+import { filename, obsidianOpenPath } from "./resolve.ts";
 
 /**
  * What one gesture opens: an Attachment, or one Annotation in it. Both keys

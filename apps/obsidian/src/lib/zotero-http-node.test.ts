@@ -4,11 +4,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { AbortError } from "@/lib/abort-error";
-import { runtimeServices } from "@/lib/effect-services";
-import { sendToZotero, ZoteroHttp } from "@/lib/zotero-http";
-import type { ZoteroAnswer, ZoteroRequest } from "@/lib/zotero-http";
-import { layerZoteroHttpNode } from "@/lib/zotero-http-node";
+import { AbortError } from "@/lib/abort-error.ts";
+import { runtimeServices } from "@/lib/effect-services.ts";
+import { layerZoteroHttpNode } from "@/lib/zotero-http-node.ts";
+import { sendToZotero, ZoteroHttp } from "@/lib/zotero-http.ts";
+import type { ZoteroAnswer, ZoteroRequest } from "@/lib/zotero-http.ts";
 
 // With the services every plugin runtime has, as `buildRuntime` adds them.
 const runtime = ManagedRuntime.make(

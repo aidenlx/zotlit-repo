@@ -10,27 +10,30 @@ import {
 import {
   annotationCitation,
   buildAnnotationResolvers,
-} from "@/lib/annotation-render";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
+} from "@/lib/annotation-render.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
+} from "@/services/annotation-repository/service.ts";
+import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import {
   excerptInputs,
   excerptRequestFrom,
-} from "@/services/excerpt-image/request";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { syncTemplate } from "@/services/template-workbench/sync-template";
-import { ProfileAnnotationError, Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/excerpt-image/request.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
+import {
+  ProfileAnnotationError,
+  Template,
+} from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { annotationInsertData } from "./insert-annotation-data";
+import { annotationInsertData } from "./insert-annotation-data.ts";
 
 export interface AnnotationInsertOptions {
   annotation: AnnotationRecord;

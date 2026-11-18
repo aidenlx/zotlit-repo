@@ -2,10 +2,10 @@
 // with the one action that carries the new look into the notes already written.
 // That action updates existing notes; it creates none.
 
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 
-import type { LocalBridgeHandle } from "./handle";
+import type { LocalBridgeHandle } from "./handle.ts";
 
 const SAVED_NOTICE_DURATION_MS = 15_000;
 

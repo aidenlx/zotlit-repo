@@ -11,11 +11,11 @@ import {
   seedBulkLibrary,
 } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, ATTACHMENTS, collectQuery } from ".";
-import type { RunEvent } from "./test-helpers";
-import { runEffect } from "./test-helpers";
-import type { CapturedLog } from "./test-helpers";
-import { PRODUCTION_TUNING } from "./tuning";
+import { ANNOTATIONS, ATTACHMENTS, collectQuery } from "./index.ts";
+import type { RunEvent } from "./test-helpers.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { CapturedLog } from "./test-helpers.ts";
+import { PRODUCTION_TUNING } from "./tuning.ts";
 
 const logs: CapturedLog[] = [];
 beforeEach(() => {

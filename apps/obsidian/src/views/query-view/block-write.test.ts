@@ -1,10 +1,10 @@
 import type { MarkdownPostProcessorContext } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
 
-import { openTextFileView } from "./__fixtures__/open-text-view";
-import { writeBlockCode } from "./block-write";
+import { openTextFileView } from "./__fixtures__/open-text-view.ts";
+import { writeBlockCode } from "./block-write.ts";
 
 const PATH = "literatures/Paper.md";
 const OLD = "views:\n  - type: annotations\n    name: All";

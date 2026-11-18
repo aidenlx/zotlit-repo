@@ -6,8 +6,8 @@ import {
   SCENARIO_LIBRARIES,
 } from "@zotlit/db/test-scenario";
 
-import { collectQuery, ITEMS, ATTACHMENTS, ANNOTATIONS } from ".";
-import { runEffect } from "./test-helpers";
+import { collectQuery, ITEMS, ATTACHMENTS, ANNOTATIONS } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 it("warns about an unknown Collection path and suggests its exact case", async () => {
   using scenario = openScenarioDatabase();

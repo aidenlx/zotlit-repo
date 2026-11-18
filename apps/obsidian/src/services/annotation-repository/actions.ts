@@ -2,14 +2,14 @@
 // is not a key: the command palette, and the PDF view's More options menu.
 import type { Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { CopyInstant } from "./capability-copy";
-import type { HistoryDirection, HistoryOutcome } from "./history";
-import { lockReasonText } from "./lock-copy";
-import type { AnnotationRepository } from "./service";
-import { writeFailureMessage } from "./write";
+import type { CopyInstant } from "./capability-copy.ts";
+import type { HistoryDirection, HistoryOutcome } from "./history.ts";
+import { lockReasonText } from "./lock-copy.ts";
+import type { AnnotationRepository } from "./service.ts";
+import { writeFailureMessage } from "./write.ts";
 
 /** Both ways a step is taken, in the order they are offered. */
 export const HISTORY_DIRECTIONS: readonly HistoryDirection[] = ["undo", "redo"];

@@ -1,8 +1,8 @@
 // What one hover over a recognized citation means, decided without touching the DOM.
 
-import type { HoverAction, Settings } from "@/services/settings/schema";
+import type { HoverAction, Settings } from "@/services/settings/schema.ts";
 
-import type { GestureSurface } from "./shell";
+import type { GestureSurface } from "./shell.ts";
 
 /**
  * The shared `hover-link` source id: every citekey surface previews its

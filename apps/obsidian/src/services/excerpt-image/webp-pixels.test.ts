@@ -1,8 +1,11 @@
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
-import { runInElectron, testElectron } from "./__fixtures__/electron-renderer";
-import type { WebpPixelsReport } from "./webp-pixels.browser-test";
+import {
+  runInElectron,
+  testElectron,
+} from "./__fixtures__/electron-renderer.ts";
+import type { WebpPixelsReport } from "./webp-pixels.browser-test.ts";
 
 /**
  * The vault read's WebP pixel check is the host's decoder, and the host the

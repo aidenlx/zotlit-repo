@@ -5,7 +5,7 @@
  */
 import type { GraphColor, GraphData } from "obsidian";
 
-import { themeProperty } from "@/lib/theme-hooks";
+import { themeProperty } from "@/lib/theme-hooks.ts";
 
 export function themeStates(
   literatureNote: string,

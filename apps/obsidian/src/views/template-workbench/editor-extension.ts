@@ -6,8 +6,8 @@ import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, tooltips } from "@codemirror/view";
 import type { ViewUpdate } from "@codemirror/view";
 
-import { PINNED_POPOVER_BODY } from "@/components/pinned-popover";
-import { onEditorWindowMigrated } from "@/lib/editor-migration";
+import { PINNED_POPOVER_BODY } from "@/components/pinned-popover.tsx";
+import { onEditorWindowMigrated } from "@/lib/editor-migration.ts";
 
 /** The class the stylesheet keys monospace typography on. */
 export const CODE_PANE_CLASS = "zt-template-workbench-code";

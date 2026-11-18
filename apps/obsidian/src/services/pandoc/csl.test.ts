@@ -10,19 +10,19 @@ import {
   rm,
   writeFile,
 } from "node:fs/promises";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { describe, expect } from "vitest";
 
-import { CONTRACT_VERSION } from "./contract";
+import { CONTRACT_VERSION } from "./contract.ts";
 import {
   CSL_COMMAND,
   materializeCslStyle,
   resolveCslStyle as resolveStyleEffect,
-} from "./csl";
-import type { CslResponse } from "./csl";
-import { resolveInstalledStyle } from "./styles";
+} from "./csl.ts";
+import type { CslResponse } from "./csl.ts";
+import { resolveInstalledStyle } from "./styles.ts";
 
 /** Filenames the filesystem refuses outright, as a file without read access is. */
 const deniedReads = new Set<string>();

@@ -9,17 +9,17 @@
 import { Component, Keymap } from "obsidian";
 import type { App, EventRef, TFile } from "obsidian";
 
-import { processLiveText, readLiveText } from "@/lib/live-text";
+import { processLiveText, readLiveText } from "@/lib/live-text.ts";
 import type {
   EmbedComponent,
   EmbedContext,
   EmbedCreator,
-} from "@/lib/obsidian-private/embed-registry";
+} from "@/lib/obsidian-private/embed-registry.ts";
 
-import { NoteQueryHost } from "./note-host";
-import { inPreview, renderPreviewPlaceholder } from "./preview-placeholder";
-import { parseQueryFile } from "./query-file";
-import type { QueryViewDeps } from "./view";
+import { NoteQueryHost } from "./note-host.ts";
+import { inPreview, renderPreviewPlaceholder } from "./preview-placeholder.ts";
+import { parseQueryFile } from "./query-file.ts";
+import type { QueryViewDeps } from "./view.tsx";
 
 export class QueryFileEmbed extends Component implements EmbedComponent {
   readonly #app: App;

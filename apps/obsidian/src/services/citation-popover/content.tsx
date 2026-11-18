@@ -3,23 +3,23 @@
 import type { IconName } from "obsidian";
 import type { MouseEvent, ReactNode } from "react";
 
-import { AmbiguousCandidates } from "@/components/ambiguous-candidates";
-import { Button } from "@/components/obsidian/button";
-import { IconButton } from "@/components/obsidian/icon-button";
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import type { Inlines } from "@/services/pandoc/ast";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
-import { InlineContent } from "@/services/pandoc/inline-content";
+import { AmbiguousCandidates } from "@/components/ambiguous-candidates.tsx";
+import { Button } from "@/components/obsidian/button.tsx";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import { InlineContent } from "@/services/pandoc/inline-content.tsx";
 
-import type { CitationPopoverActions } from "./actions";
+import type { CitationPopoverActions } from "./actions.ts";
 import type {
   AmbiguousCitationBlock,
   CitationEntryBlock,
   CitationPopoverBlock,
   UnresolvedCitationBlock,
-} from "./blocks";
+} from "./blocks.ts";
 
 export interface CitationPopoverContentProps {
   /** One block per work the hovered citation names, in the order it names them. */

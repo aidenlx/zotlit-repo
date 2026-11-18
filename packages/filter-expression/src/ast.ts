@@ -4,8 +4,8 @@
 // grammar stay private to this package.
 import type { SyntaxNode, Tree } from "@lezer/common";
 
-import { parseExpression, parser } from "./index.js";
-import type { ExpressionSyntaxError } from "./index.js";
+import { parseExpression, parser } from "./index.ts";
+import type { ExpressionSyntaxError } from "./index.ts";
 
 interface Positioned {
   from: number;

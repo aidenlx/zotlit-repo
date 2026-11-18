@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 // The anchor is read off a real element's rect, so this needs a DOM.
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { showMenuAtBox, showMenuAtButton } from "./menu";
+import { showMenuAtBox, showMenuAtButton } from "./menu.ts";
 
 /** A trigger whose box is known, the way layout would have measured it. */
 function trigger(rect: {

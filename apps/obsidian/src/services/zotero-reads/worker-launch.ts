@@ -4,7 +4,7 @@ import * as BrowserWorkerRunner from "@effect/platform-browser/BrowserWorkerRunn
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
-import { WORKER_CLOSED } from "./worker-signal";
+import { WORKER_CLOSED } from "./worker-signal.ts";
 
 /** What the worker uses of its global scope. */
 export interface WorkerScope {

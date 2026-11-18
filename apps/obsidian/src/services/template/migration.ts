@@ -6,26 +6,26 @@ import {
   LegacyTemplateConversionError,
 } from "@zotlit/templates/facade";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
 import {
   FileExists,
   VaultError,
   VaultFolderBlockedError,
-} from "@/lib/vault-errors";
+} from "@/lib/vault-errors.ts";
 import {
   PluginSettings,
   SettingsMutationError,
   SettingsPersistenceError,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 
-import { templateFileFromPath } from "./defaults";
-import type { MigrationVerificationData } from "./migration-data";
-import { Template, templateFailure } from "./service";
-import type { TemplateFailure } from "./service";
+import { templateFileFromPath } from "./defaults.ts";
+import type { MigrationVerificationData } from "./migration-data.ts";
+import { Template, templateFailure } from "./service.ts";
+import type { TemplateFailure } from "./service.ts";
 
 export type LiteratureNoteTemplateMigrationDiagnostic =
   | {

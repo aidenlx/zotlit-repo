@@ -7,16 +7,16 @@
 
 import type { ReactNode } from "react";
 
-import { textLinkClass } from "@/components/learn/action-classes";
-import { Message } from "@/components/message";
-import { cn } from "@/lib/cn";
+import { textLinkClass } from "@/components/learn/action-classes.ts";
+import { Message } from "@/components/message.tsx";
+import { cn } from "@/lib/cn.ts";
 import { m } from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
-import { Hero } from "./hero";
-import { Actions } from "./parts";
-import { TableDemo } from "./table-demo";
-import { Workflow } from "./workflow";
+import { Hero } from "./hero.tsx";
+import { Actions } from "./parts.tsx";
+import { TableDemo } from "./table-demo.tsx";
+import { Workflow } from "./workflow.tsx";
 
 const TRUST = [
   [m.docs_home_trust_private, m.docs_home_privacy],

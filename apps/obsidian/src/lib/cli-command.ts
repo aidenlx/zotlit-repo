@@ -7,8 +7,8 @@
 import type { Effect } from "effect";
 import type { CliData, CliFlags, PluginManifest } from "obsidian";
 
-import type { EffectBridge } from "./effect-bridge";
-import { settleAtEdge } from "./signal-edge";
+import type { EffectBridge } from "./effect-bridge.ts";
+import { settleAtEdge } from "./signal-edge.ts";
 
 /** A command's answer to the caller's parameters: the text it prints. */
 export type CliCommandHandler = (

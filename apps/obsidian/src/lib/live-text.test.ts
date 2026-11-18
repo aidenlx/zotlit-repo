@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "./__fixtures__/obsidian-host";
+import { createObsidianHost } from "./__fixtures__/obsidian-host.ts";
 import {
   processLiveFrontMatter,
   processLiveText,
   readLiveText,
-} from "./live-text";
+} from "./live-text.ts";
 
 const PATH = "Notes/Paper.md";
 

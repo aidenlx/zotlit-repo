@@ -11,19 +11,19 @@ import type { Plugin } from "vite";
 
 import { paraglideVitePlugin } from "@zotlit/paraglide-vite";
 
-import { paraglideOptions } from "./paraglide.config.js";
-import { agentSkillAssets } from "./src/lib/agent-skills.js";
-import { chinesePagesPlugin } from "./src/lib/chinese-pages-plugin.js";
-import { firstCommitsPlugin } from "./src/lib/first-commits.js";
-import { buildHeaderRules, renderHeadersFile } from "./src/lib/headers.js";
-import { learnMediaPlugin } from "./src/lib/learn-media.js";
-import { mediaStorePlugin, scanVideos } from "./src/lib/media-store.js";
-import type { StoredVideo } from "./src/lib/media-store.js";
-import { createOgCardRenderer } from "./src/lib/og-card.js";
-import { ogCards } from "./src/lib/og-cards.js";
-import { prerenderPages } from "./src/lib/prerender-pages.js";
-import { renderSiteRedirectsFile } from "./src/lib/redirects.js";
-import type { DocsLine } from "./src/lib/shared.js";
+import { paraglideOptions } from "./paraglide.config.ts";
+import { agentSkillAssets } from "./src/lib/agent-skills.ts";
+import { chinesePagesPlugin } from "./src/lib/chinese-pages-plugin.ts";
+import { firstCommitsPlugin } from "./src/lib/first-commits.ts";
+import { buildHeaderRules, renderHeadersFile } from "./src/lib/headers.ts";
+import { learnMediaPlugin } from "./src/lib/learn-media.ts";
+import { mediaStorePlugin, scanVideos } from "./src/lib/media-store.ts";
+import type { StoredVideo } from "./src/lib/media-store.ts";
+import { createOgCardRenderer } from "./src/lib/og-card.tsx";
+import { ogCards } from "./src/lib/og-cards.ts";
+import { prerenderPages } from "./src/lib/prerender-pages.ts";
+import { renderSiteRedirectsFile } from "./src/lib/redirects.ts";
+import type { DocsLine } from "./src/lib/shared.ts";
 
 const packageRoot = import.meta.dirname;
 /** One read of the recordings per config load, for the lesson media and the media-store URLs. */

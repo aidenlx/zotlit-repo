@@ -1,8 +1,8 @@
 import { TextFileView } from "obsidian";
 import type { TFile, WorkspaceLeaf } from "obsidian";
 
-import type { ObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import type { ObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 class OpenTextView extends TextFileView {
   data = "";

@@ -6,9 +6,9 @@ import type { SearchResult } from "minisearch";
 import { parseItemDate, parseItemLanguage } from "@zotlit/db";
 import type { IndexedItem, LanguageNameLookup } from "@zotlit/db";
 
-import { formatCreator } from "./format-creator";
-import { Segmenter } from "./segmenter";
-import { normalize, normalizeWithIndexMap } from "./tokenizer";
+import { formatCreator } from "./format-creator.ts";
+import { Segmenter } from "./segmenter.ts";
+import { normalize, normalizeWithIndexMap } from "./tokenizer.ts";
 
 /** Structurally compatible with Obsidian's `SearchMatches`. */
 export type SearchMatches = [number, number][];

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { ItemSummary } from "@/lib/item-summary";
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ItemSummary } from "@/lib/item-summary.ts";
+import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 
 import {
   annotViewBody,
@@ -16,14 +16,14 @@ import {
   headerIndicators,
   headerMenu,
   headerShape,
-} from "./presentation";
+} from "./presentation.ts";
 import type {
   FollowMenuAction,
   FollowMenuEntry,
   HeaderMenuEntry,
-} from "./presentation";
-import { initialAnnotState } from "./state";
-import type { AnnotState } from "./store";
+} from "./presentation.ts";
+import { initialAnnotState } from "./state.ts";
+import type { AnnotState } from "./store.ts";
 
 const ATTACHMENTS: AnnotViewAttachment[] = [
   {

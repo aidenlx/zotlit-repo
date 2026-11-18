@@ -2,10 +2,10 @@
 import { Scope } from "obsidian";
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { HistoryDirection } from "@/services/annotation-repository/service";
-import { dispatchKey } from "@/services/pdf-annotation-editor/__fixtures__";
+import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
+import { dispatchKey } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 
-import { mountCardHistoryKeys, onAnnotationCard } from "./history";
+import { mountCardHistoryKeys, onAnnotationCard } from "./history.ts";
 
 /**
  * One Annotation View's Scope, with a card on screen: the card itself, a

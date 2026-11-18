@@ -13,18 +13,18 @@ import {
 import { TestClock } from "effect/testing";
 import { createHash } from "node:crypto";
 
-import { managedBinaryPorts } from "./platform";
+import { managedBinaryPorts } from "./platform.ts";
 import {
   HashMismatchError,
   layerManagedBinary,
   ManagedBinaryPlatform,
-} from "./service";
+} from "./service.ts";
 import type {
   ManagedBinary,
   ManagedBinaryApi,
   ManagedBinaryStatus,
-} from "./service";
-import { memoryDevice } from "./test-utils";
+} from "./service.ts";
+import { memoryDevice } from "./test-utils.ts";
 
 class TestBinary extends Context.Service<
   TestBinary,

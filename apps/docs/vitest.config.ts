@@ -4,9 +4,9 @@ import { defineConfig } from "vitest/config";
 
 import { testDefaults } from "@zotlit/config/vitest";
 
-import { scanChinesePages } from "./src/lib/content-scan.js";
-import { scanFirstCommitDays } from "./src/lib/first-commits.js";
-import { scanLearnMedia } from "./src/lib/learn-media.js";
+import { scanChinesePages } from "./src/lib/content-scan.ts";
+import { scanFirstCommitDays } from "./src/lib/first-commits.ts";
+import { scanLearnMedia } from "./src/lib/learn-media.ts";
 
 // Unit seam only — the app's own Vite config carries the Cloudflare and
 // TanStack Start plugins, which neither a pure-function test nor the

@@ -3,16 +3,16 @@
 import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
 
-import { normalizeFolderPath } from "@/lib/ensure-folder";
-import * as m from "@/lib/i18n/generated/messages";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import type { ProfileDeletionPlan } from "@/services/profile/service";
+import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import type { ProfileDeletionPlan } from "@/services/profile/service.ts";
 import {
   profilePreviewChoice,
   renderProfileChoice,
-} from "@/views/quick-switch/profile-picker";
+} from "@/views/quick-switch/profile-picker.ts";
 
 export interface ProfileDeletionConsent {
   target: ProfileSelector;

@@ -4,19 +4,19 @@
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier, reportOutcome } from "@/lib/notifier";
-import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch";
-import { noteOperationDiagnosticNotice } from "@/services/note-feature/update-single";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier, reportOutcome } from "@/lib/notifier.ts";
+import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
+import { noteOperationDiagnosticNotice } from "@/services/note-feature/update-single.ts";
 import {
   batchImportAllToast,
   batchImportToast,
   importNotices,
-} from "@/services/note-import/batch-import-notices";
+} from "@/services/note-import/batch-import-notices.ts";
 
-import { ProtocolOutcome } from "./outcome";
+import { ProtocolOutcome } from "./outcome.ts";
 
 /**
  * Show the notice of a protocol outcome: a refusal shows its message; a run

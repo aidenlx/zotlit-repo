@@ -7,29 +7,29 @@
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
-import { lockBlock } from "@/services/annotation-repository/lock";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { lockBlock } from "@/services/annotation-repository/lock.ts";
 import type {
   AnnotationRecord,
   TagDraft,
   TextField,
   TextFieldDraft,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import {
   isTextField,
   noTagChange,
   tagChange,
   writeFailureMessage,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   ConflictedWrite,
   MutationState,
   WriteFailure,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
-import type { FieldEditorWording } from "./field-editor";
+import type { FieldEditorWording } from "./field-editor.ts";
 
 /**
  * Why a verb cannot act while the Editing Capability or the Annotation's lock

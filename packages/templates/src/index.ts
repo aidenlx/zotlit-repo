@@ -1,16 +1,16 @@
 import { Eta, EtaError, EtaParseError } from "eta/core";
 import type { EtaConfig, TemplateFunction } from "eta/core";
 
-import { basename } from "./basename";
-import { formatBlockquote } from "./blockquote";
-import { coerceOutput } from "./coerce";
-import { DEFAULT_AUTO_TRIM } from "./constants";
-import type { AutoTrim } from "./constants";
-import { embed } from "./embed";
-import { filenameSuffix } from "./filename-suffix";
-import { formatTemplatePandocCitation } from "./pandoc-citation-adapter";
-import { replaceHelper } from "./replace-helper";
-import { formatTemplateTexCitation } from "./tex-citation-adapter";
+import { basename } from "./basename.ts";
+import { formatBlockquote } from "./blockquote.ts";
+import { coerceOutput } from "./coerce.ts";
+import { DEFAULT_AUTO_TRIM } from "./constants.ts";
+import type { AutoTrim } from "./constants.ts";
+import { embed } from "./embed.ts";
+import { filenameSuffix } from "./filename-suffix.ts";
+import { formatTemplatePandocCitation } from "./pandoc-citation-adapter.ts";
+import { replaceHelper } from "./replace-helper.ts";
+import { formatTemplateTexCitation } from "./tex-citation-adapter.ts";
 
 export interface TemplateEngineOptions {
   /** @default [false, false] */
@@ -156,15 +156,15 @@ export class TemplateEngine extends Eta {
   }
 }
 
-export { basename } from "./basename";
-export { formatBlockquote } from "./blockquote";
-export { embed } from "./embed";
+export { basename } from "./basename.ts";
+export { formatBlockquote } from "./blockquote.ts";
+export { embed } from "./embed.ts";
 export {
   filenameSuffix,
   hasSuffixMarker,
   replaceSuffixMarkers,
-} from "./filename-suffix";
-export { inlineCitation } from "./inline-citation";
+} from "./filename-suffix.ts";
+export { inlineCitation } from "./inline-citation.ts";
 export {
   joinNotePath,
   MAX_SEGMENT_BYTES,
@@ -172,7 +172,7 @@ export {
   resolveFlatNoteName,
   resolveNoteRelPath,
   truncateToByteLimit,
-} from "./note-path";
+} from "./note-path.ts";
 
 function pointToSyntaxError(
   source: string,

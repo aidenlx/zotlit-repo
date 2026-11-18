@@ -1,11 +1,11 @@
 // What the user reads when an export cannot start, or stops.
 
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 import type {
   BibliographySource,
   ExportFailure,
-} from "@/services/pandoc/export";
+} from "@/services/pandoc/export.ts";
 
 /** The engine is the one prerequisite the command cannot supply itself. */
 export function engineMissingMessage(

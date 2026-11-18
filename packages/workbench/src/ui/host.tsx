@@ -7,26 +7,31 @@
 import type {
   WorkbenchSliceId,
   WorkbenchSliceRange,
-} from "#/document/controller";
-import type { SuggestionSource } from "#/language/completion";
-import type { RenderRequest } from "#/render/request";
+} from "#document/controller.ts";
+import type { SuggestionSource } from "#language/completion.ts";
+import type { RenderRequest } from "#render/request.ts";
 import type {
   TemplateRenderResult,
   RenderedProperty,
   RenderedRange,
-} from "#/render/result";
+} from "#render/result.ts";
 import type { Extension } from "@codemirror/state";
 import { Data, Effect } from "effect";
 import { createContext, useContext } from "react";
-import type { ComponentType, HTMLAttributes, ReactNode } from "react";
+import type {
+  ComponentType,
+  DOMAttributes,
+  HTMLAttributes,
+  ReactNode,
+} from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import { WorkbenchMessagesProvider } from "./messages";
-import type { WorkbenchIcon } from "./theme";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { WorkbenchMessagesProvider } from "./messages.tsx";
+import type { WorkbenchIcon } from "./theme.tsx";
 
-import { WorkbenchHostError } from "#/language/host-effects";
+import { WorkbenchHostError } from "#language/host-effects.ts";
 
 export { WorkbenchHostError };
 
@@ -320,7 +325,7 @@ export interface WorkbenchHost {
     request: WorkbenchInputSuggestionsRequest,
   ): WorkbenchDialogHandle;
   /** The attributes that give an in-page element a tooltip reading `text`. */
-  tooltip(text: string): HTMLAttributes<HTMLElement>;
+  tooltip(text: string): TooltipAttributes;
   notice(text: string): void;
   /**
    * Reveals the Pandoc engine's setting. A host that supplies none leaves the
@@ -397,10 +402,19 @@ export function useWorkbenchHost(): WorkbenchHost {
 }
 
 /**
+ * The attributes that give an element a tooltip. They carry no event handler,
+ * so they spread onto an element of any kind.
+ */
+type TooltipAttributes = Omit<
+  HTMLAttributes<HTMLElement>,
+  keyof DOMAttributes<HTMLElement>
+>;
+
+/**
  * The tooltip attributes for `text`. Outside a host — the web's skeleton —
  * the browser's own `title` tooltip stands in.
  */
-export function useTooltip(text: string): HTMLAttributes<HTMLElement> {
+export function useTooltip(text: string): TooltipAttributes {
   const host = useContext(HostContext);
   return host?.tooltip(text) ?? { title: text };
 }

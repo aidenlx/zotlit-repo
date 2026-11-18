@@ -25,14 +25,14 @@ import {
 import { Children, isValidElement, use, useId, useState } from "react";
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
-import { metaClass, secondaryButtonClass } from "./action-classes";
-import { LessonContext, nextOpenStep } from "./lesson-state";
-import type { LessonState, LessonStepMeta } from "./lesson-state";
-import { stepMedia, StepPicture } from "./step-picture";
+import { metaClass, secondaryButtonClass } from "./action-classes.ts";
+import { LessonContext, nextOpenStep } from "./lesson-state.ts";
+import type { LessonState, LessonStepMeta } from "./lesson-state.ts";
+import { stepMedia, StepPicture } from "./step-picture.tsx";
 
 /**
  * Before the page runs, CSS alone opens one row: the one the hash targets. A
@@ -61,7 +61,7 @@ export const labelClass =
   "font-mono text-[0.6875rem] leading-[1.25] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase";
 
 // 15px, `metaClass`, lives in ./action-classes with the secondary action.
-export { metaClass } from "./action-classes";
+export { metaClass } from "./action-classes.ts";
 
 /** 17px: every step text — action, check, fix and figure — and the lede. */
 export const bodyClass = "text-[1.0625rem] leading-[1.55]";

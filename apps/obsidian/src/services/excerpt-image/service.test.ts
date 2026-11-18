@@ -8,25 +8,29 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { DatabaseAnnotationSource } from "@/services/annotation-repository/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { DatabaseAnnotationSource } from "@/services/annotation-repository/service.ts";
 
-import { excerptImageFixture } from "./__fixtures__/effect-service";
-import { redPng, corruptPng } from "./__fixtures__/png";
-import { ExcerptCacheWriteError } from "./error";
-import { PNG_FORMAT } from "./format";
-import type { ExcerptImage } from "./format";
+import { excerptImageFixture } from "./__fixtures__/effect-service.ts";
+import { redPng, corruptPng } from "./__fixtures__/png.ts";
+import { ExcerptCacheWriteError } from "./error.ts";
+import { PNG_FORMAT } from "./format.ts";
+import type { ExcerptImage } from "./format.ts";
 import {
   ExcerptImageService as ExcerptImages,
   layerExcerptImage,
-} from "./service";
+} from "./service.ts";
 import {
   excerptAnnotationRecord,
   excerptFingerprint,
   excerptKey,
   MAX_FALLBACK_BYTES,
-} from "./service";
-import type { ExcerptEntry, ExcerptIdentity, ExcerptRequest } from "./service";
+} from "./service.ts";
+import type {
+  ExcerptEntry,
+  ExcerptIdentity,
+  ExcerptRequest,
+} from "./service.ts";
 
 /** Debug records the excerpt-image logger emits; read by the admission tests. */
 let captured: LogRecord[] = [];
@@ -1856,7 +1860,7 @@ it.effect(
 
 it.effect("an interrupted startup disposes a store that opens later", () =>
   Effect.gen(function* () {
-    const opened = Promise.withResolvers<import("./store").ExcerptStore>();
+    const opened = Promise.withResolvers<import("./store.ts").ExcerptStore>();
     const started = Promise.withResolvers<void>();
     const dispose = vi.fn();
     const fiber = yield* excerptImageFixture({
@@ -1870,7 +1874,7 @@ it.effect("an interrupted startup disposes a store that opens later", () =>
       Effect.forkChild({ startImmediately: true }),
     );
     opened.resolve(
-      stubService<import("./store").ExcerptStore>("Store", {
+      stubService<import("./store.ts").ExcerptStore>("Store", {
         [Symbol.dispose]: dispose,
       }),
     );

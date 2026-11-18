@@ -3,8 +3,8 @@ import { asMarkdown, md } from "fumadocs-core/server";
 import { ArrowUpRight, Download, Link as LinkIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { ObsidianMark } from "@/components/obsidian-mark";
-import { cn } from "@/lib/cn";
+import { ObsidianMark } from "@/components/obsidian-mark.tsx";
+import { cn } from "@/lib/cn.ts";
 
 type ActionKind = "download" | "obsidian" | "external";
 

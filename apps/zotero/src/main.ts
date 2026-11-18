@@ -1,15 +1,15 @@
-import { DEV_READY_FILE_NAME } from "./constant";
-import { BOOTSTRAP_REASONS } from "./lib/bootstrap-reasons";
-import type { BootstrapReason } from "./lib/bootstrap-reasons";
-import { attachFluentToWindow } from "./lib/l10n";
-import { logger, setupLogging } from "./lib/logger";
-import { registerMenus } from "./menus";
-import { registerNoteStatus } from "./note-status";
-import type { NoteStatus } from "./note-status";
-import { registerNotify } from "./notify";
-import { registerPrefPane } from "./prefs";
-import { registerDatabaseStatus } from "./status";
-import type { DatabaseStatus } from "./status";
+import { DEV_READY_FILE_NAME } from "./constant.ts";
+import { BOOTSTRAP_REASONS } from "./lib/bootstrap-reasons.ts";
+import type { BootstrapReason } from "./lib/bootstrap-reasons.ts";
+import { attachFluentToWindow } from "./lib/l10n.ts";
+import { logger, setupLogging } from "./lib/logger.ts";
+import { registerMenus } from "./menus/index.ts";
+import { registerNoteStatus } from "./note-status/index.ts";
+import type { NoteStatus } from "./note-status/index.ts";
+import { registerNotify } from "./notify/index.ts";
+import { registerPrefPane } from "./prefs/index.ts";
+import { registerDatabaseStatus } from "./status/index.ts";
+import type { DatabaseStatus } from "./status/index.ts";
 
 export interface PluginData {
   id: string;

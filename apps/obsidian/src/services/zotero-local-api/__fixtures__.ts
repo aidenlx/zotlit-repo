@@ -27,18 +27,18 @@ import { vi } from "vitest";
 
 import type { DbUpdated } from "@zotlit/protocol";
 
-import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerZoteroHttp } from "@/lib/zotero-http";
-import type { ZoteroHttp } from "@/lib/zotero-http";
-import { LocalServer } from "@/services/local-server/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerZoteroHttp } from "@/lib/zotero-http.ts";
+import type { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
-import { layerZoteroLocalApi, ZoteroLocalApi } from "./service";
-import type { WireTag } from "./wire";
+import { layerZoteroLocalApi, ZoteroLocalApi } from "./service.ts";
+import type { WireTag } from "./wire.ts";
 
 /**
  * The server id the recording carried. Zotero generates a fresh one for every

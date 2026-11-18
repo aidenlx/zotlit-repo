@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import type {
   QueryViewRow,
   QueryViewValue,
-} from "@/services/item-query/query-view";
+} from "@/services/item-query/query-view.ts";
 
-import type { QueryFileSort } from "./query-file";
-import type { VaultValue } from "./table-notes";
-import { limitRows, sortByVault } from "./vault-sort";
+import type { QueryFileSort } from "./query-file.ts";
+import type { VaultValue } from "./table-notes.ts";
+import { limitRows, sortByVault } from "./vault-sort.ts";
 
 function item(
   key: string,

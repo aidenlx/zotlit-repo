@@ -4,8 +4,8 @@ import * as Context from "effect/Context";
 import { Scheduler } from "effect/Scheduler";
 import * as Tracer from "effect/Tracer";
 
-import { browserScheduler } from "./browser-scheduler";
-import { logServices } from "./effect-log";
+import { browserScheduler } from "./browser-scheduler.ts";
+import { logServices } from "./effect-log.ts";
 
 /**
  * Browser scheduling, LogTape logging, and no trace context on the wire:

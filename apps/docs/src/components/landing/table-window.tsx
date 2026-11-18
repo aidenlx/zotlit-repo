@@ -36,7 +36,7 @@ import type { LucideIcon } from "lucide-react";
 import { Fragment } from "react";
 import type { CSSProperties, RefObject } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 import { m } from "@/paraglide/messages.js";
 
 import {
@@ -46,8 +46,8 @@ import {
   QUERY_FILE,
   QUERY_FOLDER,
   TAGS,
-} from "./papers";
-import type { Paper } from "./papers";
+} from "./papers.ts";
+import type { Paper } from "./papers.ts";
 
 /** The finished frame: the prerendered page and reduced motion show it. */
 export const FINAL = 17;

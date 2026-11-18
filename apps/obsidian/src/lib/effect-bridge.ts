@@ -2,9 +2,9 @@
 import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 import type { ManagedRuntime, Stream } from "effect";
 
-import { AbortError } from "./abort-error";
-import { isScopeClosed } from "./effect-scope";
-import { subscribe } from "./effect-stream";
+import { AbortError } from "./abort-error.ts";
+import { isScopeClosed } from "./effect-scope.ts";
+import { subscribe } from "./effect-stream.ts";
 
 /**
  * The one way legacy classes and Promise code run Effects on the plugin's

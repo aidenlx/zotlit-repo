@@ -9,11 +9,11 @@ import type { KeyboardEvent } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { TAG_CHIP_CLASS } from "./chip";
-import type { LibraryTree } from "./library-tree";
-import { useTreeState } from "./tree-model";
+import { TAG_CHIP_CLASS } from "./chip.ts";
+import type { LibraryTree } from "./library-tree.tsx";
+import { useTreeState } from "./tree-model.ts";
 
 /**
  * The tag names to show out of `names`: those that hold `filter`, whatever

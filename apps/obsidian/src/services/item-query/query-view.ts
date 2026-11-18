@@ -12,10 +12,10 @@ import type {
   SortSpec,
 } from "@zotlit/item-query";
 
-import type { LibraryScope } from "@/services/library-scope/scope";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 
-import type { Diagnostic, LibraryWire } from "./contract";
-import type { QueryDatasetId } from "./worker-protocol";
+import type { Diagnostic, LibraryWire } from "./contract.ts";
+import type { QueryDatasetId } from "./worker-protocol.ts";
 
 /** The query of one Query View. Omitted keys take the engine defaults. */
 export interface QueryViewRequest {

@@ -22,7 +22,10 @@ const fixtureTool = join(repo, "packages/scripts/scripts/obsidian-vault.ts");
 const cliTool = join(repo, "packages/scripts/scripts/obsidian-cli.ts");
 const prepareTool = fileURLToPath(new URL("./prepare.mjs", import.meta.url));
 const skillFile = join(repo, "skills/zotlit-query/SKILL.md");
-const catalogFile = join(repo, "packages/item-query/dist/query.schema.json");
+const catalogFile = join(
+  repo,
+  "packages/item-query/generated/query.schema.json",
+);
 
 function fail(message) {
   throw new Error(message);
@@ -174,7 +177,10 @@ export function checkAnswer(caseName, answer, context) {
 function prompt(caseName, vaultId, agentRoot) {
   const result = join(agentRoot, "query-result.json");
   const retained = resolve(agentRoot, "..", "result.json");
-  const catalog = join(agentRoot, "packages/item-query/dist/query.schema.json");
+  const catalog = join(
+    agentRoot,
+    "packages/item-query/generated/query.schema.json",
+  );
   const preamble = `Read ${join(agentRoot, "SKILL.md")} and follow it for this request. Use only the evaluation vault ID ${vaultId}. The Obsidian CLI executable for this session is ${join(agentRoot, "obsidian")}. Use this executable for every Obsidian call, including calls from scripts. Put vault=${vaultId} before every Obsidian command name. The matching development schema catalog is ${catalog}. Read only the copied skill, that catalog, live CLI output, and files you make for this task; do not read evaluator sources.\n\nUser request: ${cases[caseName]}\n\n`;
   const { spec, family } = caseFamily(caseName);
   return family.prompt(spec, { preamble, agentRoot, result, retained });
@@ -319,7 +325,7 @@ export async function runCase(
     await cp(skillFile, join(agent, "SKILL.md"));
     const copiedCatalog = join(
       agent,
-      "packages/item-query/dist/query.schema.json",
+      "packages/item-query/generated/query.schema.json",
     );
     await mkdir(resolve(copiedCatalog, ".."), { recursive: true });
     await cp(catalogFile, copiedCatalog);

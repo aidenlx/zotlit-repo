@@ -3,22 +3,22 @@ import { join } from "node:path";
 import type { GraphData } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { themeProperty } from "@/lib/theme-hooks";
+import { themeProperty } from "@/lib/theme-hooks.ts";
 
-import { NO_ADDITIONS } from "./adapter";
-import type { GraphCitationAdditions } from "./adapter";
-import type { GraphLeafMembers } from "./install";
+import { NO_ADDITIONS } from "./adapter.ts";
+import type { GraphCitationAdditions } from "./adapter.ts";
+import type { GraphLeafMembers } from "./install.ts";
 import {
   GraphNodeColors,
   installNodeColors,
   parseGraphColor,
   readNodeColors,
   stampNodeColors,
-} from "./node-color";
+} from "./node-color.ts";
 // @vitest-environment happy-dom
-import { graphNode, themeStates, themeStatesNothing } from "./test-stub";
+import { graphNode, themeStates, themeStatesNothing } from "./test-stub.ts";
 
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

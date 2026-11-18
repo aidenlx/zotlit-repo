@@ -14,7 +14,7 @@ import type { ResultColumnProps } from "@zotlit/workbench/ui";
 
 import { m } from "@/paraglide/messages.js";
 
-import { WorkbenchHelp } from "./frame";
+import { WorkbenchHelp } from "./frame.tsx";
 
 export function WebPreview({
   mode,

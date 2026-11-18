@@ -12,18 +12,18 @@ import type { CSSProperties, RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { SearchInput } from "@/components/obsidian/search-input";
-import { PaneState } from "@/components/pane-state";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { SearchInput } from "@/components/obsidian/search-input.tsx";
+import { PaneState } from "@/components/pane-state.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { AnnotActionsContext } from "./actions";
-import { Annotation, FIELD_SHEET_SELECTOR } from "./Annotation";
-import { cardPlace, moveOrigin } from "./card-selection";
-import { filterAnnotations, isFilterActive } from "./filter";
-import { FilterBar } from "./FilterBar";
+import { AnnotActionsContext } from "./actions.tsx";
+import { Annotation, FIELD_SHEET_SELECTOR } from "./Annotation.tsx";
+import { cardPlace, moveOrigin } from "./card-selection.ts";
+import { filterAnnotations, isFilterActive } from "./filter.ts";
+import { FilterBar } from "./FilterBar.tsx";
 import {
   useAnnotFilter,
   useAnnotStore,
@@ -31,15 +31,15 @@ import {
   useSetFilterQuery,
   useToggleGroupCollapsed,
   useToggleSearchOpen,
-} from "./model";
-import { annotViewBody, headerShape } from "./presentation";
+} from "./model.ts";
+import { annotViewBody, headerShape } from "./presentation.ts";
 import type {
   AnnotViewBody,
   EmptyStateAction,
   HeaderShape,
-} from "./presentation";
-import { groupedCards, visibleOrder } from "./state";
-import { confineTabOrder } from "./tab-order";
+} from "./presentation.ts";
+import { groupedCards, visibleOrder } from "./state.ts";
+import { confineTabOrder } from "./tab-order.ts";
 
 /**
  * Whether an event landed in the open text field's sheet. `instanceOf` rather

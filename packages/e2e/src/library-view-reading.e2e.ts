@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 
 import { ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
 
-import type { AnnotationView as AnnotView } from "@/views/annot-view/view";
-import type { LibraryView } from "@/views/library/view";
+import type { AnnotationView as AnnotView } from "@/views/annot-view/view.tsx";
+import type { LibraryView } from "@/views/library/view.ts";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import {

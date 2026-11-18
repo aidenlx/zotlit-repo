@@ -11,20 +11,20 @@ import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults";
-import { TemplateRenderError } from "@/services/template/errors";
-import { Template, templateFailure } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
+import { TemplateRenderError } from "@/services/template/errors.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { renderAnnotationCitation } from "./annotation-citation";
+import { renderAnnotationCitation } from "./annotation-citation.ts";
 
 /**
  * A journal article with the citation key `Hensher2011` (or none) and an

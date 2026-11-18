@@ -3,8 +3,8 @@
 
 import { getLanguage } from "obsidian";
 
-import { DOCS_SITE_URL } from "@/lib/constants";
-import { resolvePluginLocale } from "@/lib/i18n/locale";
+import { DOCS_SITE_URL } from "@/lib/constants.ts";
+import { resolvePluginLocale } from "@/lib/i18n/locale.ts";
 
 /**
  * A page of the documentation site in the reader's language: the Chinese

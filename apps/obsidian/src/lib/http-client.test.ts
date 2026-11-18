@@ -4,7 +4,7 @@ import { HttpClientRequest } from "effect/http";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { requestUrlHttpClient } from "@/lib/http-client";
+import { requestUrlHttpClient } from "@/lib/http-client.ts";
 
 /** A `requestUrl` that answers `status` with `body`, and records each call. */
 function fakeRequestUrl(status: number, body = "") {

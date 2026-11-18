@@ -2,14 +2,14 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import { reimportNoteByKey, runBatchImport } from "./batch-import";
+import { reimportNoteByKey, runBatchImport } from "./batch-import.ts";
 import type {
   BatchImport,
   BatchImportPorts,
   BatchImportServices,
-} from "./batch-import";
+} from "./batch-import.ts";
 
 /**
  * The note import commands over `context`, run through `bridge`. A command

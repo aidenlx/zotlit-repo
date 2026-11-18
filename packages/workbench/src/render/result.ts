@@ -6,13 +6,13 @@ import type { CitationVariant } from "@zotlit/db";
 import type {
   CitationExampleId,
   CitationPreviewSelection,
-} from "./citation-examples";
+} from "./citation-examples.ts";
 import type {
   PartialContext,
   PartialPreviewSelection,
-} from "./partial-preview";
-import type { EngineEvidence, RenderReport } from "./report";
-import type { AnnotationExample } from "./sample-annotations";
+} from "./partial-preview.ts";
+import type { EngineEvidence, RenderReport } from "./report.ts";
+import type { AnnotationExample } from "./sample-annotations.ts";
 
 /**
  * What went wrong, in the vocabulary a host writes its own wording against. One

@@ -2,9 +2,9 @@
 
 import type { App, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
-import { GRAPH_CORE_PLUGIN_ID, GRAPH_VIEW_TYPES } from "./install";
+import { GRAPH_CORE_PLUGIN_ID, GRAPH_VIEW_TYPES } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 

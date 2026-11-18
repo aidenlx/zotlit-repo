@@ -11,10 +11,10 @@ import { highlightTree, styleTags } from "@lezer/highlight";
 
 import { parser } from "@zotlit/filter-expression";
 
-import { decorationLayer, gapsAround } from "./decorations";
-import { expressionClasses, expressionTag } from "./expression-tokens";
-import { templateHighlighter } from "./highlight";
-import type { Span } from "./span";
+import { decorationLayer, gapsAround } from "./decorations.ts";
+import { expressionClasses, expressionTag } from "./expression-tokens.ts";
+import { templateHighlighter } from "./highlight.ts";
+import type { Span } from "./span.ts";
 
 /** The symbols that open a pair; the grammar has no braces. */
 const pairedSymbols = ["(", "[", '"', "'"];

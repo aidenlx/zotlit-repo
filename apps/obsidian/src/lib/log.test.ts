@@ -1,7 +1,7 @@
 import { resetSync } from "@logtape/logtape";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { configureLogTape, enableStartupLogging } from "./log";
+import { configureLogTape, enableStartupLogging } from "./log.ts";
 
 afterEach(() => resetSync());
 

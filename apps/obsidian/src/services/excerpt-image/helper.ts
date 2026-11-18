@@ -3,10 +3,10 @@ import type { TFile } from "obsidian";
 
 import type { TemplateLink } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { syntheticFile } from "@/lib/markdown-link";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { syntheticFile } from "@/lib/markdown-link.ts";
 
-import type { MaterializedExcerpt } from "./materialize";
+import type { MaterializedExcerpt } from "./materialize.ts";
 
 export interface ExcerptSummary {
   zotero: number;

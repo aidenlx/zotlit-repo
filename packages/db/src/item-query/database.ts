@@ -1,10 +1,19 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type {
+  DatabaseLayout,
+  LayoutColumnRow,
+  LayoutVersionRow,
+} from "#layout/index.ts";
+import type { QueryOperators } from "#queries/_shared.ts";
 // The database seam of Item Query: the leased client as a service, the one
 // place where a statement becomes an Effect, and the layout check of a copy.
 import { fillPlaceholders, sql } from "drizzle-orm";
 import type { AnyColumn, Query, SQL } from "drizzle-orm";
 import { Context, Data, Effect } from "effect";
 
-import type { NodeDatabaseClient } from "@/client/node";
+import { layoutErrorOf } from "./layout.ts";
+import type { ItemQueryLayoutError } from "./layout.ts";
+
 import {
   columnsByTable,
   hasVersionStamps,
@@ -12,17 +21,8 @@ import {
   recordLayout,
   selectLayoutColumns,
   selectLayoutVersions,
-} from "@/layout";
-import type {
-  DatabaseLayout,
-  LayoutColumnRow,
-  LayoutVersionRow,
-} from "@/layout";
-import { defineQuery } from "@/queries/_shared";
-import type { QueryOperators } from "@/queries/_shared";
-
-import { layoutErrorOf } from "./layout";
-import type { ItemQueryLayoutError } from "./layout";
+} from "#layout/index.ts";
+import { defineQuery } from "#queries/_shared.ts";
 
 /**
  * A statement of an Item Query reader failed. It carries the statement, in the

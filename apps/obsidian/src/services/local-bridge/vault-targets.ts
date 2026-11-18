@@ -9,21 +9,21 @@ import { annotationHasCacheImage } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 import type { SnapshotVaultTargets } from "@zotlit/workbench/snapshot";
 
-import { attachmentFolderPath } from "@/lib/attachment-folder";
-import { joinFolderPath } from "@/lib/ensure-folder";
-import type { FileManager } from "@/lib/obsidian-file-manager";
-import type { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
+import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
+import { joinFolderPath } from "@/lib/ensure-folder.ts";
+import type { FileManager } from "@/lib/obsidian-file-manager.ts";
+import type { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
 import {
   excerptAssetIdentities,
   isOwnedExcerptAssetPath,
-} from "@/services/excerpt-image/materialize";
-import { referencedExcerptPaths } from "@/services/excerpt-image/references";
-import { NoteIndex } from "@/services/note-index/service";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/excerpt-image/materialize.ts";
+import { referencedExcerptPaths } from "@/services/excerpt-image/references.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 /** The services the vault targets read. */
 export type VaultTargetServices =

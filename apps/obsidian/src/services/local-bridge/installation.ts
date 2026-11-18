@@ -4,9 +4,9 @@
 
 import { Effect } from "effect";
 
-import { DeviceStorage } from "@/lib/obsidian-device-storage";
+import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
 
-import { randomHex } from "./random";
+import { randomHex } from "./random.ts";
 
 const STORAGE_KEY = "zotlit-local-bridge-installation";
 

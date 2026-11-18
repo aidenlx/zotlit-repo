@@ -1,8 +1,8 @@
 import {
   describeDatasetVocabulary,
   describeQuery,
-} from "./describe-item-query";
-import { ATTACHMENTS } from "./query-attachments";
+} from "./describe-item-query.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
 
 /** Source-independent Attachment vocabulary; generated only at build time. */
 export function describeAttachmentQueryVocabulary() {

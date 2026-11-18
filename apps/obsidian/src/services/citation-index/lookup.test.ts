@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { lookupAnswer } from "./__fixtures__/lookup";
-import { heldCitekeyOf, heldResolution } from "./lookup";
+import { lookupAnswer } from "./__fixtures__/lookup.ts";
+import { heldCitekeyOf, heldResolution } from "./lookup.ts";
 
 describe("CitationLookupAnswer", () => {
   const answer = lookupAnswer(

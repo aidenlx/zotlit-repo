@@ -2,7 +2,7 @@
 import TurndownService from "turndown";
 import { describe, expect, it } from "vitest";
 
-import { commentToMarkdown, createCommentTurndown } from "./comment";
+import { commentToMarkdown, createCommentTurndown } from "./comment.ts";
 
 const md = (html: string): string =>
   commentToMarkdown(createCommentTurndown(TurndownService), html);

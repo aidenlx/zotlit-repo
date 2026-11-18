@@ -9,8 +9,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 
-import { pageHead } from "@/lib/seo";
-import { WorkbenchSkeleton } from "@/lib/workbench/frame";
+import { pageHead } from "@/lib/seo.ts";
+import { WorkbenchSkeleton } from "@/lib/workbench/frame.tsx";
 import { m } from "@/paraglide/messages.js";
 
 // Requested at module evaluation in the browser alone: the prerender pass
@@ -18,7 +18,9 @@ import { m } from "@/paraglide/messages.js";
 const editor =
   typeof window === "undefined"
     ? null
-    : import("@/lib/workbench/workbench").then(({ Workbench }) => Workbench);
+    : import("@/lib/workbench/workbench.tsx").then(
+        ({ Workbench }) => Workbench,
+      );
 
 export const Route = createFileRoute("/workbench")({
   component: WorkbenchPage,

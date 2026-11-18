@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { ToggleComponent, controlsOf } from "@mock/obsidian";
+import { ToggleComponent, controlsOf } from "@mock/obsidian.ts";
 import { Context, Effect, Fiber, Layer } from "effect";
 // @vitest-environment happy-dom
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -9,42 +9,42 @@ import { ButtonComponent, Modal, SuggestModal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { until } from "@/lib/__fixtures__/eventually";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import type { ProfileId } from "@/lib/profile-stamp";
-import * as nativeDialog from "@/lib/require";
+import { until } from "@/lib/__fixtures__/eventually.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import * as nativeDialog from "@/lib/require.ts";
 import {
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,
-} from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { NoteFeature } from "@/services/note-feature/service";
-import type { ProfileNoteDraft } from "@/services/note-feature/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import { Profile } from "@/services/profile/service";
+} from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import { Profile } from "@/services/profile/service.ts";
 import type {
   PreparedProfileImport,
   ProfileImport,
   ProfileImportOptions,
-} from "@/services/profile/service";
-import { workbenchContext } from "@/services/template-workbench/__fixtures__";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/profile/service.ts";
+import { workbenchContext } from "@/services/template-workbench/__fixtures__.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { ImportProfileModal } from "./import-profile-modal";
-import type { ImportProfileDeps } from "./import-profile-modal";
-import { importProfileDialog } from "./profile-dialogs";
+import { ImportProfileModal } from "./import-profile-modal.ts";
+import type { ImportProfileDeps } from "./import-profile-modal.ts";
+import { importProfileDialog } from "./profile-dialogs.ts";
 
 const id = "Ry4Ua8Nv2Mx6" as ProfileId;
 /** The keep-or-replace toggle of one partial, read off the row that names it. */

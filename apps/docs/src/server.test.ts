@@ -15,7 +15,7 @@ vi.mock("@tanstack/react-start/server-entry", () => ({
   createServerEntry: (entry: unknown) => entry,
 }));
 
-import server from "./server";
+import server from "./server.ts";
 
 beforeEach(() => {
   vi.clearAllMocks();

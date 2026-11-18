@@ -29,12 +29,12 @@ const obsidianImportPaths = [
 // (scripts/effect-entry.ts); code imports the package names.
 const effectWrapperPaths = [
   {
-    name: "@/lib/effect",
+    name: "@/lib/effect.ts",
     message:
       'Import from "effect": the effectEntry Vite plugin (scripts/effect-entry.ts) resolves "effect" to this wrapper.',
   },
   {
-    name: "@/lib/effect-vitest",
+    name: "@/lib/effect-vitest.ts",
     message:
       'Import from "@effect/vitest": the effectEntry Vite plugin (scripts/effect-entry.ts) resolves "@effect/vitest" to this wrapper in tests.',
   },
@@ -45,7 +45,7 @@ const commonImports = {
     parentImportPattern,
     datePattern,
     {
-      group: ["**/citation-index/scan", "./scan"],
+      group: ["**/citation-index/scan.ts", "./scan.ts"],
       importNames: [
         "scanDocumentCitations",
         "scanCitekeyOccurrences",

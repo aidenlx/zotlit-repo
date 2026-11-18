@@ -1,1 +1,1 @@
-export { zoteroDevServerPlugin } from "./vite-plugin.js";
+export { zoteroDevServerPlugin } from "./vite-plugin.ts";

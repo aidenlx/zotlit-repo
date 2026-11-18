@@ -1,16 +1,16 @@
 import { Context, Effect, Layer, Stream } from "effect";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { buildLibraryScope } from "@/services/library-scope/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
-import { createTemplateHost } from "@/services/template/__fixtures__";
-import { Template } from "@/services/template/service";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { buildLibraryScope } from "@/services/library-scope/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { createTemplateHost } from "@/services/template/__fixtures__.ts";
+import { Template } from "@/services/template/service.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { profileOver } from "@/services/profile/__fixtures__";
-import { Profile } from "@/services/profile/service";
+import { profileOver } from "@/services/profile/__fixtures__.ts";
+import { Profile } from "@/services/profile/service.ts";
 
 export async function profileServiceFixture(
   files: Record<string, string> = {},

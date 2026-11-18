@@ -7,12 +7,12 @@
 // silently escape the sitemap. A new machine endpoint fails the `satisfies`
 // below instead, which is the same decision made explicitly.
 
-import type { FileRouteTypes } from "@/routeTree.gen";
+import type { FileRouteTypes } from "@/routeTree.gen.ts";
 
-import type { SiteLocale } from "./i18n";
-import { getPageLocaleState } from "./locale-state";
-import { baseURL } from "./shared";
-import { blog, changelog, getLessonPages, learn, source } from "./source";
+import type { SiteLocale } from "./i18n.ts";
+import { getPageLocaleState } from "./locale-state.ts";
+import { baseURL } from "./shared.ts";
+import { blog, changelog, getLessonPages, learn, source } from "./source.ts";
 
 /** Routes that answer machines rather than readers, so no crawler indexes them. */
 const machineRoutes = [

@@ -5,12 +5,12 @@ import { parse } from "yaml";
 import { emptyRender, SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { annotationSamples } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { PandocEngineStatus } from "@/services/pandoc/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
-} from "@/views/template-workbench/selection-data";
+} from "@/views/template-workbench/selection-data.ts";
 
 import {
   createRenderFixture,
@@ -19,10 +19,10 @@ import {
   renderNativeTemplate,
   renderRegisteredPartial,
   SAVED_NOTE,
-} from "./__fixtures__/render";
-import { presentCitations } from "./markdown";
-import { retainNativeOutputs, previewBaseline } from "./render";
-import type { NativeRenderResult } from "./render";
+} from "./__fixtures__/render.ts";
+import { presentCitations } from "./markdown.tsx";
+import { retainNativeOutputs, previewBaseline } from "./render.ts";
+import type { NativeRenderResult } from "./render.ts";
 
 /** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";

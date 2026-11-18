@@ -22,8 +22,8 @@ import {
 } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";
 
-import { keyCompletions } from "./expression-keys";
-import { memberCompletions, namespaceAccessAt } from "./expression-members";
+import { keyCompletions } from "./expression-keys.ts";
+import { memberCompletions, namespaceAccessAt } from "./expression-members.ts";
 import {
   fieldOption,
   noteOf,
@@ -31,17 +31,17 @@ import {
   ranked,
   rankedOptions,
   signature,
-} from "./expression-options";
+} from "./expression-options.ts";
 import type {
   ExpressionCompletionResult,
   ExpressionField,
   ExpressionName,
   ExpressionOption,
   ExpressionVocabulary,
-} from "./expression-options";
-import { syntaxCompletion } from "./field-popup";
-import type { CompletionPresentation } from "./field-popup";
-import { bindsNames, boundNameOptions } from "./list-scope";
+} from "./expression-options.ts";
+import { syntaxCompletion } from "./field-popup.ts";
+import type { CompletionPresentation } from "./field-popup.ts";
+import { bindsNames, boundNameOptions } from "./list-scope.ts";
 
 export type {
   ExpressionCompletionResult,
@@ -50,7 +50,7 @@ export type {
   ExpressionOption,
   ExpressionReceiver,
   ExpressionVocabulary,
-} from "./expression-options";
+} from "./expression-options.ts";
 
 /** Tokens whose text a completion must not interrupt. */
 const LITERALS = new Set(["String", "RegExp", "RealNumber", "Escape"]);

@@ -18,9 +18,9 @@ import {
   planItemFilter,
   queryItemFrom,
   queryItemSeedSchema,
-} from ".";
-import { readQueryItemSeed } from ".";
-import { runEffect, TEST_NOW } from "./test-helpers";
+} from "./index.ts";
+import { readQueryItemSeed } from "./index.ts";
+import { runEffect, TEST_NOW } from "./test-helpers.ts";
 
 const CLOCK = { now: Temporal.Instant.from(TEST_NOW), timeZone: "UTC" };
 

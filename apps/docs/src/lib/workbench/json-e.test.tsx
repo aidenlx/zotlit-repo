@@ -11,7 +11,7 @@ import {
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 import { SliceEditor } from "@zotlit/workbench/ui";
 
-import { WebTestHost } from "./test-host";
+import { WebTestHost } from "./test-host.tsx";
 
 it.each([false, true])(
   "completes a JSON-e rule through the shared source and history (Advanced=%s)",

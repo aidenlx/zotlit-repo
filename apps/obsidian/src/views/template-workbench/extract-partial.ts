@@ -14,9 +14,9 @@ import type { SuggestionSource } from "@zotlit/workbench/language";
 import { observeExit } from "@zotlit/workbench/ui";
 import type { WorkbenchRunner } from "@zotlit/workbench/ui";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 
 /**
  * Move `source` into a new Shared Partial: the host asks a name, writes the

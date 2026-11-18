@@ -14,14 +14,14 @@
 import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 
-import { writeBlockAt, writeBlockCode } from "./block-write";
-import { NoteQueryHost } from "./note-host";
-import { inPreview, renderPreviewPlaceholder } from "./preview-placeholder";
-import { parseQueryFile, QUERY_FILE_EXTENSION } from "./query-file";
-import type { QueryViewDeps } from "./view";
+import { writeBlockAt, writeBlockCode } from "./block-write.ts";
+import { NoteQueryHost } from "./note-host.ts";
+import { inPreview, renderPreviewPlaceholder } from "./preview-placeholder.ts";
+import { parseQueryFile, QUERY_FILE_EXTENSION } from "./query-file.ts";
+import type { QueryViewDeps } from "./view.tsx";
 
 /** A Query View: a block in one of its cards' comments shows its text only. */
 const IN_QUERY_VIEW = ".zt-query-view";

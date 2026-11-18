@@ -4,26 +4,29 @@ import { Effect, Layer, Scope } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client";
-import { openScope } from "@/lib/effect-scope";
-import { subscribe } from "@/lib/effect-stream";
-import { ParseFailed, ParseWorkerDied } from "@/services/citation-parse/client";
+import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
+import { openScope } from "@/lib/effect-scope.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import {
+  ParseFailed,
+  ParseWorkerDied,
+} from "@/services/citation-parse/client.ts";
 import type {
   ParseReply,
   ParseRequest,
-} from "@/services/citation-parse/client";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { makeRecoveringParseClient } from "@/services/citation-parse/recovering-client";
+} from "@/services/citation-parse/client.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { makeRecoveringParseClient } from "@/services/citation-parse/recovering-client.ts";
 
-import type { CitedBySnapshot } from "./service";
-import { SCANNER_REVISION } from "./store";
+import type { CitedBySnapshot } from "./service.ts";
+import { SCANNER_REVISION } from "./store.ts";
 import {
   createCitationIndexHarness,
   KEY_A,
   link,
   makeFile,
   MemoryStore,
-} from "./test-harness";
+} from "./test-harness.ts";
 
 it.effect(
   "aborts a document wait while another consumer keeps the shared parse",

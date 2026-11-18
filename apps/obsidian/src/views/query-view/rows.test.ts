@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { QueryViewRow } from "@/services/item-query/query-view";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
 
-import { layoutRows } from "./rows";
+import { layoutRows } from "./rows.ts";
 
 function row(
   key: string,

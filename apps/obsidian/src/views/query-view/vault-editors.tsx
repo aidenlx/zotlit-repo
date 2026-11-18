@@ -32,21 +32,21 @@ import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { useObsidianApp } from "@/lib/app-context";
-import { holdScopeWhileFocused } from "@/lib/focus-scope";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { hasActiveMenu, showMenuAtButton } from "@/lib/menu";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { hasActiveMenu, showMenuAtButton } from "@/lib/menu.ts";
 import {
   canClearSuggestHighlight,
   clearSuggestHighlight,
-} from "@/lib/obsidian-private/suggest-highlight";
-import { cn, tooltipAttrs } from "@/lib/utils";
+} from "@/lib/obsidian-private/suggest-highlight.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { LIST_TYPES } from "./table-notes";
-import type { VaultPropertyType } from "./table-notes";
-import { dateInputValue, dateValue, tagText } from "./vault-value";
+import { LIST_TYPES } from "./table-notes.ts";
+import type { VaultPropertyType } from "./table-notes.ts";
+import { dateInputValue, dateValue, tagText } from "./vault-value.ts";
 
 /**
  * What an edit holds: the field's text, and a list's items, with the item

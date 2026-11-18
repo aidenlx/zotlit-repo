@@ -14,10 +14,10 @@ import {
   placePanels,
   previewBelowHeight,
   resizePanel,
-} from "./panel-layout";
-import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout";
-import { panelSizeMenus } from "./panel-menu";
-import { m } from "./test-messages";
+} from "./panel-layout.ts";
+import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout.ts";
+import { panelSizeMenus } from "./panel-menu.ts";
+import { m } from "./test-messages.ts";
 
 /** The panels at their initial sizes, with the Preview shown as `preview` says. */
 const shown = (preview: boolean): WorkbenchPanels => ({

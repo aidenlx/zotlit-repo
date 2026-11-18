@@ -1,10 +1,10 @@
 import { Data } from "effect";
 
-import type { QueryDataset } from "./dataset";
-import { diagnose } from "./diagnose";
-import type { Diagnostic } from "./diagnose";
-import type { ItemQueryFault, Span } from "./fault";
-import type { FormulaDiagnostics, QueryContext } from "./request";
+import type { QueryDataset } from "./dataset.ts";
+import { diagnose } from "./diagnose.ts";
+import type { Diagnostic } from "./diagnose.ts";
+import type { ItemQueryFault, Span } from "./fault.ts";
+import type { FormulaDiagnostics, QueryContext } from "./request.ts";
 
 /** Stable codes of an invalid Item Query request. */
 export type ItemQueryErrorCode =

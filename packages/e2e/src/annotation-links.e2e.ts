@@ -9,7 +9,7 @@ import { ATTACHMENTS } from "@zotlit/scripts/fixture";
 // Annotation it names. The Annotation Suggester writes the same link from a
 // search at the cursor.
 
-import type { AnnotationView } from "@/views/annot-view/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import {
   annotationAttachment,

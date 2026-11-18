@@ -6,7 +6,7 @@ import type { SyntaxNode } from "@lezer/common";
 
 import { METHOD_ENTRIES } from "@zotlit/item-query";
 
-import type { Caret, ExpressionOption } from "./expression-options";
+import type { Caret, ExpressionOption } from "./expression-options.ts";
 
 const BINDS: ReadonlyMap<string, readonly string[]> = new Map(
   METHOD_ENTRIES.flatMap(([, name, method]) =>

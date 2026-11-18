@@ -10,12 +10,12 @@ import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import { isCitationExampleId } from "@zotlit/workbench/render";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 
-import { parseProfileSelector } from "@/lib/profile-stamp";
-import { Profile, ProfileOperationError } from "@/services/profile/service";
-import { checkDiagnostic } from "@/services/template-workbench/check-profile";
-import type { ProfileCheck } from "@/services/template-workbench/check-profile";
-import { plainTemplateError } from "@/services/template/errors";
-import { Template } from "@/services/template/service";
+import { parseProfileSelector } from "@/lib/profile-stamp.ts";
+import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
+import { checkDiagnostic } from "@/services/template-workbench/check-profile.ts";
+import type { ProfileCheck } from "@/services/template-workbench/check-profile.ts";
+import { plainTemplateError } from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
 
 import type {
   CheckContext,
@@ -23,12 +23,12 @@ import type {
   CheckServices,
   InspectedSource,
   PlainCheckBranch,
-} from "./check";
-import { readCitationData, readTemplateData, withSettings } from "./data";
-import { createInspectHandler, sourceRevision } from "./inspect";
-import { INSPECT_DIAGNOSTICS } from "./inspect-contract";
-import type { InspectDiagnosticCode } from "./inspect-contract";
-import { templateCall } from "./sync-template";
+} from "./check.ts";
+import { readCitationData, readTemplateData, withSettings } from "./data.ts";
+import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";
+import type { InspectDiagnosticCode } from "./inspect-contract.ts";
+import { createInspectHandler, sourceRevision } from "./inspect.ts";
+import { templateCall } from "./sync-template.ts";
 
 /** The refusal a Reserved Partial Name carries, as the inspection registry names it. */
 export const RESERVED_PARTIAL_NAME =

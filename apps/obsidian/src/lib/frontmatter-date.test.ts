@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { frontmatterInstant } from "./frontmatter-date";
+import { frontmatterInstant } from "./frontmatter-date.ts";
 
 describe("frontmatterInstant", () => {
   it("reads a YAML timestamp Date as the same instant", () => {

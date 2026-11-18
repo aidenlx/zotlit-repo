@@ -9,31 +9,35 @@ import { describe, expect, it, vi } from "vitest";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__";
+} from "@/services/annotation-repository/service.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
+import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 
-import { ExcerptDisplayFixture } from "./__fixtures__/display";
-import { settledDisplay } from "./__fixtures__/display-state";
-import { layerExcerptFiles } from "./__fixtures__/files";
-import { redPng } from "./__fixtures__/png";
-import { renderGate } from "./__fixtures__/render-gate";
-import type { GatedRender } from "./__fixtures__/render-gate";
-import { sizedWebp } from "./__fixtures__/webp";
-import { EXCERPT_DISPLAY } from "./display";
-import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display";
-import { PNG_FORMAT, WEBP_FORMAT } from "./format";
-import type { ExcerptImage } from "./format";
+import { settledDisplay } from "./__fixtures__/display-state.ts";
+import { ExcerptDisplayFixture } from "./__fixtures__/display.ts";
+import { layerExcerptFiles } from "./__fixtures__/files.ts";
+import { redPng } from "./__fixtures__/png.ts";
+import { renderGate } from "./__fixtures__/render-gate.ts";
+import type { GatedRender } from "./__fixtures__/render-gate.ts";
+import { sizedWebp } from "./__fixtures__/webp.ts";
+import { EXCERPT_DISPLAY } from "./display.ts";
+import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display.ts";
+import { PNG_FORMAT, WEBP_FORMAT } from "./format.ts";
+import type { ExcerptImage } from "./format.ts";
 import type {
   ExcerptPdfJs,
   ExcerptRendererDiagnosticSnapshot,
-} from "./renderer";
+} from "./renderer.ts";
 import {
   excerptAnnotationRecord,
   excerptFingerprint,
   excerptKey,
-} from "./service";
-import type { ExcerptEntry, ExcerptIdentity, ExcerptRequest } from "./service";
+} from "./service.ts";
+import type {
+  ExcerptEntry,
+  ExcerptIdentity,
+  ExcerptRequest,
+} from "./service.ts";
 
 // The one read below that goes through the service's own renderer doubles the
 // PDF file and the canvas that renderer needs, and nothing else.

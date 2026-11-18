@@ -1,20 +1,20 @@
-import { Menu } from "@mock/obsidian";
-import type { MenuItem as MockMenuItem } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
+import type { MenuItem as MockMenuItem } from "@mock/obsidian.ts";
 import type { App, Menu as ObsidianMenu, MenuItem, Workspace } from "obsidian";
 import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openAttachments } from "@/lib/attachment-open";
-import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openAttachments } from "@/lib/attachment-open.ts";
+import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu.ts";
 
-import type { AttachmentOpenDeps } from "./actions";
-import { attachmentOpenFileMenu } from "./menu";
-import type { TargetOpener } from "./open-target";
-import type { ObsidianOpenableAttachment } from "./resolve";
+import type { AttachmentOpenDeps } from "./actions.ts";
+import { attachmentOpenFileMenu } from "./menu.ts";
+import type { TargetOpener } from "./open-target.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
-vi.mock("@/lib/attachment-open", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open")>()),
+vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
   openAttachments: vi.fn(),
 }));
 
@@ -182,7 +182,7 @@ describe("Literature Note attachment-open file menu", () => {
    */
   it("shows the picker at the button's own box for a keyboard click, after the async Attachment lookup", async () => {
     const actual = await vi.importActual<
-      typeof import("@/lib/attachment-open")
+      typeof import("@/lib/attachment-open.ts")
     >("@/lib/attachment-open");
     vi.mocked(openAttachments).mockImplementation(actual.openAttachments);
     resolved = [

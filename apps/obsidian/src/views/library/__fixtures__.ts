@@ -2,10 +2,10 @@ import { DateTime } from "effect";
 // The view's clock and its ledger's Uses, for tests: the view is plain code,
 // so it reads Temporal.
 
-import type { Use } from "@/services/use-ledger/service";
-import type { UseKind } from "@/services/use-ledger/service";
+import type { Use } from "@/services/use-ledger/service.ts";
+import type { UseKind } from "@/services/use-ledger/service.ts";
 
-export { holdNow } from "./__fixtures__/clock";
+export { holdNow } from "./__fixtures__/clock.ts";
 
 /** A `kind` Use at `iso`. */
 export function useAt(kind: UseKind, iso: string): Use {
@@ -15,13 +15,13 @@ export function useAt(kind: UseKind, iso: string): Use {
 // The Library embeds the Welcome banner, so its test host supplies the same sources.
 import { Effect, Layer, Stream } from "effect";
 
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ANNOT_PATHS } from "@/views/annot-view/__fixtures__/host";
-import { makeWelcomeHost } from "@/views/welcome/__fixtures__";
-import type { WelcomeHostOptions } from "@/views/welcome/__fixtures__";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ANNOT_PATHS } from "@/views/annot-view/__fixtures__/host.ts";
+import { makeWelcomeHost } from "@/views/welcome/__fixtures__.ts";
+import type { WelcomeHostOptions } from "@/views/welcome/__fixtures__.ts";
 
 export const makeLibraryHost = <R = never>(
   options: WelcomeHostOptions<R> = {},

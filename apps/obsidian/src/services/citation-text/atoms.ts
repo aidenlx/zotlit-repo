@@ -2,9 +2,9 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { CitationText } from "./service";
+import { CitationText } from "./service.ts";
 
 export const entrySerialsAtom = Atom.family((path: string) =>
   held(

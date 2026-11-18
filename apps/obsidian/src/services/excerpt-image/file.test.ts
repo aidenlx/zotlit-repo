@@ -3,9 +3,9 @@ import { Deferred, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { openExcerptFile } from "./file";
+import { openExcerptFile } from "./file.ts";
 
 // The platform keeps late file handles, while crop teardown stays bounded.
 it.effect(

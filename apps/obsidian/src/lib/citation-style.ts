@@ -1,5 +1,5 @@
-import * as m from "@/lib/i18n/generated/messages";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 /** Null and the empty picker value select the renderer's built-in CSL style. */
 export function citationStyleLabel(

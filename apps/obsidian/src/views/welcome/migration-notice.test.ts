@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { templateMigrationNotice } from "./migration-notice";
+import { templateMigrationNotice } from "./migration-notice.ts";
 
 it("names the properties a converted document still needs fixed", () => {
   const notice = templateMigrationNotice({

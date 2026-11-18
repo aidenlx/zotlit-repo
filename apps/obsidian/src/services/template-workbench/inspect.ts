@@ -19,46 +19,49 @@ import {
   decodeCliParams,
   expectSourceParam,
   amendRejection,
-} from "@/lib/cli-params";
-import type { CliOutput, CliParamName } from "@/lib/cli-params";
-import { withLogCategory } from "@/lib/effect-log";
-import type { ObsidianEnv } from "@/lib/obsidian-env";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { parseProfileSelector } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { FileNotFound, VaultError } from "@/lib/vault-errors";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
+} from "@/lib/cli-params.ts";
+import type { CliOutput, CliParamName } from "@/lib/cli-params.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { parseProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { FileNotFound, VaultError } from "@/lib/vault-errors.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
 import type {
   ProfileDiagnostic,
   ProfileOperationError,
-} from "@/services/profile/service";
-import { DEFAULT_PROFILE_DOCUMENT } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults";
-import { citationPath, partialNameRefusal } from "@/services/template/defaults";
-import { Template } from "@/services/template/service";
+} from "@/services/profile/service.ts";
+import { DEFAULT_PROFILE_DOCUMENT } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
+import {
+  citationPath,
+  partialNameRefusal,
+} from "@/services/template/defaults.ts";
+import { Template } from "@/services/template/service.ts";
 import type {
   CompileError,
   LiteratureNoteTemplateStatus,
   TemplateFailure,
-} from "@/services/template/service";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/services/template/service.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope";
-import { readWorkbenchIdentity } from "./identity";
-import type { InspectDiagnosticCode } from "./inspect-contract";
+import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope.ts";
+import { readWorkbenchIdentity } from "./identity.ts";
+import type { InspectDiagnosticCode } from "./inspect-contract.ts";
 import {
   INSPECT_DIAGNOSTICS,
   INSPECT_SELECTORS,
   INSPECT_SOURCE_FULL,
   INSPECT_TIMEOUT_MS,
   TEMPLATE_INSPECT_COMMAND,
-} from "./inspect-contract";
-export { inspectFlags, TEMPLATE_INSPECT_COMMAND } from "./inspect-contract";
+} from "./inspect-contract.ts";
+export { inspectFlags, TEMPLATE_INSPECT_COMMAND } from "./inspect-contract.ts";
 
 type FreshnessState = "current" | "timeout" | "superseded" | "read-failed";
 

@@ -2,16 +2,16 @@ import { expect, it, vi } from "vitest";
 
 import type { SelectedText } from "@zotlit/pdf-structure";
 
-import { passAborted } from "@/lib/abort-error";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import { watch } from "@/lib/view-atoms";
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { passAborted } from "@/lib/abort-error.ts";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { watch } from "@/lib/view-atoms.ts";
+import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,
   TextFieldDraft,
-} from "@/services/annotation-repository/service";
-import { IDLE, writePosition } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import { IDLE, writePosition } from "@/services/annotation-repository/write.ts";
 
 import {
   annotation,
@@ -19,10 +19,10 @@ import {
   repositoryOver,
   selection,
   toolColors,
-} from "./__fixtures__";
-import type { CreationToolbarControl } from "./creation-toolbar";
-import { freeTextLines } from "./free-text-layout";
-import type { EditablePosition } from "./geometry-edit";
+} from "./__fixtures__.ts";
+import type { CreationToolbarControl } from "./creation-toolbar.ts";
+import { freeTextLines } from "./free-text-layout.ts";
+import type { EditablePosition } from "./geometry-edit.ts";
 import {
   current,
   ingestAnnotations,
@@ -30,7 +30,7 @@ import {
   modify,
   setToolColor,
   update,
-} from "./reader-surface-model";
+} from "./reader-surface-model.ts";
 import {
   appendPendingStroke,
   arm,
@@ -74,7 +74,7 @@ import {
   settleTextDraft,
   stepStack,
   tick,
-} from "./reader-surface-state";
+} from "./reader-surface-state.ts";
 
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 const RETRY_AFTER = deadlineAfter(NOW, 45);

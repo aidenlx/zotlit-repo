@@ -1,16 +1,16 @@
+import type { Annotation } from "#lib/zt-annot.ts";
+import type { Attachment } from "#lib/zt-attach.ts";
+import type { ItemTag, Tag } from "#lib/zt-tag.ts";
+import type { BaseItem, Item } from "#queries/items.ts";
 import { describe, expect, it } from "vitest";
 
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import type { Annotation } from "@/lib/zt-annot";
-import type { Attachment } from "@/lib/zt-attach";
-import type { ItemTag, Tag } from "@/lib/zt-tag";
-import { itemBaseFields, resolveVenue } from "@/lib/zt-venue";
-import type { BaseItem, Item } from "@/queries/items";
+import type { TemplateFilenameItemData } from "./zt-template-item.ts";
+import { buildFilenameContext, buildNoteContext } from "./zt-template-note.ts";
 
-import type { TemplateFilenameItemData } from "./zt-template-item";
-import { buildFilenameContext, buildNoteContext } from "./zt-template-note";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { itemBaseFields, resolveVenue } from "#lib/zt-venue.ts";
 
 function makeItem(
   fields: { itemType: string } & Record<string, string | null>,

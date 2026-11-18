@@ -1,6 +1,6 @@
-// Shared Inlang project fixtures for compiler/cli/vite tests. Not a tsdown
-// entry and not a `*.test.ts` file, so it never lands in dist or gets run by
-// vitest as a test suite itself.
+// Shared Inlang project fixtures for compiler/cli/vite tests. Not a package
+// export and not a `*.test.ts` file, so no consumer imports it and vitest does
+// not run it as a test suite itself.
 
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

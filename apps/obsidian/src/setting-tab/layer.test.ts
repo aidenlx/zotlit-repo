@@ -4,26 +4,26 @@ import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 import { TestClock } from "effect/testing";
 import type { App, Plugin, PluginManifest } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { PluginHost } from "@/lib/plugin-host";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
-import { LanguagePack } from "@/services/language-pack/service";
-import type { LanguagePackSituation } from "@/services/language-pack/service";
-import { LibraryScope } from "@/services/library-scope/service";
-import { LocalBridge } from "@/services/local-bridge/service";
-import type { WorkbenchConnection } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { PandocEngine } from "@/services/pandoc/service";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import type { LanguagePackSituation } from "@/services/language-pack/service.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { unimplementedTabServices } from "./__fixtures__";
-import { layerSettingTab } from "./layer";
+import { unimplementedTabServices } from "./__fixtures__.ts";
+import { layerSettingTab } from "./layer.ts";
 
 const CONNECTION: WorkbenchConnection = {
   origin: "https://zotlit.aidenlx.site",

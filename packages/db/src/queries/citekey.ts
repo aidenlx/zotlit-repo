@@ -1,18 +1,18 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import { eq, sql } from "drizzle-orm";
+
+import { defineQuery } from "./_shared.ts";
+import type { QueryRow } from "./_shared.ts";
+import { groupIDForLibrary } from "./libraries.ts";
+
 import {
   itemData,
   items,
   itemDataValues,
   fieldsCombined,
   deletedItems,
-} from "@drizzle/schema";
-import { eq, sql } from "drizzle-orm";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { formatIndexedKey } from "@/lib/zt-key";
-
-import { defineQuery } from "./_shared";
-import type { QueryRow } from "./_shared";
-import { groupIDForLibrary } from "./libraries";
+} from "#drizzle/schema.ts";
+import { formatIndexedKey } from "#lib/zt-key.ts";
 
 /** Zotero's native citation-key field name in Zotero's `fieldsCombined`. */
 const CITEKEY_FIELD = "citationKey";

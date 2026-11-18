@@ -63,7 +63,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ zotlit, page }, { EFFECT_MODULE_PATH }) => {
         const { Effect } = require(
           EFFECT_MODULE_PATH,
-        ) as typeof import("@/lib/effect");
+        ) as typeof import("@/lib/effect.ts");
         const repository = zotlit.services.annotationRepository;
         page.scratch.__zotlitCapabilitySubjects = [];
         // oxlint-disable-next-line typescript/unbound-method -- the original method is replaced for the test and restored by identity

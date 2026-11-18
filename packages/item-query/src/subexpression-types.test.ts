@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { ANNOTATIONS } from "./query-annotations";
-import { ITEMS } from "./query-items";
-import { subexpressionTypes } from "./subexpression-types";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ITEMS } from "./query-items.ts";
+import { subexpressionTypes } from "./subexpression-types.ts";
 
 /** The type of the subexpression `part` of `text`, at its first occurrence. */
 function typeOf(

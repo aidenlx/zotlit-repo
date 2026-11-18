@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { V1_TEMPLATE_FOLDER } from "./constants";
-import { decideRelease } from "./decide";
-import type { ReleaseCheckInput } from "./decide";
+import { V1_TEMPLATE_FOLDER } from "./constants.ts";
+import { decideRelease } from "./decide.ts";
+import type { ReleaseCheckInput } from "./decide.ts";
 
 const CURRENT = "2.0.0-alpha.6";
 

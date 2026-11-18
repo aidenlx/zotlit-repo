@@ -12,79 +12,79 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema, rowInstant } from "@zotlit/db/test-utils";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { BatchTarget } from "@/services/batch-scope";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { BatchTarget } from "@/services/batch-scope.ts";
+import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type {
   AvailableLibrary,
   LibrarySelector,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import { selectorOf } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { CreationProfileSelection } from "@/services/note-feature";
-import { NoteFeature } from "@/services/note-feature/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ProfileAnnotationError } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
+} from "@/services/library-scope/scope.ts";
+import { selectorOf } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ProfileAnnotationError } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   recordCalls,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+} from "@/services/zotero-reads/test-utils.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import type {
   BatchClassifyControls,
   BatchModalOptions,
   BatchRunControls,
   FlatTask,
-} from "@/views/batch-modal";
+} from "@/views/batch-modal/index.ts";
 
-import {
-  runBatchImport,
-  runBatchImportAll,
-  runChildImportByKey,
-} from "./batch-import";
-import type {
-  BatchImport,
-  BatchImportPorts,
-  BatchImportResult,
-} from "./batch-import";
-import type { BatchImportServices } from "./batch-import";
-import { bindBatchImport } from "./batch-import-handle";
+import { bindBatchImport } from "./batch-import-handle.ts";
 import {
   batchImportNotice,
   batchImportToast,
   childImportToast,
-} from "./batch-import-notices";
-import { importAllNotes } from "./commands";
-import { NoteImporter, NoteImportProfileError } from "./service";
+} from "./batch-import-notices.ts";
+import {
+  runBatchImport,
+  runBatchImportAll,
+  runChildImportByKey,
+} from "./batch-import.ts";
+import type {
+  BatchImport,
+  BatchImportPorts,
+  BatchImportResult,
+} from "./batch-import.ts";
+import type { BatchImportServices } from "./batch-import.ts";
+import { importAllNotes } from "./commands.ts";
+import { NoteImporter, NoteImportProfileError } from "./service.ts";
 import type {
   ImportNoteOptions,
   PreparedExplicitImport,
   WriteOutcome,
-} from "./service";
-import type { NoteImportView } from "./view";
+} from "./service.ts";
+import type { NoteImportView } from "./view.ts";
 
 /** Captured options of every batch modal the runner opened via its view port. */
 const openedModals: BatchModalOptions[] = [];
@@ -93,7 +93,7 @@ const confirmMock = vi.fn();
 
 // Stub only the DOM-bound manifests so classify/run drive the real batch-run
 // mechanics (imported from @/services/batch-run, left unmocked) headlessly.
-vi.mock("@/views/batch-modal", () => {
+vi.mock("@/views/batch-modal/index.ts", () => {
   class FlatManifest {
     readonly options: unknown;
 

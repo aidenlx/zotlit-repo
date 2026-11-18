@@ -2,9 +2,9 @@
 
 import type { GraphEngine, GraphOptions } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { installToggleRow, rowFlag, toggleRowTarget } from "./rows";
+import { installToggleRow, rowFlag, toggleRowTarget } from "./rows.ts";
 
 /** The option key the "Color citation links" row persists under. */
 export const COLOR_CITATION_LINKS = "zotlit-color-citation-links";

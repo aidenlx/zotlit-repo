@@ -22,28 +22,28 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { readQueryItemSeed } from "@zotlit/item-query";
 
-import { applyFieldAllowList } from "./allowlist";
-import { collectRootDescriptors } from "./descriptors";
+import { applyFieldAllowList } from "./allowlist.ts";
+import { collectRootDescriptors } from "./descriptors.ts";
 import {
   authorsShort,
   normalizeTargets,
   snapshotResolvers,
   validateProvenance,
-} from "./resolvers";
+} from "./resolvers.ts";
 import type {
   ExportItemSnapshotOptions,
   ItemSnapshot,
   SnapshotLibrarySelector,
   SnapshotSelection,
-} from "./types";
-import { SnapshotSelectionError } from "./types";
-import { collectUnavailable } from "./unavailable";
+} from "./types.ts";
+import { SnapshotSelectionError } from "./types.ts";
+import { collectUnavailable } from "./unavailable.ts";
 
-import { serializeTemplateData } from "#/explorer/index";
+import { serializeTemplateData } from "#explorer/index.ts";
 
-export type * from "./descriptors";
-export type * from "./types";
-export { SnapshotSelectionError } from "./types";
+export type * from "./descriptors.ts";
+export type * from "./types.ts";
+export { SnapshotSelectionError } from "./types.ts";
 
 /**
  * @throws SnapshotSelectionError when the selected Library or Item is absent,

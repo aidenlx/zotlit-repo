@@ -11,17 +11,17 @@ import {
 } from "effect";
 import { describe, expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { LogCategory } from "@/lib/effect-log";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { LogCategory } from "@/lib/effect-log.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/service.ts";
 
-import { libraryTagNames, libraryTagNamesOf } from "./library-tag-names";
+import { libraryTagNames, libraryTagNamesOf } from "./library-tag-names.ts";
 
 interface Logged {
   level: string;

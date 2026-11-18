@@ -3,24 +3,27 @@ import { Context, Effect, Exit, Layer, Scope } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { App } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { FileManager, layerFileManagerFrom } from "@/lib/obsidian-file-manager";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { layerVaultFrom, Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { LibraryScope } from "@/services/library-scope/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import {
+  FileManager,
+  layerFileManagerFrom,
+} from "@/lib/obsidian-file-manager.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { layerVaultFrom, Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { TemplateDataLoader } from "./data";
-import { bindTemplateData } from "./data-handle";
-import type { WorkbenchServices } from "./register";
+import { bindTemplateData } from "./data-handle.ts";
+import type { TemplateDataLoader } from "./data.ts";
+import type { WorkbenchServices } from "./register.ts";
 
 /** The services a Profile fixture's runtime holds for the Workbench. */
 export type FixtureServices =

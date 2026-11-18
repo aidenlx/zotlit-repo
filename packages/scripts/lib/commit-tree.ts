@@ -1,9 +1,9 @@
-// Type-aware lint builds workspace packages from disk. Lefthook hides the
+// Type-aware lint reads workspace package source from disk. Lefthook hides the
 // unstaged hunks of a staged file, but a file with only unstaged changes stays
 // on disk, so lint would check a tree the commit never holds.
 
-/** Files whose content reaches the lint build: sources, and JSON such as message catalogs. */
-const BUILD_INPUT = /\.(?:[cm]?[jt]sx?|json)$/;
+/** Files whose content reaches the lint: sources, and JSON such as message catalogs. */
+const LINT_INPUT = /\.(?:[cm]?[jt]sx?|json)$/;
 
 /**
  * The files with changes outside the commit that lint would still build, read
@@ -22,7 +22,7 @@ export function looseFiles(status: string): string[] {
     // A rename or copy carries its source path in the next field.
     if ("RC".includes(staged) || "RC".includes(unstaged)) index++;
     if ((staged === " " || staged === "?") && unstaged !== " ") {
-      if (BUILD_INPUT.test(path)) loose.push(path);
+      if (LINT_INPUT.test(path)) loose.push(path);
     }
   }
   return loose;
@@ -31,7 +31,7 @@ export function looseFiles(status: string): string[] {
 /** The message that names the loose files and the two ways on. */
 export function looseFilesMessage(loose: readonly string[]): string {
   return [
-    "Lint builds the working tree, and these files hold changes outside this commit:",
+    "Lint reads the working tree, and these files hold changes outside this commit:",
     ...loose.map((path) => `  ${path}`),
     "Move them out of the tree (a WIP commit, or a tagged stash) to check this commit alone,",
     "or run the commit with LEFTHOOK_EXCLUDE=tree to check it together with them.",

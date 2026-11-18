@@ -2,20 +2,20 @@
 
 import type { GraphColor, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 import {
   AUTHOR_TITLE_LABELS,
   CITATION_POPOVER,
   COLOR_CITATION_LINKS,
-} from "./display";
+} from "./display.ts";
 import {
   CITATION_CONNECTED_ONLY,
   PANDOC_CITATIONS,
   WIKILINK_CITATIONS,
-} from "./filters";
-import { addLiteratureNotesGroup, groupsTarget } from "./groups";
-import { graphEngineOf, membersPresent } from "./install";
+} from "./filters.ts";
+import { addLiteratureNotesGroup, groupsTarget } from "./groups.ts";
+import { graphEngineOf, membersPresent } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 

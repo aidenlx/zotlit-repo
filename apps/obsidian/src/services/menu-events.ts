@@ -17,13 +17,13 @@
 import type { EditorView } from "@codemirror/view";
 import type { Menu, Workspace } from "obsidian";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import type { ZoteroOpenableAttachment } from "@/services/citation-index/sources";
-import type { CitedWork } from "@/services/citekey-navigation/intent";
-import type { MarkTool } from "@/services/pdf-annotation-editor/tools";
-import type { EditorSurface } from "@/views/annot-view/editor-sheet";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import type { ZoteroOpenableAttachment } from "@/services/citation-index/sources.ts";
+import type { CitedWork } from "@/services/citekey-navigation/intent.ts";
+import type { MarkTool } from "@/services/pdf-annotation-editor/tools.ts";
+import type { EditorSurface } from "@/views/annot-view/editor-sheet.ts";
 
 /** What each ZotLit menu event hands its listeners beside the menu. */
 export interface ZotLitMenuEvents {

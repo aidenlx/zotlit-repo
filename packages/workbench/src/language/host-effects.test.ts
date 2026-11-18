@@ -2,7 +2,7 @@ import { Effect, Exit, Fiber, Scope } from "effect";
 import type { Fiber as FiberType } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { joinForked, observeExit } from "./host-effects";
+import { joinForked, observeExit } from "./host-effects.ts";
 
 describe("joinForked", () => {
   it("interrupts the forked Fiber when the caller is interrupted as it starts", async () => {

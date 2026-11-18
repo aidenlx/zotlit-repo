@@ -57,19 +57,24 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemIndex, layerItemIndex } from "@zotlit/item-lookup";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 
-import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files";
-import { runQueryJob } from "@/services/item-query/job";
+import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files.ts";
+import { runQueryJob } from "@/services/item-query/job.ts";
 
-import { CITEKEY_WINDOW, makeCitationLookup } from "./citation-lookup";
-import { Connection, read } from "./connection";
-import { readIndexedItemIDs } from "./item-scan";
-import { layerConnectionItemSource } from "./item-source";
-import { itemsByIndexedKeys } from "./items-by-indexed-keys";
-import { listCollectionChoices } from "./membership";
-import { DbUnavailable, SnapshotExpired, SnapshotId, ZoteroReads } from "./rpc";
-import type { ReadsConfig, SegmenterBinary, WorkLabelSource } from "./rpc";
-import { layerSegmenterBinaryReader } from "./segmenter";
-import type { ReadSegmenter } from "./segmenter";
+import { CITEKEY_WINDOW, makeCitationLookup } from "./citation-lookup.ts";
+import { Connection, read } from "./connection.ts";
+import { readIndexedItemIDs } from "./item-scan.ts";
+import { layerConnectionItemSource } from "./item-source.ts";
+import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
+import { listCollectionChoices } from "./membership.ts";
+import {
+  DbUnavailable,
+  SnapshotExpired,
+  SnapshotId,
+  ZoteroReads,
+} from "./rpc.ts";
+import type { ReadsConfig, SegmenterBinary, WorkLabelSource } from "./rpc.ts";
+import { layerSegmenterBinaryReader } from "./segmenter.ts";
+import type { ReadSegmenter } from "./segmenter.ts";
 
 /** The collection queries `ScopeItemIDs` runs, per kind. */
 const COLLECTION_SCOPE_QUERIES = {

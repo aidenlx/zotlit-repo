@@ -3,11 +3,11 @@
 import { formatIndexedKey } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 
-import type { Diagnostic } from "@/services/item-query/contract";
+import type { Diagnostic } from "@/services/item-query/contract.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "@/services/item-query/query-view";
+} from "@/services/item-query/query-view.ts";
 
 export type MatchItem = Pick<Item, "key" | "groupID">;
 

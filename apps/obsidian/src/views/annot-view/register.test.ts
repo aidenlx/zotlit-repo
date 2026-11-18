@@ -2,13 +2,13 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { Command } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { makeAnnotViewModel } from "./model";
-import { addFollowModeCommands } from "./register";
-import type { FollowModeCommandTarget } from "./register";
-import type { FollowMode } from "./store";
-import { DEFAULT_FOLLOW_MODE } from "./view-state";
+import { makeAnnotViewModel } from "./model.ts";
+import { addFollowModeCommands } from "./register.ts";
+import type { FollowModeCommandTarget } from "./register.ts";
+import type { FollowMode } from "./store.ts";
+import { DEFAULT_FOLLOW_MODE } from "./view-state.ts";
 
 function view(
   state: { followMode?: FollowMode; pinnable?: string | null } = {},

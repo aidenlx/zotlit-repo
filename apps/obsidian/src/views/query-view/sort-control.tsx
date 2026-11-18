@@ -9,23 +9,23 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown";
-import { Icon } from "@/components/obsidian/icon";
-import { Select } from "@/components/select";
-import type { SelectOption } from "@/components/select";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { Select } from "@/components/select.tsx";
+import type { SelectOption } from "@/components/select.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { directionLabel } from "./properties";
-import type { PropertyOption } from "./properties";
-import type { QueryFileDirection, QueryFileSort } from "./query-file";
-import { GripIcon, moved, useReorder } from "./reorder";
+import { directionLabel } from "./properties.ts";
+import type { PropertyOption } from "./properties.ts";
+import type { QueryFileDirection, QueryFileSort } from "./query-file.ts";
+import { GripIcon, moved, useReorder } from "./reorder.tsx";
 import {
   PopoverAction,
   PopoverActions,
   PopoverHeader,
   PopoverSection,
-} from "./toolbar-popover";
+} from "./toolbar-popover.tsx";
 
 export interface SortEditorProps {
   value: readonly QueryFileSort[];

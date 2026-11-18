@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from "vitest";
 
-import { windowMigration } from "@/views/template-workbench/test-window-migration";
+import { windowMigration } from "@/views/template-workbench/test-window-migration.ts";
 
-import { observeResize } from "./observe-resize";
+import { observeResize } from "./observe-resize.ts";
 
 /** A window whose `ResizeObserver` records what each observer watches. */
 function windowWithObservers() {

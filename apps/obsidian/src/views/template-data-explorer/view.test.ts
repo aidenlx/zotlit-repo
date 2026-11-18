@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { ItemView as MockItemView } from "@mock/obsidian";
+import type { ItemView as MockItemView } from "@mock/obsidian.ts";
 import { Deferred, Effect } from "effect";
 import type { App, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
@@ -7,27 +7,27 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { defaults } from "@/services/settings/schema";
-import type { TemplateDataLoadResult } from "@/services/template-workbench/data";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import {
   workbenchItemChoice,
   workbenchItemSearch,
-} from "@/views/template-workbench/item-choice";
+} from "@/views/template-workbench/item-choice.ts";
 
-import { makeExplorerHost, waitFor } from "./__fixtures__";
-import type { ExplorerHost, ExplorerReads } from "./__fixtures__";
-import { TemplateDataExplorerView } from "./view";
-import type { ExplorerViewDeps } from "./view";
+import { makeExplorerHost, waitFor } from "./__fixtures__.ts";
+import type { ExplorerHost, ExplorerReads } from "./__fixtures__.ts";
+import { TemplateDataExplorerView } from "./view.tsx";
+import type { ExplorerViewDeps } from "./view.tsx";
 
-vi.mock("@/services/item-lookup/search-modal", () => ({
+vi.mock("@/services/item-lookup/search-modal.ts", () => ({
   pickItem: vi.fn(async () => null),
 }));
-vi.mock("@/views/template-workbench/item-choice", async (importOriginal) => {
+vi.mock("@/views/template-workbench/item-choice.ts", async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import("@/views/template-workbench/item-choice")
+      typeof import("@/views/template-workbench/item-choice.ts")
     >();
   return {
     ...actual,

@@ -6,12 +6,12 @@
 import { Effect, Layer } from "effect";
 import type { App, CliFlag, CliFlags } from "obsidian";
 
-import type { CliHost } from "@/lib/cli-command";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { PluginHost } from "@/lib/plugin-host";
-import { CitationIndex } from "@/services/citation-index/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import type { CliHost } from "@/lib/cli-command.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import {
   ANNOTATION_USES_COMMAND,
@@ -19,12 +19,12 @@ import {
   CITED_BY_COMMAND,
   createCitationsCliHandlers,
   REFERENCES_COMMAND,
-} from "./commands";
+} from "./commands.ts";
 import type {
   AnnotationUsesParam,
   CitedByParam,
   ReferencesParam,
-} from "./request";
+} from "./request.ts";
 
 interface CitationsCliRegistrationDeps {
   app: App;

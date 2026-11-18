@@ -15,21 +15,21 @@ import { describe, expect } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 
-import type { AvailableLibrary } from "@/services/library-scope/scope";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
+import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
 import {
   layerLibraryScopeOf,
   layerTestItemLookup,
   scopeState,
-} from "./__fixtures__";
-import { ItemLookup } from "./service";
-import type { SearchHit } from "./service";
+} from "./__fixtures__.ts";
+import { ItemLookup } from "./service.ts";
+import type { SearchHit } from "./service.ts";
 
 const keys = (hits: readonly SearchHit[]) => hits.map((hit) => hit.item.key);
 

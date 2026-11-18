@@ -3,10 +3,10 @@ import { Effect } from "effect";
 
 import type { Item } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
-import { ZoteroReads } from "./service";
+import { ZoteroReads } from "./service.ts";
 
 /**
  * The Item `indexedKey` names, read on a pinned snapshot: `null` when the key

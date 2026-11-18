@@ -5,22 +5,22 @@ import {
   ZOTLIT_FILTER_NAMES,
 } from "@zotlit/templates/liquid";
 
-import { DOCS_SITE_URL, RESERVED_KEYS } from "@/lib/constants";
-import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp";
-import { RESERVED_PARTIAL_NAME_LIST } from "@/services/template/defaults";
+import { DOCS_SITE_URL, RESERVED_KEYS } from "@/lib/constants.ts";
+import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp.ts";
+import { RESERVED_PARTIAL_NAME_LIST } from "@/services/template/defaults.ts";
 
-import { CHECK_GUIDE } from "./check";
-import { DISCOVERY_HELP } from "./discovery";
-import { DIAGNOSTIC_HINTS } from "./envelope";
-import { INSPECT_GUIDE, INSPECT_SYNOPSIS } from "./inspect-contract";
-import { CONTRACT_ROOT_NAMES } from "./schema";
+import { CHECK_GUIDE } from "./check.ts";
+import { DISCOVERY_HELP } from "./discovery.ts";
+import { DIAGNOSTIC_HINTS } from "./envelope.ts";
+import { INSPECT_GUIDE, INSPECT_SYNOPSIS } from "./inspect-contract.ts";
+import { CONTRACT_ROOT_NAMES } from "./schema.ts";
 import {
   CITATION_EXAMPLE_NAMES,
   CITATION_VARIANT_NAMES,
   FRONTMATTER_MERGE_NAMES,
   PARTIAL_CONTEXT_NAMES,
   quotedList,
-} from "./vocabulary";
+} from "./vocabulary.ts";
 
 const DATA_SECTION = `TEMPLATE DATA
 

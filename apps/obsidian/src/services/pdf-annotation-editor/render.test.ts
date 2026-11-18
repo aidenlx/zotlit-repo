@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 
 import { parseAnnotationPosition } from "@zotlit/db";
 
-import { themeHook } from "@/lib/theme-hooks";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import { annotation, viewport } from "./__fixtures__";
-import { HANDLE_RADIUS } from "./geometry-edit";
-import { markAnchor, marksAtPoint, pagePointOf } from "./hit-test";
-import type { PageBox } from "./hit-test";
+import { annotation, viewport } from "./__fixtures__.ts";
+import { HANDLE_RADIUS } from "./geometry-edit.ts";
+import { markAnchor, marksAtPoint, pagePointOf } from "./hit-test.ts";
+import type { PageBox } from "./hit-test.ts";
 import {
   groupAnnotationsByPage,
   markTargets,
@@ -18,8 +18,8 @@ import {
   unitPointOf,
   unitsPerPixel,
   withPosition,
-} from "./render";
-import type { MeasuredFont, OverlayPageView } from "./render";
+} from "./render.ts";
+import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 /** The same page, described from a non-zero origin, as a PDF may do. */
 const OFFSET_BOX = [10, 20, 622, 812] as const;

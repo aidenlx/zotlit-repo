@@ -3,24 +3,24 @@
 import { Cause, Context, Deferred, Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import type { Notifier } from "@/lib/notifier";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import type {
   SettingsMutationError,
   SettingsPatch,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 
-import { releaseNoteUrl, V1_TEMPLATE_FOLDER } from "./constants";
-import { decideRelease } from "./decide";
-import type { ReleaseDecision } from "./decide";
-import { companionNotice, showCompanionNotice } from "./notices";
+import { releaseNoteUrl, V1_TEMPLATE_FOLDER } from "./constants.ts";
+import { decideRelease } from "./decide.ts";
+import type { ReleaseDecision } from "./decide.ts";
+import { companionNotice, showCompanionNotice } from "./notices.ts";
 
 const WEBVIEWER_PLUGIN_ID = "webviewer";
 const WEBVIEWER_VIEW_TYPE = "webviewer";

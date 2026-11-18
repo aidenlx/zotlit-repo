@@ -18,7 +18,7 @@ import { googleFonts, subsetFonts } from "takumi-js/helpers";
 import type { FetchLike, FontSubset } from "takumi-js/helpers";
 import { Renderer } from "takumi-js/node";
 
-import { cjkGlyph, textWidth } from "./cjk.js";
+import { cjkGlyph, textWidth } from "./cjk.ts";
 
 /**
  * `fonts.gstatic.com` drops connections and stalls during CI prerender, so a

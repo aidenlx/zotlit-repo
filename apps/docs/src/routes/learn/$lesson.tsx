@@ -2,22 +2,22 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { use } from "react";
 
-import { LessonView } from "@/components/learn/lesson-view";
-import type { LessonViewData } from "@/components/learn/lesson-view";
-import { getMDXComponents } from "@/components/mdx";
-import { ReleaseSnapshotProvider } from "@/components/release-snapshot";
-import { lessons } from "@/lib/collections";
-import { installLessonSlugs } from "@/lib/github-releases";
-import { localeInput } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { getReleaseSnapshot } from "@/lib/release-data";
-import { pageHead } from "@/lib/seo";
-import { appName, learnRoute, ogImageUrl } from "@/lib/shared";
-import { getLessonPages, learn, lessonFurther } from "@/lib/source";
+import { LessonView } from "@/components/learn/lesson-view.tsx";
+import type { LessonViewData } from "@/components/learn/lesson-view.tsx";
+import { getMDXComponents } from "@/components/mdx.tsx";
+import { ReleaseSnapshotProvider } from "@/components/release-snapshot.tsx";
+import { lessons } from "@/lib/collections.ts";
+import { installLessonSlugs } from "@/lib/github-releases.ts";
+import { localeInput } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { getReleaseSnapshot } from "@/lib/release-data.ts";
+import { pageHead } from "@/lib/seo.ts";
+import { appName, learnRoute, ogImageUrl } from "@/lib/shared.ts";
+import { getLessonPages, learn, lessonFurther } from "@/lib/source.ts";
 import {
   breadcrumbListSchema,
   lessonArticleSchema,
-} from "@/lib/structured-data";
+} from "@/lib/structured-data.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

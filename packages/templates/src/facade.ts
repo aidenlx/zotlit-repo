@@ -12,55 +12,55 @@ import type {
   ValueToken,
 } from "liquidjs";
 
-import { withCitationInputProvenance } from "./citation-input";
-export { CitationInputError } from "./citation-input";
+import { withCitationInputProvenance } from "./citation-input.ts";
+export { CitationInputError } from "./citation-input.ts";
 
 import type {
   AutoTrim,
   FrontmatterField,
   FrontmatterLanguage,
   TemplateLanguage,
-} from "./constants";
+} from "./constants.ts";
+import { mergeManagedFrontmatterEntries } from "./frontmatter-merge.ts";
 import {
   compileFrontmatterFields as compileFrontmatterFieldsImpl,
   compileManagedFrontmatterEntries as compileManagedFrontmatterEntriesImpl,
   evalManagedFrontmatterEntries,
   validateFrontmatterExpr as validateFrontmatterExprImpl,
-} from "./frontmatter";
+} from "./frontmatter.ts";
 import type {
   CompiledFrontmatter,
   CompiledManagedFrontmatter,
-} from "./frontmatter";
-import { mergeManagedFrontmatterEntries } from "./frontmatter-merge";
-import { TemplateEngine } from "./index";
-import { inlineCitation } from "./inline-citation";
+} from "./frontmatter.ts";
+import { TemplateEngine } from "./index.ts";
+import { inlineCitation } from "./inline-citation.ts";
 import {
   DEFAULT_CITATION_BRANCHES,
   foldLegacyCitationTemplates,
-} from "./legacy-citation";
-import type { LegacyCitationSources } from "./legacy-citation";
-import { createLiquidEngine } from "./liquid";
+} from "./legacy-citation.ts";
+import type { LegacyCitationSources } from "./legacy-citation.ts";
+import { createLiquidEngine } from "./liquid.ts";
 import {
   LegacyTemplateConversionError,
   LiteratureNoteTemplateError,
   parseLiteratureNoteTemplate as parseLiteratureNoteTemplateImpl,
   synthesizeLegacyLiteratureNoteTemplate,
-} from "./literature-note-template";
+} from "./literature-note-template.ts";
 import type {
   LegacyLiteratureNoteTemplates,
   LiteratureNoteTemplateDocument,
   ManagedFrontmatterEntry,
-} from "./literature-note-template";
-import { formatManagedRegion } from "./obsidian";
+} from "./literature-note-template.ts";
+import { formatManagedRegion } from "./obsidian.ts";
 
-export { updateLiteratureNoteTemplateMatch } from "./literature-note-template-match";
+export { updateLiteratureNoteTemplateMatch } from "./literature-note-template-match.ts";
 
-export type { TemplateLanguage } from "./constants";
+export type { TemplateLanguage } from "./constants.ts";
 
 export {
   DEFAULT_ANNOTATION_ETA,
   DEFAULT_ANNOTATION_LIQUID,
-} from "./default-annotation";
+} from "./default-annotation.ts";
 export {
   CONVERTED_DEFAULT_PROFILE_DOCUMENT,
   convertLegacyFrontmatterFields,
@@ -69,7 +69,7 @@ export {
   LiteratureNoteTemplateError,
   parseLiteratureNoteTemplate,
   synthesizeLegacyLiteratureNoteTemplate,
-} from "./literature-note-template";
+} from "./literature-note-template.ts";
 export type {
   AnnotationSection,
   LegacyLiteratureNoteTemplates,
@@ -81,24 +81,24 @@ export type {
   ManagedBlock,
   ManagedFrontmatterEntry,
   SynthesizedLiteratureNoteTemplateManifest,
-} from "./literature-note-template";
+} from "./literature-note-template.ts";
 
 export {
   DEFAULT_CITATION_BRANCHES,
   foldLegacyCitationTemplates,
-} from "./legacy-citation";
-export type { LegacyCitationSources } from "./legacy-citation";
+} from "./legacy-citation.ts";
+export type { LegacyCitationSources } from "./legacy-citation.ts";
 
 export {
   formatPlainTemplateDocument,
   parsePlainTemplateDocument,
   PlainTemplateDocumentError,
-} from "./plain-template-document";
+} from "./plain-template-document.ts";
 export type {
   PlainTemplateDocument,
   PlainTemplateDocumentErrorCode,
   PlainTemplateDocumentManifest,
-} from "./plain-template-document";
+} from "./plain-template-document.ts";
 
 export interface ConvertedLegacyLiteratureNoteTemplate {
   readonly source: string;

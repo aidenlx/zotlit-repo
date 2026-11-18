@@ -6,7 +6,7 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { describe, expect, it } from "vitest";
 
-import { parseExpression, parser } from "./index";
+import { parseExpression, parser } from "./index.ts";
 
 const ERROR = "⚠";
 

@@ -18,15 +18,15 @@ import {
 } from "@zotlit/workbench/bridge";
 import type { ConnectionGrant } from "@zotlit/workbench/bridge";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 import {
   ProfileDocumentMissingError,
   SelectedItemUnavailableError,
-} from "./reads";
-import type { LocalBridgeReads } from "./reads";
-import type { LocalBridgeSave, LocalBridgeSaveOutcome } from "./save";
-import type { BridgeConnection, BridgeSessions } from "./sessions";
+} from "./reads.ts";
+import type { LocalBridgeReads } from "./reads.ts";
+import type { LocalBridgeSave, LocalBridgeSaveOutcome } from "./save.ts";
+import type { BridgeConnection, BridgeSessions } from "./sessions.ts";
 
 const logger = getLogger("local-bridge");
 

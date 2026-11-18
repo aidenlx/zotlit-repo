@@ -3,17 +3,17 @@
 import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 import type { Exit } from "effect";
 
-import { logAndContinue } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { Notifier, reportProgress } from "@/lib/notifier";
-import type { NoticeHandle } from "@/lib/notifier";
+import { logAndContinue } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { Notifier, reportProgress } from "@/lib/notifier.ts";
+import type { NoticeHandle } from "@/lib/notifier.ts";
 
-import { LanguagePack } from "./service";
+import { LanguagePack } from "./service.ts";
 import type {
   LanguagePackInstallError,
   LanguagePackRestartNotice,
-} from "./service";
+} from "./service.ts";
 
 /** The restart notice matters more than a transient toast, so it lingers. */
 const RESTART_NOTICE_DURATION = "10 seconds";

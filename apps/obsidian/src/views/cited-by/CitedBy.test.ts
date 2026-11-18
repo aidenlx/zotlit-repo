@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Keymap, MarkdownView } from "obsidian";
 import type {
@@ -18,33 +18,33 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { vaultError } from "@/lib/vault-errors";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import { yieldToMain } from "@/lib/yield-to-main";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
 import {
   annotationRows,
   annotationUri,
-} from "@/services/citation-index/__fixtures__/annotations";
-import { activeCitedByAtom } from "@/services/citation-index/atoms";
-import { ParsedNote } from "@/services/citation-index/parsed-note";
-import { scanNote } from "@/services/citation-index/scan-note";
-import type { CitationIndex } from "@/services/citation-index/service";
+} from "@/services/citation-index/__fixtures__/annotations.ts";
+import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
+import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
+import { scanNote } from "@/services/citation-index/scan-note.ts";
+import type { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   CitedByGroup,
   CitedBySnapshot,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   KEY_A,
-} from "@/services/citation-index/test-harness";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
+} from "@/services/citation-index/test-harness.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 
-import { makeCitedByHost } from "./__fixtures__";
-import type { CitedByHost } from "./__fixtures__";
-import { previewAtom } from "./atoms";
-import { CitedBy } from "./CitedBy";
+import { makeCitedByHost } from "./__fixtures__.ts";
+import type { CitedByHost } from "./__fixtures__.ts";
+import { previewAtom } from "./atoms.ts";
+import { CitedBy } from "./CitedBy.tsx";
 import {
   CitedByModelContext,
   collapseAll,
@@ -53,9 +53,9 @@ import {
   EMPTY_CITED_BY_NOTE_STATE,
   holdCitedByModel,
   makeCitedByModel,
-} from "./model";
-import type { CitedByLayout } from "./model";
-import { COMPACT_CAP } from "./store";
+} from "./model.ts";
+import type { CitedByLayout } from "./model.ts";
+import { COMPACT_CAP } from "./store.ts";
 
 const body = "A reason cites @doe2024 here.\n";
 const start = body.indexOf("@doe2024");

@@ -5,9 +5,9 @@ import type { Plugin } from "obsidian";
 import { formatIndexedKey } from "@zotlit/db";
 import type { ParsedIndexedKey } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import * as toast from "@/lib/toast";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import * as toast from "@/lib/toast.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 
 export type IndexedKeyKind = "item" | "annotation";
 

@@ -7,7 +7,7 @@ import {
   noRealTimerInEffectTest,
   serviceStub,
   typedFake,
-} from "../../scripts/oxlint-plugin-effect-tests";
+} from "../../scripts/oxlint-plugin-effect-tests.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -58,7 +58,7 @@ tester.run("no-effect-run-in-test", noEffectRunInTest, {
       errors: run,
     },
     {
-      code: 'import { runSyncWith } from "@/lib/effect-runtime";\nit("reads", () => { runSyncWith(context)(read); })',
+      code: 'import { runSyncWith } from "@/lib/effect-runtime.ts";\nit("reads", () => { runSyncWith(context)(read); })',
       errors: run,
     },
     {
@@ -120,11 +120,11 @@ tester.run("no-notice-mock", noNoticeMock, {
   ],
   invalid: [
     {
-      code: 'vi.mock("@/lib/notice", async (importOriginal) => ({ ...(await importOriginal()) }))',
+      code: 'vi.mock("@/lib/notice.ts", async (importOriginal) => ({ ...(await importOriginal()) }))',
       errors: mock,
     },
-    { code: 'vi.mock("@/lib/toast")', errors: mock },
-    { code: 'vi.doMock("@/lib/notice")', errors: mock },
+    { code: 'vi.mock("@/lib/toast.ts")', errors: mock },
+    { code: 'vi.doMock("@/lib/notice.ts")', errors: mock },
   ],
 });
 

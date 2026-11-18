@@ -13,9 +13,9 @@ import {
 } from "@zotlit/scripts/fixture";
 import type { FixtureItem } from "@zotlit/scripts/fixture";
 
-import type { AnnotationView as AnnotView } from "@/views/annot-view/view";
-import type { LibraryView } from "@/views/library/view";
-import type { QueryFileView } from "@/views/query-view/file-view";
+import type { AnnotationView as AnnotView } from "@/views/annot-view/view.tsx";
+import type { LibraryView } from "@/views/library/view.ts";
+import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import {

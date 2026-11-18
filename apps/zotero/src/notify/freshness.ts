@@ -3,11 +3,11 @@
 
 import { debounce } from "@std/async";
 
-import { registerApplicationBlur } from "@/lib/application-blur";
-import { logger as appLogger } from "@/lib/logger";
-import { prefs } from "@/prefs";
+import { registerApplicationBlur } from "@/lib/application-blur.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
+import { prefs } from "@/prefs/index.ts";
 
-import type { Send } from "./send";
+import type { Send } from "./send.ts";
 
 const logger = appLogger.getChild(["notify", "freshness"]);
 

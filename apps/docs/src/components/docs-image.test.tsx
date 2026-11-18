@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { DocsImage } from "./docs-image";
+import { DocsImage } from "./docs-image.tsx";
 
 const imageProps = {
   src: "/img/changelog/wikilink-citation-runs.webp",

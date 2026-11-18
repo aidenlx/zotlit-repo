@@ -15,8 +15,8 @@ import type {
   ItemQueryReaderError,
 } from "@zotlit/db/item-query";
 
-import { BUILT_IN_NAMES, fieldDefinition } from "./fields";
-import type { QueryItem } from "./fields";
+import { BUILT_IN_NAMES, fieldDefinition } from "./fields.ts";
+import type { QueryItem } from "./fields.ts";
 
 const readonlyArray = <TItem extends v.GenericSchema>(item: TItem) =>
   v.pipe(v.array(item), v.readonly());

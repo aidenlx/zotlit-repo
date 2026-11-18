@@ -1,15 +1,15 @@
 // What a write left on an Annotation: the outcomes that stand, and the writes in flight on the mutation cache.
 import { Effect } from "effect";
 
-import { IDLE } from "@/services/annotation-repository/write";
+import { IDLE } from "@/services/annotation-repository/write.ts";
 import type {
   MutationState,
   TextField,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
-import { ANNOTATIONS } from "./model";
-import type { AnnotationMutation, OutcomeWrite } from "./model";
-import type { CoreState } from "./state";
+import { ANNOTATIONS } from "./model.ts";
+import type { AnnotationMutation, OutcomeWrite } from "./model.ts";
+import type { CoreState } from "./state.ts";
 
 /** One field's outcome, as a write leaves it on its Annotation. */
 interface Outcome {

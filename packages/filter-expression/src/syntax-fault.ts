@@ -1,8 +1,8 @@
 import type { PartialParse, Tree } from "@lezer/common";
 import type { Stack } from "@lezer/lr";
 
-import { parser } from "./generated/parser.js";
-import type { ExpressionSyntaxError } from "./index.js";
+import { parser } from "./generated/parser.ts";
+import type { ExpressionSyntaxError } from "./index.ts";
 
 // Lezer's public partial parse omits its live stacks and term count. Keep that
 // version-specific surface here; no grammar terms leave the package.

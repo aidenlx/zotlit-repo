@@ -11,18 +11,18 @@ import {
 } from "effect";
 import { expect } from "vitest";
 
-import { yieldToMain } from "@/lib/yield-to-main";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
 import {
   QueryClients,
   layerQueryClients,
-} from "@/services/query-client/service";
+} from "@/services/query-client/service.ts";
 
-import { settledDisplay } from "./__fixtures__/display-state";
-import type { ExcerptRequest } from "./contract";
-import { ExcerptDisplays, layerExcerptDisplays } from "./display";
-import { PNG_FORMAT } from "./format";
-import { ExcerptImageService } from "./service";
-import type { AvailableExcerpt } from "./service";
+import { settledDisplay } from "./__fixtures__/display-state.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import { ExcerptDisplays, layerExcerptDisplays } from "./display.ts";
+import { PNG_FORMAT } from "./format.ts";
+import { ExcerptImageService } from "./service.ts";
+import type { AvailableExcerpt } from "./service.ts";
 
 const request: ExcerptRequest = {
   annotation: {

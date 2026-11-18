@@ -1,7 +1,7 @@
 // Complete formatting for the LaTeX and BibLaTeX citation command source form.
 
-import { assertCitationItems } from "./citation-items";
-import type { CitationItemInput, CitationLocator } from "./citation-items";
+import { assertCitationItems } from "./citation-items.ts";
+import type { CitationItemInput, CitationLocator } from "./citation-items.ts";
 
 /** A TeX control word, optionally starred: `cite`, `autocite`, `autocite*`. */
 const CONTROL_WORD = /^[A-Za-z]+\*?$/u;

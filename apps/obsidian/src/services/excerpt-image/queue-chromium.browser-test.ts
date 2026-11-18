@@ -5,11 +5,11 @@ import { Effect } from "effect";
 // in is hidden — the background-throttled state a minimized Obsidian is in.
 // Nothing here parses a PDF: the renderer's own document load and rasterizer
 // live in Obsidian (see docs/excerpt-image-queue-measurements.md).
-import { check } from "./__fixtures__/check";
-import { encodeExcerptImage } from "./__fixtures__/encode";
-import { queueFixture } from "./__fixtures__/queue";
-import type { QueueFixture } from "./__fixtures__/queue";
-import { EXCERPT_JOB_LIMIT } from "./pdf-queue";
+import { check } from "./__fixtures__/check.ts";
+import { encodeExcerptImage } from "./__fixtures__/encode.ts";
+import { queueFixture } from "./__fixtures__/queue.ts";
+import type { QueueFixture } from "./__fixtures__/queue.ts";
+import { EXCERPT_JOB_LIMIT } from "./pdf-queue.ts";
 
 export interface ChromiumQueueReport {
   passed: string[];

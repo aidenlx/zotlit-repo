@@ -1,10 +1,10 @@
-import type { WorkbenchDocumentKind } from "#/document/index";
+import type { WorkbenchDocumentKind } from "#document/index.ts";
 import { Effect, Queue } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { describe, expect, it, vi } from "vitest";
 
-import { createWorkbenchEditor } from "./editor";
+import { createWorkbenchEditor } from "./editor.tsx";
 import {
   chooseAnnotation,
   chooseCitation,
@@ -15,24 +15,24 @@ import {
   setPreview,
   setRoot,
   setTab,
-} from "./model";
-import type { WorkbenchItemData, WorkbenchViewState } from "./model";
+} from "./model.ts";
+import type { WorkbenchItemData, WorkbenchViewState } from "./model.ts";
 import {
   PANEL_WIDTH,
   setPanelWidth,
   setPreviewHeight,
   showPreview,
-} from "./panel-layout";
-import type { ViewSize } from "./panel-layout";
-import { fakeHost, TEST_RUNTIME } from "./test-host";
+} from "./panel-layout.ts";
+import type { ViewSize } from "./panel-layout.ts";
+import { fakeHost, TEST_RUNTIME } from "./test-host.tsx";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 import {
   CITATION_EXAMPLE_ITEM,
   SAMPLE_ANNOTATIONS,
   SAMPLE_ITEMS,
-} from "#/render/index";
+} from "#render/index.ts";
 
 const PAPER = SAMPLE_ITEMS[0]!;
 const CHOICE = { id: "1:ABCDEFGH", title: "A paper" } as const;

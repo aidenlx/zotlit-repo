@@ -6,8 +6,8 @@ import {
   FIELD_ZOTERO_KEY,
   FIELD_ZOTERO_LASTMOD,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants";
-import { frontmatterInstant } from "@/lib/frontmatter-date";
+} from "@/lib/constants.ts";
+import { frontmatterInstant } from "@/lib/frontmatter-date.ts";
 
 export interface FileContributions {
   itemKey: string | null;

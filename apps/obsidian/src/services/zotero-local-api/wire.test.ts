@@ -8,8 +8,8 @@ import {
   staleVersion,
   staleVersionPatch,
   writeTokenUsed,
-} from "./__fixtures__";
-import { classifyReply, readCreateResult } from "./wire";
+} from "./__fixtures__.ts";
+import { classifyReply, readCreateResult } from "./wire.ts";
 
 const EXPECTED = { parentKey: "RGRPDF24", type: "highlight" } as const;
 

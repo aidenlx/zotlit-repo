@@ -10,7 +10,7 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import type { CliHost } from "@/lib/cli-command";
+import type { CliHost } from "@/lib/cli-command.ts";
 
 /**
  * What a layer registers on: Obsidian commands, post-processors, editor

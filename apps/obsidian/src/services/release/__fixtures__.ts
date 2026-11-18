@@ -5,23 +5,23 @@ import { TFile, TFolder } from "obsidian";
 import type { App, Events } from "obsidian";
 import { vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import type { HydrationOrigin } from "@/services/settings/classify";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import type { SettingsPatch } from "@/services/settings/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import type { HydrationOrigin } from "@/services/settings/classify.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { SettingsPatch } from "@/services/settings/service.ts";
 
-import { V1_TEMPLATE_FOLDER } from "./constants";
-import { layerRelease, Release } from "./service";
+import { V1_TEMPLATE_FOLDER } from "./constants.ts";
+import { layerRelease, Release } from "./service.ts";
 
 export interface ReleaseAppFixture {
   readonly app: App;

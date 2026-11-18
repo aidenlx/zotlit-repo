@@ -3,9 +3,9 @@
 
 import type { SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { SettingsKey } from "./context";
+import type { SettingsKey } from "./context.ts";
 
 export function readerPageItems(): SettingDefinitionItem<SettingsKey>[] {
   return [

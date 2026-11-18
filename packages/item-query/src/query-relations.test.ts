@@ -17,9 +17,9 @@ import {
   ATTACHMENTS,
   ANNOTATIONS,
   AttachmentFileResolver,
-} from ".";
-import { runEffect } from "./test-helpers";
-import { PRODUCTION_TUNING } from "./tuning";
+} from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
+import { PRODUCTION_TUNING } from "./tuning.ts";
 
 // Read-only tests share one scenario; a test that writes opens its own.
 let scenario: ScenarioDatabase;

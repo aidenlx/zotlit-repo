@@ -3,15 +3,15 @@ import { Effect, Layer } from "effect";
 import type { App } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import {
   DeviceStorage,
   layerDeviceStorage,
   layerDeviceStorageFrom,
-} from "@/lib/obsidian-device-storage";
+} from "@/lib/obsidian-device-storage.ts";
 
-import { MemoryDeviceStorage } from "./__fixtures__/obsidian-device-storage";
+import { MemoryDeviceStorage } from "./__fixtures__/obsidian-device-storage.ts";
 
 it.effect("saves a value and loads it back", () =>
   Effect.gen(function* () {

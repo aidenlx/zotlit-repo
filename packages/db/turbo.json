@@ -2,6 +2,18 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
+    // The committed Template Contract artifacts. The generator reads the `zt`
+    // types here and in @zotlit/zotero-types, then formats its output.
+    "generate:contract": {
+      "dependsOn": ["transit"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!src/contract/generated/**",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/contract/generated/**"],
+      "outputLogs": "errors-only"
+    },
     "test": {
       // The scenario database copies the Fixture's pristine Zotero template.
       "inputs": [

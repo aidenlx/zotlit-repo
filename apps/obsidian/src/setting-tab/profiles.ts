@@ -7,41 +7,41 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { showMenuAtButton } from "@/lib/menu";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import { leaveSettingsFor } from "@/lib/plugin-host";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { Customize } from "@/services/local-bridge/customize";
-import { installedStyles } from "@/services/note-feature/creation-view";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { leaveSettingsFor } from "@/lib/plugin-host.ts";
+import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { Customize } from "@/services/local-bridge/customize.ts";
+import { installedStyles } from "@/services/note-feature/creation-view.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { referencesStyleDefinition } from "./citations";
+import { referencesStyleDefinition } from "./citations.ts";
 import type {
   ProfileControlKey,
   SettingsControlKey,
   SettingTabContext,
-} from "./context";
-import type { ProfileControlField } from "./controls";
-import { openProfileDeletion } from "./delete-profile-modal";
-import type { ProfileDeletionConsent } from "./delete-profile-modal";
-import { duplicateProfileToWorkbench } from "./duplicate-profile";
-import { SettingTab } from "./effect-tab";
-import type { SettingTabEnv } from "./effect-tab";
-import { defaultProfileBindingPlaceholder } from "./placeholder";
+} from "./context.ts";
+import type { ProfileControlField } from "./controls.ts";
+import { openProfileDeletion } from "./delete-profile-modal.ts";
+import type { ProfileDeletionConsent } from "./delete-profile-modal.ts";
+import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
+import { SettingTab } from "./effect-tab.ts";
+import type { SettingTabEnv } from "./effect-tab.ts";
+import { defaultProfileBindingPlaceholder } from "./placeholder.ts";
 import {
   addProfileDestination,
   importProfileDialog,
   shareProfile,
-} from "./profile-dialogs";
-import { partialItems } from "./templates";
+} from "./profile-dialogs.ts";
+import { partialItems } from "./templates.ts";
 
 /** The excluded document left the excluded list before its delete. */
 export class ExcludedDocumentChanged extends Schema.TaggedError<

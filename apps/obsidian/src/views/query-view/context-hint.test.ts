@@ -3,11 +3,11 @@
 // the surface that binds it.
 import { expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { contextHint } from "./context-hint";
-import type { ContextSource } from "./context-hint";
-import type { ReaderDiagnosticSource } from "./reader-diagnostic";
+import { contextHint } from "./context-hint.ts";
+import type { ContextSource } from "./context-hint.ts";
+import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 
 /** The engine's diagnostic for a filter that reads `at` with nothing bound. */
 function unbound(at: string, code = "unbound-context"): ReaderDiagnosticSource {

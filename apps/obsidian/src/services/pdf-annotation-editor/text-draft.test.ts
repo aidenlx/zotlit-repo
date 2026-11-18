@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
-import { dispatchKey } from "./__fixtures__";
-import { createTextDraftArea, removeTextDraftArea } from "./text-draft";
+import { dispatchKey } from "./__fixtures__.ts";
+import { createTextDraftArea, removeTextDraftArea } from "./text-draft.ts";
 
 afterEach(() => {
   document.body.empty();

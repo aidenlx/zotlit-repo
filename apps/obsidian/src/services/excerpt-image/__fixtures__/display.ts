@@ -1,14 +1,14 @@
 // Legacy Promise test harnesses exercise the real display layer through this edge.
 import { Effect, Layer } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { QueryClients } from "@/services/query-client/service";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
 
-import { ExcerptDisplays, layerExcerptDisplays } from "@/services/excerpt-image/display";
-import type { ExcerptRequest } from "@/services/excerpt-image/contract";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
-import type { AvailableExcerpt, ExcerptOutcome } from "@/services/excerpt-image/service";
+import { ExcerptDisplays, layerExcerptDisplays } from "@/services/excerpt-image/display.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import type { AvailableExcerpt, ExcerptOutcome } from "@/services/excerpt-image/service.ts";
 
 export class ExcerptDisplayFixture implements AsyncDisposable {
   readonly #stack = new AsyncDisposableStack();

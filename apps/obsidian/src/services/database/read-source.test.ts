@@ -5,16 +5,16 @@ import { basename, dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system";
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants";
-import { nodeFileSystemCall } from "@/lib/errno";
+import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
+import { nodeFileSystemCall } from "@/lib/errno.ts";
 
-import { planReadParents } from "./read-parent";
-import type { ReadParentPlan } from "./read-parent";
-import { prepareRead } from "./read-source";
-import type { PreparedRead } from "./read-source";
+import { planReadParents } from "./read-parent.ts";
+import type { ReadParentPlan } from "./read-parent.ts";
+import { prepareRead } from "./read-source.ts";
+import type { PreparedRead } from "./read-source.ts";
 
-vi.mock("./read-parent", () => ({ planReadParents: vi.fn() }));
+vi.mock("./read-parent.ts", () => ({ planReadParents: vi.fn() }));
 const mkdirFault = vi.hoisted(() => ({ path: "" }));
 const statSignal = vi.hoisted(() => ({
   path: "",

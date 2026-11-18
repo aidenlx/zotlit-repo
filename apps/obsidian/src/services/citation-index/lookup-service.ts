@@ -17,17 +17,17 @@ import {
 } from "effect";
 import type { RpcClientError } from "effect/rpc";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { LibraryScope } from "@/services/library-scope/service";
-import { QueryClients } from "@/services/query-client/service";
-import type { Held } from "@/services/query-client/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { CitationLookupAnswer } from "./lookup";
-import type { CitationLookupRequest } from "./lookup";
+import { CitationLookupAnswer } from "./lookup.ts";
+import type { CitationLookupRequest } from "./lookup.ts";
 
 export interface CitationLookupObservation extends Disposable {
   readonly current: Held<CitationLookupAnswer> | null;

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   filterExpressionLanguage,
   highlightFilterExpression,
-} from "./filter-expression";
+} from "./filter-expression.ts";
 
 /** Each highlighted token of `source` with the hooks it carries. */
 function hooks(source: string): [string, string][] {

@@ -3,7 +3,7 @@ import { Option, Schema } from "effect";
 
 import { isIndexedKey } from "@zotlit/db";
 
-import type { FollowMode } from "./state";
+import type { FollowMode } from "./state.ts";
 
 /** The Follow Mode a fresh view starts in. */
 export const DEFAULT_FOLLOW_MODE: FollowMode = "active-tab";

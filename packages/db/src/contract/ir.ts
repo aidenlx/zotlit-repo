@@ -1,6 +1,6 @@
 // Shape of the committed contract IR the extractor emits and the contract emitters consume.
 
-import type { ContractRoot, TemplateSlot } from "#contract/roots";
+import type { ContractRoot, TemplateSlot } from "#contract/roots.ts";
 
 /**
  * The extracted `zt` contract: one entry per emitted root plus every named type

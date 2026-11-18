@@ -7,9 +7,12 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { missingReleaseResponse } from "@/lib/beta-fallback";
-import { getMarkdownEdition, markdownHeaders } from "@/lib/markdown-editions";
-import { parseContentRoute, suffixEditionUrl } from "@/lib/markdown-routes";
+import { missingReleaseResponse } from "@/lib/beta-fallback.ts";
+import {
+  getMarkdownEdition,
+  markdownHeaders,
+} from "@/lib/markdown-editions.tsx";
+import { parseContentRoute, suffixEditionUrl } from "@/lib/markdown-routes.ts";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 
 export const Route = createFileRoute("/llms.mdx/$")({

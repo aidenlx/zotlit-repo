@@ -4,23 +4,23 @@ import { Effect, Exit, Layer, Scope, Stream } from "effect";
 import { TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationLookupState } from "@/services/citation-index/lookup-service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitationText } from "@/services/citation-text/service";
-import type { CitationTextEvent } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import { NoteIndex } from "@/services/note-index/service";
-import type { NoteIndexChange } from "@/services/note-index/service";
-import { settingsFeed } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { CitationTextEvent } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { NoteIndexChange } from "@/services/note-index/service.ts";
+import { settingsFeed } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { layerWikilinkEditor } from "./service";
+import { layerWikilinkEditor } from "./service.ts";
 
 /**
  * The Wikilink Editor over settings seeded with `overrides`, and a workspace

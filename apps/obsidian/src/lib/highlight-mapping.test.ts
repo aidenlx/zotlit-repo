@@ -5,7 +5,7 @@ import {
   highlightEmoji,
   highlightMappingsSchema,
   isHighlightEmoji,
-} from "./highlight-mapping";
+} from "./highlight-mapping.ts";
 
 describe("custom highlight emoji", () => {
   it.each(["🔴", "👩‍🔬", "👍🏽", "🇸🇬", "❤️", "1️⃣"])(

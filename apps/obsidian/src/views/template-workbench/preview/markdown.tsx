@@ -7,19 +7,19 @@ import type { RenderedProperty, RenderedRange } from "@zotlit/workbench/render";
 import { PropertyList } from "@zotlit/workbench/ui";
 import type { WorkbenchMarkdownProps } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { cn } from "@/lib/utils";
-import { citationElement } from "@/services/citation-text/present";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { cn } from "@/lib/utils.ts";
+import { citationElement } from "@/services/citation-text/present.ts";
 import {
   replaceCitations,
   sectionCitations,
-} from "@/services/citekey-reading/render";
-import { renderCitationRuns } from "@/services/wikilink-reading/render";
+} from "@/services/citekey-reading/render.ts";
+import { renderCitationRuns } from "@/services/wikilink-reading/render.ts";
 
-import type { PreviewCitation } from "./citations";
-import type { NativeRenderResult } from "./render";
+import type { PreviewCitation } from "./citations.ts";
+import type { NativeRenderResult } from "./render.ts";
 
 const logger = getLogger(["views", "template-workbench", "preview"]);
 export function NativeMarkdown({

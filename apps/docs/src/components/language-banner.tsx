@@ -6,12 +6,12 @@ import { useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
-import { Banner } from "@/components/banner";
+import { Banner } from "@/components/banner.tsx";
 import {
   CHINESE_READER_ATTR,
   rememberLanguageChoice,
-} from "@/lib/language-choice";
-import type { PageLocaleState } from "@/lib/locale-state";
+} from "@/lib/language-choice.ts";
+import type { PageLocaleState } from "@/lib/locale-state.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

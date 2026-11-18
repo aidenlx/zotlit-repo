@@ -6,10 +6,10 @@ export {
   type IndexSettings,
   type PinnedItemSource,
   type SearchHit,
-} from "./item-index";
-export { SegmenterUnavailable } from "./segmenter";
+} from "./item-index.ts";
+export { SegmenterUnavailable } from "./segmenter.ts";
 export {
   sameSegmenterBinary,
   SegmenterBinaryReader,
   type SegmenterBinary,
-} from "./segmenter-switch";
+} from "./segmenter-switch.ts";

@@ -1,17 +1,17 @@
-import { Menu } from "@mock/obsidian";
-import type { MenuItem as MockMenuItem } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
+import type { MenuItem as MockMenuItem } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { TFile } from "obsidian";
 import type { Menu as ObsidianMenu, MenuItem, WorkspaceLeaf } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { fileMenuHandler } from "@/services/__fixtures__/file-menu";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { fileMenuHandler } from "@/services/__fixtures__/file-menu.ts";
 
-import type { HistorySurface } from "./actions";
-import type { HistoryDirection } from "./history";
-import { annotationHistoryFileMenu } from "./menu";
+import type { HistorySurface } from "./actions.ts";
+import type { HistoryDirection } from "./history.ts";
+import { annotationHistoryFileMenu } from "./menu.ts";
 
 const bridge = openTestBridge();
 afterAll(() => bridge[Symbol.asyncDispose]());

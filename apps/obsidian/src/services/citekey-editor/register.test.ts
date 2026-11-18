@@ -4,22 +4,22 @@ import { Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { HoverLinkSource } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { AnnotationPopover } from "@/services/annotation-popover/service";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationLookupState } from "@/services/citation-index/lookup-service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitationText } from "@/services/citation-text/service";
-import type { CitationTextEvent } from "@/services/citation-text/service";
-import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation";
-import { settingsFeed } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { CitationTextEvent } from "@/services/citation-text/service.ts";
+import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation/index.ts";
+import { settingsFeed } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { layerCitekeyEditorExtension } from "./register";
-import { CitekeyEditor } from "./service";
+import { layerCitekeyEditorExtension } from "./register.ts";
+import { CitekeyEditor } from "./service.ts";
 
 /**
  * The extension registration over settings seeded with `overrides`, and a

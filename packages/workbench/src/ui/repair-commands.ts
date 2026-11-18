@@ -1,21 +1,21 @@
 // The commands both hosts run to take the reader from a problem to the place that repairs it.
 
-import type { WorkbenchDocumentController } from "#/document/controller";
-import type { RenderDiagnostic } from "#/render/result";
+import type { WorkbenchDocumentController } from "#document/controller.ts";
+import type { RenderDiagnostic } from "#render/result.ts";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
-import type { WorkbenchHost, WorkbenchInsertTarget } from "./host";
-import type { WorkbenchModel, WorkbenchViewState } from "./model";
-import { routeDiagnosis, routeProblem } from "./problem-route";
-import type { ProblemTarget, RoutedDocument } from "./problem-route";
+import type { WorkbenchHost, WorkbenchInsertTarget } from "./host.tsx";
+import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
+import { routeDiagnosis, routeProblem } from "./problem-route.ts";
+import type { ProblemTarget, RoutedDocument } from "./problem-route.ts";
+import type { WorkbenchProblemsState } from "./problems-footer.tsx";
 import {
   diagnosisExplanation,
   diagnosisForOccurrence,
   diagnosisLocated,
   renderDiagnosis,
-} from "./problems";
-import type { WorkbenchDiagnosis } from "./problems";
-import type { WorkbenchProblemsState } from "./problems-footer";
+} from "./problems.ts";
+import type { WorkbenchDiagnosis } from "./problems.ts";
 
 /**
  * The commands that take the reader to the place a problem is repaired in.

@@ -1,6 +1,6 @@
+import { updateLiteratureNoteTemplateManifestKey } from "./literature-note-template-manifest-edit.ts";
 // The narrow Profile Match document writer shared by the editor and pack export.
-import type { MatchTree } from "./literature-note-template";
-import { updateLiteratureNoteTemplateManifestKey } from "./literature-note-template-manifest-edit";
+import type { MatchTree } from "./literature-note-template.ts";
 
 /**
  * Preserve every byte outside the match value (or pair on removal).

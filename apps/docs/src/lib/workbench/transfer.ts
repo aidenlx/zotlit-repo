@@ -23,8 +23,8 @@ import type { SaveSelectedProfileRequest } from "@zotlit/workbench/bridge";
 import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { WorkbenchClipboardError } from "@zotlit/workbench/ui";
 
-import type { SampleItem } from "./fields";
-import type { PageBridge } from "./runtime";
+import type { SampleItem } from "./fields.ts";
+import type { PageBridge } from "./runtime.tsx";
 
 /**
  * What one visit left behind: the source being edited, and the paper it was

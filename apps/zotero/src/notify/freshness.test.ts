@@ -27,7 +27,7 @@ const applicationBlur = vi.hoisted(() => ({
   registered: false,
 }));
 
-vi.mock("@/lib/application-blur", () => ({
+vi.mock("@/lib/application-blur.ts", () => ({
   registerApplicationBlur(callback: () => void): Disposable {
     applicationBlur.callback = callback;
     applicationBlur.registered = true;
@@ -39,10 +39,10 @@ vi.mock("@/lib/application-blur", () => ({
   },
 }));
 
-import { prefs } from "@/prefs";
+import { prefs } from "@/prefs/index.ts";
 
-import { registerFreshness } from "./freshness.js";
-import type { NotifyEventInput } from "./send";
+import { registerFreshness } from "./freshness.ts";
+import type { NotifyEventInput } from "./send.ts";
 
 const PROBE_SQL = "PRAGMA journal_mode";
 const CHECKPOINT_SQL = "PRAGMA wal_checkpoint(PASSIVE)";

@@ -1,6 +1,6 @@
 // Fold of the 2.1.x `cite` and `cite2` Legacy Template Files into one Citation Template source.
 
-import type { TemplateLanguage } from "./constants";
+import type { TemplateLanguage } from "./constants.ts";
 
 // `@zotlit/db` declares the Citation Variant, and depends on this package, so
 // the fold states the two gesture names rather than importing them back.

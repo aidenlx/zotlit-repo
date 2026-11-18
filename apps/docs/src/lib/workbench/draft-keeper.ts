@@ -16,10 +16,10 @@ import {
   SAMPLE_ANNOTATIONS,
 } from "@zotlit/workbench/render";
 
-import type { SampleItem } from "./fields";
-import type { PageAtomRuntime } from "./runtime";
-import { clearDraft, readDraft, writeDraft } from "./transfer";
-import type { DraftLocation, WorkbenchDraft } from "./transfer";
+import type { SampleItem } from "./fields.ts";
+import type { PageAtomRuntime } from "./runtime.tsx";
+import { clearDraft, readDraft, writeDraft } from "./transfer.ts";
+import type { DraftLocation, WorkbenchDraft } from "./transfer.ts";
 
 /** The paper a fresh visit opens on. */
 export const DEFAULT_SAMPLE = SAMPLE_ITEMS[0]!;

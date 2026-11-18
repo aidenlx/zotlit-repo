@@ -9,12 +9,12 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { registerFileMenu } from "@/services/file-menu";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { registerFileMenu } from "@/services/file-menu.ts";
 import type {
   FileMenuSegment,
   FolderMenuSegment,
-} from "@/services/file-menu";
+} from "@/services/file-menu.ts";
 
 /** Obsidian's own `file-menu` listener shape. */
 // oxlint-disable-next-line max-params -- Obsidian's own `file-menu` shape.

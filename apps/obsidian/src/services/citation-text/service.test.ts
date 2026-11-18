@@ -6,63 +6,63 @@ import { TFile } from "obsidian";
 import type { EventRef, LinkCache } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants";
-import { subscribe } from "@/lib/effect-stream";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
-import { vaultError } from "@/lib/vault-errors";
-import { annotationRows } from "@/services/citation-index/__fixtures__/annotations";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
+} from "@/lib/constants.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
+import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 // @vitest-environment happy-dom
-import { ParsedNote } from "@/services/citation-index/parsed-note";
-import { scanNote } from "@/services/citation-index/scan-note";
+import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
+import { scanNote } from "@/services/citation-index/scan-note.ts";
 import type {
   Citation,
   CitationOccurrence,
   DocumentCitationSet,
-} from "@/services/citation-index/service";
-import { readReferenceSources } from "@/services/citation-index/sources";
+} from "@/services/citation-index/service.ts";
+import { readReferenceSources } from "@/services/citation-index/sources.ts";
 import {
   createCitationIndexHarness,
   DatabaseStub,
   GROUP_LIBRARY_ID,
   MY_LIBRARY_ID,
-} from "@/services/citation-index/test-harness";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import type { ManagedBinaryApi } from "@/services/managed-binary/service";
+} from "@/services/citation-index/test-harness.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import type {
   BibliographyRequest,
   CitationEngine,
   RenderedCitation,
-} from "@/services/pandoc/engine";
-import type { BibliographyRender } from "@/services/pandoc/render-cache";
-import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__";
-import { bibliographyRenderFixture } from "@/services/pandoc/render-cache/__fixtures__";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
+} from "@/services/pandoc/engine.ts";
+import type { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__.ts";
+import { bibliographyRenderFixture } from "@/services/pandoc/render-cache/__fixtures__.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import {
   queryClientsFixture,
   queryClientsOf,
-} from "@/services/query-client/__fixtures__";
-import type { QueryClients } from "@/services/query-client/service";
-import type { Held } from "@/services/query-client/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/query-client/__fixtures__.ts";
+import type { QueryClients } from "@/services/query-client/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   citedWorkSeed,
   inProcessReadsService,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
 import {
   ALPHA_KEY,
@@ -72,14 +72,14 @@ import {
   noted,
   occurrenceTexts,
   rendered,
-} from "./__fixtures__";
-import { citationTextFixture } from "./__fixtures__";
+} from "./__fixtures__.ts";
+import { citationTextFixture } from "./__fixtures__.ts";
 import type {
   CitationTextFixture as CitationText,
   CitationTextFixtureDeps as CitationTextDeps,
-} from "./__fixtures__";
-import { citationKey, literalSummaryOf } from "./present";
-import type { DocumentCitations, FormattedOccurrence } from "./present";
+} from "./__fixtures__.ts";
+import { citationKey, literalSummaryOf } from "./present.ts";
+import type { DocumentCitations, FormattedOccurrence } from "./present.ts";
 
 const NOTE = Object.assign(new TFile(), { path: "note.md" });
 

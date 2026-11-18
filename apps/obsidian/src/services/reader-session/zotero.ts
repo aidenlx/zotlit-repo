@@ -1,15 +1,15 @@
 // The Zotero Reader as a Reader Session, translated from the companion's pushes.
 import { Effect, Stream } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 import type {
   LocalServer,
   ReaderTarget,
-} from "@/services/local-server/service";
+} from "@/services/local-server/service.ts";
 
-import { ReaderSessionHost } from "./session";
-import type { ReaderSessionTarget } from "./session";
+import { ReaderSessionHost } from "./session.ts";
+import type { ReaderSessionTarget } from "./session.ts";
 
 /** What one companion reader push names, in Indexed Keys. */
 export interface ZoteroReaderResolution {

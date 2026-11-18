@@ -2,10 +2,10 @@ import type { IconName } from "obsidian";
 import type { HTMLAttributes, ReactNode, Ref } from "react";
 import type { VariantProps } from "tailwind-variants";
 
-import { tv } from "@/lib/tw";
+import { tv } from "@/lib/tw.ts";
 
-import { Icon } from "./icon";
-import type { IconSize } from "./icon";
+import { Icon } from "./icon.tsx";
+import type { IconSize } from "./icon.tsx";
 
 const iconButton = tv({
   base: "clickable-icon",

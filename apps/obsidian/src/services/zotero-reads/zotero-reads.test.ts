@@ -27,16 +27,16 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 
-import { layerRcRef } from "./connection";
-import { Connection } from "./connection";
-import type { ConnectionOpener } from "./connection";
-import type { HandlersOptions } from "./handlers";
-import { makeInProcessClient } from "./in-process";
-import type { ZoteroReadsClient } from "./in-process";
-import { Instant } from "./instant-codec";
-import { DbUnavailable, SnapshotExpired, SnapshotId } from "./rpc";
-import type { ChangeEvent, ReadsConfig, SegmenterBinary } from "./rpc";
-import { inProcessReadsService, sharedClientOpener } from "./test-utils";
+import { layerRcRef } from "./connection.ts";
+import { Connection } from "./connection.ts";
+import type { ConnectionOpener } from "./connection.ts";
+import type { HandlersOptions } from "./handlers.ts";
+import { makeInProcessClient } from "./in-process.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { Instant } from "./instant-codec.ts";
+import { DbUnavailable, SnapshotExpired, SnapshotId } from "./rpc.ts";
+import type { ChangeEvent, ReadsConfig, SegmenterBinary } from "./rpc.ts";
+import { inProcessReadsService, sharedClientOpener } from "./test-utils.ts";
 
 /**
  * Rows every contract test reads: a user library (1) and a group library (2,

@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { notifyEventSchema } from "./notify";
+import { notifyEventSchema } from "./notify.ts";
 
 /**
  * The reader events the Obsidian listener validates bodies against. The

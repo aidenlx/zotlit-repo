@@ -15,7 +15,7 @@ import {
 } from "@zotlit/workbench/render";
 import type { PartialChoice } from "@zotlit/workbench/render";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger(["views", "template-workbench"]);
 

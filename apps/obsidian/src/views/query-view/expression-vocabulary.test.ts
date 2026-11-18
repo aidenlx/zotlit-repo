@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { expressionVocabulary } from "./expression-vocabulary";
+import { expressionVocabulary } from "./expression-vocabulary.ts";
 
 // What a vocabulary offers over a Query Dataset is proved through
 // datasetVocabulary in @zotlit/workbench; these prove what a view gives it.

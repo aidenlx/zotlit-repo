@@ -8,24 +8,24 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeItem } from "@zotlit/db/test-utils";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
 import {
   buildNoteIndex,
   cache,
   createNoteHost,
   startup,
-} from "@/services/note-index/__fixtures__";
-import { stubbedReads } from "@/services/zotero-reads/test-utils";
+} from "@/services/note-index/__fixtures__.ts";
+import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
 
-import { makeNotesHost } from "./__fixtures__/notes-host";
-import type { NotesHostDeps as LiteratureNotesDeps } from "./__fixtures__/notes-host";
-import { openTextFileView } from "./__fixtures__/open-text-view";
+import { makeNotesHost } from "./__fixtures__/notes-host.ts";
+import type { NotesHostDeps as LiteratureNotesDeps } from "./__fixtures__/notes-host.ts";
+import { openTextFileView } from "./__fixtures__/open-text-view.ts";
 
-vi.mock("@/views/annot-view/register", () => ({
+vi.mock("@/views/annot-view/register.ts", () => ({
   activateAnnotView: vi.fn(),
 }));
 

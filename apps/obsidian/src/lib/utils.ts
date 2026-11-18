@@ -3,7 +3,7 @@ import type { ClassValue } from "cn";
 import type { TooltipOptions } from "obsidian";
 import type { KeyboardEvent, MouseEvent } from "react";
 
-import { twMerge } from "@/lib/tw";
+import { twMerge } from "@/lib/tw.ts";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

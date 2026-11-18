@@ -1,18 +1,18 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import { createFixtureSchema } from "@/test-utils";
 
 import {
   getItemDisplayInfoByID,
   getItemDisplayRefByID,
   getItemDisplayRefsByIDs,
   getItemRefByID,
-} from "./item-ref";
+} from "./item-ref.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { FIELD_ZOTERO_KEY, FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants";
+import { FIELD_ZOTERO_KEY, FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants.ts";
 
-import { diffContributions, fileContributions } from "./parse";
+import { diffContributions, fileContributions } from "./parse.ts";
 
 const ITEM_A = "ABCD2345";
 const ITEM_A_GROUP = `${ITEM_A}g42`;

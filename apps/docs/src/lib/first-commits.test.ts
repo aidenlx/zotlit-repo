@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { scanFirstCommitDays } from "./first-commits";
+import { scanFirstCommitDays } from "./first-commits.ts";
 
 /** Git in `root` with none of this machine's settings, such as commit signing. */
 function git(root: string, args: string[], env: Record<string, string> = {}) {

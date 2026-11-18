@@ -2,15 +2,6 @@ import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
 import {
-  ItemQueryDatabase,
-  readCandidateSet,
-  readHydrateChunk,
-  readFieldVocabulary,
-  readLibraryRowCount,
-  readScanPage,
-} from "@/item-query";
-
-import {
   BULK_FIFTH_TAG,
   BULK_LIBRARY,
   BULK_TAG,
@@ -18,8 +9,17 @@ import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
   seedBulkLibrary,
-} from ".";
-import type { ScenarioDatabase } from ".";
+} from "./index.ts";
+import type { ScenarioDatabase } from "./index.ts";
+
+import {
+  ItemQueryDatabase,
+  readCandidateSet,
+  readHydrateChunk,
+  readFieldVocabulary,
+  readLibraryRowCount,
+  readScanPage,
+} from "#item-query/index.ts";
 
 function read<A, E>(
   scenario: ScenarioDatabase,

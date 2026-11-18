@@ -6,9 +6,9 @@
 import { FuzzySuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { AttachmentLine } from "./presentation";
+import type { AttachmentLine } from "./presentation.ts";
 
 /** The Attachments to choose between, named as `attachmentLine` names them. */
 export type AttachmentOptions = Extract<

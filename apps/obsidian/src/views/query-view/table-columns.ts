@@ -3,7 +3,7 @@ import type {
   ColumnSizes,
   QueryFileDirection,
   QueryFileSort,
-} from "./query-file";
+} from "./query-file.ts";
 
 /**
  * The direction a click on a column's header sorts it next, as Bases steps

@@ -10,20 +10,20 @@ import type {
   ScanRow,
 } from "@zotlit/db/item-query";
 
-import type { QueryAnnotation } from "./annotation-fields";
-import { ANNOTATION_LOADING } from "./annotation-hydration";
-import type { QueryAttachment } from "./attachment-fields";
-import { ATTACHMENT_LOADING } from "./attachment-hydration";
-import type { FieldNeeds, QueryItem } from "./fields";
-import type { QueryNote } from "./note-fields";
-import { NOTE_LOADING } from "./note-hydration";
-import { relationList } from "./record-loader";
-import type { LoadingDescriptor } from "./record-loader";
+import type { QueryAnnotation } from "./annotation-fields.ts";
+import { ANNOTATION_LOADING } from "./annotation-hydration.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
+import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
+import type { FieldNeeds, QueryItem } from "./fields.ts";
+import type { QueryNote } from "./note-fields.ts";
+import { NOTE_LOADING } from "./note-hydration.ts";
+import { relationList } from "./record-loader.ts";
+import type { LoadingDescriptor } from "./record-loader.ts";
 import {
   relatedAttachments,
   relatedItemAnnotations,
   relatedItemNotes,
-} from "./relation-hydration";
+} from "./relation-hydration.ts";
 
 interface ItemOwn {
   readonly lastUse?: number;

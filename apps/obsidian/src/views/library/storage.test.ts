@@ -2,7 +2,7 @@
 // The Library View keeps its document in plugin data: a toolbar change in its
 // Query View reaches the document there, and the toolbar says when the write
 // failed.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Stream } from "effect";
 import { Layer } from "effect";
 import { Scope } from "obsidian";
@@ -10,30 +10,30 @@ import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { PluginStub } from "@/lib/__fixtures__/obsidian-host";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { QueryViewOutcome } from "@/services/item-query/query-view";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
-import { makeAnnotHost } from "@/views/annot-view/__fixtures__/host";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { makeQueryHost } from "@/views/query-view/__fixtures__/host";
-import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes";
-import { fakeQuery } from "@/views/query-view/__fixtures__/query-run";
-import { QueryView } from "@/views/query-view/view";
-import type { QueryViewDeps } from "@/views/query-view/view";
+import { PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { makeAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
+import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
+import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
+import { QueryView } from "@/views/query-view/view.tsx";
+import type { QueryViewDeps } from "@/views/query-view/view.tsx";
 
-import { makeLibraryHost } from "./__fixtures__";
+import { makeLibraryHost } from "./__fixtures__.ts";
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,
   libraryViewQuery,
   withCardWidth,
   withExpanded,
   withSearch,
-} from "./document";
-import type { LibraryViewDocument } from "./document";
-import { LibraryViewStorage } from "./storage";
+} from "./document.ts";
+import type { LibraryViewDocument } from "./document.ts";
+import { LibraryViewStorage } from "./storage.ts";
 
 const LABELS = {
   papers: "Papers",

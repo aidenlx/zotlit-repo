@@ -26,17 +26,17 @@ import {
   cliVariants,
   decodeCliParams,
   amendRejection,
-} from "@/lib/cli-params";
-import type { CliParamName, CliRejection } from "@/lib/cli-params";
+} from "@/lib/cli-params.ts";
+import type { CliParamName, CliRejection } from "@/lib/cli-params.ts";
 import {
   compareSelectors,
   selectorKey,
   selectorKeySchema,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 
 import {
   DEFAULT_CLI_LIMIT,
@@ -48,18 +48,18 @@ import {
   QUERY_ID_FORM,
   QUERY_ID_MAX_LENGTH,
   QUERY_OUTPUT_FORMATS,
-} from "./contract";
-import type { QueryOutputFormat } from "./contract";
-import { GUIDE_TOPIC_NAMES } from "./guide";
-import type { GuideTopic } from "./guide";
-import { QUERY_DATASETS } from "./query-codec";
+} from "./contract.ts";
+import type { QueryOutputFormat } from "./contract.ts";
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
+import type { GuideTopic } from "./guide.ts";
+import { QUERY_DATASETS } from "./query-codec.ts";
 import type {
   DecodedQuery,
   DecodedValues,
   NamedLibraries,
-} from "./query-codec";
+} from "./query-codec.ts";
 
-export { rejectionDiagnostic } from "./contract";
+export { rejectionDiagnostic } from "./contract.ts";
 
 const QUERY_ID = /^[\w.-]+$/;
 const POSITIVE_INTEGER = /^[1-9]\d*$/;

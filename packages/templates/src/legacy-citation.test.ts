@@ -4,7 +4,7 @@ import {
   foldLegacyCitationTemplates,
   LegacyTemplateConversionError,
   TemplateFacade,
-} from "./facade";
+} from "./facade.ts";
 
 /** The citation-template data root for one Citation Variant, from citekeys. */
 function data(variant: "main" | "alt", ...citationKeys: string[]) {

@@ -4,7 +4,7 @@
 import type {
   ExcerptDisplayDemand,
   ExcerptImageDisplay,
-} from "@/services/excerpt-image/display";
+} from "@/services/excerpt-image/display.ts";
 
 /**
  * The next snapshot that answers `matches`, resolved from the demand's own

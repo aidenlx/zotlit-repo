@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { chooserLayout } from "@/components/chooser-logic";
-import type { ChooserMatcher } from "@/components/chooser-logic";
+import { chooserLayout } from "@/components/chooser-logic.ts";
+import type { ChooserMatcher } from "@/components/chooser-logic.ts";
 
-import { listedProperties, propertyRow } from "./properties-menu";
-import { parseQueryFile } from "./query-file";
-import { viewProperties } from "./view-properties";
+import { listedProperties, propertyRow } from "./properties-menu.tsx";
+import { parseQueryFile } from "./query-file.ts";
+import { viewProperties } from "./view-properties.ts";
 
 const FILE = parseQueryFile(`formulas:
   year: date.year

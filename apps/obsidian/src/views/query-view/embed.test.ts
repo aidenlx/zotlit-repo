@@ -2,30 +2,30 @@
 // it as Obsidian does: the creator, the component it returns added to the note
 // and loaded, and the file's text on disk changing under it. What it shares
 // with the Query Block is in `note-host.test.ts`.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Stream } from "effect";
 import type { App, EmbedContext } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "@/services/item-query/query-view";
-import { testAnnotHost } from "@/views/annot-view/__fixtures__/host";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { fakeQuery } from "@/views/query-view/__fixtures__/query-run";
+} from "@/services/item-query/query-view.ts";
+import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
 
 // @vitest-environment happy-dom
-import { makeQueryHost } from "./__fixtures__/host";
-import { noLiteratureNotes } from "./__fixtures__/literature-notes";
-import { openTextFileView } from "./__fixtures__/open-text-view";
-import { QueryCardFocus } from "./card-focus";
-import { createQueryFileEmbed } from "./embed";
-import type { QueryView, QueryViewDeps } from "./view";
+import { makeQueryHost } from "./__fixtures__/host.ts";
+import { noLiteratureNotes } from "./__fixtures__/literature-notes.ts";
+import { openTextFileView } from "./__fixtures__/open-text-view.ts";
+import { QueryCardFocus } from "./card-focus.ts";
+import { createQueryFileEmbed } from "./embed.ts";
+import type { QueryView, QueryViewDeps } from "./view.tsx";
 
 const FILE_PATH = "query-files/Reading.zotquery";
 const FILE = `views:

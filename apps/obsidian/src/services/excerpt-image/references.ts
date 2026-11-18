@@ -5,8 +5,8 @@ import { Effect } from "effect";
 import { parseLinktext } from "obsidian";
 import type { TFile } from "obsidian";
 
-import { readLiveText } from "@/lib/effect-live-text";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
+import { readLiveText } from "@/lib/effect-live-text.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
 
 const markdown = parser.configure({
   defineNodes: ["WikiLink"],

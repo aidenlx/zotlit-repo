@@ -7,8 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { agentSkillAssets } from "./agent-skills";
-import { zotlitBetaUrl } from "./shared";
+import { agentSkillAssets } from "./agent-skills.ts";
+import { zotlitBetaUrl } from "./shared.ts";
 
 const packageRoot = resolve(import.meta.dirname, "../..");
 const indexRoute = "/.well-known/agent-skills/index.json";

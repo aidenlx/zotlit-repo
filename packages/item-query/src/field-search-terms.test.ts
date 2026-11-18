@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
-import { fieldSearchTerms, matchesSearchTerm } from "./field-search-terms";
+import { fieldSearchTerms, matchesSearchTerm } from "./field-search-terms.ts";
 
 const offers = (
   dataset: Parameters<typeof fieldSearchTerms>[0],

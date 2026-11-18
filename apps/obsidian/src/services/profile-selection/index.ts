@@ -1,7 +1,7 @@
-export { selectProfilesByMatch, type MatchSelection } from "./select";
+export { selectProfilesByMatch, type MatchSelection } from "./select.ts";
 export {
   compileProfileMatch,
   type ProfileMatch,
   describeMatch,
   itemTypeLabel,
-} from "./describe";
+} from "./describe.ts";

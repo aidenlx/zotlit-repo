@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { formatItemDate, parseItemDate } from "./zt-date";
-import type { ItemDate } from "./zt-date";
+import { formatItemDate, parseItemDate } from "./zt-date.ts";
+import type { ItemDate } from "./zt-date.ts";
 
 describe("parseItemDate", () => {
   it("returns null for null/undefined/empty input", () => {

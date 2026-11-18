@@ -30,13 +30,13 @@ import type {
   RemotePackInfo,
 } from "@zotlit/obsidian-i18n";
 
-import { RELEASE_ORIGIN, resourceReleaseUrl } from "@/lib/constants";
-import { bridgeLog, withLogCategory } from "@/lib/effect-log";
-import { catalog } from "@/lib/i18n/generated/catalog";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import { resolvePluginLocale } from "@/lib/i18n/locale";
-import { DeviceStorage } from "@/lib/obsidian-device-storage";
-import { ObsidianEnv } from "@/lib/obsidian-env";
+import { RELEASE_ORIGIN, resourceReleaseUrl } from "@/lib/constants.ts";
+import { bridgeLog, withLogCategory } from "@/lib/effect-log.ts";
+import { catalog } from "@/lib/i18n/generated/catalog.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import { resolvePluginLocale } from "@/lib/i18n/locale.ts";
+import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 
 export type { LanguagePackRestartNotice, LanguagePackSituation };
 

@@ -6,8 +6,8 @@ import {
   foldFilterTree,
   isFilterTree,
   readFilterTree,
-} from "./index";
-import type { FilterTree } from "./index";
+} from "./index.ts";
+import type { FilterTree } from "./index.ts";
 
 describe("composeFilterTree", () => {
   it.each<[string, FilterTree, string]>([

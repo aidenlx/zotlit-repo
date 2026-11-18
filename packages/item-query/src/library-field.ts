@@ -1,5 +1,5 @@
-import type { FieldDefinition } from "./fields";
-import type { TargetLibrary } from "./request";
+import type { FieldDefinition } from "./fields.ts";
+import type { TargetLibrary } from "./request.ts";
 
 /** A record's Library selector, shared by every Query Dataset. */
 const readLibrary = ({ groupID }: Pick<TargetLibrary, "groupID">): string =>

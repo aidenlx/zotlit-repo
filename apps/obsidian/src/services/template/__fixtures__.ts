@@ -2,21 +2,24 @@ import { Context, Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
 import {
+  layerHost,
+  layerHostApp,
+} from "@/lib/__fixtures__/obsidian-host-app.ts";
+import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host";
-import { layerHost, layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { loadedTextFileView } from "@/lib/live-text";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { Workspace } from "@/lib/obsidian-workspace";
+} from "@/lib/__fixtures__/obsidian-host.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { loadedTextFileView } from "@/lib/live-text.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
 import {
   layerPluginSettings,
   PluginSettings,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 
-import { layerTemplate, Template } from "./service";
+import { layerTemplate, Template } from "./service.ts";
 
 export function createTemplateHost(files: Record<string, string> = {}) {
   const host = createObsidianHost(files);

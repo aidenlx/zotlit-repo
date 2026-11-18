@@ -12,15 +12,15 @@
 // behind it, so it is reported through the same record and the same text:
 // what it does have is captured, and the rest is marked unavailable.
 
-import type { WorkbenchProblem } from "#/document/controller";
+import type { WorkbenchProblem } from "#document/controller.ts";
 
 import type {
   RenderCaller,
   RenderDiagnostic,
   RenderEngineLocation,
   RenderIdentity,
-} from "./result";
-import { templateSourceRevision } from "./result";
+} from "./result.ts";
+import { templateSourceRevision } from "./result.ts";
 
 /** What a report says where the failed attempt could supply no value. */
 export const REPORT_UNAVAILABLE = "unavailable";

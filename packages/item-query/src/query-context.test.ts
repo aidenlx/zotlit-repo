@@ -9,11 +9,11 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from ".";
-import type { ItemQueryRequest, QueryDataset } from ".";
-import { ItemQueryError } from "./error";
-import { runEffect } from "./test-helpers";
-import type { CapturedLog } from "./test-helpers";
+import { ItemQueryError } from "./error.ts";
+import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
+import type { ItemQueryRequest, QueryDataset } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { CapturedLog } from "./test-helpers.ts";
 
 let scenario: ScenarioDatabase;
 beforeAll(() => {

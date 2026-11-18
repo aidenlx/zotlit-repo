@@ -1,7 +1,7 @@
 // Pure Reading Card data: row previews, bibliographic fields and annotation quotes.
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import type { QueryViewValue } from "@/services/item-query/query-view";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 
 import {
   addedText,
@@ -10,8 +10,8 @@ import {
   otherFields,
   record,
   text,
-} from "./card-fields";
-import type { CardField, CardHeader } from "./card-fields";
+} from "./card-fields.ts";
+import type { CardField, CardHeader } from "./card-fields.ts";
 export type Values = Readonly<Record<string, QueryViewValue>>;
 
 /** One file of the Item. */

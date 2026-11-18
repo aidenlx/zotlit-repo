@@ -17,7 +17,7 @@ import {
   serviceTagId,
   temporalInEffect,
   workerRpc,
-} from "../../scripts/oxlint-plugin-services";
+} from "../../scripts/oxlint-plugin-services.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -243,7 +243,7 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
     "const file = app.vault.getFileByPath(path);",
     'stack.use(this.registerEvent(this.app.workspace.on("file-open", open)));',
     // A type-only import of the bridge names the seam a legacy file holds.
-    'import type { EffectBridge } from "@/lib/effect-bridge";\nconst cache = app.metadataCache.getFileCache(file);',
+    'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst cache = app.metadataCache.getFileCache(file);',
     // Not the App: a tag, or another object's members.
     `${effect}Effect.gen(function* () {
       const vault = yield* Vault;
@@ -280,7 +280,7 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
     },
     {
       // The bridge is an Effect module when its values are imported.
-      code: 'import { bridgeOf } from "@/lib/effect-bridge";\napp.metadataCache.getFirstLinkpathDest(link, path);',
+      code: 'import { bridgeOf } from "@/lib/effect-bridge.ts";\napp.metadataCache.getFirstLinkpathDest(link, path);',
       errors: [{ messageId: "capability" }],
     },
     {
@@ -337,7 +337,7 @@ tester.run("no-default-runtime", noDefaultRuntime, {
 
 tester.run("scoped-runner", scopedRunner, {
   valid: [
-    'import { Effect } from "effect";\nimport { scopedBridge } from "@/lib/effect-bridge";\nEffect.gen(function* () { const bridge = yield* scopedBridge; bridge.runPromise(x); });',
+    'import { Effect } from "effect";\nimport { scopedBridge } from "@/lib/effect-bridge.ts";\nEffect.gen(function* () { const bridge = yield* scopedBridge; bridge.runPromise(x); });',
     'import { Effect, FiberSet } from "effect";\nEffect.gen(function* () { const run = yield* FiberSet.makeRuntimePromise(); });',
     // A sync runner settles before unload can reach it.
     'import { Effect } from "effect";\nEffect.runSyncWith(ctx)(x);',
@@ -378,7 +378,7 @@ tester.run("clock-time", clockTime, {
     },
     // A type-only import of the bridge is not Effect code.
     {
-      code: 'import type { EffectBridge } from "@/lib/effect-bridge";\nconst at = Date.now();\nconst instant = Temporal.Now.instant();',
+      code: 'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst at = Date.now();\nconst instant = Temporal.Now.instant();',
       filename: library,
     },
     // Reading time through Clock, and building a Date from a value.
@@ -466,7 +466,7 @@ tester.run("temporal-in-effect", temporalInEffect, {
     },
     // A type-only import of the bridge is not Effect code.
     {
-      code: 'import type { EffectBridge } from "@/lib/effect-bridge";\nconst at = Temporal.Instant.from(text);',
+      code: 'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst at = Temporal.Instant.from(text);',
       filename: library,
     },
     // Effect's DateTime, and a property that only shares the name.

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { LIBRARIES } from "@zotlit/scripts/fixture";
 
-import type { QueryFileView } from "@/views/query-view/file-view";
+import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";

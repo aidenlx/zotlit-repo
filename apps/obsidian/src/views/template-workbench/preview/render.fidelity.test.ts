@@ -8,23 +8,23 @@ import { parse } from "yaml";
 
 import { getItemsByKey } from "@zotlit/db";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { SourceOrigin } from "@/services/attachment-import/source";
-import { noteFeatureHandle } from "@/services/note-feature/__fixtures__/note-feature";
-import type { NoteFeatureSources } from "@/services/note-feature/__fixtures__/note-feature";
-import type { CreateNoteResult } from "@/services/note-feature/operations";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixtureSettings } from "@/services/profile/__fixtures__/reader";
-import { seedProfileEntry } from "@/services/profile/service";
-import { defaults as settingsDefaults } from "@/services/settings/schema";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { SourceOrigin } from "@/services/attachment-import/source.ts";
+import { noteFeatureHandle } from "@/services/note-feature/__fixtures__/note-feature.ts";
+import type { NoteFeatureSources } from "@/services/note-feature/__fixtures__/note-feature.ts";
+import type { CreateNoteResult } from "@/services/note-feature/operations.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixtureSettings } from "@/services/profile/__fixtures__/reader.ts";
+import { seedProfileEntry } from "@/services/profile/service.ts";
+import { defaults as settingsDefaults } from "@/services/settings/schema.ts";
 
 import {
   createRenderFixture,
   PROFILE_SOURCE,
   SAVED_NOTE,
   renderNativeProfile,
-} from "./__fixtures__/render";
+} from "./__fixtures__/render.ts";
 
 const LITERATURE_FOLDER = "notes";
 

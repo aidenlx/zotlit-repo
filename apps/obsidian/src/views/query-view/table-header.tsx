@@ -6,26 +6,26 @@ import { Menu, Platform } from "obsidian";
 import { useEffect, useRef } from "react";
 import type { CSSProperties, DragEvent, MouseEvent, PointerEvent } from "react";
 
-import { Icon } from "@/components/obsidian/icon";
-import { useObsidianApp } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import { pointerDrag } from "@/lib/pointer-drag";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { pointerDrag } from "@/lib/pointer-drag.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { columnMenuEntries } from "./column-menu";
-import type { ColumnMenuAction } from "./column-menu";
-import { ColumnPropertyPopover } from "./column-property-popover";
-import type { ColumnPropertyHandle } from "./column-property-popover";
-import { ExpanderSpace } from "./expander-space";
-import { useQueryViewState } from "./model";
-import { groupOptions } from "./properties";
-import { propertyIcon } from "./property-icon";
+import { columnMenuEntries } from "./column-menu.ts";
+import type { ColumnMenuAction } from "./column-menu.ts";
+import { ColumnPropertyPopover } from "./column-property-popover.tsx";
+import type { ColumnPropertyHandle } from "./column-property-popover.tsx";
+import { ExpanderSpace } from "./expander-space.tsx";
+import { useQueryViewState } from "./model.ts";
+import { groupOptions } from "./properties.ts";
+import { propertyIcon } from "./property-icon.ts";
 import type {
   ColumnSizes,
   QueryFileDataset,
   QueryFileDirection,
-} from "./query-file";
-import { moved } from "./reorder";
+} from "./query-file.ts";
+import { moved } from "./reorder.tsx";
 import {
   dropGap,
   gapMove,
@@ -33,13 +33,13 @@ import {
   toggledSortDirection,
   resizedWidth,
   withColumnWidth,
-} from "./table-columns";
-import { useVaultPropertyNames, useVaultVersion } from "./vault-cell";
-import { viewSortOptions } from "./vault-sort";
+} from "./table-columns.ts";
+import { useVaultPropertyNames, useVaultVersion } from "./vault-cell.tsx";
+import { viewSortOptions } from "./vault-sort.ts";
 import "./table-header.css";
-import type { QueryView } from "./view";
-import { viewProperties } from "./view-properties";
-import type { ViewProperties } from "./view-properties";
+import { viewProperties } from "./view-properties.ts";
+import type { ViewProperties } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 /** The cell classes the header shares with the rows under it. */
 export interface HeaderClasses {

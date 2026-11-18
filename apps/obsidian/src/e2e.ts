@@ -1,4 +1,4 @@
-import type { createPluginRuntime } from "./services/plugin-runtime";
+import type { createPluginRuntime } from "./services/plugin-runtime.ts";
 
 /** Type-only boundary for code evaluated by the End-to-end Run. */
 export type E2eServices = Awaited<ReturnType<typeof createPluginRuntime>>;

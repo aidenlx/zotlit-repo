@@ -3,7 +3,7 @@
 import type {
   ManualCheckpointOutcome,
   WalCheckpointStatus,
-} from "@/notify/freshness";
+} from "@/notify/freshness.ts";
 
 type VisibleManualOutcome = Exclude<ManualCheckpointOutcome, "unavailable">;
 

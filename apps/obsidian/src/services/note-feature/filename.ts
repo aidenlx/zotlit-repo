@@ -7,7 +7,7 @@ import {
   resolveNoteRelPath,
 } from "@zotlit/templates";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 /** Alphanumeric only, `_` and `-` reserved. */
 const suffixNanoid = customAlphabet(

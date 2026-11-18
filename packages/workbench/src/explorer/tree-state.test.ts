@@ -5,8 +5,8 @@ import {
   setAnchor,
   setFilter,
   toggleNode,
-} from "./tree-state";
-import type { TreeState } from "./tree-state";
+} from "./tree-state.ts";
+import type { TreeState } from "./tree-state.ts";
 
 describe("toggleNode", () => {
   it("toggles the key in expanded when not filtering", () => {

@@ -4,7 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
 export function excerptTempDirectory(parent = tmpdir()): string {
   return join(parent, "zotlit-excerpts");

@@ -13,7 +13,7 @@ import { composing } from "@zotlit/ui";
 import { fieldPopupKeyHost } from "@zotlit/workbench/language";
 import type { FieldPopupKeyHost } from "@zotlit/workbench/language";
 
-import { onEditorWindowMigrated } from "./editor-migration";
+import { onEditorWindowMigrated } from "./editor-migration.ts";
 
 /**
  * Pushes the popup's Scope while a popup stands, parented to `app.scope` as

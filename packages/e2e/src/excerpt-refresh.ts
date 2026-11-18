@@ -3,7 +3,7 @@ import type { WorkspaceLeaf } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
 
-import type { AnnotationView } from "@/views/annot-view/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
@@ -53,7 +53,9 @@ export async function verifyExcerptRefresh(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
     async ({ app, zotlit, page }, { effectPath }) => {
-      const { Effect } = require(effectPath) as typeof import("@/lib/effect");
+      const { Effect } = require(
+        effectPath,
+      ) as typeof import("@/lib/effect.ts");
       const services = zotlit.services;
       const service = services.excerptImage;
       // oxlint-disable-next-line typescript/unbound-method -- the original method is replaced for the test and restored by identity

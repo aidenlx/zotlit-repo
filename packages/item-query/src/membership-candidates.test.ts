@@ -5,9 +5,9 @@ import {
   SCENARIO_LIBRARIES,
 } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from ".";
-import { ItemQueryScheduler } from "./scheduler";
-import { runEffect } from "./test-helpers";
+import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
+import { ItemQueryScheduler } from "./scheduler.ts";
+import { runEffect } from "./test-helpers.ts";
 
 // Failure modes: membership scans despite literal arguments, or a candidate
 // plan drops matches that the evaluator would keep.

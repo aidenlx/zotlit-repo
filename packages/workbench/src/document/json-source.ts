@@ -4,7 +4,7 @@ import { ChangeSet, StateEffect } from "@codemirror/state";
 import { applyEdits, createScanner, format, parse } from "jsonc-parser";
 import type { ParseError, Edit } from "jsonc-parser";
 
-import { yamlValue } from "./scalar-source";
+import { yamlValue } from "./scalar-source.ts";
 
 // The library declares ambient const enums, which verbatimModuleSyntax cannot import.
 const tokenKind = { eof: 17, whitespace: 15, lineBreak: 14 };

@@ -7,10 +7,10 @@ import {
   copyValue,
   findAnnotationRoot,
   formatPath,
-} from "./display-tree";
-import type { DisplayNode } from "./display-tree";
-import { markInertPlaceholder } from "./inert-placeholder";
-import { withText } from "./test-records";
+} from "./display-tree.ts";
+import type { DisplayNode } from "./display-tree.ts";
+import { markInertPlaceholder } from "./inert-placeholder.ts";
+import { withText } from "./test-records.ts";
 
 function expectValueChildren(node: DisplayNode): readonly DisplayNode[] {
   expect(node.kind).toBe("value");

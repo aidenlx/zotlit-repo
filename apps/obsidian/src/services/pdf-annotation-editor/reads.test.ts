@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { PdfReads } from "./reads";
+import { PdfReads } from "./reads.ts";
 
 // Failure modes: page turns bypass the five-minute boundary across views;
 // open/close get throttled; another Attachment shares the throttle; standalone

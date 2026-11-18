@@ -11,7 +11,7 @@ import {
 } from "effect";
 import { expect } from "vitest";
 
-import { buildRuntime } from "@/lib/effect-layer";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
 import {
   buildNoteIndex,
@@ -20,9 +20,9 @@ import {
   noteIndexOf,
   noteIndexOver,
   startup,
-} from "./__fixtures__";
-import { NoteIndex } from "./service";
-import type { NoteIndexChange } from "./service";
+} from "./__fixtures__.ts";
+import { NoteIndex } from "./service.ts";
+import type { NoteIndexChange } from "./service.ts";
 
 // Recursive YAML aliases fail serialization at the real host boundary.
 it.effect(

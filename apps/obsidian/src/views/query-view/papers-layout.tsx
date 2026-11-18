@@ -13,27 +13,27 @@ import type { CSSProperties, ReactNode } from "react";
 import { resolveVenue } from "@zotlit/db";
 import { useUniqueId } from "@zotlit/ui";
 
-import { FirstLine, Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { itemTypeIcon } from "@/lib/item-type-icon";
-import { cn } from "@/lib/utils";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions";
-import type { OpenTarget } from "@/services/attachment-open/open-target";
-import type { QueryViewValue } from "@/services/item-query/query-view";
+import { FirstLine, Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { itemTypeIcon } from "@/lib/item-type-icon.ts";
+import { cn } from "@/lib/utils.ts";
+import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
+import type { OpenTarget } from "@/services/attachment-open/open-target.ts";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 
-import { ExpanderSpace } from "./expander-space";
-import { useItemRow } from "./item-rows";
-import type { ItemRowGestures } from "./item-rows";
-import { ItemsWindow } from "./items-window";
-import type { DrawnEntry, WindowEntry } from "./items-window";
-import type { QueryLayout } from "./layouts";
-import { useQueryTask } from "./model";
+import { ExpanderSpace } from "./expander-space.tsx";
+import { useItemRow } from "./item-rows.ts";
+import type { ItemRowGestures } from "./item-rows.ts";
+import { ItemsWindow } from "./items-window.tsx";
+import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import type { QueryLayout } from "./layouts.ts";
+import { useQueryTask } from "./model.ts";
 import {
   HEADING_ESTIMATE,
   RecordGroupHeading,
   groupEntries,
   useRecordGroups,
-} from "./record-rows";
+} from "./record-rows.tsx";
 import {
   Expander,
   LOADING_TEXT,
@@ -42,10 +42,10 @@ import {
   childSource,
   id,
   useChildren,
-} from "./table-layout";
-import type { ChildState, TableRecord } from "./table-layout";
-import type { LiteratureNotes } from "./table-notes";
-import type { QueryView } from "./view";
+} from "./table-layout.tsx";
+import type { ChildState, TableRecord } from "./table-layout.tsx";
+import type { LiteratureNotes } from "./table-notes.ts";
+import type { QueryView } from "./view.tsx";
 
 export const PAPERS_LAYOUT: QueryLayout = {
   type: "papers",

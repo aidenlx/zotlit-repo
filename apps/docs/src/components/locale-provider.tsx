@@ -13,10 +13,10 @@ import { RootProvider } from "fumadocs-ui/provider/base";
 import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 
-import { DocsImage } from "@/components/docs-image";
-import { fumadocsTranslations } from "@/lib/fumadocs-translations";
-import { i18n } from "@/lib/i18n";
-import { rememberLanguageChoice } from "@/lib/language-choice";
+import { DocsImage } from "@/components/docs-image.tsx";
+import { fumadocsTranslations } from "@/lib/fumadocs-translations.ts";
+import { i18n } from "@/lib/i18n.ts";
+import { rememberLanguageChoice } from "@/lib/language-choice.ts";
 import {
   deLocalizeHref,
   getLocale,

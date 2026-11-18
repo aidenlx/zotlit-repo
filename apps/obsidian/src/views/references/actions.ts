@@ -6,23 +6,26 @@ import type { MouseEvent } from "react";
 
 import { formatIndexedKey, itemSelectUri } from "@zotlit/db";
 
-import { openAttachments, zoteroAttachmentReader } from "@/lib/attachment-open";
-import type { ClipboardRepresentation } from "@/lib/clipboard";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { requestProfileSwitch } from "@/lib/profile-recovery";
+import {
+  openAttachments,
+  zoteroAttachmentReader,
+} from "@/lib/attachment-open.ts";
+import type { ClipboardRepresentation } from "@/lib/clipboard.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
-import { toCopiedBibliography } from "./copied-bibliography";
+import { toCopiedBibliography } from "./copied-bibliography.ts";
 import type {
   CopiedBibliography,
   CopiedBibliographyEntry,
-} from "./copied-bibliography";
-import type { ReferenceEntry } from "./entries";
-import type { ReferencesCopyTarget } from "./state";
+} from "./copied-bibliography.ts";
+import type { ReferenceEntry } from "./entries.ts";
+import type { ReferencesCopyTarget } from "./state.ts";
 
 const logger = getLogger(["views", "references"]);
 

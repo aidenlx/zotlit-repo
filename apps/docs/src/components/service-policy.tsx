@@ -1,7 +1,7 @@
-import { SiteFooter } from "@/components/site-footer";
-import { pageHead, HOME_OG_ALT } from "@/lib/seo";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { pageHead, HOME_OG_ALT } from "@/lib/seo.ts";
 import policies from "@/lib/service-policies.json";
-import { formatReleaseDate, repoUrl } from "@/lib/shared";
+import { formatReleaseDate, repoUrl } from "@/lib/shared.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

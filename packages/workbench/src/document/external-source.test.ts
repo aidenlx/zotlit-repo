@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { externalEdit, WorkbenchDocumentController } from "./controller";
+import { externalEdit, WorkbenchDocumentController } from "./controller.ts";
 
 const SOURCE = `---
 id: paper

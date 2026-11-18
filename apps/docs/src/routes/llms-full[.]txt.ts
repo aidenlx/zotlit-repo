@@ -2,7 +2,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getLlmsFullText, plainTextHeaders } from "@/lib/markdown-editions";
+import { getLlmsFullText, plainTextHeaders } from "@/lib/markdown-editions.tsx";
 
 export const Route = createFileRoute("/llms-full.txt")({
   server: {

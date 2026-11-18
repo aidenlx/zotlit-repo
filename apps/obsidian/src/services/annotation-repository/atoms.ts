@@ -2,15 +2,15 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held, viewRuntime } from "@/lib/view-atoms";
-import type { Held } from "@/services/query-client/service";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
-import { AnnotationRepository } from "./service";
+import { AnnotationRepository } from "./service.ts";
 import type {
   AnnotationList,
   AnnotationState,
   EditingCapability,
-} from "./service";
+} from "./service.ts";
 
 /** A batch can change several cards before the registry publishes one update. */
 export const annotationChangeAtom = held<ReadonlyMap<string, AnnotationState>>(

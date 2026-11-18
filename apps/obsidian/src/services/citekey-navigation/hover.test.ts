@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { defaults } from "@/services/settings/schema";
+import { defaults } from "@/services/settings/schema.ts";
 
 import {
   citationHoverIntent,
   hoverEditingMode,
   hoverPreferences,
-} from "./hover";
-import type { CitationHoverGesture, HoverPreferences } from "./hover";
+} from "./hover.ts";
+import type { CitationHoverGesture, HoverPreferences } from "./hover.ts";
 
 const gesture = (
   overrides: Partial<CitationHoverGesture> = {},

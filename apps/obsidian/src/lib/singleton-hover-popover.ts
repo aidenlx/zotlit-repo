@@ -1,5 +1,5 @@
 // Re-targets one native hover popover across a group of DOM targets.
-import { HoverPopover } from "./hover-popover";
+import { HoverPopover } from "./hover-popover.ts";
 
 /**
  * `targetEl` is read live by native consumers; its two constructor-bound

@@ -7,26 +7,26 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
-import { makeReferencesHost } from "./__fixtures__";
-import type { ReferencesHost } from "./__fixtures__";
-import type { ReferenceActions } from "./actions";
-import { ReferenceActionsContext } from "./actions";
-import type { ReferenceEntry } from "./entries";
-import { makeReferencesModel, ReferencesModelContext } from "./model";
-import { References } from "./References";
-import type { ReferencesListMode, ReferencesState } from "./state";
+import { makeReferencesHost } from "./__fixtures__.ts";
+import type { ReferencesHost } from "./__fixtures__.ts";
+import type { ReferenceActions } from "./actions.ts";
+import { ReferenceActionsContext } from "./actions.ts";
+import type { ReferenceEntry } from "./entries.ts";
+import { makeReferencesModel, ReferencesModelContext } from "./model.ts";
+import { References } from "./References.tsx";
+import type { ReferencesListMode, ReferencesState } from "./state.ts";
 
-vi.mock("@/components/obsidian/icon-button", async () => {
+vi.mock("@/components/obsidian/icon-button.tsx", async () => {
   const { createElement } = await import("react");
   return {
     IconButton: ({ icon, ...props }: { icon: string }) =>

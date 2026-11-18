@@ -1,4 +1,7 @@
-import { relations } from "@drizzle/relations";
+import type {
+  ScenarioDatabase,
+  ScenarioDatabaseOptions,
+} from "#test-scenario/index.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
@@ -6,14 +9,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
-import { openScenarioDatabase } from "@/test-scenario";
-import type {
-  ScenarioDatabase,
-  ScenarioDatabaseOptions,
-} from "@/test-scenario";
-import { countStatements } from "@/test-utils";
+import { readDatabaseLayout } from "./index.ts";
 
-import { readDatabaseLayout } from ".";
+import { relations } from "#drizzle/relations.ts";
+import { openScenarioDatabase } from "#test-scenario/index.ts";
+import { countStatements } from "#test-utils.ts";
 
 afterEach(() => {
   setLibraryLogSink(undefined);

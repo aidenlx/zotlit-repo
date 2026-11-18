@@ -1,9 +1,9 @@
 // Where a pane's render and include completion reads its partial names.
 
-import type { ResolveStart, SuggestionConfig } from "#/language/index";
+import type { ResolveStart, SuggestionConfig } from "#language/index.ts";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchHost } from "./host";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchHost } from "./host.tsx";
 
 /**
  * The partial half of one pane's suggestion config.

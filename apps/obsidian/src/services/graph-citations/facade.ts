@@ -2,7 +2,7 @@
 
 import type { App, MetadataCache } from "obsidian";
 
-import type { GraphCitationAdditions, LinkMap } from "./adapter";
+import type { GraphCitationAdditions, LinkMap } from "./adapter.ts";
 
 /** The engine member one facaded render swaps; `install.ts` verified it present. */
 export interface FacadeEngine {

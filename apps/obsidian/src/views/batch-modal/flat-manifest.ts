@@ -7,14 +7,14 @@ import {
   section,
   profileChoiceControl,
   profileListGroup,
-} from "./dom";
-import type { BatchRow } from "./dom";
+} from "./dom.ts";
+import type { BatchRow } from "./dom.ts";
 import type {
   BatchCounts,
   BatchManifest,
   BatchListControls,
   BatchProfileChoice,
-} from "./types";
+} from "./types.ts";
 
 export interface FlatTask extends BatchRow {
   id: number;

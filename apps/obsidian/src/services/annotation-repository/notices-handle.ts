@@ -1,8 +1,8 @@
 // The capability notices for callers outside Effect: the reader's gestures,
 // the Query View, the setting tab and the debug surface.
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import type { CapabilityNotices } from "./notices";
+import type { CapabilityNotices } from "./notices.ts";
 
 /** The capability notices' gestures, one bridge call each. */
 export interface CapabilityNoticesHandle {

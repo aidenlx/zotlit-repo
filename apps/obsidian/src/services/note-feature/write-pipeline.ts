@@ -12,59 +12,59 @@ import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_KEY,
-} from "@/lib/constants";
-import { recover } from "@/lib/effect-cause";
-import { toInstant } from "@/lib/effect-clock";
-import { processLiveText } from "@/lib/effect-live-text";
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag } from "@/lib/effect-stream";
-import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text";
-import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
+} from "@/lib/constants.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import { processLiveText } from "@/lib/effect-live-text.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag } from "@/lib/effect-stream.ts";
+import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text.ts";
+import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
 import {
   DEFAULT_PROFILE,
   parseProfileStamp,
   profileStampOf,
-} from "@/lib/profile-stamp";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp";
-import { ensureVaultParentFolder } from "@/lib/vault-folder";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import type { AttachmentImportBatch } from "@/services/attachment-import/service";
-import { outcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
+} from "@/lib/profile-stamp.ts";
+import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
+import { ensureVaultParentFolder } from "@/lib/vault-folder.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
+import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import {
   nonEmptySummary,
   ExcerptPreparation,
-} from "@/services/excerpt-image/prepare";
+} from "@/services/excerpt-image/prepare.ts";
 import type {
   ExcerptSummary,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare";
+} from "@/services/excerpt-image/prepare.ts";
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service";
-import { noteProfileSelector } from "@/services/profile/bindings";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { relocatedNotePath } from "@/services/profile/relocation";
-import { Profile } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { syncTemplate } from "@/services/template-workbench/sync-template";
-import { InertTemplateError } from "@/services/template/errors";
-import { Template } from "@/services/template/service";
-import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/note-index/service.ts";
+import { noteProfileSelector } from "@/services/profile/bindings.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { relocatedNotePath } from "@/services/profile/relocation.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
+import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { applyComposedFrontmatter, composeLiteratureNote } from "./compose";
-import type { ComposeFrontmatterInput, ComposeNoteDeps } from "./compose";
-import { buildNoteResolvers, itemFacets } from "./context";
-import type { NoteResolverServices } from "./context";
+import { applyComposedFrontmatter, composeLiteratureNote } from "./compose.ts";
+import type { ComposeFrontmatterInput, ComposeNoteDeps } from "./compose.ts";
+import { buildNoteResolvers, itemFacets } from "./context.ts";
+import type { NoteResolverServices } from "./context.ts";
 import {
   composeWarn,
   frontmatterRefusal,
@@ -78,19 +78,19 @@ import {
   refusedUpdateProfile,
   refusedUpdateProfileConflict,
   refusedUpdateTemplateConversion,
-} from "./diagnostics";
+} from "./diagnostics.ts";
 import {
   ItemNotFound,
   NoteWriteAborted,
   ProfileSwitchRollbackFailed,
-} from "./errors";
-import { prepareManagedFrontmatter } from "./frontmatter";
-import { resolveNotePath } from "./note-path";
+} from "./errors.ts";
+import { prepareManagedFrontmatter } from "./frontmatter.ts";
+import { resolveNotePath } from "./note-path.ts";
 import {
   readItem,
   relocationSource,
   resolveProfileDocument,
-} from "./note-reads";
+} from "./note-reads.ts";
 import type {
   CreateNoteInternalOptions,
   CreateNoteResult,
@@ -99,7 +99,7 @@ import type {
   NoteProfileChangedDiagnostic,
   UpdateResult,
   WriteNoteUpdateOptions,
-} from "./types";
+} from "./types.ts";
 
 const logged = withLogCategory("note-feature");
 

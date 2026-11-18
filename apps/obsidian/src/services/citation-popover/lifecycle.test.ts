@@ -4,31 +4,31 @@ import type { HoverParent, MetadataCache, Workspace } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { NO_ADDITIONS } from "@/services/graph-citations/adapter";
-import { wrapNodeHover } from "@/services/graph-citations/hover";
-import type { GraphLeafMembers } from "@/services/graph-citations/install";
+import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { NO_ADDITIONS } from "@/services/graph-citations/adapter.ts";
+import { wrapNodeHover } from "@/services/graph-citations/hover.ts";
+import type { GraphLeafMembers } from "@/services/graph-citations/install.ts";
 import type {
   BibliographyRenderOutcome,
   BibliographyRenderResult,
-} from "@/services/pandoc/render-cache";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { defaults } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
+} from "@/services/pandoc/render-cache.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   seedWorksSql,
   withState,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { citationPopoverFixture } from "./__fixtures__";
-import type { WorkHoverRequest } from "./service";
+import { citationPopoverFixture } from "./__fixtures__.ts";
+import type { WorkHoverRequest } from "./service.tsx";
 
 /** Every reads stand-in a test opened, disposed after it. */
 const opened: AsyncDisposable[] = [];

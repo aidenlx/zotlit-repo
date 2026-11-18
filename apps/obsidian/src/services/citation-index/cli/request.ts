@@ -13,11 +13,15 @@ import {
   decodeCliParams,
   expectSourceParam,
   noCliParams,
-} from "@/lib/cli-params";
-import type { CliOutput, CliParamName, CliRejection } from "@/lib/cli-params";
+} from "@/lib/cli-params.ts";
+import type {
+  CliOutput,
+  CliParamName,
+  CliRejection,
+} from "@/lib/cli-params.ts";
 
-import { diagnostic } from "./envelope";
-import type { CitationsIdentity, Diagnostic } from "./envelope";
+import { diagnostic } from "./envelope.ts";
+import type { CitationsIdentity, Diagnostic } from "./envelope.ts";
 
 const SELECTOR_EXCLUSIVITY_MESSAGE =
   "cited-by takes exactly one of key=<zotero-key> or citekey=<citation-key>.";

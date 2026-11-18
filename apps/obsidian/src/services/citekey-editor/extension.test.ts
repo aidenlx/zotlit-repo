@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup";
+} from "@/services/citation-index/__fixtures__/lookup.ts";
 
 const { livePreview, hoverLinks } = vi.hoisted(() => ({
   livePreview: vi.fn(() => false),
@@ -14,8 +14,8 @@ const { livePreview, hoverLinks } = vi.hoisted(() => ({
   hoverLinks: [] as [event: string, link: Record<string, unknown>][],
 }));
 
-vi.mock("@/lib/editor-decoration", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/editor-decoration")>()),
+vi.mock("@/lib/editor-decoration.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/editor-decoration.ts")>()),
   livePreviewOf: livePreview,
 }));
 
@@ -41,34 +41,37 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField, Keymap } from "obsidian";
 
-import { yieldToMain } from "@/lib/yield-to-main";
-import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import type {
   CitekeyResolution,
   SnapshotItem,
-} from "@/services/citation-index/service";
-import { occurrences, rendered } from "@/services/citation-text/__fixtures__";
+} from "@/services/citation-index/service.ts";
+import {
+  occurrences,
+  rendered,
+} from "@/services/citation-text/__fixtures__.ts";
 import type {
   DocumentCitations,
   FormattedOccurrence,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import {
   CITEKEY_HOVER_SOURCE,
   hoverPreferences,
-} from "@/services/citekey-navigation";
+} from "@/services/citekey-navigation/index.ts";
 import type {
   CitationHoverRequest,
   HoverPreferences,
-} from "@/services/citekey-navigation";
-import type { Held } from "@/services/query-client/service";
-import { defaults } from "@/services/settings/schema";
+} from "@/services/citekey-navigation/index.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
 import {
   citekeyAtPos,
   citekeyDecorationsChanged,
   citekeyEditorExtension,
-} from "./extension";
-import type { CitekeyEditorHandlers, ResolveCitekey } from "./extension";
+} from "./extension.ts";
+import type { CitekeyEditorHandlers, ResolveCitekey } from "./extension.ts";
 
 /** The Indexed Key `@doe2024` reaches, which is what a summary is held under. */
 const DOE_KEY = "DOE22345";

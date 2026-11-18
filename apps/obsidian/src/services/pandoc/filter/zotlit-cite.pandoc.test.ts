@@ -16,14 +16,14 @@ import {
 import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { CITATION_FRAGMENT_FIXTURES } from "@/lib/__fixtures__/citation-fragments";
-import { runFileEffect } from "@/services/pandoc/__fixtures__/file-effects";
+import { CITATION_FRAGMENT_FIXTURES } from "@/lib/__fixtures__/citation-fragments.ts";
+import { runFileEffect } from "@/services/pandoc/__fixtures__/file-effects.ts";
 import {
   materializeCslStyle,
   resolveCslStyle as resolveStyleEffect,
   resolveDocumentCslStyle as resolveDocumentEffect,
-} from "@/services/pandoc/csl";
-import { resolveInstalledStyle } from "@/services/pandoc/styles";
+} from "@/services/pandoc/csl.ts";
+import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
 const resolveCslStyle = (...args: Parameters<typeof resolveStyleEffect>) =>
   runFileEffect(resolveStyleEffect(...args));
 const resolveDocumentCslStyle = (
@@ -37,7 +37,7 @@ import {
   pandocCliFilter,
   pandocDefaults,
   pandocSandboxFilter,
-} from "./index";
+} from "./index.ts";
 
 const pandocBin = process.env.PANDOC_BIN ?? "pandoc";
 /** No Pandoc to drive: none on PATH, and PANDOC_BIN unset. */

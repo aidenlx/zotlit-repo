@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
   }
 };
 
-const { registerItemMenu } = await import("./item.js");
+const { registerItemMenu } = await import("./item.ts");
 
 type LibraryMenuContext = _ZoteroTypes.MenuManager.LibraryMenuContext;
 type MenuData = _ZoteroTypes.MenuManager.MenuData<LibraryMenuContext>;

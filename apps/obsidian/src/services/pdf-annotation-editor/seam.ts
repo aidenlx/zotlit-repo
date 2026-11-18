@@ -8,8 +8,8 @@ import type {
   PDFViewerHost,
 } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import { getLogger } from "@/lib/log";
+import { disposable } from "@/lib/disposables.ts";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

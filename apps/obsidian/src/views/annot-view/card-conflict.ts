@@ -3,16 +3,16 @@
 // component, so a test reads the verbs instead of clicking them.
 //
 // @see apps/obsidian/policies/ui-seams.md
-import { annotationColorLabel } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
+import { annotationColorLabel } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import type {
   TextField,
   WriteConflict,
-} from "@/services/annotation-repository/service";
-import { isTextField } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import { isTextField } from "@/services/annotation-repository/write.ts";
 
-import { noRetryLands } from "./card-controls";
-import type { CardBlock } from "./card-controls";
+import { noRetryLands } from "./card-controls.ts";
+import type { CardBlock } from "./card-controls.ts";
 
 /** One value of a Write Conflict, under the label that says whose it is. */
 export interface ConflictValue {

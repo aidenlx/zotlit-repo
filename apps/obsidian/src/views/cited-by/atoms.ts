@@ -6,22 +6,22 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import type { PaneType } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag } from "@/lib/effect-stream";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { held, viewRuntime } from "@/lib/view-atoms";
-import { activeCitedByAtom } from "@/services/citation-index/atoms";
-import { CitationIndex } from "@/services/citation-index/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag } from "@/lib/effect-stream.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   CitationOccurrence,
   CitedByGroup,
-} from "@/services/citation-index/service";
-import { flashOccurrence } from "@/views/reveal-occurrence";
+} from "@/services/citation-index/service.ts";
+import { flashOccurrence } from "@/views/reveal-occurrence.ts";
 
-import { sourceOutline } from "./store";
-import type { CitedByPreview, SourceFileFacts } from "./store";
+import { sourceOutline } from "./store.ts";
+import type { CitedByPreview, SourceFileFacts } from "./store.ts";
 
 /**
  * How often each note changed this session: its metadata was indexed again,

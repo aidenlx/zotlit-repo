@@ -7,13 +7,13 @@ import { Effect } from "effect";
 import { around } from "monkey-around";
 import type { PaneType } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import type { AttachmentResolver } from "@/services/attachment-resolver/service";
-import type { PluginSettings } from "@/services/settings/service";
+import { disposable } from "@/lib/disposables.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import type { TargetOpener } from "./open-target";
+import type { TargetOpener } from "./open-target.ts";
 
 /**
  * The target Obsidian's own "Open in default browser" context-menu item passes

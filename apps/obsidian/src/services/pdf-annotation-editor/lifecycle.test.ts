@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import {
   Context,
   Deferred,
@@ -24,8 +24,8 @@ import { beforeEach, afterEach, expect } from "vitest";
 beforeEach(() => setMockPlatform({ isMacOS: false }));
 afterEach(() => resetMockPlatform());
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 import {
   annotationReads,
@@ -34,9 +34,9 @@ import {
   markGestures,
   pdfReader,
   readerSettings,
-} from "./__fixtures__";
-import { editorFixtureLayer } from "./__fixtures__/editor";
-import { PdfAnnotationEditor } from "./service";
+} from "./__fixtures__.ts";
+import { editorFixtureLayer } from "./__fixtures__/editor.ts";
+import { PdfAnnotationEditor } from "./service.ts";
 
 const host = () => {
   const workspace = new MemoryWorkspace();

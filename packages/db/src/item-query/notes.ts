@@ -1,15 +1,16 @@
-// The Child Notes of Items: the Relation List reader of Item Query.
-import { itemNotes, items, itemTypesCombined } from "@drizzle/schema";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
 
-import { defineStatement, idSlots } from "./database";
-import type { IdSlot } from "./database";
-import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk";
-import { recordUniverse } from "./record-universe";
-import { SCAN_PAGE_SIZE } from "./scan-page";
-import type { ScanRow } from "./scan-page";
+import { defineStatement, idSlots } from "./database.ts";
+import type { IdSlot } from "./database.ts";
+import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
+import { recordUniverse } from "./record-universe.ts";
+import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+import type { ScanRow } from "./scan-page.ts";
+
+// The Child Notes of Items: the Relation List reader of Item Query.
+import { itemNotes, items, itemTypesCombined } from "#drizzle/schema.ts";
 
 const parent = alias(items, "noteParent");
 

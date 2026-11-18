@@ -4,9 +4,12 @@ import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, showTooltip } from "@codemirror/view";
 import { expect, it } from "vitest";
 
-import { filterExpressionLanguage } from "./filter-expression";
-import { SIGNATURE_HINT_CLASS, signatureHint } from "./signature-hint-tooltip";
-import { documentFocus } from "./test-utils";
+import { filterExpressionLanguage } from "./filter-expression.ts";
+import {
+  SIGNATURE_HINT_CLASS,
+  signatureHint,
+} from "./signature-hint-tooltip.ts";
+import { documentFocus } from "./test-utils.ts";
 
 /**
  * A focused Filter Expression editor with the Signature Hint.

@@ -1,4 +1,4 @@
-import type { FrontmatterMergeStrategy } from "./constants";
+import type { FrontmatterMergeStrategy } from "./constants.ts";
 
 /**
  * Generated-field state that deletes an existing key under `replace` and

@@ -8,7 +8,7 @@ import { isAbsolute, relative } from "node:path";
 import { normalizePath } from "obsidian";
 import type { App, CliData, CliFlag, CliFlags, TFile } from "obsidian";
 
-import type { VersionedCliHost } from "@/lib/cli-command";
+import type { VersionedCliHost } from "@/lib/cli-command.ts";
 import {
   catchRejection,
   cliMap,
@@ -18,18 +18,18 @@ import {
   cliVariants,
   decodeCliParams,
   rejectionText,
-} from "@/lib/cli-params";
-import type { CliParamName } from "@/lib/cli-params";
-import { withLogCategory } from "@/lib/effect-log";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { PluginHost } from "@/lib/plugin-host";
-import { resolveIndexedKey } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/lib/cli-params.ts";
+import type { CliParamName } from "@/lib/cli-params.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { resolveIndexedKey } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import {
   CSL_COMMAND,
@@ -38,24 +38,28 @@ import {
   cslWriteFailedResponse,
   resolveCslStyle,
   resolveDocumentCslStyle,
-} from "./csl";
-import type { CslResponse, DocumentStyleRead } from "./csl";
+} from "./csl.ts";
+import type { CslResponse, DocumentStyleRead } from "./csl.ts";
 import {
   documentPresentation,
   effectivePresentation,
   profileReaderOf,
   styleSourceOf,
   vaultPresentation,
-} from "./document-presentation";
+} from "./document-presentation.ts";
 import {
   createPandocIntegrationHandlers,
   PANDOC_FILES_COMMAND,
   PANDOC_GUIDE_COMMAND,
-} from "./integration";
-import { reapCslStore } from "./reap-temps";
-import { resolveCitations } from "./resolve";
-import type { ResolveDocument, ResolvedItem, ResolveResponse } from "./resolve";
-import { resolveInstalledStyle } from "./styles";
+} from "./integration.ts";
+import { reapCslStore } from "./reap-temps.ts";
+import { resolveCitations } from "./resolve.ts";
+import type {
+  ResolveDocument,
+  ResolvedItem,
+  ResolveResponse,
+} from "./resolve.ts";
+import { resolveInstalledStyle } from "./styles.ts";
 
 export const RESOLVE_COMMAND = "zotlit:resolve";
 export { CSL_COMMAND };

@@ -1,3 +1,7 @@
+import type {
+  ScenarioDatabase,
+  ScenarioDatabaseOptions,
+} from "#test-scenario/index.ts";
 import { Cause, Effect, Exit } from "effect";
 import { constants } from "node:sqlite";
 import type { DatabaseSync } from "node:sqlite";
@@ -6,21 +10,20 @@ import { afterEach, describe, expect, it } from "vitest";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
-import { ITEM_QUERY_LAYOUT, OPTIONAL_LAYOUT_COLUMNS } from "@/layout";
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-import type {
-  ScenarioDatabase,
-  ScenarioDatabaseOptions,
-} from "@/test-scenario";
-
+import { checkLayout, readerStatementSQL } from "./database.ts";
 // The index loads every reader module, so every reader statement is defined.
 import {
   ItemQueryDatabase,
   ItemQueryDatabaseError,
   ItemQueryLayoutError,
   readScanPage,
-} from ".";
-import { checkLayout, readerStatementSQL } from "./database";
+} from "./index.ts";
+
+import { ITEM_QUERY_LAYOUT, OPTIONAL_LAYOUT_COLUMNS } from "#layout/index.ts";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 afterEach(() => {
   setLibraryLogSink(undefined);

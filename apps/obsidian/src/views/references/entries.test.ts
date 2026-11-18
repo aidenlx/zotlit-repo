@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates";
-import type { AmbiguousCandidatesOf } from "@/services/citation-index/ambiguity";
-import { citationOutcome } from "@/services/citation-index/outcome";
+import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
+import type { AmbiguousCandidatesOf } from "@/services/citation-index/ambiguity.ts";
+import { citationOutcome } from "@/services/citation-index/outcome.ts";
 import type {
   Citation,
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
-import { buildReferenceEntries as presentReferenceEntries } from "./entries";
-import type { ReferenceBuildOptions } from "./entries";
+import { buildReferenceEntries as presentReferenceEntries } from "./entries.ts";
+import type { ReferenceBuildOptions } from "./entries.ts";
 
 function buildReferenceEntries(
   citations: readonly Citation[],
@@ -30,7 +30,7 @@ function buildReferenceEntries(
     options,
   );
 }
-import type { ReferenceBibliography, RenderedReference } from "./entries";
+import type { ReferenceBibliography, RenderedReference } from "./entries.ts";
 
 function citation(
   indexedKey: string,

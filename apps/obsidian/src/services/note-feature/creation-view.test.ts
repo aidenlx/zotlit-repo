@@ -6,36 +6,36 @@ import { expect, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { ProfileOperationError } from "@/services/profile/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
-import type { ProfilePick } from "@/views/quick-switch/profile-picker";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { ProfileOperationError } from "@/services/profile/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
+import type { ProfilePick } from "@/views/quick-switch/profile-picker.ts";
 
-import { interruptedWithin } from "./__fixtures__/interrupt";
-import type { PlannedCreationProfile } from "./creation-planning";
+import { interruptedWithin } from "./__fixtures__/interrupt.ts";
+import type { PlannedCreationProfile } from "./creation-planning.ts";
 import {
   createdNoteNotice,
   createThroughSelection,
   profilePickNotice,
   resolveProfilePick,
-} from "./creation-view";
+} from "./creation-view.ts";
 import type {
   InteractiveCreationOptions,
   InteractiveCreationPorts,
-} from "./creation-view";
-import { NotePathUnavailable } from "./note-path";
-import type { CreationProfileSelection } from "./operations";
-import { NoteFeature } from "./service";
+} from "./creation-view.ts";
+import { NotePathUnavailable } from "./note-path.ts";
+import type { CreationProfileSelection } from "./operations.ts";
+import { NoteFeature } from "./service.ts";
 
-vi.mock("@/views/quick-switch/profile-picker", () => ({
+vi.mock("@/views/quick-switch/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 

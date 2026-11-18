@@ -1,20 +1,20 @@
 // One Reader Session's view of a PDF: Structured Characters computed lazily
 // per page and memoized, with the Sort Index and Page Label they feed.
 
-import { getLogger } from "@logtape/logtape";
-
-import type { ObsidianTextItem, Rect, StructuredPage } from "@/chars";
-import { structurePage } from "@/chars";
-import type { PageLabelSource, PreviousAnnotation } from "@/page-label";
-import { alignPageLabel, extractPageLabels } from "@/page-label";
-import type { PdfPosition } from "@/sort-index";
-import { computeSortIndex } from "@/sort-index";
+import type { ObsidianTextItem, Rect, StructuredPage } from "#chars.ts";
+import type { PageLabelSource, PreviousAnnotation } from "#page-label.ts";
+import type { PdfPosition } from "#sort-index.ts";
 import type {
   RangeAdjustment,
   SelectedText,
   TextSelection,
-} from "@/text-selection";
-import { adjustRange, rectRotation, selectText } from "@/text-selection";
+} from "#text-selection.ts";
+import { getLogger } from "@logtape/logtape";
+
+import { structurePage } from "#chars.ts";
+import { alignPageLabel, extractPageLabels } from "#page-label.ts";
+import { computeSortIndex } from "#sort-index.ts";
+import { adjustRange, rectRotation, selectText } from "#text-selection.ts";
 
 const logger = getLogger(["zotlit", "pdf-structure"]);
 

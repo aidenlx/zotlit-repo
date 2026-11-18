@@ -17,27 +17,27 @@ import {
   setTab,
 } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache";
-import { fileProfileAtom } from "@/services/profile/atoms";
-import { defaultBindingsAtom } from "@/services/settings/atoms";
-import { defaults } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
+import { fileProfileAtom } from "@/services/profile/atoms.ts";
+import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   partialDocumentsAtom,
   templateRevisionAtom,
-} from "@/services/template/atoms";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
+} from "@/services/template/atoms.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
-import { makeWorkbenchHost } from "./__fixtures__";
-import type { WorkbenchHostDeps } from "./__fixtures__";
+import { makeWorkbenchHost } from "./__fixtures__.ts";
+import type { WorkbenchHostDeps } from "./__fixtures__.ts";
 import {
   holdTemplateWorkbenchModel,
   makeTemplateWorkbenchModel,
   readEphemeralWorkbench,
   readSavedWorkbench,
   savedWorkbench,
-} from "./model";
+} from "./model.ts";
 
 const FIRST = "FIRST234";
 const LATER = "LATER234";
@@ -428,7 +428,7 @@ it.effect("keeps default bindings stable when another setting changes", () =>
     });
     // The folder read is the completion signal for the same settings event.
     const { templateFolderAtom } = yield* Effect.promise(
-      () => import("@/services/settings/atoms"),
+      () => import("@/services/settings/atoms.ts"),
     );
     const releaseFolder = host.registry.mount(templateFolderAtom);
     yield* Effect.promise(() =>

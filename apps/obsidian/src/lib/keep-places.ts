@@ -6,8 +6,8 @@
 // no place: the browser shows it at its top and start again, with no scroll
 // event. A view that is only hidden, as a tab behind another or a folded
 // callout, keeps its places by itself.
-import { disposable } from "./disposables";
-import { observeResize } from "./observe-resize";
+import { disposable } from "./disposables.ts";
+import { observeResize } from "./observe-resize.ts";
 
 /**
  * Keep the place of every scroll box inside `root`: once `root` shows again

@@ -1,5 +1,5 @@
-import type { RenderRequest } from "#/render/request";
-import type { TemplateRenderResult } from "#/render/result";
+import type { RenderRequest } from "#render/request.ts";
+import type { TemplateRenderResult } from "#render/result.ts";
 import { Deferred, Effect, Exit, Queue } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -7,12 +7,12 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import { WorkbenchHostError } from "./host";
-import { makeRenderSchedulerAtoms } from "./scheduler-atoms";
+import { WorkbenchHostError } from "./host.tsx";
+import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 import type {
   RenderSchedulerAtomsOptions,
   RenderSchedulerInput,
-} from "./scheduler-atoms";
+} from "./scheduler-atoms.ts";
 
 import {
   failedRender,
@@ -21,7 +21,7 @@ import {
   SAMPLE_ANNOTATIONS,
   SAMPLE_ITEMS,
   templateSourceRevision,
-} from "#/render/index";
+} from "#render/index.ts";
 
 const PAPER = SAMPLE_ITEMS[0]!;
 const OTHER_PAPER = SAMPLE_ITEMS[1]!;

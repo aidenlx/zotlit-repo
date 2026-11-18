@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseItemExtra } from "./zt-extra";
+import { parseItemExtra } from "./zt-extra.ts";
 
 describe("parseItemExtra", () => {
   it("returns null for null/undefined/empty/whitespace input", () => {

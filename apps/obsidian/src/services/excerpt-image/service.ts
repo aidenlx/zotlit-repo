@@ -9,28 +9,28 @@ import {
 } from "effect";
 import type { Cause, PlatformError } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
 
 import {
   excerptAnnotationRecord,
   excerptFingerprint,
   excerptKey,
-} from "./contract";
-import type { ExcerptRequest } from "./contract";
-import type { ExcerptCacheWriteError } from "./error";
-import { ExcerptImageError } from "./error";
-import { openExcerptFile, pdfStamp, readBounded } from "./file";
-import { PNG_FORMAT } from "./format";
-import type { ExcerptImage } from "./format";
-import type { ExcerptOutcomeScope } from "./outcome-scope";
-import { makeExcerptPdfQueue } from "./pdf-queue";
-import type { ExcerptPdfQueue } from "./pdf-queue";
-import { usableExcerptPng } from "./png";
-import type { ExcerptReaderDocuments } from "./reader-borrow";
-import { ExcerptRenderer } from "./renderer";
-import type { ExcerptRendererDiagnostics } from "./renderer";
-import type { ExcerptStore } from "./store";
+} from "./contract.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import type { ExcerptCacheWriteError } from "./error.ts";
+import { ExcerptImageError } from "./error.ts";
+import { openExcerptFile, pdfStamp, readBounded } from "./file.ts";
+import { PNG_FORMAT } from "./format.ts";
+import type { ExcerptImage } from "./format.ts";
+import type { ExcerptOutcomeScope } from "./outcome-scope.ts";
+import { makeExcerptPdfQueue } from "./pdf-queue.ts";
+import type { ExcerptPdfQueue } from "./pdf-queue.ts";
+import { usableExcerptPng } from "./png.ts";
+import type { ExcerptReaderDocuments } from "./reader-borrow.ts";
+import { ExcerptRenderer } from "./renderer.ts";
+import type { ExcerptRendererDiagnostics } from "./renderer.ts";
+import type { ExcerptStore } from "./store.ts";
 export {
   EXCERPT_RENDERER_VERSION,
   excerptAnnotationIdentity,
@@ -38,9 +38,9 @@ export {
   excerptFingerprint,
   excerptKey,
   excerptSourceIdentity,
-} from "./contract";
-export type { ExcerptRequest } from "./contract";
-export { excerptRequest } from "./request";
+} from "./contract.ts";
+export type { ExcerptRequest } from "./contract.ts";
+export { excerptRequest } from "./request.ts";
 
 const logged = withLogCategory("excerpt-image");
 const debug = (message: string, fields?: Record<string, unknown>) =>

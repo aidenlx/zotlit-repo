@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { groupOptions, sortOptions } from "./properties";
-import { parseQueryFile } from "./query-file";
-import { viewProperties } from "./view-properties";
+import { groupOptions, sortOptions } from "./properties.ts";
+import { parseQueryFile } from "./query-file.ts";
+import { viewProperties } from "./view-properties.ts";
 
 const paths = (options: { path: string }[]) => options.map(({ path }) => path);
 

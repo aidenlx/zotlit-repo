@@ -37,46 +37,46 @@ import type {
   RenderDiagnostic,
 } from "@zotlit/workbench/render";
 
-import { annotationCitation as renderAnnotationCitation } from "@/lib/annotation-render";
-import { FIELD_DOCUMENT_LANGUAGE } from "@/lib/constants";
-import { toInstant } from "@/lib/effect-clock";
-import * as m from "@/lib/i18n/generated/messages";
-import { isLanguageTag } from "@/lib/language-tag";
-import { readLiveText } from "@/lib/live-text";
-import { Vault } from "@/lib/obsidian-vault";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
+import { annotationCitation as renderAnnotationCitation } from "@/lib/annotation-render.ts";
+import { FIELD_DOCUMENT_LANGUAGE } from "@/lib/constants.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { isLanguageTag } from "@/lib/language-tag.ts";
+import { readLiveText } from "@/lib/live-text.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import {
   applyComposedFrontmatter,
   composeLiteratureNote,
   prepareLiteratureNote,
-} from "@/services/note-feature";
-import { NoteIndex } from "@/services/note-index/service";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { bindProfile } from "@/services/profile/bindings";
-import { bindUnvalidatedDraftProfile } from "@/services/profile/service";
-import { Profile } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/note-feature/index.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { bindProfile } from "@/services/profile/bindings.ts";
+import { bindUnvalidatedDraftProfile } from "@/services/profile/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   readTemplateData,
   readCitationData,
   withSettings,
-} from "@/services/template-workbench/data";
-import { previewBaseline } from "@/services/template-workbench/preview-baseline";
+} from "@/services/template-workbench/data.ts";
+import { previewBaseline } from "@/services/template-workbench/preview-baseline.ts";
 import {
   syncTemplate,
   profileCall,
-} from "@/services/template-workbench/sync-template";
-import { plainTemplateError } from "@/services/template/errors";
-import { Template } from "@/services/template/service";
-import type { TemplateOperations } from "@/services/template/service";
-export { previewBaseline } from "@/services/template-workbench/preview-baseline";
-import { nativePropertyRows } from "@/services/template-workbench/check-profile";
+} from "@/services/template-workbench/sync-template.ts";
+import { plainTemplateError } from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
+export { previewBaseline } from "@/services/template-workbench/preview-baseline.ts";
+import { nativePropertyRows } from "@/services/template-workbench/check-profile.ts";
 
-import { renderDraftCitations } from "./citations";
-import type { PreviewCitation } from "./citations";
+import { renderDraftCitations } from "./citations.ts";
+import type { PreviewCitation } from "./citations.ts";
 
 export interface NativeRenderDeps {
   readonly app: App;

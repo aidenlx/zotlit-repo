@@ -6,23 +6,23 @@
 import { Effect } from "effect";
 import type { App, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms";
-import { openLibraryView } from "@/views/library/register";
-import { LIBRARY_VIEW_TYPE } from "@/views/library/view";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
+import { openLibraryView } from "@/views/library/register.ts";
+import { LIBRARY_VIEW_TYPE } from "@/views/library/view.ts";
 
 import {
   dismissWelcomeCommand,
   keepWelcomeCommand,
   openReleaseNoteCommand,
-} from "./atoms";
-import { connectionLifecycleAtom } from "./connection";
-import { notFoundNoticeChange } from "./not-found-notice";
-import type { NotFoundSignal } from "./not-found-notice";
-import { holdSetupCommands } from "./setup-actions";
+} from "./atoms.ts";
+import { connectionLifecycleAtom } from "./connection.ts";
+import { notFoundNoticeChange } from "./not-found-notice.ts";
+import type { NotFoundSignal } from "./not-found-notice.ts";
+import { holdSetupCommands } from "./setup-actions.ts";
 
 export interface WelcomeRegistrationDeps {
   registry: ViewRegistryHandle;

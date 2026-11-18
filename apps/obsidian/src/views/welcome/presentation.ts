@@ -1,8 +1,8 @@
 // The state and section decisions of the Welcome banner.
 
-import type { Settings } from "@/services/settings/schema";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import type { ConnectionReadout } from "./connection";
+import type { ConnectionReadout } from "./connection.ts";
 
 export interface WelcomeState {
   /**

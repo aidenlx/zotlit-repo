@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { buildReferenceEntries } from "@/views/references/entries";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { buildReferenceEntries } from "@/views/references/entries.ts";
 
-import { annotationRows, annotationUri } from "./__fixtures__/annotations";
-import type { CitedBySnapshot } from "./service";
-import { createCitationIndexHarness, KEY_A, KEY_B } from "./test-harness";
+import { annotationRows, annotationUri } from "./__fixtures__/annotations.ts";
+import type { CitedBySnapshot } from "./service.ts";
+import { createCitationIndexHarness, KEY_A, KEY_B } from "./test-harness.ts";
 
 it("numbers Annotation Citations with other sources and lists their notes in Cited By", async () => {
   await using harness = await createCitationIndexHarness(

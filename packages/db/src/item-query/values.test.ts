@@ -1,9 +1,16 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
+import {
+  ItemQueryDatabase,
+  readCollectionPaths,
+  readTagValues,
+} from "./index.ts";
 
-import { ItemQueryDatabase, readCollectionPaths, readTagValues } from ".";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 it("reads empty Collection paths and drops trashed Collections and their subtrees per Library", () => {
   using scenario = openScenarioDatabase();

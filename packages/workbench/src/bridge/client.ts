@@ -1,4 +1,4 @@
-import type { ItemSnapshot } from "#/snapshot/types";
+import type { ItemSnapshot } from "#snapshot/types.ts";
 import {
   Context,
   Data,
@@ -33,7 +33,7 @@ import {
   templateDependenciesRequestSchema,
   templateDependenciesResponseSchema,
   templateSchemaResponseSchema,
-} from "./contracts";
+} from "./contracts.ts";
 import type {
   BridgeCompatibility,
   ConnectionGrant,
@@ -46,7 +46,7 @@ import type {
   TemplateDependenciesRequest,
   TemplateDependenciesResponse,
   TemplateSchemaResponse,
-} from "./contracts";
+} from "./contracts.ts";
 
 const CREDENTIAL_STORAGE_KEY = "zotlit.local-bridge.credential";
 

@@ -1,11 +1,14 @@
 // Commands of the Template Data Explorer, run on the plugin's view registry.
 import { Cause, Effect } from "effect";
 
-import { viewRuntime } from "@/lib/view-atoms";
-import { TemplateDataReads } from "@/services/template-workbench/data-reads";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 
-import { failTemplateDataExport, saveTemplateDataExport } from "./export-file";
-import type { TemplateDataExportTarget } from "./export-file";
+import {
+  failTemplateDataExport,
+  saveTemplateDataExport,
+} from "./export-file.ts";
+import type { TemplateDataExportTarget } from "./export-file.ts";
 
 /**
  * A command that saves the Template data of one root as a JSON file. Each

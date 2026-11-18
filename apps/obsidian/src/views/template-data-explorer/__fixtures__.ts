@@ -7,31 +7,31 @@ import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { ContractRoot } from "@zotlit/db";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { ItemLookup } from "@/services/item-lookup/service";
-import type { SearchHit } from "@/services/item-lookup/service";
-import { TemplateDataError } from "@/services/template-workbench/data";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { ItemLookup } from "@/services/item-lookup/service.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
+import { TemplateDataError } from "@/services/template-workbench/data.ts";
 import type {
   TemplateDataLoader,
   TemplateDataLoadResult,
-} from "@/services/template-workbench/data";
-import { TemplateDataReads } from "@/services/template-workbench/data-reads";
-import { Template } from "@/services/template/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service";
+} from "@/services/template-workbench/data.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
 
 import {
   holdExplorerModel,
   makeExplorerModel,
   refresh,
   setTarget,
-} from "./model";
-import type { ExplorerModel, ExplorerSession, ExplorerState } from "./model";
+} from "./model.ts";
+import type { ExplorerModel, ExplorerSession, ExplorerState } from "./model.ts";
 
 /** The Template data reads, as promises the test resolves. */
 export interface ExplorerReads {

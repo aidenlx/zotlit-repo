@@ -1,12 +1,13 @@
 // The printed-page heuristic over the first 25 pages, and the reader's
 // alignment of a fresh Annotation's Page Label to the previous one.
 
-import type { Rect, StructuredChar } from "@/chars";
+import type { Rect, StructuredChar } from "#chars.ts";
 import type {
   PageLabelDocument,
   StructuredCharsProvider,
-} from "@/vendor/page-label.js";
-import { getPageLabels } from "@/vendor/page-label.js";
+} from "#vendor/page-label.js";
+
+import { getPageLabels } from "#vendor/page-label.js";
 
 /** What the heuristic needs from the open document, page indexes zero-based. */
 export interface PageLabelSource {

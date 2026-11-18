@@ -3,11 +3,11 @@ import { Effect, Stream } from "effect";
 
 import type { CiteRef } from "@zotlit/db";
 
-import { LibraryScope } from "@/services/library-scope/service";
-import { readTemplateData } from "@/services/template-workbench/data";
-import type { TemplateDataServices } from "@/services/template-workbench/data";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { readTemplateData } from "@/services/template-workbench/data.ts";
+import type { TemplateDataServices } from "@/services/template-workbench/data.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 /** One real Zotero item, in every shape a conversion verifies against. */
 export interface MigrationVerificationData {

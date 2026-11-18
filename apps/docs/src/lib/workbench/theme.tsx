@@ -50,15 +50,15 @@ import {
 
 import type { WorkbenchIcon, WorkbenchTheme } from "@zotlit/workbench/ui";
 
-import { buttonVariants } from "@/components/ui/button";
-import { inputVariants } from "@/components/ui/input";
-import { cn } from "@/lib/cn";
+import { buttonVariants } from "@/components/ui/button.tsx";
+import { inputVariants } from "@/components/ui/input.tsx";
+import { cn } from "@/lib/cn.ts";
 
-import { editorTheme } from "./editor-theme";
+import { editorTheme } from "./editor-theme.ts";
 import {
   webExpressionCompletion,
   webExpressionList,
-} from "./expression-completion";
+} from "./expression-completion.ts";
 
 const ICON: Record<WorkbenchIcon, typeof List> = {
   "chevron-right": ChevronRight,

@@ -8,7 +8,7 @@ interface __BaseEnv_Env {
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModule: typeof import("./src/server");
+		mainModule: typeof import("./src/server.ts");
 	}
 	interface BetaEnv {
 		ASSETS: Fetcher;

@@ -1,21 +1,21 @@
 import { expect, it } from "@effect/vitest";
 // @vitest-environment happy-dom
-import { Menu, TFile } from "@mock/obsidian";
+import { Menu, TFile } from "@mock/obsidian.ts";
 import { Effect, Layer } from "effect";
 import type { CachedMetadata, Command } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { fileMenuHandler } from "@/services/__fixtures__/file-menu";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { fileMenuHandler } from "@/services/__fixtures__/file-menu.ts";
 
-import { ShowInLibrary } from "./show-in-library";
 import {
   layerShowInLibraryActions,
   showInLibraryFileMenu,
-} from "./show-in-library-actions";
+} from "./show-in-library-actions.ts";
+import { ShowInLibrary } from "./show-in-library.ts";
 
 function note(extension = "md"): TFile {
   const file = new TFile();

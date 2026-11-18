@@ -4,8 +4,8 @@ import { isChildItemFields } from "@zotlit/db";
 import type { Creator, ItemDisplayInfo } from "@zotlit/db";
 import { makeItem } from "@zotlit/item-lookup/fixtures";
 
-import { runtime } from "./i18n/generated/runtime";
-import { itemSummary, creatorSummary, workLabel } from "./item-summary";
+import { runtime } from "./i18n/generated/runtime.ts";
+import { itemSummary, creatorSummary, workLabel } from "./item-summary.ts";
 
 function creator(
   firstName: string | null,

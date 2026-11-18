@@ -2,13 +2,13 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 
-import { layerRcRef } from "@/services/zotero-reads/connection";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { buildItemLookup } from "./__fixtures__";
+import { buildItemLookup } from "./__fixtures__.ts";
 
 const SEED = `
   insert into libraries (libraryID, type, version, clientVersion)

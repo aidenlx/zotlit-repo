@@ -7,11 +7,11 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ATTACHMENTS, collectQuery } from ".";
-import type { ItemQueryRequest, ItemQuerySchema } from ".";
-import { describeAttachmentQuery } from "./describe-attachment-query";
-import { describeQueryVocabulary } from "./schema";
-import { faultCode, runEffect } from "./test-helpers";
+import { describeAttachmentQuery } from "./describe-attachment-query.ts";
+import { ATTACHMENTS, collectQuery } from "./index.ts";
+import type { ItemQueryRequest, ItemQuerySchema } from "./index.ts";
+import { describeQueryVocabulary } from "./schema.ts";
+import { faultCode, runEffect } from "./test-helpers.ts";
 
 // Every test here only reads the scenario.
 let scenario: ScenarioDatabase;

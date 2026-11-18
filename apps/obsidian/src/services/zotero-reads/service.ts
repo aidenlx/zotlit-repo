@@ -15,12 +15,12 @@ import type { Scope } from "effect";
 import { RpcSchema } from "effect/rpc";
 import type { RpcClientError } from "effect/rpc";
 
-import { withLogCategory } from "@/lib/effect-log";
-import type { EffectiveReadMode } from "@/services/database/read-source";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { EffectiveReadMode } from "@/services/database/read-source.ts";
 
-import type { ZoteroReadsClient } from "./in-process";
-import { DbUnavailable, ZoteroReads as ZoteroReadsRpc } from "./rpc";
-import type { ChangeEvent, SnapshotId } from "./rpc";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { DbUnavailable, ZoteroReads as ZoteroReadsRpc } from "./rpc.ts";
+import type { ChangeEvent, SnapshotId } from "./rpc.ts";
 
 const LIFECYCLE_OPERATIONS = new Set([
   "Changes",

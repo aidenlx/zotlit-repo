@@ -23,8 +23,8 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 
-import { scanNote } from "./scan-note";
-import type { NoteScanRecord } from "./scan-note";
+import { scanNote } from "./scan-note.ts";
+import type { NoteScanRecord } from "./scan-note.ts";
 
 // External URLs are absent from Obsidian's cache. The annotation conformance
 // table and the hidden-payload cases below cover those links through the full

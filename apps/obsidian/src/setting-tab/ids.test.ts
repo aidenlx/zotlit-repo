@@ -8,31 +8,31 @@ import type {
 } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { revealSetting } from "@/lib/open-settings";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
-import { LanguagePack } from "@/services/language-pack/service";
-import { LibraryScope } from "@/services/library-scope/service";
-import { LocalBridge } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { PandocEngine } from "@/services/pandoc/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { revealSetting } from "@/lib/open-settings.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { profileRowServices, testSettingTab } from "./__fixtures__";
-import { advancedPageItems } from "./advanced";
-import { attachmentPageItems } from "./attachments";
-import { citationsPageItems } from "./citations";
-import type { SettingTabContext } from "./context";
-import { noteImportPageItems } from "./note-import";
-import { literatureNoteItems, profilesPage } from "./profiles";
-import { readerPageItems } from "./reader";
-import { resourcesGroup } from "./resources";
-import { zoteroPageItems } from "./zotero";
+import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
+import { advancedPageItems } from "./advanced.ts";
+import { attachmentPageItems } from "./attachments.ts";
+import { citationsPageItems } from "./citations.ts";
+import type { SettingTabContext } from "./context.ts";
+import { noteImportPageItems } from "./note-import.ts";
+import { literatureNoteItems, profilesPage } from "./profiles.ts";
+import { readerPageItems } from "./reader.ts";
+import { resourcesGroup } from "./resources.ts";
+import { zoteroPageItems } from "./zotero.ts";
 
-vi.mock("@/views/template-workbench/open", () => ({
+vi.mock("@/views/template-workbench/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 

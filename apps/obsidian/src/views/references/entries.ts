@@ -1,13 +1,13 @@
 // One document's reference list: cited Items, the engine's bibliography, and the order the list reads in.
 
-import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity";
+import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 import type {
   Citation,
   CitationOccurrence,
   DocumentCitationError,
   ReferenceSource,
-} from "@/services/citation-index/service";
-import type { Inlines } from "@/services/pandoc/ast";
+} from "@/services/citation-index/service.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
 
 /**
  * One bibliography entry as the engine formatted it — the shape the engine's

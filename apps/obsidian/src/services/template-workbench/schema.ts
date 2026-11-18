@@ -3,7 +3,7 @@
 import { CONTRACT_ROOTS } from "@zotlit/db";
 import type { ContractRoot } from "@zotlit/db";
 
-import { resourceReleaseUrl } from "@/lib/constants";
+import { resourceReleaseUrl } from "@/lib/constants.ts";
 
 /** The accepted `root` values, in the order the contract declares them. */
 export const CONTRACT_ROOT_NAMES: readonly ContractRoot[] = CONTRACT_ROOTS;

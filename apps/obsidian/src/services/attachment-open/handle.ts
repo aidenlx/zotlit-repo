@@ -2,12 +2,12 @@
 // command, the file menu, and the Quick Switcher's and Library View's PDF opens.
 import type { Context } from "effect";
 
-import { exitOver, valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
+import { exitOver, valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import { literatureNoteAttachments } from "./literature-note";
-import type { LiteratureNoteServices } from "./literature-note";
-import type { ObsidianOpenableAttachment } from "./resolve";
+import { literatureNoteAttachments } from "./literature-note.ts";
+import type { LiteratureNoteServices } from "./literature-note.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
 /** The edge handle `plugin-runtime.ts` binds; see {@link bindLiteratureNoteAttachments}. */
 export interface LiteratureNoteAttachmentsHandle {

@@ -1,5 +1,5 @@
 // Shared ranking for template field and language suggestions.
-import type { Suggestion, SuggestionConfig } from "./suggestions";
+import type { Suggestion, SuggestionConfig } from "./suggestions.ts";
 
 /**
  * Rank once in the core so host widgets display the same order. A pinned

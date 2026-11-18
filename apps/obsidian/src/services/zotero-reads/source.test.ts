@@ -21,21 +21,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system";
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants";
-import { prepareRead, snapshotSource } from "@/services/database/read-source";
+import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
+import {
+  prepareRead,
+  snapshotSource,
+} from "@/services/database/read-source.ts";
 import type {
   PreparedRead,
   SourceFingerprint,
-} from "@/services/database/read-source";
+} from "@/services/database/read-source.ts";
 
-import { Connection } from "./connection";
-import { makeInProcessClient } from "./in-process";
-import type { ZoteroReadsClient } from "./in-process";
-import { DbUnavailable } from "./rpc";
-import type { ChangeEvent, ReadsConfig } from "./rpc";
-import { layerSource } from "./source";
-import type { SourceOptions, SourcePorts } from "./source";
+import { Connection } from "./connection.ts";
+import { makeInProcessClient } from "./in-process.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { DbUnavailable } from "./rpc.ts";
+import type { ChangeEvent, ReadsConfig } from "./rpc.ts";
+import { layerSource } from "./source.ts";
+import type { SourceOptions, SourcePorts } from "./source.ts";
 
 /** The watches the source holds, newest last; reset for each case. */
 let watchers: FakeWatcher[] = [];

@@ -1,9 +1,9 @@
 // One editor owns its document, view state, and compact render examples, all
 // in the Workbench model.
 
-import type { WorkbenchDocumentController } from "#/document/controller";
-import type { WorkbenchReportContext } from "#/render/report";
-import type { TemplateRenderResult } from "#/render/result";
+import type { WorkbenchDocumentController } from "#document/controller.ts";
+import type { WorkbenchReportContext } from "#render/report.ts";
+import type { TemplateRenderResult } from "#render/result.ts";
 import {
   RegistryContext,
   RegistryProvider,
@@ -17,17 +17,17 @@ import type { ReactNode } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { NO_MATCH_DATA } from "./host";
-import type { WorkbenchHost, WorkbenchHostError } from "./host";
-import { holdWorkbenchModel, makeWorkbenchModel } from "./model";
+import { NO_MATCH_DATA } from "./host.tsx";
+import type { WorkbenchHost, WorkbenchHostError } from "./host.tsx";
+import { holdWorkbenchModel, makeWorkbenchModel } from "./model.ts";
 import type {
   WorkbenchModel,
   WorkbenchModelOptions,
   WorkbenchRuntime,
   WorkbenchViewState,
-} from "./model";
+} from "./model.ts";
 
-import { WorkbenchDocumentController as Controller } from "#/document/controller";
+import { WorkbenchDocumentController as Controller } from "#document/controller.ts";
 
 export interface WorkbenchEditorInstance<
   R extends TemplateRenderResult = TemplateRenderResult,

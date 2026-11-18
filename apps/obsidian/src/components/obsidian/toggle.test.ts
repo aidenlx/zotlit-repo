@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
-import { controlsOf } from "@mock/obsidian";
-import type { ToggleComponent } from "@mock/obsidian";
+import { controlsOf } from "@mock/obsidian.ts";
+import type { ToggleComponent } from "@mock/obsidian.ts";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 
-import { Toggle } from "./toggle";
+import { Toggle } from "./toggle.tsx";
 
 it("syncs props without emitting changes, forwards native changes, and disposes the control", async () => {
   const container = document.createElement("div");

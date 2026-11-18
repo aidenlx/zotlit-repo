@@ -1,19 +1,19 @@
 // How one Citation is presented once its formatted text is known.
 
-import type { CitationSource } from "@/lib/citation-source";
-import type { SectionRange } from "@/lib/reading-view";
-import { themeHook } from "@/lib/theme-hooks";
-import { heldResolution } from "@/services/citation-index/lookup";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import type { CitedWork } from "@/services/citekey-navigation";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
-import type { RenderedCitation } from "@/services/pandoc/engine";
-import { renderInlineContent } from "@/services/pandoc/inline-content";
+import type { CitationSource } from "@/lib/citation-source.ts";
+import type { SectionRange } from "@/lib/reading-view.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { heldResolution } from "@/services/citation-index/lookup.ts";
+import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import type { CitedWork } from "@/services/citekey-navigation/index.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import type { RenderedCitation } from "@/services/pandoc/engine.ts";
+import { renderInlineContent } from "@/services/pandoc/inline-content.tsx";
 
 // One citation as a surface holds it: the same shape whether a note wrote it or
 // a wikilink derivation did, which is what lets the two syntaxes share a render.
-export type { CitationKey, CitationSource } from "@/lib/citation-source";
+export type { CitationKey, CitationSource } from "@/lib/citation-source.ts";
 
 /**
  * One citation as a surface holds it, with the works it names when its own

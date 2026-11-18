@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import type { FrontmatterField } from "./constants";
+import type { FrontmatterField } from "./constants.ts";
 import {
   DEFAULT_ANNOTATION_ETA as annotationEta,
   DEFAULT_ANNOTATION_LIQUID as annotationLiquid,
-} from "./default-annotation";
+} from "./default-annotation.ts";
 import {
   convertLegacyFrontmatterFields,
   literatureNoteTemplateManifestRange,
   TemplateFacade,
-} from "./facade";
-import type { LiteratureNoteTemplateError } from "./facade";
-import { formatManagedRegion } from "./obsidian";
+} from "./facade.ts";
+import type { LiteratureNoteTemplateError } from "./facade.ts";
+import { formatManagedRegion } from "./obsidian.ts";
 
 function documentWithFrontmatter(frontmatter: string): string {
   return `---

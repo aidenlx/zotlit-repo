@@ -4,8 +4,8 @@
 import { Data } from "effect";
 import type { Exit } from "effect";
 
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch";
-import type { BatchImportResult } from "@/services/note-import/batch-import";
+import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
+import type { BatchImportResult } from "@/services/note-import/batch-import.ts";
 
 export type ProtocolOutcome = Data.TaggedEnum<{
   /** The link's query does not parse. */

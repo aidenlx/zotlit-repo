@@ -9,11 +9,11 @@ import { createElement as h } from "react";
 import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { AppContext } from "@/lib/app-context";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
+import { AppContext } from "@/lib/app-context.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
-import { Chooser } from "./chooser";
-import type { ChooserRow } from "./chooser-logic";
+import type { ChooserRow } from "./chooser-logic.ts";
+import { Chooser } from "./chooser.tsx";
 
 vi.mock("obsidian", async (importOriginal) => ({
   ...(await importOriginal<typeof import("obsidian")>()),

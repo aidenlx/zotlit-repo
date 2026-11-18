@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { LandingPage } from "@/components/landing/landing-page";
-import { SiteFooter } from "@/components/site-footer";
-import { appDescription, HOME_OG_ALT, pageHead } from "@/lib/seo";
+import { LandingPage } from "@/components/landing/landing-page.tsx";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { appDescription, HOME_OG_ALT, pageHead } from "@/lib/seo.ts";
 import {
   organizationSchema,
   softwareApplicationSchema,
   websiteSchema,
-} from "@/lib/structured-data";
+} from "@/lib/structured-data.ts";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_home/")({

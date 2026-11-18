@@ -14,8 +14,8 @@ import type { Root } from "react-dom/client";
 import { hoverHint } from "@zotlit/workbench/completion";
 import type { Suggestion, SuggestionSource } from "@zotlit/workbench/language";
 
-import { SingletonHoverPopover } from "@/lib/singleton-hover-popover";
-import { themeHook } from "@/lib/theme-hooks";
+import { SingletonHoverPopover } from "@/lib/singleton-hover-popover.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
 
 /**
  * Obsidian's own hover delay, which every popover of its own opens after. It

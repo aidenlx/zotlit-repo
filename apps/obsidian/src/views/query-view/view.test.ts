@@ -6,7 +6,7 @@ import {
   hideSuggestChooser,
   resetMockPlatform,
   setMockPlatform,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Scope } from "obsidian";
 import type { App } from "obsidian";
@@ -22,54 +22,59 @@ import type {
   QuerySummary,
 } from "@zotlit/item-query";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream";
-import { pressTop } from "@/lib/__fixtures__/keymap";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AppContext } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import type { HistorySurface } from "@/services/annotation-repository/actions";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
+import { pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRepository,
   AnnotationList,
   AnnotationRecord,
-} from "@/services/annotation-repository/service";
-import { IDLE } from "@/services/annotation-repository/write";
-import { queryRevisionAtom } from "@/services/item-query/atoms";
+} from "@/services/annotation-repository/service.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
+import { queryRevisionAtom } from "@/services/item-query/atoms.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
+} from "@/services/item-query/query-view.ts";
+import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
 // @vitest-environment happy-dom
-import { makeQueryHost } from "./__fixtures__/host";
-import { fakeQuery, requested } from "./__fixtures__/query-run";
-import { filterValuesAtom } from "./atoms";
-import { QueryCardFocus } from "./card-focus";
-import type { ContextSource } from "./context-hint";
-import { serializeQueryFile } from "./query-file";
-import type { QueryFileDataset } from "./query-file";
-import { formulaIssuesOf } from "./results";
-import { inferType } from "./table-notes";
+import { makeQueryHost } from "./__fixtures__/host.ts";
+import { fakeQuery, requested } from "./__fixtures__/query-run.ts";
+import { filterValuesAtom } from "./atoms.ts";
+import { QueryCardFocus } from "./card-focus.ts";
+import type { ContextSource } from "./context-hint.ts";
+import { serializeQueryFile } from "./query-file.ts";
+import type { QueryFileDataset } from "./query-file.ts";
+import { formulaIssuesOf } from "./results.ts";
+import { inferType } from "./table-notes.ts";
 import type {
   VaultEdit,
   VaultHost,
   VaultPropertyType,
   VaultValue,
   VaultWrite,
-} from "./table-notes";
-import { QueryView, RERUN_DELAY_MS, SaveAsButton, SortButton } from "./view";
-import type { QueryViewDeps } from "./view";
+} from "./table-notes.ts";
+import {
+  QueryView,
+  RERUN_DELAY_MS,
+  SaveAsButton,
+  SortButton,
+} from "./view.tsx";
+import type { QueryViewDeps } from "./view.tsx";
 
 vi.mock("obsidian", async (importOriginal) => {
   const obsidian = await importOriginal<typeof import("obsidian")>();

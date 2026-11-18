@@ -1,8 +1,8 @@
 // Grouping one document's Citation Occurrences into Citations with Reference Numbers.
 
-import type { CitationOutcome } from "./outcome";
-import { occurrencesEqual } from "./scan";
-import type { CitationOccurrence } from "./scan";
+import type { CitationOutcome } from "./outcome.ts";
+import { occurrencesEqual } from "./scan.ts";
+import type { CitationOccurrence } from "./scan.ts";
 
 /** The Item a Citation Occurrence resolves to. */
 export interface ResolvedNote {

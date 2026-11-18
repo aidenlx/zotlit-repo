@@ -8,11 +8,11 @@ import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import type { QueryViewValue } from "@/services/item-query/query-view";
-import { holdsPdf } from "@/views/query-view/papers-layout";
-import { fieldLabel } from "@/views/query-view/view-properties";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
+import { holdsPdf } from "@/views/query-view/papers-layout.tsx";
+import { fieldLabel } from "@/views/query-view/view-properties.ts";
 
 type Values = Readonly<Record<string, QueryViewValue>>;
 

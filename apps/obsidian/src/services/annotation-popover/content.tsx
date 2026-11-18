@@ -4,17 +4,17 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display";
-import type { CommentRenderer } from "@/views/annot-view/comment-render";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display.ts";
+import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 import {
   ExcerptPicture,
   ExcerptText,
   excerptImageAlt,
   pageLocator,
-} from "@/views/annot-view/excerpt-parts";
+} from "@/views/annot-view/excerpt-parts.tsx";
 
 export type AnnotationPopoverContentProps =
   | { kind: "unavailable" }

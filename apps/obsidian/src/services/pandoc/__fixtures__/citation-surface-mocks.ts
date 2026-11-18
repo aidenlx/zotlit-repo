@@ -1,11 +1,11 @@
-import type { BibliographyItemRef } from "@/services/pandoc/bibliography";
+import type { BibliographyItemRef } from "@/services/pandoc/bibliography.ts";
 import { Effect } from "effect";
 // The module doubles of a Citation Presentation suite, importing nothing at run
 // time so a `vi.mock` factory can reach them while its module graph still loads.
 
 import type { CslItemData } from "@zotlit/db";
 
-import type { SeededWork } from "@/services/zotero-reads/test-utils";
+import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
 
 /** Everything the clipboard double was handed, newest last. */
 export const clipboardWrites: { html: string; text: string }[] = [];

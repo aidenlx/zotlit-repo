@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Menu, setMockPlatform } from "@mock/obsidian";
+import { Menu, setMockPlatform } from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import { debounce, Scope, TFile } from "obsidian";
 import type { App, Menu as ObsidianMenu, WorkspaceLeaf } from "obsidian";
@@ -8,43 +8,43 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
 
-import { testEvents, testEvent } from "@/lib/__fixtures__/event-stream";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { testEvents, testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRepository,
   AnnotationList,
   AnnotationRecord,
-} from "@/services/annotation-repository/service";
-import { IDLE } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import { libraryScopeStateAtom } from "@/services/library-scope/atoms";
-import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { LibraryScopeState } from "@/services/library-scope/service";
-import { activeNoteAtom } from "@/services/note-index/atoms";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
-import { stubbedReads } from "@/services/zotero-reads/test-utils";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { makeQueryHost } from "@/views/query-view/__fixtures__/host";
-import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes";
-import { requested } from "@/views/query-view/__fixtures__/query-run";
-import { serializeQueryFile } from "@/views/query-view/query-file";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
+} from "@/services/item-query/query-view.ts";
+import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { LibraryScopeState } from "@/services/library-scope/service.ts";
+import { activeNoteAtom } from "@/services/note-index/atoms.ts";
+import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
+import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
+import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
+import { requested } from "@/views/query-view/__fixtures__/query-run.ts";
+import { serializeQueryFile } from "@/views/query-view/query-file.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
-import { editorApp } from "./__fixtures__/editor-app";
-import type { AnnotHostOptions } from "./__fixtures__/host";
-import { AnnotationView } from "./view";
-import type { AnnotViewDeps } from "./view";
+import { editorApp } from "./__fixtures__/editor-app.ts";
+import type { AnnotHostOptions } from "./__fixtures__/host.ts";
+import { AnnotationView } from "./view.tsx";
+import type { AnnotViewDeps } from "./view.tsx";
 
 let readsCleanup = new AsyncDisposableStack();
 afterEach(async () => {

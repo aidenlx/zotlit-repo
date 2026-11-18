@@ -1,7 +1,7 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Fiber, Layer, Queue, Stream } from "effect";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import { TestClock } from "effect/testing";
 import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -10,22 +10,22 @@ import { describe, expect } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { subscribe } from "@/lib/effect-stream";
-import type { ManagedBinaryApi } from "@/services/managed-binary/service";
-import { profileRuntimeOf } from "@/services/profile/__fixtures__";
-import type { Held } from "@/services/query-client/service";
-import { layerQueryClients } from "@/services/query-client/service";
-import { buildSeededSettings } from "@/services/settings/__fixtures__";
-import type { SettingsOverrides } from "@/services/settings/__fixtures__";
-import type { SettingsFixture } from "@/services/settings/__fixtures__";
-import { createTemplateHost } from "@/services/template/__fixtures__";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
+import { profileRuntimeOf } from "@/services/profile/__fixtures__.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { layerQueryClients } from "@/services/query-client/service.ts";
+import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
+import type { SettingsOverrides } from "@/services/settings/__fixtures__.ts";
+import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
+import { createTemplateHost } from "@/services/template/__fixtures__.ts";
+import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { Inlines } from "./ast";
+import type { Inlines } from "./ast.ts";
 import type {
   BibliographyEntry,
   BibliographyRequest,
@@ -35,18 +35,18 @@ import type {
   PreparedDocument,
   RenderedCitation,
   RenderRequest,
-} from "./engine";
+} from "./engine.ts";
 import {
   BibliographyRender,
   layerBibliographyRender,
   renderInvalidated,
   missingStyleChanges,
-} from "./render-cache";
-import type { CitationRenderOutcome } from "./render-cache";
-import { bibliographyRenderFixture } from "./render-cache/__fixtures__";
-import type { BibliographyRenderFixtureOptions } from "./render-cache/__fixtures__";
-import type { PandocEngineStatus } from "./service";
-import { PandocEngine } from "./service";
+} from "./render-cache.ts";
+import type { CitationRenderOutcome } from "./render-cache.ts";
+import { bibliographyRenderFixture } from "./render-cache/__fixtures__.ts";
+import type { BibliographyRenderFixtureOptions } from "./render-cache/__fixtures__.ts";
+import type { PandocEngineStatus } from "./service.ts";
+import { PandocEngine } from "./service.ts";
 
 const APA = "http://www.zotero.org/styles/apa";
 const IEEE = "http://www.zotero.org/styles/ieee";

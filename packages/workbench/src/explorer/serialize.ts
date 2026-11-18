@@ -8,10 +8,10 @@ import type {
 } from "@zotlit/db/contract/ir";
 import contractIRJson from "@zotlit/db/contract/ir.runtime.json" with { type: "json" };
 
-import { formatAccessorPath } from "./accessor-path";
-import type { TemplatePathSegment } from "./accessor-path";
-import { inertPlaceholderReason } from "./inert-placeholder";
-import { coerceToString } from "./string-coercion";
+import { formatAccessorPath } from "./accessor-path.ts";
+import type { TemplatePathSegment } from "./accessor-path.ts";
+import { inertPlaceholderReason } from "./inert-placeholder.ts";
+import { coerceToString } from "./string-coercion.ts";
 const UNKNOWN_CONTRACT_TYPE: ContractType = { kind: "unknown" };
 const contractIR = contractIRJson as RuntimeContractIR;
 

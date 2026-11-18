@@ -4,23 +4,26 @@
 // read is the only seam: it can be held, failed, or left unopened.
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 import {
   layerQueryClients,
   QueryClients,
-} from "@/services/query-client/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/query-client/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { AttachmentResolver, layerAttachmentResolver } from "./service";
+import { AttachmentResolver, layerAttachmentResolver } from "./service.ts";
 
 /** The Zotero data directory the seeded `storage:` rows resolve under. */
 export const DATA_DIR = "/fixture/zotero-data";

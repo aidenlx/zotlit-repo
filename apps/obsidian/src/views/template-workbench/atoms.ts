@@ -5,14 +5,14 @@ import type { TFile } from "obsidian";
 import { isChildItemFields, parseIndexedKey } from "@zotlit/db";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 
-import { itemSummary } from "@/lib/item-summary";
-import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles";
-import { Profile } from "@/services/profile/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { itemSummary } from "@/lib/item-summary.ts";
+import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { ItemUnavailable } from "./errors";
-import { getSampleItem } from "./selection-data";
+import { ItemUnavailable } from "./errors.ts";
+import { getSampleItem } from "./selection-data.ts";
 
 /** The Item Snapshot of the Item a parsed Indexed Key names, under one read. */
 export const readItemSnapshot = Effect.fn("TemplateWorkbench.readSnapshot")(

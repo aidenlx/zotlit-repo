@@ -2,13 +2,13 @@ import { it } from "@effect/vitest";
 import { Cause, Deferred, Effect, Exit, Queue, Stream } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import * as readsEvents from "@/services/zotero-reads/events";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as readsEvents from "@/services/zotero-reads/events.ts";
 
-import { readsFixture } from "./__fixtures__";
-import { layerRcRef } from "./connection";
-import { DbUnavailable } from "./rpc";
-import { inProcessClient, memoryOpener } from "./test-utils";
+import { readsFixture } from "./__fixtures__.ts";
+import { layerRcRef } from "./connection.ts";
+import { DbUnavailable } from "./rpc.ts";
+import { inProcessClient, memoryOpener } from "./test-utils.ts";
 
 const seed = (n: number) =>
   `insert into libraries (libraryID, type, version) values (1, 'user', ${n});`;

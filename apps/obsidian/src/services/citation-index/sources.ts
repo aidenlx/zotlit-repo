@@ -6,12 +6,12 @@ import { isChildItemFields, itemToCsl } from "@zotlit/db";
 import type { Attachment, CslItemData, Item } from "@zotlit/db";
 import { parseAttachmentPath } from "@zotlit/db/path";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { itemSummary } from "@/lib/item-summary";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { itemSummary } from "@/lib/item-summary.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { Citation } from "./query";
+import type { Citation } from "./query.ts";
 
 /** One Attachment the Item offers to open in Zotero's reader. */
 export interface ZoteroOpenableAttachment {

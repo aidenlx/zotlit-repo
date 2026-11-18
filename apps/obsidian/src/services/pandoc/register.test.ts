@@ -1,6 +1,6 @@
 import { it } from "@effect/vitest";
 import { FileSystem, PlatformError } from "effect";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import { Effect } from "effect";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,22 +9,22 @@ import { TFile } from "obsidian";
 import type { App, FileSystemAdapter, MetadataCache, Vault } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileReader } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
-import { runFileEffect } from "./__fixtures__/file-effects";
-import type { CslResponse } from "./csl";
+import { runFileEffect } from "./__fixtures__/file-effects.ts";
+import type { CslResponse } from "./csl.ts";
 import {
   CSL_COMMAND,
   registerPandocResolve,
   RESOLVE_COMMAND,
-} from "./register";
-import type { PandocResolveDeps } from "./register";
-import type { ResolveResponse } from "./resolve";
+} from "./register.ts";
+import type { PandocResolveDeps } from "./register.ts";
+import type { ResolveResponse } from "./resolve.ts";
 
 const APA = "http://www.zotero.org/styles/apa";
 

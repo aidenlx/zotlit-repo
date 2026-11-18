@@ -3,7 +3,7 @@ import mark from "@brand/zotlit-mark-16.svg?raw";
 import wordmark from "@brand/zotlit-wordmark.svg?raw";
 import { expect, it } from "vitest";
 
-import { brandPaths } from "./brand";
+import { brandPaths } from "./brand.ts";
 
 it("reads a logo's paths by their canonical ink, in order", () => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg"><g><path d="M0 0" fill="#1E3A5F"/></g><g><path d="M1 1" fill="#e8622c"/><path d="M2 2" fill="#1E3A5F"/></g></svg>`;

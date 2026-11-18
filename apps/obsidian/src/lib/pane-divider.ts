@@ -8,7 +8,7 @@
 //
 // A drag marks the divider with the `is-active` class, as Obsidian's own
 // does, or with `data-dragging` where a React tree draws it.
-import { tv } from "@/lib/tw";
+import { tv } from "@/lib/tw.ts";
 
 /**
  * The classes of a pane divider. `edge` is the pane's edge the divider sits

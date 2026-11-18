@@ -1,11 +1,16 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { completionEdit, hoverHint, rootAt, suggestions } from "./suggestions";
-import type { SuggestionConfig } from "./suggestions";
+import {
+  completionEdit,
+  hoverHint,
+  rootAt,
+  suggestions,
+} from "./suggestions.ts";
+import type { SuggestionConfig } from "./suggestions.ts";
 
-import { restoreTemplateData } from "#/render/restore-template-data";
-import { m } from "#/ui/test-messages";
+import { restoreTemplateData } from "#render/restore-template-data.ts";
+import { m } from "#ui/test-messages.ts";
 
 const note: SuggestionConfig = { root: "note", partials: ["cite", "content"] };
 const eta: SuggestionConfig = { ...note, language: "eta" };

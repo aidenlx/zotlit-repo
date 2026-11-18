@@ -4,7 +4,7 @@ import {
   MAX_POSITION_LENGTH,
   roundCoordinate,
   writePosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
 import {
   clampToViewBox,
@@ -14,7 +14,7 @@ import {
   nearStroke,
   smoothPath,
   StrokeSamples,
-} from "./ink-path";
+} from "./ink-path.ts";
 
 /**
  * Expected vectors are the output of Zotero's own `smoothPath` for each input,

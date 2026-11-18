@@ -2,9 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    "dev": {
-      "dependsOn": ["^build"]
-    },
     "build": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
@@ -34,18 +31,26 @@
       ]
     },
     "generate:messages": {
-      "dependsOn": ["@zotlit/paraglide-vite#build"],
       "inputs": [
         "paraglide.config.ts",
         "scripts/generate-messages.ts",
+        "$TURBO_ROOT$/packages/paraglide-vite/src/**",
         "$TURBO_ROOT$/project.inlang/settings.json",
         "$TURBO_ROOT$/messages/**"
       ],
       "outputs": ["src/paraglide/**"],
       "outputLogs": "errors-only"
     },
+    // generate-query-functions.ts imports the Query Schema file, and the
+    // Workbench pages read the Workbench message contract.
     "typecheck": {
-      "dependsOn": ["$TURBO_EXTENDS$", "generate:messages", "cf-typegen:check"]
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "generate:messages",
+        "cf-typegen:check",
+        "@zotlit/item-query#generate:schema",
+        "@zotlit/workbench#generate:message-types"
+      ]
     },
     "lint": {
       "dependsOn": ["generate:messages"]
@@ -57,7 +62,7 @@
     // Regenerated on every build, so a registry entry without a description
     // fails the docs build.
     "generate:query-functions": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit", "@zotlit/item-query#generate:schema"],
       "inputs": [
         "scripts/generate-query-functions.ts",
         "src/lib/query-functions/reference.ts",
@@ -67,13 +72,15 @@
       "outputs": ["content/docs/reference/functions-and-methods.mdx"],
       "outputLogs": "errors-only"
     },
+    // Reads the Template Contract IR that @zotlit/db generates.
     "generate:template-data": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit", "@zotlit/db#generate:contract"],
+      "inputs": ["$TURBO_DEFAULT$", "!content/**"],
       "outputs": ["content/docs/reference/templates/data.mdx"],
       "outputLogs": "errors-only"
     },
     "test": {
-      "dependsOn": ["^build", "transit", "generate:messages"]
+      "dependsOn": ["$TURBO_EXTENDS$", "generate:messages"]
     }
   }
 }

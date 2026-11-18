@@ -3,11 +3,11 @@ import { ButtonComponent } from "obsidian";
 import type { App, Workspace } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { importedNoteProfileErrorNotice } from "./batch-import-notices";
-import { NoteImportProfileError } from "./service";
+import { importedNoteProfileErrorNotice } from "./batch-import-notices.ts";
+import { NoteImportProfileError } from "./service.ts";
 
 it("offers recovery on the Literature Note whose unavailable Profile blocked a new child import", () => {
   using click = vi.spyOn(ButtonComponent.prototype, "onClick");

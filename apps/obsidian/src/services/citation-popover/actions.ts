@@ -5,12 +5,15 @@ import type { MouseEvent } from "react";
 
 import { formatIndexedKey, itemSelectUri } from "@zotlit/db";
 
-import { openAttachments, zoteroAttachmentReader } from "@/lib/attachment-open";
-import type { MenuAnchor } from "@/lib/menu";
-import type { WorkspaceEventHost } from "@/lib/obsidian-workspace";
-import type { NavigationPane } from "@/services/citekey-navigation";
+import {
+  openAttachments,
+  zoteroAttachmentReader,
+} from "@/lib/attachment-open.ts";
+import type { MenuAnchor } from "@/lib/menu.ts";
+import type { WorkspaceEventHost } from "@/lib/obsidian-workspace.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
-import type { CitationEntryBlock } from "./blocks";
+import type { CitationEntryBlock } from "./blocks.ts";
 
 export interface CitationPopoverActions {
   /**

@@ -11,19 +11,19 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { layerQueryClients } from "@/services/query-client/service";
-import { layerPluginSettings } from "@/services/settings/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import type { ChangeEvent } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { layerQueryClients } from "@/services/query-client/service.ts";
+import { layerPluginSettings } from "@/services/settings/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import type { ChangeEvent } from "@/services/zotero-reads/rpc.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { libraryScopeFixture } from "./__fixtures__";
-import { LibraryScope, layerLibraryScope } from "./service";
+import { libraryScopeFixture } from "./__fixtures__.ts";
+import { LibraryScope, layerLibraryScope } from "./service.ts";
 
 it.effect("holds the first Libraries answer when the layer builds", () =>
   Effect.gen(function* () {

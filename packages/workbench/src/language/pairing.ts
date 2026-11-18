@@ -3,14 +3,14 @@ import { EditorSelection, Prec } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 
-import { pairingContext } from "./pairing-context";
+import { pairingContext } from "./pairing-context.ts";
 import {
   expressionBrackets,
   addPair,
   pairingState,
   pairingHistory,
-} from "./pairing-state";
-import type { SuggestionConfig } from "./suggestions";
+} from "./pairing-state.ts";
+import type { SuggestionConfig } from "./suggestions.ts";
 
 export type PairingSource = (
   position: number,

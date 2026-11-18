@@ -21,13 +21,13 @@
       "dependsOn": ["^transit"]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit"],
       "outputs": ["dist/**"],
       "outputLogs": "errors-only",
       "env": ["DOCS_SITE_URL"]
     },
     "build:dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit"],
       "outputs": ["dist-dev/**"],
       "outputLogs": "errors-only"
     },
@@ -36,41 +36,21 @@
       "persistent": true
     },
     "typecheck": {
-      "dependsOn": ["^build", "transit"]
+      "dependsOn": ["transit"]
     },
     "typecheck:test": {
-      "dependsOn": ["^build", "transit"]
+      "dependsOn": ["transit"]
     },
     "typecheck:node": {
-      "dependsOn": ["^build", "transit"]
+      "dependsOn": ["transit"]
     },
     "test": {
-      "dependsOn": ["^build", "transit"],
+      "dependsOn": ["transit"],
       "env": ["GITHUB_ACTIONS"]
-    },
-    "@zotlit/obsidian#generate:language-packs": {
-      "cache": false,
-      "outputLogs": "errors-only"
-    },
-    "@zotlit/obsidian#typecheck": {
-      "dependsOn": ["^build", "transit", "generate:language-packs"]
-    },
-    "@zotlit/obsidian#typecheck:test": {
-      "dependsOn": ["^build", "transit", "generate:language-packs"]
-    },
-    "@zotlit/obsidian#typecheck:node": {
-      "dependsOn": ["^build", "transit", "generate:language-packs"]
-    },
-    "@zotlit/e2e#typecheck": {
-      "dependsOn": [
-        "^build",
-        "transit",
-        "@zotlit/obsidian#generate:language-packs"
-      ]
     },
     "fixture": {
       "dependsOn": [
-        "^build",
+        "transit",
         "@zotlit/obsidian#build:dev",
         "@zotlit/zotero#build:dev"
       ],
@@ -79,19 +59,17 @@
     },
     "e2e": {
       "dependsOn": [
-        "^build",
+        "transit",
         "@zotlit/obsidian#build:dev",
         "@zotlit/zotero#build:dev"
       ],
       "cache": false
     },
-    "lint:deps": {
-      "dependsOn": ["^build"]
-    },
     "//#lint:repo:deps": {
       "dependsOn": [
-        "^lint:deps",
         "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/workbench#generate:message-types",
+        "@zotlit/item-query#generate:schema",
         "@zotlit/docs#generate:messages",
         "@zotlit/docs#cf-typegen:check"
       ]
@@ -102,20 +80,15 @@
     "//#lint:format-versions": {
       "cache": false
     },
-    "//#lint:test-gates": {
-      "cache": false
-    },
-    "//#lint:messages": {
-      "cache": false
-    },
+    "//#lint:test-gates": {},
+    "//#lint:messages": {},
     "//#lint:unused": {
-      "dependsOn": ["//#lint:repo:deps"],
-      "cache": false
+      "dependsOn": ["//#lint:repo:deps"]
     },
     "//#review:plugin:deps": {
       "dependsOn": [
-        "@zotlit/obsidian#lint:deps",
-        "@zotlit/obsidian#generate:language-packs"
+        "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
       ]
     },
     "//#review:plugin": {

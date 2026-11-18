@@ -1,7 +1,4 @@
-// Test helper: the Item Query scenario on a copy of the Fixture's pristine
-// Zotero 10 database. Separate from `createFixtureSchema` in `test-utils.ts`,
-// which hand-writes a table subset for the existing query tests.
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -10,9 +7,12 @@ import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 
-import type { NodeDatabaseClient } from "@/client/node";
+import { seedScenario } from "./seed.ts";
 
-import { seedScenario } from "./seed";
+// Test helper: the Item Query scenario on a copy of the Fixture's pristine
+// Zotero 10 database. Separate from `createFixtureSchema` in `test-utils.ts`,
+// which hand-writes a table subset for the existing query tests.
+import { relations } from "#drizzle/relations.ts";
 
 export {
   BULK_FIFTH_TAG,
@@ -22,14 +22,14 @@ export {
   seedBulkLibrary,
   seedBulkAnnotations,
   seedBulkAttachments,
-} from "./bulk";
+} from "./bulk.ts";
 export {
   SCENARIO_ITEMS,
   SCENARIO_LIBRARIES,
   type ScenarioItem,
   type ScenarioItemName,
   type ScenarioLibraryName,
-} from "./seed";
+} from "./seed.ts";
 
 export type ScenarioLayout = "highest" | "lowest";
 

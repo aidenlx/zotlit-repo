@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 
-import { recover } from "./effect-cause";
+import { recover } from "./effect-cause.ts";
 
 describe("recover", () => {
   it.effect("answers the value of an Effect that succeeds", () =>

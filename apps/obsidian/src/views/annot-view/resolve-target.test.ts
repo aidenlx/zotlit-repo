@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 
-import type { ReaderSessionTarget } from "@/services/reader-session/session";
+import type { ReaderSessionTarget } from "@/services/reader-session/session.ts";
 
-import { resolveLibraryID, resolveLoadTarget } from "./resolve-target";
+import { resolveLibraryID, resolveLoadTarget } from "./resolve-target.ts";
 
 const GROUP_LIBRARY: Library = {
   libraryID: 42,

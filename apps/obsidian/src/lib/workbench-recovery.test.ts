@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
-import { ButtonComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import type { App, Workspace } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import { MissingTemplateError } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { MissingPartialError } from "@/services/template/errors";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MissingPartialError } from "@/services/template/errors.ts";
 
-import * as m from "./i18n/generated/messages";
-import { missingPartialNotice } from "./workbench-recovery";
+import * as m from "./i18n/generated/messages.ts";
+import { missingPartialNotice } from "./workbench-recovery.ts";
 
 /** The workspace seam `requestTemplateWorkbench` triggers, with the call
  *  recorded so a test can assert the action button reaches it. */

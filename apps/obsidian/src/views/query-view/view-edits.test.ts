@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { parseQueryFile, serializeQueryFile } from "./query-file";
-import type { QueryFile } from "./query-file";
+import { parseQueryFile, serializeQueryFile } from "./query-file.ts";
+import type { QueryFile } from "./query-file.ts";
 import {
   addView,
   deleteView,
@@ -12,8 +12,8 @@ import {
   setViewLayout,
   setViewOption,
   viewNameIssue,
-} from "./view-edits";
-import { unusedSettings } from "./view-properties";
+} from "./view-edits.ts";
+import { unusedSettings } from "./view-properties.ts";
 
 const FILE = `views:
   - type: annotations

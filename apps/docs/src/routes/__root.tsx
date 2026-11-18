@@ -10,17 +10,17 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { HomeLayout } from "fumadocs-ui/layouts/home";
 
-import { LanguageBanner } from "@/components/language-banner";
-import { LocaleProvider } from "@/components/locale-provider";
-import { Message } from "@/components/message";
-import { Toaster } from "@/components/ui/toast";
+import { LanguageBanner } from "@/components/language-banner.tsx";
+import { LocaleProvider } from "@/components/locale-provider.tsx";
+import { Message } from "@/components/message.tsx";
+import { Toaster } from "@/components/ui/toast.tsx";
 import zhCnFontsCss from "@/fonts-zh-cn.css?url";
-import { Header } from "@/layouts/home/slots/header";
-import { chineseReaderScript } from "@/lib/language-choice";
-import { baseOptions } from "@/lib/layout.shared";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { appDescription, HOME_OG_ALT, ogImageMeta } from "@/lib/seo";
-import { appName, baseURL } from "@/lib/shared";
+import { Header } from "@/layouts/home/slots/header.tsx";
+import { chineseReaderScript } from "@/lib/language-choice.ts";
+import { baseOptions } from "@/lib/layout.shared.tsx";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { appDescription, HOME_OG_ALT, ogImageMeta } from "@/lib/seo.ts";
+import { appName, baseURL } from "@/lib/shared.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 import appCss from "@/styles.css?url";

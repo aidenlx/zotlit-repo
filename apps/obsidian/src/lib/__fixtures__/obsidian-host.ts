@@ -12,12 +12,12 @@ import type {
 } from "obsidian";
 import { vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { parseFrontMatter } from "@/lib/live-text";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
-import { heldInAnyCase } from "@/lib/__fixtures__/obsidian-vault";
-import type { VaultSource } from "@/lib/obsidian-vault";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { parseFrontMatter } from "@/lib/live-text.ts";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
+import { heldInAnyCase } from "@/lib/__fixtures__/obsidian-vault.ts";
+import type { VaultSource } from "@/lib/obsidian-vault.ts";
 
 type VaultEvent = "create" | "modify" | "rename" | "delete";
 type VaultCallback = (...args: unknown[]) => void;

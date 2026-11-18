@@ -1,4 +1,4 @@
-import type { RenderDiagnostic } from "#/render/result";
+import type { RenderDiagnostic } from "#render/result.ts";
 import { describe, expect, it } from "vitest";
 
 import { MissingTemplateError, TemplateError } from "@zotlit/templates/facade";
@@ -16,10 +16,10 @@ import {
   problemText,
   renderDiagnosis,
   workbenchDiagnoses,
-} from "./problems";
-import { m } from "./test-messages";
+} from "./problems.ts";
+import { m } from "./test-messages.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
+import { WorkbenchDocumentController } from "#document/controller.ts";
 import {
   captureRenderReport,
   formatRenderReport,
@@ -27,8 +27,8 @@ import {
   renderProfile,
   renderFailureDiagnostic,
   SAMPLE_ITEMS,
-} from "#/render/index";
-import { ANNOTATION_LIST_PROFILE_SOURCE } from "#/render/test-profiles";
+} from "#render/index.ts";
+import { ANNOTATION_LIST_PROFILE_SOURCE } from "#render/test-profiles.ts";
 
 describe("problemText", () => {
   it("explains Liquid syntax and exposes its verified source and report", () => {

@@ -1,7 +1,7 @@
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createExplorerActions } from "./actions";
+import { createExplorerActions } from "./actions.ts";
 
 function makeActions(overrides?: {
   copyTarget?: () => {

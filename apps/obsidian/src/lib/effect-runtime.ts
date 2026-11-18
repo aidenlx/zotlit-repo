@@ -1,5 +1,5 @@
-import { makeRunSurface } from "./effect-runtime-factory";
-import { runtimeServices } from "./effect-services";
+import { makeRunSurface } from "./effect-runtime-factory.ts";
+import { runtimeServices } from "./effect-services.ts";
 
 export * from "effect/Effect";
 

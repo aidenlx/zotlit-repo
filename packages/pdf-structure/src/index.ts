@@ -5,18 +5,18 @@ export type {
   StructuredChar,
   StructuredPage,
   ZoteroChar,
-} from "@/chars";
-export { structurePage, toZoteroChars } from "@/chars";
-export type { PageLabelSource, PreviousAnnotation } from "@/page-label";
-export { alignPageLabel, extractPageLabels } from "@/page-label";
-export type { PdfPageSource } from "@/session";
-export { PdfTextStructure } from "@/session";
+} from "#chars.ts";
+export { structurePage, toZoteroChars } from "#chars.ts";
+export type { PageLabelSource, PreviousAnnotation } from "#page-label.ts";
+export { alignPageLabel, extractPageLabels } from "#page-label.ts";
+export type { PdfPageSource } from "#session.ts";
+export { PdfTextStructure } from "#session.ts";
 export type {
   PdfInkPosition,
   PdfPosition,
   PdfRectsPosition,
-} from "@/sort-index";
-export { computeSortIndex } from "@/sort-index";
+} from "#sort-index.ts";
+export { computeSortIndex } from "#sort-index.ts";
 export type {
   PagePoint,
   RangeAdjustment,
@@ -25,4 +25,4 @@ export type {
   SelectedText,
   TextLayerSelection,
   TextSelection,
-} from "@/text-selection";
+} from "#text-selection.ts";

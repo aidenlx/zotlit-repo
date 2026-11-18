@@ -1,17 +1,17 @@
 // A Managed Binary layer over fake device ports, with the same handle as the plugin.
 import { Context, Layer } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { bindManagedBinary } from "./handle";
-import { managedBinaryPorts } from "./platform";
-import { layerManagedBinary, ManagedBinaryPlatform } from "./service";
+import { bindManagedBinary } from "./handle.ts";
+import { managedBinaryPorts } from "./platform.ts";
+import { layerManagedBinary, ManagedBinaryPlatform } from "./service.ts";
 import type {
   ManagedBinary,
   ManagedBinaryApi,
   ManagedBinaryHostPorts,
-} from "./service";
+} from "./service.ts";
 
 /** Build one binary for a plain-interface test; the caller's stack owns it. */
 export async function buildManagedBinary<

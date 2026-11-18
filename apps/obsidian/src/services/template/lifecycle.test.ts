@@ -3,15 +3,19 @@ import { Context, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, expectTypeOf, vi } from "vitest";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { subscribe } from "@/lib/effect-stream";
-import { PluginSettings } from "@/services/settings/service";
+import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { createTemplateHost, templateOf, templateOver } from "./__fixtures__";
-import { layerTemplateMigration, TemplateMigration } from "./migration";
-import { Template } from "./service";
+import {
+  createTemplateHost,
+  templateOf,
+  templateOver,
+} from "./__fixtures__.ts";
+import { layerTemplateMigration, TemplateMigration } from "./migration.ts";
+import { Template } from "./service.ts";
 
 it.effect("a built Template exposes its first loaded template", () =>
   Effect.gen(function* () {

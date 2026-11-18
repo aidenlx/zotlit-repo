@@ -9,42 +9,42 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import { AppContext } from "@/lib/app-context";
-import { registerKeymap } from "@/lib/disposables";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
-import { makeViewRunner } from "@/lib/view-runner";
-import type { ViewRunner } from "@/lib/view-runner";
-import { historyOutcomeNotice } from "@/services/annotation-repository/actions";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import { registerKeymap } from "@/lib/disposables.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
+import type { ViewRunner } from "@/lib/view-runner.ts";
+import { historyOutcomeNotice } from "@/services/annotation-repository/actions.ts";
 import {
   annotationChangeAtom,
   annotationListsChangeAtom,
   annotationCapabilityAtom,
   attachmentCapabilityAtom,
-} from "@/services/annotation-repository/atoms";
+} from "@/services/annotation-repository/atoms.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationSource,
   HistoryDirection,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import {
   byTextField,
   IDLE,
   writeFailureMessage,
-} from "@/services/annotation-repository/write";
-import type { TargetOpener } from "@/services/attachment-open/open-target";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance";
-import type { ReaderSession } from "@/services/reader-session/session";
-import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms";
+} from "@/services/annotation-repository/write.ts";
+import type { TargetOpener } from "@/services/attachment-open/open-target.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
+import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
+import type { ReaderSession } from "@/services/reader-session/session.ts";
+import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms.ts";
 
-import { AnnotActionsContext, createAnnotActions } from "./actions";
-import type { AnnotActionDeps, AnnotActions } from "./actions";
-import { blocksNow } from "./Annotation";
-import { AnnotList } from "./AnnotView";
+import { AnnotActionsContext, createAnnotActions } from "./actions.tsx";
+import type { AnnotActionDeps, AnnotActions } from "./actions.tsx";
+import { blocksNow } from "./Annotation.tsx";
+import { AnnotList } from "./AnnotView.tsx";
 import {
   annotationStateAtom,
   heldListAtom,
@@ -62,27 +62,27 @@ import {
   annotationInsert,
   resultValue,
   requireResult,
-} from "./atoms";
-import { cardControls } from "./card-controls";
-import type { CardControls } from "./card-controls";
+} from "./atoms.ts";
+import { cardControls } from "./card-controls.ts";
+import type { CardControls } from "./card-controls.ts";
 import {
   NO_SELECTION,
   nextCardSelection,
   placedKey,
   sameKeys,
-} from "./card-selection";
+} from "./card-selection.ts";
 import type {
   CardClick,
   CardPlace,
   CardSelection,
   SelectionChange,
-} from "./card-selection";
-import { createCommentRenderer } from "./comment-render";
-import { createDragInsertHandler, createInsertHandler } from "./drag-insert";
-import type { InsertDeps } from "./drag-insert";
-import { CARD_SELECTOR, mountCardHistoryKeys } from "./history";
-import { AnnotStoreProvider, createAnnotStore, observeRead } from "./model";
-import type { AnnotStore } from "./model";
+} from "./card-selection.ts";
+import { createCommentRenderer } from "./comment-render.ts";
+import { createDragInsertHandler, createInsertHandler } from "./drag-insert.ts";
+import type { InsertDeps } from "./drag-insert.ts";
+import { CARD_SELECTOR, mountCardHistoryKeys } from "./history.ts";
+import { AnnotStoreProvider, createAnnotStore, observeRead } from "./model.ts";
+import type { AnnotStore } from "./model.ts";
 import {
   capabilityOf,
   editorOpen,
@@ -90,8 +90,13 @@ import {
   selectedAlone,
   toggledTags,
   visibleOrder,
-} from "./state";
-import type { AnnotState, CardGroup, CardPlacement, HeldSource } from "./state";
+} from "./state.ts";
+import type {
+  AnnotState,
+  CardGroup,
+  CardPlacement,
+  HeldSource,
+} from "./state.ts";
 
 const logger = getLogger(["views", "annot-view"]);
 

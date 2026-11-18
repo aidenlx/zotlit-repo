@@ -7,18 +7,18 @@ import type {
   TagType,
 } from "@zotlit/db";
 
-import { fromInstant } from "@/lib/effect-clock";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ZoteroMethod } from "@/lib/zotero-http";
-import type { LocalApiFailure } from "@/services/zotero-local-api/service";
-import type { WireTag } from "@/services/zotero-local-api/wire";
+import { fromInstant } from "@/lib/effect-clock.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ZoteroMethod } from "@/lib/zotero-http.ts";
+import type { LocalApiFailure } from "@/services/zotero-local-api/service.ts";
+import type { WireTag } from "@/services/zotero-local-api/wire.ts";
 
-import { capabilityOfFailure } from "./capability";
-import type { EditingCapability } from "./capability";
-import { editingCapabilityCopy } from "./capability-copy";
-import type { CopyInstant } from "./capability-copy";
-import type { LockReason } from "./lock";
-import { lockReasonText } from "./lock-copy";
+import { editingCapabilityCopy } from "./capability-copy.ts";
+import type { CopyInstant } from "./capability-copy.ts";
+import { capabilityOfFailure } from "./capability.ts";
+import type { EditingCapability } from "./capability.ts";
+import { lockReasonText } from "./lock-copy.ts";
+import type { LockReason } from "./lock.ts";
 
 /**
  * Why a write did not land, beside every failure Zotero itself can answer.

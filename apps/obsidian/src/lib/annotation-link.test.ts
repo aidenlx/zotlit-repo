@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { classifyAnnotationLink } from "./annotation-link";
+import { classifyAnnotationLink } from "./annotation-link.ts";
 
 it("classifies an empty link by its Annotation Indexed Key", () => {
   expect(

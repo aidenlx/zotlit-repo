@@ -4,13 +4,13 @@ import { Context, Effect } from "effect";
 import type { Plugin } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { settingsRuntimeOf } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { settingsRuntimeOf } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { ZotLitSettingTab } from "./index";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { ZotLitSettingTab } from "./index.ts";
 
 it.effect(
   "control writes are readable once written and persist through the settings service",

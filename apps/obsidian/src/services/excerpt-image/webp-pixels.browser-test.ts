@@ -2,10 +2,10 @@
 // actually draws with: a durable asset link is rendered by Chromium, so the
 // renderer is where "these bytes have no pixels" has to be observable. A Node
 // process has no WebP decoder, which is why this trial exists.
-import { check } from "./__fixtures__/check";
-import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp";
-import { usableExcerptWebp } from "./webp";
-import { usableExcerptWebpPixels } from "./webp-pixels";
+import { check } from "./__fixtures__/check.ts";
+import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp.ts";
+import { usableExcerptWebpPixels } from "./webp-pixels.ts";
+import { usableExcerptWebp } from "./webp.ts";
 
 export interface WebpPixelsReport {
   passed: string[];

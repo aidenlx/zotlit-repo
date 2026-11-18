@@ -10,7 +10,7 @@ import { expect } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { cache, createNoteHost, noteIndexOf } from "./__fixtures__";
+import { cache, createNoteHost, noteIndexOf } from "./__fixtures__.ts";
 
 it.live("measures metadata event dispatch", () =>
   Effect.gen(function* () {

@@ -153,6 +153,13 @@ export default defineConfig({
   rules: {
     "zotlit-build/no-undeclared-env": "error",
     "zotlit-comments/no-tracker-reference": "error",
+    // Node runs workspace TypeScript by stripping its types, and Node
+    // resolves no import without its file extension.
+    "import/extensions": [
+      "error",
+      "always",
+      { ignorePackages: true, checkTypeImports: true },
+    ],
     "no-restricted-globals": ["error", dateGlobals],
     "typescript/no-restricted-types": ["error", dateTypes],
     ...Object.fromEntries(effectOptInRules),

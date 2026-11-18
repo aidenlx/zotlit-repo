@@ -3,10 +3,10 @@
 import { Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants";
-import { isErrno } from "@/lib/errno";
-import { sweepTempDirectory } from "@/lib/temp-sweep";
-import type { ReapTempsOptions } from "@/lib/temp-sweep";
+import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants.ts";
+import { isErrno } from "@/lib/errno.ts";
+import { sweepTempDirectory } from "@/lib/temp-sweep.ts";
+import type { ReapTempsOptions } from "@/lib/temp-sweep.ts";
 
 /**
  * Remove clone temp dirs left behind by crashed runs. Each dir is tagged with

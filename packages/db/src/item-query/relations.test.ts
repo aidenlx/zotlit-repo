@@ -2,21 +2,21 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import {
-  BULK_LIBRARY,
-  bulkItemKey,
-  openScenarioDatabase,
-  seedBulkAnnotations,
-  seedBulkLibrary,
-} from "@/test-scenario";
-
-import {
   ItemQueryDatabase,
   readItemAttachments,
   readItemAnnotations,
   readAttachmentAnnotations,
   readItemNotes,
-} from ".";
-import type { AnnotationScanRow } from ".";
+} from "./index.ts";
+import type { AnnotationScanRow } from "./index.ts";
+
+import {
+  BULK_LIBRARY,
+  bulkItemKey,
+  openScenarioDatabase,
+  seedBulkAnnotations,
+  seedBulkLibrary,
+} from "#test-scenario/index.ts";
 
 it("reads a paper's files and marks in source order, excluding trash and standalone files", () => {
   using scenario = openScenarioDatabase({ annotations: true });

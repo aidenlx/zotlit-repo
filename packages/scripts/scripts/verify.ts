@@ -61,14 +61,11 @@ if (base) {
 // The `zt` template contract and the template data page generate from TS
 // sources (ADR 0015), and the Functions and methods page from the Query
 // Schema of `@zotlit/item-query`, so a commit that changes the sources
-// without the regenerated output fails here. The contract generator imports
-// the built `@zotlit/zotero-types`; the Functions and methods generator reads
-// the schema file the `@zotlit/item-query` build writes.
+// without the regenerated output fails here. Each generator is a Turbo task
+// with declared inputs and outputs, so an unchanged source restores its
+// output from the cache.
 await step("Generated artifacts", async () => {
-  await sh`pnpm exec turbo run build --filter=@zotlit/zotero-types --filter=@zotlit/item-query`;
-  await sh`pnpm --filter @zotlit/db generate:contract`;
-  await sh`pnpm --filter @zotlit/docs generate:template-data`;
-  await sh`pnpm --filter @zotlit/docs generate:query-functions`;
+  await sh`pnpm exec turbo run @zotlit/db#generate:contract @zotlit/docs#generate:template-data @zotlit/docs#generate:query-functions`;
   const stale = (
     await $({
       cwd: root,

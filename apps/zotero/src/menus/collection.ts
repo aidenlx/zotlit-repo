@@ -1,13 +1,13 @@
 // Collections-pane context menu for batch operations. Shown on library, group,
 // and collection rows.
-import { registerMenu } from "@/lib/l10n";
-import type { TypedMenuOptions } from "@/lib/l10n";
-import { logger as appLogger } from "@/lib/logger";
-import type { FluentMessageId } from "@/types/fluent";
+import { registerMenu } from "@/lib/l10n.ts";
+import type { TypedMenuOptions } from "@/lib/l10n.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
+import type { FluentMessageId } from "@/types/fluent.ts";
 
-import { contextScope } from "./collection-scope.js";
-import type { RowScope } from "./collection-scope.js";
-import { importAllNotesInObsidian, updateAllInObsidian } from "./obsidian.js";
+import { contextScope } from "./collection-scope.ts";
+import type { RowScope } from "./collection-scope.ts";
+import { importAllNotesInObsidian, updateAllInObsidian } from "./obsidian.ts";
 
 const logger = appLogger.getChild(["menus", "collection"]);
 

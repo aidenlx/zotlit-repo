@@ -3,10 +3,10 @@ import { deleteDB, openDB } from "idb";
 import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { openCitekeyStore, SCANNER_REVISION } from "./store";
-import { createCitationIndexHarness, makeFile } from "./test-harness";
+import { openCitekeyStore, SCANNER_REVISION } from "./store.ts";
+import { createCitationIndexHarness, makeFile } from "./test-harness.ts";
 
 it("reads all Annotation Occurrence forms in document order", async () => {
   await using harness = await createCitationIndexHarness({

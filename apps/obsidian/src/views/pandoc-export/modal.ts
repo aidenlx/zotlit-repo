@@ -9,17 +9,17 @@ import {
   citationStyleLabel,
   referencesStyleOptions,
   STYLE_DEFAULT,
-} from "@/lib/citation-style";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { requireDialog } from "@/lib/require";
-import type { StyleSource } from "@/services/pandoc/document-presentation";
-import type { DocumentFormat } from "@/services/pandoc/engine";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import type { StyleDropdownOptions } from "@/views/style-dropdown";
-import { addStyleDropdown } from "@/views/style-dropdown";
+} from "@/lib/citation-style.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { requireDialog } from "@/lib/require.ts";
+import type { StyleSource } from "@/services/pandoc/document-presentation.ts";
+import type { DocumentFormat } from "@/services/pandoc/engine.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import type { StyleDropdownOptions } from "@/views/style-dropdown.ts";
+import { addStyleDropdown } from "@/views/style-dropdown.ts";
 
-import { exportDestinationLocation } from "./destination";
+import { exportDestinationLocation } from "./destination.ts";
 
 const logger = getLogger(["views", "pandoc-export"]);
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Attachment } from "@zotlit/db";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 
-import { obsidianOpenPath, toObsidianOpenableAttachments } from "./resolve";
+import { obsidianOpenPath, toObsidianOpenableAttachments } from "./resolve.ts";
 
 const DATA_DIR = "/Users/me/Zotero";
 

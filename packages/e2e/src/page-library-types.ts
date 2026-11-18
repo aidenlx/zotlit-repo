@@ -1,6 +1,6 @@
 import type { WorkspaceLeaf, WorkspaceTabs, MarkdownView } from "obsidian";
 
-import type { QueryJob } from "@/services/item-query/worker-protocol";
+import type { QueryJob } from "@/services/item-query/worker-protocol.ts";
 export type LibraryTabs = WorkspaceTabs & {
   setDimension(percent: number): void;
 };

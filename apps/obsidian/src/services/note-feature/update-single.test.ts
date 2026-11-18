@@ -1,15 +1,15 @@
 import { TFile } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { InertTemplateError } from "@/services/template/errors";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
 
-import { NotePathUnavailable } from "./note-path";
+import { NotePathUnavailable } from "./note-path.ts";
 import {
   createNoteToast,
   duplicateLiteratureNoteWarning,
   updateNoteToast,
-} from "./update-single";
+} from "./update-single.ts";
 
 describe("createNoteToast", () => {
   const file = new TFile();

@@ -1,12 +1,12 @@
 // How a pane shows its slice's stored text, and how it stores the reader's text back.
-import { jsonLayout, jsonPosition, ruleDisplay } from "./json-source";
+import { jsonLayout, jsonPosition, ruleDisplay } from "./json-source.ts";
 import {
   scalarDisplay,
   scalarSource,
   scalarStyle,
   scalarToDisplay,
   scalarToSource,
-} from "./scalar-source";
+} from "./scalar-source.ts";
 
 /**
  * The two-way rule between a pane's own text, `shown`, and the text its slice

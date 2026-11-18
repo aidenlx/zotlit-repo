@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildHeaderRules, renderHeadersFile } from "./headers";
+import { buildHeaderRules, renderHeadersFile } from "./headers.ts";
 
 describe("renderHeadersFile", () => {
   const file = renderHeadersFile();

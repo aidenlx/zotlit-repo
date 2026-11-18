@@ -1,7 +1,7 @@
 // An in-memory Notifier: records each notice in place of drawing it.
 import { Effect, Layer, Queue } from "effect";
-import { noticeFibers, Notifier } from "@/lib/notifier";
-import type { NoticeMessage } from "@/lib/notifier";
+import { noticeFibers, Notifier } from "@/lib/notifier.ts";
+import type { NoticeMessage } from "@/lib/notifier.ts";
 
 export interface RecordedNotice {
   /** Every message the notice showed, the first one first. */

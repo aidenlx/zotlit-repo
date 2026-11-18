@@ -6,9 +6,14 @@ import {
   SCENARIO_LIBRARIES,
 } from "@zotlit/db/test-scenario";
 
-import type { ItemQueryRequest } from ".";
-import { ATTACHMENTS, ITEMS, AttachmentFileResolver, collectQuery } from ".";
-import { runEffect } from "./test-helpers";
+import type { ItemQueryRequest } from "./index.ts";
+import {
+  ATTACHMENTS,
+  ITEMS,
+  AttachmentFileResolver,
+  collectQuery,
+} from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 it("returns the files of one paper with Attachment defaults and parent identity", async () => {
   using scenario = openScenarioDatabase({ annotations: true });

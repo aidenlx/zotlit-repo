@@ -8,15 +8,15 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { isPageNumber } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { useSanitizedHtml } from "@/lib/sanitize-html";
-import { cn } from "@/lib/utils";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display";
-import type { ExcerptImage } from "@/services/excerpt-image/format";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { useSanitizedHtml } from "@/lib/sanitize-html.ts";
+import { cn } from "@/lib/utils.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display.ts";
+import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
 
-import { excerptImageOwnership } from "./excerpt-image-state";
-import type { ExcerptImageOwnership } from "./excerpt-image-state";
+import { excerptImageOwnership } from "./excerpt-image-state.ts";
+import type { ExcerptImageOwnership } from "./excerpt-image-state.ts";
 
 /**
  * The page locator of one Annotation: `p. 2` for a page number, and Zotero's

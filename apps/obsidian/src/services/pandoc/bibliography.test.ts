@@ -6,18 +6,18 @@ import { describe, expect } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch";
-import { withZoteroHeaders, ZoteroHttp } from "@/lib/zotero-http";
+import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch.ts";
+import { withZoteroHeaders, ZoteroHttp } from "@/lib/zotero-http.ts";
 
 import {
   fetchBibliography as fetchEffect,
   LOCAL_API_PREF,
-} from "./bibliography";
+} from "./bibliography.ts";
 import type {
   BibliographyItemRef,
   BibliographyPorts,
   BibliographyResult,
-} from "./bibliography";
+} from "./bibliography.ts";
 
 const fetchBibliography = (
   refs: readonly BibliographyItemRef[],

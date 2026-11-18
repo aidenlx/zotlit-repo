@@ -2,9 +2,9 @@
 // reads: the settings row, the reader's Creation Toolbar, and the Annotation
 // View toolbar all name one state the same way.
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { EditingCapability } from "./capability";
+import type { EditingCapability } from "./capability.ts";
 
 /**
  * An instant as the copy reads it: milliseconds since the epoch. Plain code

@@ -13,12 +13,12 @@ import { useMemo } from "react";
 import { cellProperties, fieldSearchTerms } from "@zotlit/item-query";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
-import { NON_VAULT_PROPERTY_KEYS } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
+import { NON_VAULT_PROPERTY_KEYS } from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
 
-import { DATASETS } from "./datasets";
-import { useQueryViewState } from "./model";
+import { DATASETS } from "./datasets.ts";
+import { useQueryViewState } from "./model.ts";
 import {
   LITERATURE_NOTE,
   QUERY_FILE_DATASETS,
@@ -28,17 +28,17 @@ import {
   isVaultProperty,
   vaultName,
   vaultProperty,
-} from "./query-file";
+} from "./query-file.ts";
 import type {
   QueryFile,
   QueryFileDataset,
   QueryFileSort,
   QueryFileView,
-} from "./query-file";
-import { formulaIssuesOf } from "./results";
-import type { FormulaIssue } from "./results";
-import { groupPaths } from "./rows";
-import type { QueryView } from "./view";
+} from "./query-file.ts";
+import { formulaIssuesOf } from "./results.ts";
+import type { FormulaIssue } from "./results.ts";
+import { groupPaths } from "./rows.ts";
+import type { QueryView } from "./view.tsx";
 
 /**
  * Whether a vault property can take the name `name`: not one of Obsidian's

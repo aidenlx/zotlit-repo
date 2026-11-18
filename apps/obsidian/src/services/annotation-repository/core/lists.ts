@@ -23,26 +23,26 @@ import type {
   ZoteroDatabaseIdentity,
 } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { settleAtEdge } from "@/lib/signal-edge";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { settleAtEdge } from "@/lib/signal-edge.ts";
 import {
   capabilityReason,
   editingCapabilityOf,
-} from "@/services/annotation-repository/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { lockOf } from "@/services/annotation-repository/lock";
-import { isTextField } from "@/services/annotation-repository/write";
-import { excerptFingerprint } from "@/services/excerpt-image/contract";
-import type { Held } from "@/services/query-client/service";
+} from "@/services/annotation-repository/capability.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { lockOf } from "@/services/annotation-repository/lock.ts";
+import { isTextField } from "@/services/annotation-repository/write.ts";
+import { excerptFingerprint } from "@/services/excerpt-image/contract.ts";
+import type { Held } from "@/services/query-client/service.ts";
 import type {
   LocalApiFailure,
   LocalApiSource,
-} from "@/services/zotero-local-api/service";
+} from "@/services/zotero-local-api/service.ts";
 
-import { databaseRows } from "./bridge";
-import type { DatabaseRowsError } from "./bridge";
-import { cancelTextSave, reconcilePublishedDrafts } from "./draft-store";
+import { databaseRows } from "./bridge.ts";
+import type { DatabaseRowsError } from "./bridge.ts";
+import { cancelTextSave, reconcilePublishedDrafts } from "./draft-store.ts";
 import {
   ANNOTATIONS,
   DRAFT_FIELDS,
@@ -50,7 +50,7 @@ import {
   fromLocalApi,
   indexedID,
   templateTags,
-} from "./model";
+} from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationList,
@@ -59,9 +59,9 @@ import type {
   DatabaseAnnotationSource,
   HeldAnnotation,
   ProposedFields,
-} from "./model";
-import { pendingWrites } from "./outcomes";
-import type { CoreState } from "./state";
+} from "./model.ts";
+import { pendingWrites } from "./outcomes.ts";
+import type { CoreState } from "./state.ts";
 
 /**
  * How long after the last ask the list of an Attachment no surface holds is

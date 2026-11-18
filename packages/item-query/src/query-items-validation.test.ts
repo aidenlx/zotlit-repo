@@ -4,14 +4,14 @@ import { describe, expect, it } from "vitest";
 
 import { SCENARIO_LIBRARIES } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, collectQuery, ITEMS, ItemQueryError } from ".";
+import { ANNOTATIONS, collectQuery, ITEMS, ItemQueryError } from "./index.ts";
 import type {
   ItemQueryErrorCode,
   ItemQueryRequest,
   QueryDataset,
   SortSpec,
-} from ".";
-import { runEffect } from "./test-helpers";
+} from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

@@ -10,19 +10,19 @@ import type {
 } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import {
   FileManager,
   layerFileManager,
   layerFileManagerFrom,
-} from "@/lib/obsidian-file-manager";
-import { layerVault, layerVaultFrom } from "@/lib/obsidian-vault";
-import { VaultError } from "@/lib/vault-errors";
+} from "@/lib/obsidian-file-manager.ts";
+import { layerVault, layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import { VaultError } from "@/lib/vault-errors.ts";
 
-import { MemoryFileManager } from "./__fixtures__/obsidian-file-manager";
-import { MemoryVault } from "./__fixtures__/obsidian-vault";
+import { MemoryFileManager } from "./__fixtures__/obsidian-file-manager.ts";
+import { MemoryVault } from "./__fixtures__/obsidian-vault.ts";
 
 function file(path: string): TFile {
   const file = new TFile();

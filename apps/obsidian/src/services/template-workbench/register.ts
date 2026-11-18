@@ -6,19 +6,19 @@
 import { Context, Effect, Layer } from "effect";
 import type { CliData, CliFlag, CliFlags } from "obsidian";
 
-import type { VersionedCliHost } from "@/lib/cli-command";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { PluginHost } from "@/lib/plugin-host";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
+import type { VersionedCliHost } from "@/lib/cli-command.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
 
 import {
   createCheckHandler,
   checkFlags,
   TEMPLATE_CHECK_COMMAND,
-} from "./check";
-import type { CheckServices } from "./check";
+} from "./check.ts";
+import type { CheckServices } from "./check.ts";
 import {
   createTemplateWorkbenchHandlers,
   FRONTMATTER_EVAL_COMMAND,
@@ -33,18 +33,22 @@ import {
   TEMPLATE_SCHEMA_COMMAND,
   TEMPLATE_SOURCE_COMMAND,
   TEMPLATE_STATUS_COMMAND,
-} from "./cli";
-import { readCitationData, readTemplateData, withSelectedNote } from "./data";
-import { diagnostic, envelope } from "./envelope";
-import type { WorkbenchCommand } from "./envelope";
-import { GUIDE_TOPIC_NAMES } from "./guide";
-import { readWorkbenchIdentity } from "./identity";
+} from "./cli.ts";
+import {
+  readCitationData,
+  readTemplateData,
+  withSelectedNote,
+} from "./data.ts";
+import { diagnostic, envelope } from "./envelope.ts";
+import type { WorkbenchCommand } from "./envelope.ts";
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
+import { readWorkbenchIdentity } from "./identity.ts";
 import {
   createInspectHandler,
   selectInspectionNote,
   inspectFlags,
   TEMPLATE_INSPECT_COMMAND,
-} from "./inspect";
+} from "./inspect.ts";
 import {
   CITATION_EXAMPLE_NAMES,
   CITATION_VARIANT_NAMES,
@@ -53,7 +57,7 @@ import {
   PARTIAL_CONTEXT_NAMES,
   RENDER_TEMPLATE_NAMES,
   TEMPLATE_SLOT_NAMES,
-} from "./request";
+} from "./request.ts";
 import type {
   DataParam,
   DocumentRenderParam,
@@ -64,10 +68,10 @@ import type {
   GuideParam,
   RenderParam,
   SourceParam,
-} from "./request";
-import { CONTRACT_ROOT_NAMES } from "./schema";
-import { templateCall } from "./sync-template";
-import { choices } from "./vocabulary";
+} from "./request.ts";
+import { CONTRACT_ROOT_NAMES } from "./schema.ts";
+import { templateCall } from "./sync-template.ts";
+import { choices } from "./vocabulary.ts";
 
 /** What the Workbench commands read: the Template, Profile, Note Index,
  *  Zotero Pref and Zotero Reads services, and Obsidian's capabilities. */

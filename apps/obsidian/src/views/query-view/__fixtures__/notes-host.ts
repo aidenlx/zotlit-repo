@@ -2,33 +2,33 @@
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { SubscriptionRuntime } from "@/lib/effect-stream";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations";
-import { NoteFeature } from "@/services/note-feature/service";
-import type { buildNoteIndex } from "@/services/note-index/__fixtures__";
-import { noteIndexSnapshotAtom } from "@/services/note-index/atoms";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { literatureNotes } from "@/views/query-view/table-notes";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import type { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";
+import { noteIndexSnapshotAtom } from "@/services/note-index/atoms.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { literatureNotes } from "@/views/query-view/table-notes.ts";
 import type {
   LiteratureNotesDeps,
   VaultEdit,
   VaultWrite,
-} from "@/views/query-view/table-notes";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
+} from "@/views/query-view/table-notes.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
 export interface NotesHostDeps {
   runtime: SubscriptionRuntime;

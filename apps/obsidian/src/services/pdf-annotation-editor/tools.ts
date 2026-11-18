@@ -15,9 +15,9 @@ import {
   ANNOTATION_COLORS,
   isColor,
   withRecentColor,
-} from "@/lib/annotation-colors";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { PluginSettings } from "@/services/settings/service";
+} from "@/lib/annotation-colors.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
 /** Every tool of the toggle group, in Zotero's own toolbar order. */
 export const ANNOTATION_TOOLS = [

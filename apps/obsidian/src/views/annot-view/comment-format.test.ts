@@ -7,7 +7,7 @@ import {
   htmlToComment,
   parseComment,
   toggleFormat,
-} from "./comment-format";
+} from "./comment-format.ts";
 
 /** `[` and `]` mark the selection; one `|` marks a caret. */
 function sel(marked: string) {

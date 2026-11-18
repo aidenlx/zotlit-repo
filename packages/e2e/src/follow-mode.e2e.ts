@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
 
-import type { AnnotationView } from "@/views/annot-view/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { reachable } from "./e2e-run-fixture.ts";

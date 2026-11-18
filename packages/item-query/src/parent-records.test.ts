@@ -1,12 +1,12 @@
 import { expect, it } from "vitest";
 
-import type { FieldDefinition } from "./fields";
-import { matches } from "./filter-evaluate";
-import { planFilter } from "./filter-plan";
-import { liftParentRecord, parentFieldSubject } from "./parent-records";
-import { planPath, readPath } from "./projection";
-import { definitionFilter } from "./record-field";
-import type { RecordVocabulary } from "./record-field";
+import type { FieldDefinition } from "./fields.ts";
+import { matches } from "./filter-evaluate.ts";
+import { planFilter } from "./filter-plan.ts";
+import { liftParentRecord, parentFieldSubject } from "./parent-records.ts";
+import { planPath, readPath } from "./projection.ts";
+import { definitionFilter } from "./record-field.ts";
+import type { RecordVocabulary } from "./record-field.ts";
 
 type Row = { title: string; secret: string };
 type Needs = { fields?: readonly string[] };

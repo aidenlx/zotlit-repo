@@ -2,7 +2,7 @@
 // "Zotero is not found": what each signal does to it.
 import { expect, it } from "vitest";
 
-import { notFoundNoticeChange } from "./not-found-notice";
+import { notFoundNoticeChange } from "./not-found-notice.ts";
 
 it.each([
   // A miss shows the notice once, however often it comes.

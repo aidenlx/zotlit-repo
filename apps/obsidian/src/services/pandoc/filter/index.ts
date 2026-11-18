@@ -9,4 +9,4 @@ export {
   PANDOC_DEFAULTS_FILENAME,
   PANDOC_FILTER_FILENAME,
   PANDOC_RESOLVE_MAP_FILENAME,
-} from "./names";
+} from "./names.ts";

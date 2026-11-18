@@ -5,12 +5,12 @@
 // @see apps/obsidian/docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md
 import type { Menu } from "obsidian";
 
-import type { AnnotActions } from "./actions";
+import type { AnnotActions } from "./actions.tsx";
 import type {
   FollowMenuAction,
   HeaderMenuAction,
   HeaderMenuEntry,
-} from "./presentation";
+} from "./presentation.ts";
 
 /** The gestures a header menu row runs; the view supplies every one. */
 export type HeaderMenuGestures = Pick<

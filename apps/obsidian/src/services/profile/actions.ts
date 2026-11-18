@@ -1,11 +1,11 @@
 // Profile import has one shared UI entry from the command palette.
 import { Effect, Layer } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginHost } from "@/lib/plugin-host";
-import { importProfileDialog } from "@/setting-tab/profile-dialogs";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { importProfileDialog } from "@/setting-tab/profile-dialogs.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 
 /**
  * Register Import profile. The import dialog runs on the layer's Scope and

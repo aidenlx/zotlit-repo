@@ -6,26 +6,26 @@ import { useMemo, useState } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Chooser } from "@/components/chooser";
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown";
-import { Toggle } from "@/components/obsidian/toggle";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Chooser } from "@/components/chooser.tsx";
+import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
+import { Toggle } from "@/components/obsidian/toggle.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { ItemsWindow } from "./items-window";
-import type { DrawnEntry, WindowEntry } from "./items-window";
-import type { QueryLayout } from "./layouts";
-import { drawListRow, useListRowHeights } from "./list-row";
-import { useQueryViewState } from "./model";
-import type { QueryFileView } from "./query-file";
+import { ItemsWindow } from "./items-window.tsx";
+import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import type { QueryLayout } from "./layouts.ts";
+import { drawListRow, useListRowHeights } from "./list-row.tsx";
+import { useQueryViewState } from "./model.ts";
+import type { QueryFileView } from "./query-file.ts";
 import {
   HEADING_ESTIMATE,
   RecordGroupHeading,
   groupEntries,
   useRecordGroups,
-} from "./record-rows";
-import type { QueryView } from "./view";
-import { LIST_GHOST } from "./virtual-spacers";
+} from "./record-rows.tsx";
+import type { QueryView } from "./view.tsx";
+import { LIST_GHOST } from "./virtual-spacers.tsx";
 
 export const LIST_LAYOUT: QueryLayout = {
   type: "list",

@@ -5,21 +5,21 @@ import { expect } from "vitest";
 
 import type { AnnotationSources, Attachment } from "@zotlit/db";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/annotation-repository/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import type { ExcerptRequest } from "./contract";
-import { ExcerptDisplays } from "./display";
-import { layerExcerptRevalidation } from "./revalidation";
+import type { ExcerptRequest } from "./contract.ts";
+import { ExcerptDisplays } from "./display.ts";
+import { layerExcerptRevalidation } from "./revalidation.ts";
 
 const SERVER_ID = "A8sf5Zsz8ySw";
 const source: AnnotationSource = {

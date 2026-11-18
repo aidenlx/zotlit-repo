@@ -2,9 +2,9 @@
 // per vault × device that never syncs: the folder dialog that picks a
 // machine-specific folder, and the note that says the value stays here.
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { requireDialog } from "@/lib/require";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { requireDialog } from "@/lib/require.ts";
 
 const logger = getLogger(["setting-tab", "device-override"]);
 

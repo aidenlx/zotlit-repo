@@ -1,14 +1,14 @@
+import type { StructuredChar, StructuredPage } from "#chars.ts";
+import type { TextLayerSelection } from "#text-selection.ts";
 import { describe, expect, it } from "vitest";
 
-import type { StructuredChar, StructuredPage } from "@/chars";
 import {
   adjustRange,
   offsetsByRects,
   rectRotation,
   selectText,
   textRange,
-} from "@/text-selection";
-import type { TextLayerSelection } from "@/text-selection";
+} from "#text-selection.ts";
 
 /**
  * One line of Structured Characters as the line grouping leaves them: glyphs

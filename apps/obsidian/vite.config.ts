@@ -17,7 +17,10 @@ import {
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import packageJson from "./package.json" with { type: "json" };
-import { resolveChineseSegmenterPin } from "./scripts/chinese-segmenter.ts";
+import {
+  chineseSegmenterGlue,
+  resolveChineseSegmenterPin,
+} from "./scripts/chinese-segmenter.ts";
 import { deriveDevVersion } from "./scripts/dev-version.ts";
 import { effectEntry, effectEntryCheck } from "./scripts/effect-entry.ts";
 import { embeddedWorker } from "./scripts/embedded-worker.ts";
@@ -178,7 +181,12 @@ export default defineConfig(({ mode }) => {
           mode,
           define,
           resolve: resolveConfig,
-          plugins: [effectEntry("worker"), effectEntryCheck("worker")],
+          plugins: [
+            effectEntry("worker"),
+            effectEntryCheck("worker"),
+            // ZoteroReads holds the Item Lookup, which segments Chinese.
+            chineseSegmenterGlue(),
+          ],
           external: builtins,
           minify: isProd,
           sourcemap: isProd ? false : "inline",

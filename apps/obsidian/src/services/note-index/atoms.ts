@@ -4,15 +4,15 @@ import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import type { TFile } from "obsidian";
 
-import { filterTag } from "@/lib/effect-stream";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { held } from "@/lib/view-atoms";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+import { filterTag } from "@/lib/effect-stream.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { held } from "@/lib/view-atoms.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
-import { NoteIndex } from "./service";
-import type { NoteIndexChange } from "./service";
+import { NoteIndex } from "./service.ts";
+import type { NoteIndexChange } from "./service.ts";
 
 /** The active file's path, and the key of the Item it is a note of. */
 export interface ActiveNote {

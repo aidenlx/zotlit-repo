@@ -11,14 +11,14 @@ import type {
   PandocCitationItem,
 } from "@zotlit/templates/pandoc-citation";
 
-import { hoverPreferences } from "@/services/citekey-navigation";
-import type { HoverPreferences } from "@/services/citekey-navigation";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
+import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
+import type { HoverPreferences } from "@/services/citekey-navigation/index.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { citationRunItem } from "./citation-fragment";
-import type { CitationRunItem } from "./citation-fragment";
-import type { CitationSource } from "./citation-source";
+import { citationRunItem } from "./citation-fragment.ts";
+import type { CitationRunItem } from "./citation-fragment.ts";
+import type { CitationSource } from "./citation-source.ts";
 
 /** The `cite:` marker that tells a wikilink subpath from a heading or block one. */
 const FRAGMENT_PREFIX = "cite:";

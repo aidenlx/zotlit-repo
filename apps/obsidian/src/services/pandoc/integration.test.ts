@@ -7,13 +7,13 @@ import {
   pandocDefaults,
   PANDOC_DEFAULTS_FILENAME,
   PANDOC_FILTER_FILENAME,
-} from "./filter";
+} from "./filter/index.ts";
 import {
   createPandocIntegrationHandlers,
   PANDOC_FILES_COMMAND,
   PANDOC_GUIDE_COMMAND,
   PandocParamsRejected,
-} from "./integration";
+} from "./integration.ts";
 
 const PLUGIN_VERSION = "2.0.1-test";
 const PARAMETER_FREE_COMMANDS = [

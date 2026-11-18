@@ -7,16 +7,16 @@ import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { QueryService } from "@/services/item-query/service";
-import { LibraryScope } from "@/services/library-scope/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes";
-import { QueryView } from "@/views/query-view/view";
-import type { QueryViewDeps } from "@/views/query-view/view";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
+import { QueryView } from "@/views/query-view/view.tsx";
+import type { QueryViewDeps } from "@/views/query-view/view.tsx";
 
-import { makeAnnotHost } from "./__fixtures__/host";
-import { SidebarFilterModal } from "./filter-modal";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
+import { SidebarFilterModal } from "./filter-modal.tsx";
 
 it.effect(
   "closing the filter modal interrupts its read and releases the snapshot",

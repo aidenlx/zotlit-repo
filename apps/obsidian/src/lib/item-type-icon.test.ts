@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import { ITEM_TYPE_ICONS, itemTypeIcon } from "./item-type-icon";
+import { ITEM_TYPE_ICONS, itemTypeIcon } from "./item-type-icon.ts";
 
 describe("itemTypeIcon", () => {
   it("draws each Zotero item type as the Lucide icon chosen for it", () => {

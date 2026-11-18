@@ -2,13 +2,13 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Layer, Logger, References } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { AbortError } from "@/lib/abort-error";
-import * as m from "@/lib/i18n/generated/messages";
-import { LegacyPortError, portCall } from "@/lib/legacy-port";
-import { Notifier } from "@/lib/notifier";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { LegacyPortError, portCall } from "@/lib/legacy-port.ts";
+import { Notifier } from "@/lib/notifier.ts";
 
-import { explainWorkbenchOpen, templateWorkbenchAction } from "./actions";
+import { explainWorkbenchOpen, templateWorkbenchAction } from "./actions.ts";
 
 /** The notices and error logs one action leaves. */
 function recorder() {

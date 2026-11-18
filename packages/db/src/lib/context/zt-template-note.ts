@@ -1,13 +1,5 @@
-import { annotationToTemplateData } from "@/lib/context/zt-template-annot";
-import type { TemplateAnnotation } from "@/lib/context/zt-template-annot";
-import { resolveTemplateAttachment } from "@/lib/context/zt-template-attach";
-import type { TemplateAttachment } from "@/lib/context/zt-template-attach";
-import {
-  itemToTemplateBaseData,
-  resolveItemCore,
-  resolvePrimaryCreators,
-  withItemPreview,
-} from "@/lib/context/zt-template-item";
+import type { TemplateAnnotation } from "#lib/context/zt-template-annot.ts";
+import type { TemplateAttachment } from "#lib/context/zt-template-attach.ts";
 import type {
   FallibleTemplateLink,
   ResolvedItemCore,
@@ -16,16 +8,25 @@ import type {
   TemplateItemData,
   TemplateItemResolvers,
   TemplateLink,
-} from "@/lib/context/zt-template-item";
-import { defineToString } from "@/lib/to-string";
-import type { Annotation } from "@/lib/zt-annot";
-import type { AnnotationFileLinkAnchor } from "@/lib/zt-annot-anchor";
-import type { Attachment } from "@/lib/zt-attach";
-import type { TemplateCollection } from "@/lib/zt-collection";
-import type { ItemTag } from "@/lib/zt-tag";
-import { itemSelectUri } from "@/lib/zt-uri";
-import type { Item } from "@/queries/items";
-import type { ChildNote } from "@/queries/notes";
+} from "#lib/context/zt-template-item.ts";
+import type { AnnotationFileLinkAnchor } from "#lib/zt-annot-anchor.ts";
+import type { Annotation } from "#lib/zt-annot.ts";
+import type { Attachment } from "#lib/zt-attach.ts";
+import type { TemplateCollection } from "#lib/zt-collection.ts";
+import type { ItemTag } from "#lib/zt-tag.ts";
+import type { Item } from "#queries/items.ts";
+import type { ChildNote } from "#queries/notes.ts";
+
+import { annotationToTemplateData } from "#lib/context/zt-template-annot.ts";
+import { resolveTemplateAttachment } from "#lib/context/zt-template-attach.ts";
+import {
+  itemToTemplateBaseData,
+  resolveItemCore,
+  resolvePrimaryCreators,
+  withItemPreview,
+} from "#lib/context/zt-template-item.ts";
+import { defineToString } from "#lib/to-string.ts";
+import { itemSelectUri } from "#lib/zt-uri.ts";
 
 /**
  * A single entry in {@link NoteTemplateContext.relatedItems}: the related

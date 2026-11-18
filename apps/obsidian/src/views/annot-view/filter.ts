@@ -1,6 +1,6 @@
 // Pure filtering and derived data for the annotation view's search & filter surfaces.
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 export interface AnnotFilter {
   /** Case-insensitive substring query; "" disables the query group. */

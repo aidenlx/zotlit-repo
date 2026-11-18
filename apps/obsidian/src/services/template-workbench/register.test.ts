@@ -3,14 +3,14 @@ import { Context, Effect } from "effect";
 import type { CliFlags } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { PluginSettings } from "@/services/settings/service";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { workbenchContext } from "./__fixtures__";
-import { TEMPLATE_DATA_COMMAND } from "./cli";
-import { registerTemplateWorkbench } from "./register";
+import { workbenchContext } from "./__fixtures__.ts";
+import { TEMPLATE_DATA_COMMAND } from "./cli.ts";
+import { registerTemplateWorkbench } from "./register.ts";
 
 /** The host version the check command reports. */
 const env = Context.make(

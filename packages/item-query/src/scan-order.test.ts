@@ -6,9 +6,9 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { collectQuery, ITEMS } from ".";
-import type { ItemQueryRequest } from ".";
-import { runEffect } from "./test-helpers";
+import { collectQuery, ITEMS } from "./index.ts";
+import type { ItemQueryRequest } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 const RECORDS = [
   { key: "ORD2ZZZZ", title: "Same title", type: "book" },

@@ -1,10 +1,10 @@
 // The vault and Zotero source a Workbench envelope names.
 import { Effect } from "effect";
 
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import type { WorkbenchIdentity } from "./envelope";
+import type { WorkbenchIdentity } from "./envelope.ts";
 
 /**
  * The identity of the vault and the connected Zotero source that an envelope

@@ -22,7 +22,7 @@ import type {
   WorkbenchSuggesterRequest,
 } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Command,
   CommandEmpty,
@@ -30,31 +30,31 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@/components/ui/command.tsx";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu.tsx";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 
-import { webCompletion } from "./completion";
-import { webFieldsAction } from "./fields-popover";
-import { webHover } from "./hover";
-import { Rendering } from "./rendering";
-import { ResultSheet } from "./result-sheet";
-import { usePageBridge } from "./runtime";
-import type { PageBridge } from "./runtime";
-import { WEB_THEME } from "./theme";
-import { copyThrough } from "./transfer";
+import { webCompletion } from "./completion.tsx";
+import { webFieldsAction } from "./fields-popover.tsx";
+import { webHover } from "./hover.tsx";
+import { Rendering } from "./rendering.ts";
+import { ResultSheet } from "./result-sheet.ts";
+import { usePageBridge } from "./runtime.tsx";
+import type { PageBridge } from "./runtime.tsx";
+import { WEB_THEME } from "./theme.tsx";
+import { copyThrough } from "./transfer.ts";
 
 const STORAGE_PREFIX = "zotlit.workbench.preference";
 /** This site's own community page, which Ask the community opens. */

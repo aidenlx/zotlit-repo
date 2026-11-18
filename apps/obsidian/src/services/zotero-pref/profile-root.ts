@@ -2,7 +2,7 @@ import { Effect, FileSystem } from "effect";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { requireElectronRemote } from "@/lib/require";
+import { requireElectronRemote } from "@/lib/require.ts";
 
 /**
  * Platform directory that holds `profiles.ini`. Relative

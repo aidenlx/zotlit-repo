@@ -3,14 +3,14 @@
 // changes the next import.
 import { Effect, Layer } from "effect";
 
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { Notifier } from "@/lib/notifier";
-import type { NoticeHandle } from "@/lib/notifier";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { NoticeHandle } from "@/lib/notifier.ts";
 
-import { AttachmentImport } from "./service";
-import type { AttachmentSkipSummary } from "./service";
+import { AttachmentImport } from "./service.ts";
+import type { AttachmentSkipSummary } from "./service.ts";
 
 const ATTACHMENT_SKIP_NOTICE_DURATION_MS = 30_000;
 

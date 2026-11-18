@@ -1,20 +1,21 @@
-import { defineToString } from "@/lib/to-string";
-import { annotationTypeToName } from "@/lib/zt-annot";
-import type { Annotation, ResolvedAnnotationTypeName } from "@/lib/zt-annot";
-import type { AnnotationFileLinkAnchor } from "@/lib/zt-annot-anchor";
-import { annotationColorToName } from "@/lib/zt-color";
-import type { AnnotationColorName } from "@/lib/zt-color";
-import { toTemplateTag } from "@/lib/zt-tag";
-import type { ItemTag, TemplateTag } from "@/lib/zt-tag";
-import { annotationOpenUri } from "@/lib/zt-uri";
+import type { AnnotationFileLinkAnchor } from "#lib/zt-annot-anchor.ts";
+import type { Annotation, ResolvedAnnotationTypeName } from "#lib/zt-annot.ts";
+import type { AnnotationColorName } from "#lib/zt-color.ts";
+import type { ItemTag, TemplateTag } from "#lib/zt-tag.ts";
 
-import { emptyToNull } from "./normalize";
-import type { TemplateAttachment } from "./zt-template-attach";
+import { emptyToNull } from "./normalize.ts";
+import type { TemplateAttachment } from "./zt-template-attach.ts";
 import type {
   FallibleTemplateLink,
   TemplateLink,
   TemplateParentItemData,
-} from "./zt-template-item";
+} from "./zt-template-item.ts";
+
+import { defineToString } from "#lib/to-string.ts";
+import { annotationTypeToName } from "#lib/zt-annot.ts";
+import { annotationColorToName } from "#lib/zt-color.ts";
+import { toTemplateTag } from "#lib/zt-tag.ts";
+import { annotationOpenUri } from "#lib/zt-uri.ts";
 
 /**
  * Annotation data in the v2 template vocabulary. Exposed on `zt.annotations`

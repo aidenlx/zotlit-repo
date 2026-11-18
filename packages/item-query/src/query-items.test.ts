@@ -19,7 +19,7 @@ import {
   ITEMS,
   ItemQueryError,
   ItemQueryScheduler,
-} from ".";
+} from "./index.ts";
 import type {
   ItemQuery,
   ItemQueryRequest,
@@ -27,9 +27,9 @@ import type {
   QueryResult,
   QueryRow,
   SortSpec,
-} from ".";
-import { runEffect } from "./test-helpers";
-import type { RunEvent, RunOptions } from "./test-helpers";
+} from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { RunEvent, RunOptions } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

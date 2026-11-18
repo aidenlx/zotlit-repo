@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeObsidianTag } from "./obsidian-tag";
+import { normalizeObsidianTag } from "./obsidian-tag.ts";
 
 describe("normalizeObsidianTag", () => {
   it("replaces a space with an underscore", () => {

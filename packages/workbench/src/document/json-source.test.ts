@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { jsonLayout, jsonPosition } from "./json-source";
+import { jsonLayout, jsonPosition } from "./json-source.ts";
 
 it("formats JSON without changing numbers, escapes, or string whitespace", () => {
   const compact = String.raw`{"n":9007199254740993,"text":"a  b\n\u0041","items":[true,null]}`;

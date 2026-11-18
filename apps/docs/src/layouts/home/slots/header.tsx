@@ -36,8 +36,8 @@ import {
 } from "react";
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
-import { mergeRefs } from "@/lib/merge-refs";
+import { cn } from "@/lib/cn.ts";
+import { mergeRefs } from "@/lib/merge-refs.ts";
 import * as m from "@/paraglide/messages.js";
 
 export const navItemVariants = cva("[&_svg]:size-4", {

@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { expect } from "vitest";
 
-import { awaitModal } from "@/lib/effect-modal";
+import { awaitModal } from "@/lib/effect-modal.ts";
 
 /** A modal that, as Obsidian's, calls its close callback once it closes. */
 function fakeModal<A>(dismissed: A) {

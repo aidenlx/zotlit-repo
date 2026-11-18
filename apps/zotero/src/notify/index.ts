@@ -1,10 +1,10 @@
-import { logger as appLogger } from "@/lib/logger";
+import { logger as appLogger } from "@/lib/logger.ts";
 
-import { registerActiveReaderNotify } from "./active-reader";
-import { registerAnnotSelectNotify } from "./annot-select";
-import { registerFreshness } from "./freshness";
-import type { WalCheckpoint } from "./freshness";
-import { createSender } from "./send";
+import { registerActiveReaderNotify } from "./active-reader.ts";
+import { registerAnnotSelectNotify } from "./annot-select.ts";
+import { registerFreshness } from "./freshness.ts";
+import type { WalCheckpoint } from "./freshness.ts";
+import { createSender } from "./send.ts";
 
 const logger = appLogger.getChild("notify");
 

@@ -8,7 +8,7 @@
 // tag its theme hook.
 import { tags } from "@lezer/highlight";
 
-import { templateHighlighter } from "./highlight";
+import { templateHighlighter } from "./highlight.ts";
 
 /** The tag of each role a token takes in an expression. */
 export const expressionTag = {

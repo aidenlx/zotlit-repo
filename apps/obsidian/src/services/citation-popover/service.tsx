@@ -12,57 +12,57 @@ import {
 import type { HoverParent } from "obsidian";
 import type { ReactNode } from "react";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { bridgeLog, withLogCategory } from "@/lib/effect-log";
-import { filterTag } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace";
-import type { WorkspaceEventHost } from "@/lib/obsidian-workspace";
-import { requestProfileSwitch } from "@/lib/profile-recovery";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { bridgeLog, withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
+import type { WorkspaceEventHost } from "@/lib/obsidian-workspace.ts";
+import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
 import {
   describeCandidatesEffect,
   describeJoinedCandidates,
-} from "@/services/citation-index/ambiguity";
+} from "@/services/citation-index/ambiguity.ts";
 import {
   CitationLookup,
   lookupChanged,
   lookupStatusChanged,
-} from "@/services/citation-index/lookup-service";
-import { CitationIndex } from "@/services/citation-index/service";
-import { readReferenceSources } from "@/services/citation-index/service";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import { shownCitationContent } from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import type { CitationHoverRequest } from "@/services/citekey-navigation";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { Inlines } from "@/services/pandoc/ast";
+} from "@/services/citation-index/lookup-service.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import { readReferenceSources } from "@/services/citation-index/service.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import { shownCitationContent } from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { CitationHoverRequest } from "@/services/citekey-navigation/index.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
 import {
   documentCitationPresentation,
   documentPresentation,
   profileReaderOf,
-} from "@/services/pandoc/document-presentation";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
-import type { BibliographyEntry } from "@/services/pandoc/engine";
-import { noteContent } from "@/services/pandoc/inline-content";
+} from "@/services/pandoc/document-presentation.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import type { BibliographyEntry } from "@/services/pandoc/engine.ts";
+import { noteContent } from "@/services/pandoc/inline-content.tsx";
 import {
   BibliographyRender,
   renderInvalidated,
-} from "@/services/pandoc/render-cache";
-import { Profile } from "@/services/profile/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
-import { buildReferenceEntries } from "@/views/references/entries";
-import type { RenderedReference } from "@/views/references/entries";
+} from "@/services/pandoc/render-cache.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
+import { buildReferenceEntries } from "@/views/references/entries.ts";
+import type { RenderedReference } from "@/views/references/entries.ts";
 
-import { createCitationPopoverActions } from "./actions";
-import { citationPopoverBlocks } from "./blocks";
-import type { CitationPopoverBlock } from "./blocks";
-import { CitationPopoverContent } from "./content";
-import { HoverVisits } from "./visits";
-import type { HoverVisit, PopoverPart } from "./visits";
+import { createCitationPopoverActions } from "./actions.ts";
+import { citationPopoverBlocks } from "./blocks.ts";
+import type { CitationPopoverBlock } from "./blocks.ts";
+import { CitationPopoverContent } from "./content.tsx";
+import { HoverVisits } from "./visits.ts";
+import type { HoverVisit, PopoverPart } from "./visits.ts";
 
 /** The services one popover read yields. */
 type PopoverServices =

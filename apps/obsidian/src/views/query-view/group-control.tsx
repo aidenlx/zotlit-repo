@@ -6,16 +6,16 @@
 // It lays out as the Bases Group menu: a "Group by" section with one joined
 // [property | direction] box and a delete button. A Manual group order adds
 // a section of group rows and a "Show all" / "Hide all" footer.
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown";
-import { Select } from "@/components/select";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
+import { Select } from "@/components/select.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { directionLabel } from "./properties";
-import type { PropertyOption } from "./properties";
-import type { QueryFileGroupValue, QueryFileSort } from "./query-file";
-import { GripIcon, moved, useReorder } from "./reorder";
-import type { LayoutGroup } from "./rows";
+import { directionLabel } from "./properties.ts";
+import type { PropertyOption } from "./properties.ts";
+import type { QueryFileGroupValue, QueryFileSort } from "./query-file.ts";
+import { GripIcon, moved, useReorder } from "./reorder.tsx";
+import type { LayoutGroup } from "./rows.ts";
 import {
   JoinedSelects,
   NotUsed,
@@ -24,13 +24,13 @@ import {
   sortRowClass,
   unlistedOption,
   sortRowsClass,
-} from "./sort-control";
+} from "./sort-control.tsx";
 import {
   PopoverAction,
   PopoverActions,
   PopoverHeader,
   PopoverSection,
-} from "./toolbar-popover";
+} from "./toolbar-popover.tsx";
 import "./group-control.css";
 
 /** A view's grouping, as the Group control reads and writes it. */

@@ -3,7 +3,7 @@
 
 import { Link } from "@tanstack/react-router";
 
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/logo.tsx";
 import * as m from "@/paraglide/messages.js";
 
 const linkClass =

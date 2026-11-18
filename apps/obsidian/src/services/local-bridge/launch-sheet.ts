@@ -4,9 +4,9 @@
 import { ConfirmationModal, Setting } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { ConfirmLaunch, LaunchSheetDetails } from "./customize";
+import type { ConfirmLaunch, LaunchSheetDetails } from "./customize.ts";
 
 /** Keeps each sheet's title id apart from an earlier sheet's. */
 let sheetSerial = 0;

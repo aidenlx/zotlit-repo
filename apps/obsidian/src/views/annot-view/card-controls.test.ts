@@ -2,17 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,
   TextFieldDraft,
   TagDraft,
-} from "@/services/annotation-repository/service";
-import type { MutationState } from "@/services/annotation-repository/write";
-import { IDLE } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
 
 import {
   annotationBlocks,
@@ -26,12 +26,12 @@ import {
   heldTagDraft,
   shownComment,
   shownTagNames,
-} from "./card-controls";
+} from "./card-controls.ts";
 import type {
   CardBlock,
   CardControls,
   CardControlsInput,
-} from "./card-controls";
+} from "./card-controls.ts";
 
 const NOW = Temporal.Instant.from("2026-09-16T15:52:21Z");
 

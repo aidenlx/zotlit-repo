@@ -4,9 +4,9 @@
 import { llms } from "fumadocs-core/source";
 import { describe, expect, it } from "vitest";
 
-import { getLlmsIndex, getMarkdownEdition } from "./markdown-editions";
-import { docsPageTitle } from "./shared";
-import { source } from "./source";
+import { getLlmsIndex, getMarkdownEdition } from "./markdown-editions.tsx";
+import { docsPageTitle } from "./shared.ts";
+import { source } from "./source.ts";
 
 const retitled = source
   .getPages("en")

@@ -1,12 +1,12 @@
 // One Ink Stroke under the pointer: its raw samples in PDF points on the page
 // it was pressed on, and its smoothed path published once per animation frame.
-import type { ReaderPage } from "./creation";
-import type { Point } from "./hit-test";
-import { clampToViewBox, StrokeSamples } from "./ink-path";
-import { update } from "./reader-surface-model";
-import type { ReaderSurface } from "./reader-surface-model";
-import { clearLiveStroke, publishLiveStroke } from "./reader-surface-state";
-import { pdfPointAt } from "./surface";
+import type { ReaderPage } from "./creation.ts";
+import type { Point } from "./hit-test.ts";
+import { clampToViewBox, StrokeSamples } from "./ink-path.ts";
+import { update } from "./reader-surface-model.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
+import { clearLiveStroke, publishLiveStroke } from "./reader-surface-state.ts";
+import { pdfPointAt } from "./surface.ts";
 
 export interface InkStrokeOptions {
   /** The pointer that pressed, which alone moves and ends the stroke. */

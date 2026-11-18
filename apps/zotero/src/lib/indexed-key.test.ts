@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatObjectKeys } from "./indexed-key.js";
+import { formatObjectKeys } from "./indexed-key.ts";
 
 describe("formatObjectKeys", () => {
   it("formats personal and group-library identities in row order", () => {

@@ -2,36 +2,36 @@
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import { vaultError } from "@/lib/vault-errors";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationLookupState } from "@/services/citation-index/lookup-service";
-import { CitationIndex } from "@/services/citation-index/service";
-import type { DocumentCitationSet } from "@/services/citation-index/service";
-import type { DocumentCitations } from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import type { DocumentCitationSet } from "@/services/citation-index/service.ts";
+import type { DocumentCitations } from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import type {
   BibliographyRenderOutcome,
   BibliographyRenderEvent,
-} from "@/services/pandoc/render-cache";
-import { PandocEngine } from "@/services/pandoc/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service";
+} from "@/services/pandoc/render-cache.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
 
-import { holdReferencesModel, makeReferencesModel } from "./model";
+import { holdReferencesModel, makeReferencesModel } from "./model.ts";
 
 export interface ReferencesHostOptions {
   sources?: HostSources;
@@ -57,9 +57,13 @@ export async function makeReferencesHost(options: ReferencesHostOptions = {}) {
   const zotero = testEvent<ZoteroReadsEvent>();
   const bibliography = testEvent<BibliographyRenderEvent>();
   const text =
-    testEvent<import("@/services/citation-text/service").CitationTextEvent>();
+    testEvent<
+      import("@/services/citation-text/service.ts").CitationTextEvent
+    >();
   const index =
-    testEvent<import("@/services/citation-index/service").CitationIndexEvent>();
+    testEvent<
+      import("@/services/citation-index/service.ts").CitationIndexEvent
+    >();
   const scans: (PromiseWithResolvers<DocumentCitationSet> & { file: TFile })[] =
     [];
   const renders: PromiseWithResolvers<BibliographyRenderOutcome>[] = [];

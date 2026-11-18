@@ -20,13 +20,13 @@ import type {
 } from "@zotlit/filter-expression";
 import type { PlacedFault, Span } from "@zotlit/workbench/language";
 
-import { allViewsDataset } from "@/views/query-view/query-file";
+import { allViewsDataset } from "@/views/query-view/query-file.ts";
 import type {
   FilterLocation,
   FilterSection,
   QueryFile,
   QueryFileView,
-} from "@/views/query-view/query-file";
+} from "@/views/query-view/query-file.ts";
 
 /** A vault property in a condition: its name, and where the condition's text reads it. */
 export interface VaultRead {

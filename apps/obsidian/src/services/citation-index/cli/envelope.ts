@@ -8,7 +8,7 @@
 
 import type { Loc } from "obsidian";
 
-import { createCliDiagnostics } from "@/lib/cli-diagnostic";
+import { createCliDiagnostics } from "@/lib/cli-diagnostic.ts";
 import type {
   AnnotationOccurrence,
   AnnotationUse,
@@ -20,7 +20,7 @@ import type {
   CitedByGroup,
   DatabaseReadability,
   SnapshotItem,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
 /** The wire format of the `zotlit:` citation commands, versioned on its own. */
 export const CONTRACT_VERSION = 4;

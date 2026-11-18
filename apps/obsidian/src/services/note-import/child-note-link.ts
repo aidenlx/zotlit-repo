@@ -4,7 +4,7 @@ import type { TFile } from "obsidian";
 import type { ChildNote, TemplateNoteLink } from "@zotlit/db";
 import { zoteroNoteLink } from "@zotlit/db";
 
-import type { MarkdownLinker } from "@/lib/obsidian-file-manager";
+import type { MarkdownLinker } from "@/lib/obsidian-file-manager.ts";
 
 /** What a Child Note's link reads: its Imported Note, and the link call. */
 export interface ChildNoteLinkDeps {

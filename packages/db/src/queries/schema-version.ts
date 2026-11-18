@@ -1,9 +1,10 @@
 // Reports the Zotero schema versions of the database being read.
-import type { NodeDatabaseClient } from "@/client/node";
-import type { SQLocalDatabaseClient } from "@/client/web";
-import { readDatabaseLayout } from "@/layout";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { SQLocalDatabaseClient } from "#client/web.ts";
 
-import { defineQuery } from "./_shared";
+import { defineQuery } from "./_shared.ts";
+
+import { readDatabaseLayout } from "#layout/index.ts";
 
 /**
  * Inclusive version ranges ZotLit is tested against, keyed by the

@@ -10,38 +10,41 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { occurrences, rendered } from "@/services/citation-text/__fixtures__";
-import { citationKey } from "@/services/citation-text/present";
-import type { FormattedOccurrence } from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import type { CitationTextEvent } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import {
+  occurrences,
+  rendered,
+} from "@/services/citation-text/__fixtures__.ts";
+import { citationKey } from "@/services/citation-text/present.ts";
+import type { FormattedOccurrence } from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { CitationTextEvent } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import type {
   CitationHoverRequest,
   NavigationPane,
-} from "@/services/citekey-navigation";
-import { NoteIndex } from "@/services/note-index/service";
-import type { NoteIndexChange } from "@/services/note-index/service";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
-import type { Held } from "@/services/query-client/service";
-import { settingsFeed } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
+} from "@/services/citekey-navigation/index.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { NoteIndexChange } from "@/services/note-index/service.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { settingsFeed } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { internalLink, section } from "./__fixtures__/internal-link";
-import { layerWikilinkReading } from "./service";
+import { internalLink, section } from "./__fixtures__/internal-link.ts";
+import { layerWikilinkReading } from "./service.ts";
 
 /** The one Literature Note the metadata cache knows. */
 const WANG = "literatures/wangMutationalClinicalSpectrum2020a";

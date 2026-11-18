@@ -2,19 +2,19 @@ import { it } from "@effect/vitest";
 import { Cause, Duration, Effect, Exit, Stream } from "effect";
 import { afterEach, describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import * as lookupEvents from "@/services/citation-index/lookup-service";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__";
-import { testReads } from "@/services/zotero-reads/__fixtures__";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
+import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
+import { testReads } from "@/services/zotero-reads/__fixtures__.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { citationLookupFixture } from "./__fixtures__";
+import { citationLookupFixture } from "./__fixtures__.ts";
 import {
   GROUP_KEY,
   TWIN_KEY,
@@ -22,7 +22,7 @@ import {
   sameLibraryTwin,
   groupTwin,
   bothLibraries,
-} from "./__fixtures__/ambiguous";
+} from "./__fixtures__/ambiguous.ts";
 import {
   createCitationIndexHarness,
   DatabaseStub,
@@ -31,12 +31,12 @@ import {
   MY_LIBRARY_ID,
   KEY_A,
   KEY_B,
-} from "./test-harness";
+} from "./test-harness.ts";
 import type {
   CitationIndexHarness,
   CitationIndexHarnessOptions,
-} from "./test-harness";
-import { LibraryScopeStub, personalLibrary } from "./test-harness";
+} from "./test-harness.ts";
+import { LibraryScopeStub, personalLibrary } from "./test-harness.ts";
 
 const queryClients: AsyncDisposable[] = [];
 afterEach(async () => {

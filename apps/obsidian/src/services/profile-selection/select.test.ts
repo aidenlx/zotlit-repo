@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { MatchTree } from "@zotlit/templates/facade";
 
-import { compileProfileMatch, describeMatch } from "./index";
+import { compileProfileMatch, describeMatch } from "./index.ts";
 
 describe("compileProfileMatch", () => {
   it("reads no Match as absent", () => {

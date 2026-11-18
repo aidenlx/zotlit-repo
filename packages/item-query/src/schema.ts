@@ -1,23 +1,23 @@
 /** Build-only access to the registry-derived Query Schema catalog. */
-import { describeAnnotationQueryVocabulary } from "./describe-annotation-query";
-import { describeAttachmentQueryVocabulary } from "./describe-attachment-query";
-import { describeItemQueryVocabulary } from "./describe-item-query";
-import { FORMULA_SCHEMA } from "./formulas";
+import { describeAnnotationQueryVocabulary } from "./describe-annotation-query.ts";
+import { describeAttachmentQueryVocabulary } from "./describe-attachment-query.ts";
+import { describeItemQueryVocabulary } from "./describe-item-query.ts";
+import { FORMULA_SCHEMA } from "./formulas.ts";
 import {
   ITEM_SUMMARY,
   ATTACHMENT_SUMMARY,
   ANNOTATION_SUMMARY,
-} from "./record-vocabularies";
+} from "./record-vocabularies.ts";
 
 export {
   describeItemQuery,
   describeItemQueryVocabulary,
   describeQuery,
-} from "./describe-item-query";
+} from "./describe-item-query.ts";
 export {
   describeAnnotationQuery,
   describeAnnotationQueryVocabulary,
-} from "./describe-annotation-query";
+} from "./describe-annotation-query.ts";
 
 /** One static catalog per plugin version, with shared language definitions. */
 export function describeQueryVocabulary() {
@@ -57,4 +57,4 @@ export function describeQueryVocabulary() {
 export {
   describeAttachmentQuery,
   describeAttachmentQueryVocabulary,
-} from "./describe-attachment-query";
+} from "./describe-attachment-query.ts";

@@ -5,7 +5,7 @@ import { expect, test } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { chinesePagesPlugin } from "./chinese-pages-plugin";
+import { chinesePagesPlugin } from "./chinese-pages-plugin.ts";
 
 // Development seam: adding, renaming, or deleting a Chinese edition updates
 // SSR locale metadata in the already-running Vite server.
@@ -55,7 +55,7 @@ test("refreshes locale metadata when native Chinese files are added, renamed, an
       throw new Error("The locale test requires Vite's SSR runner.");
     }
     const { getPageLocaleState } =
-      await ssr.runner.import<typeof import("./locale-state")>("/entry.ts");
+      await ssr.runner.import<typeof import("./locale-state.ts")>("/entry.ts");
     return getPageLocaleState(path, "zh-CN");
   }
   const page = join(root, "content/docs/added.zh-CN.mdx");

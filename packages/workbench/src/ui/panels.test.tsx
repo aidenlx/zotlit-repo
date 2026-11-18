@@ -8,10 +8,10 @@ import {
 import * as Atom from "effect/reactivity/Atom";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { INITIAL_PANELS, pinFields } from "./panel-layout";
-import type { ViewSize, WorkbenchPanels } from "./panel-layout";
-import { SidePanels } from "./panels";
-import { mount } from "./test-host";
+import { INITIAL_PANELS, pinFields } from "./panel-layout.ts";
+import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
+import { SidePanels } from "./panels.tsx";
+import { mount } from "./test-host.tsx";
 
 afterEach(cleanup);
 

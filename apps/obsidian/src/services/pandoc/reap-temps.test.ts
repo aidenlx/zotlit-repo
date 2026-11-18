@@ -14,8 +14,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect } from "vitest";
 
-import { CSL_STAGING_EXT, cslStoreDirectory } from "./csl";
-import { reapCslStore } from "./reap-temps";
+import { CSL_STAGING_EXT, cslStoreDirectory } from "./csl.ts";
+import { reapCslStore } from "./reap-temps.ts";
 
 let parent: string;
 let store: string;

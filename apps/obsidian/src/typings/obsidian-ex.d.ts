@@ -36,7 +36,7 @@ declare module "obsidian" {
   }
   /** Cold-loads the host PDF.js module and configures its worker. Internal. */
   export function loadPdfJs(): Promise<
-    import("../services/excerpt-image/renderer").ExcerptPdfJs
+    import("../services/excerpt-image/renderer.ts").ExcerptPdfJs
   >;
   interface MarkdownPostProcessorContext {
     /**
@@ -170,11 +170,11 @@ declare module "obsidian" {
     ): EventRef;
 
     /** A menu ZotLit built, raised before it shows so listeners add entries. */
-    on<E extends import("@/services/menu-events").ZotLitMenuEvent>(
+    on<E extends import("@/services/menu-events.ts").ZotLitMenuEvent>(
       name: E,
       callback: (
         menu: Menu,
-        info: import("@/services/menu-events").ZotLitMenuEvents[E],
+        info: import("@/services/menu-events.ts").ZotLitMenuEvents[E],
       ) => any,
       ctx?: any,
     ): EventRef;
@@ -185,7 +185,7 @@ declare module "obsidian" {
     on(
       name: "zotlit:open-template-workbench",
       callback: (
-        request: import("@/lib/workbench-recovery").TemplateWorkbenchRequest,
+        request: import("@/lib/workbench-recovery.ts").TemplateWorkbenchRequest,
       ) => void,
       ctx?: any,
     ): EventRef;

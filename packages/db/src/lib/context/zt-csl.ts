@@ -1,3 +1,5 @@
+import type { ItemDate } from "#lib/zt-date.ts";
+
 // Reverse mapper: embedded CSL-JSON item data (as Zotero hoists it onto a note's
 // `data-citation-items`) → the narrowed zt cite-item vocabulary.
 import {
@@ -6,18 +8,17 @@ import {
   CREATOR_TYPE_TO_CSL_NAME,
 } from "@zotlit/zotero-types/csl";
 
+import type { TemplateCiteItemData } from "./zt-template-cite.ts";
+import type { TemplateCreator } from "./zt-template-item.ts";
+
 import {
   textDate,
   tryDate,
   tryYearMonth,
   withToString,
   yearOnly,
-} from "@/lib/zt-date";
-import type { ItemDate } from "@/lib/zt-date";
-import { parseItemExtra } from "@/lib/zt-extra";
-
-import type { TemplateCiteItemData } from "./zt-template-cite";
-import type { TemplateCreator } from "./zt-template-item";
+} from "#lib/zt-date.ts";
+import { parseItemExtra } from "#lib/zt-extra.ts";
 
 /**
  * {@link CREATOR_TYPE_TO_CSL_NAME} inverted into CSL variable → Zotero

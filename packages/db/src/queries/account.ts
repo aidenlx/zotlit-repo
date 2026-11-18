@@ -1,9 +1,9 @@
+// Reads the signed-in Zotero account's identity from the `settings` table.
+import type { NodeDatabaseClient } from "#client/node.ts";
+
 import { logLibrary } from "@zotlit/shared/logging";
 
-// Reads the signed-in Zotero account's identity from the `settings` table.
-import type { NodeDatabaseClient } from "@/client/node";
-
-import { defineQuery } from "./_shared";
+import { defineQuery } from "./_shared.ts";
 
 /**
  * How Zotero identifies the signed-in account. It writes `localUserKey` on

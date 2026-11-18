@@ -5,17 +5,17 @@ import { describe, expect, it } from "vitest";
 
 import type { Item } from "@zotlit/db";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { AttachmentImport } from "@/services/attachment-import/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { defaults } from "@/services/settings/schema";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
 
-import { noteFeatureHandle } from "./__fixtures__/note-feature";
+import { noteFeatureHandle } from "./__fixtures__/note-feature.ts";
 
 const PAPERS = "Rz9Wm4YfH6Kd" as ProfileId;
 const ITEM = stubService<Item>("Item", { itemID: 1, indexedKey: "ABCD2345" });

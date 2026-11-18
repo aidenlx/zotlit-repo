@@ -1,7 +1,7 @@
 import { join, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { exportDestinationLocation } from "./destination";
+import { exportDestinationLocation } from "./destination.ts";
 
 const homePath = resolve("researcher");
 const vaultPath = join(homePath, "Thesis");

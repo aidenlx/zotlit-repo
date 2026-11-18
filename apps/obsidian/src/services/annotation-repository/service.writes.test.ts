@@ -6,7 +6,7 @@ import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { AbortError } from "@/lib/abort-error";
+import { AbortError } from "@/lib/abort-error.ts";
 import {
   annotationItem,
   annotationPage,
@@ -21,8 +21,8 @@ import {
   staleVersion,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
-import type { ZoteroReadLease } from "@/services/zotero-reads/service";
+} from "@/services/zotero-local-api/__fixtures__.ts";
+import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 
 import {
   collect,
@@ -40,7 +40,7 @@ import {
   MADE,
   colorOf,
   annotationRows,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 
 it.effect(
   "waits for the first API list before writing an Annotation already shown from the database",

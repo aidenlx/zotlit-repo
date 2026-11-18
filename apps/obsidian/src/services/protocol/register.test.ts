@@ -17,98 +17,100 @@ import { beforeEach, describe, expect, vi } from "vitest";
 
 import type { Attachment, getItemDisplayRefByID, Library } from "@zotlit/db";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openAttachments } from "@/lib/attachment-open";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { TargetOpener } from "@/services/attachment-open/open-target";
-import { toObsidianOpenableAttachments } from "@/services/attachment-open/resolve";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
-import { LibraryScope } from "@/services/library-scope/service";
-import { LocalServer } from "@/services/local-server/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openAttachments } from "@/lib/attachment-open.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { TargetOpener } from "@/services/attachment-open/open-target.ts";
+import { toObsidianOpenableAttachments } from "@/services/attachment-open/resolve.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
 import type {
   ImportNotesRequest,
   UpdateManyRequest,
-} from "@/services/local-server/service";
-import { openCompanionNote } from "@/services/note-feature";
-import { NoteFeature } from "@/services/note-feature/service";
+} from "@/services/local-server/service.ts";
+import { openCompanionNote } from "@/services/note-feature/index.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
   runBatchUpdate,
   runBatchUpdateAll,
-} from "@/services/note-feature/update-batch";
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch";
-import { NoteImporter } from "@/services/note-import/service";
-import type { NoteImportView } from "@/services/note-import/view";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/note-feature/update-batch.ts";
+import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
+import { NoteImporter } from "@/services/note-import/service.ts";
+import type { NoteImportView } from "@/services/note-import/view.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+} from "@/services/zotero-reads/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
+import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { ProtocolOutcome } from "./outcome";
-import { layerProtocolHandlers, registerProtocolHandlers } from "./register";
-import type { ProtocolDeps } from "./register";
+import { ProtocolOutcome } from "./outcome.ts";
+import { layerProtocolHandlers, registerProtocolHandlers } from "./register.ts";
+import type { ProtocolDeps } from "./register.ts";
 
 /** The Profile the import dialog answers. */
 type ImportedProfile = NonNullable<
   Effect.Success<ReturnType<ProtocolDeps["importProfile"]>>
 >;
 
-vi.mock("@/services/note-feature/update-batch", async (importOriginal) => {
+vi.mock("@/services/note-feature/update-batch.ts", async (importOriginal) => {
   const { Effect } = await import("effect");
   return {
     ...(await importOriginal<
-      typeof import("@/services/note-feature/update-batch")
+      typeof import("@/services/note-feature/update-batch.ts")
     >()),
     runBatchUpdate: vi.fn(() => Effect.succeed({ outcome: "batch-modal" })),
     runBatchUpdateAll: vi.fn(() => Effect.succeed({ outcome: "batch-modal" })),
   };
 });
 
-vi.mock("@/services/note-feature", async (importOriginal) => {
+vi.mock("@/services/note-feature/index.ts", async (importOriginal) => {
   const { Effect } = await import("effect");
   return {
-    ...(await importOriginal<typeof import("@/services/note-feature")>()),
+    ...(await importOriginal<
+      typeof import("@/services/note-feature/index.ts")
+    >()),
     openCompanionNote: vi.fn(() => Effect.void),
   };
 });
 
-vi.mock("@/lib/attachment-open", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open")>()),
+vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
   openAttachments: vi.fn(),
 }));
 
-vi.mock("@/services/attachment-open/resolve", async (importOriginal) => ({
+vi.mock("@/services/attachment-open/resolve.ts", async (importOriginal) => ({
   ...(await importOriginal<
-    typeof import("@/services/attachment-open/resolve")
+    typeof import("@/services/attachment-open/resolve.ts")
   >()),
   toObsidianOpenableAttachments: vi.fn(),
 }));
 
-vi.mock("@/views/template-workbench/open", () => ({
+vi.mock("@/views/template-workbench/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 
-vi.mock("@/views/template-data-explorer/register", () => ({
+vi.mock("@/views/template-data-explorer/register.ts", () => ({
   openTemplateDataExplorer: vi.fn(async () => {}),
 }));
 

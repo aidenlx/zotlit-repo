@@ -2,17 +2,12 @@
   "name": "@zotlit/protocol",
   "version": "0.0.0",
   "private": true,
-  "files": [
-    "dist"
-  ],
   "type": "module",
   "exports": {
-    ".": "./dist/index.mjs",
+    ".": "./src/index.ts",
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "lint": "oxlint",
@@ -25,7 +20,6 @@
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "valibot": "catalog:",
     "vitest": "catalog:"

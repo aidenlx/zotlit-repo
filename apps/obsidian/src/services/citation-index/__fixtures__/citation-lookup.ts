@@ -1,18 +1,18 @@
-import { testEvent } from "@/lib/__fixtures__/event-stream";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
 
 import { Effect, Stream } from "effect";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import type { CitationLookup } from "@/services/citation-index/lookup-service";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 
 import type {
   CitationLookupAnswer,
   CitationLookupRequest,
-} from "@/services/citation-index/lookup";
+} from "@/services/citation-index/lookup.ts";
 import type {
   CitationLookupObservation,
   CitationLookupStatus,
   CitationLookupState,
-} from "@/services/citation-index/lookup-service";
+} from "@/services/citation-index/lookup-service.ts";
 
 /** The consumer seam: async delivery, strict requested answers, and a held placeholder. */
 type LookupService = CitationLookup["Service"];

@@ -3,7 +3,7 @@
 // from selecting them in Live Preview and settle as Export to PDF waits for
 // them. These tests drive each host as Obsidian does: the embed through its
 // creator and `loadFile`, the block through its code block processor.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { delay } from "@std/async";
 import { Stream } from "effect";
 import type {
@@ -16,24 +16,24 @@ import type {
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "@/services/item-query/query-view";
-import { testAnnotHost } from "@/views/annot-view/__fixtures__/host";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { fakeQuery } from "@/views/query-view/__fixtures__/query-run";
+} from "@/services/item-query/query-view.ts";
+import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
 
 // @vitest-environment happy-dom
-import { makeQueryHost } from "./__fixtures__/host";
-import { noLiteratureNotes } from "./__fixtures__/literature-notes";
-import { registerQueryBlock } from "./block";
-import { QueryCardFocus } from "./card-focus";
-import { createQueryFileEmbed } from "./embed";
-import type { QueryView, QueryViewDeps } from "./view";
+import { makeQueryHost } from "./__fixtures__/host.ts";
+import { noLiteratureNotes } from "./__fixtures__/literature-notes.ts";
+import { registerQueryBlock } from "./block.ts";
+import { QueryCardFocus } from "./card-focus.ts";
+import { createQueryFileEmbed } from "./embed.ts";
+import type { QueryView, QueryViewDeps } from "./view.tsx";
 
 const FILE_PATH = "query-files/Reading.zotquery";
 const FILE = `views:

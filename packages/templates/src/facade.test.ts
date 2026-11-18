@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation";
-import { TemplateError, TemplateFacade } from "./facade";
-import { managedRegionTransform, MARKER_END, MARKER_START } from "./obsidian";
+import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation.ts";
+import { TemplateError, TemplateFacade } from "./facade.ts";
+import {
+  managedRegionTransform,
+  MARKER_END,
+  MARKER_START,
+} from "./obsidian.ts";
 
 /** Every error reachable from `error` through the links liquidjs and eta use. */
 function errorLinks(error: unknown): Error[] {

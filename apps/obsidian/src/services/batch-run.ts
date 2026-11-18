@@ -1,10 +1,10 @@
 // Concurrent classify/execute primitives for batch runs, and the Promise edge the batch modal calls.
 import { Cause, Deferred, Effect, Exit, Option, Ref, Stream } from "effect";
 
-import { exitOver, valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { settleAtEdge } from "@/lib/signal-edge";
-import { formatErrorMessage } from "@/lib/toast";
+import { exitOver, valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { settleAtEdge } from "@/lib/signal-edge.ts";
+import { formatErrorMessage } from "@/lib/toast.ts";
 
 /** A failed-item payload the run reports; rendered by the modal's failure row. */
 export interface BatchFailure {

@@ -5,10 +5,10 @@ import {
   compileManagedFrontmatterEntries,
   evalFrontmatterFields,
   evalManagedFrontmatterEntries,
-} from "./frontmatter";
-import type { FrontmatterField } from "./frontmatter";
-import { createLiquidEngine } from "./liquid";
-import type { ManagedFrontmatterEntry } from "./literature-note-template";
+} from "./frontmatter.ts";
+import type { FrontmatterField } from "./frontmatter.ts";
+import { createLiquidEngine } from "./liquid.ts";
+import type { ManagedFrontmatterEntry } from "./literature-note-template.ts";
 
 function evalFields(
   fields: readonly FrontmatterField[],

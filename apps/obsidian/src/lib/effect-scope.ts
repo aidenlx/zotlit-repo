@@ -3,7 +3,7 @@
 import { Cause, Effect, Exit, Scope } from "effect";
 import type { Component } from "obsidian";
 
-import { logAndContinue, withLogCategory } from "./effect-log";
+import { logAndContinue, withLogCategory } from "./effect-log.ts";
 
 /** Log a failed release, so the rest of the scope still closes. */
 const logFailure =

@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 
-import { browserScheduler } from "./browser-scheduler";
+import { browserScheduler } from "./browser-scheduler.ts";
 
 class FakeChannel {
   static last: FakeChannel;

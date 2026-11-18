@@ -1,13 +1,13 @@
+import type { BaseItem, Item } from "#queries/items.ts";
 import { describe, expect, it } from "vitest";
 
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import { itemBaseFields, resolveVenue } from "@/lib/zt-venue";
-import type { BaseItem, Item } from "@/queries/items";
+import { itemToTemplateBaseData, resolveItemCore } from "./zt-template-item.ts";
+import type { TemplateCreator } from "./zt-template-item.ts";
 
-import { itemToTemplateBaseData, resolveItemCore } from "./zt-template-item";
-import type { TemplateCreator } from "./zt-template-item";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { itemBaseFields, resolveVenue } from "#lib/zt-venue.ts";
 
 function makeItem(
   fields: { itemType: string } & Record<string, string | null>,

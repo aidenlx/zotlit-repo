@@ -5,16 +5,16 @@ import { Cause, Effect } from "effect";
 import { isChildItemFields } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { itemSummary } from "@/lib/item-summary";
-import { libraryLabel } from "@/services/library-scope/label";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { itemSummary } from "@/lib/item-summary.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
 import type {
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/library-scope/scope.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { SnapshotItem } from "./snapshot";
+import type { SnapshotItem } from "./snapshot.ts";
 
 /**
  * One Item an Ambiguous Citation Key names, as a candidate row shows it: the

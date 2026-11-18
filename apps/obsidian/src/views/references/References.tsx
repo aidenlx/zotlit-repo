@@ -2,24 +2,24 @@ import { useAtomValue } from "@effect/atom-react";
 import type { IconName } from "obsidian";
 import type { MouseEvent, ReactNode } from "react";
 
-import { AmbiguousCandidates } from "@/components/ambiguous-candidates";
-import { Button } from "@/components/obsidian/button";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { SidebarToolbar } from "@/components/sidebar-toolbar";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import type { ReferenceSource } from "@/services/citation-index/service";
-import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation";
-import { InlineContent } from "@/services/pandoc/inline-content";
+import { AmbiguousCandidates } from "@/components/ambiguous-candidates.tsx";
+import { Button } from "@/components/obsidian/button.tsx";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { SidebarToolbar } from "@/components/sidebar-toolbar.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import type { ReferenceSource } from "@/services/citation-index/service.ts";
+import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import { InlineContent } from "@/services/pandoc/inline-content.tsx";
 import type {
   PandocEngineFailure,
   PandocEngineStatus,
-} from "@/services/pandoc/service";
+} from "@/services/pandoc/service.ts";
 
-import { useReferenceActions } from "./actions";
-import type { ReferenceEntry } from "./entries";
-import { useReferencesModel } from "./model";
-import type { ReferencesCopyBlock } from "./state";
+import { useReferenceActions } from "./actions.ts";
+import type { ReferenceEntry } from "./entries.ts";
+import { useReferencesModel } from "./model.ts";
+import type { ReferencesCopyBlock } from "./state.ts";
 
 /**
  * The pane: the fixed toolbar above, then one scrolling region holding the

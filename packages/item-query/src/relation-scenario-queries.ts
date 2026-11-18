@@ -1,8 +1,8 @@
-import type { QueryDataset } from "./dataset";
-import { ANNOTATIONS } from "./query-annotations";
-import { ATTACHMENTS } from "./query-attachments";
-import { ITEMS } from "./query-items";
-import type { ItemQueryRequest } from "./request";
+import type { QueryDataset } from "./dataset.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { ITEMS } from "./query-items.ts";
+import type { ItemQueryRequest } from "./request.ts";
 
 /** Cross-dataset research questions, also run through the forced scan oracle. */
 export const RELATION_SCENARIO_QUERIES: readonly {

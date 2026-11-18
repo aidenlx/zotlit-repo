@@ -4,12 +4,12 @@ import { regex } from "arkregex";
 import { around } from "monkey-around";
 import type { GraphColor, GraphData } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import { getLogger } from "@/lib/log";
-import { themeProperty } from "@/lib/theme-hooks";
+import { disposable } from "@/lib/disposables.ts";
+import { getLogger } from "@/lib/log.ts";
+import { themeProperty } from "@/lib/theme-hooks.ts";
 
-import type { GraphCitationAdditions } from "./adapter";
-import type { GraphLeafMembers } from "./install";
+import type { GraphCitationAdditions } from "./adapter.ts";
+import type { GraphLeafMembers } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 

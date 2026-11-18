@@ -5,9 +5,9 @@ import { constants } from "node:fs";
 import { copyFile, lstat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
-import { withLogCategory } from "./effect-log";
-import { nodeFileSystemCall } from "./errno";
-import { reflink } from "./reflink";
+import { withLogCategory } from "./effect-log.ts";
+import { nodeFileSystemCall } from "./errno.ts";
+import { reflink } from "./reflink.ts";
 
 const logged = withLogCategory("attachment-import");
 

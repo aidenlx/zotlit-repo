@@ -9,16 +9,16 @@ import {
   layerLocalBridgeClient,
   LocalBridgeClient,
   LocalBridgeStorage,
-} from "./client";
+} from "./client.ts";
 import {
   BRIDGE_CAPABILITIES,
   BRIDGE_VERSION,
   connectFragment,
   LOCAL_BRIDGE_PATHS,
   localBridgeOrigin,
-} from "./contracts";
+} from "./contracts.ts";
 
-import { SAMPLE_ITEMS } from "#/render/index";
+import { SAMPLE_ITEMS } from "#render/index.ts";
 
 const PORT = 23_120;
 const CONTRACT = SAMPLE_ITEMS[0]!.contractVersion;

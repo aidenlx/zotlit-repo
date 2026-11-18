@@ -72,7 +72,7 @@ function isBridgeType(statement: ModuleStatement, source: string): boolean {
   return (
     statement.type === "ImportDeclaration" &&
     statement.importKind === "type" &&
-    source === "@/lib/effect-bridge"
+    source === "@/lib/effect-bridge.ts"
   );
 }
 

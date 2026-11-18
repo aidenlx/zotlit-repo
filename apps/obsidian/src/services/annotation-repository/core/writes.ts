@@ -14,23 +14,23 @@ import {
 import { parseAnnotationPosition, parseIndexedKey } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
 
-import { valueOr } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { contentOf } from "@/services/annotation-repository/history";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { contentOf } from "@/services/annotation-repository/history.ts";
 import type {
   HistoryJoin,
   HistoryStep,
-} from "@/services/annotation-repository/history";
-import { lockRefuses } from "@/services/annotation-repository/lock";
+} from "@/services/annotation-repository/history.ts";
+import { lockRefuses } from "@/services/annotation-repository/lock.ts";
 import type {
   AnnotationLock,
   LockedVerb,
   LockReason,
-} from "@/services/annotation-repository/lock";
+} from "@/services/annotation-repository/lock.ts";
 import {
   resolvesSilently,
   sameStoredGeometry,
-} from "@/services/annotation-repository/reconcile";
+} from "@/services/annotation-repository/reconcile.ts";
 import {
   colorPatch,
   createRequest,
@@ -41,7 +41,7 @@ import {
   TEXT_FIELDS,
   wireColor,
   writePosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   AnnotationDraft,
   ConflictedWrite,
@@ -53,24 +53,24 @@ import type {
   WriteFailure,
   WriteRequest,
   WriteTarget,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   LocalApiFailure,
   LocalApiSource,
-} from "@/services/zotero-local-api/service";
+} from "@/services/zotero-local-api/service.ts";
 import {
   libraryPath,
   readCreateResult,
-} from "@/services/zotero-local-api/wire";
+} from "@/services/zotero-local-api/wire.ts";
 
-import type { DatabaseRowsError } from "./bridge";
+import type { DatabaseRowsError } from "./bridge.ts";
 import {
   cancelTextSave,
   draftFor,
   dropDrafts,
   reconcileDrafts,
-} from "./draft-store";
-import { recordExistence, recordGroup, recordStep } from "./history-record";
+} from "./draft-store.ts";
+import { recordExistence, recordGroup, recordStep } from "./history-record.ts";
 import {
   announceReadPixels,
   attachmentHolding,
@@ -84,14 +84,14 @@ import {
   refresh,
   rememberAcknowledgedRevision,
   sourceStillBound,
-} from "./lists";
-import type { AnnotationLibraryUnresolved } from "./lists";
+} from "./lists.ts";
+import type { AnnotationLibraryUnresolved } from "./lists.ts";
 import {
   ANNOTATIONS,
   TEXT_FIELD_SPECS,
   freshValueOf,
   fromLocalApi,
-} from "./model";
+} from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationMutation,
@@ -103,9 +103,9 @@ import type {
   PendingProposal,
   ProposedFields,
   WriteAttempt,
-} from "./model";
-import { leave, settle, standingOutcome, takeOver } from "./outcomes";
-import type { CoreState } from "./state";
+} from "./model.ts";
+import { leave, settle, standingOutcome, takeOver } from "./outcomes.ts";
+import type { CoreState } from "./state.ts";
 
 /** The write failure a lock gives, with its Lock Reason. */
 type LockedFailure = Extract<WriteFailure, { kind: "locked" }>;

@@ -4,13 +4,13 @@ import type { SearchMatches } from "obsidian";
 import { isChildItemFields } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { itemSummary } from "@/lib/item-summary";
-import { libraryLabel } from "@/services/library-scope/label";
-import type { PluginSettings } from "@/services/settings/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { itemSummary } from "@/lib/item-summary.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import type { SearchHit } from "./service";
+import type { SearchHit } from "./service.ts";
 
 /** CSS owns this value; JS reads it so the truncation window matches the
  *  visible column width. Themes override by setting the same variable. */

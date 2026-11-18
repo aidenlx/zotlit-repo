@@ -9,10 +9,10 @@
 
 import type { ReactNode } from "react";
 
-import { DocsImage } from "@/components/docs-image";
-import { Recording } from "@/components/recording";
-import { cn } from "@/lib/cn";
-import type { StepMedia } from "@/lib/learn-media";
+import { DocsImage } from "@/components/docs-image.tsx";
+import { Recording } from "@/components/recording.tsx";
+import { cn } from "@/lib/cn.ts";
+import type { StepMedia } from "@/lib/learn-media.ts";
 
 /** The media the build found for one step, or undefined when it has none yet. */
 export function stepMedia(media: string, n: number) {

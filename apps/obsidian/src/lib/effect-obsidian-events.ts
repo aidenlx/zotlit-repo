@@ -1,8 +1,8 @@
 import { Effect, PubSub, Stream } from "effect";
 
-import { logAndContinue } from "@/lib/effect-log";
-import { obsidianListener } from "@/lib/obsidian-event-source";
-import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source";
+import { logAndContinue } from "@/lib/effect-log.ts";
+import { obsidianListener } from "@/lib/obsidian-event-source.ts";
+import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source.ts";
 
 type Payload<E> = {
   [K in keyof E]: { readonly type: K; readonly args: E[K] };

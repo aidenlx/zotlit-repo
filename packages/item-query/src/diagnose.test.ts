@@ -4,17 +4,17 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import type { QueryDataset } from "./dataset";
-import { diagnose, diagnoseDecode, renderDiagnostic } from "./diagnose";
+import type { QueryDataset } from "./dataset.ts";
+import { diagnose, diagnoseDecode, renderDiagnostic } from "./diagnose.ts";
 import reports from "./diagnostic-reports.json";
-import { ItemQueryError } from "./error";
-import { collectQuery } from "./query";
-import { ANNOTATIONS } from "./query-annotations";
-import { ATTACHMENTS } from "./query-attachments";
-import { ITEMS } from "./query-items";
-import type { ItemQueryRequest, QueryResult } from "./request";
-import { describeQueryVocabulary } from "./schema";
-import { runEffect } from "./test-helpers";
+import { ItemQueryError } from "./error.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { ITEMS } from "./query-items.ts";
+import { collectQuery } from "./query.ts";
+import type { ItemQueryRequest, QueryResult } from "./request.ts";
+import { describeQueryVocabulary } from "./schema.ts";
+import { runEffect } from "./test-helpers.ts";
 
 // Read-only scenarios; a test that changes the database opens its own.
 let shared: ScenarioDatabase;

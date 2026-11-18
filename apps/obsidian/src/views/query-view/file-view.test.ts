@@ -1,25 +1,25 @@
 // The Query File tab writes a toolbar change to its file at once, through
 // its own save, and the toolbar says when the write failed.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Stream } from "effect";
 import { debounce } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { QueryViewOutcome } from "@/services/item-query/query-view";
-import { testAnnotHost } from "@/views/annot-view/__fixtures__/host";
-import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host";
-import { fakeQuery } from "@/views/query-view/__fixtures__/query-run";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
+import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
+import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
+import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
 
 // @vitest-environment happy-dom
-import { makeQueryHost } from "./__fixtures__/host";
-import { noLiteratureNotes } from "./__fixtures__/literature-notes";
-import { QueryFileView } from "./file-view";
-import type { QueryViewDeps } from "./view";
+import { makeQueryHost } from "./__fixtures__/host.ts";
+import { noLiteratureNotes } from "./__fixtures__/literature-notes.ts";
+import { QueryFileView } from "./file-view.ts";
+import type { QueryViewDeps } from "./view.tsx";
 
 const FILE = `views:
   - type: annotations

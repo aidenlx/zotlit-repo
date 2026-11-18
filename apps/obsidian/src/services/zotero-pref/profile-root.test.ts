@@ -6,8 +6,8 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, vi } from "vitest";
 
-import { electronAppData } from "./__fixtures__/electron-app-data";
-import { zoteroProfilesRoot } from "./profile-root";
+import { electronAppData } from "./__fixtures__/electron-app-data.ts";
+import { zoteroProfilesRoot } from "./profile-root.ts";
 
 vi.mock("node:os", async (importOriginal) => ({
   ...(await importOriginal<typeof import("node:os")>()),

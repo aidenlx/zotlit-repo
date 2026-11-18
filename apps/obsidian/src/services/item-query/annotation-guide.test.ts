@@ -8,15 +8,15 @@ import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
 import {
   ANNOTATION_GUIDE_EXAMPLES,
   ANNOTATION_GUIDE_FILTERS,
-} from "./annotation-guide";
-import { answer } from "./answer";
-import { QUERY_COMMAND } from "./contract";
-import { decodeQuery } from "./decode";
+} from "./annotation-guide.ts";
+import { answer } from "./answer.ts";
+import { QUERY_COMMAND } from "./contract.ts";
+import { decodeQuery } from "./decode.ts";
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },

@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { mediaStorePlugin, scanVideos, uploadMissing } from "./media-store";
-import type { SignedFetch } from "./media-store";
+import { mediaStorePlugin, scanVideos, uploadMissing } from "./media-store.ts";
+import type { SignedFetch } from "./media-store.ts";
 
 // The fixture's two videos and the keys their bytes give: the first 8 hex
 // digits of each file's SHA-256 (`shasum -a 256`), worked out by hand.

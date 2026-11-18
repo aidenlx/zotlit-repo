@@ -1,8 +1,6 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-
 import {
   ItemQueryDatabase,
   readAnnotationScanPage,
@@ -12,7 +10,12 @@ import {
   readAnnotationUniverseRows,
   readAnnotationHydrateChunk,
   ItemQueryStatementObserver,
-} from ".";
+} from "./index.ts";
+
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 it("scans only live annotations of live attached Items, across keyset pages", () => {
   using scenario = openScenarioDatabase({ annotations: true });

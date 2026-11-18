@@ -6,12 +6,12 @@ import { describe, expect, vi } from "vitest";
 
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { profileRevision } from "@/lib/profile-revision";
-import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { profileRevision } from "@/lib/profile-revision.ts";
+import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
 
-import { profileServiceFixture as harness } from "./__fixtures__/service";
+import { profileServiceFixture as harness } from "./__fixtures__/service.ts";
 
 const BOOKS = "Bk3Qn7XvT2Lp" as ProfileId;
 const parseLiteratureNoteTemplate = (source: string) =>

@@ -8,11 +8,11 @@ import type { Tree } from "@lezer/common";
 import { parseMixed } from "@lezer/common";
 import { regex } from "arkregex";
 
-import { templateToken } from "./highlight";
-import { liquidRanges } from "./liquid-ranges";
-import { markdownParser } from "./markdown";
-export { liquidRanges, STRUCTURAL_TAGS } from "./liquid-ranges";
-export type { LiquidRange } from "./liquid-ranges";
+import { templateToken } from "./highlight.ts";
+import { liquidRanges } from "./liquid-ranges.ts";
+import { markdownParser } from "./markdown.ts";
+export { liquidRanges, STRUCTURAL_TAGS } from "./liquid-ranges.ts";
+export type { LiquidRange } from "./liquid-ranges.ts";
 
 const delimiter = Decoration.mark({ class: templateToken.delimiter });
 const keyword = Decoration.mark({ class: templateToken.keyword });

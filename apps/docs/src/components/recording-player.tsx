@@ -26,7 +26,7 @@ import { Maximize, Minimize, Pause, Play, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { secondaryButtonClass } from "@/components/learn/action-classes";
+import { secondaryButtonClass } from "@/components/learn/action-classes.ts";
 import {
   askTurn,
   awaitTurn,
@@ -34,8 +34,8 @@ import {
   holdTurn,
   stopWaiting,
   takeTurn,
-} from "@/components/recording-turn";
-import { cn } from "@/lib/cn";
+} from "@/components/recording-turn.ts";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

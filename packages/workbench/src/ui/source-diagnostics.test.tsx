@@ -3,14 +3,17 @@ import { EditorView } from "@codemirror/view";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
-import { workbenchDiagnoses } from "./problems";
-import { ProblemsFooter, useWorkbenchProblems } from "./problems-footer";
-import { SliceEditor } from "./slice-editor";
-import { WorkbenchDiagnosticsProvider } from "./source-diagnostics";
-import { renderWithMessages as render } from "./test-host";
+import { ProblemsFooter, useWorkbenchProblems } from "./problems-footer.tsx";
+import { workbenchDiagnoses } from "./problems.ts";
+import { SliceEditor } from "./slice-editor.tsx";
+import { WorkbenchDiagnosticsProvider } from "./source-diagnostics.tsx";
+import { renderWithMessages as render } from "./test-host.tsx";
 
-import { entrySlice, WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import {
+  entrySlice,
+  WorkbenchDocumentController,
+} from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 afterEach(cleanup);
 

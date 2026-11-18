@@ -7,11 +7,11 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { describe, expect, vi } from "vitest";
 
-import { openManagedBinary } from "@/services/managed-binary/__fixtures__";
-import type { BinaryPin } from "@/services/managed-binary/service";
-import { memoryDevice } from "@/services/managed-binary/test-utils";
+import { openManagedBinary } from "@/services/managed-binary/__fixtures__.ts";
+import type { BinaryPin } from "@/services/managed-binary/service.ts";
+import { memoryDevice } from "@/services/managed-binary/test-utils.ts";
 
-import { CHINESE_SEGMENTER } from "./service";
+import { CHINESE_SEGMENTER } from "./service.ts";
 
 /** The web-target binary the plugin pins, read from the `jieba-wasm` dev dependency. */
 const packageDir = join(

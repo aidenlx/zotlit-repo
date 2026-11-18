@@ -1,10 +1,10 @@
 // Pure paste-ready template-snippet generation for Template Data Explorer nodes.
 
-import { formatAccessorPath, isAccessorIdentifier } from "./accessor-path";
-import type { TemplatePathSegment } from "./accessor-path";
-import type { DisplayNode, ListPropertyNode } from "./display-tree";
-import { JOIN_SEPARATOR, readList, shownTexts } from "./list-items";
-import { coerceToString } from "./string-coercion";
+import { formatAccessorPath, isAccessorIdentifier } from "./accessor-path.ts";
+import type { TemplatePathSegment } from "./accessor-path.ts";
+import type { DisplayNode, ListPropertyNode } from "./display-tree.ts";
+import { JOIN_SEPARATOR, readList, shownTexts } from "./list-items.ts";
+import { coerceToString } from "./string-coercion.ts";
 
 /** What starts each item's line in the loop form: a Markdown list line. */
 const LIST_LINE = "- ";

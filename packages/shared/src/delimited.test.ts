@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { delimited, delimitedLines, delimitedStart } from "./delimited";
+import { delimited, delimitedLines, delimitedStart } from "./delimited.ts";
 
 const BOM = String.fromCharCode(0xfeff);
 

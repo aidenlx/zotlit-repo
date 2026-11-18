@@ -5,28 +5,28 @@
 import type {
   InstalledCitationStyle,
   ProfileBindingDefaults,
-} from "#/bridge/index";
+} from "#bridge/index.ts";
 import type {
   ManifestScalar,
   WorkbenchDocumentController,
   WorkbenchSliceRange,
-} from "#/document/index";
+} from "#document/index.ts";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { joinNotePath } from "@zotlit/templates";
 import { useUniqueId } from "@zotlit/ui";
 
-import { ExampleActions, useExampleState } from "./example-state";
-import type { WorkbenchMessages } from "./generated/messages";
-import { useOptionalHost } from "./host";
-import type { WorkbenchMessageLabel } from "./messages";
-import { useWorkbenchMessages } from "./messages";
-import { renderDiagnosis } from "./problems";
-import { WorkbenchSelect, WorkbenchOption } from "./select";
-import { SliceEditor } from "./slice-editor";
-import type { SuggestionSource } from "./slice-editor";
-import { useParts, useIcon } from "./theme";
+import { ExampleActions, useExampleState } from "./example-state.tsx";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { useOptionalHost } from "./host.tsx";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { renderDiagnosis } from "./problems.ts";
+import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import type { SuggestionSource } from "./slice-editor.tsx";
+import { useParts, useIcon } from "./theme.tsx";
 
 /** The manifest, named without depending on the templates package. */
 type ProfileManifest = NonNullable<

@@ -2,9 +2,9 @@ import { TFile } from "obsidian";
 import type { App, Command, MetadataCache, Vault, Workspace } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { addIndexedKeyActions, indexedKeyForClipboard } from "./actions";
+import { addIndexedKeyActions, indexedKeyForClipboard } from "./actions.ts";
 
 let writeText: ReturnType<typeof vi.fn>;
 

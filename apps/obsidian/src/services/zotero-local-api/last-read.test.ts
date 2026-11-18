@@ -3,10 +3,10 @@ import { DateTime, Effect, Exit, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import {
   ATTACHMENT_KEY,
@@ -19,11 +19,11 @@ import {
   unreachable,
   writeAccepted,
   serverChanged,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 // Failure modes: wrong source or group; revoked authorization; stale object;
 // out-of-order reads; closed Zotero; rejected writes; notices from a reprobe.
-import { writeReadUse } from "./last-read";
-import { ZoteroLocalApi } from "./service";
+import { writeReadUse } from "./last-read.ts";
+import { ZoteroLocalApi } from "./service.ts";
 
 // RECORDED shape: Paired Zotero on 2026-10-19 omitted lastRead before the
 // first read, then returned numeric Unix seconds. Object version is set to 7

@@ -63,27 +63,27 @@ import {
   managedRegionTransform,
 } from "@zotlit/templates/obsidian";
 
-import { RESERVED_KEYS } from "@/lib/constants";
-import { processLiveText, readLiveText } from "@/lib/effect-live-text";
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import type { VaultEvent } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { UnknownProfileDiagnostic } from "@/lib/profile-stamp";
+import { RESERVED_KEYS } from "@/lib/constants.ts";
+import { processLiveText, readLiveText } from "@/lib/effect-live-text.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { VaultEvent } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { UnknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import {
   FileExists,
   VaultError,
   VaultFolderBlockedError,
-} from "@/lib/vault-errors";
-import { ensureVaultFolder } from "@/lib/vault-folder";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/lib/vault-errors.ts";
+import { ensureVaultFolder } from "@/lib/vault-folder.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   CITATION_TEMPLATE_NAME,
@@ -99,8 +99,8 @@ import {
   RESERVED_PARTIAL_NAMES,
   templatePath,
   TEMPLATE_NAMES,
-} from "./defaults";
-import type { TemplateName } from "./defaults";
+} from "./defaults.ts";
+import type { TemplateName } from "./defaults.ts";
 import {
   engineFaultSpan,
   InertTemplateError,
@@ -108,9 +108,9 @@ import {
   PartialNameError,
   TemplateOperationError,
   TemplateRenderError,
-} from "./errors";
-import type { EngineFaultSpan } from "./errors";
-import { normalizeVaultPath } from "./path";
+} from "./errors.ts";
+import type { EngineFaultSpan } from "./errors.ts";
+import { normalizeVaultPath } from "./path.ts";
 
 const FLUSH_DEBOUNCE_MS = 500;
 /** Bounded wait for the reconciler after this service writes a document. */
@@ -1123,7 +1123,7 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
       boolean,
       | VaultError
       | VaultFolderBlockedError
-      | import("@/lib/effect-live-text").LiveTextRewriteFailed,
+      | import("@/lib/effect-live-text.ts").LiveTextRewriteFailed,
       Vault | Workspace
     > {
       if (step.verdict === "conflict") {
@@ -2453,7 +2453,7 @@ export type TemplateFailure =
   | VaultError
   | FileExists
   | VaultFolderBlockedError
-  | import("@/lib/effect-live-text").LiveTextRewriteFailed;
+  | import("@/lib/effect-live-text.ts").LiveTextRewriteFailed;
 
 export class Template extends Context.Service<
   Template,

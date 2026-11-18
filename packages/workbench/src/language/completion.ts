@@ -10,17 +10,17 @@ import type { Extension } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { regex } from "arkregex";
 
-import { syntaxCompletion } from "./field-popup";
-import type { CompletionPresentation } from "./field-popup";
-import { pairingContext } from "./pairing-context";
-import { expressionBrackets, addPair, pairingState } from "./pairing-state";
-import { completionEdit, suggestions } from "./suggestions";
+import { syntaxCompletion } from "./field-popup.ts";
+import type { CompletionPresentation } from "./field-popup.ts";
+import { pairingContext } from "./pairing-context.ts";
+import { expressionBrackets, addPair, pairingState } from "./pairing-state.ts";
+import { completionEdit, suggestions } from "./suggestions.ts";
 import type {
   CompletionEdit,
   Suggestion,
   SuggestionConfig,
   SuggestionResult,
-} from "./suggestions";
+} from "./suggestions.ts";
 
 /**
  * Apply one shared edit through CodeMirror and isolate it in the document
@@ -101,7 +101,7 @@ export function applyTemplateCompletion(
  */
 export type SuggestionSource = (position: number) => SuggestionConfig | null;
 
-export type { CompletionPresentation } from "./field-popup";
+export type { CompletionPresentation } from "./field-popup.ts";
 
 /** CodeMirror completion over the pane's current contract and source scope. */
 export function templateCompletion(

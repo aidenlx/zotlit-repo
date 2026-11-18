@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 
 /** A complete consumer snapshot; paths and identity belong to the same source. */
 export interface ExcerptRequest {

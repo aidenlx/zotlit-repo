@@ -9,7 +9,7 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import { makeSortedRuns } from "@zotlit/shared/sorted-runs";
 
-import { read } from "./connection";
+import { read } from "./connection.ts";
 
 /** Item IDs one scan read spans; a sparse range reads fewer rows. */
 const SCAN_ID_SPAN = 500;

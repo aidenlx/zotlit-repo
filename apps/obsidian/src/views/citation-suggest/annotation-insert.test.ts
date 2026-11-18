@@ -13,21 +13,24 @@ import { TFile } from "obsidian";
 import type { App, Editor, MarkdownFileInfo } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openScope } from "@/lib/effect-scope";
-import { answerOf } from "@/lib/view-runner";
-import { setup as repositorySetup } from "@/services/annotation-repository/__fixtures__";
-import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions";
-import type { AnnotationInsert } from "@/services/note-feature/insert-annotation";
-import { buildUseLedger, ledgerHost } from "@/services/use-ledger/__fixtures__";
-import { UseLedger } from "@/services/use-ledger/service";
-import { stateEditor } from "@/views/annot-view/__fixtures__/editor";
-import type { InsertRunner } from "@/views/annot-view/insert-run";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openScope } from "@/lib/effect-scope.ts";
+import { answerOf } from "@/lib/view-runner.ts";
+import { setup as repositorySetup } from "@/services/annotation-repository/__fixtures__.ts";
+import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
+import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
+import {
+  buildUseLedger,
+  ledgerHost,
+} from "@/services/use-ledger/__fixtures__.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
+import type { InsertRunner } from "@/views/annot-view/insert-run.ts";
 
-import { insertAnnotation } from "./annotation-insert";
-import type { AnnotationHit } from "./annotation-search";
+import { insertAnnotation } from "./annotation-insert.ts";
+import type { AnnotationHit } from "./annotation-search.ts";
 
 /** The Fixture's highlight on the Rougier PDF, as the search finds it. */
 const hit: AnnotationHit = {

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import { IDLE } from "@/services/annotation-repository/write";
-import type { MutationState } from "@/services/annotation-repository/write";
-import { capabilityBlocks } from "@/views/annot-view/card-controls";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
+import { capabilityBlocks } from "@/views/annot-view/card-controls.ts";
 
-import { annotation } from "./__fixtures__";
-import { markPopupRow } from "./mark-popup";
-import type { MarkPopupRow } from "./mark-popup";
+import { annotation } from "./__fixtures__.ts";
+import { markPopupRow } from "./mark-popup.tsx";
+import type { MarkPopupRow } from "./mark-popup.tsx";
 
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 

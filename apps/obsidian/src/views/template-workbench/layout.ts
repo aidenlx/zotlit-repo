@@ -8,9 +8,12 @@ import type { ViewState, WorkspaceLeaf } from "obsidian";
 
 import { showPreview } from "@zotlit/workbench/ui";
 
-import { Workspace } from "@/lib/obsidian-workspace";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
 
-import { TEMPLATE_WORKBENCH_VIEW_TYPE, TemplateWorkbenchView } from "./view";
+import {
+  TEMPLATE_WORKBENCH_VIEW_TYPE,
+  TemplateWorkbenchView,
+} from "./view.tsx";
 
 type ProfileSource = { file: string | null; defaultProfile: boolean };
 

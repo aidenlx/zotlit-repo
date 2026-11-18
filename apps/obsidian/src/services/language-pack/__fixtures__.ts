@@ -3,12 +3,16 @@
 import { Context, Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
-import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerDeviceStorageFrom } from "@/lib/obsidian-device-storage";
-import { ObsidianEnv } from "@/lib/obsidian-env";
+import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerDeviceStorageFrom } from "@/lib/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 
-import { LanguagePack, layerLanguagePack, startLanguagePack } from "./service";
+import {
+  LanguagePack,
+  layerLanguagePack,
+  startLanguagePack,
+} from "./service.ts";
 
 /** A valid zh-CN pack, overriding Messages the tests read through `m.*`. */
 export const CHINESE_PACK = JSON.stringify({

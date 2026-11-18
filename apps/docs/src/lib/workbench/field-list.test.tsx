@@ -7,10 +7,10 @@ import { SAMPLE_ITEMS, SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 
 import { m } from "@/paraglide/messages.js";
 
-import { FieldList } from "./field-list";
-import type { FieldListProps } from "./field-list";
-import type { SampleItem } from "./fields";
-import { WebTestHost } from "./test-host";
+import { FieldList } from "./field-list.tsx";
+import type { FieldListProps } from "./field-list.tsx";
+import type { SampleItem } from "./fields.ts";
+import { WebTestHost } from "./test-host.tsx";
 
 const base = SAMPLE_ITEMS[0]!;
 const sample: SampleItem = {

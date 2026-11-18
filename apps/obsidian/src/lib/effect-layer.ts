@@ -5,8 +5,8 @@ import * as NativeEffect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { withLogCategory } from "./effect-log";
-import { runtimeServices } from "./effect-services";
+import { withLogCategory } from "./effect-log.ts";
+import { runtimeServices } from "./effect-services.ts";
 
 /**
  * A runtime over `layer` and the runtime services (browser scheduling and

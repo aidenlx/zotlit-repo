@@ -28,46 +28,46 @@ import type {
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Button } from "@/components/obsidian/button";
-import { FirstLine, Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { annotationColorLabel } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import { itemTypeIcon } from "@/lib/item-type-icon";
-import { observeResize } from "@/lib/observe-resize";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions";
-import { AnnotList } from "@/views/annot-view/AnnotView";
-import { viewTargetOpener } from "@/views/open-target";
-import { serializeQueryFile } from "@/views/query-view/query-file";
+import { Button } from "@/components/obsidian/button.tsx";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { FirstLine, Icon } from "@/components/obsidian/icon.tsx";
+import { annotationColorLabel } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { itemTypeIcon } from "@/lib/item-type-icon.ts";
+import { observeResize } from "@/lib/observe-resize.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
+import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
+import { viewTargetOpener } from "@/views/open-target.ts";
+import { serializeQueryFile } from "@/views/query-view/query-file.ts";
 import {
   LOADING_TEXT,
   ReaderLink,
   ZoteroNoteLink,
-} from "@/views/query-view/table-layout";
-import { QueryView } from "@/views/query-view/view";
-import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view";
+} from "@/views/query-view/table-layout.tsx";
+import { QueryView } from "@/views/query-view/view.tsx";
+import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view.tsx";
 
-import type { CardItem, Values } from "./card-data";
-import type { CardField } from "./card-fields";
+import type { CardItem, Values } from "./card-data.ts";
+import type { CardField } from "./card-fields.ts";
 import {
   makeCardModel,
   patchCard,
   cardLibraries,
   CardModelProvider,
   useCardState,
-} from "./card-model";
-import type { CardSession } from "./card-model";
-import { FILTER_CHIP_LINE_CLASS, TAG_CHIP_CLASS } from "./chip";
-import { READING_STATE_FACETS } from "./document";
-import type { ReadingCardDisclosures } from "./document";
-import type { ItemActions } from "./item-actions";
-import { FACET_LABELS } from "./library-tree";
-import { waitForRead } from "./model";
-import type { MenuItem } from "./row-menu";
-import type { TreeModel } from "./tree-model";
+} from "./card-model.ts";
+import type { CardSession } from "./card-model.ts";
+import { FILTER_CHIP_LINE_CLASS, TAG_CHIP_CLASS } from "./chip.ts";
+import { READING_STATE_FACETS } from "./document.ts";
+import type { ReadingCardDisclosures } from "./document.ts";
+import type { ItemActions } from "./item-actions.ts";
+import { FACET_LABELS } from "./library-tree.tsx";
+import { waitForRead } from "./model.ts";
+import type { MenuItem } from "./row-menu.ts";
+import type { TreeModel } from "./tree-model.ts";
 
 /** The Query File of the card: every Annotation of the Item `this` names. */
 function readingCardQueryText(): string {

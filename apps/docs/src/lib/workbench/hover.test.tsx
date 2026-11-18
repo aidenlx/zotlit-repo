@@ -8,8 +8,8 @@ import { tagDescription } from "@zotlit/workbench/ui";
 // @vitest-environment happy-dom
 import { m } from "@/paraglide/messages.js";
 
-import { webCompletion } from "./completion";
-import { webHover } from "./hover";
+import { webCompletion } from "./completion.tsx";
+import { webHover } from "./hover.tsx";
 
 it("shows tag-specific descriptions, syntax, and examples in hover and completion", async () => {
   await using h = await hoverEditor(

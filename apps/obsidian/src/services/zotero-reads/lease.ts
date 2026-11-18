@@ -1,11 +1,11 @@
 // A Zotero read snapshot lease owned by code outside Effect.
 import { Cause, Exit, Scope } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { openScope } from "@/lib/effect-scope";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { openScope } from "@/lib/effect-scope.ts";
 
-import { DbUnavailable } from "./rpc";
-import type { ZoteroReadLease, ZoteroReads } from "./service";
+import { DbUnavailable } from "./rpc.ts";
+import type { ZoteroReadLease, ZoteroReads } from "./service.ts";
 
 const leakedLeases = new FinalizationRegistry<() => Promise<void>>(
   (close) => void close(),

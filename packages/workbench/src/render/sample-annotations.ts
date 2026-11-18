@@ -1,11 +1,11 @@
 // Built-in annotation examples and the serialized root/descriptor pair a preview renders.
 
-import type { SnapshotRootDescriptors } from "#/snapshot/descriptors";
-import type { ItemSnapshot } from "#/snapshot/types";
+import type { SnapshotRootDescriptors } from "#snapshot/descriptors.ts";
+import type { ItemSnapshot } from "#snapshot/types.ts";
 
-import { templateSourceRevision } from "./result";
+import { templateSourceRevision } from "./result.ts";
 
-import conferencePaper from "#/samples/conference-paper.json" with { type: "json" };
+import conferencePaper from "#samples/conference-paper.json" with { type: "json" };
 
 export interface AnnotationExample {
   readonly id: string;

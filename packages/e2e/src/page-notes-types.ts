@@ -67,9 +67,10 @@ export interface CodeMirrorElement extends HTMLElement {
   };
 }
 
-export type PreparationService = import("@/lib/effect").Context.Service.Shape<
-  typeof import("../../../apps/obsidian/src/services/excerpt-image/prepare.ts").ExcerptPreparation
->;
+export type PreparationService =
+  import("@/lib/effect.ts").Context.Service.Shape<
+    typeof import("../../../apps/obsidian/src/services/excerpt-image/prepare.ts").ExcerptPreparation
+  >;
 export interface PreparationTrial {
   preparation: PreparationService;
   originalPreparation: PreparationService["forCard"];

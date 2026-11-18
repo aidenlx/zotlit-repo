@@ -17,39 +17,39 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { isPageNumber, itemSelectUri, parseIndexedKey } from "@zotlit/db";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
-import type { ViewServices } from "@/lib/view-atoms";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions";
-import { zoteroUri } from "@/services/attachment-open/open-target";
-import type { OpenTarget } from "@/services/attachment-open/open-target";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
+import type { ViewServices } from "@/lib/view-atoms.ts";
+import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
+import { zoteroUri } from "@/services/attachment-open/open-target.ts";
+import type { OpenTarget } from "@/services/attachment-open/open-target.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
   QueryViewValue,
-} from "@/services/item-query/query-view";
-import type { ItemQueryError } from "@/services/item-query/service";
-import { useAnnotStore } from "@/views/annot-view/store";
+} from "@/services/item-query/query-view.ts";
+import type { ItemQueryError } from "@/services/item-query/service.ts";
+import { useAnnotStore } from "@/views/annot-view/store.ts";
 
-import { ExpanderSpace } from "./expander-space";
-import { useItemRow } from "./item-rows";
-import type { ItemRowGestures } from "./item-rows";
-import { ItemsWindow } from "./items-window";
-import type { DrawnEntry, WindowEntry } from "./items-window";
-import type { QueryLayout } from "./layouts";
-import { useQueryTask, useQueryViewState } from "./model";
-import { LITERATURE_NOTE, vaultName } from "./query-file";
-import { CellContent, recordCells, searchFinds } from "./record-rows";
-import { NO_RESULTS } from "./results";
-import { TableHeader } from "./table-header";
-import type { LiteratureNotes, VaultHost } from "./table-notes";
-import { cellText } from "./value-text";
-import { VaultEditCell, useVaultVersion } from "./vault-cell";
-import type { QueryView } from "./view";
-import { useViewProperties } from "./view-properties";
-import type { PropertyEntry } from "./view-properties";
+import { ExpanderSpace } from "./expander-space.tsx";
+import { useItemRow } from "./item-rows.ts";
+import type { ItemRowGestures } from "./item-rows.ts";
+import { ItemsWindow } from "./items-window.tsx";
+import type { DrawnEntry, WindowEntry } from "./items-window.tsx";
+import type { QueryLayout } from "./layouts.ts";
+import { useQueryTask, useQueryViewState } from "./model.ts";
+import { LITERATURE_NOTE, vaultName } from "./query-file.ts";
+import { CellContent, recordCells, searchFinds } from "./record-rows.tsx";
+import { NO_RESULTS } from "./results.ts";
+import { TableHeader } from "./table-header.tsx";
+import type { LiteratureNotes, VaultHost } from "./table-notes.ts";
+import { cellText } from "./value-text.ts";
+import { VaultEditCell, useVaultVersion } from "./vault-cell.tsx";
+import { useViewProperties } from "./view-properties.ts";
+import type { PropertyEntry } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 export const TABLE_LAYOUT: QueryLayout = {
   type: "table",

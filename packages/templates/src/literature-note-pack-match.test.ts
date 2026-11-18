@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import {
   exportLiteratureNotePack,
   updateLiteratureNotePackMetadata,
-} from "./literature-note-pack";
+} from "./literature-note-pack.ts";
 
 const prefix = `---\r
 # Keep the authored header\r

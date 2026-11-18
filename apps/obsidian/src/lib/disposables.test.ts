@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from "vitest";
 
-import { registerMigratingWindowEvent } from "./disposables";
+import { registerMigratingWindowEvent } from "./disposables.ts";
 
 it("moves a window listener with its element and disposes the current binding", () => {
   const first = new EventTarget();

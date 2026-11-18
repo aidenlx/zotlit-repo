@@ -4,12 +4,12 @@ import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held, viewRuntime } from "@/lib/view-atoms";
-import { CitationIndex } from "@/services/citation-index/service";
-import type { CitedBySnapshot } from "@/services/citation-index/service";
-import { activeKeyAtom } from "@/services/note-index/atoms";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import type { CitedBySnapshot } from "@/services/citation-index/service.ts";
+import { activeKeyAtom } from "@/services/note-index/atoms.ts";
 
-import { CitationLookup } from "./lookup-service";
+import { CitationLookup } from "./lookup-service.ts";
 
 const citedBy = (key: string) =>
   Stream.unwrap(

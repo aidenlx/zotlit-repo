@@ -12,11 +12,11 @@ import { join, resolve } from "node:path";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { chineseFile } from "./content-scan";
-import { scanLearnMedia, webpSize } from "./learn-media";
-import { getMarkdownEdition } from "./markdown-editions";
-import { mp4Size } from "./media-store";
-import { source } from "./source";
+import { chineseFile } from "./content-scan.ts";
+import { scanLearnMedia, webpSize } from "./learn-media.ts";
+import { getMarkdownEdition } from "./markdown-editions.tsx";
+import { mp4Size } from "./media-store.ts";
+import { source } from "./source.ts";
 
 import { learnSchema } from "#content-config";
 

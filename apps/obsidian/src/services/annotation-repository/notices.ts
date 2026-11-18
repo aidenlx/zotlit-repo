@@ -4,20 +4,20 @@
 // @see apps/obsidian/policies/ui-seams.md
 import { Clock, Context, Duration, Effect, FiberSet, Layer } from "effect";
 
-import { dateTimeClock } from "@/lib/effect-clock";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { BaseNotice } from "@/lib/notice";
-import { Notifier } from "@/lib/notifier";
-import type { NoticeHandle } from "@/lib/notifier";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
+import { dateTimeClock } from "@/lib/effect-clock.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { NoticeHandle } from "@/lib/notifier.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
 import {
   allowEditingNotice,
   CapabilityNoticeLedger,
-} from "./capability-notices";
-import type { CapabilityNotice } from "./capability-notices";
-import { AnnotationRepository } from "./service";
+} from "./capability-notices.ts";
+import type { CapabilityNotice } from "./capability-notices.ts";
+import { AnnotationRepository } from "./service.ts";
 
 /** Default reading time for problems and actions that are not sticky. */
 const NOTICE_DURATION = Duration.seconds(10);

@@ -1,7 +1,7 @@
 import { asMarkdown, md } from "fumadocs-core/server";
 import { Terminal } from "lucide-react";
 
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/components/ui/toast.tsx";
 // "Run this Obsidian command" mark for docs prose: a terminal rubric with the
 // command-palette name in the serif display voice. The block form adds a
 // copy-to-clipboard link; the inline form stays minimal — glyph + name only.

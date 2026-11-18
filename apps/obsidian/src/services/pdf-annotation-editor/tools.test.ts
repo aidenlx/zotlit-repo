@@ -7,8 +7,8 @@ import {
   resolveToolColors,
   selectionToolOf,
   textFontSizeSchema,
-} from "./tools";
-import type { ClickTool, SelectionTool } from "./tools";
+} from "./tools.ts";
+import type { ClickTool, SelectionTool } from "./tools.ts";
 
 it("starts ink on Zotero's fourth swatch and every other tool on its first", () => {
   // Zotero's reader: `ink: { color: ANNOTATION_COLORS[3][1] }`, the rest `[0]`.

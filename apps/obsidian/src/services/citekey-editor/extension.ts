@@ -21,16 +21,16 @@ import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, livePreviewState } from "obsidian";
 import type { Workspace } from "obsidian";
 
-import { livePreviewOf, overlapsSelection } from "@/lib/editor-decoration";
-import { getLogger } from "@/lib/log";
-import { themeHook } from "@/lib/theme-hooks";
-import { EditorLookup } from "@/services/citation-index/editor-lookup";
-import { heldResolution } from "@/services/citation-index/lookup";
+import { livePreviewOf, overlapsSelection } from "@/lib/editor-decoration.ts";
+import { getLogger } from "@/lib/log.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
+import { heldResolution } from "@/services/citation-index/lookup.ts";
 import type {
   CitationLookupAnswer,
   CitationLookupObservation,
   CitekeyResolution,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   citationContent,
   citationElement,
@@ -41,14 +41,14 @@ import {
   citekeyState,
   literalKeyStateOf,
   presentedCitationEqual,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import type {
   CitationCoordinate,
   CitationKeyState,
   DocumentCitations,
   PresentedCitation,
   ShownCitation,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import {
   attachCitationNavigation,
   attachClosedCitationGestures,
@@ -59,7 +59,7 @@ import {
   mouseGesture,
   navigationIntent,
   triggerCitekeyHover,
-} from "@/services/citekey-navigation";
+} from "@/services/citekey-navigation/index.ts";
 import type {
   CitationHoverRequest,
   CitationNavigation,
@@ -67,8 +67,8 @@ import type {
   EditorMode,
   HoverPreferences,
   NavigationPane,
-} from "@/services/citekey-navigation";
-import type { Held } from "@/services/query-client/service";
+} from "@/services/citekey-navigation/index.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
 import {
   citationRanges,
@@ -78,8 +78,8 @@ import {
   isFootnoteTokenClass,
   marksOutside,
   stateCitekeyMarks,
-} from "./decorate";
-import type { CitationRange } from "./decorate";
+} from "./decorate.ts";
+import type { CitationRange } from "./decorate.ts";
 import "./style.css";
 
 const logger = getLogger("citekey-editor");

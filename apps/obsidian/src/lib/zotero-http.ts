@@ -11,8 +11,8 @@ import {
 } from "effect/http";
 import type { HttpMethod } from "effect/http";
 
-import { AbortError } from "@/lib/abort-error";
-import type { EffectBridge } from "@/lib/effect-bridge";
+import { AbortError } from "@/lib/abort-error.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
 /**
  * Zotero refuses requests it reads as browser traffic: a `Mozilla/` user agent,

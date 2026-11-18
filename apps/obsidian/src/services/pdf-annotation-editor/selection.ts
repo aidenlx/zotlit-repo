@@ -21,38 +21,38 @@ import type {
   SelectedText,
 } from "@zotlit/pdf-structure";
 
-import { passAborted } from "@/lib/abort-error";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import { confirm } from "@/lib/confirm";
-import { registerDomEvent } from "@/lib/disposables";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { showMenuAtButton } from "@/lib/menu";
-import type { Notifier } from "@/lib/notifier";
-import { watch } from "@/lib/view-atoms";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { CopyInstant } from "@/services/annotation-repository/capability-copy";
+import { passAborted } from "@/lib/abort-error.ts";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { confirm } from "@/lib/confirm.ts";
+import { registerDomEvent } from "@/lib/disposables.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { watch } from "@/lib/view-atoms.ts";
+import type { CopyInstant } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import {
   firstLockRefusal,
   lockBlock,
-} from "@/services/annotation-repository/lock";
+} from "@/services/annotation-repository/lock.ts";
 import type {
   LockBlock,
   LockedVerb,
-} from "@/services/annotation-repository/lock";
+} from "@/services/annotation-repository/lock.ts";
 import type {
   AnnotationRecord,
   AnnotationRepository,
   GeometryInput,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import {
   writeFailureMessage,
   writeFailureReason,
-} from "@/services/annotation-repository/write";
-import type { WriteFailure } from "@/services/annotation-repository/write";
-import { raiseMenu } from "@/services/menu-events";
-import type { ReaderSessionHost } from "@/services/reader-session/session";
+} from "@/services/annotation-repository/write.ts";
+import type { WriteFailure } from "@/services/annotation-repository/write.ts";
+import { raiseMenu } from "@/services/menu-events.ts";
+import type { ReaderSessionHost } from "@/services/reader-session/session.ts";
 import {
   fieldEditorControls,
   editingLive,
@@ -62,23 +62,26 @@ import {
   shownComment,
   tagEditorControls,
   textFieldWording,
-} from "@/views/annot-view/card-controls";
-import type { CardBlock, CardControl } from "@/views/annot-view/card-controls";
-import { copyText, deleteConfirmation } from "@/views/annot-view/card-verbs";
-import { controlEntry } from "@/views/annot-view/comment-parts";
-import type { CommentRenderer } from "@/views/annot-view/comment-render";
-import type { AnnotationDragStart } from "@/views/annot-view/drag-insert";
+} from "@/views/annot-view/card-controls.ts";
+import type {
+  CardBlock,
+  CardControl,
+} from "@/views/annot-view/card-controls.ts";
+import { copyText, deleteConfirmation } from "@/views/annot-view/card-verbs.ts";
+import { controlEntry } from "@/views/annot-view/comment-parts.tsx";
+import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
+import type { AnnotationDragStart } from "@/views/annot-view/drag-insert.ts";
 import type {
   CaretPoint,
   TextDraftActions,
   EditorSheet,
   HeldDraftActions,
-} from "@/views/annot-view/editor-sheet";
-import type { EndTagSession } from "@/views/annot-view/tag-editor";
-import { typeIcon } from "@/views/annot-view/type-icon";
+} from "@/views/annot-view/editor-sheet.ts";
+import type { EndTagSession } from "@/views/annot-view/tag-editor.tsx";
+import { typeIcon } from "@/views/annot-view/type-icon.ts";
 
-import { inTextEntry, isEditGesture } from "./capability-affordance";
-import type { CreationGestures } from "./creation";
+import { inTextEntry, isEditGesture } from "./capability-affordance.ts";
+import type { CreationGestures } from "./creation.ts";
 import {
   bodyRect,
   gripAt,
@@ -93,7 +96,7 @@ import {
   rangeGripAt,
   rangeHandles,
   releasedPosition,
-} from "./geometry-edit";
+} from "./geometry-edit.ts";
 import type {
   Arrow,
   EditablePosition,
@@ -102,25 +105,30 @@ import type {
   PdfPoint,
   RangeGrip,
   TextRotation,
-} from "./geometry-edit";
+} from "./geometry-edit.ts";
 import {
   distance,
   markAnchor,
   marksAtPoint,
   pagePointOf,
   resolveMarkClick,
-} from "./hit-test";
-import type { HitPage, MarkSelectionPoint, PageBox, Point } from "./hit-test";
-import { markPopupRow, SelectedMarkPopup } from "./mark-popup";
+} from "./hit-test.ts";
+import type {
+  HitPage,
+  MarkSelectionPoint,
+  PageBox,
+  Point,
+} from "./hit-test.ts";
+import type { MarkPopupHost } from "./mark-popup-host.ts";
+import { tagSectionShows } from "./mark-popup-tags.tsx";
+import type { MarkPopupTagSectionProps } from "./mark-popup-tags.tsx";
+import { markPopupRow, SelectedMarkPopup } from "./mark-popup.tsx";
 import type {
   MarkPopupControlId,
   MarkPopupRowInput,
   SelectedMarkPopupProps,
   SelectedPopupComment,
-} from "./mark-popup";
-import type { MarkPopupHost } from "./mark-popup-host";
-import { tagSectionShows } from "./mark-popup-tags";
-import type { MarkPopupTagSectionProps } from "./mark-popup-tags";
+} from "./mark-popup.tsx";
 import {
   eraseMarks,
   recolorMarks,
@@ -128,15 +136,15 @@ import {
   reportWrites,
   saveGeometry,
   settledOf,
-} from "./operations";
-import type { BindingWrites } from "./operations";
+} from "./operations.ts";
+import type { BindingWrites } from "./operations.ts";
 import {
   current,
   modify,
   recordColorUse,
   update,
-} from "./reader-surface-model";
-import type { ReaderSurface } from "./reader-surface-model";
+} from "./reader-surface-model.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
 import {
   beginAdjust,
   cancelAdjust,
@@ -155,20 +163,20 @@ import {
   setCommenting,
   setTagging,
   stepStack,
-} from "./reader-surface-state";
+} from "./reader-surface-state.ts";
 import type {
   ReaderSurfaceState,
   SelectedRowInput,
-} from "./reader-surface-state";
-import { readingOrder, stepReadingOrder } from "./reading-order";
+} from "./reader-surface-state.ts";
+import { readingOrder, stepReadingOrder } from "./reading-order.ts";
 import {
   freeTextOf,
   interfaceFont,
   markTargets,
   unitPointOf,
   unitsPerPixel,
-} from "./render";
-import type { OverlayPageView, PdfPageAnnotation } from "./render";
+} from "./render.ts";
+import type { OverlayPageView, PdfPageAnnotation } from "./render.ts";
 import {
   colorMenu,
   drawnBoxOf,
@@ -179,8 +187,8 @@ import {
   releaseCapture,
   selectionCollapsed,
   unitsOf,
-} from "./surface";
-import type { ToolColorStore } from "./tools";
+} from "./surface.ts";
+import type { ToolColorStore } from "./tools.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

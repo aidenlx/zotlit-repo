@@ -19,14 +19,14 @@ import type {
   UpdateScope,
 } from "@zotlit/protocol";
 
-import { formatValue } from "@/lib/l10n";
-import type { FluentMessageArgs } from "@/lib/l10n";
-import { launchExternalUrl } from "@/lib/launch-url";
-import { logger as appLogger } from "@/lib/logger";
-import { notifyUrl } from "@/notify/shared";
-import { sourceId } from "@/notify/source";
-import { preferredPaneType } from "@/prefs/pane-type";
-import type { FluentMessageId, FluentMessages } from "@/types/fluent";
+import { formatValue } from "@/lib/l10n.ts";
+import type { FluentMessageArgs } from "@/lib/l10n.ts";
+import { launchExternalUrl } from "@/lib/launch-url.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
+import { notifyUrl } from "@/notify/shared.ts";
+import { sourceId } from "@/notify/source.ts";
+import { preferredPaneType } from "@/prefs/pane-type.ts";
+import type { FluentMessageId, FluentMessages } from "@/types/fluent.ts";
 
 const logger = appLogger.getChild(["menus", "obsidian"]);
 

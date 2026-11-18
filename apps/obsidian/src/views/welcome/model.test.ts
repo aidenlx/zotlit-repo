@@ -3,14 +3,14 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { expect } from "vitest";
 
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { QueryClients } from "@/services/query-client/service";
-import { Release } from "@/services/release/service";
-import { PluginSettings } from "@/services/settings/service";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import { Release } from "@/services/release/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { makeWelcomeHost, waitFor } from "./__fixtures__";
-import { requestWelcome, setConverted } from "./model";
+import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
+import { requestWelcome, setConverted } from "./model.ts";
 
 const openHost = Effect.fnUntraced(function* () {
   return yield* Effect.acquireDisposable(

@@ -6,9 +6,9 @@ import { describe, expect } from "vitest";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
-import { logTapeLogger, withLogCategory } from "./effect-log";
-import { layerHostLogPort } from "./effect-log-port";
-import type { LogMessagePort, LogPortRecord } from "./effect-log-port";
+import { layerHostLogPort } from "./effect-log-port.ts";
+import type { LogMessagePort, LogPortRecord } from "./effect-log-port.ts";
+import { logTapeLogger, withLogCategory } from "./effect-log.ts";
 
 /** A time no wall clock reads, so only the worker's stamp can produce it. */
 const WORKER_LOG_TIME = DateTime.toEpochMillis(

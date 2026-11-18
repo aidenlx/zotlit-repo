@@ -2,7 +2,7 @@
 // that cannot be computed on one record, and the diagnoser's sentences for
 // it. The sentences live here, not in `diagnose.ts`, because `toString()` of
 // an Error Value renders it and `diagnose.ts` imports the value modules.
-import type { FilterValue, FilterValueType } from "./filter-values";
+import type { FilterValue, FilterValueType } from "./filter-values.ts";
 
 /**
  * What went wrong in one evaluation: a code, the operation, and what was

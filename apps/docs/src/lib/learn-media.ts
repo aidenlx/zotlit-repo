@@ -16,8 +16,8 @@ import { join, resolve } from "node:path";
 import { normalizePath } from "vite";
 import type { Plugin } from "vite";
 
-import { scanVideos } from "./media-store.js";
-import type { MediaSize, StoredVideo } from "./media-store.js";
+import { scanVideos } from "./media-store.ts";
+import type { MediaSize, StoredVideo } from "./media-store.ts";
 
 /** One step's media: the still, and the recording when one exists. */
 export interface StepMedia extends MediaSize {

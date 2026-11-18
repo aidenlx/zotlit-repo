@@ -4,7 +4,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
-import { useRetention } from "./visited";
+import { useRetention } from "./visited.ts";
 
 afterEach(cleanup);
 

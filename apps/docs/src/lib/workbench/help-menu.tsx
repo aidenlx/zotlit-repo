@@ -13,14 +13,14 @@ import type { ReactNode } from "react";
 
 import { HELP_PAGES, useWorkbenchHost } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu.tsx";
 import { m } from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 

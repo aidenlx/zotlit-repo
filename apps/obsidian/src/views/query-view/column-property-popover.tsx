@@ -6,12 +6,12 @@
 import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 import type { Ref, RefObject } from "react";
 
-import { Chooser, useChooserOpenPage } from "@/components/chooser";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover";
+import { Chooser, useChooserOpenPage } from "@/components/chooser.tsx";
+import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
 
-import { PropertyPage } from "./property-page";
-import type { QueryView } from "./view";
-import type { ViewProperties } from "./view-properties";
+import { PropertyPage } from "./property-page.tsx";
+import type { ViewProperties } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 /** Opens a column's page from outside the popover, and closes it. */
 export interface ColumnPropertyHandle {

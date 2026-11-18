@@ -3,8 +3,8 @@
 // what was clicked.
 //
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
-import { nearStroke } from "./ink-path";
-import type { MarkTarget, PageRect } from "./render";
+import { nearStroke } from "./ink-path.ts";
+import type { MarkTarget, PageRect } from "./render.ts";
 
 /**
  * How far a pointer may travel between press and release and still count as a

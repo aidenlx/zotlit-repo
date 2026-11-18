@@ -3,15 +3,15 @@
 // Query Context of the view, and the members a filter reads on a record.
 import { isMemberName } from "@zotlit/filter-expression";
 
-import type { QueryDataset } from "./dataset";
-import type { Span } from "./fault";
-import type { StaticType } from "./filter-plan";
-import { planFormulas } from "./formulas";
-import { NOTE_FIELDS } from "./note-fields";
-import { ANNOTATIONS } from "./query-annotations";
-import { ATTACHMENTS } from "./query-attachments";
-import { ITEMS } from "./query-items";
-import type { QueryContext } from "./request";
+import type { QueryDataset } from "./dataset.ts";
+import type { Span } from "./fault.ts";
+import type { StaticType } from "./filter-plan.ts";
+import { planFormulas } from "./formulas.ts";
+import { NOTE_FIELDS } from "./note-fields.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { ITEMS } from "./query-items.ts";
+import type { QueryContext } from "./request.ts";
 
 export interface PlannedMember {
   readonly name: string;

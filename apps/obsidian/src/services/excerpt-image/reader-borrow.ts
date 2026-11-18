@@ -3,10 +3,10 @@
 
 import { Effect } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
-import { openExcerptFile, pdfStamp, readBounded } from "./file";
-import type { ExcerptViewport } from "./geometry";
+import { openExcerptFile, pdfStamp, readBounded } from "./file.ts";
+import type { ExcerptViewport } from "./geometry.ts";
 
 const logged = withLogCategory("excerpt-image", "reader");
 

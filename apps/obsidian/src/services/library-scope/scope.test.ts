@@ -11,8 +11,8 @@ import {
   resolveLibraryScope,
   sameResolution,
   selectorKeySchema,
-} from "./scope";
-import type { LibraryScope, ResolvedLibraryScope } from "./scope";
+} from "./scope.ts";
+import type { LibraryScope, ResolvedLibraryScope } from "./scope.ts";
 
 /**
  * Local library ids deliberately run against group-id order: group 200 sits at

@@ -10,19 +10,19 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { companionDocsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration";
+import { companionDocsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
 
-import { makeWelcomeHost } from "./__fixtures__";
-import { WelcomeActionsContext } from "./actions";
-import type { WelcomeActions } from "./actions";
-import type { ConversionRun } from "./atoms";
-import { WelcomeModelProvider } from "./model";
-import type { WelcomeModel } from "./model";
-import type { WelcomeState } from "./presentation";
-import { Welcome } from "./Welcome";
+import { makeWelcomeHost } from "./__fixtures__.ts";
+import { WelcomeActionsContext } from "./actions.ts";
+import type { WelcomeActions } from "./actions.ts";
+import type { ConversionRun } from "./atoms.ts";
+import { WelcomeModelProvider } from "./model.ts";
+import type { WelcomeModel } from "./model.ts";
+import type { WelcomeState } from "./presentation.ts";
+import { Welcome } from "./Welcome.tsx";
 
 let cleanup = new AsyncDisposableStack();
 

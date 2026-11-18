@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import type { SearchHit } from "@/services/item-lookup/service";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";
@@ -565,7 +565,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       async ({ app: host, zotlit }, { EFFECT_MODULE_PATH }) => {
         const { Effect } = require(
           EFFECT_MODULE_PATH,
-        ) as typeof import("@/lib/effect");
+        ) as typeof import("@/lib/effect.ts");
         const app = host as WalkthroughApp;
 
         await using cleanup = new AsyncDisposableStack();
@@ -1581,8 +1581,8 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       const services = zotlit.services;
       const template = (await services.runtime.context()).mapUnsafe.get(
         "zotlit/template/Template",
-      ) as import("@/lib/effect").Context.Service.Shape<
-        typeof import("@/services/template/service").Template
+      ) as import("@/lib/effect.ts").Context.Service.Shape<
+        typeof import("@/services/template/service.ts").Template
       >;
       const setPermission = (enabled: boolean) =>
         services.bridge.runPromise(

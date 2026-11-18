@@ -6,15 +6,15 @@ import type {
   BatchClassifyControls,
   BatchRunControls,
   BatchRunResult,
-} from "@/services/batch-run";
-import type { CreationProfileSource } from "@/services/note-feature";
+} from "@/services/batch-run.ts";
+import type { CreationProfileSource } from "@/services/note-feature/index.ts";
 
 export type {
   BatchClassifyControls,
   BatchFailure,
   BatchRunControls,
   BatchRunResult,
-} from "@/services/batch-run";
+} from "@/services/batch-run.ts";
 
 /** Counts the manifest exposes so the shell can phrase its phase copy. */
 export interface BatchCounts {

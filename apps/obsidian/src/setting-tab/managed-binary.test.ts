@@ -1,28 +1,28 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian";
-import type { Setting } from "@mock/obsidian";
+import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
+import type { Setting } from "@mock/obsidian.ts";
 import { Context, Effect, Exit, Layer, Stream } from "effect";
 import { describe, vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
-import { ManagedBinaryError } from "@/services/managed-binary/platform";
+import { eventually } from "@/lib/__fixtures__/eventually.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { ManagedBinaryError } from "@/services/managed-binary/platform.ts";
 import type {
   ManagedBinaryApi,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service";
-import { PandocEngine } from "@/services/pandoc/service";
+} from "@/services/managed-binary/service.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
 
-import { scopedSettingTab, testSettingTab } from "./__fixtures__";
-import { chineseSegmenterDefinition } from "./chinese-segmenter";
-import type { SettingTabContext } from "./context";
-import { installBinary, managedBinaryDefinition } from "./managed-binary";
-import type { ManagedBinaryCopy } from "./managed-binary";
-import { pandocEngineDefinition } from "./pandoc-engine";
+import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
+import { chineseSegmenterDefinition } from "./chinese-segmenter.ts";
+import type { SettingTabContext } from "./context.ts";
+import { installBinary, managedBinaryDefinition } from "./managed-binary.ts";
+import type { ManagedBinaryCopy } from "./managed-binary.ts";
+import { pandocEngineDefinition } from "./pandoc-engine.ts";
 
 const COPY: ManagedBinaryCopy = {
   id: "settings_segmenter",

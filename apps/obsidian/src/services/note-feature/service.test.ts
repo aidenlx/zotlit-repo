@@ -14,19 +14,19 @@ import { describe, expect } from "vitest";
 
 import type { Item } from "@zotlit/db";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { NoteIndex } from "@/services/note-index/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
 
-import { noteFeatureServices } from "./__fixtures__/note-feature";
-import type { NoteFeatureSources } from "./__fixtures__/note-feature";
-import { NoteWriteAborted } from "./errors";
-import { layerNoteFeature, makeCreateGate, NoteFeature } from "./service";
-import type { CreateNoteResult } from "./types";
+import { noteFeatureServices } from "./__fixtures__/note-feature.ts";
+import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";
+import { NoteWriteAborted } from "./errors.ts";
+import { layerNoteFeature, makeCreateGate, NoteFeature } from "./service.ts";
+import type { CreateNoteResult } from "./types.ts";
 
 const ITEM = stubService<Item>("Item", { itemID: 1, indexedKey: "ABCD2345" });
 

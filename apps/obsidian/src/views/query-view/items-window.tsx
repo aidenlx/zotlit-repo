@@ -19,19 +19,19 @@ import {
 } from "react";
 import type { HTMLAttributes, LiHTMLAttributes, ReactNode } from "react";
 
-import { observeResize } from "@/lib/observe-resize";
-import { cn } from "@/lib/utils";
+import { observeResize } from "@/lib/observe-resize.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { ITEM_ROW_ATTRIBUTE, NO_ROWS } from "./item-rows";
-import type { QueryView } from "./view";
-import { useVirtualRows } from "./virtual-rows";
-import type { VirtualRows } from "./virtual-rows";
+import { ITEM_ROW_ATTRIBUTE, NO_ROWS } from "./item-rows.ts";
+import type { QueryView } from "./view.tsx";
+import { useVirtualRows } from "./virtual-rows.ts";
+import type { VirtualRows } from "./virtual-rows.ts";
 import {
   ListSpacer,
   TABLE_GHOST,
   TableSpacer,
   placeholderRow,
-} from "./virtual-spacers";
+} from "./virtual-spacers.tsx";
 
 /** One entry of an Items Layout, in the order it shows. */
 export interface WindowEntry {

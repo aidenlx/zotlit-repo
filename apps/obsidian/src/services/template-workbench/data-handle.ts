@@ -2,10 +2,10 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import { readCitationData, readTemplateData, withSettings } from "./data";
-import type { TemplateDataLoader, TemplateDataServices } from "./data";
+import { readCitationData, readTemplateData, withSettings } from "./data.ts";
+import type { TemplateDataLoader, TemplateDataServices } from "./data.ts";
 
 /**
  * The Template data reads over `context`, run through `bridge`. A load

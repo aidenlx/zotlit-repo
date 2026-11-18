@@ -4,11 +4,11 @@
 // takes the icon Obsidian gives its property type.
 import { planPath } from "@zotlit/item-query";
 
-import { DATASETS } from "./datasets";
-import { LITERATURE_NOTE, vaultName } from "./query-file";
-import type { QueryFileDataset } from "./query-file";
-import type { VaultPropertyType } from "./table-notes";
-import type { PropertyEntry } from "./view-properties";
+import { DATASETS } from "./datasets.ts";
+import { LITERATURE_NOTE, vaultName } from "./query-file.ts";
+import type { QueryFileDataset } from "./query-file.ts";
+import type { VaultPropertyType } from "./table-notes.ts";
+import type { PropertyEntry } from "./view-properties.ts";
 
 /** The Lucide icon Obsidian draws for each property type. */
 const VAULT_ICONS: Record<VaultPropertyType, string> = {

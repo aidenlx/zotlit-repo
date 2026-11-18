@@ -1,7 +1,7 @@
 // An Obsidian environment a test sets: desktop by default, or mobile.
 import { Effect, Layer } from "effect";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import type { ObsidianPlatform } from "@/lib/obsidian-env";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import type { ObsidianPlatform } from "@/lib/obsidian-env.ts";
 
 export interface TestObsidianEnvOptions {
   readonly mobile?: boolean;

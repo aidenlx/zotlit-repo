@@ -4,7 +4,7 @@
 // `display` is the Pandoc citation source that the TypeScript derivation builds
 // for citation key `doe2020` / note `Doe 2020.md`.
 
-import type { CitationFragment } from "@/lib/citation-fragment";
+import type { CitationFragment } from "@/lib/citation-fragment.ts";
 
 export interface CitationFragmentFixture {
   name: string;

@@ -1,14 +1,14 @@
 import { expect, it } from "vitest";
 
-import { redPng } from "./__fixtures__/png";
-import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp";
+import { redPng } from "./__fixtures__/png.ts";
+import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp.ts";
 import {
   detectExcerptImageFormat,
   isExcerptImage,
   PNG_FORMAT,
   WEBP_FORMAT,
-} from "./format";
-import type { ExcerptImageFormat } from "./format";
+} from "./format.ts";
+import type { ExcerptImageFormat } from "./format.ts";
 
 it("reads the container a payload holds", () => {
   expect(detectExcerptImageFormat(redPng)).toBe(PNG_FORMAT);

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { defaults } from "@/services/settings/schema";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { readerPageItems } from "./reader";
+import { readerPageItems } from "./reader.ts";
 
 describe("reader settings", () => {
   it("opens annotation links in the ZotLit reader by default", () => {

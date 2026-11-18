@@ -10,7 +10,7 @@ import type {
   Rect,
 } from "@zotlit/pdf-structure";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

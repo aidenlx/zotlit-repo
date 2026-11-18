@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export type CalloutType =
   | "info"

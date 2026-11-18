@@ -21,16 +21,16 @@ import { randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import type { CliData } from "obsidian";
 
-import type { CliRejection } from "@/lib/cli-params";
-import { awaitOwned } from "@/lib/effect-fiber";
-import { withLogCategory } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { LibraryScope } from "@/services/library-scope/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { SnapshotExpired } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import type { CliRejection } from "@/lib/cli-params.ts";
+import { awaitOwned } from "@/lib/effect-fiber.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { SnapshotExpired } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import {
   QUERY_COMMAND,
@@ -41,17 +41,17 @@ import {
   queryCancelledText,
   queryIdInUseFailure,
   rejectionDiagnostic,
-} from "./contract";
-import type { QueryCliCommand } from "./contract";
-import { decodeQuery, decodeSchemaArguments, decodeValues } from "./decode";
-import type { QueryViewOutcome, QueryViewRequest } from "./query-view";
-import type { CancellationEvent, QueryObserver } from "./trace";
+} from "./contract.ts";
+import type { QueryCliCommand } from "./contract.ts";
+import { decodeQuery, decodeSchemaArguments, decodeValues } from "./decode.ts";
+import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
+import type { CancellationEvent, QueryObserver } from "./trace.ts";
 import type {
   QueryAnswer,
   QueryCommand,
   QueryCustomFieldsCommand,
   QueryViewCommand,
-} from "./worker-protocol";
+} from "./worker-protocol.ts";
 
 /**
  * How one ItemQuery call to the worker fails once `send` answers its

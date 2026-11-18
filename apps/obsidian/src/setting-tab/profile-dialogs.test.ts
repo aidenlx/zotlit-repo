@@ -1,31 +1,31 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian.ts";
 import { Deferred, Effect, Fiber, Layer } from "effect";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { until } from "@/lib/__fixtures__/eventually";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import * as m from "@/lib/i18n/generated/messages";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { UserCancelled } from "@/lib/user-cancel";
-import { NoteFeature } from "@/services/note-feature/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import { Profile } from "@/services/profile/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
+import { until } from "@/lib/__fixtures__/eventually.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { UserCancelled } from "@/lib/user-cancel.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { ProfileDestinationModal } from "./profile-destination-modal";
-import { addProfileDestination, shareProfile } from "./profile-dialogs";
-import { ShareProfileModal } from "./share-profile-modal";
+import { ProfileDestinationModal } from "./profile-destination-modal.ts";
+import { addProfileDestination, shareProfile } from "./profile-dialogs.ts";
+import { ShareProfileModal } from "./share-profile-modal.ts";
 
 const BOOKS: LiteratureNoteProfile = {
   id: "Bk3Qn7XvT2Lp" as ProfileId,

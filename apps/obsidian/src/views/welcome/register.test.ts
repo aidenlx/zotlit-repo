@@ -4,16 +4,16 @@ import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { App } from "obsidian";
 import { expect } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { readsFixture } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { layerSource } from "@/services/zotero-reads/source";
-import { inProcessClient } from "@/services/zotero-reads/test-utils";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { readsFixture } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { layerSource } from "@/services/zotero-reads/source.ts";
+import { inProcessClient } from "@/services/zotero-reads/test-utils.ts";
 
-import { makeWelcomeHost, waitFor } from "./__fixtures__";
-import type { NotFoundSignal } from "./not-found-notice";
-import { watchNotFound } from "./register";
+import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
+import type { NotFoundSignal } from "./not-found-notice.ts";
+import { watchNotFound } from "./register.ts";
 
 // The missing-file condition must survive layer acquisition.
 it.effect(

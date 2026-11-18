@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noControllerSourceSlice } from "./oxlint-plugin";
+import { noControllerSourceSlice } from "./oxlint-plugin.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

@@ -1,23 +1,23 @@
 // @vitest-environment happy-dom
 import { EditorView } from "@codemirror/view";
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Keymap } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import type { RangeAdjustment, SelectedText } from "@zotlit/pdf-structure";
 
-import { AbortError } from "@/lib/abort-error";
-import * as confirmation from "@/lib/confirm";
-import * as m from "@/lib/i18n/generated/messages";
-import { useFakeTimers } from "@/services/annotation-repository/__fixtures__";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { MutationState } from "@/services/annotation-repository/write";
+import { AbortError } from "@/lib/abort-error.ts";
+import * as confirmation from "@/lib/confirm.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
 import {
   libraryReadOnly,
   staleVersionPatch,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 
 import {
   annotation,
@@ -25,16 +25,16 @@ import {
   READER_NOW,
   readerOverZotero,
   viewport,
-} from "./__fixtures__";
-import type { readerSurfaces } from "./__fixtures__";
-import { current, update } from "./reader-surface-model";
+} from "./__fixtures__.ts";
+import type { readerSurfaces } from "./__fixtures__.ts";
+import { current, update } from "./reader-surface-model.ts";
 import {
   ingestCapability,
   selectAdjust,
   selectMarkHandles,
   setCommenting,
-} from "./reader-surface-state";
-import { geometryFailureMessage } from "./selection";
+} from "./reader-surface-state.ts";
+import { geometryFailureMessage } from "./selection.ts";
 
 /**
  * Two marks on page one, the second inside the first, in PDF points. A US

@@ -4,10 +4,10 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Attr, Inline, Inlines } from "./ast";
+import type { Attr, Inline, Inlines } from "./ast.ts";
 
 const logRecords: { level: string; message: string; fields: unknown }[] = [];
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({
     debug: (message: string, fields: unknown) =>
       logRecords.push({ level: "debug", message, fields }),
@@ -20,12 +20,12 @@ vi.mock("@/lib/log", () => ({
   }),
 }));
 
-import type { InlineContentProps } from "./inline-content";
+import type { InlineContentProps } from "./inline-content.tsx";
 import {
   InlineContent,
   noteContent,
   renderInlineContent,
-} from "./inline-content";
+} from "./inline-content.tsx";
 
 const NO_ATTR: Attr = ["", [], []];
 
@@ -479,7 +479,7 @@ describe("renderInlineContent", () => {
       createRoot: () => ({ render: () => {}, unmount: () => {} }),
     }));
     try {
-      const deferred = await import("./inline-content");
+      const deferred = await import("./inline-content.tsx");
       const container = document.createElement("div");
 
       deferred.renderInlineContent(container, { nodes });

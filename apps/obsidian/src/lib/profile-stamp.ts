@@ -9,7 +9,7 @@
 import { regex } from "arkregex";
 import type { CachedMetadata, MetadataCache, TFile } from "obsidian";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "./constants";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "./constants.ts";
 
 /** Character count of a Profile ID, as `mintId` mints it. */
 export const PROFILE_ID_LENGTH = 12;

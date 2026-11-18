@@ -15,21 +15,21 @@ import type { CliData, CliFlags } from "obsidian";
 
 import type { ItemQueryReader } from "@zotlit/db/item-query";
 
-import type { CliHost } from "@/lib/cli-command";
+import type { CliHost } from "@/lib/cli-command.ts";
 import {
   cliMap,
   cliParams,
   cliSwitch,
   decodeCliParams,
   rejectionText,
-} from "@/lib/cli-params";
-import type { CliOutput, CliRejection } from "@/lib/cli-params";
-import { PluginHost } from "@/lib/plugin-host";
+} from "@/lib/cli-params.ts";
+import type { CliOutput, CliRejection } from "@/lib/cli-params.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
 
-import { queryFlags } from "./contract";
-import { decodeQuery } from "./decode";
-import { QueryService } from "./service";
-import type { CancellationEvent, WorkerMeasurement } from "./trace";
+import { queryFlags } from "./contract.ts";
+import { decodeQuery } from "./decode.ts";
+import { QueryService } from "./service.ts";
+import type { CancellationEvent, WorkerMeasurement } from "./trace.ts";
 
 export const QUERY_MEASURE_COMMAND = "zotlit:query-measure" as const;
 

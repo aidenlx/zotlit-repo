@@ -1,15 +1,15 @@
 import { DateTime } from "effect";
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { cooldownFailureOf, deadlineAfter } from "./__fixtures__/capability";
-import type { EditingCapability } from "./capability";
-import { editingCapabilityCopy } from "./capability-copy";
+import { cooldownFailureOf, deadlineAfter } from "./__fixtures__/capability.ts";
+import { editingCapabilityCopy } from "./capability-copy.ts";
 import {
   allowEditingNotice,
   CapabilityNoticeLedger,
-} from "./capability-notices";
+} from "./capability-notices.ts";
+import type { EditingCapability } from "./capability.ts";
 
 const ATTACHMENT = "ABCD2345";
 const OTHER_ATTACHMENT = "WXYZ6789";

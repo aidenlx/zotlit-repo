@@ -5,9 +5,9 @@
 import type { App, MarkdownPostProcessorContext, TFile } from "obsidian";
 import { expect, it } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { noteEmbedPlaceholders } from "./embed-placeholder";
+import { noteEmbedPlaceholders } from "./embed-placeholder.ts";
 
 const NOTES: Record<string, TFile> = {
   "Reading list": stubService<TFile>("TFile", {

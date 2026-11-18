@@ -2,10 +2,10 @@
 
 import type { GraphEngine, GraphOptions } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { GraphCitationFilters } from "./adapter";
-import { installToggleRow, rowFlag, toggleRowTarget } from "./rows";
+import type { GraphCitationFilters } from "./adapter.ts";
+import { installToggleRow, rowFlag, toggleRowTarget } from "./rows.ts";
 
 /** The option key the "Pandoc citations" row persists under. */
 export const PANDOC_CITATIONS = "zotlit-pandoc-citations";

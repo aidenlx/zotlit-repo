@@ -1,9 +1,9 @@
 import type { LastActivitySource } from "@zotlit/item-query";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import type { QueryViewValue } from "@/services/item-query/query-view";
-import type { UseKind } from "@/services/use-ledger/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
+import type { UseKind } from "@/services/use-ledger/service.ts";
 
 interface Use {
   readonly kind: UseKind;

@@ -1,6 +1,6 @@
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchMessageLabel } from "./messages";
-import type { TemplateRoot } from "./model";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
+import type { TemplateRoot } from "./model.ts";
 
 export interface CommonField {
   /** Top-level key on the root object, which is also its display-node key. */

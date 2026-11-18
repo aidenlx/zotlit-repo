@@ -1,6 +1,6 @@
 // An in-memory `data.json`.
 import { Effect, Layer } from "effect";
-import { PluginData } from "@/lib/plugin-data";
+import { PluginData } from "@/lib/plugin-data.ts";
 
 /** Plugin data held in memory, with every value saved to it. */
 export function testPluginData(initial: unknown = null) {

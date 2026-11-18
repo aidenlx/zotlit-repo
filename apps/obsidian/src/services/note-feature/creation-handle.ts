@@ -4,18 +4,18 @@ import type { TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";
 
-import { exitOver, valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { Notifier } from "@/lib/notifier";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
+import { exitOver, valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 
-import { createNoteInteractively } from "./creation-view";
+import { createNoteInteractively } from "./creation-view.ts";
 import type {
   InteractiveCreationOptions,
   InteractiveCreationPorts,
-} from "./creation-view";
-import type { NoteFeature } from "./service";
+} from "./creation-view.ts";
+import type { NoteFeature } from "./service.ts";
 
 /** The services the interactive creation and the Profile dialogs it opens read. */
 export type NoteCreationServices =

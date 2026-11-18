@@ -4,19 +4,19 @@ import { Effect } from "effect";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { HydrationOrigin } from "@/services/settings/classify";
-import type { Settings } from "@/services/settings/schema";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { HydrationOrigin } from "@/services/settings/classify.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
 import {
   buildRelease,
   obsidianEventMethods,
   releaseApp,
   releaseOf,
-} from "./__fixtures__";
-import { V1_TEMPLATE_FOLDER } from "./constants";
+} from "./__fixtures__.ts";
+import { V1_TEMPLATE_FOLDER } from "./constants.ts";
 
 /** The configured Literature Note template folder in the fixture settings. */
 const CONFIGURED_TEMPLATE_FOLDER = "templates";

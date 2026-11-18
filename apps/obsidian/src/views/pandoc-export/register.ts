@@ -8,45 +8,48 @@ import type { App, FileSystemAdapter, Plugin, TFile } from "obsidian";
 import { parseIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 
-import { citationStyleLabel } from "@/lib/citation-style";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { withProgress } from "@/lib/notifier";
-import type { Notifier } from "@/lib/notifier";
-import { requestProfileSwitch } from "@/lib/profile-recovery";
-import { ZoteroHttp } from "@/lib/zotero-http";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationParse } from "@/services/citation-parse/service";
-import { resolveIndexedKey } from "@/services/note-index/service";
+import { citationStyleLabel } from "@/lib/citation-style.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { withProgress } from "@/lib/notifier.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
+import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { resolveIndexedKey } from "@/services/note-index/service.ts";
 import {
   fetchBibliography,
   LOCAL_API_PREF,
-} from "@/services/pandoc/bibliography";
-import type { BibliographyItemRef } from "@/services/pandoc/bibliography";
+} from "@/services/pandoc/bibliography.ts";
+import type { BibliographyItemRef } from "@/services/pandoc/bibliography.ts";
 import {
   documentPresentation,
   profileReaderOf,
   effectivePresentation,
   styleSourceOf,
   vaultPresentation,
-} from "@/services/pandoc/document-presentation";
-import type { CitationEngine } from "@/services/pandoc/engine";
-import { describeError, exportCitedDocument } from "@/services/pandoc/export";
-import type { ExportPorts } from "@/services/pandoc/export";
-import { PandocEngine } from "@/services/pandoc/service";
-import { resolveInstalledStyle } from "@/services/pandoc/styles";
-import type { CslStyleRequest } from "@/services/pandoc/styles";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/pandoc/document-presentation.ts";
+import type { CitationEngine } from "@/services/pandoc/engine.ts";
+import {
+  describeError,
+  exportCitedDocument,
+} from "@/services/pandoc/export.ts";
+import type { ExportPorts } from "@/services/pandoc/export.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
+import type { CslStyleRequest } from "@/services/pandoc/styles.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { PandocExportChoices } from "./modal";
-import { openPandocExportModal } from "./modal";
-import { engineMissingMessage, exportFailureMessage } from "./notices";
-import type { ExportProblem } from "./notices";
+import type { PandocExportChoices } from "./modal.ts";
+import { openPandocExportModal } from "./modal.ts";
+import { engineMissingMessage, exportFailureMessage } from "./notices.ts";
+import type { ExportProblem } from "./notices.ts";
 
 /**
  * The services an export reads. `ZoteroHttp` is the loopback client the

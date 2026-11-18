@@ -36,25 +36,25 @@ import type {
   WorkbenchViewState,
 } from "@zotlit/workbench/ui";
 
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/components/ui/toast.tsx";
 import { m } from "@/paraglide/messages.js";
 
 import {
   DEFAULT_SAMPLE,
   makeDraftKeeper,
   STANDALONE_LOCATION,
-} from "./draft-keeper";
-import type { DraftKeeper } from "./draft-keeper";
-import type { SampleItem } from "./fields";
-import { PAGE_PANELS } from "./frame";
-import { matchData } from "./host";
-import { Rendering } from "./rendering";
-import type { PageBridge } from "./runtime";
-import type { DraftLocation, WorkbenchDraft } from "./transfer";
-import { Transfer } from "./transfer";
-import { unsupportedDependencies, unsupportedProblems } from "./unsupported";
-import { WorkbenchConnection } from "./workbench-connection";
-import type { ConnectionState } from "./workbench-connection";
+} from "./draft-keeper.ts";
+import type { DraftKeeper } from "./draft-keeper.ts";
+import type { SampleItem } from "./fields.ts";
+import { PAGE_PANELS } from "./frame.tsx";
+import { matchData } from "./host.tsx";
+import { Rendering } from "./rendering.ts";
+import type { PageBridge } from "./runtime.tsx";
+import type { DraftLocation, WorkbenchDraft } from "./transfer.ts";
+import { Transfer } from "./transfer.ts";
+import { unsupportedDependencies, unsupportedProblems } from "./unsupported.ts";
+import { WorkbenchConnection } from "./workbench-connection.ts";
+import type { ConnectionState } from "./workbench-connection.ts";
 
 /** Which paper a choice names: a bundled Sample Item, or the vault's Item. */
 export interface Paper {

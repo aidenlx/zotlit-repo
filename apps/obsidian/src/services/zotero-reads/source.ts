@@ -21,26 +21,26 @@ import type { ZoteroSchemaVersions } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
-import { ZOTERO_DB_FILENAME, ZOTERO_WAL_FILENAME } from "@/lib/constants";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log-category";
-import { readParentBeside } from "@/services/database/read-parent";
+import { ZOTERO_DB_FILENAME, ZOTERO_WAL_FILENAME } from "@/lib/constants.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { readParentBeside } from "@/services/database/read-parent.ts";
 import {
   buildSqliteUri,
   prepareRead,
   snapshotSource,
   sourceFingerprintsEqual,
   walGenerationSize,
-} from "@/services/database/read-source";
+} from "@/services/database/read-source.ts";
 import type {
   EffectiveReadMode,
   PreparedRead,
   ReadFallbackReason,
   SourceFingerprint,
-} from "@/services/database/read-source";
-import { reapReadClones } from "@/services/database/reap-temps";
+} from "@/services/database/read-source.ts";
+import { reapReadClones } from "@/services/database/reap-temps.ts";
 
-import { makeStateFeed } from "./change-feed";
+import { makeStateFeed } from "./change-feed.ts";
 import {
   closeClient,
   Connection,
@@ -48,10 +48,10 @@ import {
   makeDatabaseGenerations,
   toDbUnavailable,
   validateClient,
-} from "./connection";
-import type { OpenClient } from "./connection";
-import { DbUnavailable } from "./rpc";
-import type { ReadsConfig } from "./rpc";
+} from "./connection.ts";
+import type { OpenClient } from "./connection.ts";
+import { DbUnavailable } from "./rpc.ts";
+import type { ReadsConfig } from "./rpc.ts";
 
 const WATCH_DEBOUNCE_MS = 1200;
 // Immutable mode never clones, so there is no self-echo to outwait: an fs

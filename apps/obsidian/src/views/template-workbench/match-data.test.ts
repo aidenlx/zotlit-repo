@@ -6,19 +6,19 @@ import { vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner";
-import { makeViewRunner } from "@/lib/view-runner";
-import { buildQueryService } from "@/services/item-query/__fixtures__";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
+} from "@/services/zotero-reads/test-utils.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
-import { makeWorkbenchHost } from "./__fixtures__";
-import type { WorkbenchHostDeps } from "./__fixtures__";
-import { createMatchData } from "./match-data";
+import { makeWorkbenchHost } from "./__fixtures__.ts";
+import type { WorkbenchHostDeps } from "./__fixtures__.ts";
+import { createMatchData } from "./match-data.ts";
 
 /** Match data over one fixture database, with the lease releases counted. */
 async function openMatchData(stack: AsyncDisposableStack) {

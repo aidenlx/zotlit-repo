@@ -15,9 +15,9 @@ import type { App, TFolder } from "obsidian";
 
 import { composing } from "@zotlit/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 import {
   dialogFooter,
   field,
@@ -25,14 +25,14 @@ import {
   frameDialog,
   note,
   NOTE_CLASS,
-} from "@/setting-tab/profile-dialog";
+} from "@/setting-tab/profile-dialog.ts";
 import {
   QUERY_FILE_EXTENSION,
   untitledName,
-} from "@/views/query-view/query-file";
+} from "@/views/query-view/query-file.ts";
 
-import { savedQueryFileText } from "./sidebar-query";
-import type { SaveQueryFileInput, SavedRecords } from "./sidebar-query";
+import { savedQueryFileText } from "./sidebar-query.ts";
+import type { SaveQueryFileInput, SavedRecords } from "./sidebar-query.ts";
 
 const logger = getLogger(["views", "annot-view", "save-query-file"]);
 

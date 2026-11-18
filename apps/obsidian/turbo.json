@@ -3,7 +3,6 @@
   "extends": ["//"],
   "tasks": {
     "generate:language-packs": {
-      "dependsOn": ["@zotlit/obsidian-i18n#build"],
       "inputs": [
         "scripts/generate-language-packs.ts",
         "scripts/language-pack-options.ts",
@@ -15,6 +14,11 @@
       "outputLogs": "errors-only"
     },
     "build": {
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ],
       "env": [
         "$TURBO_EXTENDS$",
         "ANALYZE",
@@ -61,13 +65,25 @@
       ]
     },
     "typecheck": {
-      "dependsOn": ["$TURBO_EXTENDS$", "generate:language-packs"]
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ]
     },
     "typecheck:test": {
-      "dependsOn": ["$TURBO_EXTENDS$", "generate:language-packs"]
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ]
     },
     "typecheck:node": {
-      "dependsOn": ["$TURBO_EXTENDS$", "generate:language-packs"]
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ]
     },
     "test": {
       "dependsOn": ["$TURBO_EXTENDS$", "generate:language-packs"],

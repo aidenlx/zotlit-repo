@@ -1,7 +1,7 @@
 // shadcn Base UI Tabs. Base UI owns arrow keys, selection, and panel association.
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export const Tabs = TabsPrimitive.Root;
 

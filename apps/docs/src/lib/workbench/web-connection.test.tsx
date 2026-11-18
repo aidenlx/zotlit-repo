@@ -27,8 +27,8 @@ import {
   shownItem,
   bridgeFetch,
   serveBridge,
-} from "./page-test-host";
-import type { BridgeRequest } from "./page-test-host";
+} from "./page-test-host.tsx";
+import type { BridgeRequest } from "./page-test-host.tsx";
 
 /** Text no Profile carries, typed into the note the page opens on. */
 const EDIT = "Fixture draft edit";

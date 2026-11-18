@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
-import { ItemRow } from "./item-row";
+import { ItemRow } from "./item-row.tsx";
 
 afterEach(cleanup);
 

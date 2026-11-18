@@ -6,15 +6,15 @@ import type { Workspace } from "obsidian";
 
 import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
 
-import { disposable } from "@/lib/disposables";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import * as toast from "@/lib/toast";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import { menuSections, raiseMenu } from "@/services/menu-events";
+import { disposable } from "@/lib/disposables.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import * as toast from "@/lib/toast.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
-import type { NodeClickDeps } from "./click";
-import type { GraphLeafMembers } from "./install";
+import type { NodeClickDeps } from "./click.ts";
+import type { GraphLeafMembers } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 const SECTION = menuSections("zotlit:graph-cited-work-menu");

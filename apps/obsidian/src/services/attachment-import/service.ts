@@ -28,40 +28,46 @@ import { normalizePath } from "obsidian";
 import type { TemplateLink } from "@zotlit/db";
 import { normalizeFilename } from "@zotlit/templates";
 
-import { attachmentFolderPath } from "@/lib/attachment-folder";
-import { copyAttachments } from "@/lib/copy-attachments";
+import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
+import { copyAttachments } from "@/lib/copy-attachments.ts";
 import type {
   AttachmentCopyItem,
   AttachmentCopyResult,
-} from "@/lib/copy-attachments";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder";
-import { fileUrlLink, syntheticFile } from "@/lib/markdown-link";
-import { DeviceStorage } from "@/lib/obsidian-device-storage";
-import type { DeviceStorageError } from "@/lib/obsidian-device-storage";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import type { VaultError, VaultFolderBlockedError } from "@/lib/vault-errors";
-import { ensureVaultFolder } from "@/lib/vault-folder";
-import { PluginSettings } from "@/services/settings/service";
-import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/lib/copy-attachments.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import { fileUrlLink, syntheticFile } from "@/lib/markdown-link.ts";
+import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import type { DeviceStorageError } from "@/lib/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type {
+  VaultError,
+  VaultFolderBlockedError,
+} from "@/lib/vault-errors.ts";
+import { ensureVaultFolder } from "@/lib/vault-folder.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { loadApprovedFolders, saveApprovedFolders } from "./approved-folders";
+import {
+  loadApprovedFolders,
+  saveApprovedFolders,
+} from "./approved-folders.ts";
 import {
   buildCanonicalRoots,
   canonicalize,
   confirmSource,
   decideSource,
   NO_ROOTS,
-} from "./source";
+} from "./source.ts";
 import type {
   AttachmentSource,
   BlockedSource,
   CanonicalRoots,
   SourceOrigin,
-} from "./source";
+} from "./source.ts";
 
 export {
   type AttachmentSource,
@@ -69,7 +75,7 @@ export {
   type CanonicalRoots,
   type SourceBlock,
   type SourceOrigin,
-} from "./source";
+} from "./source.ts";
 
 const logged = withLogCategory("attachment-import");
 

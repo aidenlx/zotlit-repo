@@ -2,8 +2,8 @@
 // one sentence, the corrections ZotLit Query gives, and the line of the
 // filter with a caret under the fault. It reads the diagnostic's fields; the
 // CLI `report` stays the agent's text.
-import * as m from "@/lib/i18n/generated/messages";
-import type { Diagnostic } from "@/services/item-query/contract";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { Diagnostic } from "@/services/item-query/contract.ts";
 
 /** The fields of a diagnostic that the view reads. */
 export type ReaderDiagnosticSource = Pick<Diagnostic, "message" | "hint"> &

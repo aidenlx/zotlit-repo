@@ -4,28 +4,28 @@
 import type { Extension } from "@codemirror/state";
 import { Effect, Layer } from "effect";
 
-import { dispatchToMarkdownEditors } from "@/lib/editor-decoration";
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { WikilinkDisplaySettings } from "@/lib/wikilink-citation";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitationText } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
+import { dispatchToMarkdownEditors } from "@/lib/editor-decoration.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { WikilinkDisplaySettings } from "@/lib/wikilink-citation.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitationText } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import {
   NoteIndex,
   literatureNoteTargetIn,
-} from "@/services/note-index/service";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/note-index/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   wikilinkDecorationsChanged,
   wikilinkEditorExtension,
-} from "./extension";
+} from "./extension.ts";
 
 /**
  * The Wikilink Editor Treatment: in Live Preview a Literature Note wikilink —

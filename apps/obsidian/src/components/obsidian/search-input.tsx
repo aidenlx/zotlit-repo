@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, Ref } from "react";
 
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 export interface SearchInputProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,

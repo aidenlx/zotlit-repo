@@ -7,10 +7,10 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, collectQuery } from ".";
-import type { ItemQueryRequest } from ".";
-import { describeAnnotationQuery } from "./describe-annotation-query";
-import { faultCode, runEffect } from "./test-helpers";
+import { describeAnnotationQuery } from "./describe-annotation-query.ts";
+import { ANNOTATIONS, collectQuery } from "./index.ts";
+import type { ItemQueryRequest } from "./index.ts";
+import { faultCode, runEffect } from "./test-helpers.ts";
 
 // Every test here only reads the scenario.
 let scenario: ScenarioDatabase;

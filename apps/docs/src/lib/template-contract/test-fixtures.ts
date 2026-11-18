@@ -2,7 +2,7 @@
 
 import type { ContractIR } from "@zotlit/db/contract/ir";
 
-import type { SectionSpec } from "./sections";
+import type { SectionSpec } from "./sections.ts";
 
 export const SPECS: readonly SectionSpec[] = [
   {

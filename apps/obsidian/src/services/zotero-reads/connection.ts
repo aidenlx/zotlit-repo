@@ -19,9 +19,9 @@ import {
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
 
-import { makeChangeFeed } from "./change-feed";
-import { DbUnavailable } from "./rpc";
-import type { ChangeEvent, ReadsConfig } from "./rpc";
+import { makeChangeFeed } from "./change-feed.ts";
+import { DbUnavailable } from "./rpc.ts";
+import type { ChangeEvent, ReadsConfig } from "./rpc.ts";
 
 /**
  * The database connection behind every ZoteroReads operation. A borrow lasts

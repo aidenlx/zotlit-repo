@@ -6,14 +6,14 @@ import {
   SCENARIO_LIBRARIES,
 } from "@zotlit/db/test-scenario";
 
-import { collectionWarnings } from "./collection-warnings";
-import { collectQuery } from "./query";
-import { ANNOTATIONS } from "./query-annotations";
-import { ATTACHMENTS } from "./query-attachments";
-import { ITEMS } from "./query-items";
-import { openQuerySources } from "./query-sources";
-import { planRequest } from "./request";
-import { runEffect } from "./test-helpers";
+import { collectionWarnings } from "./collection-warnings.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { ITEMS } from "./query-items.ts";
+import { openQuerySources } from "./query-sources.ts";
+import { collectQuery } from "./query.ts";
+import { planRequest } from "./request.ts";
+import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

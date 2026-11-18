@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { savedLeafOptions } from "./saved-options";
+import { savedLeafOptions } from "./saved-options.ts";
 
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

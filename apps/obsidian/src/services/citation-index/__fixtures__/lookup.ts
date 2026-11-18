@@ -1,6 +1,6 @@
 // Caller-sized answers for citation consumer fixtures.
-import { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import type { CitekeyResolution } from "@/services/citation-index/snapshot";
+import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { CitekeyResolution } from "@/services/citation-index/snapshot.ts";
 
 export function lookupAnswer(
   citekeys: Record<string, CitekeyResolution> = {},

@@ -31,26 +31,26 @@ import {
   TemplateFacade,
 } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AttachmentCopyError } from "@/services/attachment-import/service";
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome";
-import { bluePng, redPng } from "@/services/excerpt-image/__fixtures__/png";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AttachmentCopyError } from "@/services/attachment-import/service.ts";
+import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
+import { bluePng, redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type {
   ExcerptOutcome,
   ExcerptRequest,
-} from "@/services/excerpt-image/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { defaults } from "@/services/settings/schema";
+} from "@/services/excerpt-image/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { diskImageHost } from "./__fixtures__/disk-image-host";
-import { noteImporterOver } from "./__fixtures__/importer";
-import type { ImporterFakes } from "./__fixtures__/importer";
+import { diskImageHost } from "./__fixtures__/disk-image-host.ts";
+import { noteImporterOver } from "./__fixtures__/importer.ts";
+import type { ImporterFakes } from "./__fixtures__/importer.ts";
 
 const paragraph = (key: string, image: string) =>
   `<p><img data-attachment-key="${image}" data-annotation="${encodeURIComponent(JSON.stringify({ attachmentURI: "http://zotero.org/users/local/LOCAL/items/RGRPDF24", annotationKey: key }))}"></p>`;

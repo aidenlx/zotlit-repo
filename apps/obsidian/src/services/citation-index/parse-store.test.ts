@@ -2,9 +2,9 @@ import "fake-indexeddb/auto";
 import { openDB, deleteDB } from "idb";
 import { expect, it } from "vitest";
 
-import { CitationIndex } from "./service";
-import { openCitekeyStore } from "./store";
-import { createCitationIndexHarness, makeFile } from "./test-harness";
+import { CitationIndex } from "./service.ts";
+import { openCitekeyStore } from "./store.ts";
+import { createCitationIndexHarness, makeFile } from "./test-harness.ts";
 
 it("discards schema v1 once, then restores current records without a read", async () => {
   const appId = crypto.randomUUID();

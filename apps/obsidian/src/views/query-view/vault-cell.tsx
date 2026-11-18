@@ -31,20 +31,20 @@ import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { useQueryTask } from "./model";
-import { LIST_TYPES } from "./table-notes";
+import { useQueryTask } from "./model.ts";
+import { LIST_TYPES } from "./table-notes.ts";
 import type {
   LiteratureNotes,
   VaultHost,
   VaultPropertyType,
   VaultValue,
   VaultWrite,
-} from "./table-notes";
+} from "./table-notes.ts";
 import {
   CHIPS,
   FIELD,
@@ -58,9 +58,9 @@ import {
   openChipMenu,
   openListMenu,
   valueOf,
-} from "./vault-editors";
-import type { ChipMenu, VaultDraft, VaultEditEnd } from "./vault-editors";
-import { dateInputValue, linkOf, tagText } from "./vault-value";
+} from "./vault-editors.tsx";
+import type { ChipMenu, VaultDraft, VaultEditEnd } from "./vault-editors.tsx";
+import { dateInputValue, linkOf, tagText } from "./vault-value.ts";
 import "./vault-cell.css";
 
 /** The vault property `name` of the Item `itemKey`, and where it is read. */

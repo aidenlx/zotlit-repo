@@ -22,28 +22,28 @@ import {
   useChooserPage,
   useChooserPageSave,
   useChooserPageText,
-} from "@/components/chooser";
-import type { ChooserPageMenuItem } from "@/components/chooser";
-import { Button } from "@/components/obsidian/button";
-import { Icon } from "@/components/obsidian/icon";
-import { useObsidianApp } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
-import { matchTheme } from "@/views/template-workbench/match-pane";
-import { onKeymap } from "@/views/template-workbench/theme";
+} from "@/components/chooser.tsx";
+import type { ChooserPageMenuItem } from "@/components/chooser.tsx";
+import { Button } from "@/components/obsidian/button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
+import { matchTheme } from "@/views/template-workbench/match-pane.tsx";
+import { onKeymap } from "@/views/template-workbench/theme.tsx";
 
-import { boundRecords } from "./context-hint";
+import { boundRecords } from "./context-hint.ts";
 import {
   expressionVocabulary,
   useViewCustomFields,
-} from "./expression-vocabulary";
-import { useQueryViewState } from "./model";
-import { displayName, formulaProperty } from "./query-file";
-import { formulaIssuesOf } from "./results";
-import type { FormulaIssue } from "./results";
-import type { QueryView } from "./view";
-import { fieldLabel, useViewProperties } from "./view-properties";
-import type { PropertyEntry } from "./view-properties";
+} from "./expression-vocabulary.ts";
+import { useQueryViewState } from "./model.ts";
+import { displayName, formulaProperty } from "./query-file.ts";
+import { formulaIssuesOf } from "./results.ts";
+import type { FormulaIssue } from "./results.ts";
+import { fieldLabel, useViewProperties } from "./view-properties.ts";
+import type { PropertyEntry } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 /** How long a Formula's text rests before it saves while the user types. */
 const FORMULA_SAVE_DELAY = 250;

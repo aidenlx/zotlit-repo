@@ -9,7 +9,7 @@ import {
   WorkbenchThemeProvider,
 } from "@zotlit/workbench/ui";
 
-import { WEB_THEME } from "./theme";
+import { WEB_THEME } from "./theme.tsx";
 
 beforeEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 

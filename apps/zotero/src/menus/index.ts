@@ -1,9 +1,9 @@
-import { logger as appLogger } from "@/lib/logger";
+import { logger as appLogger } from "@/lib/logger.ts";
 
-import { registerCollectionMenu } from "./collection.js";
-import { registerItemMenu } from "./item.js";
-import { registerReaderAnnotationMenu } from "./reader-annotation.js";
-import { registerReaderPageMenu } from "./reader-page.js";
+import { registerCollectionMenu } from "./collection.ts";
+import { registerItemMenu } from "./item.ts";
+import { registerReaderAnnotationMenu } from "./reader-annotation.ts";
+import { registerReaderPageMenu } from "./reader-page.ts";
 
 const logger = appLogger.getChild("menus");
 

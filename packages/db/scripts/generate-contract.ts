@@ -3,7 +3,7 @@ import type {
   ContractReference,
   ContractRootIR,
   RuntimeContractIR,
-} from "#contract/ir";
+} from "#contract/ir.ts";
 // Generates the committed contract IR and the per-root JSON Schemas from the `zt` template types.
 //
 // The effective parser is ts-morph's vendored frozen TypeScript 6, not the

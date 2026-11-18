@@ -2,8 +2,8 @@ import { expect, it } from "vitest";
 
 import { ITEMS } from "@zotlit/item-query";
 
-import { datasetVocabulary } from "./expression-vocabulary";
-import { signatureAt } from "./signature-hint";
+import { datasetVocabulary } from "./expression-vocabulary.ts";
+import { signatureAt } from "./signature-hint.ts";
 
 /** The hint at the `|` in `text`. */
 function hintAt(

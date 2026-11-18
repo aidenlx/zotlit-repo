@@ -30,10 +30,10 @@ import {
 
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
 
-import type { AnnotationDraft } from "@/services/annotation-repository/write";
-import type { Settings } from "@/services/settings/schema";
-import type { AnnotationView } from "@/views/annot-view/view";
-import type { QueryFileView } from "@/views/query-view/file-view";
+import type { AnnotationDraft } from "@/services/annotation-repository/write.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { verifyExternalAnnotationLock } from "./annotation-lock.ts";
 import { prepareRunWindow } from "./background-throttling.ts";
@@ -16300,7 +16300,7 @@ async function installLostWriteProbe(vaultId: string): Promise<void> {
       { effectPath }: { effectPath: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect"),
+        typeof import("@/lib/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;
@@ -16356,7 +16356,7 @@ async function installClosingPaneProbe(
       }: { effectPath: string; annotationKey: string; color: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect"),
+        typeof import("@/lib/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;
@@ -16411,7 +16411,7 @@ async function installHeldWriteProbe(vaultId: string): Promise<void> {
       { effectPath }: { effectPath: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect"),
+        typeof import("@/lib/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;

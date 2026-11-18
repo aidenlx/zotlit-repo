@@ -3,12 +3,12 @@ import type {
   Citation,
   CitationKeyResolution,
   DocumentCitationError,
-} from "@/services/citation-index/service";
-import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation";
-import type { PandocEngineStatus } from "@/services/pandoc/service";
+} from "@/services/citation-index/service.ts";
+import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 
-import { buildReferenceEntries } from "./entries";
-import type { ReferenceEntry } from "./entries";
+import { buildReferenceEntries } from "./entries.ts";
+import type { ReferenceEntry } from "./entries.ts";
 
 export type ReferencesListMode =
   | { kind: "minimal" }

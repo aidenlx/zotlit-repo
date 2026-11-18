@@ -4,23 +4,23 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import type { TFile } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { held, viewRuntime } from "@/lib/view-atoms";
-import type { CitationOccurrence } from "@/services/citation-index/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import { activeNoteAtom } from "@/services/note-index/atoms";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import type { CitationOccurrence } from "@/services/citation-index/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 import {
   documentPresentation,
   profileReaderOf,
   samePresentation,
-} from "@/services/pandoc/document-presentation";
-import type { DocumentPresentation } from "@/services/pandoc/document-presentation";
-import { PandocEngine } from "@/services/pandoc/service";
-import { Profile } from "@/services/profile/service";
-import { flashOccurrence } from "@/views/reveal-occurrence";
+} from "@/services/pandoc/document-presentation.ts";
+import type { DocumentPresentation } from "@/services/pandoc/document-presentation.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { flashOccurrence } from "@/views/reveal-occurrence.ts";
 
 export const metadataRevisionAtom = held(
   Stream.unwrap(

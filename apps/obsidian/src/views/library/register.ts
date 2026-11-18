@@ -5,17 +5,17 @@ import { Effect, Layer } from "effect";
 import { addIcon } from "obsidian";
 import type { App, Plugin } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
-import { LIBRARY_VIEW_ROW_LIMIT } from "./document";
-import { ZOTLIT_MARK_ICON, zotlitMarkSvg } from "./icon";
-import { libraryItemCommand } from "./item-actions";
-import { ShowInLibrary } from "./show-in-library";
-import { LIBRARY_VIEW_TYPE, LibraryView } from "./view";
-import type { LibraryViewDeps } from "./view";
+import { LIBRARY_VIEW_ROW_LIMIT } from "./document.ts";
+import { ZOTLIT_MARK_ICON, zotlitMarkSvg } from "./icon.ts";
+import { libraryItemCommand } from "./item-actions.ts";
+import { ShowInLibrary } from "./show-in-library.ts";
+import { LIBRARY_VIEW_TYPE, LibraryView } from "./view.ts";
+import type { LibraryViewDeps } from "./view.ts";
 
 type LibraryViewPlugin = Pick<
   Plugin,

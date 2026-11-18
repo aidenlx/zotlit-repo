@@ -10,16 +10,16 @@ import { getPackageRoot } from "@zotlit/scripts/package-roots";
 import { deLocalizeUrl, localizeUrl } from "@/paraglide/runtime.js";
 import { paraglideMiddleware } from "@/paraglide/server.js";
 
-import { blogs, changelogs, docs } from "./collections";
-import { fumadocsTranslations } from "./fumadocs-translations";
-import { i18n, isSiteLocale, unlocalizedPath } from "./i18n";
-import { getPageLocaleState } from "./locale-state";
-import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes";
-import { prerenderPages } from "./prerender-pages";
-import { pageHead } from "./seo";
-import { nativeChinese } from "./sitemap";
-import { blog, changelog, source } from "./source";
-import { breadcrumbListSchema } from "./structured-data";
+import { blogs, changelogs, docs } from "./collections.ts";
+import { fumadocsTranslations } from "./fumadocs-translations.ts";
+import { i18n, isSiteLocale, unlocalizedPath } from "./i18n.ts";
+import { getPageLocaleState } from "./locale-state.ts";
+import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes.ts";
+import { prerenderPages } from "./prerender-pages.ts";
+import { pageHead } from "./seo.ts";
+import { nativeChinese } from "./sitemap.ts";
+import { blog, changelog, source } from "./source.ts";
+import { breadcrumbListSchema } from "./structured-data.ts";
 
 describe("native locale infrastructure", () => {
   it("uses exactly the V1 language URLs", () => {
@@ -262,7 +262,7 @@ describe("translated documentation links", () => {
 describe("translator-facing UI and formatting", () => {
   it("formats dates in the requested locale while English is the default", async () => {
     const { formatReleaseDate, formatReleaseInstant } =
-      await import("./shared");
+      await import("./shared.ts");
     expect(formatReleaseDate("2026-10-11")).toBe("October 11, 2026");
     expect(formatReleaseDate("2026-10-11", { locale: "zh-CN" })).toBe(
       "2026年10月11日",

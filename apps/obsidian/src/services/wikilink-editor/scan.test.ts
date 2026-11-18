@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { TokenNode } from "@/lib/editor-decoration";
+import type { TokenNode } from "@/lib/editor-decoration.ts";
 
-import { scanWikilinks } from "./scan";
+import { scanWikilinks } from "./scan.ts";
 
 /**
  * The node list Obsidian's stream-parser bridge emits, built from

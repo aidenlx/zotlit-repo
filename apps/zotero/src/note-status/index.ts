@@ -9,11 +9,11 @@ import {
   SOURCE_ID_HEADER,
 } from "@zotlit/protocol";
 
-import { formatObjectKeys, identityForObject } from "@/lib/indexed-key";
-import { formatValue, registerMenu } from "@/lib/l10n";
-import { logger as appLogger } from "@/lib/logger";
-import { notifyUrl } from "@/notify/shared";
-import { sourceId } from "@/notify/source";
+import { formatObjectKeys, identityForObject } from "@/lib/indexed-key.ts";
+import { formatValue, registerMenu } from "@/lib/l10n.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
+import { notifyUrl } from "@/notify/shared.ts";
+import { sourceId } from "@/notify/source.ts";
 
 import obsidianLogo from "./obsidian-logo.svg?inline";
 

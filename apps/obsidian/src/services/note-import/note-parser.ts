@@ -22,23 +22,23 @@ import type {
 import { attachmentAbsPath, parseAttachmentPath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { renderColorMark, renderHighlight } from "@/lib/turndown/color-mark.ts";
+import type {
+  ColorMarkKind,
+  HighlightOptions,
+} from "@/lib/turndown/color-mark.ts";
 import {
   ANNOTATION_CALLOUT_ATTR,
   createNoteTurndown,
   createObsidianTurndown,
   encodeCalloutAttr,
-} from "@/lib/turndown";
-import { renderColorMark, renderHighlight } from "@/lib/turndown/color-mark";
-import type {
-  ColorMarkKind,
-  HighlightOptions,
-} from "@/lib/turndown/color-mark";
+} from "@/lib/turndown/index.ts";
 import type {
   AttachmentImportBatch,
   SourceOrigin,
-} from "@/services/attachment-import/service";
+} from "@/services/attachment-import/service.ts";
 
 import {
   findAnnotationParagraphs,
@@ -47,8 +47,8 @@ import {
   parseEmbeddedCitations,
   parseEmbeddedItemSnapshots,
   parseNoteSchema,
-} from "./note-marks";
-import type { NoteAnnotation } from "./note-marks";
+} from "./note-marks.ts";
+import type { NoteAnnotation } from "./note-marks.ts";
 
 const logger = getLogger(["note-import", "note-parser"]);
 

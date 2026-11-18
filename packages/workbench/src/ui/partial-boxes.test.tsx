@@ -6,15 +6,15 @@ import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { AnnotationPane } from "./annotation";
-import { WorkbenchHostError, WorkbenchHostProvider } from "./host";
-import { NotePane } from "./note-pane";
-import type { PartialPlaceholderHost } from "./partial-boxes";
-import { fakeHost, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { AnnotationPane } from "./annotation.tsx";
+import { WorkbenchHostError, WorkbenchHostProvider } from "./host.tsx";
+import { NotePane } from "./note-pane.tsx";
+import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
+import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 afterEach(cleanup);
 

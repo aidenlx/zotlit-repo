@@ -1,13 +1,13 @@
 import { join, posix } from "node:path";
 
-import { annotationHasCacheImage } from "./zt-annot";
-import type { AnnotationType, ResolvedAnnotationTypeName } from "./zt-annot";
-import { parseAttachmentPath } from "./zt-attach";
-import type { Attachment } from "./zt-attach";
+import { annotationHasCacheImage } from "./zt-annot.ts";
+import type { AnnotationType, ResolvedAnnotationTypeName } from "./zt-annot.ts";
+import { parseAttachmentPath } from "./zt-attach.ts";
+import type { Attachment } from "./zt-attach.ts";
 
 // Re-exported so a consumer resolving an absolute path can also classify it —
 // the Obsidian plugin's source-decision seam needs both.
-export { parseAttachmentPath, type AttachmentPath } from "./zt-attach";
+export { parseAttachmentPath, type AttachmentPath } from "./zt-attach.ts";
 
 export interface AttachmentPathContext {
   /** Zotero data directory, for resolving `storage:` paths. */

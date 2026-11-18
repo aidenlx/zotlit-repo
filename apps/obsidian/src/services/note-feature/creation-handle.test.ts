@@ -7,17 +7,17 @@ import { expect, it, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
-import { bindNoteCreation } from "./creation-handle";
-import type { NoteCreationServices } from "./creation-handle";
-import { NoteFeature } from "./service";
+import { bindNoteCreation } from "./creation-handle.ts";
+import type { NoteCreationServices } from "./creation-handle.ts";
+import { NoteFeature } from "./service.ts";
 
 const ITEM = { indexedKey: "ABCD2345" } as Item;
 const FILE = Object.assign(new TFile(), { path: "Literature/Paper.md" });

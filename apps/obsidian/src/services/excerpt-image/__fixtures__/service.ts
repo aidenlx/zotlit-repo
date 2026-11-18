@@ -1,12 +1,12 @@
 // Promise test hosts exercise the real scoped service through its bridge.
 import { Effect, FileSystem, Layer, Scope, Exit } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { ExcerptImageService, layerExcerptImage } from "@/services/excerpt-image/service";
-import type { ExcerptDeps, ExcerptRequest, ExcerptImageOperation } from "@/services/excerpt-image/service";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
+import { ExcerptImageService, layerExcerptImage } from "@/services/excerpt-image/service.ts";
+import type { ExcerptDeps, ExcerptRequest, ExcerptImageOperation } from "@/services/excerpt-image/service.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 
 export class ExcerptImageFixture implements AsyncDisposable {
   readonly #stack = new AsyncDisposableStack();

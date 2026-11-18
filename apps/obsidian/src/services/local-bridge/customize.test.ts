@@ -12,35 +12,35 @@ import type {
   LiteratureNoteTemplatePartial,
 } from "@zotlit/templates/literature-note-pack";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { LocalServer } from "@/services/local-server/service";
-import { Profile, ProfileOperationError } from "@/services/profile/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
 import {
   profileCustomization,
   saveProfileCustomization,
-} from "@/views/template-workbench/preferences";
+} from "@/views/template-workbench/preferences.ts";
 
-import { customize } from "./customize";
+import { customize } from "./customize.ts";
 import type {
   CustomizePorts,
   CustomizeRequest,
   LaunchConsent,
   LaunchSheetDetails,
   NativeProfileTarget,
-} from "./customize";
-import { LocalBridge } from "./service";
+} from "./customize.ts";
+import { LocalBridge } from "./service.ts";
 
 const LIQUID_PROFILE = `---
 id: default

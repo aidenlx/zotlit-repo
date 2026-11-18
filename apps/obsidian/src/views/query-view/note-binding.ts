@@ -1,10 +1,10 @@
 // The Item bound to a note host, refreshed when that note's metadata changes.
 import { Effect, Stream } from "effect";
 
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { held } from "@/lib/view-atoms";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { held } from "@/lib/view-atoms.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
 export const makeNoteBindingAtom = (
   sourcePath: () => string,

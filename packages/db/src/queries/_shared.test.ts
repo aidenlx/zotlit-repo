@@ -1,14 +1,14 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { createClient } from "@/client/node";
-import type { NodeDatabaseClient } from "@/client/node";
+import { defineKeyedQuery } from "./_shared.ts";
+
+import { createClient } from "#client/node.ts";
 import {
   countCompiles,
   countStatements,
   createFixtureSchema,
-} from "@/test-utils";
-
-import { defineKeyedQuery } from "./_shared";
+} from "#test-utils.ts";
 
 const itemRows = defineKeyedQuery<string, { libraryID: number }>()(
   (db, { contains, placeholder }) =>

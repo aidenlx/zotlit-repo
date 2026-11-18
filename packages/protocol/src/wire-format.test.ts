@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import { libraryViewUri } from "@zotlit/db";
 
-import { noteStatusResponseSchema } from "./note-status";
-import { notifyEventSchema } from "./notify";
-import { SOURCE_ID_HEADER } from "./source-id";
+import { noteStatusResponseSchema } from "./note-status.ts";
+import { notifyEventSchema } from "./notify.ts";
+import { SOURCE_ID_HEADER } from "./source-id.ts";
 import {
   batchUpdateRequestSchema,
   buildBatchProtocolUrl,
@@ -29,8 +29,8 @@ import {
   showInLibraryProtocolActionId,
   showInLibraryProtocolQuerySchema,
   updateAllProtocolQuerySchema,
-} from "./url";
-import { PROTOCOL_VERSION } from "./version";
+} from "./url.ts";
+import { PROTOCOL_VERSION } from "./version.ts";
 
 const SOURCE = "a1b2c3d4";
 const COLLECTION = "ABCD2345";

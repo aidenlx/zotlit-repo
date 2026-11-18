@@ -8,10 +8,10 @@ import {
   RequestResolver,
 } from "effect";
 
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { DatabaseAnswer } from "./model";
-import type { CoreState } from "./state";
+import type { DatabaseAnswer } from "./model.ts";
+import type { CoreState } from "./state.ts";
 
 /** Why the Zotero database answered no rows: no Snapshot, or a failed read. */
 type DatabaseRowsError =

@@ -8,12 +8,12 @@ import type {
   GraphOptions,
 } from "obsidian";
 
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
 
-import { targetOnce } from "./install";
-import type { GraphNodeColors } from "./node-color";
+import { targetOnce } from "./install.ts";
+import type { GraphNodeColors } from "./node-color.ts";
 
 const logger = getLogger("graph-citations");
 

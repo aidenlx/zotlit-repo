@@ -32,38 +32,42 @@ import {
   decodeCliParams,
   expectSourceParam,
   amendRejection,
-} from "@/lib/cli-params";
-import type { CliOutput, CliParamName, CliRejection } from "@/lib/cli-params";
-import { instantClock } from "@/lib/effect-clock";
-import { Profile } from "@/services/profile/service";
-import { PROFILE_OUTPUTS } from "@/services/template-workbench/check-profile";
-import type { ProfileCheck } from "@/services/template-workbench/check-profile";
+} from "@/lib/cli-params.ts";
+import type {
+  CliOutput,
+  CliParamName,
+  CliRejection,
+} from "@/lib/cli-params.ts";
+import { instantClock } from "@/lib/effect-clock.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PROFILE_OUTPUTS } from "@/services/template-workbench/check-profile.ts";
+import type { ProfileCheck } from "@/services/template-workbench/check-profile.ts";
 
-import { selectCheckBaseline } from "./check-baseline";
+import { selectCheckBaseline } from "./check-baseline.ts";
 import {
   checkPlainDocument,
   RESERVED_PARTIAL_NAME,
-} from "./check-plain-document";
+} from "./check-plain-document.ts";
 import {
   checkProfileDocument,
   INVALID_PROFILE_ID,
   PROFILE_ID_MISMATCH,
-} from "./check-profile-document";
-import { readTemplateData } from "./data";
-import type { TemplateDataServices } from "./data";
-import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope";
-import { createInspectHandler, sourceRevision } from "./inspect";
+} from "./check-profile-document.ts";
+import { readTemplateData } from "./data.ts";
+import type { TemplateDataServices } from "./data.ts";
+import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope.ts";
+import { createInspectHandler, sourceRevision } from "./inspect.ts";
 import type {
   InspectDocument,
   InspectServices,
   SourceVersion,
-} from "./inspect";
+} from "./inspect.ts";
 import {
   choices,
   CITATION_EXAMPLE_NAMES,
   CITATION_VARIANT_NAMES,
   PARTIAL_CONTEXT_NAMES,
-} from "./vocabulary";
+} from "./vocabulary.ts";
 
 export const TEMPLATE_CHECK_COMMAND = "zotlit:template-check";
 /** How many finished attempts stay readable; the oldest is evicted beyond it. */

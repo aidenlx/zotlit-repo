@@ -1,4 +1,4 @@
-import type { RenderDiagnostic } from "#/render/index";
+import type { RenderDiagnostic } from "#render/index.ts";
 import { useAtomValue } from "@effect/atom-react";
 import {
   act,
@@ -9,10 +9,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { useWorkbenchController, useWorkbenchModel } from "./editor";
-import { chooseItem, setPreview } from "./model";
-import { NameFolderPane } from "./name-folder";
-import { PropertiesPane } from "./properties-tab";
+import { useWorkbenchController, useWorkbenchModel } from "./editor.tsx";
+import { chooseItem, setPreview } from "./model.ts";
+import { NameFolderPane } from "./name-folder.tsx";
+import { PropertiesPane } from "./properties-tab.tsx";
 import {
   mount,
   pressRun,
@@ -20,10 +20,10 @@ import {
   reportFailure,
   schedulerState,
   setItemData,
-} from "./test-host";
-import { m } from "./test-messages";
+} from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { SAMPLE_ITEMS } from "#/render/index";
+import { SAMPLE_ITEMS } from "#render/index.ts";
 
 afterEach(cleanup);
 

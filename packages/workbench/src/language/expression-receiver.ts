@@ -10,8 +10,8 @@ import type { QueryDataset } from "@zotlit/item-query";
 import type {
   ExpressionReceiver,
   ExpressionVocabulary,
-} from "./expression-options";
-import type { Span } from "./span";
+} from "./expression-options.ts";
+import type { Span } from "./span.ts";
 
 /**
  * How the planner of `dataset` reads the value before a `.`, where it

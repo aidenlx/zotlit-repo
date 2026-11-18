@@ -16,52 +16,59 @@ import {
   truncateToByteLimit,
 } from "@zotlit/templates";
 
-import { renderAnnotationSources } from "@/lib/annotation-render";
+import { renderAnnotationSources } from "@/lib/annotation-render.ts";
 import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_LASTMOD,
   FIELD_ZOTERO_NOTE_KEY,
   stringifyInstant,
-} from "@/lib/constants";
-import { processLiveText } from "@/lib/effect-live-text";
-import { withLogCategory } from "@/lib/effect-log";
-import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder";
-import * as m from "@/lib/i18n/generated/messages";
-import { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { formatErrorMessage } from "@/lib/toast";
-import type { VaultError, VaultFolderBlockedError } from "@/lib/vault-errors";
-import { ensureVaultFolder } from "@/lib/vault-folder";
-import { AttachmentImport } from "@/services/attachment-import/service";
+} from "@/lib/constants.ts";
+import { processLiveText } from "@/lib/effect-live-text.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { formatErrorMessage } from "@/lib/toast.ts";
+import type {
+  VaultError,
+  VaultFolderBlockedError,
+} from "@/lib/vault-errors.ts";
+import { ensureVaultFolder } from "@/lib/vault-folder.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import type {
   AttachmentFlushError,
   AttachmentImportBatch,
-} from "@/services/attachment-import/service";
-import { outcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare";
+} from "@/services/attachment-import/service.ts";
+import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import type {
   ExcerptPrepareError,
   ExcerptSummary,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare";
-import { randomFilenameId } from "@/services/note-feature/filename";
-import { NoteIndex } from "@/services/note-index/service";
-import { getProfileBinding } from "@/services/profile/bindings";
+} from "@/services/excerpt-image/prepare.ts";
+import { randomFilenameId } from "@/services/note-feature/filename.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type {
   ProfileBindingSettings,
   ResolvedProfile,
-} from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import type { ProfileOperationError } from "@/services/profile/service";
-import { syncTemplate } from "@/services/template-workbench/sync-template";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileOperationError } from "@/services/profile/service.ts";
+import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { noteAnnotationKeys, noteReferences, parseNote } from "./note-parser";
+import {
+  noteAnnotationKeys,
+  noteReferences,
+  parseNote,
+} from "./note-parser.ts";
 
 /** Bounds concurrent vault writes across all batches. */
 const WRITE_CONCURRENCY = 16;

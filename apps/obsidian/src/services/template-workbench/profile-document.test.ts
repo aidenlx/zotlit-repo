@@ -4,14 +4,14 @@ import { describe, expect, vi } from "vitest";
 
 import { LiteratureNoteTemplateError } from "@zotlit/templates/facade";
 
-import { InertTemplateError } from "@/services/template/errors";
+import { InertTemplateError } from "@/services/template/errors.ts";
 
 import {
   createTemplateWorkbenchHandlers,
   TEMPLATE_DOCUMENT_RENDER_COMMAND,
   TEMPLATE_STATUS_COMMAND,
-} from "./cli";
-import { DIAGNOSTIC_HINTS } from "./envelope";
+} from "./cli.ts";
+import { DIAGNOSTIC_HINTS } from "./envelope.ts";
 
 const IDENTITY = {
   vault: { name: "Test Vault", path: "/vaults/test" },

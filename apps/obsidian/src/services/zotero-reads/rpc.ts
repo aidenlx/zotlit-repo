@@ -31,22 +31,25 @@ import type {
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import type { CitationLookupWireAnswer } from "@/services/citation-index/lookup";
+import type { CitationLookupWireAnswer } from "@/services/citation-index/lookup.ts";
 import type {
   CitekeyResolution,
   SnapshotItem,
-} from "@/services/citation-index/snapshot";
-import type { EffectiveReadMode } from "@/services/database/read-source";
-import { DecodedQuery, DecodedValues } from "@/services/item-query/query-codec";
+} from "@/services/citation-index/snapshot.ts";
+import type { EffectiveReadMode } from "@/services/database/read-source.ts";
+import {
+  DecodedQuery,
+  DecodedValues,
+} from "@/services/item-query/query-codec.ts";
 import type {
   QueryAnswer,
   QueryJob,
-} from "@/services/item-query/worker-protocol";
-import { libraryScopeWire } from "@/services/library-scope/scope";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import type { Settings, ZoteroReadMode } from "@/services/settings/schema";
+} from "@/services/item-query/worker-protocol.ts";
+import { libraryScopeWire } from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import type { Settings, ZoteroReadMode } from "@/services/settings/schema.ts";
 
-import { Instant } from "./instant-codec";
+import { Instant } from "./instant-codec.ts";
 
 /** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;

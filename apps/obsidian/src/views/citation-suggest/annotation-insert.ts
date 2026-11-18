@@ -3,12 +3,15 @@ import type { App, MarkdownFileInfo } from "obsidian";
 
 import { observeExit } from "@zotlit/workbench/ui";
 
-import { captureInsertion } from "@/views/annot-view/async-insert";
-import { insertOutcomeMessage } from "@/views/annot-view/drag-insert";
-import { startInsert } from "@/views/annot-view/insert-run";
-import type { InsertFiber, InsertRunner } from "@/views/annot-view/insert-run";
+import { captureInsertion } from "@/views/annot-view/async-insert.ts";
+import { insertOutcomeMessage } from "@/views/annot-view/drag-insert.ts";
+import { startInsert } from "@/views/annot-view/insert-run.ts";
+import type {
+  InsertFiber,
+  InsertRunner,
+} from "@/views/annot-view/insert-run.ts";
 
-import type { AnnotationHit } from "./annotation-search";
+import type { AnnotationHit } from "./annotation-search.ts";
 
 export interface AnnotationInsertDeps {
   app: App;

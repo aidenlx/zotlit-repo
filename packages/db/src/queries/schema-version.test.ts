@@ -1,12 +1,12 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { createFixtureSchema } from "@/test-utils";
+import { getSchemaVersions } from "./schema-version.ts";
 
-import { getSchemaVersions } from "./schema-version";
+import { relations } from "#drizzle/relations.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 function withVersions(
   rows: Record<string, number>,

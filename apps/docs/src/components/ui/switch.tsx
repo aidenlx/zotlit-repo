@@ -2,7 +2,7 @@
 // @see https://ui.shadcn.com/docs/components/base/switch
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
   return (

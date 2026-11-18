@@ -1,22 +1,22 @@
 // @vitest-environment happy-dom
-import { ButtonComponent, TextComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, TextComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { ProfileNoteDraft } from "@/services/note-feature/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { PreparedProfileCreation } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { PreparedProfileCreation } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { CreateProfileModal } from "./create-profile-modal";
-import type { ProfileCreationDeps } from "./create-profile-modal";
+import { CreateProfileModal } from "./create-profile-modal.ts";
+import type { ProfileCreationDeps } from "./create-profile-modal.ts";
 
 const id = "Bk3Qn7XvT2Lp" as ProfileId;
 function fixture() {

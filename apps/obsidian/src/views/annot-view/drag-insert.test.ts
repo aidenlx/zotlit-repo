@@ -14,25 +14,25 @@ import type {
 } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openScope } from "@/lib/effect-scope";
-import * as m from "@/lib/i18n/generated/messages";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions";
-import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action";
-import type { AnnotationInsert } from "@/services/note-feature/insert-annotation";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openScope } from "@/lib/effect-scope.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
+import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";
+import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
 import {
   templateFailure,
   ProfileAnnotationError,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
-import { stateEditor } from "./__fixtures__/editor";
+import { stateEditor } from "./__fixtures__/editor.ts";
 import {
   createDragInsertHandler,
   createInsertHandler,
   insertOutcomeMessage,
-} from "./drag-insert";
-import type { AnnotationInsertOutcome } from "./drag-insert";
+} from "./drag-insert.ts";
+import type { AnnotationInsertOutcome } from "./drag-insert.ts";
 
 const card: AnnotationRecord = {
   key: "PUPR5FG5",

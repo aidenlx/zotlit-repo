@@ -5,11 +5,11 @@ import type {
   LocalApiFailure,
   LocalApiState,
   WriteAuthorizationState,
-} from "@/services/zotero-local-api/service";
+} from "@/services/zotero-local-api/service.ts";
 
-import { cooldownFailureOf } from "./__fixtures__/capability";
-import { editingCapabilityOf } from "./capability";
-import type { EditingCapability } from "./capability";
+import { cooldownFailureOf } from "./__fixtures__/capability.ts";
+import { editingCapabilityOf } from "./capability.ts";
+import type { EditingCapability } from "./capability.ts";
 
 const NOW = DateTime.makeUnsafe("2026-09-16T15:52:21Z");
 

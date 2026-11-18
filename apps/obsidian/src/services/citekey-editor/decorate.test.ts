@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { CitationKeyState } from "@/services/citation-text/present";
+import type { CitationKeyState } from "@/services/citation-text/present.ts";
 
 import {
   citationRanges,
@@ -9,7 +9,7 @@ import {
   isFootnoteTokenClass,
   marksOutside,
   stateCitekeyMarks,
-} from "./decorate";
+} from "./decorate.ts";
 
 const never = (): boolean => false;
 

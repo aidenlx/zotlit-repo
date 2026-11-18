@@ -8,14 +8,14 @@ import type {
   ProfileId,
   ProfileSelector,
   UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/lib/profile-stamp.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 export interface UpdateResult {
   bodyUpdated: boolean;

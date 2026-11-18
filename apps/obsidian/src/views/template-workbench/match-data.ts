@@ -9,22 +9,22 @@ import type {
   WorkbenchMatchResult,
 } from "@zotlit/workbench/ui";
 
-import type { ViewRunner } from "@/lib/view-runner";
-import { QueryService } from "@/services/item-query/service";
+import type { ViewRunner } from "@/lib/view-runner.ts";
+import { QueryService } from "@/services/item-query/service.ts";
 import {
   resolveLibraryScope,
   selectorKey,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import {
   matchesRequest,
   readMatches,
-} from "@/services/profile-selection/match-query";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { readerText } from "@/views/query-view/reader-diagnostic";
-import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic";
+} from "@/services/profile-selection/match-query.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { readerText } from "@/views/query-view/reader-diagnostic.ts";
+import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
 
-import { hostEffect } from "./host";
-import { getSampleItem } from "./selection-data";
+import { hostEffect } from "./host.tsx";
+import { getSampleItem } from "./selection-data.ts";
 
 /**
  * The Match vocabulary and test, each forked on the runner of the mount that

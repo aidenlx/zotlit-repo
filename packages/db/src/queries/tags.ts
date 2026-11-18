@@ -1,10 +1,9 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ItemTag, Tag } from "#lib/zt-tag.ts";
 import { distinct } from "@std/collections";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import type { ItemTag, Tag } from "@/lib/zt-tag";
-
-import { defineQuery, defineKeyedQuery } from "./_shared";
-import type { FindManyOptions } from "./_shared";
+import { defineQuery, defineKeyedQuery } from "./_shared.ts";
+import type { FindManyOptions } from "./_shared.ts";
 
 const itemTagOptions = {
   columns: { itemID: true, tagID: true, type: true },

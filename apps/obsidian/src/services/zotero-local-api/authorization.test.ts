@@ -6,7 +6,7 @@ import { DateTime, Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
 import {
   authorized,
@@ -21,9 +21,9 @@ import {
   unreachable,
   writeAccepted,
   SERVER_ID,
-} from "./__fixtures__";
-import type { ClientOptions, ZoteroAnswers } from "./__fixtures__";
-import type { ZoteroLocalApi } from "./service";
+} from "./__fixtures__.ts";
+import type { ClientOptions, ZoteroAnswers } from "./__fixtures__.ts";
+import type { ZoteroLocalApi } from "./service.ts";
 
 /** One annotation of the personal library, as a write route names it. */
 const ITEM_PATH = "/api/users/0/items/PUPR5FG5";

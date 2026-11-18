@@ -1,33 +1,33 @@
 // The render scheduler as atoms: a sleep a newer input interrupts, then the host's render Effect.
 
-import type { CitationPreviewSelection } from "#/render/citation-examples";
-import type { PartialPreviewSelection } from "#/render/partial-preview";
-import type { WorkbenchReportContext } from "#/render/report";
-import type { RenderRequest, RenderResources } from "#/render/request";
+import type { CitationPreviewSelection } from "#render/citation-examples.ts";
+import type { PartialPreviewSelection } from "#render/partial-preview.ts";
+import type { WorkbenchReportContext } from "#render/report.ts";
+import type { RenderRequest, RenderResources } from "#render/request.ts";
 import type {
   TemplateRenderResult,
   RenderDiagnostic,
   RenderedProperty,
   RenderIdentity,
-} from "#/render/result";
-import type { AnnotationExample } from "#/render/sample-annotations";
-import type { ItemSnapshot } from "#/snapshot/index";
+} from "#render/result.ts";
+import type { AnnotationExample } from "#render/sample-annotations.ts";
+import type { ItemSnapshot } from "#snapshot/index.ts";
 import { Cause, Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { WorkbenchHostError } from "./host";
-import type { PreviewMode } from "./model";
+import { WorkbenchHostError } from "./host.tsx";
+import type { PreviewMode } from "./model.ts";
 
-import { followEntries } from "#/document/manifest-patch";
-import { captureRenderReport, engineEvidence } from "#/render/report";
+import { followEntries } from "#document/manifest-patch.ts";
+import { captureRenderReport, engineEvidence } from "#render/report.ts";
 import {
   failedRender,
   renderFailed,
   retainOutputs,
   templateSourceRevision,
   renderIdentity,
-} from "#/render/result";
+} from "#render/result.ts";
 
 export interface RenderSchedulerInput {
   readonly source: string;

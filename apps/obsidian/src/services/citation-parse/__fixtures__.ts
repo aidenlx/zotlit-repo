@@ -1,12 +1,12 @@
 // The real parse layer over a controllable Obsidian layout boundary.
 import { Effect, Layer } from "effect";
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
 
-import type { ParseRequest } from "./client";
-import { CitationParse, layerCitationParse } from "./service";
+import type { ParseRequest } from "./client.ts";
+import { CitationParse, layerCitationParse } from "./service.ts";
 
 function openParseHarness(ready: boolean) {
   const stack = new AsyncDisposableStack();

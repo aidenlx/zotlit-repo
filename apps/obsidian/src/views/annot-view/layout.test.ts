@@ -4,7 +4,7 @@
 // the Obsidian app, and the layout keeps each Attachment's own Editing
 // Capability and Annotation Source (apps/obsidian ADR 0069).
 import { history } from "@codemirror/commands";
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { Keymap, Scope, TFile } from "obsidian";
@@ -13,23 +13,26 @@ import { act } from "preact/test-utils";
 import type { DragEvent as ReactDragEvent } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRepository,
   AnnotationList,
   AnnotationRecord,
   MutationState,
-} from "@/services/annotation-repository/service";
-import type { AnnotationNoteActions } from "@/services/note-feature/view-actions";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__";
+} from "@/services/annotation-repository/service.ts";
+import type { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 
-import { stateEditor } from "./__fixtures__/editor";
-import { editorApp } from "./__fixtures__/editor-app";
-import { makeAnnotHost } from "./__fixtures__/host";
-import { AnnotationsLayout } from "./layout";
-import type { AnnotationsLayoutDeps, AnnotationsLayoutHost } from "./layout";
+import { editorApp } from "./__fixtures__/editor-app.ts";
+import { stateEditor } from "./__fixtures__/editor.ts";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
+import { AnnotationsLayout } from "./layout.tsx";
+import type {
+  AnnotationsLayoutDeps,
+  AnnotationsLayoutHost,
+} from "./layout.tsx";
 
 function record(
   key: string,

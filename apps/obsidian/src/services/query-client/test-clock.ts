@@ -1,6 +1,6 @@
 // The clock a test hands the query client, for the reads whose cooldown is read against it.
 
-import { FAILURE_COOLDOWN_MILLIS } from "./service";
+import { FAILURE_COOLDOWN_MILLIS } from "./service.ts";
 
 export interface TestClock {
   /** The clock to hand the QueryClients fixture. */

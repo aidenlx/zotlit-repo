@@ -5,17 +5,17 @@ import type { App, PaneType } from "obsidian";
 import type { ItemRef } from "@zotlit/db";
 import type { ProtocolAction } from "@zotlit/protocol";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import type { ProfileSelector } from "@/lib/profile-stamp";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 
-import type { InteractiveCreationPorts } from "./creation-view";
-import type { CompanionNoteTarget, UpdateScope } from "./operations";
-import { noteOperationDiagnosticContent } from "./update-single";
+import type { InteractiveCreationPorts } from "./creation-view.ts";
+import type { CompanionNoteTarget, UpdateScope } from "./operations.ts";
+import { noteOperationDiagnosticContent } from "./update-single.ts";
 
-export type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation";
-import type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation";
-import { openLiteratureNote } from "./navigation";
+export type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation.ts";
+import type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation.ts";
+import { openLiteratureNote } from "./navigation.ts";
 
 /** Open or update the Companion link's note, and tell the outcome on a notice. */
 export const openCompanionNote = Effect.fn("openCompanionNote")(function* (

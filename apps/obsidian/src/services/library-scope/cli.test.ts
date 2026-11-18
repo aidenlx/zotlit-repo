@@ -2,19 +2,19 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { PluginHost } from "@/lib/plugin-host";
-import type { PluginHostShape } from "@/lib/plugin-host";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
 
 import {
   LIBRARY_SCOPE_COMMAND,
   LIBRARY_SCOPE_GUIDE_COMMAND,
   layerLibraryScopeCli,
   registerLibraryScopeCli,
-} from "./cli";
-import type { ResolvedLibraryScope } from "./scope";
-import { LibraryScope } from "./service";
+} from "./cli.ts";
+import type { ResolvedLibraryScope } from "./scope.ts";
+import { LibraryScope } from "./service.ts";
 
 function setup(current: ResolvedLibraryScope | null) {
   const { host, commands, command } = fakeCliHost();

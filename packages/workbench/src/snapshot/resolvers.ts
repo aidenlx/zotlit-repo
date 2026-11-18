@@ -3,11 +3,11 @@
 import { formatAnnotationFragment, zoteroNoteLink } from "@zotlit/db";
 import type { Attachment, Item, NoteResolvers, TemplateLink } from "@zotlit/db";
 
-import type { SnapshotProvenance, SnapshotVaultTargets } from "./types";
-import { SnapshotSelectionError } from "./types";
-import { formatWikiLink } from "./wiki-link";
+import type { SnapshotProvenance, SnapshotVaultTargets } from "./types.ts";
+import { SnapshotSelectionError } from "./types.ts";
+import { formatWikiLink } from "./wiki-link.ts";
 
-import { markInertPlaceholder } from "#/explorer/index";
+import { markInertPlaceholder } from "#explorer/index.ts";
 
 export function normalizeTargets(
   targets: SnapshotVaultTargets | undefined,

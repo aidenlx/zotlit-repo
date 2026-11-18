@@ -22,71 +22,71 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import { scopedBridge } from "@/lib/effect-bridge";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp";
-import type { AttachmentImportBatch } from "@/services/attachment-import/service";
-import type { BatchRunControls } from "@/services/batch-run";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
+import type { BatchRunControls } from "@/services/batch-run.ts";
+import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type {
   AvailableLibrary,
   LibrarySelector,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import { selectorOf } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { batchUpdateNotices } from "@/services/note-feature/update-single";
-import type { NoteImportView } from "@/services/note-import/view";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { InertTemplateError } from "@/services/template/errors";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
+} from "@/services/library-scope/scope.ts";
+import { selectorOf } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { batchUpdateNotices } from "@/services/note-feature/update-single.ts";
+import type { NoteImportView } from "@/services/note-import/view.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   recordCalls,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+} from "@/services/zotero-reads/test-utils.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import type {
   BatchModalOptions,
   BatchProfileChoice,
   FlatGroupDef,
-} from "@/views/batch-modal";
+} from "@/views/batch-modal/index.ts";
 
-import { noteFeatureServices } from "./__fixtures__/note-feature";
-import type { NoteFeatureSources } from "./__fixtures__/note-feature";
+import { noteFeatureServices } from "./__fixtures__/note-feature.ts";
+import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";
 import type {
   PlannedCreation,
   PlannedCreationProfile,
-} from "./creation-planning";
-import { NoteWriteAborted } from "./errors";
+} from "./creation-planning.ts";
+import { NoteWriteAborted } from "./errors.ts";
 import type {
   CreateNoteOptions,
   CreateNoteResult,
   CreationProfileSelection,
   UpdateResult,
-} from "./operations";
-import { layerNoteFeature, NoteFeature } from "./service";
+} from "./operations.ts";
+import { layerNoteFeature, NoteFeature } from "./service.ts";
 import {
   batchCreateOutcome,
   BatchCreateRefusedError,
@@ -94,13 +94,13 @@ import {
   batchUpdateResultNotice,
   runBatchUpdate as runBatchUpdateEffect,
   runBatchUpdateAll as runBatchUpdateAllEffect,
-} from "./update-batch";
+} from "./update-batch.ts";
 import type {
   BatchUpdateOptions,
   BatchUpdatePorts,
   BatchUpdateResult,
   BatchUpdateServices,
-} from "./update-batch";
+} from "./update-batch.ts";
 
 /** Captured options of every batch modal the runner opened via its view port. */
 const openedModals: BatchModalOptions[] = [];
@@ -113,7 +113,7 @@ const chooseProfile = vi.fn<NoteImportView["chooseProfile"]>();
 // Stub only the DOM-bound manifest so classify/run drive the real batch-run
 // mechanics headlessly; classification runs inside the modal, which never
 // opens here.
-vi.mock("@/views/batch-modal", () => {
+vi.mock("@/views/batch-modal/index.ts", () => {
   class FlatManifest {
     readonly options: any;
 

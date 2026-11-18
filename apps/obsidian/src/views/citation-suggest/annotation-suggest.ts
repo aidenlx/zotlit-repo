@@ -9,23 +9,23 @@ import type {
   TFile,
 } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { CurrentAnswer } from "@/services/item-lookup/current-answer";
-import { DEFAULT_LIMIT } from "@/services/item-lookup/service";
-import type { QueryHandle } from "@/services/item-query/handle";
-import type { PluginSettings } from "@/services/settings/service";
-import type { CommentRenderer } from "@/views/annot-view/comment-render";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
+import { DEFAULT_LIMIT } from "@/services/item-lookup/service.ts";
+import type { QueryHandle } from "@/services/item-query/handle.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 import {
   appendExcerptText,
   pageLocator,
-} from "@/views/annot-view/excerpt-parts";
+} from "@/views/annot-view/excerpt-parts.tsx";
 
-import { insertAnnotation } from "./annotation-insert";
-import type { AnnotationInsertDeps } from "./annotation-insert";
-import { searchAnnotations } from "./annotation-search";
-import type { AnnotationHit } from "./annotation-search";
-import { resolveAnnotationTrigger } from "./annotation-trigger";
+import { insertAnnotation } from "./annotation-insert.ts";
+import type { AnnotationInsertDeps } from "./annotation-insert.ts";
+import { searchAnnotations } from "./annotation-search.ts";
+import type { AnnotationHit } from "./annotation-search.ts";
+import { resolveAnnotationTrigger } from "./annotation-trigger.ts";
 
 export interface AnnotationSuggestDeps extends AnnotationInsertDeps {
   bridge: Pick<EffectBridge, "runSync">;

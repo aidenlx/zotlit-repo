@@ -1,26 +1,27 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import type { ItemBaseFieldName, ItemBaseFields } from "#lib/zt-venue.ts";
+
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import type { SQLocalDatabaseClient } from "@/client/web";
-import type { CreatorFieldMode } from "@/lib/zt-creator";
-import { formatIndexedKey } from "@/lib/zt-key";
-import {
-  EMPTY_ITEM_BASE_FIELDS,
-  ITEM_BASE_FIELDS,
-  resolveVenue,
-} from "@/lib/zt-venue";
-import type { ItemBaseFieldName, ItemBaseFields } from "@/lib/zt-venue";
-
-import { getBaseFieldTable, getBaseFieldTableAsync } from "./_base-fields";
-import type { BaseFieldTable } from "./_base-fields";
-import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared";
-import type { ChildItemType, FindManyOptions, QueryRow } from "./_shared";
+import { getBaseFieldTable, getBaseFieldTableAsync } from "./_base-fields.ts";
+import type { BaseFieldTable } from "./_base-fields.ts";
+import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
+import type { ChildItemType, FindManyOptions, QueryRow } from "./_shared.ts";
 import {
   groupIDForLibrary,
   groupIDForLibraryAsync,
   resolveGroupID,
-} from "./libraries";
-import type { GroupIDMemo } from "./libraries";
+} from "./libraries.ts";
+import type { GroupIDMemo } from "./libraries.ts";
+
+import { formatIndexedKey } from "#lib/zt-key.ts";
+import {
+  EMPTY_ITEM_BASE_FIELDS,
+  ITEM_BASE_FIELDS,
+  resolveVenue,
+} from "#lib/zt-venue.ts";
 
 export interface Creator {
   firstName: string | null;

@@ -25,13 +25,13 @@ import type {
 } from "@zotlit/workbench/render";
 import type { ViewSize, WorkbenchHostError } from "@zotlit/workbench/ui";
 
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/toast.tsx";
 // Browser storage, render, and Local Bridge fixtures for web host tests.
 import { m } from "@/paraglide/messages.js";
 
-import type { Rendering } from "./rendering";
-import { layerPage } from "./runtime";
-import { Workbench } from "./workbench";
+import type { Rendering } from "./rendering.ts";
+import { layerPage } from "./runtime.tsx";
+import { Workbench } from "./workbench.tsx";
 
 // The page's own renderer, behind a spy so a test can read every request it was
 // given and hold one render open.
@@ -44,7 +44,7 @@ const { renderInThread } = vi.hoisted(() => ({
     >(),
 }));
 
-vi.mock("./render", () => ({ renderInThread }));
+vi.mock("./render.ts", () => ({ renderInThread }));
 export { renderInThread };
 
 export const KEY = "zotlit.workbench.draft.standalone";

@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useMemo } from "react";
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 
 type Item = Pick<PageTree.Item, "name" | "url">;

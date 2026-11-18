@@ -1,7 +1,7 @@
 // An in-memory device storage for tests. The test drives it; the tag's own
 // layer runs over it (`layerDeviceStorageFrom`, or `layerHost` from
 // ./obsidian-host-app). It copies the shape of ./obsidian-metadata-cache.
-import type { DeviceStorageSource } from "@/lib/obsidian-device-storage";
+import type { DeviceStorageSource } from "@/lib/obsidian-device-storage.ts";
 
 /**
  * The values a test vault saved on this device. As Obsidian's App (1.14.4),

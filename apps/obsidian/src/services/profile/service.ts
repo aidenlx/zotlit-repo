@@ -34,56 +34,56 @@ import {
 } from "@zotlit/templates/literature-note-pack";
 import type { LiteratureNotePartialUnpack } from "@zotlit/templates/literature-note-pack";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants";
-import { processLiveText, readLiveText } from "@/lib/effect-live-text";
-import type { LiveTextRewriteFailed } from "@/lib/effect-live-text";
-import { withLogCategory } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
-import { normalizeFolderPath } from "@/lib/ensure-folder";
-import * as m from "@/lib/i18n/generated/messages";
-import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { profileRevision } from "@/lib/profile-revision";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
+import { processLiveText, readLiveText } from "@/lib/effect-live-text.ts";
+import type { LiveTextRewriteFailed } from "@/lib/effect-live-text.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { profileRevision } from "@/lib/profile-revision.ts";
 import {
   DEFAULT_PROFILE,
   isProfileId,
   PROFILE_ID_LENGTH,
   PROFILE_ID_RULE,
   readProfileStamp,
-} from "@/lib/profile-stamp";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp";
+} from "@/lib/profile-stamp.ts";
+import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
 import type {
   VaultError,
   FileExists,
   VaultFolderBlockedError,
-} from "@/lib/vault-errors";
-import { ensureVaultParentFolder } from "@/lib/vault-folder";
-import { NoteIndex } from "@/services/note-index/service";
-import { compileProfileMatch } from "@/services/profile-selection";
-import type { ProfileMatch } from "@/services/profile-selection";
-import { bindProfile } from "@/services/profile/bindings";
+} from "@/lib/vault-errors.ts";
+import { ensureVaultParentFolder } from "@/lib/vault-folder.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { compileProfileMatch } from "@/services/profile-selection/index.ts";
+import type { ProfileMatch } from "@/services/profile-selection/index.ts";
+import { bindProfile } from "@/services/profile/bindings.ts";
 import type {
   NoteProfile,
   ResolvedProfile,
   ResolvedLiteratureNoteProfileBindings,
-} from "@/services/profile/bindings";
-import { relocatedNotePath } from "@/services/profile/relocation";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/profile/bindings.ts";
+import { relocatedNotePath } from "@/services/profile/relocation.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   DEFAULT_FRONTMATTER_FIELDS,
   DEFAULT_TEMPLATES,
   RESERVED_PARTIAL_NAMES,
-} from "@/services/template/defaults";
-import { Template } from "@/services/template/service";
+} from "@/services/template/defaults.ts";
+import { Template } from "@/services/template/service.ts";
 import type {
   LiteratureNoteTemplateStatus,
   TemplateFailure,
   TemplateStatus,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 const mintId = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
   PROFILE_ID_LENGTH,
@@ -1588,7 +1588,7 @@ export interface ProfileState {
   readonly profiles: readonly LiteratureNoteProfile[];
   readonly diagnostics: readonly ProfileDiagnostic[];
   readonly defaultDocumentPath: string;
-  readonly templateStatus: import("@/services/template/service").TemplateStatus;
+  readonly templateStatus: import("@/services/template/service.ts").TemplateStatus;
   readonly failure?: Cause.Cause<TemplateFailure>;
 }
 type ProfileOperationErrors = {

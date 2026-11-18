@@ -6,24 +6,24 @@ import type {
   SettingDefinitionList,
 } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { showMenuAtButton } from "@/lib/menu";
-import { libraryLabel, selectorLabel } from "@/services/library-scope/label";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { libraryLabel, selectorLabel } from "@/services/library-scope/label.ts";
 import {
   compareSelectors,
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
   selectorKey,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import type {
   AvailableLibrary,
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope";
-import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/library-scope/scope.ts";
+import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
 
 // The Library Scope reads the rows take. Each one is synchronous, so a
 // definition build runs it through `ctx.tab.sync`.

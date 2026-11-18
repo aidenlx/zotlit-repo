@@ -2,23 +2,26 @@
 // definitions current, and removes it when its Scope closes.
 import { Duration, Effect, Layer, Stream } from "effect";
 
-import { forkEach } from "@/lib/effect-stream";
-import { PluginHost } from "@/lib/plugin-host";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
-import { LanguagePack } from "@/services/language-pack/service";
-import { LibraryScope, scopeChanges } from "@/services/library-scope/service";
-import { LocalBridge } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { PandocEngine } from "@/services/pandoc/service";
-import { Profile } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import {
+  LibraryScope,
+  scopeChanges,
+} from "@/services/library-scope/service.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
 
-import type { SettingTabContext } from "./context";
-import { makeSettingTab } from "./effect-tab";
-import { ZotLitSettingTab } from "./index";
+import type { SettingTabContext } from "./context.ts";
+import { makeSettingTab } from "./effect-tab.ts";
+import { ZotLitSettingTab } from "./index.ts";
 
 /**
  * How long the tab waits for changes to settle before it rebuilds. Obsidian

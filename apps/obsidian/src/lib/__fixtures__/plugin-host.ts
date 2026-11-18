@@ -2,10 +2,10 @@
 import type { App, Command, PluginManifest } from "obsidian";
 
 import { Effect, Layer } from "effect";
-import { PluginHost } from "@/lib/plugin-host";
-import type { PluginHostShape } from "@/lib/plugin-host";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
 
-import { stubService } from "./service-stub";
+import { stubService } from "./service-stub.ts";
 
 /**
  * A host whose commands land in `commands` by the id the layer gave, and

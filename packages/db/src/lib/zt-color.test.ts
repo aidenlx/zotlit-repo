@@ -4,7 +4,7 @@ import {
   annotationColorToName,
   highlightColorToName,
   textColorToName,
-} from "./zt-color";
+} from "./zt-color.ts";
 
 describe("annotationColorToName", () => {
   it("names the modern reader palette", () => {

@@ -5,12 +5,12 @@ import { Effect } from "effect";
 
 import { formatIndexedKey } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { QueryService } from "@/services/item-query/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
 
-import { matchesRequest, readMatches } from "./match-query";
-import type { MatchItem } from "./match-query";
+import { matchesRequest, readMatches } from "./match-query.ts";
+import type { MatchItem } from "./match-query.ts";
 
 const logged = withLogCategory("services", "profile-selection");
 

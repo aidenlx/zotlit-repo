@@ -2,8 +2,8 @@
 import { Cause, Effect, Exit } from "effect";
 import type { Fiber } from "effect";
 
-import type { ViewServices } from "@/lib/view-atoms";
-import { makeViewRunner } from "@/lib/view-runner";
+import type { ViewServices } from "@/lib/view-atoms.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
 
 /**
  * How `fiber` ended, for a test that reads the Exit. An interrupt-only Exit

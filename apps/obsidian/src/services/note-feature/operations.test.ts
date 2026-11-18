@@ -53,67 +53,67 @@ import {
 } from "@zotlit/templates/obsidian";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import type { ObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import type { ObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
 import {
   FIELD_CITATION_STYLE,
   FIELD_CITEKEY,
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_KEY,
-} from "@/lib/constants";
-import { subscribe } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { parseFrontMatter } from "@/lib/live-text";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { VaultError } from "@/lib/vault-errors";
+} from "@/lib/constants.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { parseFrontMatter } from "@/lib/live-text.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { VaultError } from "@/lib/vault-errors.ts";
 import type {
   AttachmentSource,
   SourceOrigin,
-} from "@/services/attachment-import/service";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome";
+} from "@/services/attachment-import/service.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
+import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
 import {
   redPng,
   bluePng,
   corruptPng,
-} from "@/services/excerpt-image/__fixtures__/png";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
+} from "@/services/excerpt-image/__fixtures__/png.ts";
+import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
 import {
   makePublicationGate,
   materializeExcerpt,
-} from "@/services/excerpt-image/materialize";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
+} from "@/services/excerpt-image/materialize.ts";
+import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type {
   ExcerptOutcome,
   ExcerptRequest,
-} from "@/services/excerpt-image/service";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
-import { defaults as settingsDefaults } from "@/services/settings/schema";
-import { InertTemplateError } from "@/services/template/errors";
-import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/excerpt-image/service.ts";
+import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import { defaults as settingsDefaults } from "@/services/settings/schema.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   ATTACHMENT_TYPE_ID,
   inProcessReadsService,
   seedWorksSql,
   sharedClientOpener,
   worksSql,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { noteFeatureHandle } from "./__fixtures__/note-feature";
-import type { NoteFeatureSources } from "./__fixtures__/note-feature";
-import type { PlanningSources } from "./__fixtures__/planning-context";
-import type { NoteCitations } from "./citations-handle";
-import { plainNoteError } from "./errors";
-import type { NoteFeatureHandle, UpdateScope } from "./operations";
-import { eventPayloads, NoteFeature } from "./service";
-import type { NoteFeaturePayloads, WriteNoteUpdateOptions } from "./types";
+import { noteFeatureHandle } from "./__fixtures__/note-feature.ts";
+import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";
+import type { PlanningSources } from "./__fixtures__/planning-context.ts";
+import type { NoteCitations } from "./citations-handle.ts";
+import { plainNoteError } from "./errors.ts";
+import type { NoteFeatureHandle, UpdateScope } from "./operations.ts";
+import { eventPayloads, NoteFeature } from "./service.ts";
+import type { NoteFeaturePayloads, WriteNoteUpdateOptions } from "./types.ts";
 /**
  * The note feature's deps, with the fixture database its reads serve. The
  * host's file manager also renames: the FileManager tag runs over it.

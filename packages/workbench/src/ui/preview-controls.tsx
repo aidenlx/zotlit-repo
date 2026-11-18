@@ -1,9 +1,9 @@
 // The Refresh setting drives scheduling; the host starts an on-demand render.
 
-import { useWorkbenchMessages } from "./messages";
-import type { PreviewSettings } from "./model";
-import { WorkbenchSelect, WorkbenchOption } from "./select";
-import { useParts } from "./theme";
+import { useWorkbenchMessages } from "./messages.tsx";
+import type { PreviewSettings } from "./model.ts";
+import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
+import { useParts } from "./theme.tsx";
 
 export function PreviewControls({
   preview,

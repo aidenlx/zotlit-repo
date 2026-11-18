@@ -1,11 +1,11 @@
 // UI seam for the citekey editor service: one notice per event it reports.
 import { Effect, Layer } from "effect";
 
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 
-import { CitekeyEditor } from "./service";
+import { CitekeyEditor } from "./service.ts";
 
 /** Render citekey editor service events at the Obsidian UI seam. */
 export const layerCitekeyEditorNotices = Layer.effectDiscard(

@@ -9,13 +9,13 @@
 import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 import type { App, Component } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 import {
   commentToMarkdown,
   createCommentTurndown,
-} from "@/lib/turndown/comment";
+} from "@/lib/turndown/comment.ts";
 
-import { postProcessComment } from "./comment-postprocess";
+import { postProcessComment } from "./comment-postprocess.ts";
 
 const logger = getLogger(["views", "annot-view"]);
 

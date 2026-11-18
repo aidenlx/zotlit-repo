@@ -3,9 +3,9 @@ import type { ServerType } from "@hono/node-server";
 import { Stream } from "effect";
 import { expect, it, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { buildLocalServer } from "./__fixtures__";
+import { buildLocalServer } from "./__fixtures__.ts";
 
 /** The listeners `serve` opened, and the gate holding their bind callback. */
 const binds = vi.hoisted(() => ({

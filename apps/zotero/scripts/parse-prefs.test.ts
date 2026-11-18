@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePrefsFile } from "./parse-prefs.js";
+import { parsePrefsFile } from "./parse-prefs.ts";
 
 function parse(source: string) {
   return parsePrefsFile(source, "prefs.js", "addon/prefs.js");

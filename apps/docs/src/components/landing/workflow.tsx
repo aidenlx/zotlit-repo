@@ -8,11 +8,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { DocsImage } from "@/components/docs-image";
-import { Recording as RecordingPlayer } from "@/components/recording";
+import { DocsImage } from "@/components/docs-image.tsx";
+import { Recording as RecordingPlayer } from "@/components/recording.tsx";
 import { m } from "@/paraglide/messages.js";
 
-import { LessonLink } from "./parts";
+import { LessonLink } from "./parts.tsx";
 
 type Text = () => string;
 

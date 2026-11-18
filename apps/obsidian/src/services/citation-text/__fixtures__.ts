@@ -1,29 +1,29 @@
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { OpenDocuments } from "@/lib/open-documents";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { scanNote } from "@/services/citation-index/scan-note";
-import { CitationIndex } from "@/services/citation-index/service";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { OpenDocuments } from "@/lib/open-documents.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { scanNote } from "@/services/citation-index/scan-note.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   Citation,
   CitationOccurrence,
-} from "@/services/citation-index/service";
-import { NoteIndex } from "@/services/note-index/service";
-import type { RenderedCitation } from "@/services/pandoc/engine";
-import { inlineText } from "@/services/pandoc/inline-content";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
+} from "@/services/citation-index/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { RenderedCitation } from "@/services/pandoc/engine.ts";
+import { inlineText } from "@/services/pandoc/inline-content.tsx";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
 // The one cited work, and the Citation Index answer naming it, that the citation-text suites read against.
-import { QueryClients } from "@/services/query-client/service";
+import { QueryClients } from "@/services/query-client/service.ts";
 
-import type { FormattedOccurrence, PresentedCitation } from "./present";
-import { CitationText, layerCitationText } from "./service";
+import type { FormattedOccurrence, PresentedCitation } from "./present.ts";
+import { CitationText, layerCitationText } from "./service.ts";
 
 /** The Indexed Key of the cited work, which is also the CSL id a render names it by. */
 export const ALPHA_KEY = "ALPHA234";

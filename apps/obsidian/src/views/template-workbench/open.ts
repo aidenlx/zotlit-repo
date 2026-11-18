@@ -8,24 +8,27 @@ import type { WorkspaceLeaf } from "obsidian";
 
 import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { ArrivingProblem } from "@/lib/workbench-recovery";
-import { Customize } from "@/services/local-bridge/customize";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { ArrivingProblem } from "@/lib/workbench-recovery.ts";
+import { Customize } from "@/services/local-bridge/customize.ts";
 import type {
   CustomizeRequest,
   NativeProfileTarget,
-} from "@/services/local-bridge/customize";
-import { Profile } from "@/services/profile/service";
+} from "@/services/local-bridge/customize.ts";
+import { Profile } from "@/services/profile/service.ts";
 
-import type { WorkbenchOpened } from "./actions";
+import type { WorkbenchOpened } from "./actions.ts";
 import {
   findWorkbenchLayout,
   openWorkbenchLayout,
   setLeafState,
   WORKBENCH_WINDOW,
-} from "./layout";
-import { TEMPLATE_WORKBENCH_VIEW_TYPE, TemplateWorkbenchView } from "./view";
+} from "./layout.ts";
+import {
+  TEMPLATE_WORKBENCH_VIEW_TYPE,
+  TemplateWorkbenchView,
+} from "./view.tsx";
 
 /** An open that asks the reader to know nothing. */
 const OPENED: WorkbenchOpened = {

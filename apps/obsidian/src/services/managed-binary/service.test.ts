@@ -3,9 +3,9 @@ import { Effect } from "effect";
 import { createHash } from "node:crypto";
 import { describe, expect, vi } from "vitest";
 
-import { openManagedBinary } from "./__fixtures__";
-import type { ManagedBinary } from "./service";
-import { memoryDevice } from "./test-utils";
+import { openManagedBinary } from "./__fixtures__.ts";
+import type { ManagedBinary } from "./service.ts";
+import { memoryDevice } from "./test-utils.ts";
 
 /** Node's own typings hand back `ArrayBufferLike` views; the ports take `ArrayBuffer` ones. */
 function bytes(text: string): Uint8Array<ArrayBuffer> {

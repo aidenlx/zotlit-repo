@@ -1,6 +1,6 @@
 // The Projection Paths of a Query Dataset that a Query View can show as cells.
-import type { QueryDataset } from "./dataset";
-import type { ValueShape } from "./fields";
+import type { QueryDataset } from "./dataset.ts";
+import type { ValueShape } from "./fields.ts";
 
 /**
  * The Projection Paths of a Query Dataset that give one cell of a table each:

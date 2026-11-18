@@ -4,8 +4,8 @@
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "@/services/item-query/query-view";
-import type { QueryHostDeps } from "./host";
+} from "@/services/item-query/query-view.ts";
+import type { QueryHostDeps } from "./host.ts";
 
 /**
  * The ZotLit Query a Query View reads in a test, answering by `run`; every

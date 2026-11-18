@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 
-import { citationElement } from "@/services/citation-text/present";
+import { citationElement } from "@/services/citation-text/present.ts";
 
-import { replaceCitations, sectionCitations } from "./render";
+import { replaceCitations, sectionCitations } from "./render.ts";
 
 /** One rendered section, as a Markdown post-processor receives it. */
 function section(html: string): HTMLElement {

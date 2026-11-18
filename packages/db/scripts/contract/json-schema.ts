@@ -7,7 +7,7 @@ import type {
   ContractReference,
   ContractType,
   ContractUnion,
-} from "#contract/ir";
+} from "#contract/ir.ts";
 
 import type { ContractRoot } from "../../src/contract/roots.ts";
 

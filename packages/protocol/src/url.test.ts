@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildImportProfileProtocolUrl,
   parseImportProfileProtocolQuery,
-} from "./url";
+} from "./url.ts";
 import {
   batchUpdateRequestSchema,
   buildBatchProtocolUrl,
@@ -25,7 +25,7 @@ import {
   parseUpdateAllProtocolQuery,
   protocolActions,
   protocolSourceMatches,
-} from "./url";
+} from "./url.ts";
 
 const SOURCE = "a1b2c3d4";
 const PROFILE = "V1StGXR8Z5jd";

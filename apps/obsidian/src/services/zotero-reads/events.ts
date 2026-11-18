@@ -2,9 +2,9 @@
 import { Stream } from "effect";
 import type { Stream as StreamType } from "effect";
 
-import { filterTag } from "@/lib/effect-stream";
+import { filterTag } from "@/lib/effect-stream.ts";
 
-import type { ZoteroReads, ZoteroReadsEvent } from "./service";
+import type { ZoteroReads, ZoteroReadsEvent } from "./service.ts";
 
 type EventsSource = Pick<ZoteroReads["Service"], "events">;
 type EventOf<Tag extends ZoteroReadsEvent["_tag"]> = Extract<

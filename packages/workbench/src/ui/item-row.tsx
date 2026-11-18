@@ -5,7 +5,7 @@
 // panels' own heads hold only what is theirs.
 import type { ReactNode } from "react";
 
-import { useParts } from "./theme";
+import { useParts } from "./theme.tsx";
 
 export function ItemRow({
   label,

@@ -1,7 +1,7 @@
 // The function registry of the Filter Expression evaluator. Validation,
 // execution, and the Query Schema read the same entries, so a function,
 // a method, or a property exists only here.
-import { compareStrings } from "./collation";
+import { compareStrings } from "./collation.ts";
 import {
   compareStarts,
   dateOnly,
@@ -13,10 +13,10 @@ import {
   timeOfDay,
   timestamp,
   today,
-} from "./filter-dates";
-import type { DateValue } from "./filter-dates";
-import { errorValue, firstError } from "./filter-error";
-import type { ErrorValue } from "./filter-error";
+} from "./filter-dates.ts";
+import type { DateValue } from "./filter-dates.ts";
+import { errorValue, firstError } from "./filter-error.ts";
+import type { ErrorValue } from "./filter-error.ts";
 import {
   equals,
   isDate,
@@ -25,13 +25,13 @@ import {
   toText,
   truthy,
   typeOf,
-} from "./filter-values";
+} from "./filter-values.ts";
 import type {
   FilterValue,
   FilterValueType,
   RegexpValue,
-} from "./filter-values";
-import type { QueryClock } from "./query-clock";
+} from "./filter-values.ts";
+import type { QueryClock } from "./query-clock.ts";
 
 /** The type a parameter takes. `any` also takes null. */
 export type ParameterType =

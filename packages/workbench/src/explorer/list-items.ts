@@ -1,8 +1,8 @@
 // How a list's items read in a note: the one source for the list preview, the list shape and the list snippets.
 
-import type { DisplayNode } from "./display-tree";
-import { inertPlaceholderReason } from "./inert-placeholder";
-import { coerceToString } from "./string-coercion";
+import type { DisplayNode } from "./display-tree.ts";
+import { inertPlaceholderReason } from "./inert-placeholder.ts";
+import { coerceToString } from "./string-coercion.ts";
 
 /** What separates the items of a list joined in one line. */
 export const JOIN_SEPARATOR = ", ";

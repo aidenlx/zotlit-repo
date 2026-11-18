@@ -4,7 +4,7 @@ import {
   ANNOTATION_ANCHOR_KEY,
   formatAnnotationSubpath,
   parseAnnotationSubpath,
-} from "./zt-annot-anchor";
+} from "./zt-annot-anchor.ts";
 
 describe("formatAnnotationSubpath", () => {
   it("writes the Anchor beside the page Obsidian jumps to", () => {

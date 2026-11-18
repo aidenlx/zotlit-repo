@@ -1,13 +1,13 @@
 // The Note Feature for callers outside Effect: views, the setting tab and the legacy runners.
 import { Effect } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import type { NoteCitations } from "./citations-handle";
-import type { NoteCreation } from "./creation-handle";
-import { plainNoteError } from "./errors";
-import type { NoteFeatureHandle } from "./operations";
-import type { NoteFeature } from "./service";
+import type { NoteCitations } from "./citations-handle.ts";
+import type { NoteCreation } from "./creation-handle.ts";
+import { plainNoteError } from "./errors.ts";
+import type { NoteFeatureHandle } from "./operations.ts";
+import type { NoteFeature } from "./service.ts";
 
 /**
  * The Note Feature's members over `service`, run through `bridge`, with the

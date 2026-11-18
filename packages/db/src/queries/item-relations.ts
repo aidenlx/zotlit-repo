@@ -1,7 +1,8 @@
-import type { NodeDatabaseClient } from "@/client/node";
-import { parseItemUri } from "@/lib/zt-note-mark";
+import type { NodeDatabaseClient } from "#client/node.ts";
 
-import { defineQuery } from "./_shared";
+import { defineQuery } from "./_shared.ts";
+
+import { parseItemUri } from "#lib/zt-note-mark.ts";
 
 /**
  * Zotero's `dc:relation` predicate — the user-facing "Related" panel. Stored

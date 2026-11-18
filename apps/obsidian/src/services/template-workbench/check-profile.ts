@@ -15,12 +15,12 @@ import type {
   RenderDiagnostic,
 } from "@zotlit/workbench/render";
 
-import { applyComposedFrontmatter } from "@/services/note-feature/compose";
-import { prepareManagedFrontmatter } from "@/services/note-feature/frontmatter";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import type { TemplateOperations } from "@/services/template/service";
+import { applyComposedFrontmatter } from "@/services/note-feature/compose.ts";
+import { prepareManagedFrontmatter } from "@/services/note-feature/frontmatter.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
 
-import { previewBaseline } from "./preview-baseline";
+import { previewBaseline } from "./preview-baseline.ts";
 
 export const PROFILE_OUTPUTS = [
   "filename",

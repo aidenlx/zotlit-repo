@@ -1,4 +1,4 @@
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger("pdf-reads");
 

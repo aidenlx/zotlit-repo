@@ -31,10 +31,10 @@
 // same way, whether the page has a Chinese file or falls back to English. OG
 // card URLs are not redirected: only a live page ever links its card.
 
-import { i18n, localizedPath } from "./i18n.js";
-import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes.js";
-import type { MarkdownPage, MarkdownSection } from "./markdown-routes.js";
-import type { RedirectRule } from "./v1-redirects.js";
+import { i18n, localizedPath } from "./i18n.ts";
+import { contentRouteUrl, suffixEditionUrl } from "./markdown-routes.ts";
+import type { MarkdownPage, MarkdownSection } from "./markdown-routes.ts";
+import type { RedirectRule } from "./v1-redirects.ts";
 
 /** Moved v2 docs page: old `/docs/...` path → new `/docs/...` or `/learn...` path. */
 export const V2_MOVES: Record<string, string> = {

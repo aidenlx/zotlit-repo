@@ -2,12 +2,12 @@ import { describe, expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Scope } from "effect";
 import { vi } from "vitest";
 
-import { queueFixture } from "./__fixtures__/queue";
+import { queueFixture } from "./__fixtures__/queue.ts";
 import {
   makeExcerptPdfQueue,
   EXCERPT_JOB_LIMIT,
   EXCERPT_PDF_AFFINITY,
-} from "./pdf-queue";
+} from "./pdf-queue.ts";
 
 /** A signal nothing cancels, for jobs a test drives to completion. */
 const running = () => new AbortController().signal;

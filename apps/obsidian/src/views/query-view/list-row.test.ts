@@ -4,15 +4,15 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, onTestFinished } from "vitest";
 
-import type { QueryViewValue } from "@/services/item-query/query-view";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 
-import { prepareRow, rowHeight } from "./list-heights";
-import type { ListMetrics } from "./list-heights";
-import { LIST_LAYOUT_DEFAULTS } from "./list-layout";
-import { drawListRow, listRowText } from "./list-row";
-import type { ListRows } from "./list-row";
-import type { RecordCells } from "./record-rows";
-import type { PropertyEntry } from "./view-properties";
+import { prepareRow, rowHeight } from "./list-heights.ts";
+import type { ListMetrics } from "./list-heights.ts";
+import { LIST_LAYOUT_DEFAULTS } from "./list-layout.tsx";
+import { drawListRow, listRowText } from "./list-row.tsx";
+import type { ListRows } from "./list-row.tsx";
+import type { RecordCells } from "./record-rows.tsx";
+import type { PropertyEntry } from "./view-properties.ts";
 
 const property = (path: string): PropertyEntry => ({
   path,

@@ -8,8 +8,8 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/reflink", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/reflink")>();
+vi.mock("@/lib/reflink.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/reflink.ts")>();
   return {
     ...actual,
     reflink: vi.fn(async () => {
@@ -18,11 +18,11 @@ vi.mock("@/lib/reflink", async (importOriginal) => {
   };
 });
 
-import { prepareRead } from "./read-source";
+import { prepareRead } from "./read-source.ts";
 
 function inspectPrepared<A>(
   preparation: ReturnType<typeof prepareRead>,
-  inspect: (prepared: import("./read-source").PreparedRead) => A,
+  inspect: (prepared: import("./read-source.ts").PreparedRead) => A,
 ): Promise<A> {
   return Effect.runPromise(
     Effect.scoped(

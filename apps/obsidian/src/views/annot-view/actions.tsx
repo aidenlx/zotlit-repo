@@ -6,31 +6,31 @@ import type { DragEvent, KeyboardEvent, MouseEvent } from "react";
 import { annotationOpenUri, parseIndexedKey } from "@zotlit/db";
 import { observeExit } from "@zotlit/workbench/ui";
 
-import { buildColorMenu } from "@/lib/annotation-colors";
-import { confirm } from "@/lib/confirm";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { showMenuAtButton } from "@/lib/menu";
-import type { MenuAlign } from "@/lib/menu";
-import { BaseNotice } from "@/lib/notice";
-import { requireElectron } from "@/lib/require";
-import * as toast from "@/lib/toast";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { ViewRun } from "@/lib/view-runner";
+import { buildColorMenu } from "@/lib/annotation-colors.ts";
+import { confirm } from "@/lib/confirm.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import type { MenuAlign } from "@/lib/menu.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { requireElectron } from "@/lib/require.ts";
+import * as toast from "@/lib/toast.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRun } from "@/lib/view-runner.ts";
 import type {
   AnnotationRecord,
   TextField,
-} from "@/services/annotation-repository/service";
-import { groupFailureMessages } from "@/services/annotation-repository/write";
-import type { TargetOpener } from "@/services/attachment-open/open-target";
+} from "@/services/annotation-repository/service.ts";
+import { groupFailureMessages } from "@/services/annotation-repository/write.ts";
+import type { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import type {
   ExcerptDisplayDemand,
   ExcerptImageDisplay,
-} from "@/services/excerpt-image/display";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
-import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu";
-import { menuSections, raiseMenu } from "@/services/menu-events";
-import { viewTargetOpener } from "@/views/open-target";
+} from "@/services/excerpt-image/display.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
+import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
+import { viewTargetOpener } from "@/views/open-target.ts";
 
 import {
   annotationDraftCommand,
@@ -39,19 +39,19 @@ import {
   readCitation,
   resultValue,
   requireResult,
-} from "./atoms";
-import type { AnnotationWriteRequest, CitationRead } from "./atoms";
-import { chooseAttachment } from "./attachment-suggester";
-import { groupControl, pressControl } from "./card-controls";
-import type { CardBlock, CardControl, CardControls } from "./card-controls";
-import type { CardClick, CardPlace } from "./card-selection";
-import { blockedNotice, copyText, deleteConfirmation } from "./card-verbs";
-import type { CommentRenderer } from "./comment-render";
-import { copiedText } from "./copied-text";
-import type { ExcerptImageTarget } from "./excerpt-image-state";
-import { buildHeaderMenu } from "./menus";
-import { attachmentLine, headerMenu } from "./presentation";
-import type { AnnotState, FollowMode } from "./state";
+} from "./atoms.ts";
+import type { AnnotationWriteRequest, CitationRead } from "./atoms.ts";
+import { chooseAttachment } from "./attachment-suggester.ts";
+import { groupControl, pressControl } from "./card-controls.ts";
+import type { CardBlock, CardControl, CardControls } from "./card-controls.ts";
+import type { CardClick, CardPlace } from "./card-selection.ts";
+import { blockedNotice, copyText, deleteConfirmation } from "./card-verbs.ts";
+import type { CommentRenderer } from "./comment-render.ts";
+import { copiedText } from "./copied-text.ts";
+import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
+import { buildHeaderMenu } from "./menus.ts";
+import { attachmentLine, headerMenu } from "./presentation.ts";
+import type { AnnotState, FollowMode } from "./state.ts";
 
 const logger = getLogger(["views", "annot-view"]);
 

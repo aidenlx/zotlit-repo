@@ -1,21 +1,21 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian";
+import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, DateTime, Deferred, Effect, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { zoteroEditingRow } from "./zotero-editing";
-import { editingRowModel } from "./zotero-editing-model";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { editingRowModel } from "./zotero-editing-model.ts";
+import { zoteroEditingRow } from "./zotero-editing.ts";
 
 const NOW = DateTime.makeUnsafe("2026-09-16T15:52:21Z");
 

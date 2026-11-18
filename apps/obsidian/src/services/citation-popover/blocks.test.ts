@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates";
-import type { AmbiguousCandidatesOf } from "@/services/citation-index/ambiguity";
+import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
+import type { AmbiguousCandidatesOf } from "@/services/citation-index/ambiguity.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
-import type { HoveredWork } from "@/services/citekey-navigation";
-import type { ReferenceEntry } from "@/views/references/entries";
+} from "@/services/citation-index/service.ts";
+import type { HoveredWork } from "@/services/citekey-navigation/index.ts";
+import type { ReferenceEntry } from "@/views/references/entries.ts";
 
-import { citationPopoverBlocks } from "./blocks";
+import { citationPopoverBlocks } from "./blocks.ts";
 
 /** One work a citation names, with the Item its entry is built under. */
 const work = (citekey: string): HoveredWork => ({

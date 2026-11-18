@@ -10,11 +10,11 @@
 
 import { useEffect, useRef } from "react";
 
-import { Message } from "@/components/message";
+import { Message } from "@/components/message.tsx";
 import { m } from "@/paraglide/messages.js";
 
-import { Desk, DeskSpread, DeskStack } from "./desk";
-import { Actions, Highlighter } from "./parts";
+import { Desk, DeskSpread, DeskStack } from "./desk.tsx";
+import { Actions, Highlighter } from "./parts.tsx";
 
 export function Hero() {
   const ref = useRef<HTMLElement>(null);

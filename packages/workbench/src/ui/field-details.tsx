@@ -2,22 +2,22 @@
 // and what the note gets, with Insert and Copy. A wide view shows them in the
 // host's popover beside the panel; a narrow one in a bar of fixed height at
 // the panel's foot.
-import type { DisplayNode, SnippetKind } from "#/explorer/index";
+import type { DisplayNode, SnippetKind } from "#explorer/index.ts";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Ref } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { fieldValueText } from "./explorer-fields";
-import type { FieldForm, FieldInsertOptions } from "./field-insertion";
-import { useFieldsPanelRows } from "./fields-panel";
-import { useOptionalHost, useTooltip } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import type { ViewSize } from "./panel-layout";
-import { useIcon, useParts } from "./theme";
+import { fieldValueText } from "./explorer-fields.ts";
+import type { FieldForm, FieldInsertOptions } from "./field-insertion.ts";
+import { useFieldsPanelRows } from "./fields-panel.tsx";
+import { useOptionalHost, useTooltip } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import type { ViewSize } from "./panel-layout.ts";
+import { useIcon, useParts } from "./theme.tsx";
 
-import { formatPath, isList, listItemValues } from "#/explorer/index";
+import { formatPath, isList, listItemValues } from "#explorer/index.ts";
 
 /**
  * The narrowest view, in pixels, that shows a field's details in a popover

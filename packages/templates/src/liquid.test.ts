@@ -4,8 +4,8 @@ import {
   filenameSuffix,
   hasSuffixMarker,
   replaceSuffixMarkers,
-} from "./filename-suffix";
-import { createLiquidEngine } from "./liquid";
+} from "./filename-suffix.ts";
+import { createLiquidEngine } from "./liquid.ts";
 
 describe("whitespace", () => {
   it("preserves all whitespace around an unmarked tag", () => {

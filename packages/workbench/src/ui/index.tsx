@@ -1,15 +1,15 @@
-export { useCustomFieldNames } from "./custom-fields";
-export { MatchEditor, MatchPane } from "./match";
-export { MatchExpressionInput } from "./match.expression";
-export type { ExpressionVocabulary } from "#/language/filter-expression-completion";
-export { filterVocabulary } from "./match.fields";
-export type { FilterValues } from "./match.fields";
-export { isDatasetFieldKind } from "#/match/fields";
-export type { FilterField } from "#/match/fields";
-export { ChipInput } from "./match.chips";
-export { MatchInput } from "./match.input";
-export { MatchSelect } from "./match.rows";
-export type { MatchSelectOption, MatchSelectProps } from "./theme";
+export { useCustomFieldNames } from "./custom-fields.ts";
+export { MatchEditor, MatchPane } from "./match.tsx";
+export { MatchExpressionInput } from "./match.expression.tsx";
+export type { ExpressionVocabulary } from "#language/filter-expression-completion.ts";
+export { filterVocabulary } from "./match.fields.tsx";
+export type { FilterValues } from "./match.fields.tsx";
+export { isDatasetFieldKind } from "#match/fields.ts";
+export type { FilterField } from "#match/fields.ts";
+export { ChipInput } from "./match.chips.tsx";
+export { MatchInput } from "./match.input.tsx";
+export { MatchSelect } from "./match.rows.tsx";
+export type { MatchSelectOption, MatchSelectProps } from "./theme.tsx";
 export type {
   ConditionControlProps,
   ConditionPath,
@@ -19,7 +19,7 @@ export type {
   MatchFilter,
   MatchVocabulary,
   RowCondition,
-} from "./match";
+} from "./match.tsx";
 // The Workbench UI: the headless component tree both the web Template
 // Workbench and the Obsidian Template Workbench View mount over one Template
 // Document
@@ -30,10 +30,13 @@ export type {
 // document controller in use, the reader's choices, and the one Render
 // Scheduler its result surfaces share.
 
-export { WorkbenchMessagesProvider, useWorkbenchMessages } from "./messages";
-export type { WorkbenchMessages } from "./generated/messages";
+export {
+  WorkbenchMessagesProvider,
+  useWorkbenchMessages,
+} from "./messages.tsx";
+export type { WorkbenchMessages } from "./generated/messages.ts";
 
-export { EditToolbar } from "./edit-toolbar";
+export { EditToolbar } from "./edit-toolbar.tsx";
 export {
   createWorkbenchEditor,
   WorkbenchEditorProvider,
@@ -41,8 +44,8 @@ export {
   useWorkbenchController,
   useWorkbenchEditor,
   useWorkbenchModel,
-} from "./editor";
-export type { WorkbenchEditor, WorkbenchEditorInstance } from "./editor";
+} from "./editor.tsx";
+export type { WorkbenchEditor, WorkbenchEditorInstance } from "./editor.tsx";
 export {
   chooseAnnotation,
   chooseCitation,
@@ -58,7 +61,7 @@ export {
   setPreview,
   setRoot,
   setTab,
-} from "./model";
+} from "./model.ts";
 export type {
   ChooseJob,
   CopyJob,
@@ -76,7 +79,7 @@ export type {
   WorkbenchPreviewSettings,
   WorkbenchRuntime,
   WorkbenchViewState,
-} from "./model";
+} from "./model.ts";
 export {
   savedPanelWidth,
   clampPreviewHeight,
@@ -84,7 +87,7 @@ export {
   setPanelWidth,
   setPreviewHeight,
   showPreview,
-} from "./panel-layout";
+} from "./panel-layout.ts";
 export type {
   FieldsDock,
   PanelSide,
@@ -92,12 +95,12 @@ export type {
   ViewSize,
   WorkbenchPanel,
   WorkbenchPanels,
-} from "./panel-layout";
-export { panelSizeMenus, pickPanelSize } from "./panel-menu";
-export { HELP_PAGES } from "./help-pages";
-export { ItemRow } from "./item-row";
-export { SidePanels } from "./panels";
-export { fieldsActionAttributes } from "./fields-panel";
+} from "./panel-layout.ts";
+export { panelSizeMenus, pickPanelSize } from "./panel-menu.ts";
+export { HELP_PAGES } from "./help-pages.ts";
+export { ItemRow } from "./item-row.tsx";
+export { SidePanels } from "./panels.tsx";
+export { fieldsActionAttributes } from "./fields-panel.tsx";
 export {
   NO_MATCH_DATA,
   WorkbenchClipboardError,
@@ -105,9 +108,9 @@ export {
   WorkbenchHostProvider,
   useTooltip,
   useWorkbenchHost,
-} from "./host";
-export { joinForked, observeExit } from "#/language/host-effects";
-export type { ExitHandlers, WorkbenchRunner } from "#/language/host-effects";
+} from "./host.tsx";
+export { joinForked, observeExit } from "#language/host-effects.ts";
+export type { ExitHandlers, WorkbenchRunner } from "#language/host-effects.ts";
 export type {
   WorkbenchConfirmRequest,
   WorkbenchDialogHandle,
@@ -128,7 +131,7 @@ export type {
   WorkbenchSuggesterGroup,
   WorkbenchSuggesterOption,
   WorkbenchSuggesterRequest,
-} from "./host";
+} from "./host.tsx";
 export {
   diagnosisEngineSources,
   diagnosisExplanation,
@@ -141,46 +144,49 @@ export {
   renderDiagnosis,
   diagnosisForOccurrence,
   workbenchDiagnoses,
-} from "./problems";
+} from "./problems.ts";
 export type {
   DiagnosisExplanation,
   ProblemText,
   WorkbenchDiagnosis,
-} from "./problems";
+} from "./problems.ts";
 export {
   ProblemsFooter,
   problemWhere,
   useWorkbenchProblems,
-} from "./problems-footer";
+} from "./problems-footer.tsx";
 export type {
   WorkbenchProblemCapture,
   WorkbenchProblemsState,
-} from "./problems-footer";
-export { makeRenderSchedulerAtoms } from "./scheduler-atoms";
+} from "./problems-footer.tsx";
+export { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
 export type {
   RenderSchedulerAtoms,
   RenderSchedulerAtomsOptions,
   RenderSchedulerInput,
   RenderSchedulerState,
   RenderTrigger,
-} from "./scheduler-atoms";
-export { citationExampleLabel, citationVariantLabel } from "./citation-preview";
-export { partialContextLabel } from "./partial-preview";
-export { TabBar, TabPanel } from "./tab-bar";
-export { isProfileProblem, TABS, tabLabel, tabLede, tabsFor } from "./tabs";
-export { routeDiagnosis, routeProblem } from "./problem-route";
+} from "./scheduler-atoms.ts";
+export {
+  citationExampleLabel,
+  citationVariantLabel,
+} from "./citation-preview.ts";
+export { partialContextLabel } from "./partial-preview.ts";
+export { TabBar, TabPanel } from "./tab-bar.tsx";
+export { isProfileProblem, TABS, tabLabel, tabLede, tabsFor } from "./tabs.ts";
+export { routeDiagnosis, routeProblem } from "./problem-route.ts";
 export {
   insertionTarget,
   repairCommands,
   selectionInDocument,
-} from "./repair-commands";
-export type { WorkbenchTab } from "./tabs";
+} from "./repair-commands.ts";
+export type { WorkbenchTab } from "./tabs.ts";
 export {
   WorkbenchThemeProvider,
   useIcon,
   usePanelProperties,
   useParts,
-} from "./theme";
+} from "./theme.tsx";
 export type {
   PartAttributes,
   WorkbenchClassMap,
@@ -188,24 +194,24 @@ export type {
   WorkbenchIcon,
   WorkbenchParts,
   WorkbenchTheme,
-} from "./theme";
+} from "./theme.tsx";
 
-export { NotePane } from "./note-pane";
-export type { NotePaneProps } from "./note-pane";
-export { usePartialBoxes } from "./partial-boxes";
-export type { PartialBoxes, PartialPlaceholderHost } from "./partial-boxes";
-export { SliceEditor } from "./slice-editor";
+export { NotePane } from "./note-pane.tsx";
+export type { NotePaneProps } from "./note-pane.tsx";
+export { usePartialBoxes } from "./partial-boxes.tsx";
+export type { PartialBoxes, PartialPlaceholderHost } from "./partial-boxes.tsx";
+export { SliceEditor } from "./slice-editor.tsx";
 export type {
   SliceEditorProps,
   SliceLanguage,
   SuggestionSource,
-} from "./slice-editor";
-export { useOptionalHost } from "./host";
-export type { WorkbenchMarkdownProps } from "./host";
+} from "./slice-editor.tsx";
+export { useOptionalHost } from "./host.tsx";
+export type { WorkbenchMarkdownProps } from "./host.tsx";
 
-export { COMMON_FIELDS, completionFields } from "./completion-fields";
-export type { CommonField } from "./completion-fields";
-export { tagDescription } from "./tag-help";
+export { COMMON_FIELDS, completionFields } from "./completion-fields.ts";
+export type { CommonField } from "./completion-fields.ts";
+export { tagDescription } from "./tag-help.ts";
 export {
   PreviewFilenameLabel,
   previewFilename,
@@ -213,60 +219,66 @@ export {
   ResultColumn,
   ResultHeader,
   ResultRegion,
-} from "./result-column";
+} from "./result-column.tsx";
 export type {
   ResultBodyProps,
   ResultColumnProps,
   ResultMode,
-} from "./result-column";
+} from "./result-column.tsx";
 export {
   PropertyList,
   PropertyValue,
   propertyText,
   propertyType,
-} from "./property-list";
-export type { PropertyType } from "./property-list";
+} from "./property-list.tsx";
+export type { PropertyType } from "./property-list.tsx";
 
-export { PreviewControls } from "./preview-controls";
+export { PreviewControls } from "./preview-controls.tsx";
 
-export { NameFolderPane, BUILT_IN_BINDING_DEFAULTS } from "./name-folder";
-export type { NameFolderPaneProps } from "./name-folder";
-export { entryDiagnostics, PropertiesPane } from "./properties-tab";
-export type { EntryDiagnostic, PropertiesPaneProps } from "./properties-tab";
+export { NameFolderPane, BUILT_IN_BINDING_DEFAULTS } from "./name-folder.tsx";
+export type { NameFolderPaneProps } from "./name-folder.tsx";
+export { entryDiagnostics, PropertiesPane } from "./properties-tab.tsx";
+export type {
+  EntryDiagnostic,
+  PropertiesPaneProps,
+} from "./properties-tab.tsx";
 export {
   AnnotationPane,
   AnnotationSampleBar,
   annotationOption,
   AnnotationSectionBar,
-} from "./annotation";
-export { annotationSamples } from "./annotation-samples";
-export type { AnnotationExamples } from "./annotation-samples";
-export { SampleSuggester } from "./sample-suggester";
-export type { SampleOption } from "./sample-suggester";
+} from "./annotation.tsx";
+export { annotationSamples } from "./annotation-samples.ts";
+export type { AnnotationExamples } from "./annotation-samples.ts";
+export { SampleSuggester } from "./sample-suggester.tsx";
+export type { SampleOption } from "./sample-suggester.tsx";
 
-export { DisplayTree } from "./explorer-tree";
-export type { DisplaySection, DisplayTreeProps } from "./explorer-tree";
-export { commonRows, fieldValueText, rowMatches } from "./explorer-fields";
-export { fieldForm, fieldForms } from "./field-insertion";
+export { DisplayTree } from "./explorer-tree.tsx";
+export type { DisplaySection, DisplayTreeProps } from "./explorer-tree.tsx";
+export { commonRows, fieldValueText, rowMatches } from "./explorer-fields.ts";
+export { fieldForm, fieldForms } from "./field-insertion.ts";
 export type {
   FieldForm,
   FieldInsertionContext,
   FieldInsertionMode,
   FieldInsertOptions,
-} from "./field-insertion";
+} from "./field-insertion.ts";
 export {
   explorerSectionIds,
   explorerSections,
   fieldLabel,
   sentenceCase,
   visibleSectionIds,
-} from "./explorer-sections";
+} from "./explorer-sections.ts";
 export type {
   ExplorerReader,
   ExplorerSection,
   ExplorerSectionId,
-} from "./explorer-sections";
-export { DataExplorer } from "./data-explorer";
-export type { DataExplorerProps, ExplorerPresentation } from "./data-explorer";
+} from "./explorer-sections.ts";
+export { DataExplorer } from "./data-explorer.tsx";
+export type {
+  DataExplorerProps,
+  ExplorerPresentation,
+} from "./data-explorer.tsx";
 
-export { WorkbenchDiagnosticsProvider } from "./source-diagnostics";
+export { WorkbenchDiagnosticsProvider } from "./source-diagnostics.tsx";

@@ -1,11 +1,11 @@
 // UI recovery for an unavailable Profile, shared by notes and citation surfaces.
 import type { App } from "obsidian";
 
-import * as m from "./i18n/generated/messages";
-import { getLogger } from "./log";
-import { BaseNotice } from "./notice";
-import type { WorkspaceEventHost } from "./obsidian-workspace";
-import type { UnknownProfileDiagnostic } from "./profile-stamp";
+import * as m from "./i18n/generated/messages.ts";
+import { getLogger } from "./log.ts";
+import { BaseNotice } from "./notice.ts";
+import type { WorkspaceEventHost } from "./obsidian-workspace.ts";
+import type { UnknownProfileDiagnostic } from "./profile-stamp.ts";
 
 const logger = getLogger("profile-recovery");
 

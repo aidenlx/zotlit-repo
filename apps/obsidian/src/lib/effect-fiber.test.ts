@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber } from "effect";
 
-import { awaitOwned } from "./effect-fiber";
+import { awaitOwned } from "./effect-fiber.ts";
 
 describe("awaitOwned", () => {
   it.effect("gives how the fiber ended", () =>

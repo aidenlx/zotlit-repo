@@ -2,20 +2,20 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Layer, Scope } from "effect";
 import { describe, expect } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { bindLiteratureNoteAttachments } from "./handle";
-import { literatureNoteAttachments } from "./literature-note";
+import { bindLiteratureNoteAttachments } from "./handle.ts";
+import { literatureNoteAttachments } from "./literature-note.ts";
 
 /** Item ABCD2345 (itemID 7) with one stored PDF, ATCH2345. */
 const ITEM_WITH_PDF = `

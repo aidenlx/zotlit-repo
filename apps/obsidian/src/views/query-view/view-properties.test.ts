@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { DATASETS } from "./datasets";
-import { parseQueryFile } from "./query-file";
-import { LITERATURE_NOTE } from "./query-file";
-import { fieldLabel, viewProperties } from "./view-properties";
+import { DATASETS } from "./datasets.ts";
+import { parseQueryFile } from "./query-file.ts";
+import { LITERATURE_NOTE } from "./query-file.ts";
+import { fieldLabel, viewProperties } from "./view-properties.ts";
 
 const FILE = parseQueryFile(`formulas:
   year: date.year

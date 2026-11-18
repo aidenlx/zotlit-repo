@@ -39,64 +39,64 @@ import {
 } from "@zotlit/protocol";
 import type { ImportMode, ProtocolAction } from "@zotlit/protocol";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open";
-import type { AttachmentReader } from "@/lib/attachment-open";
-import { scopedBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { logAndContinue, withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import type { Notifier } from "@/lib/notifier";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { parseProfileSelector } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
+import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
+import type { AttachmentReader } from "@/lib/attachment-open.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { logAndContinue, withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { parseProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import {
   openGesture,
   pdfPickerReader,
-} from "@/services/attachment-open/actions";
-import { TargetOpener } from "@/services/attachment-open/open-target";
-import { toObsidianOpenable } from "@/services/attachment-open/openable";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
-import { LocalServer } from "@/services/local-server/service";
+} from "@/services/attachment-open/actions.ts";
+import { TargetOpener } from "@/services/attachment-open/open-target.ts";
+import { toObsidianOpenable } from "@/services/attachment-open/openable.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
 import type {
   ImportNotesRequest,
   UpdateManyRequest,
-} from "@/services/local-server/service";
-import { openCompanionNote } from "@/services/note-feature";
-import type { InteractiveCreationPorts } from "@/services/note-feature";
+} from "@/services/local-server/service.ts";
+import { openCompanionNote } from "@/services/note-feature/index.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/index.ts";
 import {
   runBatchUpdate,
   runBatchUpdateAll,
-} from "@/services/note-feature/update-batch";
+} from "@/services/note-feature/update-batch.ts";
 import type {
   BatchUpdateOptions,
   BatchUpdatePorts,
   BatchUpdateServices,
-} from "@/services/note-feature/update-batch";
-import { batchUpdateNotices } from "@/services/note-feature/update-single";
+} from "@/services/note-feature/update-batch.ts";
+import { batchUpdateNotices } from "@/services/note-feature/update-single.ts";
 import {
   runBatchImport,
   runBatchImportAll,
-} from "@/services/note-import/batch-import";
+} from "@/services/note-import/batch-import.ts";
 import type {
   BatchImportPorts,
   BatchImportServices,
-} from "@/services/note-import/batch-import";
-import type { NoteImportView } from "@/services/note-import/view";
-import type { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
-import { ShowInLibrary } from "@/views/library/show-in-library";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+} from "@/services/note-import/batch-import.ts";
+import type { NoteImportView } from "@/services/note-import/view.ts";
+import type { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
+import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
+import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { showProtocolOutcome } from "./notices";
-import { ProtocolOutcome } from "./outcome";
+import { showProtocolOutcome } from "./notices.ts";
+import { ProtocolOutcome } from "./outcome.ts";
 
 /** The services a protocol handler reads through their tags. */
 export type ProtocolServices =

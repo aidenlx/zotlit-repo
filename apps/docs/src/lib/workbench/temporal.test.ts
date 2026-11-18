@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadTemporal } from "./temporal";
+import { loadTemporal } from "./temporal.ts";
 
 const present = globalThis.Temporal;
 

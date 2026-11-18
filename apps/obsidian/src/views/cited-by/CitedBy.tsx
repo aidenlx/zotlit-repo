@@ -6,20 +6,20 @@ import type { KeyboardEvent, ReactNode } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { SearchInput } from "@/components/obsidian/search-input";
-import { SidebarToolbar } from "@/components/sidebar-toolbar";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import { activeCitedByAtom } from "@/services/citation-index/atoms";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { SearchInput } from "@/components/obsidian/search-input.tsx";
+import { SidebarToolbar } from "@/components/sidebar-toolbar.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
 import type {
   CitationOccurrence,
   CitedByGroup,
   CitedBySnapshot,
-} from "@/services/citation-index/service";
-import { activeNoteAtom } from "@/services/note-index/atoms";
-import { showInLibraryCommand } from "@/views/library/atoms";
+} from "@/services/citation-index/service.ts";
+import { activeNoteAtom } from "@/services/note-index/atoms.ts";
+import { showInLibraryCommand } from "@/views/library/atoms.ts";
 
 import {
   activePreviewsAtom,
@@ -27,8 +27,8 @@ import {
   openOccurrenceCommand,
   openSourceCommand,
   previewAtom,
-} from "./atoms";
-import { showSortMenu } from "./menus";
+} from "./atoms.ts";
+import { showSortMenu } from "./menus.ts";
 import {
   collapseAll,
   expandAll,
@@ -36,7 +36,7 @@ import {
   toggleGroup,
   toggleSearch,
   useCitedByModel,
-} from "./model";
+} from "./model.ts";
 import {
   contextParts,
   EMPTY_CITED_BY_SNAPSHOT,
@@ -45,14 +45,14 @@ import {
   occurrenceID,
   previewContexts,
   sortCitedByGroups,
-} from "./store";
+} from "./store.ts";
 import type {
   CitedByPreview,
   ExpandDirection,
   OccurrenceContext,
   ReadyPreview,
   SourceRange,
-} from "./store";
+} from "./store.ts";
 
 /** Milliseconds between the last input change and the query it applies. */
 export const SEARCH_DEBOUNCE = 300;

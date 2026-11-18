@@ -90,20 +90,20 @@ import {
 import type { Plugin } from "obsidian";
 import * as v from "valibot";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { layerPluginData, PluginData } from "@/lib/plugin-data";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { layerPluginData, PluginData } from "@/lib/plugin-data.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 
 import {
   classifyDiskData,
   hydrationOriginOf,
   isPlainObject,
   VERSION_KEY,
-} from "./classify";
-import type { HydrationOrigin } from "./classify";
-import { settingsMigrations } from "./migrate";
-import { defaults, schema } from "./schema";
-import type { Settings } from "./schema";
+} from "./classify.ts";
+import type { HydrationOrigin } from "./classify.ts";
+import { settingsMigrations } from "./migrate.ts";
+import { defaults, schema } from "./schema.ts";
+import type { Settings } from "./schema.ts";
 
 const SAVE_DEBOUNCE_MS = 200;
 // Persisted version: packages/scripts/lib/format-versions.ts.
@@ -119,7 +119,7 @@ function isSettingsKey(key: string): key is SettingsKey {
 }
 
 /** Re-export so consumers have one canonical import for the settings type. */
-export type { Settings } from "./schema";
+export type { Settings } from "./schema.ts";
 
 /**
  * Sentinel value for `update()` patches: assigning it to a key deletes that

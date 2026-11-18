@@ -4,10 +4,10 @@
 import type {
   WorkbenchDocumentKind,
   WorkbenchProblem,
-} from "#/document/controller";
+} from "#document/controller.ts";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchMessageLabel } from "./messages";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
 export type WorkbenchTab =
   | "note"
   | "annotation"

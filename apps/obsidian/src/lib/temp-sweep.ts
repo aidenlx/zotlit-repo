@@ -21,7 +21,7 @@ import { Cause, Clock, Duration, Effect, FileSystem, Option } from "effect";
 import type { PlatformError } from "effect";
 import { join } from "node:path";
 
-import { withLogCategory } from "./effect-log-category";
+import { withLogCategory } from "./effect-log-category.ts";
 
 /** What every reap step accepts, so one startup passes the same thing to each. */
 export interface ReapTempsOptions {

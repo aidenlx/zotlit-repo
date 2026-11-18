@@ -14,28 +14,28 @@ import type { ReactNode } from "react";
 
 import { composing } from "@zotlit/ui";
 
+import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
 import {
   Chooser,
   chooserIconButton,
   useChooserPage,
   useChooserQuery,
   useChooserScope,
-} from "@/components/chooser";
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic";
-import { Icon } from "@/components/obsidian/icon";
-import { registerKeymap } from "@/lib/disposables";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
+} from "@/components/chooser.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { registerKeymap } from "@/lib/disposables.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { useQueryViewState } from "./model";
-import { propertyIcon } from "./property-icon";
-import { NewFormulaPage, PropertyPage } from "./property-page";
-import { LITERATURE_NOTE, vaultName, vaultProperty } from "./query-file";
-import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button";
-import { useVaultPropertyNames } from "./vault-cell";
-import type { QueryView } from "./view";
-import { isVaultPropertyName, useViewProperties } from "./view-properties";
-import type { PropertyEntry, ViewProperties } from "./view-properties";
+import { useQueryViewState } from "./model.ts";
+import { propertyIcon } from "./property-icon.ts";
+import { NewFormulaPage, PropertyPage } from "./property-page.tsx";
+import { LITERATURE_NOTE, vaultName, vaultProperty } from "./query-file.ts";
+import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button.tsx";
+import { useVaultPropertyNames } from "./vault-cell.tsx";
+import { isVaultPropertyName, useViewProperties } from "./view-properties.ts";
+import type { PropertyEntry, ViewProperties } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 /** The page "Add formula" opens; a property's page is named by its path. */
 const NEW_FORMULA_PAGE = "zt:new-formula";

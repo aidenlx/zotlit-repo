@@ -7,7 +7,7 @@ import type {
 } from "@zotlit/db/item-query";
 import { readCollectionPaths, readTagValues } from "@zotlit/db/item-query";
 
-import { compareStrings } from "./collation";
+import { compareStrings } from "./collation.ts";
 
 export interface QueryValuesRequest {
   readonly kind: "collections" | "tags";

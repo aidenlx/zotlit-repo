@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { SecretWriteAuthorizationStore } from "./write-authorization";
-import type { SecretStore } from "./write-authorization";
+import { SecretWriteAuthorizationStore } from "./write-authorization.ts";
+import type { SecretStore } from "./write-authorization.ts";
 
 /** The Zotero database that granted the key in these records. */
 const SERVER_ID = "A8sf5Zsz8ySw";

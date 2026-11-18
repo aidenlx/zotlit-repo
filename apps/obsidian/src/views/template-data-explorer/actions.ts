@@ -2,10 +2,10 @@
 import type { Menu } from "obsidian";
 import { createContext } from "react";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { IndexedKeyCopyTarget } from "@/services/indexed-key/actions";
-import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { IndexedKeyCopyTarget } from "@/services/indexed-key/actions.ts";
+import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
 
 export interface ExplorerActions {
   onChooseItem(): void;

@@ -1,11 +1,11 @@
 import { Keymap, Platform } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { ItemSearchModal } from "@/services/item-lookup/search-modal";
-import type { SearchHit } from "@/services/item-lookup/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ItemSearchModal } from "@/services/item-lookup/search-modal.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
 
-import type { QuickSwitchDeps } from "./register";
-import { openItemPdf, openOrCreateNote } from "./result-actions";
+import type { QuickSwitchDeps } from "./register.ts";
+import { openItemPdf, openOrCreateNote } from "./result-actions.ts";
 
 /** Glyph for the `Mod` modifier, matching how Obsidian labels its own hotkeys. */
 function modGlyph(): string {

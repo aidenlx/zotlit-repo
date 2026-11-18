@@ -6,10 +6,10 @@ import { TestClock } from "effect/testing";
 import {
   scopedStack,
   setup,
-} from "@/services/annotation-repository/__fixtures__";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/annotation-repository/__fixtures__.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { databaseRows, databaseRowsResolver } from "./bridge";
+import { databaseRows, databaseRowsResolver } from "./bridge.ts";
 
 /**
  * The batch over the Fixture's database, each Snapshot a counted lease, on

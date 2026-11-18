@@ -12,15 +12,15 @@ import type { Root } from "react-dom/client";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Button } from "@/components/obsidian/button";
-import { Icon } from "@/components/obsidian/icon";
-import { PaneState } from "@/components/pane-state";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
-import { refreshFailed, unavailable } from "@/views/welcome/connection";
-import type { SetupActions } from "@/views/welcome/setup-actions";
+import { Button } from "@/components/obsidian/button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { PaneState } from "@/components/pane-state.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
+import { refreshFailed, unavailable } from "@/views/welcome/connection.ts";
+import type { SetupActions } from "@/views/welcome/setup-actions.ts";
 
 export interface ZoteroNotFoundDeps {
   registry: ViewRegistryHandle;

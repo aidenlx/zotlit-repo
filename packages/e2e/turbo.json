@@ -3,14 +3,18 @@
   "extends": ["//"],
   "tasks": {
     // tsconfig.json maps `@obsidian-messages` to the plugin's generated
-    // message module, so the type check needs those messages first.
+    // message module, and the plugin source it reaches reads the Workbench
+    // message contract, so the type check needs both first.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/obsidian#generate:language-packs"
+        "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
       ]
     },
+    // The ZotLit Query CLI cases read the generated Query Schema file.
     "e2e": {
+      "dependsOn": ["$TURBO_EXTENDS$", "@zotlit/item-query#generate:schema"],
       "env": ["ANNOTATION_SUGGESTER_ENABLED", "WEB_WORKBENCH_ENABLED"],
       "passThroughEnv": ["ZOTLIT_E2E_RESULTS", "ZOTLIT_E2E_REQUIRED"]
     }

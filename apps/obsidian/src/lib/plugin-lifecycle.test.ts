@@ -3,13 +3,13 @@ import type { LogRecord } from "@logtape/logtape";
 import type { App, PluginManifest } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 import {
   logLateRelease,
   PREVIOUS_RELEASE_WAIT_MS,
   UnloadAwarePlugin,
-} from "./plugin-lifecycle";
+} from "./plugin-lifecycle.ts";
 
 const manifest: PluginManifest = {
   id: "zotlit",

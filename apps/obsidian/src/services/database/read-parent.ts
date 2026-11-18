@@ -3,7 +3,7 @@
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
 
 /** Why {@link planReadParents} ordered the parents the way it did. */
 export type ReadParentReason =

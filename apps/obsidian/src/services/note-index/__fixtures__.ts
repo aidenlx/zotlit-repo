@@ -4,17 +4,17 @@ import { basename } from "node:path/posix";
 import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { layerNoteIndex, NoteIndex } from "./service";
+import { layerNoteIndex, NoteIndex } from "./service.ts";
 
 export const noteIndexOver = (host: HostSources) =>
   layerNoteIndex.pipe(Layer.provide(layerHost(host)));
@@ -129,7 +129,7 @@ export interface Harness {
   workspace: MemoryWorkspace;
   service: NoteIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream").SubscriptionRuntime;
+    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
   };
   close: () => Promise<void>;
   vault: MockVault;

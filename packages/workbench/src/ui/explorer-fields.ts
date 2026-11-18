@@ -1,11 +1,11 @@
-import type { DisplayNode } from "#/explorer/index";
+import type { DisplayNode } from "#explorer/index.ts";
 
-import { COMMON_FIELDS } from "./completion-fields";
+import { COMMON_FIELDS } from "./completion-fields.ts";
 // Common field labels and values shared by the Explorer and its hosts.
-import type { WorkbenchMessages } from "./generated/messages";
-import type { TemplateRoot } from "./model";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { TemplateRoot } from "./model.ts";
 
-import { fieldMatches, outputText } from "#/explorer/index";
+import { fieldMatches, outputText } from "#explorer/index.ts";
 
 export interface FieldRow {
   readonly node: DisplayNode;

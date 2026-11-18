@@ -4,7 +4,7 @@ import {
   parseAnnotViewState,
   serializeAnnotViewState,
   unpinnedMode,
-} from "./view-state";
+} from "./view-state.ts";
 
 const PINNED_KEY = "ABCD2345";
 

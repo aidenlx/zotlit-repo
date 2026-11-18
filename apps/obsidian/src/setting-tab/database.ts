@@ -7,32 +7,32 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
-import { companionDocsUrl, docsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import { withProgress } from "@/lib/notifier";
+import { companionDocsUrl, docsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { withProgress } from "@/lib/notifier.ts";
 import type {
   ConfiguredReadMode,
   EffectiveReadMode,
-} from "@/services/database/read-source";
-import { PluginSettings } from "@/services/settings/service";
-import { PREFS_FILENAME } from "@/services/zotero-pref/prefs-file";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/services/database/read-source.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { PREFS_FILENAME } from "@/services/zotero-pref/prefs-file.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,
-} from "@/services/zotero-pref/service";
+} from "@/services/zotero-pref/service.ts";
 import {
   changed,
   degraded,
   refreshFailed,
   refreshing,
-} from "@/services/zotero-reads/events";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/events.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { appendDeviceOverrideNote, browseForDir } from "./device-override";
-import { paintEach } from "./effect-tab";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { appendDeviceOverrideNote, browseForDir } from "./device-override.ts";
+import { paintEach } from "./effect-tab.ts";
 
 /** Folder-picker dropdown sentinel for auto-detect — a real dir is never empty. */
 const PICKER_AUTO = "";

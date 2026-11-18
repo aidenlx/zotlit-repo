@@ -5,26 +5,26 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 
-import { interruptedWithin } from "./__fixtures__/interrupt";
+import { interruptedWithin } from "./__fixtures__/interrupt.ts";
 import {
   awaitProfileSwitchConsent,
   switchNoteProfileInteractively,
-} from "./index";
-import type { UpdateResult } from "./operations";
-import { NoteFeature } from "./service";
+} from "./index.ts";
+import type { UpdateResult } from "./operations.ts";
+import { NoteFeature } from "./service.ts";
 
-vi.mock("@/views/quick-switch/profile-picker", () => ({
+vi.mock("@/views/quick-switch/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 

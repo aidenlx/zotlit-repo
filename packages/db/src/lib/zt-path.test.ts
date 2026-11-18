@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { USER_LIBRARY_ID } from "@/lib/constants";
-
-import type { Attachment } from "./zt-attach";
+import type { Attachment } from "./zt-attach.ts";
 import {
   attachmentAbsPath,
   attachmentPathKey,
   normalizeAbsolutePath,
   resolveAnnotCachePath,
-} from "./zt-path";
+} from "./zt-path.ts";
+
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
 
 function attachment(overrides: Partial<Attachment>): Attachment {
   return {

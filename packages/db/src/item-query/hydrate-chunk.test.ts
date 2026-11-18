@@ -1,9 +1,11 @@
+import type {
+  ScenarioDatabase,
+  ScenarioItemName,
+} from "#test-scenario/index.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { openScenarioDatabase, SCENARIO_ITEMS } from "@/test-scenario";
-import type { ScenarioDatabase, ScenarioItemName } from "@/test-scenario";
-
+import { readItemAttachments } from "./attachments.ts";
 import {
   HYDRATE_CHUNK_SIZE,
   ItemQueryDatabase,
@@ -11,9 +13,10 @@ import {
   readCollectionPaths,
   readFieldVocabulary,
   readHydrateChunk,
-} from ".";
-import type { HydrateFields, HydratedItem, HydrateRelation } from ".";
-import { readItemAttachments } from "./attachments";
+} from "./index.ts";
+import type { HydrateFields, HydratedItem, HydrateRelation } from "./index.ts";
+
+import { openScenarioDatabase, SCENARIO_ITEMS } from "#test-scenario/index.ts";
 
 function runOk<A, E>(
   scenario: ScenarioDatabase,

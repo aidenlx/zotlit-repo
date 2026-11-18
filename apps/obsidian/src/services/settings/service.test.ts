@@ -2,11 +2,11 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber, Logger, Queue } from "effect";
 import { beforeEach, describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import { highlightEmoji } from "@/lib/highlight-mapping";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { highlightEmoji } from "@/lib/highlight-mapping.ts";
 
-import { settingsRuntimeOf } from "./__fixtures__";
-import type { SettingsFixtureOptions } from "./__fixtures__";
+import { settingsRuntimeOf } from "./__fixtures__.ts";
+import type { SettingsFixtureOptions } from "./__fixtures__.ts";
 import {
   migrateLegacyV0,
   migrateV1ToV2,
@@ -19,9 +19,9 @@ import {
   migrateV8ToV9,
   migrateV9ToV10,
   migrateV10ToV11,
-} from "./migrate";
-import { defaults } from "./schema";
-import { RESET_SETTING } from "./service";
+} from "./migrate.ts";
+import { defaults } from "./schema.ts";
+import { RESET_SETTING } from "./service.ts";
 
 type SettingsServiceOptions = SettingsFixtureOptions;
 

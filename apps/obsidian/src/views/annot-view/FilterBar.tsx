@@ -4,14 +4,14 @@
 import { useMemo } from "react";
 import type { Ref } from "react";
 
-import { Chooser } from "@/components/chooser";
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic";
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { annotationColorLabel } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
+import { Chooser } from "@/components/chooser.tsx";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { annotationColorLabel } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import {
   cappedSelection,
@@ -19,8 +19,8 @@ import {
   deriveTagChips,
   filterAnnotations,
   isFilterActive,
-} from "./filter";
-import type { TagChip } from "./filter";
+} from "./filter.ts";
+import type { TagChip } from "./filter.ts";
 import {
   useAnnotFilter,
   useAnnotStore,
@@ -29,7 +29,7 @@ import {
   useSetSelectedTags,
   useToggleSearchOpen,
   useToggleSelectedColor,
-} from "./model";
+} from "./model.ts";
 
 /** How many colours the trigger draws before it starts counting instead. */
 const COLOR_CAP = 3;

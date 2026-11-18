@@ -1,10 +1,10 @@
-import type { FieldDefinition, FilterField, ValueShape } from "./fields";
-import type { FilterRegistry } from "./filter-plan";
-import type { FilterValue } from "./filter-values";
-import type { ParentRecord } from "./parent-records";
-import { readSegments } from "./projection";
-import type { PathSegment } from "./projection-path";
-import type { ProjectionValue } from "./request";
+import type { FieldDefinition, FilterField, ValueShape } from "./fields.ts";
+import type { FilterRegistry } from "./filter-plan.ts";
+import type { FilterValue } from "./filter-values.ts";
+import type { ParentRecord } from "./parent-records.ts";
+import type { PathSegment } from "./projection-path.ts";
+import { readSegments } from "./projection.ts";
+import type { ProjectionValue } from "./request.ts";
 
 /** A record uses its dataset's vocabulary at every depth. Callbacks allow cycles. */
 export interface RecordVocabulary<Row, Needs> {

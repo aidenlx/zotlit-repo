@@ -17,32 +17,32 @@ import { expect, vi } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerFileManagerFrom } from "@/lib/obsidian-file-manager";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerFileManagerFrom } from "@/lib/obsidian-file-manager.ts";
 import type {
   FileManager,
   FileManagerSource,
-} from "@/lib/obsidian-file-manager";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import type { Vault } from "@/lib/obsidian-vault";
-import { defaults } from "@/services/settings/schema";
+} from "@/lib/obsidian-file-manager.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import type { Vault } from "@/lib/obsidian-vault.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { availableOutcome } from "./__fixtures__/outcome";
-import { redPng as png, bluePng, corruptPng } from "./__fixtures__/png";
-import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp";
-import { PNG_FORMAT, WEBP_FORMAT } from "./format";
-import type { ExcerptImage } from "./format";
+import { availableOutcome } from "./__fixtures__/outcome.ts";
+import { redPng as png, bluePng, corruptPng } from "./__fixtures__/png.ts";
+import { chromiumLosslessWebp, sizedWebp } from "./__fixtures__/webp.ts";
+import { PNG_FORMAT, WEBP_FORMAT } from "./format.ts";
+import type { ExcerptImage } from "./format.ts";
 import {
   excerptAssetIdentities,
   isOwnedExcerptAssetPath,
   makePublicationGate,
   materializeExcerpt,
   retainExcerpt,
-} from "./materialize";
-import type { MaterializedExcerpt } from "./materialize";
-import type { ExcerptOutcome, ExcerptRequest } from "./service";
-import { usableExcerptWebp } from "./webp";
+} from "./materialize.ts";
+import type { MaterializedExcerpt } from "./materialize.ts";
+import type { ExcerptOutcome, ExcerptRequest } from "./service.ts";
+import { usableExcerptWebp } from "./webp.ts";
 
 const pngImage: ExcerptImage = { bytes: png, format: PNG_FORMAT };
 const otherImage: ExcerptImage = { bytes: bluePng, format: PNG_FORMAT };

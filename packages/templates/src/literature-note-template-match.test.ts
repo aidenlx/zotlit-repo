@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { updateLiteratureNoteTemplateMatch } from "./literature-note-template-match";
+import { updateLiteratureNoteTemplateMatch } from "./literature-note-template-match.ts";
 
 const prefix = '---\n# Keep this\nname :  Books  # spacing\nversion: "1.0.0"\n';
 const suffix =

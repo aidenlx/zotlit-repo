@@ -1,5 +1,5 @@
 // A bounded projection of one worker-owned citation revision.
-import type { CitekeyResolution } from "./snapshot";
+import type { CitekeyResolution } from "./snapshot.ts";
 
 export interface CitationLookupRequest {
   citekeys?: readonly string[];

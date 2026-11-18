@@ -10,12 +10,15 @@ import { vi } from "vitest";
 import { INITIAL_PANELS } from "@zotlit/workbench/ui";
 import type { WorkbenchModel } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { EXPLORER_VIEW_TYPE } from "@/views/template-data-explorer/view";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { EXPLORER_VIEW_TYPE } from "@/views/template-data-explorer/view.tsx";
 
-import { findWorkbenchLayout, openWorkbenchLayout } from "./layout";
-import { TEMPLATE_WORKBENCH_VIEW_TYPE, TemplateWorkbenchView } from "./view";
+import { findWorkbenchLayout, openWorkbenchLayout } from "./layout.ts";
+import {
+  TEMPLATE_WORKBENCH_VIEW_TYPE,
+  TemplateWorkbenchView,
+} from "./view.tsx";
 
 type Container = ReturnType<WorkspaceLeaf["getContainer"]>;
 const container = () =>

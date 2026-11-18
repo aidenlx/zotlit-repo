@@ -11,17 +11,20 @@ import {
   metaClass,
   sectionClass,
   titleClass,
-} from "@/components/learn/lesson-mdx";
-import { firstOpenStep, readProgress } from "@/components/learn/lesson-state";
-import type { LessonProgress } from "@/components/learn/lesson-state";
-import { DoneBadge } from "@/components/learn/lesson-view";
-import { StepPicture } from "@/components/learn/step-picture";
-import { cn } from "@/lib/cn";
-import { localeInput } from "@/lib/i18n";
-import { pageHead } from "@/lib/seo";
-import { appName, learnRoute } from "@/lib/shared";
-import { getLessonPages } from "@/lib/source";
-import { breadcrumbListSchema } from "@/lib/structured-data";
+} from "@/components/learn/lesson-mdx.tsx";
+import {
+  firstOpenStep,
+  readProgress,
+} from "@/components/learn/lesson-state.ts";
+import type { LessonProgress } from "@/components/learn/lesson-state.ts";
+import { DoneBadge } from "@/components/learn/lesson-view.tsx";
+import { StepPicture } from "@/components/learn/step-picture.tsx";
+import { cn } from "@/lib/cn.ts";
+import { localeInput } from "@/lib/i18n.ts";
+import { pageHead } from "@/lib/seo.ts";
+import { appName, learnRoute } from "@/lib/shared.ts";
+import { getLessonPages } from "@/lib/source.ts";
+import { breadcrumbListSchema } from "@/lib/structured-data.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

@@ -12,35 +12,38 @@ import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
 
 import { composing } from "@zotlit/ui";
 
-import { holdScopeWhileFocused } from "@/lib/focus-scope";
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import { getLogger } from "@/lib/log";
-import { showMenuAtButton } from "@/lib/menu";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { yieldToMain } from "@/lib/yield-to-main";
-import type { QueryViewValue } from "@/services/item-query/query-view";
-import { libraryScopeStateAtom } from "@/services/library-scope/atoms";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import { notedItemKeysAtom } from "@/services/note-index/atoms";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance";
-import { useLedgerAtom } from "@/services/use-ledger/atoms";
-import { showItemInAnnotView } from "@/views/annot-view/register";
-import { saveAsQueryFile } from "@/views/annot-view/save-query-file";
+import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import { getLogger } from "@/lib/log.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import type { QueryViewValue } from "@/services/item-query/query-view.ts";
+import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
+import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
+import { useLedgerAtom } from "@/services/use-ledger/atoms.ts";
+import { showItemInAnnotView } from "@/views/annot-view/register.ts";
+import { saveAsQueryFile } from "@/views/annot-view/save-query-file.ts";
 import {
   ITEM_ROW_ATTRIBUTE,
   ITEM_ROW_REVEALED_ATTRIBUTE,
   NO_ROWS,
-} from "@/views/query-view/item-rows";
-import type { ItemRowGestures, ShownRows } from "@/views/query-view/item-rows";
-import { holdsPdf } from "@/views/query-view/papers-layout";
-import { QueryView } from "@/views/query-view/view";
-import type { QueryViewDeps } from "@/views/query-view/view";
-import { WelcomeBanner } from "@/views/welcome/banner";
-import type { WelcomeBannerDeps } from "@/views/welcome/banner";
+} from "@/views/query-view/item-rows.ts";
+import type {
+  ItemRowGestures,
+  ShownRows,
+} from "@/views/query-view/item-rows.ts";
+import { holdsPdf } from "@/views/query-view/papers-layout.tsx";
+import { QueryView } from "@/views/query-view/view.tsx";
+import type { QueryViewDeps } from "@/views/query-view/view.tsx";
+import { WelcomeBanner } from "@/views/welcome/banner.tsx";
+import type { WelcomeBannerDeps } from "@/views/welcome/banner.tsx";
 
-import { itemNodeAtom } from "./atoms";
-import { DetailsToggle } from "./details-toggle";
+import { itemNodeAtom } from "./atoms.ts";
+import { DetailsToggle } from "./details-toggle.tsx";
 import {
   CARD_HEIGHT_DEFAULT,
   CARD_HEIGHT_MIN,
@@ -66,31 +69,31 @@ import {
   withTags,
   withTreeCollapsed,
   withTreeWidth,
-} from "./document";
+} from "./document.ts";
 import type {
   LibraryNode,
   LibraryViewDocument,
   LibraryViewLabels,
   LibraryViewQuery,
   ReadingStateFacet,
-} from "./document";
-import { renderHeading } from "./heading";
-import { ZOTLIT_MARK_ICON } from "./icon";
-import type { ItemActions } from "./item-actions";
-import { createItemDrag, refuseItemDrop } from "./item-drag";
-import { FACET_LABELS, LibraryTree } from "./library-tree";
-import { makeLibraryModel, patchSelection, waitForRead } from "./model";
-import type { LibrarySelection } from "./model";
-import { ZoteroNotFound } from "./not-found";
-import { PaneWidth } from "./pane-width";
-import { ReadingCard } from "./reading-card";
-import { recentReason, RECENT_REASON_FIELDS } from "./reason";
-import { rowMenu } from "./row-menu";
-import type { MenuItem } from "./row-menu";
-import { LibrarySearch } from "./search-box";
-import type { SearchFound } from "./search-box";
-import { LibraryViewStorage } from "./storage";
-import { scopeForLibrary } from "./tree-model";
+} from "./document.ts";
+import { renderHeading } from "./heading.tsx";
+import { ZOTLIT_MARK_ICON } from "./icon.ts";
+import type { ItemActions } from "./item-actions.ts";
+import { createItemDrag, refuseItemDrop } from "./item-drag.ts";
+import { FACET_LABELS, LibraryTree } from "./library-tree.tsx";
+import { makeLibraryModel, patchSelection, waitForRead } from "./model.ts";
+import type { LibrarySelection } from "./model.ts";
+import { ZoteroNotFound } from "./not-found.tsx";
+import { PaneWidth } from "./pane-width.ts";
+import { ReadingCard } from "./reading-card.tsx";
+import { recentReason, RECENT_REASON_FIELDS } from "./reason.ts";
+import { rowMenu } from "./row-menu.ts";
+import type { MenuItem } from "./row-menu.ts";
+import { LibrarySearch } from "./search-box.tsx";
+import type { SearchFound } from "./search-box.tsx";
+import { LibraryViewStorage } from "./storage.ts";
+import { scopeForLibrary } from "./tree-model.ts";
 import "./style.css";
 
 const logger = getLogger(["library-view"]);

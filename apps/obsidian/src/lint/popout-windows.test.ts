@@ -5,7 +5,7 @@ import {
   noCrossWindowInstanceof,
   noGlobalResizeObserver,
   noGlobalTimer,
-} from "../../scripts/oxlint-plugin-popout-windows";
+} from "../../scripts/oxlint-plugin-popout-windows.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

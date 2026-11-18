@@ -13,24 +13,24 @@ import type {
 import type { CitationVariant } from "@zotlit/db";
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 
-import { valueOr } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { CurrentAnswer } from "@/services/item-lookup/current-answer";
-import type { SearchSession } from "@/services/item-lookup/handle";
-import { renderSuggestion as renderSearchHit } from "@/services/item-lookup/render-hit";
-import { DEFAULT_LIMIT } from "@/services/item-lookup/service";
-import type { SearchHit } from "@/services/item-lookup/service";
-import { InertTemplateError } from "@/services/template/errors";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
+import type { SearchSession } from "@/services/item-lookup/handle.ts";
+import { renderSuggestion as renderSearchHit } from "@/services/item-lookup/render-hit.ts";
+import { DEFAULT_LIMIT } from "@/services/item-lookup/service.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
 import {
   isCitationCloser,
   placeInsertion,
-} from "@/views/annot-view/async-insert";
+} from "@/views/annot-view/async-insert.ts";
 
-import { readDocumentCitedKeys } from "./document-citations";
-import type { CitationSuggestDeps } from "./register";
+import { readDocumentCitedKeys } from "./document-citations.ts";
+import type { CitationSuggestDeps } from "./register.ts";
 
 const TRIGGER = regex("[\\[【]@([^\\]】]*)$");
 // Bare `@` at a word boundary: line start, or preceded by whitespace or one of

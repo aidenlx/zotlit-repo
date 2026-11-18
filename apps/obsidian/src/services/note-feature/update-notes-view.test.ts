@@ -4,11 +4,11 @@ import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App } from "obsidian";
 import { afterEach, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { awaitUpdateNotesChoice } from "./update-notes-view";
-import type { ActiveNote } from "./update-notes-view";
+import { awaitUpdateNotesChoice } from "./update-notes-view.ts";
+import type { ActiveNote } from "./update-notes-view.ts";
 
 const activeNote = (): ActiveNote => ({
   file: new TFile(),

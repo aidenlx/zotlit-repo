@@ -5,22 +5,22 @@
 
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchModel } from "./model";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchModel } from "./model.ts";
 import {
   canResizePanel,
   PANEL_HANDLES,
   PANEL_SIDES,
   panelHandles,
   resizePanel,
-} from "./panel-layout";
+} from "./panel-layout.ts";
 import type {
   HandleSizing,
   PanelBounds,
   PanelHandle,
   PanelResize,
   WorkbenchPanels,
-} from "./panel-layout";
+} from "./panel-layout.ts";
 
 export interface PanelSizeItem {
   /** The handle whose panel the entry sizes. */

@@ -10,8 +10,8 @@ import type { WorkbenchHost } from "@zotlit/workbench/ui";
 // @vitest-environment happy-dom
 import { m } from "@/paraglide/messages.js";
 
-import { useWebHost } from "./host";
-import { PageRuntime } from "./runtime";
+import { useWebHost } from "./host.tsx";
+import { PageRuntime } from "./runtime.tsx";
 
 let host!: ReturnType<typeof useWebHost>["host"];
 const notices: string[] = [];

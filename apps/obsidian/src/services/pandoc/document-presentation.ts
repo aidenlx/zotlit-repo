@@ -9,19 +9,19 @@ import {
   FIELD_CITATION_STYLE,
   FIELD_DOCUMENT_LANGUAGE,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants";
-import { isLanguageTag } from "@/lib/language-tag";
-import { getLogger } from "@/lib/log";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
+} from "@/lib/constants.ts";
+import { isLanguageTag } from "@/lib/language-tag.ts";
+import { getLogger } from "@/lib/log.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import type {
   ProfileSelector,
   UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp";
-import type { Citation } from "@/services/citation-index/query";
-import type { Profile, ProfileReader } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
+} from "@/lib/profile-stamp.ts";
+import type { Citation } from "@/services/citation-index/query.ts";
+import type { Profile, ProfileReader } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import type { RenderPresentation } from "./render-cache";
+import type { RenderPresentation } from "./render-cache.ts";
 
 const logger = getLogger(["pandoc", "document-presentation"]);
 

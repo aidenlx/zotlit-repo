@@ -18,67 +18,67 @@ import {
 import { TFile } from "obsidian";
 import type { TAbstractFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { startupBarrier } from "@/lib/effect-startup";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import type { VaultEvent } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { VaultError } from "@/lib/vault-errors";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { startupBarrier } from "@/lib/effect-startup.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { VaultEvent } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { VaultError } from "@/lib/vault-errors.ts";
 import type {
   ParseFailed,
   ParseWorkerDied,
-} from "@/services/citation-parse/client";
-import { CitationParse } from "@/services/citation-parse/service";
-import { LibraryScope } from "@/services/library-scope/service";
+} from "@/services/citation-parse/client.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import {
   NoteIndex,
   resolveLiteratureNoteIn,
-} from "@/services/note-index/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/note-index/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { CitationLookupAnswer, CitationLookupRequest } from "./lookup";
-import { heldResolution } from "./lookup";
-import { CitationLookup } from "./lookup-service";
-import type { CitationLookupStatus } from "./lookup-service";
-export type { CitationLookupAnswer, CitationLookupRequest } from "./lookup";
-export type { CitationLookupObservation } from "./lookup-service";
+import { CitationLookup } from "./lookup-service.ts";
+import type { CitationLookupStatus } from "./lookup-service.ts";
+import type { CitationLookupAnswer, CitationLookupRequest } from "./lookup.ts";
+import { heldResolution } from "./lookup.ts";
+export type { CitationLookupAnswer, CitationLookupRequest } from "./lookup.ts";
+export type { CitationLookupObservation } from "./lookup-service.ts";
 
-import { describeJoinedCandidates } from "./ambiguity";
-import { citationOutcome } from "./outcome";
-import type { CitationOutcome } from "./outcome";
-import { annotationCitations, readParsedNote } from "./parsed-note";
-import type { ParsedNote } from "./parsed-note";
-import { groupCitations } from "./query";
-import type { Citation, ResolvedNote } from "./query";
-import { occurrencesEqual } from "./scan";
-import type { CitationOccurrence, CitationSyntax } from "./scan";
-import type { AnnotationOccurrence } from "./scan-note";
-import type { CitekeyResolution } from "./snapshot";
-import { readReferenceSources } from "./sources";
-import type { ReferenceSourceJoin } from "./sources";
-import { openCitekeyStore, SCANNER_REVISION } from "./store";
-import type { CitekeyRecord, CitekeyStore, FileScan } from "./store";
+import { describeJoinedCandidates } from "./ambiguity.ts";
+import { citationOutcome } from "./outcome.ts";
+import type { CitationOutcome } from "./outcome.ts";
+import { annotationCitations, readParsedNote } from "./parsed-note.ts";
+import type { ParsedNote } from "./parsed-note.ts";
+import { groupCitations } from "./query.ts";
+import type { Citation, ResolvedNote } from "./query.ts";
+import type { AnnotationOccurrence } from "./scan-note.ts";
+import { occurrencesEqual } from "./scan.ts";
+import type { CitationOccurrence, CitationSyntax } from "./scan.ts";
+import type { CitekeyResolution } from "./snapshot.ts";
+import { readReferenceSources } from "./sources.ts";
+import type { ReferenceSourceJoin } from "./sources.ts";
+import { openCitekeyStore, SCANNER_REVISION } from "./store.ts";
+import type { CitekeyRecord, CitekeyStore, FileScan } from "./store.ts";
 
 export {
   citationsEqual,
   type Citation,
   type ResolvedNote,
   type ResolveOccurrence,
-} from "./query";
+} from "./query.ts";
 export {
   type CitationOccurrence,
   type CitationSyntax,
   type MalformedWikilinkCitation,
-} from "./scan";
-export type { CitekeyResolution, SnapshotItem } from "./snapshot";
+} from "./scan.ts";
+export type { CitekeyResolution, SnapshotItem } from "./snapshot.ts";
 export {
   readReferenceSources,
   toZoteroOpenableAttachments,
@@ -86,9 +86,13 @@ export {
   type ZoteroOpenableAttachment,
   type ReferenceSource,
   type ReferenceSourceJoin,
-} from "./sources";
-export { type CitekeyRecord, type CitekeyStore, type FileScan } from "./store";
-export type { AnnotationOccurrence } from "./scan-note";
+} from "./sources.ts";
+export {
+  type CitekeyRecord,
+  type CitekeyStore,
+  type FileScan,
+} from "./store.ts";
+export type { AnnotationOccurrence } from "./scan-note.ts";
 
 type CitationRecord = Pick<
   FileScan,

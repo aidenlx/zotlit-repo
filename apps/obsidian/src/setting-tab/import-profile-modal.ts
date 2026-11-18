@@ -8,20 +8,20 @@ import {
 } from "obsidian";
 import type { App, ButtonComponent } from "obsidian";
 
-import { citationStyleLabel } from "@/lib/citation-style";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
-import { isUserStop } from "@/lib/user-cancel";
-import type { ProfileNoteDraft } from "@/services/note-feature/service";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import { describeMatch } from "@/services/profile-selection";
-import type { ResolvedProfile } from "@/services/profile/bindings";
+import { citationStyleLabel } from "@/lib/citation-style.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { isUserStop } from "@/lib/user-cancel.ts";
+import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import { describeMatch } from "@/services/profile-selection/index.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type {
   LiteratureNoteProfile,
   PreparedProfileImport,
   ProfileImportOptions,
-} from "@/services/profile/service";
+} from "@/services/profile/service.ts";
 
 import {
   NOTE_CLASS,
@@ -32,7 +32,7 @@ import {
   note,
   previewPanel,
   twoColumns,
-} from "./profile-dialog";
+} from "./profile-dialog.ts";
 
 const logger = getLogger(["setting-tab", "profile-import"]);
 export type ImportSource = "clipboard" | "file";

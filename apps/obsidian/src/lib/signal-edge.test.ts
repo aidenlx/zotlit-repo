@@ -3,7 +3,7 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect } from "vitest";
 
-import { settleAtEdge } from "./signal-edge";
+import { settleAtEdge } from "./signal-edge.ts";
 
 describe("settleAtEdge", () => {
   it("returns the value of a success", () => {

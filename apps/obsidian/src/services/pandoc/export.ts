@@ -9,27 +9,30 @@ import { Effect, Result } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
 
-import type { CitationLookup } from "@/services/citation-index/lookup-service";
-import { ParsedNote } from "@/services/citation-index/parsed-note";
+import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
 import type {
   ParseFailed,
   ParseWorkerDied,
-} from "@/services/citation-parse/client";
-import { CitationParse } from "@/services/citation-parse/service";
+} from "@/services/citation-parse/client.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
 
 import type {
   BibliographyFailure,
   BibliographyItemRef,
   BibliographyResult,
   BibliographySource,
-} from "./bibliography";
-import type { CitationEngine, DocumentFormat } from "./engine";
-import { PANDOC_RESOLVE_MAP_FILENAME, pandocSandboxFilter } from "./filter";
-import { collectCitationLinks } from "./resolve";
-import type { ResolveDocument } from "./resolve";
+} from "./bibliography.ts";
+import type { CitationEngine, DocumentFormat } from "./engine.ts";
+import {
+  PANDOC_RESOLVE_MAP_FILENAME,
+  pandocSandboxFilter,
+} from "./filter/index.ts";
+import { collectCitationLinks } from "./resolve.ts";
+import type { ResolveDocument } from "./resolve.ts";
 
 /** Named by {@link ExportFailure}, so one import covers a failure's whole shape. */
-export { type BibliographySource } from "./bibliography";
+export { type BibliographySource } from "./bibliography.ts";
 
 export interface ExportRequest {
   /** The source path resolves links; the worker reads membership from markdown. */

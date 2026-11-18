@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 // The one screen an Eta or JavaScript Profile gets. The web host renders
 // Liquid and JSON-e only, so such a document is neither edited nor rendered
 // here: it is explained, offered back unchanged, and pointed at Obsidian.
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { m } from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
-import type { UnsupportedReason } from "./unsupported";
+import type { UnsupportedReason } from "./unsupported.ts";
 
 export interface ProfileHandoffProps {
   /** Why the web host cannot take this Profile, one line per reason. */

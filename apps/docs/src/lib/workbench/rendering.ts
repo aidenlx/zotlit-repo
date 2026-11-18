@@ -10,8 +10,8 @@ import type {
 } from "@zotlit/workbench/render";
 import { WorkbenchHostError } from "@zotlit/workbench/ui";
 
-import { renderInThread } from "./render";
-import { loadTemporal } from "./temporal";
+import { renderInThread } from "./render.ts";
+import { loadTemporal } from "./temporal.ts";
 
 export class Rendering extends Context.Service<
   Rendering,

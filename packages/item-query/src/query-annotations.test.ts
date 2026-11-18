@@ -7,19 +7,19 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
+import { ANNOTATION_SCENARIO_QUERIES } from "./annotation-scenario-queries.ts";
+import { ItemQueryError } from "./error.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
   AttachmentFileResolver,
   collectQuery,
   consumeQuery,
-} from ".";
-import type { ItemQueryRequest } from ".";
-import { ANNOTATION_SCENARIO_QUERIES } from "./annotation-scenario-queries";
-import { ItemQueryError } from "./error";
-import { ItemQueryScheduler } from "./scheduler";
-import type { RunOptions } from "./test-helpers";
-import { runEffect } from "./test-helpers";
+} from "./index.ts";
+import type { ItemQueryRequest } from "./index.ts";
+import { ItemQueryScheduler } from "./scheduler.ts";
+import type { RunOptions } from "./test-helpers.ts";
+import { runEffect } from "./test-helpers.ts";
 
 // Read-only tests share one scenario; a test that writes opens its own.
 let scenario: ScenarioDatabase;

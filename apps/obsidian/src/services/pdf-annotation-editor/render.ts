@@ -7,17 +7,21 @@ import type {
   PdfTextPosition,
 } from "@zotlit/db";
 
-import { themeHook } from "@/lib/theme-hooks";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { InkPosition } from "@/services/annotation-repository/write";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { InkPosition } from "@/services/annotation-repository/write.ts";
 
-import { freeTextLayout, freeTextLines, LINE_HEIGHT } from "./free-text-layout";
+import {
+  freeTextLayout,
+  freeTextLines,
+  LINE_HEIGHT,
+} from "./free-text-layout.ts";
 import type {
   PagePoint,
   PageRect,
   TextMeasure,
   Turn,
-} from "./free-text-layout";
+} from "./free-text-layout.ts";
 import {
   capturesImage,
   gripCursor,
@@ -26,12 +30,12 @@ import {
   movesByBody,
   RANGE_HANDLE_PADDING,
   rangeHandles,
-} from "./geometry-edit";
-import type { Grip, PdfPoint, TextRotation } from "./geometry-edit";
-import type { Point } from "./hit-test";
-import { inkReach } from "./ink-path";
-import type { LiveStroke, PendingStroke } from "./reader-surface-state";
-import { unionOutlinePath } from "./rect-union-outline";
+} from "./geometry-edit.ts";
+import type { Grip, PdfPoint, TextRotation } from "./geometry-edit.ts";
+import type { Point } from "./hit-test.ts";
+import { inkReach } from "./ink-path.ts";
+import type { LiveStroke, PendingStroke } from "./reader-surface-state.ts";
+import { unionOutlinePath } from "./rect-union-outline.ts";
 import "./style.css";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -1040,7 +1044,7 @@ function colorOf(annotation: AnnotationRecord): string {
   return annotation.color ?? "currentColor";
 }
 
-export type { PageRect } from "./free-text-layout";
+export type { PageRect } from "./free-text-layout.ts";
 
 /** The page reduced to what a mark is drawn from: page units and a document. */
 interface OverlayPage {

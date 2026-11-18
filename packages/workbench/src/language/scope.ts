@@ -4,8 +4,8 @@ import { regex } from "arkregex";
 import type { ContractType } from "@zotlit/db/contract/ir";
 import { ANNOTATION_HEADER } from "@zotlit/templates/constants";
 
-import { child, resolve } from "./contract";
-import { liquidRanges } from "./liquid-ranges";
+import { child, resolve } from "./contract.ts";
+import { liquidRanges } from "./liquid-ranges.ts";
 
 /** Known variable names survive even when their member type is unknown. */
 export function localsAt(

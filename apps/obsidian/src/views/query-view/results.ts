@@ -8,12 +8,12 @@ import type { PlacedFault } from "@zotlit/workbench/language";
 import type {
   QueryViewResult,
   QueryViewRow,
-} from "@/services/item-query/query-view";
+} from "@/services/item-query/query-view.ts";
 
-import type { ConditionIssue } from "./query-file";
-import type { ReaderDiagnosticSource } from "./reader-diagnostic";
-import type { ShownRecord } from "./record-rows";
-import type { LayoutGroup } from "./rows";
+import type { ConditionIssue } from "./query-file.ts";
+import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
+import type { ShownRecord } from "./record-rows.tsx";
+import type { LayoutGroup } from "./rows.ts";
 
 /** A warning of ZotLit Query about the view's query. */
 export interface QueryViewWarning {

@@ -12,9 +12,9 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemSource, SourceUnavailable } from "@zotlit/item-lookup";
 import type { PinnedItemSource } from "@zotlit/item-lookup";
 
-import { Connection, toDbUnavailable } from "./connection";
-import { scanIndexedItems } from "./item-scan";
-import { itemsByIndexedKeys } from "./items-by-indexed-keys";
+import { Connection, toDbUnavailable } from "./connection.ts";
+import { scanIndexedItems } from "./item-scan.ts";
+import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
 
 /** Run a synchronous read; a throw becomes a {@link SourceUnavailable}. */
 function read<A>(

@@ -7,12 +7,12 @@ import { open } from "node:fs/promises";
 import { loadPdfJs } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { NodeExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/node-service";
+import { NodeExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 
-import { layerExcerptFiles } from "./__fixtures__/files";
-import { redPng } from "./__fixtures__/png";
-import { ExcerptRendererFixture as ExcerptRenderer } from "./__fixtures__/renderer";
-import { sizedWebp } from "./__fixtures__/webp";
+import { layerExcerptFiles } from "./__fixtures__/files.ts";
+import { redPng } from "./__fixtures__/png.ts";
+import { ExcerptRendererFixture as ExcerptRenderer } from "./__fixtures__/renderer.ts";
+import { sizedWebp } from "./__fixtures__/webp.ts";
 
 let platform: Layer.Layer<FileSystem.FileSystem>;
 class ExcerptImageService extends NodeExcerptImageFixture {
@@ -20,7 +20,7 @@ class ExcerptImageService extends NodeExcerptImageFixture {
     super(deps, platform);
   }
 }
-import type { ExcerptRequest } from "./service";
+import type { ExcerptRequest } from "./service.ts";
 
 vi.mock("node:fs/promises", async (original) => ({
   ...(await original<typeof import("node:fs/promises")>()),

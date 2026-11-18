@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPageLocaleState } from "./locale-state";
+import { getPageLocaleState } from "./locale-state.ts";
 
 const nativeChinesePages = new Set([
   "/docs/native",

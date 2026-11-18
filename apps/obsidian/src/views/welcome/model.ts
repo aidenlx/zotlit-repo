@@ -6,20 +6,24 @@ import * as Atom from "effect/reactivity/Atom";
 import { normalizePath } from "obsidian";
 import { createContext, useContext } from "react";
 
-import { filterTag } from "@/lib/effect-stream";
-import { Vault } from "@/lib/obsidian-vault";
-import { held, viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { releaseVersionAtom } from "@/services/release/atoms";
-import { Release } from "@/services/release/service";
-import { settingsAtom } from "@/services/settings/atoms";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms";
+import { filterTag } from "@/lib/effect-stream.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { releaseVersionAtom } from "@/services/release/atoms.ts";
+import { Release } from "@/services/release/service.ts";
+import { settingsAtom } from "@/services/settings/atoms.ts";
+import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 
-import { makeConversionCommand } from "./atoms";
-import { companionInstalledAtom } from "./companion";
-import { connectionAtom, connectionLoadAtom, unavailable } from "./connection";
-import { bannerSections } from "./presentation";
-import type { WelcomeState } from "./presentation";
+import { makeConversionCommand } from "./atoms.ts";
+import { companionInstalledAtom } from "./companion.ts";
+import {
+  connectionAtom,
+  connectionLoadAtom,
+  unavailable,
+} from "./connection.ts";
+import { bannerSections } from "./presentation.ts";
+import type { WelcomeState } from "./presentation.ts";
 
 export interface WelcomeSession {
   readonly requests: number;

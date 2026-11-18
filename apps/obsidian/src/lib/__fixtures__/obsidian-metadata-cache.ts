@@ -3,7 +3,7 @@
 // ./obsidian-host-app). The other capability tags' fixtures copy this shape.
 import type { CachedMetadata, EventRef, TFile } from "obsidian";
 
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
 
 type Callback = (...args: unknown[]) => unknown;
 

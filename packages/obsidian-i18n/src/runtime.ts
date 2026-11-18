@@ -1,9 +1,9 @@
 // Synchronous, eval-free interpreter for generated JSON Language Packs.
 
-import { parseNumericLiteral } from "./language-pack.js";
-import type { Expression, LanguagePack, Message } from "./language-pack.js";
-import { noopLogger } from "./logger.js";
-import type { StructuredLogger } from "./logger.js";
+import { parseNumericLiteral } from "./language-pack.ts";
+import type { Expression, LanguagePack, Message } from "./language-pack.ts";
+import { noopLogger } from "./logger.ts";
+import type { StructuredLogger } from "./logger.ts";
 
 type Variables = Record<string, unknown>;
 

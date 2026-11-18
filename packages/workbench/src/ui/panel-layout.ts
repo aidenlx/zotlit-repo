@@ -6,8 +6,8 @@
 // at the view's right edge while the reader has it open, at every width.
 // Pinned, it docks as a column at the leading edge where the view has room.
 
-import type { WorkbenchMessages } from "./generated/messages";
-import { patchAt } from "./patch";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { patchAt } from "./patch.ts";
 
 /**
  * The side panels beside the editor: the docked Fields Panel at the leading

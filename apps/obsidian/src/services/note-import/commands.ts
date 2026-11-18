@@ -4,22 +4,22 @@ import { Effect, Layer } from "effect";
 import type { Context } from "effect";
 import type { App } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { withOutcome } from "@/lib/notifier";
-import type { Notifier } from "@/lib/notifier";
-import { PluginHost } from "@/lib/plugin-host";
-import { withLiteratureNote } from "@/services/note-feature/actions";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { withOutcome } from "@/lib/notifier.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { withLiteratureNote } from "@/services/note-feature/actions.ts";
 
-import { runBatchImportAll, runChildImportByKey } from "./batch-import";
-import type { BatchImportPorts, BatchImportServices } from "./batch-import";
 import {
   batchImportAllToast,
   childImportToast,
   importNotices,
-} from "./batch-import-notices";
-import type { NoteImportView } from "./view";
+} from "./batch-import-notices.ts";
+import { runBatchImportAll, runChildImportByKey } from "./batch-import.ts";
+import type { BatchImportPorts, BatchImportServices } from "./batch-import.ts";
+import type { NoteImportView } from "./view.ts";
 
 /** The services a note import command reads. */
 type ImportCommandServices = BatchImportServices | Notifier;

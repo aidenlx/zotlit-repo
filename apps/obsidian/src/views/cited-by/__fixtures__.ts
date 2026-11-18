@@ -5,16 +5,16 @@ import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { CitationIndex } from "@/services/citation-index/service";
-import type { CitedBySnapshot } from "@/services/citation-index/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import type { CitedBySnapshot } from "@/services/citation-index/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 export interface CitedByHost {
   /** The view registry, with no idle delay: an unread observer stops at once. */

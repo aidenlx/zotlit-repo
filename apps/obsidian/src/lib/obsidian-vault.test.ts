@@ -13,14 +13,17 @@ import { FileSystemAdapter, TFile } from "obsidian";
 import type { Vault as VaultApi } from "obsidian";
 import { assert, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { layerVault, layerVaultFrom, Vault } from "@/lib/obsidian-vault";
-import type { VaultEvent } from "@/lib/obsidian-vault";
-import { ensureVaultFolder, ensureVaultParentFolder } from "@/lib/vault-folder";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { layerVault, layerVaultFrom, Vault } from "@/lib/obsidian-vault.ts";
+import type { VaultEvent } from "@/lib/obsidian-vault.ts";
+import {
+  ensureVaultFolder,
+  ensureVaultParentFolder,
+} from "@/lib/vault-folder.ts";
 
-import { MemoryVault } from "./__fixtures__/obsidian-vault";
+import { MemoryVault } from "./__fixtures__/obsidian-vault.ts";
 
 const NAMES = ["create", "modify", "rename", "delete"] as const;
 

@@ -49,6 +49,6 @@ let __ANNOTATION_SUGGESTER_ENABLED__: boolean;
 let __DOCS_SITE_URL__: string;
 let __MIN_ELECTRON_VERSION__: string;
 let __LANGUAGE_PACK_DEV_SERVER__: string | undefined;
-let __PANDOC_ENGINE__: import("@/services/pandoc/pinned-engine").PinnedPandocEngine;
+let __PANDOC_ENGINE__: import("@/services/pandoc/pinned-engine.ts").PinnedPandocEngine;
 /** The Chinese Segmenter download this build pinned; see `scripts/chinese-segmenter.ts`. */
-let __CHINESE_SEGMENTER__: import("@/services/managed-binary/service").BinaryPin;
+let __CHINESE_SEGMENTER__: import("@/services/managed-binary/service.ts").BinaryPin;

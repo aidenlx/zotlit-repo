@@ -11,33 +11,33 @@ import {
 import type { Annotation, AnnotationResolvers, TemplateLink } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { markdownLinker } from "@/lib/obsidian-file-manager";
-import type { FileManager } from "@/lib/obsidian-file-manager";
-import type { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import type { VaultError } from "@/lib/vault-errors";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { Settings } from "@/services/settings/schema";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { markdownLinker } from "@/lib/obsidian-file-manager.ts";
+import type { FileManager } from "@/lib/obsidian-file-manager.ts";
+import type { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { VaultError } from "@/lib/vault-errors.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { createExcerptLink, summarizeExcerpts } from "./helper";
-import type { ExcerptSummary } from "./helper";
+import { createExcerptLink, summarizeExcerpts } from "./helper.ts";
+import type { ExcerptSummary } from "./helper.ts";
 import {
   makePublicationGate,
   materializeExcerpt,
   retainExcerpt,
-} from "./materialize";
-import type { MaterializedExcerpt, PublicationGate } from "./materialize";
-import type { ExcerptOutcomeScope } from "./outcome-scope";
-import { referencedExcerptPaths } from "./references";
-import { annotationRecordOf } from "./request";
-import { ExcerptImageService } from "./service";
-import type { ExcerptRequest } from "./service";
-export type { ExcerptSummary } from "./helper";
+} from "./materialize.ts";
+import type { MaterializedExcerpt, PublicationGate } from "./materialize.ts";
+import type { ExcerptOutcomeScope } from "./outcome-scope.ts";
+import { referencedExcerptPaths } from "./references.ts";
+import { annotationRecordOf } from "./request.ts";
+import { ExcerptImageService } from "./service.ts";
+import type { ExcerptRequest } from "./service.ts";
+export type { ExcerptSummary } from "./helper.ts";
 
 const logged = withLogCategory("excerpt-prepare");
 

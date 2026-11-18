@@ -1,4 +1,4 @@
-import { prefs } from "@/prefs";
+import { prefs } from "@/prefs/index.ts";
 
 /**
  * Read the `notify` master switch at emit time so toggling it off in prefs

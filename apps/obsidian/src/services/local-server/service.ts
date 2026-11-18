@@ -19,16 +19,16 @@ import type {
   UpdateScope,
 } from "@zotlit/protocol";
 
-import { scopedBridge, valueOr } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { NoteIndex } from "@/services/note-index/service";
-import { PluginSettings } from "@/services/settings/service";
-import type { Settings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { Settings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { createLiveUpdateApp } from "./live-update-app";
-import type { NoteStatusSource } from "./live-update-app";
+import { createLiveUpdateApp } from "./live-update-app.ts";
+import type { NoteStatusSource } from "./live-update-app.ts";
 
 /**
  * How many consecutive ports the listener tries, starting at the configured

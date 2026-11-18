@@ -3,7 +3,7 @@ import type { Loc } from "obsidian";
 
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 
-import type { CitationOccurrence } from "@/services/citation-index/scan";
+import type { CitationOccurrence } from "@/services/citation-index/scan.ts";
 
 export function scanCitekeyOccurrences(text: string): CitationOccurrence[] {
   const lineStarts = lineStartsOf(text);

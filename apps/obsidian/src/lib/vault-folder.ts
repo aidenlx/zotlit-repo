@@ -3,9 +3,9 @@ import { Effect } from "effect";
 import { dirname } from "node:path/posix";
 import { TFile, TFolder } from "obsidian";
 
-import { normalizeFolderPath } from "@/lib/ensure-folder";
-import { Vault } from "@/lib/obsidian-vault";
-import { VaultFolderBlockedError } from "@/lib/vault-errors";
+import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { VaultFolderBlockedError } from "@/lib/vault-errors.ts";
 
 /**
  * Make sure the folder at the normalized vault path `path` exists: the vault

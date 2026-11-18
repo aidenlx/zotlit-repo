@@ -13,21 +13,21 @@ import type {
   ZoteroDatabaseIdentity,
 } from "@zotlit/db";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { LegacyPortError } from "@/lib/legacy-port";
-import type { FieldHistoryStep } from "@/services/annotation-repository/history";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { LegacyPortError } from "@/lib/legacy-port.ts";
+import type { FieldHistoryStep } from "@/services/annotation-repository/history.ts";
 import type {
   AnnotationLock,
   LockReason,
-} from "@/services/annotation-repository/lock";
-import { storedPosition } from "@/services/annotation-repository/reconcile";
+} from "@/services/annotation-repository/lock.ts";
+import { storedPosition } from "@/services/annotation-repository/reconcile.ts";
 import {
   annotationTags,
   commentPatch,
   isTextField,
   TEXT_FIELDS,
   textPatch,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   AnnotationTag,
   ConflictedWrite,
@@ -38,14 +38,14 @@ import type {
   WriteFailure,
   WriteRequest,
   WriteTarget,
-} from "@/services/annotation-repository/write";
-import type { QueryClients } from "@/services/query-client/service";
+} from "@/services/annotation-repository/write.ts";
+import type { QueryClients } from "@/services/query-client/service.ts";
 import type {
   LocalApiAnnotation,
   LocalApiSource,
   ZoteroLocalApi,
-} from "@/services/zotero-local-api/service";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/zotero-local-api/service.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** The namespace this repository owns on the plugin-wide query client. */
 const ANNOTATIONS = "annotations";

@@ -1,6 +1,6 @@
 // Puts the Indexed Keys of the objects a user selected on the clipboard.
-import { formatObjectKeys, identityForObject } from "@/lib/indexed-key";
-import { logger as appLogger } from "@/lib/logger";
+import { formatObjectKeys, identityForObject } from "@/lib/indexed-key.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
 
 const logger = appLogger.getChild(["menus", "copy-key"]);
 

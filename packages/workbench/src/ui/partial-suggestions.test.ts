@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { partialSuggestions } from "./partial-suggestions";
-import { m } from "./test-messages";
+import { partialSuggestions } from "./partial-suggestions.ts";
+import { m } from "./test-messages.ts";
 
 describe("partialSuggestions", () => {
   it("takes the vault's registered names over the draft's own scan", () => {

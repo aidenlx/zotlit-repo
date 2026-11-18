@@ -1,25 +1,25 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { renderRow } from "@mock/obsidian";
-import type { DropdownComponent, TextComponent } from "@mock/obsidian";
+import { renderRow } from "@mock/obsidian.ts";
+import type { DropdownComponent, TextComponent } from "@mock/obsidian.ts";
 import { Context, Effect } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { highlightEmoji } from "@/lib/highlight-mapping";
-import * as m from "@/lib/i18n/generated/messages";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
+import { eventually } from "@/lib/__fixtures__/eventually.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { highlightEmoji } from "@/lib/highlight-mapping.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 import {
   PluginSettings,
   SettingsMutationError,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 
-import { scopedSettingTab, testSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { highlightMappingItems } from "./note-import";
+import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { highlightMappingItems } from "./note-import.ts";
 
 function setup() {
   let current: Settings = { ...defaults };

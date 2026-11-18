@@ -5,11 +5,11 @@ import {
   fieldLabel,
   sentenceCase,
   visibleSectionIds,
-} from "./explorer-sections";
-import type { TemplateRoot } from "./model";
-import { m } from "./test-messages";
+} from "./explorer-sections.ts";
+import type { TemplateRoot } from "./model.ts";
+import { m } from "./test-messages.ts";
 
-import { buildDisplayTree } from "#/explorer/index";
+import { buildDisplayTree } from "#explorer/index.ts";
 
 const nodesOf = (data: Record<string, unknown>) =>
   buildDisplayTree(data, { expanded: new Set() });

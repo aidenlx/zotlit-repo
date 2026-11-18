@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { handlerCheckedFlags, printableCliHandler } from "./cli-rejection";
+import { handlerCheckedFlags, printableCliHandler } from "./cli-rejection.ts";
 
 describe("printableCliHandler", () => {
   it.each<[string, unknown, string]>([

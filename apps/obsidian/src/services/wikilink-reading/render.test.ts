@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 
-import { citationOfRun, wikilinkCitation } from "@/lib/wikilink-citation";
-import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation";
-import { presented } from "@/services/citation-text/__fixtures__";
-import type { PresentedCitation } from "@/services/citation-text/present";
+import { citationOfRun, wikilinkCitation } from "@/lib/wikilink-citation.ts";
+import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation.ts";
+import { presented } from "@/services/citation-text/__fixtures__.ts";
+import type { PresentedCitation } from "@/services/citation-text/present.ts";
 
-import { internalLink, section } from "./__fixtures__/internal-link";
-import { renderCitationRuns, sectionCitationRuns } from "./render";
+import { internalLink, section } from "./__fixtures__/internal-link.ts";
+import { renderCitationRuns, sectionCitationRuns } from "./render.ts";
 
 /** The scan and the swap together, which is how one section renders. */
 const renderWikilinkCitations = (

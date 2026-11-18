@@ -13,9 +13,9 @@ import {
 } from "@zotlit/workbench/language";
 import type { SuggestionConfig } from "@zotlit/workbench/language";
 
-import { themeHook } from "@/lib/theme-hooks";
+import { themeHook } from "@/lib/theme-hooks.ts";
 
-import { templateHover } from "./hover";
+import { templateHover } from "./hover.tsx";
 
 const config: SuggestionConfig = {
   root: "note",

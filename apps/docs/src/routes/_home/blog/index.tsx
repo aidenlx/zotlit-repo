@@ -1,12 +1,12 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 
-import { SiteFooter } from "@/components/site-footer";
-import { validateSiteLocale } from "@/lib/i18n";
-import { pageHead } from "@/lib/seo";
-import { appName, blogRoute, formatReleaseDate } from "@/lib/shared";
-import { getBlogPages } from "@/lib/source";
-import { breadcrumbListSchema } from "@/lib/structured-data";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { validateSiteLocale } from "@/lib/i18n.ts";
+import { pageHead } from "@/lib/seo.ts";
+import { appName, blogRoute, formatReleaseDate } from "@/lib/shared.ts";
+import { getBlogPages } from "@/lib/source.ts";
+import { breadcrumbListSchema } from "@/lib/structured-data.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

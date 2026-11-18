@@ -1,3 +1,18 @@
+import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import type { TagType } from "#lib/zt-tag.ts";
+import type { BaseFieldTable } from "#queries/_base-fields.ts";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
+import { Effect } from "effect";
+
+import type { CollectionPaths } from "./collection-paths.ts";
+import { defineStatement, idSlots } from "./database.ts";
+import type {
+  IdSlot,
+  ItemQueryDatabase,
+  ItemQueryReaderError,
+} from "./database.ts";
+
 import {
   baseFieldMappingsCombined,
   collectionItems,
@@ -11,23 +26,8 @@ import {
   itemTags,
   itemTypeCreatorTypes,
   tags,
-} from "@drizzle/schema";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
-import { Effect } from "effect";
-
-import type { CreatorFieldMode } from "@/lib/zt-creator";
-import type { TagType } from "@/lib/zt-tag";
-import { buildTable } from "@/queries/_base-fields";
-import type { BaseFieldTable } from "@/queries/_base-fields";
-
-import type { CollectionPaths } from "./collection-paths";
-import { defineStatement, idSlots } from "./database";
-import type {
-  IdSlot,
-  ItemQueryDatabase,
-  ItemQueryReaderError,
-} from "./database";
+} from "#drizzle/schema.ts";
+import { buildTable } from "#queries/_base-fields.ts";
 
 /** The Items one hydrate statement reads at most. */
 export const HYDRATE_CHUNK_SIZE = 250;

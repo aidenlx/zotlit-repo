@@ -5,7 +5,7 @@ import {
   normalizeFilename,
   resolveNoteRelPath,
   truncateToByteLimit,
-} from "./note-path";
+} from "./note-path.ts";
 
 describe("normalizeFilename", () => {
   it.each([

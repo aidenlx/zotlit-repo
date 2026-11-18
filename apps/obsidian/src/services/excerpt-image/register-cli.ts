@@ -1,14 +1,17 @@
 // The local image command reads one database Snapshot and renders in the renderer.
 import { Effect, FileSystem, Layer } from "effect";
 
-import { PluginHost } from "@/lib/plugin-host";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { ANNOTATION_IMAGE_COMMAND, answerAnnotationImage } from "./cli-image";
-import { ExcerptSourceUnavailable, excerptRequestForKey } from "./request";
-import { ExcerptImageService } from "./service";
-import { publishExcerptPng } from "./temp-store";
+import {
+  ANNOTATION_IMAGE_COMMAND,
+  answerAnnotationImage,
+} from "./cli-image.ts";
+import { ExcerptSourceUnavailable, excerptRequestForKey } from "./request.ts";
+import { ExcerptImageService } from "./service.ts";
+import { publishExcerptPng } from "./temp-store.ts";
 
 /** The `zotlit:annotation-image` command. */
 export const layerAnnotationImageCli: Layer.Layer<

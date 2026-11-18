@@ -8,26 +8,26 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { citekeysToCiteTemplateData } from "@zotlit/db";
 import { LegacyTemplateConversionError } from "@zotlit/templates/facade";
 
-import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
-import type { SettingsPatch } from "@/services/settings/service";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import type { SettingsPatch } from "@/services/settings/service.ts";
 
-import { buildTemplate, templateSettings } from "./__fixtures__";
-import { layerTemplateMigration, TemplateMigration } from "./migration";
-import type { TemplateMigrationOptions } from "./migration";
-import { Template, templateFailure } from "./service";
+import { buildTemplate, templateSettings } from "./__fixtures__.ts";
+import { layerTemplateMigration, TemplateMigration } from "./migration.ts";
+import type { TemplateMigrationOptions } from "./migration.ts";
+import { Template, templateFailure } from "./service.ts";
 import type {
   ConvertedLegacyProfileDocument,
   LegacyTemplateDocuments,
-} from "./service";
+} from "./service.ts";
 
 type EventSource = Pick<Events, "on" | "offref">;
 type EventCallback = (...args: never[]) => unknown;
@@ -1642,7 +1642,7 @@ async function buildMigration(
   options: TemplateMigrationOptions & {
     app: App;
     settings: PluginSettings["Service"];
-    bridge: Pick<import("@/lib/effect-bridge").EffectBridge, "runSync">;
+    bridge: Pick<import("@/lib/effect-bridge.ts").EffectBridge, "runSync">;
     template: Pick<
       Template["Service"],
       | "refresh"

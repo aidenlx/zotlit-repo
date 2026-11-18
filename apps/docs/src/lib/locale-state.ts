@@ -1,8 +1,8 @@
 // Which edition a requested page serves, and the canonical and alternate URLs that follow.
 
-import type { SiteLocale } from "./i18n";
-import { chineseCatalogPages, localizedPath } from "./i18n";
-import { htmlPagePath } from "./markdown-routes";
+import type { SiteLocale } from "./i18n.ts";
+import { chineseCatalogPages, localizedPath } from "./i18n.ts";
+import { htmlPagePath } from "./markdown-routes.ts";
 
 export interface PageLocaleState {
   contentLocale: SiteLocale;

@@ -12,9 +12,9 @@ import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import { joinForked, observeExit } from "@zotlit/workbench/ui";
 
-import { openScope } from "./effect-scope";
-import { viewRuntime } from "./view-atoms";
-import type { ViewServices } from "./view-atoms";
+import { openScope } from "./effect-scope.ts";
+import { viewRuntime } from "./view-atoms.ts";
+import type { ViewServices } from "./view-atoms.ts";
 
 /** Forks `effect` on the view services; the view's close interrupts it. */
 export type ViewRun = <A, E>(

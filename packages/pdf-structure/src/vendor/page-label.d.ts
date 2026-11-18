@@ -1,6 +1,6 @@
 // Hand-written types for the pinned `page-label.js` copy, which ships as JS.
 
-import type { Rect, StructuredChar } from "@/chars";
+import type { Rect, StructuredChar } from "#chars.ts";
 
 /** The slice of a pdf.js core document the label heuristic reads. */
 export interface PageLabelDocument {

@@ -4,17 +4,17 @@
 // are read from the source alone, so a draft the parser refuses keeps the
 // boxes the reader is working in.
 
-import type { LiquidRange } from "#/language/liquid";
+import type { LiquidRange } from "#language/liquid.ts";
 import type { SyntaxNode } from "@lezer/common";
 import { regex } from "arkregex";
 
 import { TEMPLATE_SLOT_ROOTS } from "@zotlit/db";
 import type { TemplateLanguage } from "@zotlit/templates/constants";
 
-import type { WorkbenchSliceRange } from "./manifest-patch";
+import type { WorkbenchSliceRange } from "./manifest-patch.ts";
 
-import { etaParser } from "#/language/eta-syntax";
-import { liquidRanges } from "#/language/liquid";
+import { etaParser } from "#language/eta-syntax.ts";
+import { liquidRanges } from "#language/liquid.ts";
 
 /** One annotation render call in the note body, in master offsets. */
 export interface AnnotationRenderSite {

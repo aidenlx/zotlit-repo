@@ -4,10 +4,10 @@ import type { Workspace } from "obsidian";
 import type { MouseEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { createCitationPopoverActions } from "./actions";
-import type { CitationEntryBlock } from "./blocks";
+import { createCitationPopoverActions } from "./actions.ts";
+import type { CitationEntryBlock } from "./blocks.ts";
 
 const menuMock = Menu as typeof Menu & {
   instances: {

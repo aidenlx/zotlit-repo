@@ -1,6 +1,6 @@
 import { logLibrary } from "@zotlit/shared/logging";
 
-import { defineToString } from "./to-string";
+import { defineToString } from "./to-string.ts";
 
 /**
  * `itemTags.type`: 0 (default) is a manual tag, 1 is an automatic tag.

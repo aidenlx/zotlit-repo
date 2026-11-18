@@ -45,11 +45,14 @@ import type {
 } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/shared/logging";
 
-import { makeEngineIndexBuilder, searchEngineIndex } from "./engine";
-import type { EngineIndex, SearchMatches, SearchOptions } from "./engine";
-import { layerSegmenterNone, Segmenter } from "./segmenter";
-import { makeSegmenterSwitch, SegmenterBinaryReader } from "./segmenter-switch";
-import type { SegmenterBinary } from "./segmenter-switch";
+import { makeEngineIndexBuilder, searchEngineIndex } from "./engine.ts";
+import type { EngineIndex, SearchMatches, SearchOptions } from "./engine.ts";
+import {
+  makeSegmenterSwitch,
+  SegmenterBinaryReader,
+} from "./segmenter-switch.ts";
+import type { SegmenterBinary } from "./segmenter-switch.ts";
+import { layerSegmenterNone, Segmenter } from "./segmenter.ts";
 
 /** The source behind an {@link ItemSource} cannot answer. */
 export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>()(

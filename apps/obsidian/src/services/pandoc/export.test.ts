@@ -9,18 +9,25 @@ import { describe, expect, vi } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import type { CitekeyResolution } from "@/services/citation-index/snapshot";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { CitationParse } from "@/services/citation-parse/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import type { CitekeyResolution } from "@/services/citation-index/snapshot.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
-import type { BibliographyFailure, BibliographyItemRef } from "./bibliography";
-import { createCitationEngine } from "./engine";
-import type { PrepareRequest, PreparedDocument, RenderRequest } from "./engine";
-import { exportCitedDocument } from "./export";
-import type { ExportFailure, ExportPorts, ExportResult } from "./export";
-import { PANDOC_RESOLVE_MAP_FILENAME } from "./filter";
+import type {
+  BibliographyFailure,
+  BibliographyItemRef,
+} from "./bibliography.ts";
+import { createCitationEngine } from "./engine.ts";
+import type {
+  PrepareRequest,
+  PreparedDocument,
+  RenderRequest,
+} from "./engine.ts";
+import { exportCitedDocument } from "./export.ts";
+import type { ExportFailure, ExportPorts, ExportResult } from "./export.ts";
+import { PANDOC_RESOLVE_MAP_FILENAME } from "./filter/index.ts";
 
 const SOURCE = "Notes/Paper.md";
 

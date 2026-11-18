@@ -2,7 +2,7 @@
 // boundaries. Bytes and their metadata are validated together, because a filename
 // extension or MIME type that disagrees with the payload misleads every consumer.
 
-import { isWebpContainer, usableExcerptWebp } from "./webp";
+import { isWebpContainer, usableExcerptWebp } from "./webp.ts";
 
 export interface ExcerptImageFormat {
   format: "png" | "webp";

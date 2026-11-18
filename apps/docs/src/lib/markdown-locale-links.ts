@@ -5,10 +5,10 @@ import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
 
-import type { SiteLocale } from "./i18n";
-import { chinesePrefix, unlocalizedPath } from "./i18n";
-import { isMarkdownSection } from "./markdown-routes";
-import { changelogFeedRoute } from "./shared";
+import type { SiteLocale } from "./i18n.ts";
+import { chinesePrefix, unlocalizedPath } from "./i18n.ts";
+import { isMarkdownSection } from "./markdown-routes.ts";
+import { changelogFeedRoute } from "./shared.ts";
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm);
 

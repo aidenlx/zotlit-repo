@@ -1,8 +1,8 @@
 import { it } from "@effect/vitest";
-import { settingsOf } from "@mock/obsidian";
-import type { ToggleComponent } from "@mock/obsidian";
+import { settingsOf } from "@mock/obsidian.ts";
+import type { ToggleComponent } from "@mock/obsidian.ts";
 // @vitest-environment happy-dom
-import { Keymap, Menu } from "@mock/obsidian";
+import { Keymap, Menu } from "@mock/obsidian.ts";
 import {
   Context,
   Deferred,
@@ -35,56 +35,56 @@ import type {
 import { afterEach, describe, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { CliHost } from "@/lib/cli-command";
-import * as m from "@/lib/i18n/generated/messages";
-import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { makePluginHost, PluginHost } from "@/lib/plugin-host";
-import { themeProperty } from "@/lib/theme-hooks";
-import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup";
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationOccurrence } from "@/services/citation-index/scan";
-import { CitationIndex } from "@/services/citation-index/service";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { CliHost } from "@/lib/cli-command.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { makePluginHost, PluginHost } from "@/lib/plugin-host.ts";
+import { themeProperty } from "@/lib/theme-hooks.ts";
+import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
+import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { CitationOccurrence } from "@/services/citation-index/scan.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   CitationIndexEvent,
   CitekeyResolution,
-} from "@/services/citation-index/service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation";
-import type { NavigationPane } from "@/services/citekey-navigation";
-import { LibraryScope } from "@/services/library-scope/service";
+} from "@/services/citation-index/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation/index.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import {
   cache,
   createNoteHost,
   noteIndexOver,
-} from "@/services/note-index/__fixtures__";
-import { NoteIndex } from "@/services/note-index/service";
-import { settingsFeed } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import type { WorkLabelSource } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
+} from "@/services/note-index/__fixtures__.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { settingsFeed } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import type { WorkLabelSource } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
-import type { LinkMap } from "./adapter";
-import { GRAPH_CORE_PLUGIN_ID } from "./install";
-import { GraphCitations, layerGraphCitations } from "./service";
-import { FakeColorGroupSection, FakeControlSection } from "./test-double";
-import { graphNode, themeStates, themeStatesNothing } from "./test-stub";
+import type { LinkMap } from "./adapter.ts";
+import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
+import { GraphCitations, layerGraphCitations } from "./service.ts";
+import { FakeColorGroupSection, FakeControlSection } from "./test-double.ts";
+import { graphNode, themeStates, themeStatesNothing } from "./test-stub.ts";
 
 const DEFAULT_COLOR = { a: 1, rgb: 0xe8622c };
 
 const warn = vi.hoisted(() => vi.fn());
 // The real Note Index logs through the root logger; keep it.
-vi.mock("@/lib/log", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/log")>()),
+vi.mock("@/lib/log.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/log.ts")>()),
   getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
 }));
 
@@ -767,7 +767,7 @@ const makeFixture = Effect.fnUntraced(function* (options: FixtureOptions = {}) {
     (_indexedKey: string): Effect.Effect<void> => Effect.void,
   );
   const citationPopover = stubService<
-    import("@/services/citation-popover/service").CitationPopover["Service"] & {
+    import("@/services/citation-popover/service.tsx").CitationPopover["Service"] & {
       showWork: ReturnType<typeof vi.fn>;
     }
   >("CitationPopover", {

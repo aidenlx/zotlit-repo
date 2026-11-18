@@ -4,14 +4,14 @@
 // that tab, and ends when the plugin unloads.
 import type { Effect } from "effect";
 
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { openGesture } from "@/services/attachment-open/actions";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { openGesture } from "@/services/attachment-open/actions.ts";
+import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import type {
   OpenOutcome,
   TargetOpener,
-} from "@/services/attachment-open/open-target";
+} from "@/services/attachment-open/open-target.ts";
 
 /** Runs one open; the plugin mounts it once for every view. */
 export const openTargetCommand = viewRuntime.fn(

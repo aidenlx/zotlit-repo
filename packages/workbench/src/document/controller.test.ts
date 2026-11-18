@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { synthesizeLegacyLiteratureNoteTemplate } from "@zotlit/templates/facade";
 
-import { entrySlice, WorkbenchDocumentController } from "./controller";
-import { scalarCodec } from "./slice-codec";
+import { entrySlice, WorkbenchDocumentController } from "./controller.ts";
+import { scalarCodec } from "./slice-codec.ts";
 
 /**
  * A hand-written Profile: an out-of-order manifest with a comment, a single-

@@ -15,13 +15,13 @@ import type {
   Vault as ObsidianVault,
 } from "obsidian";
 
-import { joinFolderPath } from "@/lib/ensure-folder";
-import { isErrno } from "@/lib/errno";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { obsidianEventSource } from "@/lib/obsidian-event-source";
-import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source";
-import { FileExists, FileNotFound, vaultError } from "@/lib/vault-errors";
-import type { VaultError } from "@/lib/vault-errors";
+import { joinFolderPath } from "@/lib/ensure-folder.ts";
+import { isErrno } from "@/lib/errno.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { obsidianEventSource } from "@/lib/obsidian-event-source.ts";
+import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source.ts";
+import { FileExists, FileNotFound, vaultError } from "@/lib/vault-errors.ts";
+import type { VaultError } from "@/lib/vault-errors.ts";
 
 /** One vault event, tagged with its Obsidian event name. */
 export type VaultEvent =

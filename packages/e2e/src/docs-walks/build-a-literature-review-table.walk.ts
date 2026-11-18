@@ -14,8 +14,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import type { LibraryView } from "@/views/library/view";
-import type { QueryFileView } from "@/views/query-view/file-view";
+import type { LibraryView } from "@/views/library/view.ts";
+import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import {
   closeWelcome,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { composing } from "./ime";
+import { composing } from "./ime.ts";
 
 /** The fields `composing` reads, as a keydown reports them. */
 const key = (isComposing: boolean, keyCode: number) =>

@@ -2,15 +2,15 @@
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { Vault } from "@/lib/obsidian-vault";
-import { viewRuntime } from "@/lib/view-atoms";
-import { NoteFeature } from "@/services/note-feature/service";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
   noteIndexSnapshotAtom,
   noteIndexStructureRevisionAtom,
-} from "@/services/note-index/atoms";
-import { profileRevisionAtom } from "@/services/profile/atoms";
-import { templateRevisionAtom } from "@/services/template/atoms";
+} from "@/services/note-index/atoms.ts";
+import { profileRevisionAtom } from "@/services/profile/atoms.ts";
+import { templateRevisionAtom } from "@/services/template/atoms.ts";
 
 const noteRevisionAtom = Atom.family((path: string) =>
   Atom.map(noteIndexSnapshotAtom, (snapshot) => snapshot.paths[path] ?? 0),

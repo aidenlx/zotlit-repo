@@ -1,15 +1,15 @@
 import { expect, it } from "vitest";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
-import { IDLE } from "@/services/annotation-repository/write";
-import type { MutationState } from "@/services/annotation-repository/write";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
 
-import { createPopupRow } from "./create-popup";
-import type { CreatePopupControl } from "./create-popup";
-import { resolveToolColors } from "./tools";
-import type { MarkTool } from "./tools";
+import { createPopupRow } from "./create-popup.tsx";
+import type { CreatePopupControl } from "./create-popup.tsx";
+import { resolveToolColors } from "./tools.ts";
+import type { MarkTool } from "./tools.ts";
 
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 

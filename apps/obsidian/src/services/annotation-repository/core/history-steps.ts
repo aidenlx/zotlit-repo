@@ -10,7 +10,7 @@ import {
   sameContent,
   stillHeldAfterConflict,
   stillHolds,
-} from "@/services/annotation-repository/history";
+} from "@/services/annotation-repository/history.ts";
 import type {
   FieldHistoryStep,
   HistoryChange,
@@ -19,7 +19,7 @@ import type {
   HistoryOutcome,
   HistoryStep,
   TagHistoryStep,
-} from "@/services/annotation-repository/history";
+} from "@/services/annotation-repository/history.ts";
 import {
   annotationTags,
   IDLE,
@@ -28,18 +28,18 @@ import {
   tagChange,
   tagsPatch,
   TEXT_FIELDS,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   AnnotationTag,
   MutationState,
   TagChange,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
-import { autosaveDue, draftFor } from "./draft-store";
-import { holding } from "./lists";
-import { DRAFT_FIELDS, proposedTags } from "./model";
-import type { AnnotationRecord } from "./model";
-import type { CoreState } from "./state";
+import { autosaveDue, draftFor } from "./draft-store.ts";
+import { holding } from "./lists.ts";
+import { DRAFT_FIELDS, proposedTags } from "./model.ts";
+import type { AnnotationRecord } from "./model.ts";
+import type { CoreState } from "./state.ts";
 import {
   command,
   createAnnotation,
@@ -50,8 +50,8 @@ import {
   patchGeometry,
   writeBlocked,
   writeText,
-} from "./writes";
-import type { WriteReadError, WriteRunFailed } from "./writes";
+} from "./writes.ts";
+import type { WriteReadError, WriteRunFailed } from "./writes.ts";
 
 /** Why a History Step answered no outcome: one of its writes failed. */
 type StepError = WriteRunFailed | WriteReadError;

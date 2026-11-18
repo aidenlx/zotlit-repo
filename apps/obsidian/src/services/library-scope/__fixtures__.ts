@@ -2,18 +2,21 @@
 import { Context, Effect, Layer } from "effect";
 import type { Scope } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerQueryClients } from "@/services/query-client/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerQueryClients } from "@/services/query-client/service.ts";
 import {
   layerPluginSettings,
   PluginSettings,
-} from "@/services/settings/service";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/settings/service.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 
-import { layerLibraryScope, LibraryScope } from "./service";
+import { layerLibraryScope, LibraryScope } from "./service.ts";
 
 export const libraryScopeFixture = Effect.fnUntraced(function* (
   client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>,

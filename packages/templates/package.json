@@ -2,29 +2,26 @@
   "name": "@zotlit/templates",
   "version": "0.0.0",
   "private": true,
-  "files": [
-    "dist",
-    "defaults"
-  ],
   "type": "module",
   "sideEffects": false,
+  "imports": {
+    "#defaults/*": "./defaults/*"
+  },
   "exports": {
-    ".": "./dist/index.mjs",
-    "./constants": "./dist/constants.mjs",
-    "./facade": "./dist/facade.mjs",
-    "./frontmatter": "./dist/frontmatter.mjs",
-    "./frontmatter-merge": "./dist/frontmatter-merge.mjs",
-    "./liquid": "./dist/liquid.mjs",
-    "./literature-note-pack": "./dist/literature-note-pack.mjs",
-    "./obsidian": "./dist/obsidian.mjs",
-    "./pandoc-citation": "./dist/pandoc-citation.mjs",
-    "./package.json": "./package.json",
+    ".": "./src/index.ts",
+    "./constants": "./src/constants.ts",
+    "./facade": "./src/facade.ts",
+    "./frontmatter": "./src/frontmatter.ts",
+    "./frontmatter-merge": "./src/frontmatter-merge.ts",
+    "./liquid": "./src/liquid.ts",
+    "./literature-note-pack": "./src/literature-note-pack.ts",
+    "./obsidian": "./src/obsidian.ts",
+    "./pandoc-citation": "./src/pandoc-citation.ts",
     "./defaults/*.eta": "./defaults/*.eta",
-    "./defaults/*.liquid": "./defaults/*.liquid"
+    "./defaults/*.liquid": "./defaults/*.liquid",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "lint": "oxlint",
@@ -44,7 +41,6 @@
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
 
-import { annotation } from "./__fixtures__";
-import { decideMarkLanding } from "./mark-landing";
-import type { PdfPageAnnotation } from "./render";
+import { annotation } from "./__fixtures__.ts";
+import { decideMarkLanding } from "./mark-landing.ts";
+import type { PdfPageAnnotation } from "./render.ts";
 
 const RESOLVED: AttachmentResolution = {
   kind: "resolved",

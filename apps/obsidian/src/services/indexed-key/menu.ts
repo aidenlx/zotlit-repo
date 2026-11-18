@@ -1,12 +1,12 @@
 // Copy-key menu items, and the copy-key entry on a Literature Note's file menu.
 import type { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { FileMenuSegment } from "@/services/file-menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
 
-import { copyIndexedKey } from "./actions";
-import type { IndexedKeyCopyTarget, IndexedKeyKind } from "./actions";
+import { copyIndexedKey } from "./actions.ts";
+import type { IndexedKeyCopyTarget, IndexedKeyKind } from "./actions.ts";
 
 const COPY_LABEL: Record<IndexedKeyKind, () => string> = {
   item: m.command_copy_item_key_name,

@@ -4,8 +4,8 @@ import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
   WorkbenchSliceRange,
-} from "#/document/index";
-import type { ResolveStart, SuggestionSource } from "#/language/index";
+} from "#document/index.ts";
+import type { ResolveStart, SuggestionSource } from "#language/index.ts";
 import { setDiagnostics } from "@codemirror/lint";
 import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
@@ -16,29 +16,29 @@ import type { ReactNode } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { completionFields } from "./completion-fields";
-import { useWorkbenchModel } from "./editor";
-import { HiddenName, useOptionalHost } from "./host";
-import type { WorkbenchInsertTarget } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { partialSuggestions } from "./partial-suggestions";
+import { completionFields } from "./completion-fields.ts";
+import { useWorkbenchModel } from "./editor.tsx";
+import { HiddenName, useOptionalHost } from "./host.tsx";
+import type { WorkbenchInsertTarget } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { partialSuggestions } from "./partial-suggestions.ts";
 import {
   sourceDiagnostics,
   sourceProblemGutter,
   useSourceDiagnoses,
   useRevealSourceDiagnosis,
-} from "./source-diagnostics";
-import { tagDescription } from "./tag-help";
-import { useParts, useEditorExtension } from "./theme";
-import { underlineOnlyLint } from "./underline-lint";
+} from "./source-diagnostics.tsx";
+import { tagDescription } from "./tag-help.ts";
+import { useParts, useEditorExtension } from "./theme.tsx";
+import { underlineOnlyLint } from "./underline-lint.ts";
 
-import { documentRevision } from "#/document/atoms";
+import { documentRevision } from "#document/atoms.ts";
 import {
   workbenchSlice,
   sliceOffsets,
   sliceShownText,
   sourceCodec,
-} from "#/document/index";
+} from "#document/index.ts";
 import {
   liquidTemplate,
   etaLanguage,
@@ -48,9 +48,9 @@ import {
   embeddedTemplates,
   jsonRule,
   embeddedJsonE,
-} from "#/language/index";
+} from "#language/index.ts";
 
-export type { SuggestionSource } from "#/language/index";
+export type { SuggestionSource } from "#language/index.ts";
 
 /**
  * Whether the panes under this provider are on screen. A retained pane stays

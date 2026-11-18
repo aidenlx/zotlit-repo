@@ -2,7 +2,7 @@
 import type { HoverParent } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { HoverPopover } from "./hover-popover";
+import { HoverPopover } from "./hover-popover.ts";
 
 const mainWindow = activeWindow;
 

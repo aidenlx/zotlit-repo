@@ -5,7 +5,7 @@
 // and dark values the two exported SVGs hold — one geometry serves both
 // themes. `small` swaps in the 16px optical grid the nav renders at.
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export function LogoMark({
   className,

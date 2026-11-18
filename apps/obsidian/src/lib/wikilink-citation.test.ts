@@ -2,20 +2,20 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { describe, expect } from "vitest";
 
-import { forkEach } from "@/lib/effect-stream";
-import { settingsOf } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { settingsOf } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
 import {
   WikilinkDisplaySettings,
   citationOfRun,
   citationRuns,
   wikilinkCitation,
-} from "./wikilink-citation";
+} from "./wikilink-citation.ts";
 import type {
   LiteratureNoteTarget,
   WikilinkCitationContext,
-} from "./wikilink-citation";
+} from "./wikilink-citation.ts";
 
 const WANG: LiteratureNoteTarget = {
   path: "literatures/wangMutationalClinicalSpectrum2020a.md",

@@ -3,7 +3,7 @@
 
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
-import type { WebPage } from "./page-model";
+import type { WebPage } from "./page-model.ts";
 
 export function useWorkbenchConnection(page: WebPage) {
   const state = useAtomValue(page.connection);

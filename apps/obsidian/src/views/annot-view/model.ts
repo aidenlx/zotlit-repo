@@ -11,21 +11,26 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { MutationState } from "@/services/annotation-repository/service";
-import { IDLE } from "@/services/annotation-repository/write";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { MutationState } from "@/services/annotation-repository/service.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
 
-import type { CaretPoint } from "./editor-sheet";
-import type { AnnotFilter } from "./filter";
-import { initialAnnotState, isEditing, filterOf, toggledTags } from "./state";
-import type { AnnotState, EditingField, FollowMode } from "./state";
+import type { CaretPoint } from "./editor-sheet.ts";
+import type { AnnotFilter } from "./filter.ts";
+import {
+  initialAnnotState,
+  isEditing,
+  filterOf,
+  toggledTags,
+} from "./state.ts";
+import type { AnnotState, EditingField, FollowMode } from "./state.ts";
 import {
   DEFAULT_FOLLOW_MODE,
   parseAnnotViewState,
   unpinnedMode,
-} from "./view-state";
-import type { AnnotViewState } from "./view-state";
+} from "./view-state.ts";
+import type { AnnotViewState } from "./view-state.ts";
 
 export interface AnnotViewModel {
   /** The Follow Mode, the mode a pin interrupted, and the pinned Item. */

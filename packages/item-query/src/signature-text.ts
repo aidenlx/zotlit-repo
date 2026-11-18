@@ -1,8 +1,8 @@
 // The text of a function's signature, one formatting for every surface that
 // shows one: the Functions and methods reference page, an editor's
 // completion list and its Signature Hint.
-import type { FunctionParameter } from "./filter-functions";
-import type { FilterValueType } from "./filter-values";
+import type { FunctionParameter } from "./filter-functions.ts";
+import type { FilterValueType } from "./filter-values.ts";
 
 /** A parameter as the registry and the Query Schema both describe it. */
 type Parameter = Pick<

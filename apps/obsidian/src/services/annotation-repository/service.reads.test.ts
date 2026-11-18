@@ -6,7 +6,7 @@ import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { excerptFingerprint } from "@/services/excerpt-image/contract";
+import { excerptFingerprint } from "@/services/excerpt-image/contract.ts";
 import {
   annotationItem,
   annotationPage,
@@ -17,9 +17,9 @@ import {
   SERVER_ID,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
-import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__";
-import type { ZoteroReadLease } from "@/services/zotero-reads/service";
+} from "@/services/zotero-local-api/__fixtures__.ts";
+import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__.ts";
+import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 
 import {
   afterWrite,
@@ -39,8 +39,8 @@ import {
   MADE,
   colorOf,
   annotationRows,
-} from "./__fixtures__";
-import type { AnnotationList } from "./service";
+} from "./__fixtures__.ts";
+import type { AnnotationList } from "./service.ts";
 
 /** Each Annotation's lock, by key. */
 function locksOf(list: AnnotationList | null) {

@@ -1,23 +1,23 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian";
+import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Stream } from "effect";
 import type { SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import { vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { LocalBridge } from "@/services/local-bridge/service";
-import type { WorkbenchConnection } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { eventually } from "@/lib/__fixtures__/eventually.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingsKey, SettingTabContext } from "./context";
-import { localServerItems } from "./local-server";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { localServerItems } from "./local-server.ts";
 
 interface Options {
   settings?: Partial<Settings>;

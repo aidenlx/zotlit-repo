@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { defaults, schema } from "./schema";
+import { defaults, schema } from "./schema.ts";
 
 describe("schema/defaults invariants", () => {
   it("defaults satisfy the schema", () => {

@@ -3,40 +3,40 @@
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm";
-import { recover } from "@/lib/effect-cause";
-import * as m from "@/lib/i18n/generated/messages";
-import type { Notifier, ProgressCopy } from "@/lib/notifier";
-import { reportOutcome, withProgress } from "@/lib/notifier";
-import { missingPartialNotice } from "@/lib/workbench-recovery";
-import { reimportNoteByKey } from "@/services/note-import/batch-import";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { Notifier, ProgressCopy } from "@/lib/notifier.ts";
+import { reportOutcome, withProgress } from "@/lib/notifier.ts";
+import { missingPartialNotice } from "@/lib/workbench-recovery.ts";
+import { importedNoteProfileErrorNotice } from "@/services/note-import/batch-import-notices.ts";
+import { reimportNoteByKey } from "@/services/note-import/batch-import.ts";
 import type {
   BatchImportPorts,
   BatchImportServices,
   ReimportResult,
-} from "@/services/note-import/batch-import";
-import { importedNoteProfileErrorNotice } from "@/services/note-import/batch-import-notices";
-import { isInertTemplateError } from "@/services/template/errors";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/services/note-import/batch-import.ts";
+import { isInertTemplateError } from "@/services/template/errors.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import type { InteractiveCreationPorts } from "./creation-view";
-import { plainNoteError } from "./errors";
-import type { NoteOperationDiagnostic, UpdateScope } from "./operations";
-import { NoteFeature } from "./service";
-import { switchNoteProfileInteractively } from "./switch-view";
-import { runBatchUpdateAll } from "./update-batch";
+import type { InteractiveCreationPorts } from "./creation-view.ts";
+import { plainNoteError } from "./errors.ts";
+import type { NoteOperationDiagnostic, UpdateScope } from "./operations.ts";
+import { NoteFeature } from "./service.ts";
+import { switchNoteProfileInteractively } from "./switch-view.ts";
+import { runBatchUpdateAll } from "./update-batch.ts";
 import type {
   BatchUpdateOptions,
   BatchUpdatePorts,
   BatchUpdateResult,
   BatchUpdateServices,
-} from "./update-batch";
-import type { ActiveNote, UpdateNotesChoice } from "./update-notes-view";
+} from "./update-batch.ts";
+import type { ActiveNote, UpdateNotesChoice } from "./update-notes-view.ts";
 import {
   noteOperationDiagnosticContent,
   updateNoteToast,
   updateWithNotice,
-} from "./update-single";
+} from "./update-single.ts";
 
 /** The services the note actions read. */
 export type NoteActionServices =

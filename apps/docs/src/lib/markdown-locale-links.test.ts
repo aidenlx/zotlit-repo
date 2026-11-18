@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { localizeMarkdownLinks } from "./markdown-locale-links";
+import { localizeMarkdownLinks } from "./markdown-locale-links.ts";
 
 describe("Markdown document links", () => {
   it.each([

@@ -1,12 +1,12 @@
 // Obsidian's own PDF view, as the Target Opener opens a file in it.
 import { Effect } from "effect";
 
-import { createObsidianAttachmentReader } from "@/lib/attachment-open";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { PluginSettings } from "@/services/settings/service";
-import { activateAnnotView } from "@/views/annot-view/register";
+import { createObsidianAttachmentReader } from "@/lib/attachment-open.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { activateAnnotView } from "@/views/annot-view/register.ts";
 
-import type { TargetReader } from "./open-target";
+import type { TargetReader } from "./open-target.ts";
 
 /**
  * Obsidian's PDF view as the Target Opener drives it: the file opens, and the

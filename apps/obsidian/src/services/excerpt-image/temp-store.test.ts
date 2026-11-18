@@ -24,9 +24,9 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { afterEach, expect } from "vitest";
 
-import { bluePng, redPng } from "./__fixtures__/png";
-import { reapExcerptTemps } from "./reap-temps";
-import { excerptTempDirectory, publishExcerptPng } from "./temp-store";
+import { bluePng, redPng } from "./__fixtures__/png.ts";
+import { reapExcerptTemps } from "./reap-temps.ts";
+import { excerptTempDirectory, publishExcerptPng } from "./temp-store.ts";
 
 const directories: string[] = [];
 afterEach(async () => {

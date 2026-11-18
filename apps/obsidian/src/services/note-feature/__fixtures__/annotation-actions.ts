@@ -1,23 +1,23 @@
 // Real insertion flow over an in-memory Zotero database and a controllable Template.
 import { Effect, Layer } from "effect";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template, templateFailure } from "@/services/template/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
-import { inProcessClient, memoryOpener } from "@/services/zotero-reads/test-utils";
-import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action";
-import type { AnnotationInsert } from "@/services/note-feature/insert-annotation";
-import { AnnotationNoteActions, layerAnnotationNoteActions } from "@/services/note-feature/view-actions";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
+import { inProcessClient, memoryOpener } from "@/services/zotero-reads/test-utils.ts";
+import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";
+import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
+import { AnnotationNoteActions, layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 
 const SEED = `
 insert into version (schema, version) values ('userdata', 129);

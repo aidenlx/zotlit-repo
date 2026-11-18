@@ -5,13 +5,13 @@
 // `list-heights.ts` lays the text out at those metrics.
 import { Fragment, useMemo, useState } from "react";
 
-import type { DrawnEntry } from "./items-window";
-import { sameMetrics, useRowHeights } from "./list-heights";
-import type { ListMetrics, RowText } from "./list-heights";
-import type { ListLayoutOptions } from "./list-layout";
-import { RecordCell, holdsError } from "./record-rows";
-import type { GroupEntry, RecordCells } from "./record-rows";
-import type { PropertyEntry } from "./view-properties";
+import type { DrawnEntry } from "./items-window.tsx";
+import { sameMetrics, useRowHeights } from "./list-heights.ts";
+import type { ListMetrics, RowText } from "./list-heights.ts";
+import type { ListLayoutOptions } from "./list-layout.tsx";
+import { RecordCell, holdsError } from "./record-rows.tsx";
+import type { GroupEntry, RecordCells } from "./record-rows.tsx";
+import type { PropertyEntry } from "./view-properties.ts";
 
 /** The attribute of a List row, which holds its Indexed Key. */
 const ROW = "data-query-row";

@@ -4,8 +4,8 @@ import type { RpcClientError } from "effect/rpc";
 
 import type { getItemDisplayRefByID } from "@zotlit/db";
 
-import type { DbUnavailable, SnapshotExpired } from "./rpc";
-import type { ZoteroReadsApi } from "./service";
+import type { DbUnavailable, SnapshotExpired } from "./rpc.ts";
+import type { ZoteroReadsApi } from "./service.ts";
 
 /** An item's key, library, and title. */
 export type ItemDisplayRef = NonNullable<

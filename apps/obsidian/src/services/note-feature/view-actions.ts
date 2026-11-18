@@ -1,17 +1,17 @@
 // Annotation note gestures as one tag for the view registry.
 import { Context, Effect, Layer } from "effect";
 
-import type { AnnotationRepository } from "@/services/annotation-repository/service";
-import type { UseLedger } from "@/services/use-ledger/service";
+import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import type { UseLedger } from "@/services/use-ledger/service.ts";
 
-import { renderAnnotationCitation } from "./annotation-citation";
-import type { AnnotationCitation } from "./annotation-citation";
-import type { NoteCitationServices } from "./citations-handle";
-import { commitAnnotation } from "./insert-action";
+import { renderAnnotationCitation } from "./annotation-citation.ts";
+import type { AnnotationCitation } from "./annotation-citation.ts";
+import type { NoteCitationServices } from "./citations-handle.ts";
+import { commitAnnotation } from "./insert-action.ts";
 import type {
   AnnotationInsertRequest,
   AnnotationInsertOutcome,
-} from "./insert-action";
+} from "./insert-action.ts";
 
 export class AnnotationNoteActions extends Context.Service<
   AnnotationNoteActions,

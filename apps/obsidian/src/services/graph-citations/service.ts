@@ -10,64 +10,64 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { workLabel } from "@/lib/item-summary";
-import type { WorkLabel } from "@/lib/item-summary";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { heldResolution } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationLookupObservation } from "@/services/citation-index/lookup-service";
-import type { CitationSyntax } from "@/services/citation-index/scan";
-import { CitationIndex } from "@/services/citation-index/service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import type { NavigationPane } from "@/services/citekey-navigation";
-import { LibraryScope } from "@/services/library-scope/service";
+import { disposable } from "@/lib/disposables.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { workLabel } from "@/lib/item-summary.ts";
+import type { WorkLabel } from "@/lib/item-summary.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupObservation } from "@/services/citation-index/lookup-service.ts";
+import { heldResolution } from "@/services/citation-index/lookup.ts";
+import type { CitationSyntax } from "@/services/citation-index/scan.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import {
   itemKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { changed as readsChanged } from "@/services/zotero-reads/events";
-import type { WorkLabelSource } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
+} from "@/services/note-index/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { changed as readsChanged } from "@/services/zotero-reads/events.ts";
+import type { WorkLabelSource } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
-import { graphCitationAdditions, NO_ADDITIONS } from "./adapter";
-import type { GraphCitationAdditions } from "./adapter";
-import { wrapNodeClick } from "./click";
+import { graphCitationAdditions, NO_ADDITIONS } from "./adapter.ts";
+import type { GraphCitationAdditions } from "./adapter.ts";
+import { wrapNodeClick } from "./click.ts";
 import {
   AUTHOR_TITLE_LABELS,
   colorCitationLinks,
   installDisplayRows,
-} from "./display";
-import { renderWithFacade } from "./facade";
-import { graphCitationFilters, installFilterRows } from "./filters";
-import { installGroupsButton } from "./groups";
-import { wrapNodeHover } from "./hover";
-import type { NodeHoverDeps } from "./hover";
+} from "./display.ts";
+import { renderWithFacade } from "./facade.ts";
+import { graphCitationFilters, installFilterRows } from "./filters.ts";
+import { installGroupsButton } from "./groups.ts";
+import { wrapNodeHover } from "./hover.ts";
+import type { NodeHoverDeps } from "./hover.ts";
 import {
   GRAPH_CORE_PLUGIN_ID,
   GRAPH_VIEW_TYPES,
   graphMembersOf,
-} from "./install";
-import type { GraphLeafMembers } from "./install";
-import { GraphLinkColor, installLinkColors } from "./link-color";
-import { GraphNodeColors, installNodeColors } from "./node-color";
-import { applyCitationGraphPreset } from "./preset";
-import { wrapNodeRightClick } from "./right-click";
-import type { NodeRightClickDeps } from "./right-click";
-import { rowFlag } from "./rows";
-import { deferredLeafOptions, savedLeafOptions } from "./saved-options";
-import { installGraphViewState } from "./view-state";
-import { WorkLabelGraphics } from "./work-labels";
+} from "./install.ts";
+import type { GraphLeafMembers } from "./install.ts";
+import { GraphLinkColor, installLinkColors } from "./link-color.ts";
+import { GraphNodeColors, installNodeColors } from "./node-color.ts";
+import { applyCitationGraphPreset } from "./preset.ts";
+import { wrapNodeRightClick } from "./right-click.ts";
+import type { NodeRightClickDeps } from "./right-click.ts";
+import { rowFlag } from "./rows.ts";
+import { deferredLeafOptions, savedLeafOptions } from "./saved-options.ts";
+import { installGraphViewState } from "./view-state.ts";
+import { WorkLabelGraphics } from "./work-labels.ts";
 
 /**
  * How long a burst of index events settles before one re-render. The

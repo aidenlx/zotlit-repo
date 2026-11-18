@@ -2,10 +2,10 @@ import { afterEach, expect, test } from "vitest";
 
 import { LANGUAGE_PACK_LIMITS } from "@zotlit/obsidian-i18n";
 
-import { catalog } from "./i18n/generated/catalog.js";
+import { catalog } from "./i18n/generated/catalog.ts";
 import basePack from "./i18n/generated/en.json";
-import * as m from "./i18n/generated/messages.js";
-import { runtime } from "./i18n/generated/runtime.js";
+import * as m from "./i18n/generated/messages.ts";
+import { runtime } from "./i18n/generated/runtime.ts";
 
 // Turbo generates these artifacts before testing; compiler mechanics are
 // covered in @zotlit/obsidian-i18n. Check the plugin's actual build output here.

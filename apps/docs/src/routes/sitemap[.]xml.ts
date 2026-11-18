@@ -2,7 +2,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { renderSitemap, xmlHeaders } from "@/lib/sitemap";
+import { renderSitemap, xmlHeaders } from "@/lib/sitemap.ts";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {

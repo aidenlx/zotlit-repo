@@ -2,10 +2,10 @@
 import { Cause, Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import type { CitationIndex } from "@/services/citation-index/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { CitationIndex } from "@/services/citation-index/service.ts";
 
 export async function readDocumentCitedKeys(
   {

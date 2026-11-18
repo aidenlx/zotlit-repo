@@ -13,14 +13,14 @@ import {
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
-import { workerQuery } from "./__fixtures__/worker-query";
-import { makeAttachmentFileResolver } from "./attachment-files";
-import { QUERY_COMMAND } from "./contract";
-import { runQueryJob } from "./job";
-import type { QueryJob } from "./worker-protocol";
+import { workerQuery } from "./__fixtures__/worker-query.ts";
+import { makeAttachmentFileResolver } from "./attachment-files.ts";
+import { QUERY_COMMAND } from "./contract.ts";
+import { runQueryJob } from "./job.ts";
+import type { QueryJob } from "./worker-protocol.ts";
 
 /** The next close of a file that `open` gives fails with this error. */
 let closeFailure: PlatformError.PlatformError | undefined;

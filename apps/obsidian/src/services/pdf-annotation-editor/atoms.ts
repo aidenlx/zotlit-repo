@@ -1,9 +1,9 @@
 // Reader sessions observed by the Annotation View through its registry.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { PdfAnnotationEditor } from "./service";
+import { PdfAnnotationEditor } from "./service.ts";
 
 /** The live sessions, refreshed when a late PDF binding becomes available. */
 export const pdfSessionsAtom = held(

@@ -10,7 +10,7 @@ import type { ScenarioDatabaseOptions } from "@zotlit/db/test-scenario";
 import { countStatements } from "@zotlit/db/test-utils";
 import { collectQuery, ITEMS } from "@zotlit/item-query";
 
-import { validateClient } from "./connection";
+import { validateClient } from "./connection.ts";
 
 interface Copy {
   readonly name: string;

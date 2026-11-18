@@ -7,23 +7,26 @@ import { describe, expect } from "vitest";
 
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { CliCommand } from "@/lib/cli-command";
-import { PluginHost } from "@/lib/plugin-host";
-import type { PluginHostShape } from "@/lib/plugin-host";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { CliCommand } from "@/lib/cli-command.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { ANNOTATION_IMAGE_COMMAND } from "./cli-image";
-import { layerAnnotationImageCli } from "./register-cli";
-import { ExcerptImageService } from "./service";
+import { ANNOTATION_IMAGE_COMMAND } from "./cli-image.ts";
+import { layerAnnotationImageCli } from "./register-cli.ts";
+import { ExcerptImageService } from "./service.ts";
 
 /**
  * The command the layer registers, over `reads`, a data directory at

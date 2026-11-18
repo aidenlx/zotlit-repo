@@ -7,9 +7,9 @@ import { Decoration } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
 import { highlightTree } from "@lezer/highlight";
 
-import { decorationLayer, gapsAround } from "./decorations";
-import { templateHighlighter } from "./highlight";
-import { jsonSyntaxTokens } from "./json-e";
+import { decorationLayer, gapsAround } from "./decorations.ts";
+import { templateHighlighter } from "./highlight.ts";
+import { jsonSyntaxTokens } from "./json-e.ts";
 
 export const jsonRule = [json(), closeBrackets()];
 

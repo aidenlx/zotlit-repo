@@ -1,14 +1,15 @@
-import content from "@defaults/content.eta?raw";
-import note from "@defaults/note.eta?raw";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation";
-import { basename, formatBlockquote, TemplateEngine } from "./index";
+import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation.ts";
+import { basename, formatBlockquote, TemplateEngine } from "./index.ts";
 import {
   formatManagedRegion,
   managedRegionTransform,
   MARKER_START,
-} from "./obsidian";
+} from "./obsidian.ts";
+
+import content from "#defaults/content.eta?raw";
+import note from "#defaults/note.eta?raw";
 
 const wrapContent = managedRegionTransform("content");
 

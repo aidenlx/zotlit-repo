@@ -117,17 +117,17 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField, editorLivePreviewField } from "obsidian";
 
-import type { AnnotationHoverRequest } from "@/services/annotation-popover/service";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { presented } from "@/services/citation-text/__fixtures__";
-import type { DocumentCitations } from "@/services/citation-text/present";
-import type { Held } from "@/services/query-client/service";
+import type { AnnotationHoverRequest } from "@/services/annotation-popover/service.tsx";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { presented } from "@/services/citation-text/__fixtures__.ts";
+import type { DocumentCitations } from "@/services/citation-text/present.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
 import {
   annotationLinkAtPos,
   annotationLinkHoverExtension,
-} from "./annotation-link";
-import type { AnnotationLinkHoverHandlers } from "./annotation-link";
+} from "./annotation-link.ts";
+import type { AnnotationLinkHoverHandlers } from "./annotation-link.ts";
 
 /** The handlers of an editor whose Annotation Citations show as links. */
 function linkHandlers(

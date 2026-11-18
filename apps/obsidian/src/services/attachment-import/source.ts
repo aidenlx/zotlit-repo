@@ -9,9 +9,9 @@ import { isAbsolute, join, relative, sep } from "node:path";
 
 import { isCaseInsensitivePlatform } from "@zotlit/db/path";
 
-import type { AttachmentCopySource } from "@/lib/copy-attachments";
-import { withLogCategory } from "@/lib/effect-log";
-import { isErrno, nodeFileSystemCall } from "@/lib/errno";
+import type { AttachmentCopySource } from "@/lib/copy-attachments.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isErrno, nodeFileSystemCall } from "@/lib/errno.ts";
 
 const logged = withLogCategory("attachment-import");
 

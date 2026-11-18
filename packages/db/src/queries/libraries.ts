@@ -1,14 +1,14 @@
-import { groups, libraries } from "@drizzle/schema";
-import type { LibraryType } from "@drizzle/schema";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { LibraryType } from "#drizzle/schema.ts";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import type { SQLocalDatabaseClient } from "@/client/web";
-import { readDatabaseLayout } from "@/layout";
+import { defineQuery } from "./_shared.ts";
+import { hasClientRevisionsAsync } from "./schema-version.ts";
 
-import { defineQuery } from "./_shared";
-import { hasClientRevisionsAsync } from "./schema-version";
+import { groups, libraries } from "#drizzle/schema.ts";
+import { readDatabaseLayout } from "#layout/index.ts";
 
 export interface Library {
   libraryID: number;

@@ -1,3 +1,21 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import { and, count, or, asc, eq, gt, inArray, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
+import { Effect } from "effect";
+
+import type { TagCandidateLeaf, KeysCandidateLeaf } from "./candidate-leaf.ts";
+import { candidateTag, candidateKeys } from "./candidate-predicates.ts";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
+import type {
+  IdSlot,
+  ItemQueryDatabase,
+  ItemQueryReaderError,
+} from "./database.ts";
+import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
+import { recordUniverse } from "./record-universe.ts";
+import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+import type { ScanRow } from "./scan-page.ts";
+
 import {
   itemData,
   itemDataValues,
@@ -8,27 +26,9 @@ import {
   itemTypesCombined,
   itemTags,
   tags,
-} from "@drizzle/schema";
-import { and, count, or, asc, eq, gt, inArray, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
-import { Effect } from "effect";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { annotationTypeIDs, annotationTypeToName } from "@/lib/zt-annot";
-import { annotationColorsForName } from "@/lib/zt-color";
-
-import type { TagCandidateLeaf, KeysCandidateLeaf } from "./candidate-leaf";
-import { candidateTag, candidateKeys } from "./candidate-predicates";
-import { defineStatement, idSlots, unindexed } from "./database";
-import type {
-  IdSlot,
-  ItemQueryDatabase,
-  ItemQueryReaderError,
-} from "./database";
-import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk";
-import { recordUniverse } from "./record-universe";
-import { SCAN_PAGE_SIZE } from "./scan-page";
-import type { ScanRow } from "./scan-page";
+} from "#drizzle/schema.ts";
+import { annotationTypeIDs, annotationTypeToName } from "#lib/zt-annot.ts";
+import { annotationColorsForName } from "#lib/zt-color.ts";
 
 const attachment = alias(items, "annotationAttachment");
 const parent = alias(items, "annotationParent");

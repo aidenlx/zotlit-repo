@@ -2,7 +2,7 @@
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { ItemQueryRequest, QueryDataset } from "@zotlit/item-query";
 
-import type { QueryDatasetId } from "./worker-protocol";
+import type { QueryDatasetId } from "./worker-protocol.ts";
 
 export interface CliDataset {
   readonly engine: QueryDataset<ItemQueryRequest>;

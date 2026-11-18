@@ -14,33 +14,33 @@ import type {
   ScanRow,
 } from "@zotlit/db/item-query";
 
-import type { CandidateSources } from "./candidate-plan";
-import type { ItemQueryError } from "./error";
-import type { DatasetRun } from "./execution";
-import type { FaultedFormulaRead, Span } from "./fault";
+import type { CandidateSources } from "./candidate-plan.ts";
+import type { ItemQueryError } from "./error.ts";
+import type { DatasetRun } from "./execution.ts";
+import type { FaultedFormulaRead, Span } from "./fault.ts";
 import type {
   FieldDefinition,
   FieldNeeds,
   FilterField,
   SortKey,
-} from "./fields";
+} from "./fields.ts";
 import type {
   FilterNode,
   FilterPlan,
   FilterProblem,
   FormulaResolver,
   PlannedSubexpression,
-} from "./filter-plan";
-import type { ParentRecord } from "./parent-records";
-import type { PathSegment } from "./projection-path";
-import type { QueryClock } from "./query-clock";
-import type { QuerySources } from "./query-sources";
+} from "./filter-plan.ts";
+import type { ParentRecord } from "./parent-records.ts";
+import type { PathSegment } from "./projection-path.ts";
+import type { QueryClock } from "./query-clock.ts";
+import type { QuerySources } from "./query-sources.ts";
 import type {
   ItemQueryPlan,
   ItemQueryRequest,
   QueryContext,
   SortSpec,
-} from "./request";
+} from "./request.ts";
 
 /** The field part of a dotted name: the text before its first `.` or `[`. */
 export function fieldRoot(name: string): string {

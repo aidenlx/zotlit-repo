@@ -9,16 +9,16 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
+import { ItemQueryError } from "./error.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
   collectQuery,
   formulaReferences,
   ITEMS,
-} from ".";
-import type { ItemQueryRequest, QueryDataset, QueryResult } from ".";
-import { ItemQueryError } from "./error";
-import { runEffect } from "./test-helpers";
+} from "./index.ts";
+import type { ItemQueryRequest, QueryDataset, QueryResult } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 let scenario: ScenarioDatabase;

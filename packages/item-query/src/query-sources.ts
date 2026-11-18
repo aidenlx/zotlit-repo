@@ -7,15 +7,15 @@ import {
 } from "@zotlit/db/item-query";
 import type { CollectionPaths, FieldVocabulary } from "@zotlit/db/item-query";
 
-import type { CandidateSources } from "./candidate-plan";
-import type { QueryDataset } from "./dataset";
-import { ItemQueryError } from "./error";
-import type { ItemQueryErrorLocation } from "./error";
-import type { ItemQueryFault, Span } from "./fault";
-import type { FilterPlan } from "./filter-plan";
-import type { FormulaSourceCheck, FormulaSourceFault } from "./formulas";
-import type { LoadRequest } from "./record-loader";
-import type { ItemQueryRequest, TargetLibrary } from "./request";
+import type { CandidateSources } from "./candidate-plan.ts";
+import type { QueryDataset } from "./dataset.ts";
+import { ItemQueryError } from "./error.ts";
+import type { ItemQueryErrorLocation } from "./error.ts";
+import type { ItemQueryFault, Span } from "./fault.ts";
+import type { FilterPlan } from "./filter-plan.ts";
+import type { FormulaSourceCheck, FormulaSourceFault } from "./formulas.ts";
+import type { LoadRequest } from "./record-loader.ts";
+import type { ItemQueryRequest, TargetLibrary } from "./request.ts";
 
 /** Each query runs sequentially in one fiber. Cache only completed reads. */
 export const openQuerySources = Effect.sync(() => {

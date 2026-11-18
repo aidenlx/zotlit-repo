@@ -10,21 +10,21 @@ import * as Atom from "effect/reactivity/Atom";
 import { StrictMode, useState } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { DataExplorer } from "./data-explorer";
+import { DataExplorer } from "./data-explorer.tsx";
 import type {
   FieldInsertionContext,
   FieldInsertOptions,
-} from "./field-insertion";
-import { fieldsActionAttributes } from "./fields-panel";
-import { useWorkbenchHost } from "./host";
-import { pressFieldsAction } from "./model";
-import { INITIAL_PANELS } from "./panel-layout";
-import type { ViewSize, WorkbenchPanels } from "./panel-layout";
-import { SidePanels } from "./panels";
-import { mount } from "./test-host";
+} from "./field-insertion.ts";
+import { fieldsActionAttributes } from "./fields-panel.tsx";
+import { useWorkbenchHost } from "./host.tsx";
+import { pressFieldsAction } from "./model.ts";
+import { INITIAL_PANELS } from "./panel-layout.ts";
+import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
+import { SidePanels } from "./panels.tsx";
+import { mount } from "./test-host.tsx";
 
-import { initialTreeState } from "#/explorer/index";
-import { withText } from "#/explorer/test-records";
+import { initialTreeState } from "#explorer/index.ts";
+import { withText } from "#explorer/test-records.ts";
 
 afterEach(cleanup);
 

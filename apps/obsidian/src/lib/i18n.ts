@@ -4,12 +4,12 @@
 import { Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
-import { runtimeServices } from "@/lib/effect-services";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { layerDeviceStorage } from "@/lib/obsidian-device-storage";
-import { layerObsidianEnv } from "@/lib/obsidian-env";
-import { startLanguagePack } from "@/services/language-pack/service";
-import type { LanguagePackStartup } from "@/services/language-pack/service";
+import { runtimeServices } from "@/lib/effect-services.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { layerDeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import { layerObsidianEnv } from "@/lib/obsidian-env.ts";
+import { startLanguagePack } from "@/services/language-pack/service.ts";
+import type { LanguagePackStartup } from "@/services/language-pack/service.ts";
 
 /**
  * Apply the Language Pack before any copy shows: `onload`'s own notices (an

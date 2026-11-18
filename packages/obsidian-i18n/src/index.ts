@@ -7,20 +7,20 @@ export {
   type PackSource,
   type RemoteLanguagePack,
   type RemotePackInfo,
-} from "./lifecycle.js";
+} from "./lifecycle.ts";
 export {
   LANGUAGE_PACK_LIMITS,
   LanguagePackSchemaVersionError,
   validateLanguagePack,
-} from "./validation.js";
+} from "./validation.ts";
 export {
   createLanguagePackRuntime,
   type CreateLanguagePackRuntimeOptions,
   type DatetimeInput,
   type LanguagePackRuntime,
   type TargetLocaleMessages,
-} from "./runtime.js";
-export { languageEndonym } from "./endonyms.js";
+} from "./runtime.ts";
+export { languageEndonym } from "./endonyms.ts";
 export type {
   Declaration,
   Expression,
@@ -28,9 +28,9 @@ export type {
   Match,
   Message,
   Variant,
-} from "./language-pack.js";
+} from "./language-pack.ts";
 export {
   noopLogger,
   type LogProperties,
   type StructuredLogger,
-} from "./logger.js";
+} from "./logger.ts";

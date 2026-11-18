@@ -1,6 +1,6 @@
 import { sourceIdFromUris } from "@zotlit/protocol";
 
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger.ts";
 
 /** Raw dirs merged into the notify body, only when debug logging is on. */
 export interface DebugDirs {

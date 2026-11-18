@@ -11,12 +11,12 @@ import {
 import { Effect } from "effect";
 import { afterEach, expect, it } from "vitest";
 
-import { useWorkbenchController } from "./editor";
-import { MatchPane } from "./match";
-import { mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { useWorkbenchController } from "./editor.tsx";
+import { MatchPane } from "./match.tsx";
+import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 const SOURCE = DEFAULT_PROFILE_SOURCE.replace("id: default", "id: reading");
 

@@ -6,31 +6,31 @@ import type { PaneType, TFile, WorkspaceLeaf } from "obsidian";
 
 import type { Item } from "@zotlit/db";
 
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { OpenLinkFailed } from "@/lib/obsidian-workspace";
-import type { ItemQueryError } from "@/services/item-query/service";
-import { NoteIndex } from "@/services/note-index/service";
-import type { ProfileOperationError } from "@/services/profile/service";
-import type { TemplateFailure } from "@/services/template/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { readActionItem } from "@/services/zotero-reads/read-item";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { OpenLinkFailed } from "@/lib/obsidian-workspace.ts";
+import type { ItemQueryError } from "@/services/item-query/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { ProfileOperationError } from "@/services/profile/service.ts";
+import type { TemplateFailure } from "@/services/template/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { readActionItem } from "@/services/zotero-reads/read-item.ts";
 import type {
   DbUnavailable,
   SnapshotExpired,
-} from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
+} from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 
-import type { CompanionLinkOptions } from "./companion-view";
-import { createNoteInteractively } from "./creation-view";
-import type { InteractiveCreationPorts } from "./creation-view";
-import type { CompanionNoteTarget } from "./operations";
-import { NoteFeature } from "./service";
+import type { CompanionLinkOptions } from "./companion-view.ts";
+import { createNoteInteractively } from "./creation-view.ts";
+import type { InteractiveCreationPorts } from "./creation-view.ts";
+import type { CompanionNoteTarget } from "./operations.ts";
+import { NoteFeature } from "./service.ts";
 import {
   resolveLiteratureNoteWithWarning,
   updateWithNotice,
   updateNoteToast,
-} from "./update-single";
+} from "./update-single.ts";
 
 /** How opening or creating a Literature Note ended. */
 export type LiteratureNoteOutcome =

@@ -2,16 +2,16 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowUpRight } from "lucide-react";
 
-import { BackCrumb } from "@/components/back-crumb";
-import { CompanionNote } from "@/components/companion-note";
-import { getMDXComponents } from "@/components/mdx";
-import { missingReleaseRedirect } from "@/lib/beta-fallback";
-import { cn } from "@/lib/cn";
-import { changelogs } from "@/lib/collections";
-import { localeInput } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { changelogProseRoles } from "@/lib/prose";
-import { pageHead } from "@/lib/seo";
+import { BackCrumb } from "@/components/back-crumb.tsx";
+import { CompanionNote } from "@/components/companion-note.tsx";
+import { getMDXComponents } from "@/components/mdx.tsx";
+import { missingReleaseRedirect } from "@/lib/beta-fallback.ts";
+import { cn } from "@/lib/cn.ts";
+import { changelogs } from "@/lib/collections.ts";
+import { localeInput } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { changelogProseRoles } from "@/lib/prose.ts";
+import { pageHead } from "@/lib/seo.ts";
 import {
   appName,
   changelogFeedRoute,
@@ -19,12 +19,12 @@ import {
   formatReleaseDate,
   ogImageUrl,
   repoUrl,
-} from "@/lib/shared";
-import { changelog, getChangelogPages } from "@/lib/source";
+} from "@/lib/shared.ts";
+import { changelog, getChangelogPages } from "@/lib/source.ts";
 import {
   breadcrumbListSchema,
   changelogArticleSchema,
-} from "@/lib/structured-data";
+} from "@/lib/structured-data.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 

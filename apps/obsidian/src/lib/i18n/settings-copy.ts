@@ -4,8 +4,8 @@
 // available and not yet active. Copy names the language by its Endonym, never
 // the artifact or its origin — those stay in the logs.
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { LanguagePackSituation } from "@/services/language-pack/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { LanguagePackSituation } from "@/services/language-pack/service.ts";
 
 export type LanguagePackSettingCopy = {
   name: string;

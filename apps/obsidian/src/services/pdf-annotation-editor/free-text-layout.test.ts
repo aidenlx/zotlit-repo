@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest";
 import { parseAnnotationPosition } from "@zotlit/db";
 import type { PdfTextPosition } from "@zotlit/db";
 
-import { viewport } from "./__fixtures__";
+import { viewport } from "./__fixtures__.ts";
 import {
   anchorCorner,
   fitFreeTextBox,
   freeTextLayout,
   freeTextLines,
-} from "./free-text-layout";
-import type { FitMode, TextMeasure } from "./free-text-layout";
+} from "./free-text-layout.ts";
+import type { FitMode, TextMeasure } from "./free-text-layout.ts";
 
 /** The Fixture's own free-text Annotation, HRK7BG32, in PDF points. */
 const RECT = [398.804, 685.107, 560.804, 702.107] as const;

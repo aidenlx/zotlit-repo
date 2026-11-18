@@ -1,4 +1,4 @@
-import { deletedItems, items, itemTypesCombined } from "@drizzle/schema";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import {
   and,
   asc,
@@ -12,15 +12,15 @@ import {
 import type { AnyColumn, SQL } from "drizzle-orm";
 import { Effect } from "effect";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { CHILD_ITEM_TYPES } from "@/lib/item-types";
-
-import { defineStatement, idSlots, unindexed } from "./database";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
 import type {
   IdSlot,
   ItemQueryDatabase,
   ItemQueryReaderError,
-} from "./database";
+} from "./database.ts";
+
+import { deletedItems, items, itemTypesCombined } from "#drizzle/schema.ts";
+import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 
 /** The Items one scan statement reads at most. */
 export const SCAN_PAGE_SIZE = 500;

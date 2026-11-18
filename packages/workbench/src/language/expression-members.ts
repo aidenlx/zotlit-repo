@@ -15,14 +15,14 @@ import {
   rankedOptions,
   signature,
   takesArguments,
-} from "./expression-options";
+} from "./expression-options.ts";
 import type {
   Caret,
   ExpressionCompletionResult,
   ExpressionOption,
   ExpressionReceiver,
   ExpressionVocabulary,
-} from "./expression-options";
+} from "./expression-options.ts";
 
 type Entry = readonly [
   FilterValueType | "any",

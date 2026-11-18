@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { m } from "@/paraglide/messages.js";
 
-import { UiLabel } from "./ui-label";
+import { UiLabel } from "./ui-label.tsx";
 
 describe("UiLabel", () => {
   it("renders as bold Markdown in the Markdown edition", async () => {

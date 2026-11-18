@@ -3,11 +3,11 @@ import type { DateTime } from "effect";
 
 import { parseIndexedKey } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { ZoteroLocalApi } from "./service";
+import { ZoteroLocalApi } from "./service.ts";
 
 const skipped = (attachmentKey: string, reason: string) =>
   Effect.logTrace("Read write-back skipped").pipe(

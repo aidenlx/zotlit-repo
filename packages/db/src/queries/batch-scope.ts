@@ -1,3 +1,10 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import { and, asc, desc, eq, isNull, notInArray, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
+
+import { CHILD_ITEM_TYPES, defineQuery } from "./_shared.ts";
+import type { ParamsPlaceholder } from "./_shared.ts";
+
 // Item-id scope resolution for the batch actions: every item a run covers,
 // either across a whole library or across one collection and its descendants.
 import {
@@ -8,14 +15,7 @@ import {
   itemNotes,
   items,
   itemTypes,
-} from "@drizzle/schema";
-import { and, asc, desc, eq, isNull, notInArray, sql } from "drizzle-orm";
-import type { SQL } from "drizzle-orm";
-
-import type { NodeDatabaseClient } from "@/client/node";
-
-import { CHILD_ITEM_TYPES, defineQuery } from "./_shared";
-import type { ParamsPlaceholder } from "./_shared";
+} from "#drizzle/schema.ts";
 
 /** Placeholders every collection-scoped query in this module declares. */
 interface CollectionScope {

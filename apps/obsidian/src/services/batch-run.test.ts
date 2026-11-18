@@ -14,31 +14,31 @@ import { describe, expect, vi } from "vitest";
 
 import type { Library } from "@zotlit/db";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { LogCategory } from "@/lib/effect-log";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import { LibraryScope } from "@/services/library-scope/service";
-import { BatchUpdateRefusedError } from "@/services/note-feature/update-batch";
-import { NoteImportProfileError } from "@/services/note-import/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { LogCategory } from "@/lib/effect-log.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { BatchUpdateRefusedError } from "@/services/note-feature/update-batch.ts";
+import { NoteImportProfileError } from "@/services/note-import/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import {
   classifyStream,
   executeBatchRun,
   makeStopRequest,
   runBatchWith,
-} from "./batch-run";
+} from "./batch-run.ts";
 import type {
   BatchClassifyControls,
   BatchRunControls,
   BatchRunTask,
   RunOutcome,
-} from "./batch-run";
-import { planBatchScope, resolveBatchScope } from "./batch-scope";
-import { resolveLibraryScope } from "./library-scope/scope";
+} from "./batch-run.ts";
+import { planBatchScope, resolveBatchScope } from "./batch-scope.ts";
+import { resolveLibraryScope } from "./library-scope/scope.ts";
 
 /** The failure a test task answers its write with. */
 class WriteFailed extends Schema.TaggedError<

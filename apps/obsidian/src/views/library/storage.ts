@@ -3,20 +3,20 @@ import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { answerOf, makeViewRunner } from "@/lib/view-runner";
-import type { ViewRunner } from "@/lib/view-runner";
-import { PluginSettings } from "@/services/settings/service";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { answerOf, makeViewRunner } from "@/lib/view-runner.ts";
+import type { ViewRunner } from "@/lib/view-runner.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,
   parseLibraryViewDocument,
   serializeLibraryViewDocument,
   withText,
-} from "./document";
-import type { LibraryViewDocument } from "./document";
-import { waitForRead } from "./model";
+} from "./document.ts";
+import type { LibraryViewDocument } from "./document.ts";
+import { waitForRead } from "./model.ts";
 
 const savedDocumentAtom = viewRuntime.atom(
   Effect.gen(function* () {

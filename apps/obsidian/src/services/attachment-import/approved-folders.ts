@@ -5,7 +5,7 @@
 
 import { Effect } from "effect";
 
-import { DeviceStorage } from "@/lib/obsidian-device-storage";
+import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
 
 const STORAGE_KEY = "zotlit-approved-attachment-folders";
 

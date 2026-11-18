@@ -12,17 +12,17 @@ import type {
   CompileError,
   SettleOutcome,
   TemplateFileStatus,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
 import {
   createTemplateWorkbenchHandlers as createHandlers,
   TEMPLATE_DATA_COMMAND,
   TEMPLATE_GUIDE_COMMAND,
   TEMPLATE_STATUS_COMMAND,
-} from "./cli";
-import { CONTRACT_VERSION, DIAGNOSTIC_HINTS } from "./envelope";
-import type { WorkbenchIdentity } from "./envelope";
-import type { InspectionNote } from "./inspect";
+} from "./cli.ts";
+import { CONTRACT_VERSION, DIAGNOSTIC_HINTS } from "./envelope.ts";
+import type { WorkbenchIdentity } from "./envelope.ts";
+import type { InspectionNote } from "./inspect.ts";
 
 type Deps = Parameters<typeof createHandlers>[0];
 

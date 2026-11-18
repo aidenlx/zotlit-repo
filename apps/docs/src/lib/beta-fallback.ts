@@ -14,8 +14,8 @@
 import { env } from "cloudflare:workers";
 import { compare, lt, valid } from "semver";
 
-import { zotlitBetaUrl } from "./shared";
-import { changelog } from "./source";
+import { zotlitBetaUrl } from "./shared.ts";
+import { changelog } from "./source.ts";
 
 /** A surface's own resource for the version, and its resource for the changelog. */
 interface ReleasePaths {

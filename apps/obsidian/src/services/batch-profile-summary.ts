@@ -1,7 +1,7 @@
 // Shared summary text for Profile-aware literature-note and Imported Note runs.
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { BatchRunResult } from "./batch-run";
+import type { BatchRunResult } from "./batch-run.ts";
 
 export interface BatchProfileCount {
   label: string;

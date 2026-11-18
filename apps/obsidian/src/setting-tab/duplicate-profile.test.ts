@@ -3,18 +3,18 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginHost } from "@/lib/plugin-host";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp";
-import { Customize } from "@/services/local-bridge/customize";
-import type { CustomizeRequest } from "@/services/local-bridge/customize";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
+import { Customize } from "@/services/local-bridge/customize.ts";
+import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
 
-import { duplicateProfileToWorkbench } from "./duplicate-profile";
+import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
 
 const COPY: LiteratureNoteProfile = {
   id: "Jk6Lm8Np2Qr4" as ProfileId,

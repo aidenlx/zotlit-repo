@@ -45,15 +45,19 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants";
-import { withLogCategory } from "@/lib/effect-log-category";
-import { isNotFound, isPlatformErrno, nodeFileSystemCall } from "@/lib/errno";
-import { reflink, ReflinkUnsupportedError } from "@/lib/reflink";
-import type { ZoteroReadMode } from "@/services/settings/schema";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants.ts";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
+import {
+  isNotFound,
+  isPlatformErrno,
+  nodeFileSystemCall,
+} from "@/lib/errno.ts";
+import { reflink, ReflinkUnsupportedError } from "@/lib/reflink.ts";
+import type { ZoteroReadMode } from "@/services/settings/schema.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
-import { planReadParents } from "./read-parent";
-import { verifySnapshot } from "./snapshot-integrity";
+import { planReadParents } from "./read-parent.ts";
+import { verifySnapshot } from "./snapshot-integrity.ts";
 
 const CLONE_ATTEMPTS = 3;
 const RETRY_BACKOFF_MS = 25;

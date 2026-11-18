@@ -1,8 +1,8 @@
 // The typed failure of a legacy Promise port that Effect code calls.
 import { Effect, Schema } from "effect";
 
-import { AbortError } from "./abort-error";
-import { formatErrorMessage } from "./toast";
+import { AbortError } from "./abort-error.ts";
+import { formatErrorMessage } from "./toast.ts";
 
 /** A legacy Promise port rejected. The message is the rejection's own. */
 export class LegacyPortError extends Schema.TaggedError<

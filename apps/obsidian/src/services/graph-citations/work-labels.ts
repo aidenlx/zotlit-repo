@@ -8,11 +8,11 @@ import type {
   GraphTextStyle,
 } from "obsidian";
 
-import type { WorkLabel } from "@/lib/item-summary";
-import { getLogger } from "@/lib/log";
+import type { WorkLabel } from "@/lib/item-summary.ts";
+import { getLogger } from "@/lib/log.ts";
 
-import type { GraphLeafMembers } from "./install";
-import { workLabelTitleAlpha } from "./work-label-zoom";
+import type { GraphLeafMembers } from "./install.ts";
+import { workLabelTitleAlpha } from "./work-label-zoom.ts";
 
 const logger = getLogger("graph-citations");
 const LABEL_WIDTH = 240;

@@ -13,25 +13,28 @@ import { MissingTemplateError, TemplateError } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 
-import { createRenderedCliDiagnostics, lineColumn } from "@/lib/cli-diagnostic";
-import type { FaultFacts, RenderedDiagnostic } from "@/lib/cli-diagnostic";
-import { UNKNOWN_PROFILE_HINT } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
-import type { ProfileDiagnostic } from "@/services/profile/service";
+import {
+  createRenderedCliDiagnostics,
+  lineColumn,
+} from "@/lib/cli-diagnostic.ts";
+import type { FaultFacts, RenderedDiagnostic } from "@/lib/cli-diagnostic.ts";
+import { UNKNOWN_PROFILE_HINT } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import type { ProfileDiagnostic } from "@/services/profile/service.ts";
 import {
   engineFaultSpan,
   InertTemplateError,
-} from "@/services/template/errors";
-import type { EngineFaultSpan } from "@/services/template/errors";
+} from "@/services/template/errors.ts";
+import type { EngineFaultSpan } from "@/services/template/errors.ts";
 import type {
   CompileError,
   TemplateFileStatus,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
-import type { TemplateDataLoadResult } from "./data";
-import type { SchemaAsset } from "./schema";
-import type { RenderTemplate } from "./vocabulary";
+import type { TemplateDataLoadResult } from "./data.ts";
+import type { SchemaAsset } from "./schema.ts";
+import type { RenderTemplate } from "./vocabulary.ts";
 
 /**
  * The wire format of the `zotlit:template-*` and `zotlit:frontmatter-*`

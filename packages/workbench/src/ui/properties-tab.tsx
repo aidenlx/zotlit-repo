@@ -7,27 +7,27 @@ import type {
   WorkbenchDocumentController,
   WorkbenchProblem,
   WorkbenchSliceRange,
-} from "#/document/index";
-import type { RenderDiagnostic, RenderedProperty } from "#/render/result";
+} from "#document/index.ts";
+import type { RenderDiagnostic, RenderedProperty } from "#render/result.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { ExampleActions, useExampleState } from "./example-state";
-import type { WorkbenchMessages } from "./generated/messages";
-import { useContainerName, useOptionalHost } from "./host";
-import type { WorkbenchMessageLabel } from "./messages";
-import { useWorkbenchMessages } from "./messages";
-import { diagnosticText, documentDiagnosis, problemText } from "./problems";
-import { PropertyList, propertyText } from "./property-list";
-import { indexAfterMove, useListReorder } from "./reorder";
-import { WorkbenchSelect, WorkbenchOption } from "./select";
-import { SliceEditor } from "./slice-editor";
-import type { SuggestionSource } from "./slice-editor";
-import { useIcon, useParts } from "./theme";
-import { useRetention } from "./visited";
+import { ExampleActions, useExampleState } from "./example-state.tsx";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { useContainerName, useOptionalHost } from "./host.tsx";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { diagnosticText, documentDiagnosis, problemText } from "./problems.ts";
+import { PropertyList, propertyText } from "./property-list.tsx";
+import { indexAfterMove, useListReorder } from "./reorder.ts";
+import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import type { SuggestionSource } from "./slice-editor.tsx";
+import { useIcon, useParts } from "./theme.tsx";
+import { useRetention } from "./visited.ts";
 
-import { entryPosition, entrySlice, sliceShownText } from "#/document/index";
+import { entryPosition, entrySlice, sliceShownText } from "#document/index.ts";
 
 const MERGE_LABEL: Record<string, WorkbenchMessageLabel> = {
   replace: "workbench_properties_merge_replace",

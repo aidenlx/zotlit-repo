@@ -7,8 +7,8 @@ import type { InlineConfig, LibraryFormats, Plugin } from "vite";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { iconEntryPath, parseManifest } from "./manifest.js";
-import { parseRepository, updateUrl } from "./release-constants.js";
+import { iconEntryPath, parseManifest } from "./manifest.ts";
+import { parseRepository, updateUrl } from "./release-constants.ts";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 

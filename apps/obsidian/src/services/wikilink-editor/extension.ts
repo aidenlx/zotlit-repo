@@ -16,30 +16,30 @@ import {
   livePreviewOf,
   tokenNodes,
   visibleLineRanges,
-} from "@/lib/editor-decoration";
-import { themeHook } from "@/lib/theme-hooks";
-import type { LiteratureNoteTarget } from "@/lib/wikilink-citation";
-import { EditorLookup } from "@/services/citation-index/editor-lookup";
+} from "@/lib/editor-decoration.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import type { LiteratureNoteTarget } from "@/lib/wikilink-citation.ts";
+import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
 import type {
   CitationLookupAnswer,
   CitationLookupObservation,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   citationContent,
   presentedCitationEqual,
   showCitation,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import type {
   CitationCoordinate,
   DocumentCitations,
   PresentedCitation,
   ShownCitation,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import {
   clickWikilinkCitation,
   hoverWikilinkCitation,
   markCitationClick,
-} from "@/services/citekey-navigation";
+} from "@/services/citekey-navigation/index.ts";
 import type {
   CitationClickAffordance,
   CitationHover,
@@ -47,12 +47,12 @@ import type {
   HoveredWork,
   HoverPreferences,
   NavigationPane,
-} from "@/services/citekey-navigation";
-import type { Held } from "@/services/query-client/service";
+} from "@/services/citekey-navigation/index.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
-import { wikilinkDecorations } from "./decorate";
-import type { WikilinkDecoration } from "./decorate";
-import { scanWikilinks } from "./scan";
+import { wikilinkDecorations } from "./decorate.ts";
+import type { WikilinkDecoration } from "./decorate.ts";
+import { scanWikilinks } from "./scan.ts";
 import "./style.css";
 
 /**

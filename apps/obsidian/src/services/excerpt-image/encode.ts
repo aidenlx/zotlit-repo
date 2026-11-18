@@ -3,11 +3,11 @@ import { Effect } from "effect";
 // onto a canvas and hands it here; the encoded bytes are then reused unchanged by
 // the cache entry, the outcome, and the durable note asset.
 
-import { withLogCategory } from "@/lib/effect-log";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
-import { ExcerptImageError } from "./error";
-import { detectExcerptImageFormat, PNG_FORMAT, WEBP_FORMAT } from "./format";
-import { usableExcerptWebp } from "./webp";
+import { ExcerptImageError } from "./error.ts";
+import { detectExcerptImageFormat, PNG_FORMAT, WEBP_FORMAT } from "./format.ts";
+import { usableExcerptWebp } from "./webp.ts";
 
 const logged = withLogCategory("excerpt-image");
 

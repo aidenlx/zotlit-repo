@@ -12,14 +12,14 @@ import type { Scope } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
-import { scheduleBrowserTask } from "@/lib/browser-scheduler";
-import type { EffectBridge } from "@/lib/effect-bridge";
+import { scheduleBrowserTask } from "@/lib/browser-scheduler.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 import type {
   AnnotationRecord,
   AnnotationRepository,
-} from "@/services/annotation-repository/service";
-import { editingLive } from "@/views/annot-view/card-controls";
-import { sameKeys } from "@/views/annot-view/card-selection";
+} from "@/services/annotation-repository/service.ts";
+import { editingLive } from "@/views/annot-view/card-controls.ts";
+import { sameKeys } from "@/views/annot-view/card-selection.ts";
 
 import {
   ingestAnnotationState,
@@ -37,14 +37,14 @@ import {
   selectSelectedKeys,
   selectSelectedRow,
   selectTextDraft,
-} from "./reader-surface-state";
+} from "./reader-surface-state.ts";
 import type {
   Floating,
   ReaderSurfaceState,
   Step,
   Transition,
-} from "./reader-surface-state";
-import type { AnnotationTool, ToolColorStore } from "./tools";
+} from "./reader-surface-state.ts";
+import type { AnnotationTool, ToolColorStore } from "./tools.ts";
 
 /** The registry a binding holds its model in, from bind to unbind. */
 export type ReaderSurfaceRegistry = AtomRegistry.AtomRegistry;

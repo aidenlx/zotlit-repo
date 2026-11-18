@@ -1,17 +1,17 @@
 import type { App, CachedMetadata, MetadataCache, Vault } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import type { GraphCitationAdditions } from "./adapter";
+import type { GraphCitationAdditions } from "./adapter.ts";
 import {
   facadeApp,
   mergeLinkMaps,
   onlyLinksTo,
   renderWithFacade,
   withoutLinks,
-} from "./facade";
-import type { FacadeEngine } from "./facade";
+} from "./facade.ts";
+import type { FacadeEngine } from "./facade.ts";
 
 function additionsOf(
   overrides: Partial<GraphCitationAdditions>,

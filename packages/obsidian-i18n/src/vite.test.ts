@@ -9,8 +9,8 @@ import {
   addLocale,
   createFixtureProject,
   writeCatalog,
-} from "./test-fixtures.js";
-import { obsidianI18n } from "./vite.js";
+} from "./test-fixtures.ts";
+import { obsidianI18n } from "./vite.ts";
 
 describe("obsidianI18n", () => {
   test("generates at build start, watches project inputs, and excludes output", async () => {

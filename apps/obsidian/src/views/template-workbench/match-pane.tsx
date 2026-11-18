@@ -5,11 +5,11 @@ import { useAtomValue } from "@effect/atom-react";
 import type { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { MatchPane, WorkbenchThemeProvider } from "@zotlit/workbench/ui";
 
-import { Select } from "@/components/select";
-import { useObsidianApp } from "@/lib/app-context";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
+import { Select } from "@/components/select.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 
-import { onKeymap, templateWorkbenchTheme } from "./theme";
+import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";
 
 /**
  * The Workbench theme with the plugin's own Select for the Match editor's

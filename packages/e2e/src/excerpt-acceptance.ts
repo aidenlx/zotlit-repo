@@ -23,8 +23,8 @@ import {
 // cards themselves call.
 import type { FixtureAnnotation } from "@zotlit/scripts/fixture";
 
-import type { ExcerptRequest } from "@/services/excerpt-image/contract";
-import type { AnnotationView } from "@/views/annot-view/view";
+import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { ExcerptImportState } from "./page-excerpt-types.ts";

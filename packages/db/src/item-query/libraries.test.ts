@@ -1,15 +1,15 @@
+import type { ScenarioDatabase } from "#test-scenario/index.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { getLibraries } from "@/queries/libraries";
+import { ItemQueryDatabase, readLibraries } from "./index.ts";
+
+import { getLibraries } from "#queries/libraries.ts";
 import {
   BULK_LIBRARY,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "@/test-scenario";
-import type { ScenarioDatabase } from "@/test-scenario";
-
-import { ItemQueryDatabase, readLibraries } from ".";
+} from "#test-scenario/index.ts";
 
 function read(scenario: ScenarioDatabase) {
   return Effect.runSync(

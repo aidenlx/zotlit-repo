@@ -2,8 +2,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { plainTextHeaders } from "@/lib/markdown-editions";
-import { baseURL } from "@/lib/shared";
+import { plainTextHeaders } from "@/lib/markdown-editions.tsx";
+import { baseURL } from "@/lib/shared.ts";
 
 /**
  * Everything a reader sees is crawlable; the machine endpoints are not. They

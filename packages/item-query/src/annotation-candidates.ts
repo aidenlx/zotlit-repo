@@ -1,9 +1,9 @@
 import type { AnnotationCandidateLeaf } from "@zotlit/db/item-query";
 
-import { equality } from "./candidate-plan";
-import type { CandidateSources } from "./candidate-plan";
-import type { FilterNode } from "./filter-plan";
-import { lowerIndexedKeySelection } from "./indexed-key-selection";
+import { equality } from "./candidate-plan.ts";
+import type { CandidateSources } from "./candidate-plan.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import { lowerIndexedKeySelection } from "./indexed-key-selection.ts";
 
 export function lowerAnnotationCandidate<Item>(
   node: FilterNode<Item>,

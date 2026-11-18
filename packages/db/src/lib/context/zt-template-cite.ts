@@ -1,12 +1,15 @@
 // Cite-template contract: narrowed cited-item data and the Citation Item wrapper.
-import type { ItemDate } from "@/lib/zt-date";
-import type { ItemExtra } from "@/lib/zt-extra";
-import type { Item } from "@/queries/items";
+import type { ItemDate } from "#lib/zt-date.ts";
+import type { ItemExtra } from "#lib/zt-extra.ts";
+import type { Item } from "#queries/items.ts";
 
-import { emptyToNull } from "./normalize";
-import { cslToTemplateItem } from "./zt-csl";
-import { itemToTemplateBaseData } from "./zt-template-item";
-import type { TemplateCreator, TemplateItemBaseData } from "./zt-template-item";
+import { emptyToNull } from "./normalize.ts";
+import { cslToTemplateItem } from "./zt-csl.ts";
+import { itemToTemplateBaseData } from "./zt-template-item.ts";
+import type {
+  TemplateCreator,
+  TemplateItemBaseData,
+} from "./zt-template-item.ts";
 
 /**
  * A cited item's data, in the same template vocabulary as the note root and

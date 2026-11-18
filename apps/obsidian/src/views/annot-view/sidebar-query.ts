@@ -8,22 +8,25 @@ import type { Menu } from "obsidian";
 import { annotationColorsForName, annotationColorToName } from "@zotlit/db";
 import type { MatchTree } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { visibleText } from "@/services/item-query/visible-text";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { visibleText } from "@/services/item-query/visible-text.ts";
 import {
   directionLabel,
   groupOptions,
   sortOptions,
-} from "@/views/query-view/properties";
-import type { PropertyOption } from "@/views/query-view/properties";
-import { serializeQueryFile, withFilters } from "@/views/query-view/query-file";
+} from "@/views/query-view/properties.ts";
+import type { PropertyOption } from "@/views/query-view/properties.ts";
+import {
+  serializeQueryFile,
+  withFilters,
+} from "@/views/query-view/query-file.ts";
 import type {
   QueryFile,
   QueryFileDirection,
   QueryFileSort,
   QueryFileView,
   QueryFileViewEdit,
-} from "@/views/query-view/query-file";
+} from "@/views/query-view/query-file.ts";
 
 /** The filter for all views of the sidebar: the Attachment it follows. */
 export const SIDEBAR_FILTER = "attachment == this.attachment";

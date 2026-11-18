@@ -10,16 +10,16 @@ import type { HoverParent } from "obsidian";
 import { createElement, Fragment } from "react";
 import type { ReactNode } from "react";
 
-import { getLogger } from "@/lib/log";
-import { hasActiveMenu } from "@/lib/menu";
-import { watch } from "@/lib/view-atoms";
+import { getLogger } from "@/lib/log.ts";
+import { hasActiveMenu } from "@/lib/menu.ts";
+import { watch } from "@/lib/view-atoms.ts";
 
-import type { Point } from "./hit-test";
-import { MarkPopup } from "./mark-popup";
-import { current } from "./reader-surface-model";
-import type { ReaderSurface } from "./reader-surface-model";
-import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state";
-import type { Floating, PopuplessFloating } from "./reader-surface-state";
+import type { Point } from "./hit-test.ts";
+import { MarkPopup } from "./mark-popup.tsx";
+import { current } from "./reader-surface-model.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
+import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state.ts";
+import type { Floating, PopuplessFloating } from "./reader-surface-state.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

@@ -10,7 +10,7 @@ import { createContext, useContext } from "react";
 import type {
   CitationOccurrence,
   CitedByGroup,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
 import {
   CITED_BY_SORT_GROUPS,
@@ -21,13 +21,13 @@ import {
   expandExcerptRange,
   occurrenceID,
   previewContexts,
-} from "./store";
+} from "./store.ts";
 import type {
   CitedBySortMode,
   ExpandDirection,
   ReadyPreview,
   SourceRange,
-} from "./store";
+} from "./store.ts";
 
 /** The controls the workspace layout carries across a restart. */
 export interface CitedByLayout {

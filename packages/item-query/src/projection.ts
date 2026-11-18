@@ -1,14 +1,14 @@
-import type { ItemQueryFault } from "./fault";
-import { fieldDefinition } from "./fields";
+import type { ItemQueryFault } from "./fault.ts";
+import { fieldDefinition } from "./fields.ts";
 import type {
   FieldDefinition,
   FieldNeeds,
   QueryItem,
   ValueShape,
-} from "./fields";
-import { parseProjectionPath } from "./projection-path";
-import type { PathSegment } from "./projection-path";
-import type { ProjectionValue } from "./request";
+} from "./fields.ts";
+import { parseProjectionPath } from "./projection-path.ts";
+import type { PathSegment } from "./projection-path.ts";
+import type { ProjectionValue } from "./request.ts";
 
 /** A validated Projection Path. */
 export interface PlannedPath<Item = QueryItem, Needs = FieldNeeds> {

@@ -14,19 +14,22 @@ import type { RpcClientError } from "effect/rpc";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { libraryLabel } from "@/services/library-scope/label";
-import { compareSelectors, selectorOf } from "@/services/library-scope/scope";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
+import {
+  compareSelectors,
+  selectorOf,
+} from "@/services/library-scope/scope.ts";
+import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import type {
   DbUnavailable,
   SnapshotExpired,
-} from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
-import type { FlatGroupDef } from "@/views/batch-modal";
+} from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
+import type { FlatGroupDef } from "@/views/batch-modal/index.ts";
 
 /** Which items a batch action collects from its scope. */
 export type BatchScopeKind = "literature-items" | "notes";

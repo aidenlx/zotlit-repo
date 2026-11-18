@@ -19,17 +19,17 @@ import type {
 } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import {
   layerMetadataCache,
   layerMetadataCacheFrom,
   MetadataCache,
-} from "@/lib/obsidian-metadata-cache";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache";
+} from "@/lib/obsidian-metadata-cache.ts";
+import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
 
-import { MemoryMetadataCache } from "./__fixtures__/obsidian-metadata-cache";
+import { MemoryMetadataCache } from "./__fixtures__/obsidian-metadata-cache.ts";
 
 /** The failure a test handler answers an event with. */
 class HandlerFailed extends Schema.TaggedError<

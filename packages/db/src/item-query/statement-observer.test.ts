@@ -1,8 +1,6 @@
+import type { ScenarioDatabase } from "#test-scenario/index.ts";
 import { Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
-
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-import type { ScenarioDatabase } from "@/test-scenario";
 
 import {
   ItemQueryDatabase,
@@ -15,8 +13,13 @@ import {
   readLibraryRowCount,
   readScanPage,
   readUniverseRows,
-} from ".";
-import type { StatementRun } from ".";
+} from "./index.ts";
+import type { StatementRun } from "./index.ts";
+
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 

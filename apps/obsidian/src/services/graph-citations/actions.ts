@@ -3,13 +3,13 @@
 import { Keymap } from "obsidian";
 import type { App, Plugin, TFile } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
 
-import { GRAPH_CORE_PLUGIN_ID } from "./install";
-import type { GraphCitations } from "./service";
+import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
+import type { GraphCitations } from "./service.ts";
 
 const logger = getLogger("graph-citations");
 

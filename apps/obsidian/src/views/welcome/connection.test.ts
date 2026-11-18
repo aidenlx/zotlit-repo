@@ -4,20 +4,20 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { describe, expect } from "vitest";
 
-import { readsFixture } from "@/services/zotero-reads/__fixtures__";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { readsFixture } from "@/services/zotero-reads/__fixtures__.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { makeWelcomeHost, waitFor } from "./__fixtures__";
+import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import {
   connectionLifecycleAtom,
   readConnectionStatus,
   readConnectionSync,
-} from "./connection";
+} from "./connection.ts";
 
 /** One regular item per row in `libraryItems`, as [libraryID, count] pairs. */
 function itemsSql(libraryItems: [libraryID: number, count: number][]): string {

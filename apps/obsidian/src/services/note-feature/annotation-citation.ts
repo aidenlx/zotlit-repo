@@ -9,10 +9,10 @@ import {
 import {
   annotationCiteRefs,
   buildAnnotationResolvers,
-} from "@/lib/annotation-render";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/lib/annotation-render.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** What "Copy citation" puts on the clipboard, or why it has nothing to put. */
 export type AnnotationCitation =

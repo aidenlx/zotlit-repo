@@ -12,28 +12,28 @@ import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
 import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier, reportOutcome } from "@/lib/notifier";
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
-import type { AttachmentOpenDeps } from "@/services/attachment-open/actions";
-import { pdfPickerReader } from "@/services/attachment-open/actions";
-import { literatureNoteAttachments } from "@/services/attachment-open/literature-note";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import { openLiteratureNote } from "@/services/note-feature/navigation";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations";
-import { InertTemplateError } from "@/services/template/errors";
-import { UseLedger } from "@/services/use-ledger/service";
-import { readActionItem } from "@/services/zotero-reads/read-item";
-import { captureInsertion } from "@/views/annot-view/async-insert";
-import { getInsertionEditor } from "@/views/annot-view/drag-insert";
-import { viewTargetOpener } from "@/views/open-target";
+import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier, reportOutcome } from "@/lib/notifier.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import type { AttachmentOpenDeps } from "@/services/attachment-open/actions.ts";
+import { pdfPickerReader } from "@/services/attachment-open/actions.ts";
+import { literatureNoteAttachments } from "@/services/attachment-open/literature-note.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
+import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { readActionItem } from "@/services/zotero-reads/read-item.ts";
+import { captureInsertion } from "@/views/annot-view/async-insert.ts";
+import { getInsertionEditor } from "@/views/annot-view/drag-insert.ts";
+import { viewTargetOpener } from "@/views/open-target.ts";
 
-import { lastEditor } from "./last-note";
+import { lastEditor } from "./last-note.ts";
 
 /**
  * Runs one Item action at a time per call, beside the others. A failure is

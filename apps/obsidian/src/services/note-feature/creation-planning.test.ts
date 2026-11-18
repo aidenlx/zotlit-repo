@@ -4,19 +4,19 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixture } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixture } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
 import {
   ManagedFrontmatterRefused,
   resolveCompanionNote,
   resolveCreationProfile,
-} from "./creation-planning";
+} from "./creation-planning.ts";
 
 const BOOKS = "Bk3Qn7XvT2Lp" as ProfileId;
 const PAPERS = "Rz9Wm4YfH6Kd" as ProfileId;

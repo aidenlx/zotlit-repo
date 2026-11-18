@@ -5,42 +5,42 @@ import * as Atom from "effect/reactivity/Atom";
 
 import { isChildItemFields } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { itemSummary } from "@/lib/item-summary";
-import { viewRuntime } from "@/lib/view-atoms";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { itemSummary } from "@/lib/item-summary.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
 import {
   annotationChangeAtom,
   annotationListsChangeAtom,
-} from "@/services/annotation-repository/atoms";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/atoms.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   HistoryDirection,
   MutationState,
   TextField,
-} from "@/services/annotation-repository/service";
-import { libraryTagNames } from "@/services/database/library-tag-names";
-import { ExcerptDisplays } from "@/services/excerpt-image/display";
-import { savedExcerptRequestFor } from "@/services/excerpt-image/request";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
-import { readerTargetAtom } from "@/services/local-server/atoms";
-import type { AnnotationCitation } from "@/services/note-feature/annotation-citation";
-import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action";
-import { AnnotationNoteActions } from "@/services/note-feature/view-actions";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/annotation-repository/service.ts";
+import { libraryTagNames } from "@/services/database/library-tag-names.ts";
+import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
+import { savedExcerptRequestFor } from "@/services/excerpt-image/request.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
+import { readerTargetAtom } from "@/services/local-server/atoms.ts";
+import type { AnnotationCitation } from "@/services/note-feature/annotation-citation.ts";
+import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";
+import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   InertTemplateError,
   plainTemplateError,
-} from "@/services/template/errors";
-import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/template/errors.ts";
+import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { ExcerptImageTarget } from "./excerpt-image-state";
-import type { LoadTarget } from "./resolve-target";
-import type { FollowMode } from "./state";
+import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
+import type { LoadTarget } from "./resolve-target.ts";
+import type { FollowMode } from "./state.ts";
 
 export const resultValue = <A, E>(
   result: AsyncResult.AsyncResult<A, E>,
@@ -291,7 +291,7 @@ export const annotationHistoryCommand = Atom.keepAlive(
       key: string;
       direction: HistoryDirection;
       complete: (
-        outcome: import("@/services/annotation-repository/service").HistoryOutcome,
+        outcome: import("@/services/annotation-repository/service.ts").HistoryOutcome,
       ) => void;
     }) =>
       Effect.gen(function* () {

@@ -5,26 +5,26 @@ import { TFile } from "obsidian";
 import type { App, Editor, Modifier } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { CitationIndex } from "@/services/citation-index/service";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   DocumentCitationSet,
   CitekeyResolution,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   KEY_A,
-} from "@/services/citation-index/test-harness";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import type { SearchHit } from "@/services/item-lookup/service";
-import { defaults } from "@/services/settings/schema";
-import type { UseKind } from "@/services/use-ledger/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/citation-index/test-harness.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { UseKind } from "@/services/use-ledger/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
-import { InsertCitationModal } from "./insert-modal";
-import type { CitationSuggestDeps } from "./register";
+import { InsertCitationModal } from "./insert-modal.ts";
+import type { CitationSuggestDeps } from "./register.ts";
 
 let bridge: ReturnType<typeof openTestBridge>;
 beforeEach(() => {

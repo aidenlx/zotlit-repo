@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { parseQueryFile } from "@/views/query-view/query-file";
+import { parseQueryFile } from "@/views/query-view/query-file.ts";
 
-import { savedQueryFileText } from "./sidebar-query";
+import { savedQueryFileText } from "./sidebar-query.ts";
 
 /** A sidebar that sorts by date added, groups by colour, and has one full filter. */
 const SIDEBAR = `filters: attachment == this.attachment

@@ -2,7 +2,7 @@
 // keep the two in step. A shared helper would need a new export from a production package.
 import { expect, it } from "vitest";
 
-import { scanPandocCitations } from "./pandoc-citation";
+import { scanPandocCitations } from "./pandoc-citation.ts";
 
 it("scans dense Pandoc Citations in linear time", () => {
   const counts = [1_000, 2_000, 4_000, 8_000];

@@ -21,14 +21,14 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { SiteLocale } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
+import type { SiteLocale } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
 import { m } from "@/paraglide/messages.js";
 import { deLocalizeUrl, getLocale, localizeUrl } from "@/paraglide/runtime.js";
 import { paraglideMiddleware } from "@/paraglide/server.js";
 
-import { LanguageBanner } from "./language-banner";
-import { LocaleProvider } from "./locale-provider";
+import { LanguageBanner } from "./language-banner.tsx";
+import { LocaleProvider } from "./locale-provider.tsx";
 
 // Compare packaged controls with the root facade in an explicit locale.
 function expectedMessages(locale: SiteLocale) {

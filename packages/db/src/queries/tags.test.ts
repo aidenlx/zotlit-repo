@@ -1,15 +1,7 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { tagTypeToName } from "@/lib/zt-tag";
-import {
-  countCompiles,
-  countStatements,
-  createFixtureSchema,
-} from "@/test-utils";
 
 import {
   getAllTagNames,
@@ -17,8 +9,16 @@ import {
   getTagsByItemIDs,
   resolveItemTags,
   resolveItemTagsByIDs,
-} from "./tags";
-import type { TagMemo } from "./tags";
+} from "./tags.ts";
+import type { TagMemo } from "./tags.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { tagTypeToName } from "#lib/zt-tag.ts";
+import {
+  countCompiles,
+  countStatements,
+  createFixtureSchema,
+} from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

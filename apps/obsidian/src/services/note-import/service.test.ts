@@ -8,45 +8,45 @@ import { formatIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
 import type { AnnotationTemplateContext } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db/test-utils";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { renderAnnotationSources } from "@/lib/annotation-render";
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { attachmentImportFixture } from "@/services/attachment-import/__fixtures__";
-import { AttachmentCopyError } from "@/services/attachment-import/service";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { renderAnnotationSources } from "@/lib/annotation-render.ts";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { attachmentImportFixture } from "@/services/attachment-import/__fixtures__.ts";
+import { AttachmentCopyError } from "@/services/attachment-import/service.ts";
 import type {
   AttachmentImport,
   AttachmentImportBatch,
   AttachmentSource,
   SourceOrigin,
-} from "@/services/attachment-import/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
-import { defaults } from "@/services/settings/schema";
-import type { TemplateOperations } from "@/services/template/service";
+} from "@/services/attachment-import/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { noteImporterOver } from "./__fixtures__/importer";
-import { childNoteLink } from "./child-note-link";
-import type { ChildNoteLinkDeps } from "./child-note-link";
-import { noteAnnotationKeys, parseNote } from "./note-parser";
-import { NoteImportMintError, NoteImportParseError } from "./service";
+import { noteImporterOver } from "./__fixtures__/importer.ts";
+import { childNoteLink } from "./child-note-link.ts";
+import type { ChildNoteLinkDeps } from "./child-note-link.ts";
+import { noteAnnotationKeys, parseNote } from "./note-parser.ts";
+import { NoteImportMintError, NoteImportParseError } from "./service.ts";
 
 // The service owns the annotation renderer now; stub the leaf so the test asserts
 // the wiring (resolveLink binding, library scoping) without the template pipeline.
-vi.mock("@/lib/annotation-render", () => ({
+vi.mock("@/lib/annotation-render.ts", () => ({
   renderAnnotationSources: vi.fn(() => new Map<string, string>()),
 }));
 
 // `parseNote` is stubbed to echo its HTML and any annotation-callout output, so
 // the service-built `renderAnnotationParagraph` is exercised through the write.
-vi.mock("./note-parser", () => ({
+vi.mock("./note-parser.ts", () => ({
   noteAnnotationKeys: vi.fn(() => []),
   noteReferences: vi.fn(() => ({ citedIndexedKeys: [], attachmentKeys: [] })),
   parseNote: vi.fn(

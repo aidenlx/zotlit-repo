@@ -10,17 +10,17 @@ import {
   HIGHLIGHT_COLORS,
   HIGHLIGHT_EMOJI,
   isHighlightEmoji,
-} from "@/lib/highlight-mapping";
-import type { HighlightMapping } from "@/lib/highlight-mapping";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/lib/highlight-mapping.ts";
+import type { HighlightMapping } from "@/lib/highlight-mapping.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import type {
   SettingsControlKey,
   SettingsKey,
   SettingTabContext,
-} from "./context";
-import { profileControlKey } from "./profiles";
+} from "./context.ts";
+import { profileControlKey } from "./profiles.ts";
 
 const colorLabels = {
   red: m.annot_view_color_red,

@@ -5,19 +5,19 @@ import type { App, Editor, MarkdownFileInfo, TFile } from "obsidian";
 
 import { observeExit } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { profileRecoveryNotice } from "@/lib/profile-recovery";
-import { latestSlot } from "@/lib/view-runner";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
+import { latestSlot } from "@/lib/view-runner.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationInsertOutcome,
   AnnotationSnapshot,
-} from "@/services/note-feature/insert-action";
-export type { AnnotationInsertOutcome } from "@/services/note-feature/insert-action";
+} from "@/services/note-feature/insert-action.ts";
+export type { AnnotationInsertOutcome } from "@/services/note-feature/insert-action.ts";
 
-import { captureInsertion } from "./async-insert";
-import { startInsert } from "./insert-run";
-import type { InsertFiber, InsertRunner } from "./insert-run";
+import { captureInsertion } from "./async-insert.ts";
+import { startInsert } from "./insert-run.ts";
+import type { InsertFiber, InsertRunner } from "./insert-run.ts";
 
 const SOURCE_TAG = "application/x-zotlit-annotation";
 

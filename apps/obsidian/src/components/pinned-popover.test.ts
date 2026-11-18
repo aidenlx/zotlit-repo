@@ -6,12 +6,12 @@ import { act } from "preact/test-utils";
 import { createElement as h, createRef } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { pressTop } from "@/lib/__fixtures__/keymap";
-import { AppContext } from "@/lib/app-context";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
+import { pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
-import { PinnedPopover } from "./pinned-popover";
-import type { PageKey, PinnedPopoverHandle } from "./pinned-popover";
+import { PinnedPopover } from "./pinned-popover.tsx";
+import type { PageKey, PinnedPopoverHandle } from "./pinned-popover.tsx";
 
 let host: HTMLElement | null = null;
 afterEach(() => {

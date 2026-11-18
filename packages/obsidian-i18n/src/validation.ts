@@ -1,9 +1,9 @@
 // Validates JSON Language Pack data against the bounded runtime contract.
 
-import { isSupportedLanguagePackFormatter } from "./language-pack.js";
-import type { LanguagePack } from "./language-pack.js";
+import { isSupportedLanguagePackFormatter } from "./language-pack.ts";
+import type { LanguagePack } from "./language-pack.ts";
 
-export { isSupportedLanguagePackFormatter } from "./language-pack.js";
+export { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 
 /** Pack schema this plugin build reads; packs declaring anything else are rejected. */
 // Persisted version: packages/scripts/lib/format-versions.ts.

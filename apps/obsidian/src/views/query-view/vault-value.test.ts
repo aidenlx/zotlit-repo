@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dateInputValue, dateValue, linkOf, tagText } from "./vault-value";
+import { dateInputValue, dateValue, linkOf, tagText } from "./vault-value.ts";
 
 describe("linkOf", () => {
   it("reads a whole wikilink as an internal link, shown by its alias or its target", () => {

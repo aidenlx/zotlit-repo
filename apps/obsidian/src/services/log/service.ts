@@ -19,11 +19,11 @@ import {
   configureLogTape,
   configureLogTapeSync,
   resetLogTape,
-} from "@/lib/log";
-import { PluginSettings } from "@/services/settings/service";
-import type { Settings } from "@/services/settings/service";
+} from "@/lib/log.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { Settings } from "@/services/settings/service.ts";
 
-import { createVaultFileSink } from "./vault-sink";
+import { createVaultFileSink } from "./vault-sink.ts";
 
 export const LOG_FILENAME = "zotlit.log.jsonl";
 

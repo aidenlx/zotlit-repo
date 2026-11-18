@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeFileUri, sourceIdFromUris } from "./source-id";
+import { normalizeFileUri, sourceIdFromUris } from "./source-id.ts";
 
 describe("normalizeFileUri", () => {
   it("strips a trailing slash (Gecko appends one to existing dirs)", () => {

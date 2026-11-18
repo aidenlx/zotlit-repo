@@ -5,7 +5,7 @@ import {
   KEY_A,
   personalLibrary,
   groupLibrary,
-} from "@/services/citation-index/test-harness";
+} from "@/services/citation-index/test-harness.ts";
 /** An Indexed Key of the group Library the multi-Library fixtures use. */
 export const GROUP_KEY = "GRP12345g7";
 /** An Indexed Key of My Library, for a second Item there. */

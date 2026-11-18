@@ -5,19 +5,19 @@ import { describe, expect, it } from "vitest";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import type { ExcerptImageDisplay } from "@/services/excerpt-image/display";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
-import type { ExcerptImage } from "@/services/excerpt-image/format";
+} from "@/services/annotation-repository/service.ts";
+import type { ExcerptImageDisplay } from "@/services/excerpt-image/display.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
+import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
 
 import {
   excerptImageOwnership,
   excerptImageTarget,
-} from "./excerpt-image-state";
+} from "./excerpt-image-state.ts";
 import type {
   ExcerptImageOwnership,
   ExcerptImageTarget,
-} from "./excerpt-image-state";
+} from "./excerpt-image-state.ts";
 
 const SOURCE: AnnotationSource = {
   kind: "zotero-db",

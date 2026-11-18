@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { launchExternalUrl } from "./launch-url.js";
+import { launchExternalUrl } from "./launch-url.ts";
 
 const LINK = "obsidian://zotlit/open?item=859&source-id=4c7df3cb";
 const SYSTEM_PRINCIPAL = "system-principal";

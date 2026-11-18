@@ -5,32 +5,32 @@ import { expect, vi } from "vitest";
 
 import type { CiteRef } from "@zotlit/db";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   InertTemplateError,
   TemplateRenderError,
-} from "@/services/template/errors";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { bindNoteCitations } from "./citations-handle";
-import type { NoteCitationServices } from "./citations-handle";
+import { bindNoteCitations } from "./citations-handle.ts";
+import type { NoteCitationServices } from "./citations-handle.ts";
 
 /**
  * A journal article with the citation key `Hensher2011` and an attachment

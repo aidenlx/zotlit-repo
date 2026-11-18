@@ -1,7 +1,7 @@
 // UI action bindings for the Welcome View banner, exposed to the presentational tree via context.
 import { createContext, useContext } from "react";
 
-import type { SetupActions } from "./setup-actions";
+import type { SetupActions } from "./setup-actions.ts";
 
 /** What the view that hosts the banner does for it. */
 export interface WelcomeBannerHost {

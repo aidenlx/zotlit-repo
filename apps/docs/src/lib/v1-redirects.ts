@@ -14,8 +14,8 @@
 // permalinks move permanently to the matching Chinese v2 pages, derived from
 // PAGE_MAP.
 
-import { zotlitLegacyUrl } from "./shared.js";
-import { PAGE_MAP, V1_ONLY } from "./v1-routes.js";
+import { zotlitLegacyUrl } from "./shared.ts";
+import { PAGE_MAP, V1_ONLY } from "./v1-routes.ts";
 
 /** One line of a Cloudflare `_redirects` file. */
 export interface RedirectRule {

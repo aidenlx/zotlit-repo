@@ -1018,7 +1018,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     const catalog = JSON.parse(
       await readFile(
-        join(workspaceRoot, "packages/item-query/dist/query.schema.json"),
+        join(workspaceRoot, "packages/item-query/generated/query.schema.json"),
         "utf8",
       ),
     ) as { datasets: { annotations: { fields: object[] } } };
@@ -1154,7 +1154,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     // that release CI stages and verifies at the reported version-pinned URL.
     const catalog = JSON.parse(
       await readFile(
-        join(workspaceRoot, "packages/item-query/dist/query.schema.json"),
+        join(workspaceRoot, "packages/item-query/generated/query.schema.json"),
         "utf8",
       ),
     ) as {
@@ -1634,7 +1634,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             state: { followMode: "pinned", pinnedItemKey: annotationItemKey },
           });
           const view = leaf!.view;
-          await (view as import("@/views/annot-view/view").AnnotationView).read;
+          await (view as import("@/views/annot-view/view.tsx").AnnotationView)
+            .read;
           const count = () =>
             (
               view as import("obsidian").ItemView

@@ -7,7 +7,7 @@ import { DEFAULT_PROFILE_SOURCE, SAMPLE_ITEMS } from "@zotlit/workbench/render";
 
 import { m } from "@/paraglide/messages.js";
 
-import { chosenTab, keep, open } from "./page-test-host";
+import { chosenTab, keep, open } from "./page-test-host.tsx";
 
 /** The side panel the page shows under `label`, or null. */
 const region = (host: HTMLElement, label: string) =>

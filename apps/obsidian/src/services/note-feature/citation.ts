@@ -3,8 +3,8 @@ import { Effect } from "effect";
 
 import type { CitationVariant, CiteRef } from "@zotlit/db";
 
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
 
 /**
  * Render the Citation Template for the given items under one Citation Variant.

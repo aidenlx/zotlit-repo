@@ -15,14 +15,14 @@ import type { App } from "obsidian";
 
 import { composing } from "@zotlit/ui";
 
-import { holdScopeWhileFocused } from "@/lib/focus-scope";
-import type { FocusScope } from "@/lib/focus-scope";
-import { themeHook } from "@/lib/theme-hooks";
+import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
+import type { FocusScope } from "@/lib/focus-scope.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
 
-import { readingAngle } from "./free-text-layout";
-import type { TextDraft } from "./reader-surface-state";
-import { darken, pageUnitSize, unitPointOf, unitsPerPixel } from "./render";
-import type { MeasuredFont, OverlayPageView } from "./render";
+import { readingAngle } from "./free-text-layout.ts";
+import type { TextDraft } from "./reader-surface-state.ts";
+import { darken, pageUnitSize, unitPointOf, unitsPerPixel } from "./render.ts";
+import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 /**
  * The room a line gets past its fitted width, in PDF points. A box fitted to

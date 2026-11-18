@@ -17,9 +17,9 @@ import {
   KEPT,
   renderInThread,
   shownItem,
-} from "./page-test-host";
-import { Rendering } from "./rendering";
-import { WEB_THEME } from "./theme";
+} from "./page-test-host.tsx";
+import { Rendering } from "./rendering.ts";
+import { WEB_THEME } from "./theme.tsx";
 
 vi.mock("@zotlit/workbench/ui", async (original) => {
   const actual = await original<typeof import("@zotlit/workbench/ui")>();

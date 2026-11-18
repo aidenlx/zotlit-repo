@@ -2,8 +2,8 @@ import type { MarkdownView, WorkspaceLeaf } from "obsidian";
 // Citation scan smoke and renderer budget on the shared run Fixture.
 import { describe, expect, it } from "vitest";
 
-import type { AnnotationView } from "@/views/annot-view/view";
-import type { ReferencesView } from "@/views/references/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { ReferencesView } from "@/views/references/view.tsx";
 
 import { measureCitationScan } from "./citation-scan-measure.ts";
 import { reachable } from "./e2e-run-fixture.ts";

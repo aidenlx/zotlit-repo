@@ -2,11 +2,11 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, Stream } from "effect";
 import { describe, expect } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { languagePackSettingCopy } from "@/lib/i18n/settings-copy";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { languagePackSettingCopy } from "@/lib/i18n/settings-copy.ts";
 
-import { fakeDevice, startOn } from "./__fixtures__";
-import type { LanguagePack } from "./service";
+import { fakeDevice, startOn } from "./__fixtures__.ts";
+import type { LanguagePack } from "./service.ts";
 
 const PACK_URL =
   "https://github.com/aidenlx/zotlit/releases/download/res-2.0.0/zh-CN.json";

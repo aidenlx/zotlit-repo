@@ -1,16 +1,16 @@
 // The shared result controls and render selection, with Markdown supplied by the host.
 
-import type { RenderDiagnostic, TemplateRenderResult } from "#/render/result";
+import type { RenderDiagnostic, TemplateRenderResult } from "#render/result.ts";
 import { Suspense } from "react";
 import type { ReactNode, Ref } from "react";
 
-import { useContainerName, useWorkbenchHost, useTooltip } from "./host";
-import type { WorkbenchMarkdownProps } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { pendingView } from "./pending-view";
-import { diagnosticText } from "./problems";
-import { WorkbenchSelect, WorkbenchOption } from "./select";
-import { useParts } from "./theme";
+import { useContainerName, useWorkbenchHost, useTooltip } from "./host.tsx";
+import type { WorkbenchMarkdownProps } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { pendingView } from "./pending-view.ts";
+import { diagnosticText } from "./problems.ts";
+import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
+import { useParts } from "./theme.tsx";
 
 /** The result pane's heading beside the reading-or-Markdown choice. */
 export function ResultHeader({

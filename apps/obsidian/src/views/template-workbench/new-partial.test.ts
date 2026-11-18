@@ -4,26 +4,26 @@ import {
   Modal,
   TextComponent,
   controlsOf,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect, Exit, Stream } from "effect";
 import type { TFile } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { exitOf } from "@/lib/__fixtures__/view-runner";
-import { valueOr } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { makeViewRunner } from "@/lib/view-runner";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { exitOf } from "@/lib/__fixtures__/view-runner.ts";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
 
-import { makeWorkbenchHost } from "./__fixtures__";
-import type { WorkbenchHostDeps } from "./__fixtures__";
-import type { CreateSharedPartialOptions } from "./new-partial";
-import type { SharedPartialActions } from "./new-partial";
-import { openTemplateWorkbench } from "./open";
-import { createSharedPartialEffect } from "./partial-command";
+import { makeWorkbenchHost } from "./__fixtures__.ts";
+import type { WorkbenchHostDeps } from "./__fixtures__.ts";
+import type { CreateSharedPartialOptions } from "./new-partial.ts";
+import type { SharedPartialActions } from "./new-partial.ts";
+import { openTemplateWorkbench } from "./open.ts";
+import { createSharedPartialEffect } from "./partial-command.ts";
 
-vi.mock("./open", () => ({
+vi.mock("./open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 

@@ -5,19 +5,19 @@ import { buildFilenameContext } from "@zotlit/db";
 import type { Item, ItemTag, TemplateCollection } from "@zotlit/db";
 import { hasSuffixMarker, joinNotePath } from "@zotlit/templates";
 
-import { creatorSummary } from "@/lib/item-summary";
-import { Vault } from "@/lib/obsidian-vault";
-import { getProfileBinding } from "@/services/profile/bindings";
-import type { ProfileBindingSettings } from "@/services/profile/bindings";
-import { Template } from "@/services/template/service";
-import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service";
+import { creatorSummary } from "@/lib/item-summary.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { getProfileBinding } from "@/services/profile/bindings.ts";
+import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";
+import { Template } from "@/services/template/service.ts";
+import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
 
 import {
   baseNoteName,
   MAX_SUFFIX_ATTEMPTS,
   noFreeName,
   suffixedNoteName,
-} from "./filename";
+} from "./filename.ts";
 
 /**
  * No free path came of the rendered filename: it is empty, or each `suffix()`

@@ -1,28 +1,28 @@
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
-} from "#/document/index";
+} from "#document/index.ts";
 // Annotation format editing, example selection, and access to the source section.
-import type { AnnotationExample } from "#/render/index";
+import type { AnnotationExample } from "#render/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
 import { isPageNumber } from "@zotlit/db";
 import { useUniqueId } from "@zotlit/ui";
 
-import { useWorkbenchModel } from "./editor";
-import type { WorkbenchMessages } from "./generated/messages";
-import { useWorkbenchHost } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { usePartialBoxes } from "./partial-boxes";
-import type { PartialPlaceholderHost } from "./partial-boxes";
-import { SampleSuggester } from "./sample-suggester";
-import type { SampleOption } from "./sample-suggester";
-import { SliceEditor } from "./slice-editor";
-import type { SliceEditorProps } from "./slice-editor";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchModel } from "./editor.tsx";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { useWorkbenchHost } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { usePartialBoxes } from "./partial-boxes.tsx";
+import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
+import { SampleSuggester } from "./sample-suggester.tsx";
+import type { SampleOption } from "./sample-suggester.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import type { SliceEditorProps } from "./slice-editor.tsx";
+import { useIcon, useParts } from "./theme.tsx";
 
-import { documentRevision } from "#/document/atoms";
-import { SAMPLE_ANNOTATIONS } from "#/render/index";
+import { documentRevision } from "#document/atoms.ts";
+import { SAMPLE_ANNOTATIONS } from "#render/index.ts";
 
 export function AnnotationSampleBar({
   id,

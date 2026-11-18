@@ -1,10 +1,10 @@
 import { Effect } from "effect";
 
-import { check } from "./__fixtures__/check";
-import { encodeExcerptImage } from "./__fixtures__/encode";
-import { answerAnnotationImage } from "./cli-image";
-import type { AnnotationImagePorts } from "./cli-image";
-import type { ExcerptRequest } from "./contract";
+import { check } from "./__fixtures__/check.ts";
+import { encodeExcerptImage } from "./__fixtures__/encode.ts";
+import { answerAnnotationImage } from "./cli-image.ts";
+import type { AnnotationImagePorts } from "./cli-image.ts";
+import type { ExcerptRequest } from "./contract.ts";
 
 export async function run(): Promise<string[]> {
   const canvas = document.createElement("canvas");

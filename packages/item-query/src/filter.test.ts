@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 
 import type { HydratedItem } from "@zotlit/db/item-query";
 
-import { codeOfFault } from "./diagnose";
-import type { QueryItem } from "./fields";
-import { evaluate, matches } from "./filter-evaluate";
-import { hasBareForm, planFilter } from "./filter-plan";
-import type { FilterPlan, FilterProblem } from "./filter-plan";
-import type { FilterValue } from "./filter-values";
-import type { QueryClock } from "./query-clock";
-import { ITEMS } from "./query-items";
-import { TEST_NOW } from "./test-helpers";
+import { codeOfFault } from "./diagnose.ts";
+import type { QueryItem } from "./fields.ts";
+import { evaluate, matches } from "./filter-evaluate.ts";
+import { hasBareForm, planFilter } from "./filter-plan.ts";
+import type { FilterPlan, FilterProblem } from "./filter-plan.ts";
+import type { FilterValue } from "./filter-values.ts";
+import type { QueryClock } from "./query-clock.ts";
+import { ITEMS } from "./query-items.ts";
+import { TEST_NOW } from "./test-helpers.ts";
 
 interface ItemSpec {
   key?: string;

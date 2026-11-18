@@ -8,7 +8,7 @@ import type {
   ContractRef,
   ContractStringified,
   ContractType,
-} from "#contract/ir";
+} from "#contract/ir.ts";
 // Walks the `zt` contract types with ts-morph and records their serialized form as contract IR.
 import { regex } from "arkregex";
 import { Node } from "ts-morph";

@@ -7,8 +7,8 @@ import {
   movedHighlight,
   rehomedHighlight,
   toggledValues,
-} from "./chooser-logic";
-import type { ChooserMatcher, ChooserRow } from "./chooser-logic";
+} from "./chooser-logic.ts";
+import type { ChooserMatcher, ChooserRow } from "./chooser-logic.ts";
 
 /** A tag vocabulary in the order the Annotation View derives it. */
 const ROWS: ChooserRow[] = [

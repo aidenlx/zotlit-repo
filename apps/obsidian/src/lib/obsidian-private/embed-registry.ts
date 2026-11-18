@@ -6,7 +6,7 @@
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import type { App, EmbedCreator } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 export type { EmbedComponent, EmbedContext, EmbedCreator } from "obsidian";
 

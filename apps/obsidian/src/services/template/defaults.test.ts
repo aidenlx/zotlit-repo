@@ -4,7 +4,7 @@ import {
   normalizePartialName,
   partialFilename,
   partialNameRefusal,
-} from "./defaults";
+} from "./defaults.ts";
 
 describe("the Shared Partial name rule", () => {
   it("folds what the reader types into the name the file carries", () => {

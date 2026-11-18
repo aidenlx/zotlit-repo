@@ -3,8 +3,8 @@ import type { IconName } from "obsidian";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import type { CSSProperties, ReactNode, SVGAttributes } from "react";
 
-import { getLogger } from "@/lib/log";
-import { cn } from "@/lib/utils";
+import { getLogger } from "@/lib/log.ts";
+import { cn } from "@/lib/utils.ts";
 
 const logger = getLogger("ui.icon");
 

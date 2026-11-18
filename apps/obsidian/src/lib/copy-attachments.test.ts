@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect } from "vitest";
 
-import { copyAttachments } from "./copy-attachments";
+import { copyAttachments } from "./copy-attachments.ts";
 
 let dir: string;
 

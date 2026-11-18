@@ -10,8 +10,8 @@ import type {
   QueryDataset,
 } from "@zotlit/item-query";
 
-import { matchScore } from "./matching";
-import type { Span } from "./span";
+import { matchScore } from "./matching.ts";
+import type { Span } from "./span.ts";
 
 /**
  * The namespace a Filter Expression reads a vault property under:

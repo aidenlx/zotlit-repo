@@ -39,34 +39,34 @@ import type {
   WorkbenchRunner,
 } from "@zotlit/workbench/ui";
 
-import { Toggle } from "@/components/obsidian/toggle";
-import { citationStyleLabel } from "@/lib/citation-style";
-import { docsUrl } from "@/lib/docs-url";
-import { awaitModal, openModalIn } from "@/lib/effect-modal";
-import { obsidianPopupKeys } from "@/lib/field-popup";
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages";
-import { showMenuAtButton } from "@/lib/menu";
-import { BaseNotice } from "@/lib/notice";
-import { tooltipAttrs } from "@/lib/utils";
-import { answerOf } from "@/lib/view-runner";
+import { Toggle } from "@/components/obsidian/toggle.tsx";
+import { citationStyleLabel } from "@/lib/citation-style.ts";
+import { docsUrl } from "@/lib/docs-url.ts";
+import { awaitModal, openModalIn } from "@/lib/effect-modal.ts";
+import { obsidianPopupKeys } from "@/lib/field-popup.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { tooltipAttrs } from "@/lib/utils.ts";
+import { answerOf } from "@/lib/view-runner.ts";
 import {
   CurrentAnswer,
   takeEnter,
-} from "@/services/item-lookup/current-answer";
+} from "@/services/item-lookup/current-answer.ts";
 import {
   appendInlineFlair,
   appendTrailingFlair,
   FLAIR_ROW_CLASS,
-} from "@/services/item-lookup/render-hit";
-import { communityUrl } from "@/views/welcome/links";
+} from "@/services/item-lookup/render-hit.ts";
+import { communityUrl } from "@/views/welcome/links.ts";
 
-import { extractPartialMenu } from "./extract-partial";
-import type { ExtractPartial } from "./extract-partial";
-import { templateHover } from "./hover";
-import { nativeCompletion } from "./native-completion";
-import { templateWorkbenchIcons } from "./theme";
+import { extractPartialMenu } from "./extract-partial.ts";
+import type { ExtractPartial } from "./extract-partial.ts";
+import { templateHover } from "./hover.tsx";
+import { nativeCompletion } from "./native-completion.ts";
+import { templateWorkbenchIcons } from "./theme.tsx";
 
 class EditorDialog extends Modal {
   #root: Root | null = null;

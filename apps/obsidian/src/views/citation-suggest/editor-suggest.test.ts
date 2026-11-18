@@ -11,43 +11,43 @@ import type {
 } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { scopedBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { CitationIndex } from "@/services/citation-index/service";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   CitationKeyResolution,
   CitekeyResolution,
   DocumentCitationSet,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   KEY_A,
-} from "@/services/citation-index/test-harness";
-import { buildItemLookup } from "@/services/item-lookup/__fixtures__";
-import type { SearchHit } from "@/services/item-lookup/service";
-import { defaults } from "@/services/settings/schema";
-import { InertTemplateError } from "@/services/template/errors";
-import type { UseKind } from "@/services/use-ledger/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/citation-index/test-harness.ts";
+import { buildItemLookup } from "@/services/item-lookup/__fixtures__.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import type { UseKind } from "@/services/use-ledger/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
-import { placeInsertion } from "@/views/annot-view/async-insert";
+} from "@/services/zotero-reads/test-utils.ts";
+import { placeInsertion } from "@/views/annot-view/async-insert.ts";
 
-import { readDocumentCitedKeys } from "./document-citations";
+import { readDocumentCitedKeys } from "./document-citations.ts";
 import {
   CitationEditorSuggest,
   resolveCitationInsert,
   resolveCitationTrigger,
-} from "./editor-suggest";
-import type { CitationSuggestDeps } from "./register";
+} from "./editor-suggest.ts";
+import type { CitationSuggestDeps } from "./register.ts";
 
 let bridge: ReturnType<typeof openTestBridge>;
 beforeEach(() => {

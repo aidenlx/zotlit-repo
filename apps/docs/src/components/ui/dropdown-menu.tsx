@@ -3,7 +3,7 @@
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Check } from "lucide-react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export const DropdownMenu = MenuPrimitive.Root;
 export const DropdownMenuTrigger = MenuPrimitive.Trigger;

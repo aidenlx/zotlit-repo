@@ -16,25 +16,25 @@ import type {
 } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { presented } from "@/services/citation-text/__fixtures__";
-import type { DocumentCitations } from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { presented } from "@/services/citation-text/__fixtures__.ts";
+import type { DocumentCitations } from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   AnnotationLinkReadingCore,
   layerAnnotationLinkReading,
-} from "./reading";
-import type { AnnotationLinkReadingDeps } from "./reading";
-import { AnnotationPopover } from "./service";
-import type { AnnotationHoverRequest } from "./service";
+} from "./reading.ts";
+import type { AnnotationLinkReadingDeps } from "./reading.ts";
+import { AnnotationPopover } from "./service.tsx";
+import type { AnnotationHoverRequest } from "./service.tsx";
 
 const HREF = "zotero://open/library/items/RGRPDF24?annotation=PUPR5FG5&page=1";
 

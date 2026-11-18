@@ -1,7 +1,7 @@
 import { defineConfig, mergeConfig } from "vite";
 
-import { zoteroDevServerPlugin } from "./scripts/dev-server/index.js";
-import { createZoteroViteConfig } from "./vite.config.js";
+import { zoteroDevServerPlugin } from "./scripts/dev-server/index.ts";
+import { createZoteroViteConfig } from "./vite.config.ts";
 
 const packageRoot = import.meta.dirname;
 

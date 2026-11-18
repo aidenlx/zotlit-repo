@@ -17,8 +17,8 @@ import type {
   ScanRow,
 } from "@zotlit/db/item-query";
 
-import type { Loader } from "./record-loader";
-import type { TargetLibrary } from "./request";
+import type { Loader } from "./record-loader.ts";
+import type { TargetLibrary } from "./request.ts";
 
 /** Raw Relation Lists live only for one root hydrate chunk, including its nested loads. */
 export interface RelationChunk {

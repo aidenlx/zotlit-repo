@@ -2,17 +2,17 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import type {
   ProfileId,
   ProfileSelector,
   UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp";
+} from "@/lib/profile-stamp.ts";
 
-import type { ComposeWarn } from "./compose";
-import type { ManagedFrontmatterPreparationFailure } from "./frontmatter";
+import type { ComposeWarn } from "./compose.ts";
+import type { ManagedFrontmatterPreparationFailure } from "./frontmatter.ts";
 import type {
   CreateNoteResult,
   LiteratureNoteTemplateConversionRequiredDiagnostic,
@@ -20,7 +20,7 @@ import type {
   ManagedFrontmatterRefusalDiagnostic,
   MissingLiteratureNoteTemplateDiagnostic,
   UpdateResult,
-} from "./types";
+} from "./types.ts";
 
 const logged = withLogCategory("note-feature");
 

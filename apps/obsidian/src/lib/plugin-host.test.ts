@@ -11,10 +11,10 @@ import type {
 } from "obsidian";
 import { describe, expect, it as plainIt, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { CliHost } from "@/lib/cli-command";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { CliHost } from "@/lib/cli-command.ts";
 
-import { makePluginHost } from "./plugin-host";
+import { makePluginHost } from "./plugin-host.ts";
 
 /** The command registry a plugin writes to, shaped as Obsidian 1.15.0 keeps it. */
 function fakeObsidian(viewRegistry?: App["viewRegistry"]) {

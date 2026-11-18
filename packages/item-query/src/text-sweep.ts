@@ -6,9 +6,9 @@ import {
 } from "@zotlit/db/item-query";
 import type { TextSweepCandidateLeaf } from "@zotlit/db/item-query";
 
-import type { CandidateFallback, CandidateSources } from "./candidate-plan";
-import { isStoredStringField } from "./fields";
-import type { FilterNode } from "./filter-plan";
+import type { CandidateFallback, CandidateSources } from "./candidate-plan.ts";
+import { isStoredStringField } from "./fields.ts";
+import type { FilterNode } from "./filter-plan.ts";
 
 /** A LIKE superset of both JavaScript contains and lowercase contains. */
 export function textSweepPattern(text: string): string | null {

@@ -5,9 +5,9 @@
 import { Keymap } from "obsidian";
 import type { App, HoverParent, Workspace } from "obsidian";
 
-import { CITEKEY_HOVER_SOURCE, hoverEditingMode } from "./hover";
-import type { CitationHoverGesture } from "./hover";
-import type { NavigationAction, NavigationGesture } from "./intent";
+import { CITEKEY_HOVER_SOURCE, hoverEditingMode } from "./hover.ts";
+import type { CitationHoverGesture } from "./hover.ts";
+import type { NavigationAction, NavigationGesture } from "./intent.ts";
 
 /** The surface a gesture happened on, and the editor's mode where it has one. */
 export type GestureSurface = Pick<NavigationGesture, "surface" | "editorMode">;

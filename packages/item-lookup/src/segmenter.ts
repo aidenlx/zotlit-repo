@@ -2,7 +2,7 @@
 import { Context, Effect, Layer, Schema } from "effect";
 import { cut_for_search, initSync } from "jieba-wasm/web";
 
-import { tokenize } from "./tokenizer";
+import { tokenize } from "./tokenizer.ts";
 
 /**
  * Cuts text into search words for the item search engine. The engine reads it

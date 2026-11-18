@@ -1,4 +1,6 @@
-import type { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { relations } from "#drizzle/relations.ts";
 import { inArray, sql } from "drizzle-orm";
 import type { AnyColumn, DBQueryConfig, Placeholder, SQL } from "drizzle-orm";
 import type {
@@ -7,10 +9,7 @@ import type {
   SQLiteSyncRelationalQuery,
 } from "drizzle-orm/sqlite-core";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import type { SQLocalDatabaseClient } from "@/client/web";
-
-export { CHILD_ITEM_TYPES, type ChildItemType } from "@/lib/item-types";
+export { CHILD_ITEM_TYPES, type ChildItemType } from "#lib/item-types.ts";
 
 /**
  * Schema-aware shape of an RQB v2 `findMany` config bound to a specific

@@ -9,32 +9,32 @@ import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
 import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 
-import { Vault } from "@/lib/obsidian-vault";
+import { Vault } from "@/lib/obsidian-vault.ts";
 import {
   parseProfileSelector,
   PROFILE_ID_LENGTH,
   PROFILE_ID_RULE,
-} from "@/lib/profile-stamp";
-import { bindDraftProfile, Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/lib/profile-stamp.ts";
+import { bindDraftProfile, Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   checkDiagnostic,
   checkNativeProfile,
   PROFILE_OUTPUTS,
-} from "@/services/template-workbench/check-profile";
-import type { ProfileCheck } from "@/services/template-workbench/check-profile";
-import { Template } from "@/services/template/service";
+} from "@/services/template-workbench/check-profile.ts";
+import type { ProfileCheck } from "@/services/template-workbench/check-profile.ts";
+import { Template } from "@/services/template/service.ts";
 
+import { attempt, CheckSourceThrew, thrown } from "./check-plain-document.ts";
 import type {
   CheckOutcome,
   CheckServices,
   InspectedSource,
   ProfileCheckBranch,
-} from "./check";
-import { attempt, CheckSourceThrew, thrown } from "./check-plain-document";
-import { readTemplateData, withSelectedNote, withSettings } from "./data";
-import { sourceRevision } from "./inspect";
-import { profileCall, syncTemplate, templateCall } from "./sync-template";
+} from "./check.ts";
+import { readTemplateData, withSelectedNote, withSettings } from "./data.ts";
+import { sourceRevision } from "./inspect.ts";
+import { profileCall, syncTemplate, templateCall } from "./sync-template.ts";
 
 /** The refusal a Template Draft identity that fails the Profile ID rule carries. */
 export const INVALID_PROFILE_ID = "INVALID_PROFILE_ID";

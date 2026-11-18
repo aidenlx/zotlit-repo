@@ -7,7 +7,7 @@
 // distributed under the GNU Affero General Public License v3; ZotLit's
 // AGPL-3.0-or-later grant lets this port be distributed under AGPL v3.
 
-import type { Rect, StructuredChar, StructuredPage } from "@/chars";
+import type { Rect, StructuredChar, StructuredPage } from "#chars.ts";
 
 /** Highlight, underline, note and image positions. */
 export interface PdfRectsPosition {

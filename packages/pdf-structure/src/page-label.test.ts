@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { alignPageLabel } from "@/page-label";
+import { alignPageLabel } from "#page-label.ts";
 
 /** A six-page front-matter run: roman covers i-iv, then arabic restarts. */
 const LABELS = ["i", "ii", "iii", "iv", "1", "2"];

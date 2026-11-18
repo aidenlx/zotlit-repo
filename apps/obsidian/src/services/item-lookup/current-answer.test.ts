@@ -4,7 +4,7 @@
 // cases run through `ItemSearchModal` in `search-modal.test.ts`.
 import { describe, expect, it, vi } from "vitest";
 
-import { CurrentAnswer } from "./current-answer";
+import { CurrentAnswer } from "./current-answer.ts";
 
 const enter = { type: "keydown", key: "Enter" } as KeyboardEvent;
 const click = { type: "click", button: 0 } as MouseEvent;

@@ -1,12 +1,12 @@
 import type { App, MetadataCache as MetadataCacheApi } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { propertyValues, vaultTags } from "./property-values";
+import { propertyValues, vaultTags } from "./property-values.ts";
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
 }));
 

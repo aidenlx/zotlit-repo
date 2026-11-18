@@ -4,7 +4,7 @@
 import * as Vitest from "@effect/vitest";
 import * as NativeEffect from "effect/Effect";
 
-import { runtimeServices } from "./effect-services";
+import { runtimeServices } from "./effect-services.ts";
 
 export * from "@effect/vitest";
 

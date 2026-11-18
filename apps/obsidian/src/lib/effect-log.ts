@@ -8,13 +8,13 @@ import * as References from "effect/References";
 
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 
-import type { EffectBridge } from "./effect-bridge";
+import type { EffectBridge } from "./effect-bridge.ts";
 import {
   LogCategory,
   LogTimestamp,
   withLogCategory,
-} from "./effect-log-category";
-import { rootLogger } from "./log";
+} from "./effect-log-category.ts";
+import { rootLogger } from "./log.ts";
 
 export { LogCategory, withLogCategory };
 

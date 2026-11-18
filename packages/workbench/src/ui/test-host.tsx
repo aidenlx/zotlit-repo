@@ -1,8 +1,8 @@
 // A host for the shared suite: every adapter call is recorded, preferences
 // live in memory, and the theme names each part's class after the part.
 
-import type { RenderRequest } from "#/render/request";
-import type { RenderDiagnostic, TemplateRenderResult } from "#/render/result";
+import type { RenderRequest } from "#render/request.ts";
+import type { RenderDiagnostic, TemplateRenderResult } from "#render/result.ts";
 import { render as renderUI } from "@testing-library/react";
 import { Effect, Layer, Queue } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -10,12 +10,12 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
-import { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor";
+import { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor.tsx";
 import {
   WorkbenchClipboardError,
   WorkbenchHostError,
   WorkbenchHostProvider,
-} from "./host";
+} from "./host.tsx";
 import type {
   WorkbenchFieldDetailsProps,
   WorkbenchFieldsPopoverProps,
@@ -23,22 +23,22 @@ import type {
   WorkbenchMenuRequest,
   WorkbenchPreferenceScope,
   WorkbenchSuggesterRequest,
-} from "./host";
-import { WorkbenchMessagesProvider } from "./messages";
-import { patch } from "./model";
+} from "./host.tsx";
+import { WorkbenchMessagesProvider } from "./messages.tsx";
+import { patch } from "./model.ts";
 import type {
   WorkbenchItemData,
   WorkbenchModel,
   WorkbenchViewState,
-} from "./model";
-import type { ViewSize, WorkbenchPanels } from "./panel-layout";
-import { m } from "./test-messages";
-import { WorkbenchThemeProvider } from "./theme";
-import type { WorkbenchClassMap, WorkbenchTheme } from "./theme";
+} from "./model.ts";
+import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
+import { m } from "./test-messages.ts";
+import { WorkbenchThemeProvider } from "./theme.tsx";
+import type { WorkbenchClassMap, WorkbenchTheme } from "./theme.tsx";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
-import { failedRender, renderIdentity } from "#/render/result";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
+import { failedRender, renderIdentity } from "#render/result.ts";
 
 /** A render the tree asked for, which the test answers when it chooses. */
 export interface PendingRender {

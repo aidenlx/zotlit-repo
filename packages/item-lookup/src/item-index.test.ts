@@ -6,14 +6,14 @@ import { describe, expect, it } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 
-import { makeMemoryItemRow as item } from "./fixtures";
-import { ItemIndex, layerItemIndex, SourceUnavailable } from "./item-index";
-import type { IndexSettings, SearchHit } from "./item-index";
-import { makeMemoryItemSource } from "./memory-item-source";
-import type { MemoryItemRow, MemoryItemSource } from "./memory-item-source";
-import { makeMemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader";
-import type { MemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader";
-import type { SegmenterBinary } from "./segmenter-switch";
+import { makeMemoryItemRow as item } from "./fixtures.ts";
+import { ItemIndex, layerItemIndex, SourceUnavailable } from "./item-index.ts";
+import type { IndexSettings, SearchHit } from "./item-index.ts";
+import { makeMemoryItemSource } from "./memory-item-source.ts";
+import type { MemoryItemRow, MemoryItemSource } from "./memory-item-source.ts";
+import { makeMemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
+import type { MemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
+import type { SegmenterBinary } from "./segmenter-switch.ts";
 
 const GROUP_LIBRARY_ID = 2;
 

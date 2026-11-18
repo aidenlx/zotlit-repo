@@ -3,20 +3,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { annotationSamples } from "@zotlit/workbench/ui";
 
-import type { TemplateDataLoadResult } from "@/services/template-workbench/data";
+import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
-} from "@/views/template-workbench/selection-data";
+} from "@/views/template-workbench/selection-data.ts";
 
-import { makeExplorerHost, waitFor } from "./__fixtures__";
-import type { ExplorerHost, ExplorerReads } from "./__fixtures__";
+import { makeExplorerHost, waitFor } from "./__fixtures__.ts";
+import type { ExplorerHost, ExplorerReads } from "./__fixtures__.ts";
 import {
   setCollapsedSections,
   setFilter,
   setNavigation,
   toggleNode,
-} from "./model";
+} from "./model.ts";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 const readCitation = vi.fn<NonNullable<ExplorerReads["readCitation"]>>();

@@ -3,12 +3,12 @@ import { expect, it } from "vitest";
 import {
   filterExpressionLanguage,
   highlightFilterExpression,
-} from "./filter-expression";
-import { templateToken } from "./highlight";
-import type { TemplateToken } from "./highlight";
-import { jsonSyntaxTokens } from "./json-e";
-import { completionEdit, hoverHint, suggestions } from "./suggestions";
-import type { SuggestionConfig } from "./suggestions";
+} from "./filter-expression.ts";
+import { templateToken } from "./highlight.ts";
+import type { TemplateToken } from "./highlight.ts";
+import { jsonSyntaxTokens } from "./json-e.ts";
+import { completionEdit, hoverHint, suggestions } from "./suggestions.ts";
+import type { SuggestionConfig } from "./suggestions.ts";
 
 const config: SuggestionConfig = {
   root: "note",

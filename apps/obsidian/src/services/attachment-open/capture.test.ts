@@ -1,14 +1,14 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Settings } from "@/services/settings/schema";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { FILES, openerHarness } from "./__fixtures__";
+import { FILES, openerHarness } from "./__fixtures__.ts";
 import {
   EXTERNAL_TARGET,
   paneFromTarget,
   registerFileLinkCapture,
-} from "./capture";
+} from "./capture.ts";
 
 describe("paneFromTarget", () => {
   // The pane names pass through, which `registerFileLinkCapture` proves with

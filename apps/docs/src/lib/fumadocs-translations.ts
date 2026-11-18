@@ -4,7 +4,7 @@ import type { Translations } from "fumadocs-ui/i18n";
 
 import { m } from "@/paraglide/messages.js";
 
-import type { SiteLocale } from "./i18n";
+import type { SiteLocale } from "./i18n.ts";
 
 /** Adapt the root catalogs to the installed native Fumadocs registry. */
 export function fumadocsTranslations(locale: SiteLocale): Translations {

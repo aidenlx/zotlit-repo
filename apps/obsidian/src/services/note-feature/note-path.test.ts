@@ -5,12 +5,12 @@ import { describe, expect, vi } from "vitest";
 
 import { filenameSuffix } from "@zotlit/templates";
 
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
 
-import { EmptyFilenameError } from "./filename";
-import { NotePathUnavailable, resolveRenderedNotePath } from "./note-path";
+import { EmptyFilenameError } from "./filename.ts";
+import { NotePathUnavailable, resolveRenderedNotePath } from "./note-path.ts";
 
 const FILE = stubService<TAbstractFile>("TAbstractFile", {});
 

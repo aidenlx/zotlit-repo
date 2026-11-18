@@ -22,7 +22,7 @@ import {
 } from "@zotlit/workbench/ui";
 import type { WorkbenchModel } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu.tsx";
 import { m } from "@/paraglide/messages.js";
 
 const ICONS = {

@@ -2,9 +2,9 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer } from "effect";
 import { describe, expect } from "vitest";
 
-import { cliRunner } from "./cli-command";
-import { effectBridge } from "./effect-bridge";
-import { buildRuntime } from "./effect-layer";
+import { cliRunner } from "./cli-command.ts";
+import { effectBridge } from "./effect-bridge.ts";
+import { buildRuntime } from "./effect-layer.ts";
 
 /** The plugin's unload, which a CLI runner hears through its signal. */
 function pluginUnload(): AbortController {

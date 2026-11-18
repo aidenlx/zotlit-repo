@@ -5,14 +5,14 @@ import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { defaults as defaultSettings } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { defaults as defaultSettings } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import type { SearchSession } from "./handle";
-import { ItemSearchModal, pickItem } from "./search-modal";
-import type { ItemSearchDeps } from "./search-modal";
-import type { SearchHit } from "./service";
+import type { SearchSession } from "./handle.ts";
+import { ItemSearchModal, pickItem } from "./search-modal.ts";
+import type { ItemSearchDeps } from "./search-modal.ts";
+import type { SearchHit } from "./service.ts";
 
 /** Two Items with one title: their rows read the same. */
 const figures = hit("DMRGRART");

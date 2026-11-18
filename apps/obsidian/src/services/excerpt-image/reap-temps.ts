@@ -3,10 +3,10 @@
 import { Duration, Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { isOlderThan, sweepTempDirectory } from "@/lib/temp-sweep";
-import type { ReapTempsOptions } from "@/lib/temp-sweep";
+import { isOlderThan, sweepTempDirectory } from "@/lib/temp-sweep.ts";
+import type { ReapTempsOptions } from "@/lib/temp-sweep.ts";
 
-import { excerptTempDirectory } from "./temp-store";
+import { excerptTempDirectory } from "./temp-store.ts";
 
 /** Every reuse restamps a published PNG, so last use starts its lifetime. */
 const PNG_MAX_AGE = Duration.days(7);

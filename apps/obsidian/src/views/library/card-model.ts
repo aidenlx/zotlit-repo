@@ -5,15 +5,15 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
-import { QueryService } from "@/services/item-query/service";
-import { libraryScopeStateAtom } from "@/services/library-scope/atoms";
-import { libraryLabel } from "@/services/library-scope/label";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import { notedItemKeysAtom } from "@/services/note-index/atoms";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 
 import {
   cardItem,
@@ -21,11 +21,11 @@ import {
   quoteOf,
   QUOTED,
   QUOTE_PATHS,
-} from "./card-data";
-import type { CardItem, Values } from "./card-data";
-import { CARD_PATHS } from "./card-fields";
-import type { ReadingCardDisclosures } from "./document";
-import { libraryOf, sameLibrary } from "./tree";
+} from "./card-data.ts";
+import type { CardItem, Values } from "./card-data.ts";
+import { CARD_PATHS } from "./card-fields.ts";
+import type { ReadingCardDisclosures } from "./document.ts";
+import { libraryOf, sameLibrary } from "./tree.ts";
 
 export interface CardSession {
   readonly key: string | null;

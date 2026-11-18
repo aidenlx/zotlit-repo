@@ -1,13 +1,13 @@
 // Select one read-only update input before resolving the Profile to check.
 import { Effect, Result } from "effect";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants";
-import { readLiveText } from "@/lib/effect-live-text";
-import { parseProfileStamp } from "@/lib/profile-stamp";
-import { NoteIndex } from "@/services/note-index/service";
-import { previewBaseline } from "@/services/template-workbench/preview-baseline";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
+import { readLiveText } from "@/lib/effect-live-text.ts";
+import { parseProfileStamp } from "@/lib/profile-stamp.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { previewBaseline } from "@/services/template-workbench/preview-baseline.ts";
 
-import { sourceRevision } from "./inspect";
+import { sourceRevision } from "./inspect.ts";
 
 /**
  * The update baseline of one item, or the refusal that names why there is

@@ -5,12 +5,12 @@ export {
   type ReaderActive,
   type ReaderAnnotSelect,
   type ReaderInactive,
-} from "./notify";
+} from "./notify.ts";
 export {
   type NoteStatusResponse,
   noteStatusResponseSchema,
-} from "./note-status";
-export { SOURCE_ID_HEADER, sourceIdFromUris } from "./source-id";
+} from "./note-status.ts";
+export { SOURCE_ID_HEADER, sourceIdFromUris } from "./source-id.ts";
 export {
   batchProtocolActionId,
   type BatchUpdateRequest,
@@ -59,10 +59,10 @@ export {
   updateAllProtocolActionId,
   type UpdateAllProtocolQuery,
   type UpdateScope,
-} from "./url";
+} from "./url.ts";
 export {
   checkProtocolVersion,
   PROTOCOL_VERSION,
   PROTOCOL_VERSION_HEADER,
   type ProtocolVersionCheck,
-} from "./version";
+} from "./version.ts";

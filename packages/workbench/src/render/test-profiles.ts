@@ -1,6 +1,6 @@
 // Profile sources for tests that render Annotations into the note body.
 
-import { DEFAULT_PROFILE_SOURCE } from "./default-profile";
+import { DEFAULT_PROFILE_SOURCE } from "./default-profile.ts";
 
 const QUERY_BLOCK_START = "## Annotations\n\n```zotquery\n";
 const FENCE_END = "```\n";

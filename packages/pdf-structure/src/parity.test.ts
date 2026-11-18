@@ -3,7 +3,14 @@
 // produces; the Sort Index strings Zotero itself wrote into the Fixture are the
 // oracle for the Sort Index.
 
-import { fingerprint } from "@oracle/fingerprint.mjs";
+import type {
+  ObsidianTextItem,
+  Rect,
+  StructuredPage,
+  ZoteroChar,
+} from "#chars.ts";
+import type { PdfPosition } from "#sort-index.ts";
+import type { RangeEnd, RangeStep } from "#text-selection.ts";
 import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -21,18 +28,11 @@ import {
   getWorkspaceRoot,
 } from "@zotlit/scripts/package-roots";
 
-import type {
-  ObsidianTextItem,
-  Rect,
-  StructuredPage,
-  ZoteroChar,
-} from "@/chars";
-import { structurePage, toZoteroChars } from "@/chars";
-import { PdfTextStructure } from "@/session";
-import type { PdfPosition } from "@/sort-index";
-import { computeSortIndex } from "@/sort-index";
-import type { RangeEnd, RangeStep } from "@/text-selection";
-import { adjustRange, offsetsByRects, textRange } from "@/text-selection";
+import { structurePage, toZoteroChars } from "#chars.ts";
+import { fingerprint } from "#oracle/fingerprint.mjs";
+import { PdfTextStructure } from "#session.ts";
+import { computeSortIndex } from "#sort-index.ts";
+import { adjustRange, offsetsByRects, textRange } from "#text-selection.ts";
 
 const run = promisify(execFile);
 

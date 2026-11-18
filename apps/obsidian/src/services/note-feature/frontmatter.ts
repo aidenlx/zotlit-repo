@@ -18,7 +18,7 @@ import type {
   FrontmatterMergeConflictHandler,
 } from "@zotlit/templates/frontmatter-merge";
 
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
 
 export interface ApplyManagedFrontmatterOptions {
   compiled: readonly CompiledFrontmatterField[];

@@ -1,9 +1,9 @@
 // The typed failures of the Note Feature writes, and the errors their plain callers see.
 import { Schema } from "effect";
 
-import { plainTemplateError } from "@/services/template/errors";
+import { plainTemplateError } from "@/services/template/errors.ts";
 
-import { NotePathUnavailable } from "./note-path";
+import { NotePathUnavailable } from "./note-path.ts";
 
 /** The Snapshot holds no Item with this Indexed Key. */
 export class ItemNotFound extends Schema.TaggedError<

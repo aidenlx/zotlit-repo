@@ -2,9 +2,9 @@
 
 import type { SettingDefinition } from "obsidian";
 
-import type { LanguagePackSettingCopy } from "@/lib/i18n/settings-copy";
+import type { LanguagePackSettingCopy } from "@/lib/i18n/settings-copy.ts";
 
-import type { SettingsKey } from "./context";
+import type { SettingsKey } from "./context.ts";
 
 export function languagePackDefinition(
   copy: LanguagePackSettingCopy,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { inlineCitation } from "./inline-citation";
+import { inlineCitation } from "./inline-citation.ts";
 
 describe("inlineCitation", () => {
   it("trims leading and trailing whitespace, including the template file's trailing newline", () => {

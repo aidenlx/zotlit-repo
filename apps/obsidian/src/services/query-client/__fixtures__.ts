@@ -2,19 +2,19 @@ import { Clock, Context, Effect, Exit, Layer, Scope } from "effect";
 // A real QueryClients layer for consumer tests outside Effect.
 import { TestClock } from "effect/testing";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { QueryClients } from "./service";
-import { layerQueryClients } from "./service";
-import type { TestClock as QueryTestClock } from "./test-clock";
+import { QueryClients } from "./service.ts";
+import { layerQueryClients } from "./service.ts";
+import type { TestClock as QueryTestClock } from "./test-clock.ts";
 
 export function buildQueryClients(
   stack: AsyncDisposableStack,
   now?: QueryTestClock["now"],
 ): QueryClients["Service"] & {
-  runtime: import("@/lib/effect-stream").SubscriptionRuntime;
+  runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
   bridge: EffectBridge;
 } {
   const clock = Context.get(Context.empty(), Clock.Clock);
@@ -46,7 +46,7 @@ export function queryClientsFixture(
   now?: QueryTestClock["now"],
 ): QueryClients["Service"] &
   AsyncDisposable & {
-    runtime: import("@/lib/effect-stream").SubscriptionRuntime;
+    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
     bridge: EffectBridge;
   } {
   const stack = new AsyncDisposableStack();

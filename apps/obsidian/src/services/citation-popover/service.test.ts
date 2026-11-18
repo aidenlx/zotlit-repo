@@ -11,37 +11,37 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { LogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { annotationRows } from "@/services/citation-index/__fixtures__/annotations";
+import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { LogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup";
-import { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import type { AnnotationParent } from "@/services/citation-index/lookup";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import { createCitationIndexHarness } from "@/services/citation-index/test-harness";
-import type { DocumentCitations } from "@/services/citation-text/service";
-import type { BibliographyRenderResult } from "@/services/pandoc/render-cache";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
+} from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { AnnotationParent } from "@/services/citation-index/lookup.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import type { DocumentCitations } from "@/services/citation-text/service.ts";
+import type { BibliographyRenderResult } from "@/services/pandoc/render-cache.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import {
   CLEAR_WORKS_SQL,
   inProcessReadsService,
   seedWorksSql,
   sharedClientOpener,
   worksSql,
-} from "@/services/zotero-reads/test-utils";
-import type { SeededWork } from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
+import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
 
-import { citationPopoverFixture } from "./__fixtures__";
-import type { CitationPopoverFixtureDeps } from "./__fixtures__";
-import type { CitationPopoverContentProps } from "./content";
-import type { WorkHoverRequest } from "./service";
-import type { PopoverPart } from "./visits";
+import { citationPopoverFixture } from "./__fixtures__.ts";
+import type { CitationPopoverFixtureDeps } from "./__fixtures__.ts";
+import type { CitationPopoverContentProps } from "./content.tsx";
+import type { WorkHoverRequest } from "./service.tsx";
+import type { PopoverPart } from "./visits.ts";
 
 const popovers = vi.hoisted(
   () =>
@@ -54,7 +54,7 @@ const popovers = vi.hoisted(
 /** A failure the next draw of entries throws, as a broken render would. */
 const draw = vi.hoisted(() => ({ fails: null as Error | null }));
 
-vi.mock("./popover", () => ({
+vi.mock("./popover.ts", () => ({
   CitationHoverPopover: class {
     readonly render = vi.fn((content: unknown) => {
       if (draw.fails && content !== null) throw draw.fails;
@@ -94,9 +94,9 @@ function reads(works: readonly SeededWork[] = []) {
   const service = inProcessReadsService(sharedClientOpener(client));
   const stub = {
     state:
-      "ready" as import("@/services/zotero-reads/service").ZoteroReadsState["state"],
+      "ready" as import("@/services/zotero-reads/service.ts").ZoteroReadsState["state"],
     current: Effect.sync(
-      (): import("@/services/zotero-reads/service").ZoteroReadsState => ({
+      (): import("@/services/zotero-reads/service.ts").ZoteroReadsState => ({
         state: stub.state,
         error: null,
         moved: false,

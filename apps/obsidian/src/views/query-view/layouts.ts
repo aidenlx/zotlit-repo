@@ -1,12 +1,12 @@
 // The Layouts a Query View can draw, the Query Dataset each one shows, and
 // the options of the Annotations layout as a view's keys hold them.
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { CARDS_LAYOUT } from "./cards-layout";
-import { LIST_LAYOUT } from "./list-layout";
-import { PAPERS_LAYOUT } from "./papers-layout";
-import type { QueryFileDataset, QueryFileView } from "./query-file";
-import { TABLE_LAYOUT } from "./table-layout";
+import { CARDS_LAYOUT } from "./cards-layout.tsx";
+import { LIST_LAYOUT } from "./list-layout.tsx";
+import { PAPERS_LAYOUT } from "./papers-layout.tsx";
+import type { QueryFileDataset, QueryFileView } from "./query-file.ts";
+import { TABLE_LAYOUT } from "./table-layout.tsx";
 
 export interface QueryLayout {
   /** The view's `type`. */

@@ -18,24 +18,24 @@ import {
 
 import type { CslItemData } from "@zotlit/db";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { Profile } from "@/services/profile/service";
-import { QueryClients } from "@/services/query-client/service";
-import type { Held } from "@/services/query-client/service";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import {
   effectivePresentation,
   vaultPresentation,
-} from "./document-presentation";
-import type { EffectivePresentation } from "./document-presentation";
-import type { BibliographyEntry, RenderedCitation } from "./engine";
-import { PandocEngine } from "./service";
-import { InstalledStyleCache, styleHasEntryMarkers } from "./styles";
-import type { CslStyleRequest, ResolvedCslStyle } from "./styles";
+} from "./document-presentation.ts";
+import type { EffectivePresentation } from "./document-presentation.ts";
+import type { BibliographyEntry, RenderedCitation } from "./engine.ts";
+import { PandocEngine } from "./service.ts";
+import { InstalledStyleCache, styleHasEntryMarkers } from "./styles.ts";
+import type { CslStyleRequest, ResolvedCslStyle } from "./styles.ts";
 
 const BIBLIOGRAPHY_RENDER = "bibliography-render";
 

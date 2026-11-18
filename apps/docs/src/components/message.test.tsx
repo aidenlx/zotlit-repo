@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { Message } from "./message";
+import { Message } from "./message.tsx";
 
 describe("Message", () => {
   it("renders reordered and repeated slots while escaping translated text", () => {

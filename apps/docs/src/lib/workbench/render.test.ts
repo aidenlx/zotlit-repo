@@ -11,7 +11,7 @@ import type {
   RenderRequest,
 } from "@zotlit/workbench/render";
 
-import { layerRendering, Rendering } from "./rendering";
+import { layerRendering, Rendering } from "./rendering.ts";
 
 // The synchronous renderer stands in for the real one, so a test can read the
 // runtime it was handed and the value the caller gets back.

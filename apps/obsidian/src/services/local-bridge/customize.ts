@@ -7,32 +7,32 @@
 import { Context, Duration, Effect, Layer, Option, Stream } from "effect";
 import type { CachedMetadata, TFile } from "obsidian";
 
-import { DOCS_SITE_URL } from "@/lib/constants";
-import { withLogCategory } from "@/lib/effect-log";
-import { awaitModal } from "@/lib/effect-modal";
-import type { ClosableModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { LocalServer } from "@/services/local-server/service";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions";
-import type { WorkbenchOpened } from "@/views/template-workbench/actions";
-import type { NativeOpenError } from "@/views/template-workbench/open";
-import type { ProfileCustomization } from "@/views/template-workbench/preferences";
+import { DOCS_SITE_URL } from "@/lib/constants.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import type { ClosableModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
+import type { WorkbenchOpened } from "@/views/template-workbench/actions.ts";
+import type { NativeOpenError } from "@/views/template-workbench/open.ts";
+import type { ProfileCustomization } from "@/views/template-workbench/preferences.ts";
 
-import { profileDisplayName } from "./profile-name";
-import { LocalBridge } from "./service";
-import type { SelectedItemIdentity } from "./sessions";
-import { unsupportedProfileSourceReason } from "./unsupported";
+import { profileDisplayName } from "./profile-name.ts";
+import { LocalBridge } from "./service.ts";
+import type { SelectedItemIdentity } from "./sessions.ts";
+import { unsupportedProfileSourceReason } from "./unsupported.ts";
 
 /** How long a launch waits for the listener it just turned on. */
 const SERVER_START_TIMEOUT = Duration.seconds(10);

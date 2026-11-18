@@ -2,11 +2,11 @@
 import { Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { ExcerptRenderer } from "@/services/excerpt-image/renderer";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
+import { ExcerptRenderer } from "@/services/excerpt-image/renderer.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
 
 export class ExcerptRendererFixture implements AsyncDisposable {
   readonly #stack = new AsyncDisposableStack();

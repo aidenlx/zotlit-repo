@@ -1,8 +1,9 @@
-import { relations } from "@drizzle/relations";
 import type { Logger } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import type { DatabaseSyncOptions } from "node:sqlite";
+
+import { relations } from "#drizzle/relations.ts";
 
 export interface DatabaseOptions {
   connection?: DatabaseSyncOptions;

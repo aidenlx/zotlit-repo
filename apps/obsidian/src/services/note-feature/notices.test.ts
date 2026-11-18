@@ -3,12 +3,12 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect } from "vitest";
 
-import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
+import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { layerNoteFeatureNotices } from "./notices";
-import { NoteFeature } from "./service";
-import type { NoteFeatureEvent } from "./types";
+import { layerNoteFeatureNotices } from "./notices.ts";
+import { NoteFeature } from "./service.ts";
+import type { NoteFeatureEvent } from "./types.ts";
 
 /**
  * The notice layer over a change stream the case publishes to, built in

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formulaCheck } from "./property-page";
+import { formulaCheck } from "./property-page.tsx";
 
 // A Syntax Fault, a valid text, and an engine Fault on the saved text but
 // not on an edited one are proved on the Formula page in the running app

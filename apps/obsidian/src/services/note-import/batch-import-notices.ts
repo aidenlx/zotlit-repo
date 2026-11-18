@@ -1,15 +1,15 @@
 import type { App } from "obsidian";
 
 // Batch-import outcomes and actionable Profile recovery for notices and toasts.
-import * as m from "@/lib/i18n/generated/messages";
-import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier";
-import { profileRecoveryNotice } from "@/lib/profile-recovery";
-import * as toast from "@/lib/toast";
-import type { BatchRunResult } from "@/services/batch-run";
-import { ProfileAnnotationError } from "@/services/template/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier.ts";
+import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
+import * as toast from "@/lib/toast.ts";
+import type { BatchRunResult } from "@/services/batch-run.ts";
+import { ProfileAnnotationError } from "@/services/template/service.ts";
 
-import type { BatchImportResult } from "./batch-import";
-import { NoteImportProfileError } from "./service";
+import type { BatchImportResult } from "./batch-import.ts";
+import { NoteImportProfileError } from "./service.ts";
 
 export function importedNoteProfileErrorNotice(
   error: unknown,

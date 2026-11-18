@@ -5,11 +5,11 @@ import { Cause, Effect } from "effect";
 
 import { resolveIndexedKeyLibraryIn } from "@zotlit/db";
 
-import { valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**
  * The tag names in use in the Annotation's Library, which the tag editor

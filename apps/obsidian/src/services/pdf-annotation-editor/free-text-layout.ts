@@ -3,9 +3,9 @@
 // measure text through an injected function, so they hold no DOM.
 import type { PdfTextPosition } from "@zotlit/db";
 
-import { storedWide } from "@/services/annotation-repository/write";
+import { storedWide } from "@/services/annotation-repository/write.ts";
 
-import type { PdfRect } from "./geometry-edit";
+import type { PdfRect } from "./geometry-edit.ts";
 
 /** A point in one page's own units, `[x, y]`. */
 export type PagePoint = readonly [number, number];

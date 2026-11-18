@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { overlapsSelection } from "./editor-decoration";
+import { overlapsSelection } from "./editor-decoration.ts";
 
 describe("overlapsSelection", () => {
   const range = { from: 4, to: 4 };

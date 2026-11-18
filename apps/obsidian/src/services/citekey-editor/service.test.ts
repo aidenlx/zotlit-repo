@@ -14,51 +14,58 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup";
-import type { CitationLookupRequest } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitekeyResolution } from "@/services/citation-index/service";
-import type { AvailableLibrary } from "@/services/library-scope/scope";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { CreationProfileSelection } from "@/services/note-feature";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupRequest } from "@/services/citation-index/lookup.ts";
+import type { CitekeyResolution } from "@/services/citation-index/service.ts";
+import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
+import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import type {
   PlannedCreation,
   PlannedCreationProfile,
-} from "@/services/note-feature/creation-planning";
-import { NoteFeature } from "@/services/note-feature/service";
-import { createNoteHost } from "@/services/note-index/__fixtures__";
-import { layerNoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+} from "@/services/note-feature/creation-planning.ts";
+import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { createNoteHost } from "@/services/note-index/__fixtures__.ts";
+import { layerNoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   layerPluginSettings,
   PluginSettings,
-} from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { layerZoteroReads, ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
+} from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
-import type { SeededWork } from "@/services/zotero-reads/test-utils";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
-import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker";
+} from "@/services/zotero-reads/test-utils.ts";
+import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
+import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";
 
-import { CitekeyEditor, citekeyTreatment, layerCitekeyEditor } from "./service";
-import type { CitekeyEditorEvent } from "./service";
+import {
+  CitekeyEditor,
+  citekeyTreatment,
+  layerCitekeyEditor,
+} from "./service.ts";
+import type { CitekeyEditorEvent } from "./service.ts";
 
 const MY_LIBRARY: AvailableLibrary = {
   selector: { type: "personal" },
@@ -541,7 +548,7 @@ describe("CitekeyEditor ambiguous citation keys", () => {
   );
 });
 
-vi.mock("@/views/quick-switch/profile-picker", () => ({
+vi.mock("@/views/quick-switch/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 

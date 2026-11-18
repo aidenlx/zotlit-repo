@@ -2,11 +2,11 @@
 
 import type { SettingDefinition } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { managedBinaryDefinition } from "./managed-binary";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { managedBinaryDefinition } from "./managed-binary.ts";
 
 /** The segmenter row, in the Chinese Segmenter's own words. */
 export function chineseSegmenterDefinition(

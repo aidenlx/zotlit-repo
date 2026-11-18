@@ -29,19 +29,22 @@ import {
 } from "effect";
 import type { Fiber } from "effect";
 
-import { awaitOwned } from "@/lib/effect-fiber";
-import { withLogCategory } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
-import { forkEach } from "@/lib/effect-stream";
-import { selectorKey } from "@/services/library-scope/scope";
+import { awaitOwned } from "@/lib/effect-fiber.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { selectorKey } from "@/services/library-scope/scope.ts";
 import type {
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import { LibraryScope, scopeChanges } from "@/services/library-scope/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import type { SearchHit as ReadsSearchHit } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/library-scope/scope.ts";
+import {
+  LibraryScope,
+  scopeChanges,
+} from "@/services/library-scope/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import type { SearchHit as ReadsSearchHit } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 export const DEFAULT_LIMIT = 50;
 

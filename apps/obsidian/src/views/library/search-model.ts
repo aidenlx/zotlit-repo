@@ -5,23 +5,23 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
-import { viewRuntime } from "@/lib/view-atoms";
-import { ItemLookup } from "@/services/item-lookup/service";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { ItemLookup } from "@/services/item-lookup/service.ts";
 import {
   libraryScopeStateAtom,
   resolvedLibraryScopeAtom,
-} from "@/services/library-scope/atoms";
-import type { LibraryScope } from "@/services/library-scope/scope";
+} from "@/services/library-scope/atoms.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import {
   zoteroRevisionAtom,
   zoteroUnavailableAtom,
-} from "@/services/zotero-reads/atoms";
+} from "@/services/zotero-reads/atoms.ts";
 
-import { librariesOf } from "./document";
-import type { LibraryNode } from "./document";
-import { searchTerms } from "./search";
-import type { SearchFound } from "./search-box";
-import { sameLibrary } from "./tree";
+import { librariesOf } from "./document.ts";
+import type { LibraryNode } from "./document.ts";
+import type { SearchFound } from "./search-box.tsx";
+import { searchTerms } from "./search.ts";
+import { sameLibrary } from "./tree.ts";
 
 const LIBRARY_SEARCH_LIMIT = 500;
 export interface SearchSession {

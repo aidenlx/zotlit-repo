@@ -4,13 +4,13 @@ import { TestClock } from "effect/testing";
 import type { Command } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { layerDatabaseActions } from "./actions";
+import { layerDatabaseActions } from "./actions.ts";
 
 const REFRESH_COMMAND = "refresh-zotero-data";
 

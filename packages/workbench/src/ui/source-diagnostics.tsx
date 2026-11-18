@@ -3,7 +3,7 @@
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
-} from "#/document/index";
+} from "#document/index.ts";
 import type { Diagnostic } from "@codemirror/lint";
 import { forEachDiagnostic, setDiagnosticsEffect } from "@codemirror/lint";
 import { Compartment } from "@codemirror/state";
@@ -11,12 +11,12 @@ import { EditorView, GutterMarker, gutter } from "@codemirror/view";
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import { diagnosisExplanation } from "./problems";
-import type { WorkbenchDiagnosis } from "./problems";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { diagnosisExplanation } from "./problems.ts";
+import type { WorkbenchDiagnosis } from "./problems.ts";
 
-import { entryPosition, sliceOffsets } from "#/document/index";
-import { currentCallSite, currentSliceSite } from "#/render/locate";
+import { entryPosition, sliceOffsets } from "#document/index.ts";
+import { currentCallSite, currentSliceSite } from "#render/locate.ts";
 
 const Findings = createContext<readonly WorkbenchDiagnosis[]>([]);
 const Reveal = createContext<((id: string) => void) | undefined>(undefined);

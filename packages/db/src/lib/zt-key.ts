@@ -1,6 +1,6 @@
 import { regex } from "arkregex";
 
-import { isItemKey } from "./zt-item-key";
+import { isItemKey } from "./zt-item-key.ts";
 
 /** A decimal Zotero group-library ID. */
 const GROUP_ID_RE = regex("^\\d+$");
@@ -53,11 +53,12 @@ export function isIndexedKey(value: string): boolean {
   return parseIndexedKey(value) !== null;
 }
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { getLibraryByGroupID } from "@/queries/libraries";
-import type { Library } from "@/queries/libraries";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { Library } from "#queries/libraries.ts";
 
-import { USER_LIBRARY_ID } from "./constants";
+import { USER_LIBRARY_ID } from "./constants.ts";
+
+import { getLibraryByGroupID } from "#queries/libraries.ts";
 
 /** Resolve the active library for an `indexedKey`, or `null` when unresolvable. */
 export function resolveIndexedKeyLibrary(

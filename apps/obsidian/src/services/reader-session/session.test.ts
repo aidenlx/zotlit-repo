@@ -1,18 +1,18 @@
 import { Effect, SubscriptionRef } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
 import type {
   LocalServer,
   ReaderTarget,
-} from "@/services/local-server/service";
+} from "@/services/local-server/service.ts";
 
-import { ReaderSessionHost } from "./session";
-import type { ReaderSessionTarget } from "./session";
-import { ZoteroReaderSession } from "./zotero";
-import type { ZoteroReaderSessionDeps } from "./zotero";
+import { ReaderSessionHost } from "./session.ts";
+import type { ReaderSessionTarget } from "./session.ts";
+import { ZoteroReaderSession } from "./zotero.ts";
+import type { ZoteroReaderSessionDeps } from "./zotero.ts";
 
 const PAPER: ReaderSessionTarget = {
   attachmentKey: "ATCH2345",

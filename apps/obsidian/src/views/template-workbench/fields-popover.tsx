@@ -15,9 +15,12 @@ import type {
   WorkbenchFieldsPopoverProps,
 } from "@zotlit/workbench/ui";
 
-import { PinnedPopover } from "@/components/pinned-popover";
-import type { PageKey, PinnedPopoverHandle } from "@/components/pinned-popover";
-import * as m from "@/lib/i18n/generated/messages";
+import { PinnedPopover } from "@/components/pinned-popover.tsx";
+import type {
+  PageKey,
+  PinnedPopoverHandle,
+} from "@/components/pinned-popover.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 /**
  * Mod+Enter inserts the field selected in the panel's search, ahead of the

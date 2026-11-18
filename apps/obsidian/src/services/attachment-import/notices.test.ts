@@ -1,17 +1,17 @@
 // @vitest-environment happy-dom
 // The skipped-sources notice: one notice for each pooled skip summary.
 import { it } from "@effect/vitest";
-import { ButtonComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect, vi } from "vitest";
 
-import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
+import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { layerAttachmentSkipNotice } from "./notices";
-import { AttachmentImport } from "./service";
-import type { AttachmentSkipSummary } from "./service";
+import { layerAttachmentSkipNotice } from "./notices.ts";
+import { AttachmentImport } from "./service.ts";
+import type { AttachmentSkipSummary } from "./service.ts";
 
 const SUMMARY: AttachmentSkipSummary = {
   blocked: 2,

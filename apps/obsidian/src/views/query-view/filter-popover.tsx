@@ -32,42 +32,42 @@ import type {
   MatchFilter,
 } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { useObsidianApp } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
-import type { ViewRun } from "@/lib/view-runner";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
+import type { ViewRun } from "@/lib/view-runner.ts";
 import {
   createTemplateWorkbenchHost,
   refuseRender,
-} from "@/views/template-workbench/host";
-import { matchTheme } from "@/views/template-workbench/match-pane";
-import { matchRows, onKeymap } from "@/views/template-workbench/theme";
+} from "@/views/template-workbench/host.tsx";
+import { matchTheme } from "@/views/template-workbench/match-pane.tsx";
+import { matchRows, onKeymap } from "@/views/template-workbench/theme.tsx";
 
-import { filterValuesAtom } from "./atoms";
+import { filterValuesAtom } from "./atoms.ts";
 import {
   expressionVocabulary,
   useFilterExpressions,
-} from "./expression-vocabulary";
-import { useQueryViewState } from "./model";
-import { propertyIcon } from "./property-icon";
-import { allViewsDataset, vaultProperty } from "./query-file";
+} from "./expression-vocabulary.ts";
+import { useQueryViewState } from "./model.ts";
+import { propertyIcon } from "./property-icon.ts";
+import { allViewsDataset, vaultProperty } from "./query-file.ts";
 import type {
   ConditionIssue,
   FilterSection,
   QueryFileDataset,
-} from "./query-file";
-import type { LiteratureNotes, VaultPropertyType } from "./table-notes";
-import { toolbarButtonLook } from "./toolbar-button";
+} from "./query-file.ts";
+import type { LiteratureNotes, VaultPropertyType } from "./table-notes.ts";
+import { toolbarButtonLook } from "./toolbar-button.tsx";
 import {
   PopoverHeader,
   PopoverSection,
   ToolbarPopover,
-} from "./toolbar-popover";
-import { useVaultPropertyNames, useVaultVersion } from "./vault-cell";
-import type { QueryView } from "./view";
-import { fieldLabel, useViewProperties } from "./view-properties";
-import type { ViewProperties } from "./view-properties";
+} from "./toolbar-popover.tsx";
+import { useVaultPropertyNames, useVaultVersion } from "./vault-cell.tsx";
+import { fieldLabel, useViewProperties } from "./view-properties.ts";
+import type { ViewProperties } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 export type { FilterValues };
 

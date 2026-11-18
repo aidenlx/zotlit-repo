@@ -1,22 +1,26 @@
+import type { Item } from "#queries/items.ts";
 import { existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { parseItemDate } from "@/lib/zt-date";
-import { getAnnotationsByParent } from "@/queries/annotations";
-import { getAttachmentsByParents } from "@/queries/attachments";
+import {
+  openScenarioDatabase,
+  SCENARIO_ITEMS,
+  SCENARIO_LIBRARIES,
+} from "./index.ts";
+import type { ScenarioDatabase, ScenarioItemName } from "./index.ts";
+
+import { parseItemDate } from "#lib/zt-date.ts";
+import { getAnnotationsByParent } from "#queries/annotations.ts";
+import { getAttachmentsByParents } from "#queries/attachments.ts";
 import {
   getCollectionIDsByItem,
   getCollectionNodesByLibrary,
-} from "@/queries/collections";
-import type { Item } from "@/queries/items";
-import { getItemsByKey, getItemsByLibrary } from "@/queries/items";
-import { getChildNotes } from "@/queries/notes";
-import { getSchemaVersions } from "@/queries/schema-version";
-import { getTagsByItemIDs } from "@/queries/tags";
-
-import { openScenarioDatabase, SCENARIO_ITEMS, SCENARIO_LIBRARIES } from ".";
-import type { ScenarioDatabase, ScenarioItemName } from ".";
+} from "#queries/collections.ts";
+import { getItemsByKey, getItemsByLibrary } from "#queries/items.ts";
+import { getChildNotes } from "#queries/notes.ts";
+import { getSchemaVersions } from "#queries/schema-version.ts";
+import { getTagsByItemIDs } from "#queries/tags.ts";
 
 describe("openScenarioDatabase", () => {
   it("opens an in-memory copy of the pristine Zotero 10 database", () => {

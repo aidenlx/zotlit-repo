@@ -6,33 +6,33 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeItem } from "@zotlit/db/test-utils";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openAttachments } from "@/lib/attachment-open";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
-import type { SearchHit } from "@/services/item-lookup/service";
-import { NoteFeature } from "@/services/note-feature/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { defaults } from "@/services/settings/schema";
-import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/settings/schema";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { makeLibraryHost } from "@/views/library/__fixtures__";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openAttachments } from "@/lib/attachment-open.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/settings/schema.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { makeLibraryHost } from "@/views/library/__fixtures__.ts";
 
-import { QuickSwitchModal } from "./modal";
-import type { QuickSwitchDeps } from "./register";
+import { QuickSwitchModal } from "./modal.ts";
+import type { QuickSwitchDeps } from "./register.ts";
 
 // The picker's reader stays real, so the chord still exercises the reader the
 // plugin builds; only the database lookup behind it is stubbed.
 const literatureNoteAttachments =
   vi.fn<LiteratureNoteAttachmentsHandle["literatureNoteAttachments"]>();
 
-vi.mock("@/lib/attachment-open", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open")>()),
+vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
   openAttachments: vi.fn(),
 }));
 

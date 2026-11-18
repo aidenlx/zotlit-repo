@@ -1,6 +1,6 @@
 // The order `↑` and `↓` walk the Annotations of one PDF in: page, then down
 // the page, then across it.
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 /** Where one Annotation sits, reduced to what the walk sorts on. */
 interface Seat {

@@ -1,7 +1,7 @@
 // Runtime mapping from template Citation Items to the LaTeX Citation Source Module.
 
-import { mapCitationItems } from "./citation-items";
-import { formatTexCitation, TexCitationError } from "./tex-citation";
+import { mapCitationItems } from "./citation-items.ts";
+import { formatTexCitation, TexCitationError } from "./tex-citation.ts";
 
 export function formatTemplateTexCitation(
   value: unknown,

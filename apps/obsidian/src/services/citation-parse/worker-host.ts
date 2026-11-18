@@ -2,9 +2,9 @@
 import { Deferred, Effect } from "effect";
 import type { Scope } from "effect";
 
-import { decodeParseReply, ParseFailed, ParseWorkerDied } from "./client";
-import type { ParseRequest, ParseReply } from "./client";
-import { makeParseWorkerClient } from "./worker-client";
+import { decodeParseReply, ParseFailed, ParseWorkerDied } from "./client.ts";
+import type { ParseRequest, ParseReply } from "./client.ts";
+import { makeParseWorkerClient } from "./worker-client.ts";
 
 class EarlyMessageWorker extends EventTarget {
   readonly #worker: Worker;

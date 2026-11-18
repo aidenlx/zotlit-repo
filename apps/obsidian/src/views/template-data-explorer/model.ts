@@ -31,14 +31,14 @@ import type {
 } from "@zotlit/workbench/ui";
 import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
-import { indexedKeyForClipboard } from "@/services/indexed-key/actions";
-import type { TemplateDataLoadResult } from "@/services/template-workbench/data";
-import { TemplateDataReads } from "@/services/template-workbench/data-reads";
-import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms";
-import { getSampleItem } from "@/views/template-workbench/selection-data";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
+import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
+import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
+import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms.ts";
+import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
+import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];
 

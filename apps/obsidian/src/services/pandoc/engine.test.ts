@@ -5,15 +5,19 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { yieldToMain } from "@/lib/yield-to-main";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
 
-import type { Inlines } from "./ast";
+import type { Inlines } from "./ast.ts";
 import {
   CitationEngineError,
   CitationRequestSupersededError,
   createCitationEngine,
-} from "./engine";
-import type { CitationEngine, PrepareRequest, RenderRequest } from "./engine";
+} from "./engine.ts";
+import type {
+  CitationEngine,
+  PrepareRequest,
+  RenderRequest,
+} from "./engine.ts";
 
 /**
  * The binary the plugin pins, read straight out of `pandoc-wasm`. The package

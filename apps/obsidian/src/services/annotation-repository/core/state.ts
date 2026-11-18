@@ -1,14 +1,14 @@
 // The dependencies and the state that every part of the Annotation Repository core reads and changes.
 import type { DateTime, Effect, FiberMap, FiberSet } from "effect";
 
-import type { AnnotationHistory } from "@/services/annotation-repository/history";
-import type { AnnotationLock } from "@/services/annotation-repository/lock";
-import { newWriteToken } from "@/services/annotation-repository/write";
-import type { MutationState } from "@/services/annotation-repository/write";
-import type { Held } from "@/services/query-client/service";
+import type { AnnotationHistory } from "@/services/annotation-repository/history.ts";
+import type { AnnotationLock } from "@/services/annotation-repository/lock.ts";
+import { newWriteToken } from "@/services/annotation-repository/write.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
-import { databaseRowsResolver } from "./bridge";
-import { DRAFT_FIELDS, fieldMaps } from "./model";
+import { databaseRowsResolver } from "./bridge.ts";
+import { DRAFT_FIELDS, fieldMaps } from "./model.ts";
 import type {
   AnnotationConfirmation,
   AnnotationList,
@@ -18,8 +18,8 @@ import type {
   DraftField,
   DraftFields,
   OutcomeWrite,
-} from "./model";
-import type { WriteRunFailed } from "./writes";
+} from "./model.ts";
+import type { WriteRunFailed } from "./writes.ts";
 
 /** The fibers the layer's Scope owns for the core. */
 interface CoreFibers {

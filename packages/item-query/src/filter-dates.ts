@@ -5,7 +5,7 @@ import { regex } from "arkregex";
 
 import type { ItemDate } from "@zotlit/db";
 
-import type { QueryClock } from "./query-clock";
+import type { QueryClock } from "./query-clock.ts";
 
 /** The part of the calendar that a calendar date names. */
 export type DatePrecision = "year" | "month" | "day";

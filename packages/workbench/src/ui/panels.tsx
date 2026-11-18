@@ -11,20 +11,20 @@ import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { useWorkbenchEditor, useWorkbenchModel } from "./editor";
+import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
 import {
   DockedFieldsPanel,
   fieldsDockId,
   FieldsPopoverPanel,
-} from "./fields-panel";
-import { useContainerName, useOptionalHost } from "./host";
-import { useWorkbenchMessages } from "./messages";
+} from "./fields-panel.tsx";
+import { useContainerName, useOptionalHost } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
 import {
   drawnMax,
   PANEL_HANDLES,
   PANEL_SIDES,
   resizePanel,
-} from "./panel-layout";
+} from "./panel-layout.ts";
 import type {
   HandleSizing,
   PanelHandle,
@@ -32,8 +32,8 @@ import type {
   PanelSide,
   ViewSize,
   WorkbenchPanels,
-} from "./panel-layout";
-import { usePanelProperties, useParts } from "./theme";
+} from "./panel-layout.ts";
+import { usePanelProperties, useParts } from "./theme.tsx";
 
 /** What one side panel shows, and what names it to a screen reader. */
 export interface SidePanel {

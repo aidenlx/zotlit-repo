@@ -5,7 +5,7 @@
 // boxes — the note body's annotation calls, any slice's Shared Partial calls —
 // draws through this; only what counts as a call differs.
 
-import type { WorkbenchSliceRange } from "#/document/index";
+import type { WorkbenchSliceRange } from "#document/index.ts";
 import { StateField } from "@codemirror/state";
 import type {
   EditorState,

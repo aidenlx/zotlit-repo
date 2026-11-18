@@ -106,90 +106,100 @@ import type {
   ViewSize,
 } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { AppContext } from "@/lib/app-context";
-import { awaitConfirm } from "@/lib/confirm";
-import { docsUrl } from "@/lib/docs-url";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages";
-import { loadedTextFileView } from "@/lib/live-text";
-import { showMenuAtButton } from "@/lib/menu";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { Notifier, withOutcome } from "@/lib/notifier";
-import type { NoticeMessage } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { ViewRegistryProvider, viewRuntime, watch } from "@/lib/view-atoms";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { AppContext } from "@/lib/app-context.ts";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import { docsUrl } from "@/lib/docs-url.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
+import { loadedTextFileView } from "@/lib/live-text.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { Notifier, withOutcome } from "@/lib/notifier.ts";
+import type { NoticeMessage } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { ViewRegistryProvider, viewRuntime, watch } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import {
   answerOf,
   inFlightSlot,
   joinOnView,
   latestSlot,
   makeViewRunner,
-} from "@/lib/view-runner";
-import type { InFlightSlot, LatestSlot, ViewRunner } from "@/lib/view-runner";
-import type { ArrivingProblem } from "@/lib/workbench-recovery";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import type { ItemSearchDeps } from "@/services/item-lookup/search-modal";
-import { plainNoteError } from "@/services/note-feature/errors";
-import type { UpdateResult } from "@/services/note-feature/operations";
-import { NoteFeature } from "@/services/note-feature/service";
-import { updateNoteToast } from "@/services/note-feature/update-single";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
-import { bibliographyRevisionAtom } from "@/services/pandoc/atoms";
-import { defaultProfilePathAtom, profilesAtom } from "@/services/profile/atoms";
-import { Profile } from "@/services/profile/service";
-import { templateFolderAtom } from "@/services/settings/atoms";
-import { reportCitationTemplateOpen } from "@/services/template/actions";
+} from "@/lib/view-runner.ts";
+import type {
+  InFlightSlot,
+  LatestSlot,
+  ViewRunner,
+} from "@/lib/view-runner.ts";
+import type { ArrivingProblem } from "@/lib/workbench-recovery.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
+import { plainNoteError } from "@/services/note-feature/errors.ts";
+import type { UpdateResult } from "@/services/note-feature/operations.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { updateNoteToast } from "@/services/note-feature/update-single.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
+import { bibliographyRevisionAtom } from "@/services/pandoc/atoms.ts";
+import {
+  defaultProfilePathAtom,
+  profilesAtom,
+} from "@/services/profile/atoms.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { templateFolderAtom } from "@/services/settings/atoms.ts";
+import { reportCitationTemplateOpen } from "@/services/template/actions.ts";
 import {
   partialDocumentsAtom,
   partialNamesAtom,
   templateRevisionAtom,
-} from "@/services/template/atoms";
-import { Template } from "@/services/template/service";
-import type { PartialUnpackOutcome } from "@/services/template/service";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms";
-import type { ExplorerActions } from "@/views/template-data-explorer/actions";
-import { makeExportTemplateDataCommand } from "@/views/template-data-explorer/atoms";
-import { exportTarget } from "@/views/template-data-explorer/export-file";
-import type { TemplateDataExportTarget } from "@/views/template-data-explorer/export-file";
-import { rememberTemplateItem } from "@/views/template-data-explorer/item-memory";
+} from "@/services/template/atoms.ts";
+import { Template } from "@/services/template/service.ts";
+import type { PartialUnpackOutcome } from "@/services/template/service.ts";
+import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
+import type { ExplorerActions } from "@/views/template-data-explorer/actions.ts";
+import { makeExportTemplateDataCommand } from "@/views/template-data-explorer/atoms.ts";
+import { exportTarget } from "@/views/template-data-explorer/export-file.ts";
+import type { TemplateDataExportTarget } from "@/views/template-data-explorer/export-file.ts";
+import { rememberTemplateItem } from "@/views/template-data-explorer/item-memory.ts";
 import type {
   NativeRenderDeps,
   NativeRenderResult,
-} from "@/views/template-workbench/preview/render";
+} from "@/views/template-workbench/preview/render.ts";
 import {
   nativeResult,
   retainNativeOutputs,
   makeNativeRenderer,
-} from "@/views/template-workbench/preview/render";
-import { communityUrl } from "@/views/welcome/links";
+} from "@/views/template-workbench/preview/render.ts";
+import { communityUrl } from "@/views/welcome/links.ts";
 
-import { templateWorkbenchAction } from "./actions";
+import { templateWorkbenchAction } from "./actions.ts";
 import {
   builtInSource,
   installedStyles,
   materializeDefault,
   profileOfFile,
-} from "./atoms";
-import { templateDocumentKind, templatePartialName } from "./document-kind";
-import { partialCall } from "./extract-partial";
+} from "./atoms.ts";
+import { templateDocumentKind, templatePartialName } from "./document-kind.ts";
+import { partialCall } from "./extract-partial.ts";
 import {
   FieldsMoreOptions,
   FieldsPanel,
   makeFieldsActions,
   makeFieldsPanelModel,
-} from "./fields-panel";
-import type { FieldsPanelModel } from "./fields-panel";
-import { fieldsActionHost } from "./fields-popover";
-import { createTemplateWorkbenchHost, hostEffect } from "./host";
-import { workbenchAnnotationChoice, workbenchItemChoice } from "./item-choice";
-import { ViewItemRow } from "./item-row";
-import { openWorkbenchLayout, setLeafState } from "./layout";
-import { createMatchData } from "./match-data";
-import { NativeMatchPane } from "./match-pane";
+} from "./fields-panel.tsx";
+import type { FieldsPanelModel } from "./fields-panel.tsx";
+import { fieldsActionHost } from "./fields-popover.tsx";
+import { createTemplateWorkbenchHost, hostEffect } from "./host.tsx";
+import {
+  workbenchAnnotationChoice,
+  workbenchItemChoice,
+} from "./item-choice.ts";
+import { ViewItemRow } from "./item-row.tsx";
+import { openWorkbenchLayout, setLeafState } from "./layout.ts";
+import { createMatchData } from "./match-data.ts";
+import { NativeMatchPane } from "./match-pane.tsx";
 import {
   holdTemplateWorkbenchModel,
   makePartialPreviews,
@@ -198,25 +208,28 @@ import {
   readSavedWorkbench,
   savedWorkbench,
   setPresentation,
-} from "./model";
-import type { TemplateWorkbenchModel } from "./model";
-import type { CreateSharedPartialOptions } from "./new-partial";
-import { openTemplateWorkbench } from "./open";
-import { readPartialChoice, writePartialChoice } from "./partial-choice-memory";
-import { createSharedPartialEffect } from "./partial-command";
+} from "./model.ts";
+import type { TemplateWorkbenchModel } from "./model.ts";
+import type { CreateSharedPartialOptions } from "./new-partial.ts";
+import { openTemplateWorkbench } from "./open.ts";
+import {
+  readPartialChoice,
+  writePartialChoice,
+} from "./partial-choice-memory.ts";
+import { createSharedPartialEffect } from "./partial-command.ts";
 import {
   PreviewPanel,
   WorkbenchMarkdown,
   previewTarget,
-} from "./preview-panel";
-import { getSampleItem } from "./selection-data";
+} from "./preview-panel.tsx";
+import { getSampleItem } from "./selection-data.ts";
 import {
   originatingNoteNotice,
   PANEL_HANDLE_WIDTH,
   templateWorkbenchButton,
   templateWorkbenchTheme,
   selectionHint,
-} from "./theme";
+} from "./theme.tsx";
 
 export const TEMPLATE_WORKBENCH_VIEW_TYPE = "zotlit-template-workbench";
 

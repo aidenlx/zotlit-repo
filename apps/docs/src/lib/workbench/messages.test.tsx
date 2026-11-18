@@ -14,7 +14,7 @@ import {
 } from "@/paraglide/runtime.js";
 import type { ParaglideAsyncLocalStorage } from "@/paraglide/runtime.js";
 
-import { WebTestHost } from "./test-host";
+import { WebTestHost } from "./test-host.tsx";
 
 it("keeps shared labels in the locale of each web request", async () => {
   const previous = getServerAsyncLocalStorage();

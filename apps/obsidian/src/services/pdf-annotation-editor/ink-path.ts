@@ -7,9 +7,9 @@ import {
   MAX_POSITION_LENGTH,
   roundCoordinate,
   writePosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
-import type { PdfPoint } from "./geometry-edit";
+import type { PdfPoint } from "./geometry-edit.ts";
 
 /** How close, in PDF points, two kept points of a stroke may lie. */
 const MIN_POINT_DISTANCE = 1;

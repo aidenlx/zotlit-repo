@@ -9,10 +9,10 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import type { NoticeMessage } from "@/lib/notifier";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
+import type { NoticeMessage } from "@/lib/notifier.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 
-import type { QueryView, QueryViewState } from "./view";
+import type { QueryView, QueryViewState } from "./view.tsx";
 
 export const INITIAL_QUERY_STATE: QueryViewState = {
   file: null,

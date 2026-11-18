@@ -1,15 +1,19 @@
 import { ButtonComponent, Modal, setIcon } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
-import { cn } from "@/lib/utils";
-import { makeStopRequest } from "@/services/batch-run";
-import type { BatchFailure } from "@/services/batch-run";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { cn } from "@/lib/utils.ts";
+import { makeStopRequest } from "@/services/batch-run.ts";
+import type { BatchFailure } from "@/services/batch-run.ts";
 
-import { failureRow, ICON_CLS, section, SECTION_SUMMARY_CLS } from "./dom";
-import type { BatchManifest, BatchModalOptions, BatchRunResult } from "./types";
+import { failureRow, ICON_CLS, section, SECTION_SUMMARY_CLS } from "./dom.ts";
+import type {
+  BatchManifest,
+  BatchModalOptions,
+  BatchRunResult,
+} from "./types.ts";
 
 const logger = getLogger("batch-modal");
 

@@ -7,7 +7,7 @@ import type {
   DisplayNode,
   SnippetKind,
   TemplateEngine,
-} from "#/explorer/index";
+} from "#explorer/index.ts";
 
 import {
   formatAccessorPath,
@@ -20,7 +20,7 @@ import {
   renderSnippet,
   snippetKindsFor,
   snippetResult,
-} from "#/explorer/index";
+} from "#explorer/index.ts";
 
 /**
  * What the place an insert writes to reads: template source, a Properties

@@ -8,31 +8,31 @@ import { regex } from "arkregex";
 import { parseExpressionAst } from "@zotlit/filter-expression";
 import type { ExpressionNode } from "@zotlit/filter-expression";
 
-import type { QueryDataset } from "./dataset";
-import { ItemQueryError } from "./error";
-import type { ItemQueryErrorCode, ItemQueryErrorLocation } from "./error";
-import type { FaultedFormulaRead, ItemQueryFault, Span } from "./fault";
-import { dateText } from "./filter-dates";
-import type { DateValue } from "./filter-dates";
+import type { QueryDataset } from "./dataset.ts";
+import { ItemQueryError } from "./error.ts";
+import type { ItemQueryErrorCode, ItemQueryErrorLocation } from "./error.ts";
+import type { FaultedFormulaRead, ItemQueryFault, Span } from "./fault.ts";
+import { dateText } from "./filter-dates.ts";
+import type { DateValue } from "./filter-dates.ts";
 import {
   EVALUATION_ERROR_CODES,
   isError,
   renderEvaluationFault,
-} from "./filter-error";
-import { evaluateFormula } from "./filter-evaluate";
-import type { FilterPlan, FormulaResolver } from "./filter-plan";
-import { isDate, isList } from "./filter-values";
-import type { FilterValue } from "./filter-values";
-import { nameDictionary } from "./name-dictionary";
-import type { PathProblem, PlannedPath } from "./projection";
-import { readPath } from "./projection";
-import { parseProjectionPath } from "./projection-path";
-import type { QueryClock } from "./query-clock";
+} from "./filter-error.ts";
+import { evaluateFormula } from "./filter-evaluate.ts";
+import type { FilterPlan, FormulaResolver } from "./filter-plan.ts";
+import { isDate, isList } from "./filter-values.ts";
+import type { FilterValue } from "./filter-values.ts";
+import { nameDictionary } from "./name-dictionary.ts";
+import { parseProjectionPath } from "./projection-path.ts";
+import type { PathProblem, PlannedPath } from "./projection.ts";
+import { readPath } from "./projection.ts";
+import type { QueryClock } from "./query-clock.ts";
 import type {
   FormulaDiagnostics,
   ProjectionValue,
   QueryContext,
-} from "./request";
+} from "./request.ts";
 
 /** The first segment of the Projection Path of every Formula. */
 export const FORMULA_SEGMENT = "formula";

@@ -1,17 +1,17 @@
 import { Effect, Layer } from "effect";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerNoteIndex } from "@/services/note-index/service";
+import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerNoteIndex } from "@/services/note-index/service.ts";
 import {
   layerPluginSettings,
   PluginSettings,
-} from "@/services/settings/service";
-import type { createTemplateHost } from "@/services/template/__fixtures__";
-import { layerTemplate, Template } from "@/services/template/service";
+} from "@/services/settings/service.ts";
+import type { createTemplateHost } from "@/services/template/__fixtures__.ts";
+import { layerTemplate, Template } from "@/services/template/service.ts";
 
-import { layerProfile, Profile } from "./service";
+import { layerProfile, Profile } from "./service.ts";
 
 /**
  * The real Profile dependency graph over the fake Obsidian host, with the

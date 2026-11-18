@@ -9,14 +9,14 @@ import { showTooltip } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
 import type { Tooltip, TooltipView, ViewUpdate } from "@codemirror/view";
 
-import { fieldPopup } from "./field-popup";
-import { appendProse } from "./prose";
-import { signatureAt } from "./signature-hint";
+import { fieldPopup } from "./field-popup.ts";
+import { appendProse } from "./prose.ts";
+import { signatureAt } from "./signature-hint.ts";
 import type {
   HintSignature,
   SignatureHintOptions,
   SignatureHintResult,
-} from "./signature-hint";
+} from "./signature-hint.ts";
 
 /**
  * The public theme hook of the Signature Hint tooltip. A host styles it; the
@@ -69,7 +69,9 @@ export function signatureHint(options: SignatureHintOptions = {}): Extension {
       for (const block of blocks) block.remove();
       blocks = signatures.map((each) => renderSignature(doc, callee, each));
       // Before the arrow, which CodeMirror adds to the tooltip.
-      dom.prepend(...blocks);
+      const fragment = doc.createDocumentFragment();
+      fragment.append(...blocks);
+      dom.insertBefore(fragment, dom.firstChild);
     };
     render(view.state.field(hint)!.hint);
     // The hint shows while the editor has focus, as CodeMirror tells it. Out

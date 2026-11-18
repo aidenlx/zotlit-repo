@@ -5,22 +5,22 @@ import type { MDXComponents } from "mdx/types";
 import { useMemo } from "react";
 import type { ComponentPropsWithoutRef, ComponentType } from "react";
 
-import { CompanionNote } from "@/components/companion-note";
-import { getMDXComponents } from "@/components/mdx";
-import { SiteFooter } from "@/components/site-footer";
-import { cn } from "@/lib/cn";
-import { changelogs } from "@/lib/collections";
-import { validateSiteLocale } from "@/lib/i18n";
-import { changelogProseRoles } from "@/lib/prose";
-import { pageHead } from "@/lib/seo";
+import { CompanionNote } from "@/components/companion-note.tsx";
+import { getMDXComponents } from "@/components/mdx.tsx";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { cn } from "@/lib/cn.ts";
+import { changelogs } from "@/lib/collections.ts";
+import { validateSiteLocale } from "@/lib/i18n.ts";
+import { changelogProseRoles } from "@/lib/prose.ts";
+import { pageHead } from "@/lib/seo.ts";
 import {
   appName,
   changelogFeedRoute,
   changelogRoute,
   formatReleaseDate,
-} from "@/lib/shared";
-import { getChangelogPages } from "@/lib/source";
-import { breadcrumbListSchema } from "@/lib/structured-data";
+} from "@/lib/shared.ts";
+import { getChangelogPages } from "@/lib/source.ts";
+import { breadcrumbListSchema } from "@/lib/structured-data.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

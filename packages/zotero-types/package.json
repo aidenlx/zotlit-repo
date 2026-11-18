@@ -2,24 +2,18 @@
   "name": "@zotlit/zotero-types",
   "version": "0.0.0",
   "private": true,
-  "files": [
-    "dist",
-    "fixtures"
-  ],
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./dist/index.mjs",
-    "./csl": "./dist/csl.mjs",
-    "./field-labels": "./dist/field-labels.mjs",
-    "./item-types": "./dist/item-types.mjs",
-    "./package.json": "./package.json",
+    ".": "./src/fields.ts",
+    "./csl": "./src/csl.ts",
+    "./field-labels": "./src/field-labels.ts",
+    "./item-types": "./src/item-types.ts",
     "./schema.json": "./zotero-schema/schema.json",
-    "./fixtures/item-to-csl.json": "./fixtures/item-to-csl.json"
+    "./fixtures/item-to-csl.json": "./fixtures/item-to-csl.json",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
     "generate:fields": "node scripts/generate-fields.ts && oxlint --fix src/fields.ts && oxfmt src/fields.ts",
     "generate:item-types": "node scripts/generate-item-types.ts && oxlint --fix src/item-types.ts && oxfmt src/item-types.ts",
     "generate:field-labels": "node scripts/generate-field-labels.ts && oxlint --fix src/field-labels.ts && oxfmt src/field-labels.ts",
@@ -32,7 +26,6 @@
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
-    "tsdown": "catalog:",
     "typescript": "catalog:"
   }
 }

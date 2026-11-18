@@ -1,24 +1,24 @@
 import { it } from "@effect/vitest";
 // @vitest-environment happy-dom
-import { ButtonComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Context, Deferred, Effect, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 import type {
   LocalApiFailure,
   LocalApiResult,
-} from "@/services/zotero-local-api/service";
+} from "@/services/zotero-local-api/service.ts";
 
-import type { EditingCapability } from "./capability";
-import { CapabilityNotices, layerCapabilityNotices } from "./notices";
-import { AnnotationRepository } from "./service";
-import { IDLE } from "./write";
-import type { MutationState, WriteConflict } from "./write";
+import type { EditingCapability } from "./capability.ts";
+import { CapabilityNotices, layerCapabilityNotices } from "./notices.ts";
+import { AnnotationRepository } from "./service.ts";
+import { IDLE } from "./write.ts";
+import type { MutationState, WriteConflict } from "./write.ts";
 
 const ATTACHMENT = "ABCD2345";
 const ANNOTATION = "EFGH2345";

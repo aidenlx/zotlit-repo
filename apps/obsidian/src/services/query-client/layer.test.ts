@@ -12,8 +12,8 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import type { HeldReadChange } from "./service";
-import { layerQueryClients, QueryClients } from "./service";
+import type { HeldReadChange } from "./service.ts";
+import { layerQueryClients, QueryClients } from "./service.ts";
 
 it.effect("releases held values and pending reads when its scope closes", () =>
   Effect.gen(function* () {

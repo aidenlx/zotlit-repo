@@ -4,7 +4,7 @@ import {
   DropdownComponent,
   ExtraButtonComponent,
   renderRow,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import {
   Context,
   Deferred,
@@ -21,18 +21,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style";
-import * as m from "@/lib/i18n/generated/messages";
-import { PandocEngine } from "@/services/pandoc/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 import {
   PluginSettings,
   SettingsMutationError,
-} from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+} from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import {
   failureOf,
@@ -40,14 +40,14 @@ import {
   recordingRuns,
   scopedSettingTab,
   testSettingTab,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 import {
   citationLocaleError,
   citationsPageItems,
   referencesStyleDefinition,
   referencesStyleDescription,
-} from "./citations";
-import type { SettingTabContext } from "./context";
+} from "./citations.ts";
+import type { SettingTabContext } from "./context.ts";
 
 /**
  * Style folder reads a case holds in flight, the folders it refuses to list,

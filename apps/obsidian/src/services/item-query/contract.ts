@@ -17,13 +17,13 @@ import type {
 } from "@zotlit/item-query";
 import { DELIMITED_FORMATS } from "@zotlit/shared/delimited";
 
-import { createRenderedCliDiagnostics } from "@/lib/cli-diagnostic";
-import type { CliRejection } from "@/lib/cli-params";
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope";
-import type { SchemaAsset } from "@/services/template-workbench/schema";
+import { createRenderedCliDiagnostics } from "@/lib/cli-diagnostic.ts";
+import type { CliRejection } from "@/lib/cli-params.ts";
+import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
+import type { SchemaAsset } from "@/services/template-workbench/schema.ts";
 
 import contractVersion from "./contract-version.json" with { type: "json" };
-import type { QueryParam, QueryValuesParam } from "./decode";
+import type { QueryParam, QueryValuesParam } from "./decode.ts";
 
 /**
  * The wire format of the ZotLit Query commands, versioned on its own (ADR 0065):

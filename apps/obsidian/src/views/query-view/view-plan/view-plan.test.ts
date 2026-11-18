@@ -3,18 +3,18 @@ import { describe, expect, it } from "vitest";
 import { formatFilterRow, freshFilterRow } from "@zotlit/workbench/match";
 import type { FilterField } from "@zotlit/workbench/match";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { QueryViewRow } from "@/services/item-query/query-view";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
 import {
   newQueryFileText,
   parseQueryFile,
-} from "@/views/query-view/query-file";
-import type { QueryFile } from "@/views/query-view/query-file";
-import type { VaultHost, VaultValue } from "@/views/query-view/table-notes";
-import { VAULT_SORT_CAP } from "@/views/query-view/vault-sort";
+} from "@/views/query-view/query-file.ts";
+import type { QueryFile } from "@/views/query-view/query-file.ts";
+import type { VaultHost, VaultValue } from "@/views/query-view/table-notes.ts";
+import { VAULT_SORT_CAP } from "@/views/query-view/vault-sort.ts";
 
-import { ViewPlanner } from "./view-plan";
-import type { ViewPlanSources } from "./view-plan";
+import { ViewPlanner } from "./view-plan.ts";
+import type { ViewPlanSources } from "./view-plan.ts";
 
 /** The Literature Notes by Indexed Key, each with its frontmatter, counting their scans. */
 function notes(byKey: Record<string, Record<string, unknown>>) {

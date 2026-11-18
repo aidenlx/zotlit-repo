@@ -1,15 +1,15 @@
 import "./style.css";
 import type { App, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 
-import type { AnnotActions } from "./actions";
-import type { AnnotViewModel } from "./model";
-import type { AnnotState } from "./state";
-import { ANNOT_VIEW_TYPE, AnnotationView } from "./view";
-import type { AnnotViewDeps } from "./view";
-import type { AnnotViewState } from "./view-state";
+import type { AnnotActions } from "./actions.tsx";
+import type { AnnotViewModel } from "./model.ts";
+import type { AnnotState } from "./state.ts";
+import type { AnnotViewState } from "./view-state.ts";
+import { ANNOT_VIEW_TYPE, AnnotationView } from "./view.tsx";
+import type { AnnotViewDeps } from "./view.tsx";
 
 type AnnotViewPlugin = Pick<
   Plugin,

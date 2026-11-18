@@ -15,35 +15,35 @@ import type {
 import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
-import type { QueryAnnotation } from "./annotation-fields";
-import type { AnnotationNeeds } from "./annotation-hydration";
-import type { QueryAttachment } from "./attachment-fields";
-import type { AttachmentNeeds } from "./attachment-hydration";
-import { compareStrings } from "./collation";
+import type { QueryAnnotation } from "./annotation-fields.ts";
+import type { AnnotationNeeds } from "./annotation-hydration.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
+import type { AttachmentNeeds } from "./attachment-hydration.ts";
+import { compareStrings } from "./collation.ts";
 import {
   datePart,
   dayKey,
   fromAccessDate,
   fromItemDate,
   timestamp,
-} from "./filter-dates";
-import type { FilterRegistry } from "./filter-plan";
-import { isQueryRecord } from "./filter-values";
-import type { FilterValue, FilterValueType } from "./filter-values";
-import { keyField, indexedKeyField } from "./key-fields";
-import { libraryField } from "./library-field";
-import type { QueryNote } from "./note-fields";
-import type { NoteNeeds } from "./note-hydration";
-import type { PathSegment } from "./projection-path";
-import type { QueryClock } from "./query-clock";
-import type { FilterNavigation, RecordVocabulary } from "./record-field";
-import { recordField } from "./record-field";
-import { definitionFilter } from "./record-field";
-import { annotationVocabulary } from "./record-vocabularies";
-import { attachmentVocabulary } from "./record-vocabularies";
-import { noteVocabulary } from "./record-vocabularies";
-import type { ProjectionValue } from "./request";
-import type { ProjectionJson } from "./value-text";
+} from "./filter-dates.ts";
+import type { FilterRegistry } from "./filter-plan.ts";
+import { isQueryRecord } from "./filter-values.ts";
+import type { FilterValue, FilterValueType } from "./filter-values.ts";
+import { keyField, indexedKeyField } from "./key-fields.ts";
+import { libraryField } from "./library-field.ts";
+import type { QueryNote } from "./note-fields.ts";
+import type { NoteNeeds } from "./note-hydration.ts";
+import type { PathSegment } from "./projection-path.ts";
+import type { QueryClock } from "./query-clock.ts";
+import type { FilterNavigation, RecordVocabulary } from "./record-field.ts";
+import { recordField } from "./record-field.ts";
+import { definitionFilter } from "./record-field.ts";
+import { annotationVocabulary } from "./record-vocabularies.ts";
+import { attachmentVocabulary } from "./record-vocabularies.ts";
+import { noteVocabulary } from "./record-vocabularies.ts";
+import type { ProjectionValue } from "./request.ts";
+import type { ProjectionJson } from "./value-text.ts";
 
 /**
  * One Item while the engine reads it: its scan row and the values hydration

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cslToTemplateItem } from "./zt-csl";
+import { cslToTemplateItem } from "./zt-csl.ts";
 
 /**
  * A cited item's embedded CSL-JSON, as Zotero hoists it onto a note container's

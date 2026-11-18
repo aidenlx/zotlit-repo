@@ -5,7 +5,7 @@ import {
   Modal,
   settingsOf,
   TextComponent,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect, Exit, Fiber, FileSystem, Scope } from "effect";
 import type {
   App,
@@ -16,22 +16,22 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { scopedBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { makeMetadataCache } from "@/lib/obsidian-metadata-cache";
-import { makeWorkspace } from "@/lib/obsidian-workspace";
-import { defaults } from "@/services/settings/schema";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { makeMetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { makeWorkspace } from "@/lib/obsidian-workspace.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
 
 import {
   citationPresentationFileMenu,
   registerCitationPresentation,
   setCitationPresentation,
-} from "./register";
-import type { CitationPresentationDeps } from "./register";
+} from "./register.ts";
+import type { CitationPresentationDeps } from "./register.ts";
 
 const STYLE = "http://www.zotero.org/styles/test-style";
 const styles = FileSystem.makeNoop({

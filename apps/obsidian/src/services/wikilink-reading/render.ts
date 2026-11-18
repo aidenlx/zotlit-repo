@@ -1,11 +1,11 @@
 // The wikilink Citations one rendered reading-view section holds, and the swap
 // that puts their formatted text in place.
 
-import { themeHook } from "@/lib/theme-hooks";
-import { citationRuns } from "@/lib/wikilink-citation";
-import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation";
-import { showCitation } from "@/services/citation-text/present";
-import type { PresentedCitation } from "@/services/citation-text/present";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { citationRuns } from "@/lib/wikilink-citation.ts";
+import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation.ts";
+import { showCitation } from "@/services/citation-text/present.ts";
+import type { PresentedCitation } from "@/services/citation-text/present.ts";
 
 /**
  * Obsidian's own anchor for an internal link, which its Markdown parser builds

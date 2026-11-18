@@ -6,14 +6,14 @@ import { join, resolve } from "node:path";
 import { rcompare } from "semver";
 import { describe, expect, it } from "vitest";
 
-import { cjkGlyph, textWidth } from "./cjk";
-import { docsPageTitle } from "./shared";
+import { cjkGlyph, textWidth } from "./cjk.ts";
+import { docsPageTitle } from "./shared.ts";
 import {
   getBlogPages,
   getChangelogPages,
   getLessonPages,
   source,
-} from "./source";
+} from "./source.ts";
 
 describe("docs collection", () => {
   it("loads every page but the `_` partials", () => {

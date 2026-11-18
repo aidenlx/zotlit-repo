@@ -9,13 +9,13 @@ import type {
 } from "@zotlit/item-lookup/fixtures";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { AvailableLibrary } from "@/services/library-scope/scope";
-import { defaults } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import { renderSuggestion } from "./render-hit";
-import type { SearchHit } from "./service";
+import { renderSuggestion } from "./render-hit.ts";
+import type { SearchHit } from "./service.ts";
 
 const settings = {
   current: Effect.succeed(defaults),

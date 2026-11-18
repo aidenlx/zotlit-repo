@@ -1,11 +1,12 @@
-import type { NodeDatabaseClient } from "@/client/node";
-import type { QueryRow } from "@/queries/_shared";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { QueryRow } from "#queries/_shared.ts";
+
+import { defineToString } from "./to-string.ts";
+
 import {
   collectionIDsByItemQuery,
   collectionNodesByLibraryQuery,
-} from "@/queries/collections";
-
-import { defineToString } from "./to-string";
+} from "#queries/collections.ts";
 
 /**
  * A Zotero collection an item belongs to, in the template vocabulary. Coerces

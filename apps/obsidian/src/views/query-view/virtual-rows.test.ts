@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { flow, learn, withPinned } from "./virtual-rows";
+import { flow, learn, withPinned } from "./virtual-rows.ts";
 
 describe("flow", () => {
   it("leaves the room of the entries before, between and after the drawn ones", () => {

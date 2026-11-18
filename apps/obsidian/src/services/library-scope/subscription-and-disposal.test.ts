@@ -3,17 +3,17 @@ import { Stream } from "effect";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import { layerRcRef } from "@/services/zotero-reads/connection";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { libraryScopeFixture } from "./__fixtures__";
-import { scopeChanges } from "./service";
-import type { LibraryScopeState } from "./service";
-import { LIBRARY_SCOPE_KEY } from "./service";
+import { libraryScopeFixture } from "./__fixtures__.ts";
+import { scopeChanges } from "./service.ts";
+import type { LibraryScopeState } from "./service.ts";
+import { LIBRARY_SCOPE_KEY } from "./service.ts";
 
 const client = () =>
   inProcessClient(

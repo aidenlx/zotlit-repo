@@ -11,27 +11,27 @@ import {
   readUniverseRows,
 } from "@zotlit/db/item-query";
 
-import { lowerItemCandidate } from "./candidate-plan";
-import { fieldRoot } from "./dataset";
-import type { QueryDataset } from "./dataset";
-import type { DatasetRun } from "./execution";
+import { lowerItemCandidate } from "./candidate-plan.ts";
+import { fieldRoot } from "./dataset.ts";
+import type { QueryDataset } from "./dataset.ts";
+import type { DatasetRun } from "./execution.ts";
 import {
   BUILT_IN_NAMES,
   DEFAULT_FIELDS,
   fieldDefinition,
   filterField,
-} from "./fields";
-import type { QueryItem } from "./fields";
-import { matches as isMatch } from "./filter-evaluate";
-import { planFilter, planSubexpression } from "./filter-plan";
-import { projectColumns } from "./formulas";
-import { ITEM_LOADING } from "./hydration";
-import { resolveItemPath } from "./projection";
-import { ANNOTATIONS } from "./query-annotations";
-import { ATTACHMENTS } from "./query-attachments";
-import { openRecordLoader } from "./record-loader";
-import type { ItemQueryRequest } from "./request";
-import { lowerTextSweep } from "./text-sweep";
+} from "./fields.ts";
+import type { QueryItem } from "./fields.ts";
+import { matches as isMatch } from "./filter-evaluate.ts";
+import { planFilter, planSubexpression } from "./filter-plan.ts";
+import { projectColumns } from "./formulas.ts";
+import { ITEM_LOADING } from "./hydration.ts";
+import { resolveItemPath } from "./projection.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ATTACHMENTS } from "./query-attachments.ts";
+import { openRecordLoader } from "./record-loader.ts";
+import type { ItemQueryRequest } from "./request.ts";
+import { lowerTextSweep } from "./text-sweep.ts";
 
 const sortable = (name: string) => {
   const definition = fieldDefinition(name);

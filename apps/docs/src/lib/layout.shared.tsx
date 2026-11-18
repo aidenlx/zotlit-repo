@@ -7,11 +7,11 @@ import {
   UsersIcon,
 } from "lucide-react";
 
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/logo.tsx";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
-import { repoUrl } from "./shared";
+import { repoUrl } from "./shared.ts";
 
 /** Nav title and links shared by the home and docs layouts. */
 export function baseOptions({

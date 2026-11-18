@@ -23,11 +23,11 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
-import { textLinkClass } from "./action-classes";
+import { textLinkClass } from "./action-classes.ts";
 import {
   bodyClass,
   buttonClass,
@@ -38,7 +38,7 @@ import {
   metaClass,
   TickButton,
   titleClass,
-} from "./lesson-mdx";
+} from "./lesson-mdx.tsx";
 import {
   firstOpenStep,
   LessonContext,
@@ -46,13 +46,13 @@ import {
   openOnLoad,
   readProgress,
   saveTicks,
-} from "./lesson-state";
+} from "./lesson-state.ts";
 import type {
   LessonProgress,
   LessonStepMeta,
   LessonState,
-} from "./lesson-state";
-import { StepPicture } from "./step-picture";
+} from "./lesson-state.ts";
+import { StepPicture } from "./step-picture.tsx";
 
 /** Another lesson, as the end offers it. */
 export interface ChoreLink {

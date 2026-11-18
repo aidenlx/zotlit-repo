@@ -2,17 +2,17 @@
 import { Context, Effect, Layer } from "effect";
 import workerSource from "virtual:citation-parse-worker";
 
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { Workspace } from "@/lib/obsidian-workspace";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
 
 import type {
   ParseFailed,
   ParseRequest,
   ParseReply,
   ParseWorkerDied,
-} from "./client";
-import { makeRecoveringParseClient } from "./recovering-client";
-import { connectParseWorker } from "./worker-host";
+} from "./client.ts";
+import { makeRecoveringParseClient } from "./recovering-client.ts";
+import { connectParseWorker } from "./worker-host.ts";
 
 export class CitationParse extends Context.Service<
   CitationParse,

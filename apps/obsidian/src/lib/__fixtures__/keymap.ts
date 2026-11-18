@@ -4,7 +4,7 @@
 import { Scope } from "obsidian";
 import type { App, Keymap, Modifier } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 /** An app whose keymap records its stack, the last Scope pushed on top. */
 export function keymapApp(): Pick<App, "scope" | "keymap"> & {

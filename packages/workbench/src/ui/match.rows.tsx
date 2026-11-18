@@ -1,6 +1,6 @@
-import { WorkbenchSelect } from "./select";
-import { useMatchSelect, useParts } from "./theme";
-import type { MatchSelectProps } from "./theme";
+import { WorkbenchSelect } from "./select.tsx";
+import { useMatchSelect, useParts } from "./theme.tsx";
+import type { MatchSelectProps } from "./theme.tsx";
 
 /**
  * A select of the Match editor, which reports the chosen value. A searchable

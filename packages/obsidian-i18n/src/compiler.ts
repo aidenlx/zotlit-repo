@@ -1,3 +1,8 @@
+// Each consumer type-checks this source under its own tsconfig, so the module
+// names the ambient declarations it needs.
+// oxlint-disable-next-line typescript/triple-slash-reference
+/// <reference path="./inlang-plugins.d.ts" />
+
 // Compiles an Inlang project into typed wrappers and JSON Language Packs.
 
 import mFunctionMatcherPlugin from "@inlang/plugin-m-function-matcher";
@@ -23,14 +28,14 @@ import {
   isLanguagePackFileName,
   isSupportedLanguagePackFormatter,
   parseNumericLiteral,
-} from "./language-pack.js";
+} from "./language-pack.ts";
 import type {
   Declaration as PackDeclaration,
   Expression as PackExpression,
   Match as PackMatch,
   Message as PackMessage,
-} from "./language-pack.js";
-import { validateLanguagePack } from "./validation.js";
+} from "./language-pack.ts";
+import { validateLanguagePack } from "./validation.ts";
 
 export class LanguagePackCompilerError extends Error {
   readonly bundleId: string;

@@ -6,26 +6,26 @@ import { Fragment, useLayoutEffect, useMemo } from "react";
 
 import { errorCell, valueText } from "@zotlit/item-query";
 
-import { Icon } from "@/components/obsidian/icon";
-import { tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { tooltipAttrs } from "@/lib/utils.ts";
 import type {
   QueryViewRow,
   QueryViewValue,
-} from "@/services/item-query/query-view";
+} from "@/services/item-query/query-view.ts";
 import {
   useAnnotStore,
   useToggleGroupCollapsed,
-} from "@/views/annot-view/store";
+} from "@/views/annot-view/store.ts";
 
-import { useQueryViewState } from "./model";
-import { vaultName } from "./query-file";
-import { NO_RESULTS } from "./results";
-import type { LiteratureNotes, VaultHost, VaultValue } from "./table-notes";
-import { cellText } from "./value-text";
-import { VaultCellContent, useVaultVersion, vaultText } from "./vault-cell";
-import type { QueryView } from "./view";
-import { useViewProperties } from "./view-properties";
-import type { PropertyEntry } from "./view-properties";
+import { useQueryViewState } from "./model.ts";
+import { vaultName } from "./query-file.ts";
+import { NO_RESULTS } from "./results.ts";
+import type { LiteratureNotes, VaultHost, VaultValue } from "./table-notes.ts";
+import { cellText } from "./value-text.ts";
+import { VaultCellContent, useVaultVersion, vaultText } from "./vault-cell.tsx";
+import { useViewProperties } from "./view-properties.ts";
+import type { PropertyEntry } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 import "./record-rows.css";
 
 /** One row on screen, and the group it stands in. */

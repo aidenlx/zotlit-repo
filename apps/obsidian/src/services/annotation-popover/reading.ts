@@ -8,37 +8,37 @@ import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 import { parseAnnotationOpenUri } from "@zotlit/db";
 import type { AnnotationOpenUriOptions } from "@zotlit/db";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { forkEach } from "@/lib/effect-stream";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import type { PluginHostShape } from "@/lib/plugin-host";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
 import {
   rerenderReadingViewsIn,
   retireReadingSurface,
-} from "@/lib/reading-surface";
+} from "@/lib/reading-surface.ts";
 import {
   isDraftMarkdown,
   markdownViewOf,
   sectionRange,
-} from "@/lib/reading-view";
-import type { SectionRange } from "@/lib/reading-view";
-import { themeHook } from "@/lib/theme-hooks";
-import { showCitation } from "@/services/citation-text/present";
+} from "@/lib/reading-view.ts";
+import type { SectionRange } from "@/lib/reading-view.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { showCitation } from "@/services/citation-text/present.ts";
 import type {
   DocumentCitations,
   FormattedOccurrence,
-} from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
+} from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
 import {
   CitekeyEditor,
   citekeyTreatment,
-} from "@/services/citekey-editor/service";
-import type { NavigationPane } from "@/services/citekey-navigation";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/citekey-editor/service.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { AnnotationPopover } from "./service";
-import type { AnnotationHoverRequest } from "./service";
+import { AnnotationPopover } from "./service.tsx";
+import type { AnnotationHoverRequest } from "./service.tsx";
 import "./style.css";
 
 /** Obsidian renders a link to another scheme as an external link. */

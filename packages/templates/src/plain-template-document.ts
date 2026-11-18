@@ -2,11 +2,11 @@
 
 import * as v from "valibot";
 
-import type { TemplateLanguage } from "./constants";
+import type { TemplateLanguage } from "./constants.ts";
 import {
   parseManifestYaml,
   splitDocumentFrontmatter,
-} from "./document-frontmatter";
+} from "./document-frontmatter.ts";
 
 const manifestSchema = v.strictObject({
   language: v.optional(v.picklist(["liquid", "eta"]), "liquid"),

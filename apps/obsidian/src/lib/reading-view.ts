@@ -8,7 +8,7 @@ import { Effect } from "effect";
 import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
 /** Draft previews supply their own citations while keeping the real path for native links. */
 export function isDraftMarkdown(element: HTMLElement): boolean {

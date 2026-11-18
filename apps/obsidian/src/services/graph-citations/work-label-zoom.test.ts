@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { workLabelTitleAlpha } from "./work-label-zoom";
+import { workLabelTitleAlpha } from "./work-label-zoom.ts";
 
 describe("Work Label title zoom", () => {
   it.each([

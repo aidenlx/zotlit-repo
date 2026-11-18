@@ -4,14 +4,14 @@ import { inspect } from "node:util";
 import { loadEnv } from "vite";
 import type { Plugin } from "vite";
 
-import { installTemporaryAddon, reloadAddon } from "./remote-firefox.js";
+import { installTemporaryAddon, reloadAddon } from "./remote-firefox.ts";
 import {
   resetCompanionReady,
   resolveDevPath,
   spawnZotero,
   waitForCompanionReady,
-} from "./runner.js";
-import type { ZoteroDevSession } from "./runner.js";
+} from "./runner.ts";
+import type { ZoteroDevSession } from "./runner.ts";
 
 const PREFIX = "[zotero-dev]";
 const ENV_EXAMPLE_PATH = "apps/zotero/.env.example";

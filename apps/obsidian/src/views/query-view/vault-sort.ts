@@ -16,21 +16,21 @@ import type { ProjectionJson } from "@zotlit/item-query";
 import type {
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import type { LayoutRow } from "@/views/annot-view/layout";
+} from "@/services/item-query/query-view.ts";
+import type { LayoutRow } from "@/views/annot-view/layout.tsx";
 
-import { sortOptions } from "./properties";
-import type { PropertyOption } from "./properties";
-import { propertyIcon } from "./property-icon";
-import { isVaultProperty, vaultName, vaultProperty } from "./query-file";
+import { sortOptions } from "./properties.ts";
+import type { PropertyOption } from "./properties.ts";
+import { propertyIcon } from "./property-icon.ts";
+import { isVaultProperty, vaultName, vaultProperty } from "./query-file.ts";
 import type {
   QueryFileDataset,
   QueryFileSort,
   QueryFileView,
-} from "./query-file";
-import { layoutRows } from "./rows";
-import type { LayoutRows } from "./rows";
-import type { VaultPropertyType, VaultValue } from "./table-notes";
+} from "./query-file.ts";
+import { layoutRows } from "./rows.ts";
+import type { LayoutRows } from "./rows.ts";
+import type { VaultPropertyType, VaultValue } from "./table-notes.ts";
 
 /**
  * The most rows ZotLit Query returns to a view sorted by a vault property.

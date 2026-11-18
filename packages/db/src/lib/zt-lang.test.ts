@@ -4,8 +4,8 @@ import {
   createLanguageLookup,
   formatItemLanguage,
   parseItemLanguage,
-} from "./zt-lang";
-import type { LanguageNameLookup, ItemLanguage } from "./zt-lang";
+} from "./zt-lang.ts";
+import type { LanguageNameLookup, ItemLanguage } from "./zt-lang.ts";
 
 const lookup: LanguageNameLookup = (input) => {
   switch (input.toLowerCase()) {

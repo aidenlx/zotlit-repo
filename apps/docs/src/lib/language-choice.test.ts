@@ -5,7 +5,7 @@ import {
   CHINESE_READER_ATTR,
   LANGUAGE_CHOICE_KEY,
   chineseReaderScript,
-} from "./language-choice";
+} from "./language-choice.ts";
 
 /** Run the <head> script as the browser would, under the given browser languages. */
 function runHeadScript(languages: string[]) {

@@ -14,10 +14,15 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { collectQuery, formulaReferences, ItemQueryError, ITEMS } from ".";
-import type { ItemQueryRequest } from ".";
-import type { FormulaResolver } from "./filter-plan";
-import { runEffect } from "./test-helpers";
+import type { FormulaResolver } from "./filter-plan.ts";
+import {
+  collectQuery,
+  formulaReferences,
+  ItemQueryError,
+  ITEMS,
+} from "./index.ts";
+import type { ItemQueryRequest } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 /**
  * The fixed seed of the generated requests. A failure prints the seed and the

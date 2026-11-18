@@ -1,8 +1,8 @@
 import "core-js/proposals/explicit-resource-management";
-import { BOOTSTRAP_BUNDLE_NAME, MAIN_BUNDLE_NAME } from "./constant";
-import type { BootstrapReason } from "./lib/bootstrap-reasons";
-import { logToBrowserConsole } from "./lib/zotero-log";
-import type { ZotLitZotero as ZotLitZoteroCtor } from "./main";
+import { BOOTSTRAP_BUNDLE_NAME, MAIN_BUNDLE_NAME } from "./constant.ts";
+import type { BootstrapReason } from "./lib/bootstrap-reasons.ts";
+import { logToBrowserConsole } from "./lib/zotero-log.js";
+import type { ZotLitZotero as ZotLitZoteroCtor } from "./main.ts";
 
 /**
  * Shape of the `params` object Zotero's plugin loader passes to every

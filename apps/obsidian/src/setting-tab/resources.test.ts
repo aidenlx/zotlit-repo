@@ -1,21 +1,21 @@
 // @vitest-environment happy-dom
-import { ButtonComponent, Setting } from "@mock/obsidian";
+import { ButtonComponent, Setting } from "@mock/obsidian.ts";
 import { Context, Effect } from "effect";
 import type { Setting as ObsidianSetting, SettingGroup } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { LanguagePack } from "@/services/language-pack/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { openWelcomeView } from "@/views/welcome/register";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { openWelcomeView } from "@/views/welcome/register.ts";
 
-import { testSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { resourcesGroup } from "./resources";
+import { testSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { resourcesGroup } from "./resources.ts";
 
-vi.mock("@/views/welcome/register", () => ({
+vi.mock("@/views/welcome/register.ts", () => ({
   openWelcomeView: vi.fn(async () => {}),
 }));
 

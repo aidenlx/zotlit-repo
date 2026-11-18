@@ -1,6 +1,6 @@
 import { formatIndexedKey } from "@zotlit/db";
 
-import type { FieldDefinition } from "./fields";
+import type { FieldDefinition } from "./fields.ts";
 
 type KeyedRecord = {
   readonly scan: { readonly key: string };

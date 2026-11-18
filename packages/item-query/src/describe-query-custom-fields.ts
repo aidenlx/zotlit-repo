@@ -6,16 +6,16 @@ import type {
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
 
-import type { QueryDataset } from "./dataset";
-import type { SchemaCustomField } from "./describe-item-query";
+import type { QueryDataset } from "./dataset.ts";
+import type { SchemaCustomField } from "./describe-item-query.ts";
 import {
   CUSTOM_FIELD_VALUE_SHAPE,
   customFilterValue,
   fieldDefinition,
-} from "./fields";
-import type { ValueShape } from "./fields";
-import { hasBareForm } from "./filter-plan";
-import { openQuerySources } from "./query-sources";
+} from "./fields.ts";
+import type { ValueShape } from "./fields.ts";
+import { hasBareForm } from "./filter-plan.ts";
+import { openQuerySources } from "./query-sources.ts";
 
 /**
  * The custom fields supplied by the active Zotero source, at the paths the

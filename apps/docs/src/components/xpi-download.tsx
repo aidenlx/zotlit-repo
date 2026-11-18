@@ -1,8 +1,8 @@
-import { ActionLink } from "@/components/action-link";
-import { Message } from "@/components/message";
-import { useReleaseSnapshot } from "@/components/release-snapshot";
-import { releasesUrl } from "@/lib/github-releases";
-import type { ReleaseChannel } from "@/lib/github-releases";
+import { ActionLink } from "@/components/action-link.tsx";
+import { Message } from "@/components/message.tsx";
+import { useReleaseSnapshot } from "@/components/release-snapshot.tsx";
+import { releasesUrl } from "@/lib/github-releases.ts";
+import type { ReleaseChannel } from "@/lib/github-releases.ts";
 import * as m from "@/paraglide/messages.js";
 
 export interface XpiDownloadProps {

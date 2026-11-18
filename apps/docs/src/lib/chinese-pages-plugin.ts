@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { normalizePath } from "vite";
 import type { Plugin } from "vite";
 
-import { chineseFile, scanChinesePages } from "./content-scan.js";
+import { chineseFile, scanChinesePages } from "./content-scan.ts";
 
 /** Keep locale metadata aligned with the native content inventory. */
 export function chinesePagesPlugin(packageRoot: string): Plugin {

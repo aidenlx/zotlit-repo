@@ -8,14 +8,14 @@ import { useEffect, useRef } from "react";
 import { CONVERTED_DEFAULT_PROFILE_DOCUMENT } from "@zotlit/templates/facade";
 import { useUniqueId } from "@zotlit/ui";
 
-import { Button } from "@/components/obsidian/button";
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { companionDocsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Button } from "@/components/obsidian/button.tsx";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { companionDocsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { useWelcomeActions } from "./actions";
+import { useWelcomeActions } from "./actions.ts";
 import {
   blogUrl,
   changelogUrl,
@@ -26,11 +26,11 @@ import {
   migrationGuideUrl,
   SPONSOR,
   templatesDocsUrl,
-} from "./links";
-import { ZotLitLockup } from "./lockup";
-import { templateMigrationNotice } from "./migration-notice";
-import { useConversion, useWelcomeState } from "./model";
-import { bannerBadge, bannerSections } from "./presentation";
+} from "./links.ts";
+import { ZotLitLockup } from "./lockup.tsx";
+import { templateMigrationNotice } from "./migration-notice.ts";
+import { useConversion, useWelcomeState } from "./model.ts";
+import { bannerBadge, bannerSections } from "./presentation.ts";
 
 /**
  * Where a setup step stands. Its icon and its words carry it: a check and

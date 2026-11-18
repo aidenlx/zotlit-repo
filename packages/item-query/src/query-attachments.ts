@@ -12,7 +12,7 @@ import {
   readAttachmentUniverseRows,
 } from "@zotlit/db/item-query";
 
-import { lowerAttachmentCandidate } from "./attachment-candidates";
+import { lowerAttachmentCandidate } from "./attachment-candidates.ts";
 import {
   ATTACHMENT_FIELDS,
   ATTACHMENT_PARENTS,
@@ -21,19 +21,19 @@ import {
   attachmentFilterRegistry,
   attachmentSortableField,
   DEFAULT_ATTACHMENT_FIELDS,
-} from "./attachment-fields";
-import type { QueryAttachment } from "./attachment-fields";
-import { ATTACHMENT_LOADING } from "./attachment-hydration";
-import type { QueryDataset } from "./dataset";
-import type { DatasetRun } from "./execution";
-import { matches as isMatch } from "./filter-evaluate";
-import { planFilter, planSubexpression } from "./filter-plan";
-import { projectColumns } from "./formulas";
-import { parentPathResolver, parentRootName } from "./parent-records";
-import { ANNOTATIONS } from "./query-annotations";
-import { ITEMS } from "./query-items";
-import { openRecordLoader } from "./record-loader";
-import type { ItemQueryRequest } from "./request";
+} from "./attachment-fields.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
+import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
+import type { QueryDataset } from "./dataset.ts";
+import type { DatasetRun } from "./execution.ts";
+import { matches as isMatch } from "./filter-evaluate.ts";
+import { planFilter, planSubexpression } from "./filter-plan.ts";
+import { projectColumns } from "./formulas.ts";
+import { parentPathResolver, parentRootName } from "./parent-records.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
+import { ITEMS } from "./query-items.ts";
+import { openRecordLoader } from "./record-loader.ts";
+import type { ItemQueryRequest } from "./request.ts";
 
 /** Attachment Query: one Attachment Row for each non-trashed Attachment. */
 export const ATTACHMENTS: QueryDataset<ItemQueryRequest> = {

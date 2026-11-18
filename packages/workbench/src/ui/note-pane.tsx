@@ -4,7 +4,7 @@
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
-} from "#/document/index";
+} from "#document/index.ts";
 import { MapMode, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
@@ -22,18 +22,18 @@ import {
   boxField,
   boxRanges,
   revealSourceOnClick,
-} from "./editor-boxes";
-import { useOptionalHost, useTooltip } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { usePartialBoxes } from "./partial-boxes";
-import type { PartialPlaceholderHost } from "./partial-boxes";
-import { SliceEditor } from "./slice-editor";
-import type { SuggestionSource } from "./slice-editor";
-import { useParts, useIcon } from "./theme";
-import type { PartAttributes } from "./theme";
+} from "./editor-boxes.ts";
+import { useOptionalHost, useTooltip } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { usePartialBoxes } from "./partial-boxes.tsx";
+import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import type { SuggestionSource } from "./slice-editor.tsx";
+import { useParts, useIcon } from "./theme.tsx";
+import type { PartAttributes } from "./theme.tsx";
 
-import { documentRevision } from "#/document/atoms";
-import { noteRegions } from "#/document/index";
+import { documentRevision } from "#document/atoms.ts";
+import { noteRegions } from "#document/index.ts";
 
 export interface NotePaneProps {
   controller: WorkbenchDocumentController;

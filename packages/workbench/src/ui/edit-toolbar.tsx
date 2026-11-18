@@ -5,11 +5,11 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { ReactNode } from "react";
 
-import { useOptionalEditor, useWorkbenchModel } from "./editor";
-import { useContainerName, useTooltip } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { setAdvanced as advancedTransition } from "./model";
-import { useIcon, useParts } from "./theme";
+import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
+import { useContainerName, useTooltip } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { setAdvanced as advancedTransition } from "./model.ts";
+import { useIcon, useParts } from "./theme.tsx";
 
 export function EditToolbar({
   children,

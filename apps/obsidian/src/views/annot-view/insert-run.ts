@@ -4,15 +4,15 @@
 import { Cause, Effect } from "effect";
 import type { Fiber } from "effect";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 import type {
   AnnotationInsertOutcome,
   AnnotationInsertRequest,
   AnnotationInsertSubject,
-} from "@/services/note-feature/insert-action";
+} from "@/services/note-feature/insert-action.ts";
 
-import type { Placement, captureInsertion } from "./async-insert";
+import type { Placement, captureInsertion } from "./async-insert.ts";
 
 /** An insert in flight; interrupting it stops the insert with no outcome. */
 export type InsertFiber = Fiber.Fiber<AnnotationInsertOutcome>;

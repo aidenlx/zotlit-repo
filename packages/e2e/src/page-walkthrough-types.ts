@@ -7,16 +7,16 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import type { SearchHit } from "@/services/item-lookup/service";
-import type { ZotLitSettingTab } from "@/setting-tab";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
+import type { ZotLitSettingTab } from "@/setting-tab/index.ts";
 
 import type { PageApp } from "./page-host.ts";
 
 export interface WalkthroughViews {
   markdown: MarkdownView;
-  "zotlit-cited-by": import("@/views/cited-by/view").CitedByView;
-  "zotlit-template-workbench": import("@/views/template-workbench/view").TemplateWorkbenchView;
-  "zotlit-template-data-explorer": import("@/views/template-data-explorer/view").TemplateDataExplorerView;
+  "zotlit-cited-by": import("@/views/cited-by/view.tsx").CitedByView;
+  "zotlit-template-workbench": import("@/views/template-workbench/view.tsx").TemplateWorkbenchView;
+  "zotlit-template-data-explorer": import("@/views/template-data-explorer/view.tsx").TemplateDataExplorerView;
 }
 export type WalkthroughLeaf<K extends keyof WalkthroughViews> = Omit<
   WorkspaceLeaf,

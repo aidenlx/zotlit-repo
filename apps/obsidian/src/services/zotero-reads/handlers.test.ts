@@ -12,14 +12,14 @@ import {
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { rowInstant } from "@zotlit/db/test-utils";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system";
-import { workerQuery } from "@/services/item-query/__fixtures__/worker-query";
-import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files";
-import type { QueryJob } from "@/services/item-query/worker-protocol";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
+import { workerQuery } from "@/services/item-query/__fixtures__/worker-query.ts";
+import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files.ts";
+import type { QueryJob } from "@/services/item-query/worker-protocol.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
-import { Connection, layerRcRef } from "./connection";
-import { inProcessClient, sharedClientOpener } from "./test-utils";
+import { Connection, layerRcRef } from "./connection.ts";
+import { inProcessClient, sharedClientOpener } from "./test-utils.ts";
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },

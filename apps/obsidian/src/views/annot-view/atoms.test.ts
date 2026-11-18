@@ -6,14 +6,14 @@ import {
   scopedStack,
   writable,
   zoteroHolding,
-} from "@/services/annotation-repository/__fixtures__";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import type { HistoryOutcome } from "@/services/annotation-repository/service";
-import { annotation } from "@/services/pdf-annotation-editor/__fixtures__";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { waitFor } from "@/views/welcome/__fixtures__";
+} from "@/services/annotation-repository/__fixtures__.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import type { HistoryOutcome } from "@/services/annotation-repository/service.ts";
+import { annotation } from "@/services/pdf-annotation-editor/__fixtures__.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
-import { makeAnnotHost } from "./__fixtures__/host";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
 import {
   annotationWriteCommand,
   annotationHistoryCommand,
@@ -21,9 +21,9 @@ import {
   makeLibraryTagNamesCommand,
   editingCapabilityCommand,
   makeTargetRead,
-} from "./atoms";
-import { observeRead } from "./model";
-import { resolveLoadTarget } from "./resolve-target";
+} from "./atoms.ts";
+import { observeRead } from "./model.ts";
+import { resolveLoadTarget } from "./resolve-target.ts";
 
 it.effect("interrupts an attachment read when its leaf closes", () =>
   Effect.gen(function* () {
@@ -280,7 +280,7 @@ it.effect("finishes a submitted card write after the last leaf closes", () =>
     const release = host.registry.mount(annotationWriteCommand);
     const answer =
       Promise.withResolvers<
-        readonly import("@/services/annotation-repository/service").MutationState[]
+        readonly import("@/services/annotation-repository/service.ts").MutationState[]
       >();
     host.registry.set(annotationWriteCommand, {
       kind: "color",

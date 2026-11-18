@@ -6,14 +6,14 @@ import { describe, expect, it } from "vitest";
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { buildQueryService } from "@/services/item-query/__fixtures__";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { searchAnnotations } from "./annotation-search";
+import { searchAnnotations } from "./annotation-search.ts";
 
 /**
  * A second annotated paper beside the scenario's `ART2FULL`, older on every

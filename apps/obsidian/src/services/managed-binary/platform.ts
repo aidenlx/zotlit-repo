@@ -2,11 +2,11 @@ import { Context, Effect, Layer, Schema } from "effect";
 import { HttpClient, HttpClientError } from "effect/http";
 import type { App } from "obsidian";
 
-import { layerRequestUrlHttpClient } from "@/lib/http-client";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { layerRequestUrlHttpClient } from "@/lib/http-client.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
-import { createMemoryBinaryStore, createOpfsBinaryStore } from "./store";
-import type { BinaryStore } from "./store";
+import { createMemoryBinaryStore, createOpfsBinaryStore } from "./store.ts";
+import type { BinaryStore } from "./store.ts";
 
 /**
  * A managed binary step failed: the store, the download, the engine, or the

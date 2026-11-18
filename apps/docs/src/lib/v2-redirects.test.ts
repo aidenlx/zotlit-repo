@@ -1,11 +1,11 @@
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { scanContent } from "./content-scan";
-import { buildRedirects, renderSiteRedirectsFile } from "./redirects";
-import { buildV1Redirects } from "./v1-redirects";
-import { PAGE_MAP } from "./v1-routes";
-import { buildV2Redirects, V2_MOVES } from "./v2-redirects";
+import { scanContent } from "./content-scan.ts";
+import { buildRedirects, renderSiteRedirectsFile } from "./redirects.ts";
+import { buildV1Redirects } from "./v1-redirects.ts";
+import { PAGE_MAP } from "./v1-routes.ts";
+import { buildV2Redirects, V2_MOVES } from "./v2-redirects.ts";
 
 const packageRoot = resolve(import.meta.dirname, "../..");
 

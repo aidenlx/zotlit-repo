@@ -3,7 +3,7 @@
 // ./obsidian-host-app). It copies the shape of ./obsidian-metadata-cache.
 import type { TAbstractFile, TFile } from "obsidian";
 
-import type { FileManagerSource } from "@/lib/obsidian-file-manager";
+import type { FileManagerSource } from "@/lib/obsidian-file-manager.ts";
 
 /**
  * The Properties of a test vault's notes, by path, and the renames the code

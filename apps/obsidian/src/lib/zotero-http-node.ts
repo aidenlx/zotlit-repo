@@ -3,8 +3,8 @@
 import * as NodeHttpClient from "@effect/platform-node/NodeHttpClient";
 import { Layer } from "effect";
 
-import { layerZoteroHttp } from "@/lib/zotero-http";
-import type { ZoteroHttp } from "@/lib/zotero-http";
+import { layerZoteroHttp } from "@/lib/zotero-http.ts";
+import type { ZoteroHttp } from "@/lib/zotero-http.ts";
 
 /**
  * {@link ZoteroHttp} over `node:http`, so a request leaves the process without

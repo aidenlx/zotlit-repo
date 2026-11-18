@@ -22,24 +22,24 @@ import {
   overlapsSelection,
   tokenNodes,
   visibleLineRanges,
-} from "@/lib/editor-decoration";
-import type { DocRange, TokenNode } from "@/lib/editor-decoration";
-import { getLogger } from "@/lib/log";
-import { themeHook } from "@/lib/theme-hooks";
-import type { AnnotationHoverRequest } from "@/services/annotation-popover/service";
+} from "@/lib/editor-decoration.ts";
+import type { DocRange, TokenNode } from "@/lib/editor-decoration.ts";
+import { getLogger } from "@/lib/log.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import type { AnnotationHoverRequest } from "@/services/annotation-popover/service.tsx";
 import {
   citationContent,
   citationElement,
   presentedCitationEqual,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import type {
   DocumentCitations,
   PresentedCitation,
-} from "@/services/citation-text/present";
-import type { NavigationPane } from "@/services/citekey-navigation";
-import type { Held } from "@/services/query-client/service";
+} from "@/services/citation-text/present.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
-import { citekeyDecorationsChanged } from "./extension";
+import { citekeyDecorationsChanged } from "./extension.ts";
 
 const logger = getLogger("citekey-editor");
 

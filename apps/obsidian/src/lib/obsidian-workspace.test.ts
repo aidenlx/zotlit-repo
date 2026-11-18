@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import {
   Context,
   Effect,
@@ -18,15 +18,15 @@ import type {
 } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import {
   layerWorkspace,
   layerWorkspaceFrom,
   Workspace,
-} from "@/lib/obsidian-workspace";
+} from "@/lib/obsidian-workspace.ts";
 
-import { MemoryWorkspace } from "./__fixtures__/obsidian-workspace";
+import { MemoryWorkspace } from "./__fixtures__/obsidian-workspace.ts";
 
 function file(path: string): TFile {
   const file = new TFile();

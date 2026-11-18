@@ -4,7 +4,7 @@ import {
   DropdownComponent,
   ExtraButtonComponent,
   renderRow,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import {
   Cause,
   Effect,
@@ -17,34 +17,34 @@ import {
 } from "effect";
 import { TestClock } from "effect/testing";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { defaults } from "@/services/settings/schema";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   PluginSettings,
   SettingsMutationError,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,
-} from "@/services/zotero-pref/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsEvent,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
+import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
 import {
   databaseFileItem,
   databaseLocationItems,
   refreshReads,
-} from "./database";
+} from "./database.ts";
 
 const SNAPSHOT: ZoteroPrefSnapshot = {
   state: "ready",

@@ -9,18 +9,18 @@ import {
   ANNOTATION_COLORS,
   annotationColorLabel,
   isColor,
-} from "@/lib/annotation-colors";
-import { AppContext } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { MutationState } from "@/services/annotation-repository/write";
-import { editingBlockedReason } from "@/views/annot-view/card-controls";
-import { EditorSheetSlot } from "@/views/annot-view/comment-parts";
-import type { EditorSheetSlotProps } from "@/views/annot-view/comment-parts";
+} from "@/lib/annotation-colors.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import type { MutationState } from "@/services/annotation-repository/write.ts";
+import { editingBlockedReason } from "@/views/annot-view/card-controls.ts";
+import { EditorSheetSlot } from "@/views/annot-view/comment-parts.tsx";
+import type { EditorSheetSlotProps } from "@/views/annot-view/comment-parts.tsx";
 
-import { MarkPopupControl, PopupColumn } from "./mark-popup";
-import { selectionToolOf } from "./tools";
-import type { AnnotationTool, MarkTool, SelectionTool } from "./tools";
+import { MarkPopupControl, PopupColumn } from "./mark-popup.tsx";
+import { selectionToolOf } from "./tools.ts";
+import type { AnnotationTool, MarkTool, SelectionTool } from "./tools.ts";
 
 /** What a pressed control of the create-mode row asks for. */
 export type CreatePopupAction =

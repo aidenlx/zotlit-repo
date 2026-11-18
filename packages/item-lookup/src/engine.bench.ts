@@ -7,10 +7,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { IndexedItem } from "@zotlit/db";
 
-import { buildEngineIndex, searchEngineIndex } from "./engine";
-import type { EngineIndex } from "./engine";
-import { makeCreator, makeIndexedItem } from "./fixtures";
-import { layerSegmenterNone } from "./segmenter";
+import { buildEngineIndex, searchEngineIndex } from "./engine.ts";
+import type { EngineIndex } from "./engine.ts";
+import { makeCreator, makeIndexedItem } from "./fixtures.ts";
+import { layerSegmenterNone } from "./segmenter.ts";
 
 const ITEMS = 100_000;
 const SLICE = 500;

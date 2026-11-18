@@ -11,18 +11,18 @@ import type { AnnotationExample } from "@zotlit/workbench/render";
 import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchHost, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages";
-import { itemSummary } from "@/lib/item-summary";
-import { viewRuntime } from "@/lib/view-atoms";
-import { awaitItem } from "@/services/item-lookup/search-modal";
-import type { ItemSearchDeps } from "@/services/item-lookup/search-modal";
-import { DEFAULT_LIMIT, ItemLookup } from "@/services/item-lookup/service";
-import type { SearchHit } from "@/services/item-lookup/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
+import { itemSummary } from "@/lib/item-summary.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { awaitItem } from "@/services/item-lookup/search-modal.ts";
+import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
+import { DEFAULT_LIMIT, ItemLookup } from "@/services/item-lookup/service.ts";
+import type { SearchHit } from "@/services/item-lookup/service.ts";
 
-import type { NativeWorkbenchSuggesterRequest } from "./host";
-import { sampleTypeLabel } from "./selection";
-import { SAMPLE_ITEM_CHOICES } from "./selection-data";
+import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
+import { SAMPLE_ITEM_CHOICES } from "./selection-data.ts";
+import { sampleTypeLabel } from "./selection.tsx";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

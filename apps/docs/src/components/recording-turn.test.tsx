@@ -8,8 +8,8 @@ import {
   queueMediaEvents,
   settle,
   where,
-} from "./__fixtures__/media-boundary";
-import type { Box } from "./__fixtures__/media-boundary";
+} from "./__fixtures__/media-boundary.ts";
+import type { Box } from "./__fixtures__/media-boundary.ts";
 
 // The turn lives in module state, so each case loads a fresh copy of the
 // module and of everything that imports it.
@@ -22,8 +22,8 @@ async function mountRecordingAndDemo() {
   using cleanup = new DisposableStack();
   const { act } = await import("react");
   const { createRoot } = await import("react-dom/client");
-  const { default: RecordingPlayer } = await import("./recording-player");
-  const { TableDemo } = await import("./landing/table-demo");
+  const { default: RecordingPlayer } = await import("./recording-player.tsx");
+  const { TableDemo } = await import("./landing/table-demo.tsx");
 
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
@@ -79,7 +79,7 @@ async function mountRecordingAndDemo() {
 describe("the recording turn", () => {
   it("keeps a reader-paused recording's turn from an automatic start, which plays once the paused one leaves view", async () => {
     const { askTurn, awaitTurn, endTurn, holdTurn, takeTurn } =
-      await import("./recording-turn");
+      await import("./recording-turn.ts");
     const paused = Symbol("paused");
     const next = Symbol("next");
     const restPaused = vi.fn();
@@ -97,7 +97,7 @@ describe("the recording turn", () => {
   });
 
   it("gives the turn to a reader's play while a paused recording holds it", async () => {
-    const { askTurn, holdTurn, takeTurn } = await import("./recording-turn");
+    const { askTurn, holdTurn, takeTurn } = await import("./recording-turn.ts");
     const paused = Symbol("paused");
     const pressed = Symbol("pressed");
     const restPressed = vi.fn();

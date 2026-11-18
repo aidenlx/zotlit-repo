@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode, RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { useWorkbenchHost } from "./host";
+import { useWorkbenchHost } from "./host.tsx";
 
 /**
  * Attaches the host's typing suggestions to `inputRef`'s input.

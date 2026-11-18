@@ -14,14 +14,14 @@
 // Docs fallback.
 // @see docs/adr/0051-the-docs-site-prerenders-asset-first-and-falls-through-to-an-ssr-worker.md
 
-import { scanContent } from "./content-scan.js";
-import { chineseCatalogPages, localizedPath } from "./i18n.js";
-import type { MarkdownSection } from "./markdown-routes.js";
+import { scanContent } from "./content-scan.ts";
+import { chineseCatalogPages, localizedPath } from "./i18n.ts";
+import type { MarkdownSection } from "./markdown-routes.ts";
 import {
   contentRouteUrl,
   markdownSections,
   suffixEditionUrl,
-} from "./markdown-routes.js";
+} from "./markdown-routes.ts";
 
 /** A page for `tanstackStart({ pages })` to prerender. */
 interface PrerenderPage {

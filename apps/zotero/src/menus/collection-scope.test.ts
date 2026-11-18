@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { contextScope } from "./collection-scope.js";
+import { contextScope } from "./collection-scope.ts";
 
 type LibraryMenuContext = _ZoteroTypes.MenuManager.LibraryMenuContext;
 

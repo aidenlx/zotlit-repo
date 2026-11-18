@@ -15,15 +15,15 @@ import type { TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";
 
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { collectExcerptSummary } from "@/services/excerpt-image/prepare";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { collectExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import {
   itemKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service";
+} from "@/services/note-index/service.ts";
 
 import {
   getImportedNotesForItem,
@@ -32,13 +32,13 @@ import {
   prepareProfileSwitch,
   resolveCompanionNote,
   resolveCreationProfile,
-} from "./creation-planning";
+} from "./creation-planning.ts";
 import type {
   CreationPlanningServices,
   PlannedCreation,
   PreparedProfileNote,
-} from "./creation-planning";
-import { refusedCreate } from "./diagnostics";
+} from "./creation-planning.ts";
+import { refusedCreate } from "./diagnostics.ts";
 import type {
   CompanionNoteTarget,
   CreateNoteInternalOptions,
@@ -53,7 +53,7 @@ import type {
   ProfileNotePreviewOptions,
   UpdateResult,
   WriteNoteUpdateOptions,
-} from "./types";
+} from "./types.ts";
 import {
   composeEvents,
   createNote,
@@ -62,7 +62,7 @@ import {
   switchNoteProfile,
   updateNote,
   writeNoteUpdate,
-} from "./write-pipeline";
+} from "./write-pipeline.ts";
 import type {
   CreateNoteError,
   NoteWriteContext,
@@ -72,7 +72,7 @@ import type {
   UpdateNoteError,
   UpdateNoteOptions,
   WriteNoteUpdateError,
-} from "./write-pipeline";
+} from "./write-pipeline.ts";
 
 /** Notes created that the Note Index has not seen yet, kept per Indexed Key. */
 const MAX_UNINDEXED_CREATES = 256;

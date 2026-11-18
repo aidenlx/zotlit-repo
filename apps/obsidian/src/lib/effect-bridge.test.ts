@@ -12,9 +12,9 @@ import {
 } from "effect";
 import { describe, expect } from "vitest";
 
-import { openTestBridge } from "./__fixtures__/effect-bridge";
-import { AbortError } from "./abort-error";
-import { scopedBridge, valueOr } from "./effect-bridge";
+import { openTestBridge } from "./__fixtures__/effect-bridge.ts";
+import { AbortError } from "./abort-error.ts";
+import { scopedBridge, valueOr } from "./effect-bridge.ts";
 
 class BridgeError extends Schema.TaggedError<
   BridgeError,

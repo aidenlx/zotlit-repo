@@ -1,7 +1,7 @@
 // The Local Bridge for callers outside Effect: the saved Notice.
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import type { LocalBridge } from "./service";
+import type { LocalBridge } from "./service.ts";
 
 /** The edge handle `plugin-runtime.ts` binds; see {@link bindLocalBridge}. */
 export interface LocalBridgeHandle {

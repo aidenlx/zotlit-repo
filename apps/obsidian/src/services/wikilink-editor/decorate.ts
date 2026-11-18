@@ -2,19 +2,19 @@
 // scanned links form a Citation, over which range, and with which reconstructed
 // token classes.
 
-import { overlapsSelection } from "@/lib/editor-decoration";
-import type { DocRange } from "@/lib/editor-decoration";
+import { overlapsSelection } from "@/lib/editor-decoration.ts";
+import type { DocRange } from "@/lib/editor-decoration.ts";
 import {
   citationOfRun,
   citationRuns,
   wikilinkCitation,
-} from "@/lib/wikilink-citation";
+} from "@/lib/wikilink-citation.ts";
 import type {
   RunCitationSource,
   WikilinkCitationContext,
-} from "@/lib/wikilink-citation";
+} from "@/lib/wikilink-citation.ts";
 
-import type { WikilinkSpan } from "./scan";
+import type { WikilinkSpan } from "./scan.ts";
 
 export interface WikilinkDisplayContext extends WikilinkCitationContext {
   /**

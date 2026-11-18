@@ -3,15 +3,15 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 
 const { livePreview, tokenClassNodeProp } = vi.hoisted(() => ({
   livePreview: vi.fn(() => false),
   tokenClassNodeProp: {},
 }));
 
-vi.mock("@/lib/editor-decoration", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/editor-decoration")>()),
+vi.mock("@/lib/editor-decoration.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/editor-decoration.ts")>()),
   livePreviewOf: livePreview,
 }));
 
@@ -78,17 +78,20 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField } from "obsidian";
 
-import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup";
-import { heldCitekeyOf } from "@/services/citation-index/lookup";
-import { occurrences, rendered } from "@/services/citation-text/__fixtures__";
-import { citationKey } from "@/services/citation-text/present";
-import type { DocumentCitations } from "@/services/citation-text/present";
-import { hoverPreferences } from "@/services/citekey-navigation";
-import type { RenderedCitation } from "@/services/pandoc/engine";
-import type { Held } from "@/services/query-client/service";
-import { defaults } from "@/services/settings/schema";
+import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
+import { heldCitekeyOf } from "@/services/citation-index/lookup.ts";
+import {
+  occurrences,
+  rendered,
+} from "@/services/citation-text/__fixtures__.ts";
+import { citationKey } from "@/services/citation-text/present.ts";
+import type { DocumentCitations } from "@/services/citation-text/present.ts";
+import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
+import type { RenderedCitation } from "@/services/pandoc/engine.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { wikilinkEditorExtension } from "./extension";
+import { wikilinkEditorExtension } from "./extension.ts";
 
 const LITERATURE_NOTE = {
   path: "literatures/example.md",

@@ -2,8 +2,8 @@
 
 import type { AnnotationPosition } from "@zotlit/db";
 
-import { wireColor, writablePosition, writePosition } from "./write";
-import type { ConflictedWrite, GeometryEdit } from "./write";
+import { wireColor, writablePosition, writePosition } from "./write.ts";
+import type { ConflictedWrite, GeometryEdit } from "./write.ts";
 
 /**
  * Whether the value Zotero holds now is the one the write asked for, in which

@@ -2,10 +2,10 @@ import { TFile } from "obsidian";
 import type { App, Command, MetadataCache, Vault, Workspace } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { addNoteFeatureActions } from "./actions";
+import { addNoteFeatureActions } from "./actions.ts";
 
 it("offers Profile switching only for the active Literature Note and opens its consent flow", () => {
   const file = new TFile();

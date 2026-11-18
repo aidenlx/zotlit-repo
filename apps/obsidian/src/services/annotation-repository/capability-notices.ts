@@ -7,15 +7,15 @@
 
 import type { DateTime } from "effect";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import type {
   LocalApiFailure,
   LocalApiResult,
-} from "@/services/zotero-local-api/service";
+} from "@/services/zotero-local-api/service.ts";
 
-import { capabilityReason } from "./capability";
-import type { EditingCapability } from "./capability";
-import { editingCapabilityCopy } from "./capability-copy";
+import { editingCapabilityCopy } from "./capability-copy.ts";
+import { capabilityReason } from "./capability.ts";
+import type { EditingCapability } from "./capability.ts";
 
 /** One notice, in the shape the seam renders it in. */
 export interface CapabilityNotice {

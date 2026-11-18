@@ -16,9 +16,9 @@ import {
 } from "@zotlit/scripts/fixture";
 import type { FixtureItem } from "@zotlit/scripts/fixture";
 
-import type { StoredLibraryViewDocument } from "@/views/library/document";
-import type { LibraryView } from "@/views/library/view";
-import type { QueryFileView } from "@/views/query-view/file-view";
+import type { StoredLibraryViewDocument } from "@/views/library/document.ts";
+import type { LibraryView } from "@/views/library/view.ts";
+import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { annotationOpenKeys } from "./annotation-open-subpath.ts";
 import { prepareRunWindow } from "./background-throttling.ts";

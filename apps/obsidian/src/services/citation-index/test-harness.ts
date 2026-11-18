@@ -15,47 +15,47 @@ import type {
 
 import type { Library, LibraryCitekey } from "@zotlit/db";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FIELD_CITEKEY, FIELD_ZOTERO_KEY } from "@/lib/constants";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
-import type { VaultSource } from "@/lib/obsidian-vault";
-import type { ParseClient } from "@/services/citation-parse/client";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { resolveLibraryScope } from "@/services/library-scope/scope";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { FIELD_CITEKEY, FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
+import type { VaultSource } from "@/lib/obsidian-vault.ts";
+import type { ParseClient } from "@/services/citation-parse/client.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
 import type {
   LibraryScope,
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import type { LibraryScopeEvents } from "@/services/library-scope/service";
-import { buildNoteIndex } from "@/services/note-index/__fixtures__";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__";
-import type { QueryClients } from "@/services/query-client/service";
-import { testClock } from "@/services/query-client/test-clock";
-import { buildSeededSettings } from "@/services/settings/__fixtures__";
-import type { SettingsFixture } from "@/services/settings/__fixtures__";
-import type { Settings } from "@/services/settings/schema";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/library-scope/scope.ts";
+import type { LibraryScopeEvents } from "@/services/library-scope/service.ts";
+import { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";
+import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
+import type { QueryClients } from "@/services/query-client/service.ts";
+import { testClock } from "@/services/query-client/test-clock.ts";
+import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
+import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import type {
   ZoteroReads,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import type { ZoteroReadLease } from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { citationIndexFixture, citationLookupFixture } from "./__fixtures__";
-import { CitationLookup } from "./lookup-service";
-import type { CitationIndex } from "./service";
-import type { CitekeyRecord, CitekeyStore } from "./service";
+import { citationIndexFixture, citationLookupFixture } from "./__fixtures__.ts";
+import { CitationLookup } from "./lookup-service.ts";
+import type { CitationIndex } from "./service.ts";
+import type { CitekeyRecord, CitekeyStore } from "./service.ts";
 
 export const KEY_A = "ABCD2345";
 export const KEY_B = "ZZZ99999g7";
@@ -682,7 +682,7 @@ export interface CitationIndexHarness extends AsyncDisposable {
   draft: TFile;
   index: CitationIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream").SubscriptionRuntime;
+    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
   };
   ready: Promise<void>;
   runtime: ReturnType<typeof citationIndexFixture>["runtime"];
@@ -810,7 +810,7 @@ export async function createCitationIndexHarness(
   );
   let index: CitationIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream").SubscriptionRuntime;
+    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
   };
   const ready = fixture.ready.then((value) => {
     index = value;

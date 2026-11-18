@@ -1,14 +1,14 @@
 import { expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { deadlineAfter } from "./__fixtures__/capability";
-import type { EditingCapability } from "./capability";
+import { deadlineAfter } from "./__fixtures__/capability.ts";
 import {
   editingCapabilityAffordance,
   editingCapabilityCopy,
   secondsUntil,
-} from "./capability-copy";
+} from "./capability-copy.ts";
+import type { EditingCapability } from "./capability.ts";
 
 const NOW = Temporal.Instant.from("2026-09-16T15:52:21Z");
 

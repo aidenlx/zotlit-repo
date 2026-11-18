@@ -25,13 +25,13 @@ import type {
 
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { Chooser, useChooserOpenSearch } from "./chooser";
-import type { ChooserRow } from "./chooser-logic";
-import type { PinnedPopoverHandle } from "./pinned-popover";
+import type { ChooserRow } from "./chooser-logic.ts";
+import { Chooser, useChooserOpenSearch } from "./chooser.tsx";
+import type { PinnedPopoverHandle } from "./pinned-popover.tsx";
 
 export interface SelectOption {
   value: string;

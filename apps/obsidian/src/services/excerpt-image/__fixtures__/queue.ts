@@ -1,7 +1,7 @@
 import { Effect, Scope } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { makeExcerptPdfQueue } from "@/services/excerpt-image/pdf-queue";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { makeExcerptPdfQueue } from "@/services/excerpt-image/pdf-queue.ts";
 
 /** Promise boundary for the existing queue contract and real Chromium crops. */
 export const queueFixture = Effect.fn("queueFixture")(function* (

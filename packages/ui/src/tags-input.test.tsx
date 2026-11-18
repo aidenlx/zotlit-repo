@@ -9,7 +9,7 @@ import { useState } from "react";
 import type { ComponentProps } from "react";
 import { afterEach, expect, it } from "vitest";
 
-import { TagsInput } from "./tags-input";
+import { TagsInput } from "./tags-input.tsx";
 
 afterEach(cleanup);
 

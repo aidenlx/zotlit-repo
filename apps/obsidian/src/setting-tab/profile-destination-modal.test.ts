@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
-import { ButtonComponent, controlsOf, TextComponent } from "@mock/obsidian";
+import { ButtonComponent, controlsOf, TextComponent } from "@mock/obsidian.ts";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import type { PreparedProfileCreation } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import type { PreparedProfileCreation } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { ProfileDestinationModal } from "./profile-destination-modal";
+import { ProfileDestinationModal } from "./profile-destination-modal.ts";
 
 it("asks for a name with a neutral hint, reports an edited invalid name, and accepts a name with an empty folder", async () => {
   using disabled = vi.spyOn(ButtonComponent.prototype, "setDisabled");

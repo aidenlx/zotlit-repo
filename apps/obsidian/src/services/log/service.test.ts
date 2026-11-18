@@ -5,17 +5,17 @@ import { TestClock, TestConsole } from "effect/testing";
 import type { App, Plugin } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { settingsOf } from "@/services/settings/__fixtures__";
-import { settingsMigrations } from "@/services/settings/migrate";
-import { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { settingsOf } from "@/services/settings/__fixtures__.ts";
+import { settingsMigrations } from "@/services/settings/migrate.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   layerLogging,
   layerLogOutput,
   LogOutput,
   STARTUP_LOG_SETTINGS,
-} from "./service";
+} from "./service.ts";
 
 /** The failure the fake LogTape answers a configure with. */
 class ConfigureFailed extends Schema.TaggedError<

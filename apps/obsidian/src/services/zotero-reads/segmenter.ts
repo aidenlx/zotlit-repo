@@ -6,9 +6,9 @@ import {
   SegmenterUnavailable,
 } from "@zotlit/item-lookup";
 
-import { createOpfsBinaryStore } from "@/services/managed-binary/store";
+import { createOpfsBinaryStore } from "@/services/managed-binary/store.ts";
 
-import type { SegmenterBinary } from "./rpc";
+import type { SegmenterBinary } from "./rpc.ts";
 
 /** Reads the bytes of an installed Chinese Segmenter binary. */
 export type ReadSegmenter = (

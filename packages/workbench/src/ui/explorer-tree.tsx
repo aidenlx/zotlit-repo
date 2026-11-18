@@ -6,20 +6,20 @@ import type {
   ListPropertyNode,
   PlaceholderNode,
   ValueNode,
-} from "#/explorer/index";
+} from "#explorer/index.ts";
 import { regex } from "arkregex";
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import type { ExplorerSectionId } from "./explorer-sections";
-import { useTooltip } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { useIcon, useParts } from "./theme";
-import type { WorkbenchIcon } from "./theme";
+import type { ExplorerSectionId } from "./explorer-sections.ts";
+import { useTooltip } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useIcon, useParts } from "./theme.tsx";
+import type { WorkbenchIcon } from "./theme.tsx";
 
-import { formatPath } from "#/explorer/index";
+import { formatPath } from "#explorer/index.ts";
 
 /** Shared Enter/Space activation for `role="button"` spans, so keyboard users get the same click behavior as a mouse. */
 function activateOnEnterOrSpace<E extends React.KeyboardEvent>(

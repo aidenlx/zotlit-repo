@@ -12,16 +12,16 @@ import {
   ROUGIER_ANNOTATIONS,
   staleVersion,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 import type {
   WireAnnotation,
   ZoteroAnswers,
   ZoteroRequest,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 import {
   capabilityBlocks,
   cardControls,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 
 import {
   collect,
@@ -36,9 +36,9 @@ import {
   moved,
   zoteroTagging,
   TAGGED,
-} from "./__fixtures__";
-import { JOIN_WINDOW_MS } from "./history";
-import type { AnnotationRepository } from "./service";
+} from "./__fixtures__.ts";
+import { JOIN_WINDOW_MS } from "./history.ts";
+import type { AnnotationRepository } from "./service.ts";
 
 // #region annotation history
 

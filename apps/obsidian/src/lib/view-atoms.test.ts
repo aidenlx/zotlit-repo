@@ -4,14 +4,14 @@ import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { expect, vi } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms";
-import { CitationIndex } from "@/services/citation-index/service";
+} from "@/lib/__fixtures__/view-atoms.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 
-import { held, layerViewRegistry, ViewRegistry, watch } from "./view-atoms";
+import { held, layerViewRegistry, ViewRegistry, watch } from "./view-atoms.ts";
 
 const layerServices = Layer.mergeAll(
   layerUnreadViewServices,

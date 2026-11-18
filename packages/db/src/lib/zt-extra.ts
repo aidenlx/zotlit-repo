@@ -1,7 +1,7 @@
 // Best-effort key-value parse of Zotero's free-text Extra field.
 import { regex } from "arkregex";
 
-import { defineToString } from "./to-string";
+import { defineToString } from "./to-string.ts";
 
 /**
  * One source row of an Extra field, in document order: a parsed pair (`key`

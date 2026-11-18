@@ -14,14 +14,14 @@ import type { ContextRecord } from "@zotlit/item-query";
 import { datasetVocabulary } from "@zotlit/workbench/language";
 import type { ExpressionVocabulary } from "@zotlit/workbench/language";
 
-import { customFieldNamesAtom } from "./atoms";
-import { boundRecords } from "./context-hint";
-import { datasetSpec } from "./datasets";
-import { useQueryViewState } from "./model";
-import type { QueryFileDataset } from "./query-file";
-import type { QueryView } from "./view";
-import { fieldLabel } from "./view-properties";
-import type { ViewProperties } from "./view-properties";
+import { customFieldNamesAtom } from "./atoms.ts";
+import { boundRecords } from "./context-hint.ts";
+import { datasetSpec } from "./datasets.ts";
+import { useQueryViewState } from "./model.ts";
+import type { QueryFileDataset } from "./query-file.ts";
+import { fieldLabel } from "./view-properties.ts";
+import type { ViewProperties } from "./view-properties.ts";
+import type { QueryView } from "./view.tsx";
 
 /** No custom fields, the same list each render. */
 const NO_CUSTOM: readonly string[] = [];

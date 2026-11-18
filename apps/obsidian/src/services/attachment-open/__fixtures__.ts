@@ -4,24 +4,24 @@
 
 import { Context, Effect, Layer } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ObsidianEnv } from "@/lib/obsidian-env";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import {
   DATA_DIR,
   openResolver,
-} from "@/services/attachment-resolver/__fixtures__";
-import type { ResolverHarnessOptions } from "@/services/attachment-resolver/__fixtures__";
-import { AttachmentResolver } from "@/services/attachment-resolver/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/attachment-resolver/__fixtures__.ts";
+import type { ResolverHarnessOptions } from "@/services/attachment-resolver/__fixtures__.ts";
+import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { layerTargetOpener, TargetOpener } from "./open-target";
-import type { NativeOpener, ReaderOutcome } from "./open-target";
-import type { ObsidianOpenableAttachment } from "./resolve";
+import { layerTargetOpener, TargetOpener } from "./open-target.ts";
+import type { NativeOpener, ReaderOutcome } from "./open-target.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
 export const VAULT = "/fixture/vault";
 

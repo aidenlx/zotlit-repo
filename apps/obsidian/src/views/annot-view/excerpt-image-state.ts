@@ -4,13 +4,13 @@
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import type { ExcerptImageDisplay } from "@/services/excerpt-image/display";
-import type { ExcerptImage } from "@/services/excerpt-image/format";
+} from "@/services/annotation-repository/service.ts";
+import type { ExcerptImageDisplay } from "@/services/excerpt-image/display.ts";
+import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
 import {
   excerptFingerprint,
   excerptSourceIdentity,
-} from "@/services/excerpt-image/service";
+} from "@/services/excerpt-image/service.ts";
 
 export interface ExcerptImageTarget {
   /**

@@ -6,11 +6,11 @@ import { Decoration } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
 import { highlightTree } from "@lezer/highlight";
 
-import { decorationLayer } from "./decorations";
-import { etaBody } from "./eta-language";
-import { etaParser } from "./eta-syntax";
-import { templateHighlighters, documentToken } from "./highlight";
-import { liquidBody, refusedLiquidMarks } from "./liquid";
+import { decorationLayer } from "./decorations.ts";
+import { etaBody } from "./eta-language.ts";
+import { etaParser } from "./eta-syntax.ts";
+import { templateHighlighters, documentToken } from "./highlight.ts";
+import { liquidBody, refusedLiquidMarks } from "./liquid.ts";
 
 /** A template body, scalar, or bare Property expression in editor offsets. */
 export interface TemplateSourceRegion {

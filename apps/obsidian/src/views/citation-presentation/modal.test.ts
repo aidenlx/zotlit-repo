@@ -5,25 +5,25 @@ import {
   Modal,
   settingsOf,
   TextComponent,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { modalAnswer } from "@/lib/modal-answer";
-import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { modalAnswer } from "@/lib/modal-answer.ts";
+import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
-import { openCitationPresentationModal } from "./modal";
-import type { CitationPresentationModalOptions } from "./modal";
-import type { CitationPresentationChoice } from "./presentation";
+import { openCitationPresentationModal } from "./modal.ts";
+import type { CitationPresentationModalOptions } from "./modal.ts";
+import type { CitationPresentationChoice } from "./presentation.ts";
 
 /** The styles Zotero has installed while one dialog is open. */
 const zotero = vi.hoisted(() => ({ styles: [] as InstalledCslStyle[] }));
 
-vi.mock("@/services/pandoc/installed-styles", () => ({
+vi.mock("@/services/pandoc/installed-styles.ts", () => ({
   listInstalledStylesOrNone: () => Effect.succeed(zotero.styles),
 }));
 

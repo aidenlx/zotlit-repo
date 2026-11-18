@@ -2,9 +2,9 @@
 import { Effect } from "effect";
 import { dirname } from "node:path/posix";
 
-import { normalizeFolderPath } from "@/lib/ensure-folder";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import type { VaultError } from "@/lib/vault-errors";
+import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import type { VaultError } from "@/lib/vault-errors.ts";
 
 /**
  * The normalized attachment folder path, read without touching the

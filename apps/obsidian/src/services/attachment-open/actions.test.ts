@@ -9,35 +9,35 @@ import type {
 } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   createObsidianAttachmentReader,
   openAttachments,
-} from "@/lib/attachment-open";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { activateAnnotView } from "@/views/annot-view/register";
+} from "@/lib/attachment-open.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { activateAnnotView } from "@/views/annot-view/register.ts";
 
-import { openOpener } from "./__fixtures__";
+import { openOpener } from "./__fixtures__.ts";
 import {
   addAttachmentOpenActions,
   openGesture,
   pdfPickerReader,
-} from "./actions";
-import type { AttachmentOpenDeps } from "./actions";
-import type { LiteratureNoteAttachmentsHandle } from "./handle";
-import type { TargetOpener } from "./open-target";
-import { pdfReader } from "./pdf-reader";
-import type { ObsidianOpenableAttachment } from "./resolve";
+} from "./actions.ts";
+import type { AttachmentOpenDeps } from "./actions.ts";
+import type { LiteratureNoteAttachmentsHandle } from "./handle.ts";
+import type { TargetOpener } from "./open-target.ts";
+import { pdfReader } from "./pdf-reader.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
-vi.mock("@/views/annot-view/register", () => ({
+vi.mock("@/views/annot-view/register.ts", () => ({
   activateAnnotView: vi.fn(),
 }));
 
-vi.mock("@/lib/attachment-open", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open")>()),
+vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
   openAttachments: vi.fn(),
   createObsidianAttachmentReader: vi.fn(() => ({
     icon: "file-text",

@@ -1,10 +1,10 @@
 import { regex } from "arkregex";
 import { describe, expect, it } from "vitest";
 
-import { renderProfile, SAMPLE_ITEMS } from "./index";
-import { currentCallSite, currentSliceSite } from "./locate";
-import type { RenderDiagnostic } from "./result";
-import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles";
+import { renderProfile, SAMPLE_ITEMS } from "./index.ts";
+import { currentCallSite, currentSliceSite } from "./locate.ts";
+import type { RenderDiagnostic } from "./result.ts";
+import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles.ts";
 
 describe("current repair call", () => {
   it("locates an unchanged failed section after edits and rejects changed or repeated source", () => {

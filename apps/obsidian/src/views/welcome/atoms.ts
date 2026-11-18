@@ -2,19 +2,19 @@
 import { Cause, Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { requireDialog } from "@/lib/require";
-import { viewRuntime } from "@/lib/view-atoms";
-import { Release } from "@/services/release/service";
-import { PluginSettings } from "@/services/settings/service";
-import type { SettingsPatch } from "@/services/settings/service";
-import { TemplateMigration } from "@/services/template/migration";
-import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { requireDialog } from "@/lib/require.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { Release } from "@/services/release/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { SettingsPatch } from "@/services/settings/service.ts";
+import { TemplateMigration } from "@/services/template/migration.ts";
+import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { templateMigrationNotice } from "./migration-notice";
+import { templateMigrationNotice } from "./migration-notice.ts";
 
 /** A settings write also flushes, so an immediate reload keeps the gesture. */
 export const keepWelcomeCommand = viewRuntime.fn(

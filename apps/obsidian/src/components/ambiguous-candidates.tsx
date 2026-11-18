@@ -1,7 +1,7 @@
 // The Items an Ambiguous Citation Key names, listed the same way wherever a surface shows them.
 
-import { candidateRow } from "@/services/citation-index/ambiguity";
-import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity";
+import { candidateRow } from "@/services/citation-index/ambiguity.ts";
+import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 
 /**
  * One row per candidate, in the order the resolution snapshot reports them:

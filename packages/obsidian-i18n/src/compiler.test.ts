@@ -17,17 +17,17 @@ import {
   INLANG_PLUGINS,
   loadMessageData,
   writeOutput,
-} from "./compiler.js";
-import type { CompileResult, GeneratedArtifacts } from "./compiler.js";
-import { validateLanguagePack } from "./index.js";
-import type { LanguagePackRuntime, TargetLocaleMessages } from "./index.js";
+} from "./compiler.ts";
+import type { CompileResult, GeneratedArtifacts } from "./compiler.ts";
+import { validateLanguagePack } from "./index.ts";
+import type { LanguagePackRuntime, TargetLocaleMessages } from "./index.ts";
 import {
   addLocale,
   addSourcePattern,
   createFixtureProject,
   createTemporaryDirectory,
   writeCatalog,
-} from "./test-fixtures.js";
+} from "./test-fixtures.ts";
 
 const packageRoot = resolve(import.meta.dirname, "..");
 const execFileAsync = promisify(execFile);
@@ -1082,11 +1082,12 @@ async function typecheckGeneratedOutput(
           module: "preserve",
           moduleResolution: "bundler",
           target: "ES2025",
+          // The runtime source types its date inputs with Temporal.
+          lib: ["ES2025", "DOM", "ESNext.Temporal"],
           resolveJsonModule: true,
+          allowImportingTsExtensions: true,
           paths: {
-            "@zotlit/obsidian-i18n": [
-              resolve(packageRoot, "dist", "index.d.mts"),
-            ],
+            "@zotlit/obsidian-i18n": [resolve(packageRoot, "src", "index.ts")],
           },
         },
         include: [

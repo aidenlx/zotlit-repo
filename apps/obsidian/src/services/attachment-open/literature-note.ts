@@ -1,14 +1,14 @@
 // Resolves a Literature Note's Indexed Key to its Item's PDF Attachments, over the Zotero database.
 import { Effect } from "effect";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { toObsidianOpenable } from "./openable";
-import type { ObsidianOpenableAttachment } from "./resolve";
+import { toObsidianOpenable } from "./openable.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
 /** The services {@link literatureNoteAttachments} reads. */
 export type LiteratureNoteServices = ZoteroReads | ZoteroPref | ObsidianEnv;

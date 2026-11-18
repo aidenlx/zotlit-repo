@@ -24,21 +24,21 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants";
-import { LogCategory } from "@/lib/effect-log";
-import { subscribe } from "@/lib/effect-stream";
-import type { EffectiveReadMode } from "@/services/database/read-source";
-import * as readsEvents from "@/services/zotero-reads/events";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
+import { LogCategory } from "@/lib/effect-log.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import type { EffectiveReadMode } from "@/services/database/read-source.ts";
+import * as readsEvents from "@/services/zotero-reads/events.ts";
 
-import { readsFixture } from "./__fixtures__";
-import { layerRcRef } from "./connection";
-import { makeInProcessClient } from "./in-process";
-import type { ZoteroReadsClient } from "./in-process";
-import { DbUnavailable } from "./rpc";
-import type { ChangeEvent, ReadsConfig } from "./rpc";
-import { connectWorker, makeWorkerReads } from "./worker-host";
-import type { WorkerConnection } from "./worker-host";
-import { WORKER_CLOSED } from "./worker-signal";
+import { readsFixture } from "./__fixtures__.ts";
+import { layerRcRef } from "./connection.ts";
+import { makeInProcessClient } from "./in-process.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { DbUnavailable } from "./rpc.ts";
+import type { ChangeEvent, ReadsConfig } from "./rpc.ts";
+import { connectWorker, makeWorkerReads } from "./worker-host.ts";
+import type { WorkerConnection } from "./worker-host.ts";
+import { WORKER_CLOSED } from "./worker-signal.ts";
 
 /**
  * Stand-in workers: each connection serves the handler layer in process over

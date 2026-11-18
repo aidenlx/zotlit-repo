@@ -5,16 +5,16 @@ import { zipSync } from "fflate";
 import { createHash } from "node:crypto";
 import { describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import { openManagedBinary } from "@/services/managed-binary/__fixtures__";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { openManagedBinary } from "@/services/managed-binary/__fixtures__.ts";
 import type {
   BinaryPin,
   BinaryStore,
   ManagedBinaryHostPorts,
-} from "@/services/managed-binary/service";
+} from "@/services/managed-binary/service.ts";
 
-import type { CitationEngine, PreparedDocument } from "./engine";
-import { PANDOC_ENGINE } from "./service";
+import type { CitationEngine, PreparedDocument } from "./engine.ts";
+import { PANDOC_ENGINE } from "./service.ts";
 
 /** Node's own typings hand back `ArrayBufferLike` views; the ports take `ArrayBuffer` ones. */
 function bytes(source: Uint8Array): Uint8Array<ArrayBuffer> {

@@ -9,7 +9,7 @@ import {
   ToggleComponent,
   settingsOf,
   renderRow,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect, Fiber, Layer } from "effect";
 // @vitest-environment happy-dom
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
@@ -19,21 +19,24 @@ import { expect, vi } from "vitest";
 
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { eventually, until } from "@/lib/__fixtures__/eventually";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp";
-import * as nativeDialog from "@/lib/require";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import type { Profile, ProfileShareOptions } from "@/services/profile/service";
+import { eventually, until } from "@/lib/__fixtures__/eventually.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
+import * as nativeDialog from "@/lib/require.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import type {
+  Profile,
+  ProfileShareOptions,
+} from "@/services/profile/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { shareProfile } from "./profile-dialogs";
-import { profilesPage } from "./profiles";
-import { ShareProfileModal } from "./share-profile-modal";
-import type { ShareOutput } from "./share-profile-modal";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { shareProfile } from "./profile-dialogs.ts";
+import { profilesPage } from "./profiles.ts";
+import { ShareProfileModal } from "./share-profile-modal.ts";
+import type { ShareOutput } from "./share-profile-modal.ts";
 
 const id = "Bk3Qn7XvT2Lp" as ProfileId;
 const source = `---

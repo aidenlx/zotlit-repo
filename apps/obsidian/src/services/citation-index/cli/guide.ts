@@ -12,15 +12,15 @@ import type {
   CitationKeyResolution,
   CitationSyntax,
   DatabaseReadability,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
-import { DIAGNOSTIC_HINTS } from "./envelope";
-import type { ReferenceEntry } from "./envelope";
+import { DIAGNOSTIC_HINTS } from "./envelope.ts";
+import type { ReferenceEntry } from "./envelope.ts";
 import type {
   AnnotationUsesParam,
   CitedByParam,
   ReferencesParam,
-} from "./request";
+} from "./request.ts";
 
 /** What each selector of the citation commands names. */
 const SELECTORS = {

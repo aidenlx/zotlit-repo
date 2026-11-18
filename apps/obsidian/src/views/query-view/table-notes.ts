@@ -16,32 +16,32 @@ import type { App, TFile } from "obsidian";
 
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
-import { processLiveFrontMatter } from "@/lib/live-text";
-import type { LiveTextApp } from "@/lib/live-text";
+import { processLiveFrontMatter } from "@/lib/live-text.ts";
+import type { LiveTextApp } from "@/lib/live-text.ts";
 import {
   assignedWidget,
   onTypesChanged,
-} from "@/lib/obsidian-private/metadata-type-manager";
+} from "@/lib/obsidian-private/metadata-type-manager.ts";
 import {
   propertyValues,
   vaultTags,
-} from "@/lib/obsidian-private/property-values";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { OpenLinkFailed } from "@/lib/obsidian-workspace";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
-import type { ItemQueryError } from "@/services/item-query/service";
-import { createNoteInteractively } from "@/services/note-feature/creation-view";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import { noteIndexSnapshotAtom } from "@/services/note-index/atoms";
-import { profileRevisionAtom } from "@/services/profile/atoms";
-import type { ProfileOperationError } from "@/services/profile/service";
-import { templateRevisionAtom } from "@/services/template/atoms";
-import type { TemplateFailure } from "@/services/template/service";
-import type { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/lib/obsidian-private/property-values.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { OpenLinkFailed } from "@/lib/obsidian-workspace.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import type { ItemQueryError } from "@/services/item-query/service.ts";
+import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import { noteIndexSnapshotAtom } from "@/services/note-index/atoms.ts";
+import { profileRevisionAtom } from "@/services/profile/atoms.ts";
+import type { ProfileOperationError } from "@/services/profile/service.ts";
+import { templateRevisionAtom } from "@/services/template/atoms.ts";
+import type { TemplateFailure } from "@/services/template/service.ts";
+import type { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { replacedKeysAtom } from "./note-atoms";
-import { LITERATURE_NOTE } from "./query-file";
+import { replacedKeysAtom } from "./note-atoms.ts";
+import { LITERATURE_NOTE } from "./query-file.ts";
 
 /** A Literature Note as the column links it. */
 export type LiteratureNoteLink = Pick<TFile, "path" | "basename">;

@@ -3,16 +3,16 @@
 import { DateTime, Effect, FiberHandle, Queue, Stream } from "effect";
 import type { ButtonComponent, Setting, SettingGroupItem } from "obsidian";
 
-import { recover } from "@/lib/effect-cause";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
+import { recover } from "@/lib/effect-cause.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { applyAction, editingRowModel } from "./zotero-editing-model";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { applyAction, editingRowModel } from "./zotero-editing-model.ts";
 
 /**
  * The lifecycle surface for Write Authorization: the status of the session, the

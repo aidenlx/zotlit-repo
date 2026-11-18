@@ -9,7 +9,7 @@ import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import {
   ANNOTATION_GUIDE_SECTIONS,
   ANNOTATION_GUIDE_EXAMPLES,
-} from "./annotation-guide";
+} from "./annotation-guide.ts";
 import {
   DEFAULT_CLI_LIMIT,
   DIAGNOSTIC_HINTS,
@@ -22,7 +22,7 @@ import {
   queryFlags,
   QUERY_ID_FORM,
   queryCancelledText,
-} from "./contract";
+} from "./contract.ts";
 
 /** One query command of the guide, as flat CLI arguments. */
 export type GuideExample = Readonly<Record<string, string>>;
@@ -516,8 +516,9 @@ PUBLISHED CATALOG
 
 CHOOSE THE CATALOG SOURCE
   An unpublished development version has no Resource Release. For a .dev
-  build, use the matching source checkout: build @zotlit/item-query and read
-  packages/item-query/dist/query.schema.json. For a released version,
+  build, use the matching source checkout: run
+  pnpm exec turbo run @zotlit/item-query#generate:schema and read
+  packages/item-query/generated/query.schema.json. For a released version,
   download schema.url once, using the steps below.
 
 INSPECT LOCALLY

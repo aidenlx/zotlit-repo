@@ -3,7 +3,7 @@ import { Deferred, Effect, Exit, Fiber } from "effect";
 import { TestClock } from "effect/testing";
 import { afterEach, describe, expect, vi } from "vitest";
 
-import { verifySnapshot } from "./snapshot-integrity";
+import { verifySnapshot } from "./snapshot-integrity.ts";
 
 class FakeWorker {
   static last: FakeWorker;

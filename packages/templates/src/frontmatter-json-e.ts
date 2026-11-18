@@ -1,8 +1,8 @@
 import jsonE from "json-e";
 
-import { basename } from "./basename";
-import { RESERVED_FRONTMATTER_KEYS } from "./constants";
-import { FRONTMATTER_ABSENT } from "./frontmatter-merge";
+import { basename } from "./basename.ts";
+import { RESERVED_FRONTMATTER_KEYS } from "./constants.ts";
+import { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
 
 const ENVELOPE_KEY = "value";
 const MAX_OUTPUT_DEPTH = 32;

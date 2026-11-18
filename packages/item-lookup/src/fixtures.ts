@@ -2,18 +2,18 @@ import { itemBaseFields, resolveVenue } from "@zotlit/db";
 import type { BaseItem, Creator, IndexedItem, Item } from "@zotlit/db";
 import type { ItemFields, JournalArticleFields } from "@zotlit/zotero-types";
 
-import type { MemoryItemRow } from "./memory-item-source";
+import type { MemoryItemRow } from "./memory-item-source.ts";
 
 export {
   makeMemoryItemSource,
   type MemoryItemRow,
   type MemoryItemSource,
   type MemoryItemSourceReads,
-} from "./memory-item-source";
+} from "./memory-item-source.ts";
 export {
   makeMemorySegmenterBinaryReader,
   type MemorySegmenterBinaryReader,
-} from "./memory-segmenter-binary-reader";
+} from "./memory-segmenter-binary-reader.ts";
 
 /** The fields Zotero records for one item type, minus its discriminant. */
 type FieldsOf<TType extends ItemFields["itemType"]> = Omit<

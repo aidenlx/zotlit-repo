@@ -1,20 +1,20 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Exit, Fiber, Layer, Logger } from "effect";
 import type { App } from "obsidian";
 import { beforeEach, expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { Profile } from "@/services/profile/service";
-import { Template, templateFailure } from "@/services/template/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
 
-import { createSharedPartialEffect } from "./partial-command";
+import { createSharedPartialEffect } from "./partial-command.ts";
 
 beforeEach(() => {
   Modal.instances.length = 0;

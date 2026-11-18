@@ -4,7 +4,7 @@ import {
   FRONTMATTER_ABSENT,
   FrontmatterJsonEError,
   renderJsonEFrontmatterValue,
-} from "./frontmatter";
+} from "./frontmatter.ts";
 
 const OPERATION_TIMESTAMP = Temporal.Instant.from("2026-08-28T01:02:03Z");
 

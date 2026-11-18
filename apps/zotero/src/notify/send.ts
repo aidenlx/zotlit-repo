@@ -5,10 +5,10 @@ import {
 } from "@zotlit/protocol";
 import type { NotifyEvent } from "@zotlit/protocol";
 
-import { logger as appLogger } from "@/lib/logger";
+import { logger as appLogger } from "@/lib/logger.ts";
 
-import { notifyEnabled, notifyUrl } from "./shared";
-import { sourceDebugDirs, sourceId } from "./source";
+import { notifyEnabled, notifyUrl } from "./shared.ts";
+import { sourceDebugDirs, sourceId } from "./source.ts";
 
 const logger = appLogger.getChild(["notify", "send"]);
 

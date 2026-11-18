@@ -11,24 +11,24 @@ import { Effect } from "effect";
 // Chromium canvas encoded as lossless WebP. Note-asset and Zotero-cache
 // survival need a vault and a Zotero data directory, so they are covered where
 // those exist — see `service.test.ts`.
-import { ExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/service";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__";
+import { ExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/service.ts";
+import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 
-import { check } from "./__fixtures__/check";
-import { ExcerptDisplayFixture } from "./__fixtures__/display";
-import { settledDisplay } from "./__fixtures__/display-state";
-import { encodeExcerptImage } from "./__fixtures__/encode";
-import { renderGate } from "./__fixtures__/render-gate";
-import type { GatedRender } from "./__fixtures__/render-gate";
-import { excerptAnnotationRecord, excerptKey } from "./contract";
-import type { ExcerptRequest } from "./contract";
-import { EXCERPT_DISPLAY } from "./display";
-import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display";
-import type { ExcerptImage } from "./format";
-import { EXCERPT_JOB_LIMIT } from "./pdf-queue";
-import type { ExcerptEntry } from "./service";
-import { openExcerptStore } from "./store";
-import type { ExcerptStore } from "./store";
+import { check } from "./__fixtures__/check.ts";
+import { settledDisplay } from "./__fixtures__/display-state.ts";
+import { ExcerptDisplayFixture } from "./__fixtures__/display.ts";
+import { encodeExcerptImage } from "./__fixtures__/encode.ts";
+import { renderGate } from "./__fixtures__/render-gate.ts";
+import type { GatedRender } from "./__fixtures__/render-gate.ts";
+import { excerptAnnotationRecord, excerptKey } from "./contract.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import { EXCERPT_DISPLAY } from "./display.ts";
+import type { ExcerptDisplayDemand, ExcerptImageDisplay } from "./display.ts";
+import type { ExcerptImage } from "./format.ts";
+import { EXCERPT_JOB_LIMIT } from "./pdf-queue.ts";
+import type { ExcerptEntry } from "./service.ts";
+import { openExcerptStore } from "./store.ts";
+import type { ExcerptStore } from "./store.ts";
 
 export interface RefreshReport {
   passed: string[];

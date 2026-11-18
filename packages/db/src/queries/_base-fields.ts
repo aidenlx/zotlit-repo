@@ -1,8 +1,8 @@
-import type { NodeDatabaseClient } from "@/client/node";
-import type { SQLocalDatabaseClient } from "@/client/web";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { SQLocalDatabaseClient } from "#client/web.ts";
 
-import { defineQuery } from "./_shared";
-import type { QueryRow } from "./_shared";
+import { defineQuery } from "./_shared.ts";
+import type { QueryRow } from "./_shared.ts";
 
 /**
  * Zotero's base-field mapping, narrowed to the base fields one caller tracks.

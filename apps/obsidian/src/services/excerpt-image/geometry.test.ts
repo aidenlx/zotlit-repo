@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 import {
   clipExcerptBounds,
   excerptBounds,
   paintInk,
   viewportBounds,
-} from "./geometry";
-import type { ExcerptViewport } from "./geometry";
+} from "./geometry.ts";
+import type { ExcerptViewport } from "./geometry.ts";
 
 const ink: AnnotationRecord = {
   key: "INK",

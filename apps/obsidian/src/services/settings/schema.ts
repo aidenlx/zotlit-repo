@@ -8,19 +8,19 @@ import {
 } from "@zotlit/templates/constants";
 import type { AutoTrim } from "@zotlit/templates/constants";
 
-import { highlightMappingsSchema } from "@/lib/highlight-mapping";
+import { highlightMappingsSchema } from "@/lib/highlight-mapping.ts";
 import {
   DEFAULT_LIBRARY_SCOPE,
   libraryScopeSchema,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import {
   annotationToolColorsSchema,
   DEFAULT_INK_WIDTH,
   DEFAULT_TEXT_FONT_SIZE,
   inkWidthSchema,
   textFontSizeSchema,
-} from "@/services/pdf-annotation-editor/tools";
-import { DEFAULT_FRONTMATTER_FIELDS } from "@/services/template/defaults";
+} from "@/services/pdf-annotation-editor/tools.ts";
+import { DEFAULT_FRONTMATTER_FIELDS } from "@/services/template/defaults.ts";
 
 /**
  * JSON-safe values a setting may take. Recursive so structured settings (e.g.

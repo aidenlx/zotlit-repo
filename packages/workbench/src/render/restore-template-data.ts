@@ -1,10 +1,10 @@
 // Pure restoration of the JSON-safe Template-data graph used by browser renders.
 
-import type { TemplatePathSegment } from "#/explorer/accessor-path";
-import type { SnapshotRootDescriptors } from "#/snapshot/descriptors";
+import type { TemplatePathSegment } from "#explorer/accessor-path.ts";
+import type { SnapshotRootDescriptors } from "#snapshot/descriptors.ts";
 
-import { formatAccessorPath } from "#/explorer/accessor-path";
-import { formatWikiLink } from "#/snapshot/wiki-link";
+import { formatAccessorPath } from "#explorer/accessor-path.ts";
+import { formatWikiLink } from "#snapshot/wiki-link.ts";
 
 export class SnapshotRestorationError extends Error {
   constructor(message: string) {

@@ -7,9 +7,9 @@ import { decodeHTMLStrict } from "entities/decode";
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import type { AnnotationLink } from "@/lib/annotation-link";
-import { classifyAnnotationLink } from "@/lib/annotation-link";
-import { parseCitationFragment } from "@/lib/citation-fragment";
+import type { AnnotationLink } from "@/lib/annotation-link.ts";
+import { classifyAnnotationLink } from "@/lib/annotation-link.ts";
+import { parseCitationFragment } from "@/lib/citation-fragment.ts";
 
 export interface SourceLocation {
   line: number;

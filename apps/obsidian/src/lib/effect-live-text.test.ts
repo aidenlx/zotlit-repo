@@ -2,9 +2,9 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { describe, expect, vi } from "vitest";
 
-import { createObsidianHost } from "./__fixtures__/obsidian-host";
-import { layerHost } from "./__fixtures__/obsidian-host-app";
-import { processLiveText } from "./effect-live-text";
+import { layerHost } from "./__fixtures__/obsidian-host-app.ts";
+import { createObsidianHost } from "./__fixtures__/obsidian-host.ts";
+import { processLiveText } from "./effect-live-text.ts";
 
 const PATH = "Notes/Paper.md";
 

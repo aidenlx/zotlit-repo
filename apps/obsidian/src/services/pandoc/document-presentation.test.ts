@@ -2,16 +2,16 @@ import { TFile } from "obsidian";
 import type { MetadataCache } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import type { ProfileId } from "@/lib/profile-stamp";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader";
-import { defaults } from "@/services/settings/schema";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
 import {
   documentCitationPresentation,
   documentPresentation as readPresentation,
   samePresentation,
-} from "./document-presentation";
+} from "./document-presentation.ts";
 
 const FILE = new TFile();
 FILE.path = "draft.md";

@@ -12,7 +12,7 @@ import {
   renderFailureSpan,
 } from "@zotlit/workbench/render";
 
-import type { PartialNameRefusal } from "./defaults";
+import type { PartialNameRefusal } from "./defaults.ts";
 
 /**
  * Thrown when an operation requires an artifact the JavaScript Templates gate

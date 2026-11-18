@@ -12,21 +12,21 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import * as lookupEvents from "@/services/citation-index/lookup-service";
-import { layerLibraryScope } from "@/services/library-scope/service";
-import { layerQueryClients } from "@/services/query-client/service";
-import { layerPluginSettings } from "@/services/settings/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
+import { layerLibraryScope } from "@/services/library-scope/service.ts";
+import { layerQueryClients } from "@/services/query-client/service.ts";
+import { layerPluginSettings } from "@/services/settings/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { lookupFixture } from "./__fixtures__";
-import { CitationLookup, layerCitationLookup } from "./lookup-service";
+import { lookupFixture } from "./__fixtures__.ts";
+import { CitationLookup, layerCitationLookup } from "./lookup-service.ts";
 
 it.effect("builds without waiting for the initial Citation Lookup read", () =>
   Effect.gen(function* () {

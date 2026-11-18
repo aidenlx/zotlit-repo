@@ -3,26 +3,26 @@ import { Context, Effect, Layer } from "effect";
 
 import { formatIndexedKey } from "@zotlit/db";
 
-import { scopedBridge, valueOr } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
+import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationLibraryUnresolved,
   AnnotationList,
   DatabaseRowsError,
-} from "@/services/annotation-repository/service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { ExcerptDisplays } from "@/services/excerpt-image/display";
-import { savedExcerptRequestOver } from "@/services/excerpt-image/request";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { createCommentRenderer } from "@/views/annot-view/comment-render";
+} from "@/services/annotation-repository/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
+import { savedExcerptRequestOver } from "@/services/excerpt-image/request.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { createCommentRenderer } from "@/views/annot-view/comment-render.ts";
 
-import { AnnotationPopoverCore } from "./popover";
-import type { AnnotationHoverRequest } from "./popover";
+import { AnnotationPopoverCore } from "./popover.tsx";
+import type { AnnotationHoverRequest } from "./popover.tsx";
 
-export type { AnnotationHoverRequest } from "./popover";
+export type { AnnotationHoverRequest } from "./popover.tsx";
 
 export class AnnotationPopover extends Context.Service<
   AnnotationPopover,

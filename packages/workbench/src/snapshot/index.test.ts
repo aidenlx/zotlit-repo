@@ -11,8 +11,8 @@ import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { planItemFilter, queryItemFrom } from "@zotlit/item-query";
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 
-import { MARKER_KEYS } from "./allowlist";
-import { exportItemSnapshot } from "./index";
+import { MARKER_KEYS } from "./allowlist.ts";
+import { exportItemSnapshot } from "./index.ts";
 
 /**
  * The three CSL-named aliases the Template contract adds beside the field names

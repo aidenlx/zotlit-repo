@@ -13,17 +13,17 @@ import type { TFile } from "obsidian";
 
 import { isIndexedKey } from "@zotlit/db";
 
-import { parseInstant, toInstant } from "@/lib/effect-clock";
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { DeviceStorage } from "@/lib/obsidian-device-storage";
+import { parseInstant, toInstant } from "@/lib/effect-clock.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
 import type {
   DeviceStorageError,
   DeviceStorageShape,
-} from "@/lib/obsidian-device-storage";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+} from "@/lib/obsidian-device-storage.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
 const UseKind = Schema.Literals(["opened", "read", "cited"]);
 export type UseKind = typeof UseKind.Type;

@@ -4,19 +4,19 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 import { join } from "node:path";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import type { Settings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { Settings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
-import { AttachmentImport, layerAttachmentImport } from "./service";
+import { AttachmentImport, layerAttachmentImport } from "./service.ts";
 
 /** Where Zotero keeps its files, as the Zotero Pref snapshot names them. */
 export interface ZoteroLocation {

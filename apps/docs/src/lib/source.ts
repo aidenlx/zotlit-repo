@@ -7,10 +7,10 @@ import { loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { rcompare } from "semver";
 
-import { blogs, changelogs, docs, lessons } from "./collections";
-import { i18n } from "./i18n";
-import type { SiteLocale } from "./i18n";
-import { docsPageTitle } from "./shared";
+import { blogs, changelogs, docs, lessons } from "./collections.ts";
+import { i18n } from "./i18n.ts";
+import type { SiteLocale } from "./i18n.ts";
+import { docsPageTitle } from "./shared.ts";
 
 /** @see https://github.com/fuma-nama/fumadocs/blob/fumadocs-mdx%4015.2.1/apps/docs/content/docs/headless/source-api/index.mdx */
 export const source = loader({

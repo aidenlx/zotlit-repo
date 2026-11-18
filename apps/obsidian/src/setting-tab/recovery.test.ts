@@ -1,17 +1,17 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Cause, Context, Effect, Exit } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { CitationIndex } from "@/services/citation-index/service";
-import { ExcerptDisplays } from "@/services/excerpt-image/display";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {
   LanguagePack,
   LanguagePackStorageFailed,
-} from "@/services/language-pack/service";
+} from "@/services/language-pack/service.ts";
 
 import {
   clearExcerptCache,
@@ -19,7 +19,7 @@ import {
   resetLanguagePacks,
   reportClearExcerptCache,
   reportResetCitationIndex,
-} from "./recovery";
+} from "./recovery.ts";
 
 type Mode = "cancel" | "clear" | "failure";
 

@@ -1,8 +1,8 @@
-import type { LiquidTagName } from "#/language/semantics";
+import type { LiquidTagName } from "#language/semantics.ts";
 
-import type { WorkbenchMessages } from "./generated/messages";
+import type { WorkbenchMessages } from "./generated/messages.ts";
 // Localized descriptions for the shared Liquid tag syntax catalog.
-import type { WorkbenchMessageLabel } from "./messages";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
 
 const DESCRIPTIONS = {
   assign: "workbench_tag_assign",

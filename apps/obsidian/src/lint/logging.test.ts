@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noLogTapeInEffectFile } from "../../scripts/oxlint-plugin-logging";
+import { noLogTapeInEffectFile } from "../../scripts/oxlint-plugin-logging.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -16,7 +16,7 @@ const logtape = [{ messageId: "logtape" }];
 tester.run("no-logtape-in-effect-file", noLogTapeInEffectFile, {
   valid: [
     {
-      code: 'import { getLogger } from "@/lib/log";',
+      code: 'import { getLogger } from "@/lib/log.ts";',
       filename,
     },
     {
@@ -24,13 +24,13 @@ tester.run("no-logtape-in-effect-file", noLogTapeInEffectFile, {
       filename,
     },
     {
-      code: 'import type { EffectBridge } from "@/lib/effect-bridge";\nimport { getLogger } from "@/lib/log";',
+      code: 'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nimport { getLogger } from "@/lib/log.ts";',
       filename,
     },
   ],
   invalid: [
     {
-      code: 'import { Effect } from "effect";\nimport { getLogger } from "@/lib/log";',
+      code: 'import { Effect } from "effect";\nimport { getLogger } from "@/lib/log.ts";',
       filename,
       errors: logtape,
     },
@@ -45,12 +45,12 @@ tester.run("no-logtape-in-effect-file", noLogTapeInEffectFile, {
       errors: logtape,
     },
     {
-      code: 'import type { Effect } from "effect";\nimport { getLogger } from "@/lib/log";',
+      code: 'import type { Effect } from "effect";\nimport { getLogger } from "@/lib/log.ts";',
       filename,
       errors: logtape,
     },
     {
-      code: 'import { effectBridge } from "@/lib/effect-bridge";\nimport { getLogger } from "@/lib/log";',
+      code: 'import { effectBridge } from "@/lib/effect-bridge.ts";\nimport { getLogger } from "@/lib/log.ts";',
       filename,
       errors: logtape,
     },

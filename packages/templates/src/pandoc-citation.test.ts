@@ -5,8 +5,8 @@ import {
   formatPandocCitation,
   PandocCitationError,
   scanPandocCitations,
-} from "./pandoc-citation";
-import type { PandocCitationItem } from "./pandoc-citation";
+} from "./pandoc-citation.ts";
+import type { PandocCitationItem } from "./pandoc-citation.ts";
 
 function item(
   citationKey: string | null,

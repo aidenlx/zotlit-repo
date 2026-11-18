@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extraToCsl } from "./zt-extra-to-csl";
+import { extraToCsl } from "./zt-extra-to-csl.ts";
 
 describe("extraToCsl", () => {
   it("normalizes Extra's citeproc-js variable overrides", () => {

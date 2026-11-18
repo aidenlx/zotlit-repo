@@ -2,13 +2,13 @@ import { Effect } from "effect";
 
 import { readLibraries } from "@zotlit/db/item-query";
 
-import type { Span } from "./fault";
-import type { FilterNode } from "./filter-plan";
-import { nearCollectionMatches } from "./near-match";
-import { parentFieldSubject } from "./parent-records";
-import type { QuerySources } from "./query-sources";
-import { RECORD_VOCABULARIES } from "./record-vocabularies";
-import type { TargetLibrary } from "./request";
+import type { Span } from "./fault.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import { nearCollectionMatches } from "./near-match.ts";
+import { parentFieldSubject } from "./parent-records.ts";
+import type { QuerySources } from "./query-sources.ts";
+import { RECORD_VOCABULARIES } from "./record-vocabularies.ts";
+import type { TargetLibrary } from "./request.ts";
 
 export interface CollectionWarning {
   readonly kind: "unknown-collection";

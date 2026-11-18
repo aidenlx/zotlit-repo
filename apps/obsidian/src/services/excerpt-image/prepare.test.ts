@@ -8,23 +8,23 @@ import { getAnnotationsByKey } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { defaults } from "@/services/settings/schema";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { effectImageResolver } from "./__fixtures__/service";
-import type { ExcerptImageFixture } from "./__fixtures__/service";
-import type { ExcerptRequest } from "./contract";
-import { ExcerptPreparation, layerExcerptPreparation } from "./prepare";
-import { ExcerptImageService } from "./service";
+import { effectImageResolver } from "./__fixtures__/service.ts";
+import type { ExcerptImageFixture } from "./__fixtures__/service.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import { ExcerptPreparation, layerExcerptPreparation } from "./prepare.ts";
+import { ExcerptImageService } from "./service.ts";
 
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);

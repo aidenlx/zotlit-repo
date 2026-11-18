@@ -2,27 +2,27 @@
 // The Welcome View as a banner above the Library View: it shows while setup
 // is incomplete, until the researcher dismisses it, and an upgrade from v1
 // keeps its Migration Prompt on screen until a dismissal acknowledges it.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Layer } from "effect";
 import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host";
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import * as m from "@/lib/i18n/generated/messages";
-import { buildRelease } from "@/services/release/__fixtures__";
-import { Release } from "@/services/release/service";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import type { SettingsFixture } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/lib/__fixtures__/obsidian-host.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { buildRelease } from "@/services/release/__fixtures__.ts";
+import { Release } from "@/services/release/service.ts";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { makeWelcomeHost } from "./__fixtures__";
-import { WelcomeBanner } from "./banner";
-import type { WelcomeBannerDeps } from "./banner";
+import { makeWelcomeHost } from "./__fixtures__.ts";
+import { WelcomeBanner } from "./banner.tsx";
+import type { WelcomeBannerDeps } from "./banner.tsx";
 
 let cleanup = new AsyncDisposableStack();
 afterEach(async () => {

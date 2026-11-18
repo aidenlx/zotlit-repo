@@ -10,11 +10,11 @@ import {
 } from "@zotlit/workbench/render";
 import type { RenderDiagnostic } from "@zotlit/workbench/render";
 
-import { MissingPartialError } from "@/services/template/errors";
+import { MissingPartialError } from "@/services/template/errors.ts";
 
-import * as m from "./i18n/generated/messages";
-import { getLogger } from "./log";
-import { BaseNotice } from "./notice";
+import * as m from "./i18n/generated/messages.ts";
+import { getLogger } from "./log.ts";
+import { BaseNotice } from "./notice.ts";
 
 const logger = getLogger("workbench-recovery");
 

@@ -12,9 +12,9 @@ import {
 import type { Duration } from "effect";
 import type { Scope } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { BaseNotice, LazyNotice } from "@/lib/notice";
-import { isUserStop } from "@/lib/user-cancel";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { BaseNotice, LazyNotice } from "@/lib/notice.ts";
+import { isUserStop } from "@/lib/user-cancel.ts";
 
 /** What a notice shows: plain text, or a fragment from `BaseNotice.render`. */
 export type NoticeMessage = string | DocumentFragment;

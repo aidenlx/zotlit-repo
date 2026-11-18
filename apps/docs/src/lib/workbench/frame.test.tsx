@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { m } from "@/paraglide/messages.js";
 
-import { WorkbenchSkeleton } from "./frame";
+import { WorkbenchSkeleton } from "./frame.tsx";
 
 beforeEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterEach(() => vi.unstubAllGlobals());

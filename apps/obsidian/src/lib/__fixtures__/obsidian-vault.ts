@@ -4,7 +4,7 @@ import { dirname } from "node:path/posix";
 import { TFile, TFolder } from "obsidian";
 import type { DataWriteOptions, EventRef, TAbstractFile } from "obsidian";
 
-import type { VaultSource } from "@/lib/obsidian-vault";
+import type { VaultSource } from "@/lib/obsidian-vault.ts";
 
 type Callback = (...args: unknown[]) => unknown;
 

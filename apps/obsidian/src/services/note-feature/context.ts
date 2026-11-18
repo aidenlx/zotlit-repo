@@ -14,22 +14,22 @@ import type {
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import { joinNotePath } from "@zotlit/templates";
 
-import { buildAnnotationResolvers } from "@/lib/annotation-render";
-import { withLogCategory } from "@/lib/effect-log";
-import { creatorSummary } from "@/lib/item-summary";
-import { syntheticFile } from "@/lib/markdown-link";
-import type { MarkdownLinker } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import type { AttachmentImportBatch } from "@/services/attachment-import/service";
-import type { PreparedExcerpts } from "@/services/excerpt-image/prepare";
-import { childNoteLink } from "@/services/note-import/child-note-link";
-import { NoteIndex } from "@/services/note-index/service";
-import { getProfileBinding } from "@/services/profile/bindings";
-import type { ProfileBindingSettings } from "@/services/profile/bindings";
-import type { Settings } from "@/services/settings/schema";
-import { Template } from "@/services/template/service";
+import { buildAnnotationResolvers } from "@/lib/annotation-render.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { creatorSummary } from "@/lib/item-summary.ts";
+import { syntheticFile } from "@/lib/markdown-link.ts";
+import type { MarkdownLinker } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
+import type { PreparedExcerpts } from "@/services/excerpt-image/prepare.ts";
+import { childNoteLink } from "@/services/note-import/child-note-link.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { getProfileBinding } from "@/services/profile/bindings.ts";
+import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { baseNoteName } from "./filename";
+import { baseNoteName } from "./filename.ts";
 
 const logged = withLogCategory("note-feature");
 

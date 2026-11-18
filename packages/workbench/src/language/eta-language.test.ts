@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { etaLanguage, etaRange } from "./eta-language";
-import { nodeNames as nodeNamesFor } from "./test-utils";
+import { etaLanguage, etaRange } from "./eta-language.ts";
+import { nodeNames as nodeNamesFor } from "./test-utils.ts";
 
 function nodeNames(source: string, from = 0, to = source.length): string[] {
   return nodeNamesFor(etaLanguage.parser, source, { from, to });

@@ -2,16 +2,16 @@ import { stringifyYaml } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import * as m from "@/lib/i18n/generated/messages";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 import {
   applyCitationPresentation,
   declaredPresentation,
   STYLE_INHERITED,
   stylePickerOptions,
-} from "./presentation";
+} from "./presentation.ts";
 
 const VAULT_STYLE_ID = "http://www.zotero.org/styles/vault-prose";
 const NOTE_STYLE_ID = "http://www.zotero.org/styles/note-numbered";

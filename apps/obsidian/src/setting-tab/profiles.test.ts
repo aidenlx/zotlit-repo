@@ -6,7 +6,7 @@ import {
   Menu,
   Modal,
   renderRow,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Effect, Layer, Queue } from "effect";
 import { SuggestModal, TFile } from "obsidian";
 import type {
@@ -18,33 +18,33 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm";
-import { eventually, until } from "@/lib/__fixtures__/eventually";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { Customize } from "@/services/local-bridge/customize";
-import type { CustomizeRequest } from "@/services/local-bridge/customize";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile } from "@/services/profile/service";
+import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
+import { eventually, until } from "@/lib/__fixtures__/eventually.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { Customize } from "@/services/local-bridge/customize.ts";
+import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile } from "@/services/profile/service.ts";
 import type {
   LiteratureNoteProfile,
   ProfileCreation,
-} from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+} from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { rebuildingSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { profileControlValue, setProfileControlValue } from "./controls";
-import { literatureNoteItems, profilesPage } from "./profiles";
+import { rebuildingSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { profileControlValue, setProfileControlValue } from "./controls.ts";
+import { literatureNoteItems, profilesPage } from "./profiles.ts";
 
-vi.mock("@/views/template-workbench/open", () => ({
+vi.mock("@/views/template-workbench/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 

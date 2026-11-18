@@ -8,11 +8,11 @@ import {
   queueMediaEvents,
   settle,
   where,
-} from "@/components/__fixtures__/media-boundary";
-import type { Box } from "@/components/__fixtures__/media-boundary";
+} from "@/components/__fixtures__/media-boundary.ts";
+import type { Box } from "@/components/__fixtures__/media-boundary.ts";
 import { m } from "@/paraglide/messages.js";
 
-import type { LessonViewData } from "./lesson-view";
+import type { LessonViewData } from "./lesson-view.tsx";
 
 // The recording turn lives in module state, so each case loads a fresh copy
 // of the page's modules; saved ticks live in this browser's storage.
@@ -98,8 +98,8 @@ async function mountLesson({
     createRootRoute,
     createRouter,
   } = await import("@tanstack/react-router");
-  const { LessonView } = await import("./lesson-view");
-  const { Step } = await import("./lesson-mdx");
+  const { LessonView } = await import("./lesson-view.tsx");
+  const { Step } = await import("./lesson-mdx.tsx");
 
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
@@ -396,7 +396,7 @@ describe("the prerendered page's pictures", () => {
       createRootRoute,
       createRouter,
     } = await import("@tanstack/react-router");
-    const { LessonView } = await import("./lesson-view");
+    const { LessonView } = await import("./lesson-view.tsx");
     const router = createRouter({
       history: createMemoryHistory({
         initialEntries: [`/learn/${view.slug}`],
@@ -412,7 +412,7 @@ describe("the prerendered page's pictures", () => {
   }
 
   it("loads the outcome first and leaves every step picture lazy", async () => {
-    const { Step } = await import("./lesson-mdx");
+    const { Step } = await import("./lesson-mdx.tsx");
     const page = await prerender(
       lesson,
       <>

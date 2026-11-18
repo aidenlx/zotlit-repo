@@ -3,15 +3,15 @@
 import { around } from "monkey-around";
 import type { GraphEngine, GraphOptions, GraphView, View } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
+import { disposable } from "@/lib/disposables.ts";
 
-import { CITATION_POPOVER, COLOR_CITATION_LINKS } from "./display";
+import { CITATION_POPOVER, COLOR_CITATION_LINKS } from "./display.ts";
 import {
   CITATION_CONNECTED_ONLY,
   PANDOC_CITATIONS,
   WIKILINK_CITATIONS,
-} from "./filters";
-import { membersPresent } from "./install";
+} from "./filters.ts";
+import { membersPresent } from "./install.ts";
 
 /** Local graphs already persist options through their native view state. */
 export function installGraphViewState(

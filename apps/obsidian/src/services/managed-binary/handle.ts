@@ -1,9 +1,9 @@
 // A Managed Binary service with runners captured at build, for callers outside Effect.
 import type { Effect } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
-import type { ManagedBinaryApi } from "./service";
+import type { ManagedBinaryApi } from "./service.ts";
 
 /** The service and the two ways to enter Effect with it through {@link EffectBridge}. */
 export interface ManagedBinaryHandle<

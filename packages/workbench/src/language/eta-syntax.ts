@@ -1,7 +1,7 @@
 import { styleTags, tags } from "@lezer/highlight";
 // Eta parsing and range resolution without editor state or DOM dependencies.
 
-import { parser } from "./eta-parser";
+import { parser } from "./eta-parser.ts";
 
 export const etaParser = parser.configure({
   props: [

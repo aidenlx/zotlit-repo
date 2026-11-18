@@ -3,7 +3,7 @@ import { it as effectIt } from "@effect/vitest";
 import { Effect } from "effect";
 // The Resolved CSL Style as citeproc reads it: what an installed style actually renders.
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -11,10 +11,10 @@ import { describe, expect } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { createCitationEngine } from "./engine";
-import { inlineText } from "./inline-content";
-import { resolveInstalledStyle as resolveStyleEffect } from "./styles";
-import type { CslStyleRequest, ResolvedCslStyle } from "./styles";
+import { createCitationEngine } from "./engine.ts";
+import { inlineText } from "./inline-content.tsx";
+import { resolveInstalledStyle as resolveStyleEffect } from "./styles.ts";
+import type { CslStyleRequest, ResolvedCslStyle } from "./styles.ts";
 
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),

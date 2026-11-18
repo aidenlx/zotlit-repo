@@ -3,8 +3,8 @@ import * as BrowserWorkerRunner from "@effect/platform-browser/BrowserWorkerRunn
 import { Effect, Layer } from "effect";
 import { RpcServer } from "effect/rpc";
 
-import { layerParseHandlers } from "./handlers";
-import { CitationParseRpc } from "./rpc";
+import { layerParseHandlers } from "./handlers.ts";
+import { CitationParseRpc } from "./rpc.ts";
 
 // CitationParse.parse traces the service call; transport spans add backfill cost.
 // boundary: Worker bootstrap launches the scoped server for the worker lifetime.

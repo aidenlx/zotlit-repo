@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { moveAt } from "./match.draft";
-import type { ConditionGroup, ExpressionCondition } from "./match.draft";
+import { moveAt } from "./match.draft.ts";
+import type { ConditionGroup, ExpressionCondition } from "./match.draft.ts";
 
 type Tree = ConditionGroup<ExpressionCondition>;
 

@@ -7,7 +7,7 @@
 // @see apps/obsidian/policies/theme-hooks.md
 import { expect, it } from "vitest";
 
-import { themeAttribute, themeHook } from "./theme-hooks";
+import { themeAttribute, themeHook } from "./theme-hooks.ts";
 
 it("promises the Annotation View hooks by literal name", () => {
   expect({

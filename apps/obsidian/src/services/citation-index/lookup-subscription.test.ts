@@ -3,16 +3,16 @@ import { Stream } from "effect";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import * as lookupEvents from "@/services/citation-index/lookup-service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { lookupFixture } from "./__fixtures__";
+import { lookupFixture } from "./__fixtures__.ts";
 
 it.effect(
   "attaches before two immediate revisions and retains throwing listeners",

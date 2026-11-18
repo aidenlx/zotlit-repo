@@ -1,29 +1,29 @@
 import { Layer } from "effect";
 import type { PartialPreviewSelection, RenderRequest } from "@zotlit/workbench/render";
-import { runOnView } from "@/lib/__fixtures__/view-runner";
-import { makeNativeRenderer } from "@/views/template-workbench/preview/render";
-import type { NativeRenderDeps, NativeRenderResult } from "@/views/template-workbench/preview/render";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationParse } from "@/services/citation-parse/service";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { PandocEngine } from "@/services/pandoc/service";
-import type { PandocEngineStatus } from "@/services/pandoc/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { runOnView } from "@/lib/__fixtures__/view-runner.ts";
+import { makeNativeRenderer } from "@/views/template-workbench/preview/render.ts";
+import type { NativeRenderDeps, NativeRenderResult } from "@/views/template-workbench/preview/render.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { SubscriptionRuntime } from "@/lib/effect-stream";
-import type { TemplateDataDeps } from "@/services/template-workbench/data";
-import type { findExistingLitNote } from "@/services/template/inert-resolver-host";
-import type { ParseClient } from "@/services/citation-parse/client";
-import type { CitationLookupRequest, CitationLookupAnswer } from "@/services/citation-index/lookup";
-import type { EffectivePresentation } from "@/services/pandoc/document-presentation";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import type { TemplateDataDeps } from "@/services/template-workbench/data.ts";
+import type { findExistingLitNote } from "@/services/template/inert-resolver-host.ts";
+import type { ParseClient } from "@/services/citation-parse/client.ts";
+import type { CitationLookupRequest, CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
 
 type PromiseMethods<T> = {
   [K in keyof T]: T[K] extends (...args: infer P) => Effect.Effect<infer A, infer _E, infer _R>
@@ -53,9 +53,9 @@ interface PreviewHostDeps extends TemplateDataDeps {
   openCitationEngineSettings: () => void;
 }
 import { Stream } from "effect";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 // Live database and TemplateService boundaries for native preview tests.
 import type { App, Events } from "obsidian";
 import { Effect } from "effect";
@@ -63,15 +63,15 @@ import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
-import type { RenderedCitation } from "@/services/pandoc/engine";
+import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 
-import { buildTemplate } from "@/services/template/__fixtures__";
-import { createObsidianHost, PluginStub } from "@/lib/__fixtures__/obsidian-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { inProcessReadsService, sharedClientOpener } from "@/services/zotero-reads/test-utils";
-import { templateDataHandle } from "@/services/template-workbench/__fixtures__";
-import { Template } from "@/services/template/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { buildTemplate } from "@/services/template/__fixtures__.ts";
+import { createObsidianHost, PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { inProcessReadsService, sharedClientOpener } from "@/services/zotero-reads/test-utils.ts";
+import { templateDataHandle } from "@/services/template-workbench/__fixtures__.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 type EventSource = Pick<Events, "on" | "offref">;
 

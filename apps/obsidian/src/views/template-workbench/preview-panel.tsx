@@ -25,13 +25,13 @@ import {
 } from "@zotlit/workbench/ui";
 import type { ResultMode, TemplateRoot } from "@zotlit/workbench/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import { NativeMarkdown } from "@/views/template-workbench/preview/markdown";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { NativeMarkdown } from "@/views/template-workbench/preview/markdown.tsx";
 
-import { paneCover, selectionHint, templateWorkbenchButton } from "./theme";
-import type { TemplateWorkbenchView } from "./view";
+import { paneCover, selectionHint, templateWorkbenchButton } from "./theme.tsx";
+import type { TemplateWorkbenchView } from "./view.tsx";
 
 /**
  * What the Preview renders for the document kind and root: which result, the

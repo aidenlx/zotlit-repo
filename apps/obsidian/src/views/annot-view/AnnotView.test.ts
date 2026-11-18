@@ -9,24 +9,24 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AppContext } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import { editorApp } from "./__fixtures__/editor-app";
-import { makeAnnotHost } from "./__fixtures__/host";
-import { AnnotActionsContext, NOOP_ACTIONS } from "./actions";
-import type { AnnotActions } from "./actions";
-import { AnnotView } from "./AnnotView";
+import { editorApp } from "./__fixtures__/editor-app.ts";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
+import { AnnotActionsContext, NOOP_ACTIONS } from "./actions.tsx";
+import type { AnnotActions } from "./actions.tsx";
+import { AnnotView } from "./AnnotView.tsx";
 import {
   cardPlace,
   NO_SELECTION,
   nextCardSelection,
   sameKeys,
-} from "./card-selection";
-import type { CardSelection } from "./card-selection";
-import { AnnotStoreProvider, visibleOrder } from "./store";
+} from "./card-selection.ts";
+import type { CardSelection } from "./card-selection.ts";
+import { AnnotStoreProvider, visibleOrder } from "./store.ts";
 
 const KEYS = ["AAAA1111", "BBBB2222", "CCCC3333"];
 

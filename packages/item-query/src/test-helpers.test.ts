@@ -1,8 +1,8 @@
 import { Clock, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { QueryTimeZone } from "./query-clock";
-import { runEffect } from "./test-helpers";
+import { QueryTimeZone } from "./query-clock.ts";
+import { runEffect } from "./test-helpers.ts";
 
 describe("runEffect", () => {
   it("runs an Effect with a fixed clock and a fixed time zone", async () => {

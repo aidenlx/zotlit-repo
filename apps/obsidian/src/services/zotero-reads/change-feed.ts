@@ -1,9 +1,9 @@
 // The `Changes` feed both adapters publish: lifecycle events, replayed from the current state to each subscriber.
 import { Effect, PubSub, Stream } from "effect";
 
-import type { EffectiveReadMode } from "@/services/database/read-source";
+import type { EffectiveReadMode } from "@/services/database/read-source.ts";
 
-import type { ChangeEvent, DbUnavailable } from "./rpc";
+import type { ChangeEvent, DbUnavailable } from "./rpc.ts";
 
 /**
  * The `Changes` feed: lifecycle events, each subscriber first getting the

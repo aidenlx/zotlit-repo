@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 
-import type { Attr, Inline, Inlines } from "@/services/pandoc/ast";
+import type { Attr, Inline, Inlines } from "@/services/pandoc/ast.ts";
 
-import { toCopiedBibliography } from "./copied-bibliography";
-import type { CopiedBibliographyEntry } from "./copied-bibliography";
+import { toCopiedBibliography } from "./copied-bibliography.ts";
+import type { CopiedBibliographyEntry } from "./copied-bibliography.ts";
 
 const NO_ATTR: Attr = ["", [], []];
 

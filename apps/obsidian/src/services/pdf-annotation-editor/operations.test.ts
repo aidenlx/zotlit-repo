@@ -2,20 +2,23 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Scope } from "effect";
 import { expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { WriteRunFailed } from "@/services/annotation-repository/service";
-import type { AnnotationRepository } from "@/services/annotation-repository/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { WriteRunFailed } from "@/services/annotation-repository/service.ts";
+import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 
-import { READER_NOW, toolColors } from "./__fixtures__";
-import { bindingResources, stepMarkHistory } from "./operations";
-import { makeReaderSurfaceModel } from "./reader-surface-model";
+import { READER_NOW, toolColors } from "./__fixtures__.ts";
+import { bindingResources, stepMarkHistory } from "./operations.ts";
+import { makeReaderSurfaceModel } from "./reader-surface-model.ts";
 import type {
   ReaderSurfaceModel,
   ReaderSurfaceRegistry,
-} from "./reader-surface-model";
-import { initialReaderSurfaceState, toggleMarks } from "./reader-surface-state";
+} from "./reader-surface-model.ts";
+import {
+  initialReaderSurfaceState,
+  toggleMarks,
+} from "./reader-surface-state.ts";
 
 it.effect(
   "says a History Step that failed before Zotero answered has an unknown outcome",

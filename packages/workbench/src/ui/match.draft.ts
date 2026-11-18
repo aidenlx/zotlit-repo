@@ -1,5 +1,5 @@
-import type { ExpressionVocabulary } from "#/language/filter-expression-completion";
-import type { PlacedFault } from "#/language/span";
+import type { ExpressionVocabulary } from "#language/filter-expression-completion.ts";
+import type { PlacedFault } from "#language/span.ts";
 import type { ReactNode } from "react";
 
 import { filterGroup } from "@zotlit/filter-expression";
@@ -9,8 +9,8 @@ import type {
   FilterTree,
 } from "@zotlit/filter-expression";
 
-import { pathStartsWith, samePath } from "./row-path";
-import type { RowPath } from "./row-path";
+import { pathStartsWith, samePath } from "./row-path.ts";
+import type { RowPath } from "./row-path.ts";
 
 // Preserve nested Match trees and expression rows through labelled edits.
 

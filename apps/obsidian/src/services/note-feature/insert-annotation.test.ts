@@ -23,42 +23,42 @@ import {
   TemplateFacade,
 } from "@zotlit/templates/facade";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { FileManagerSource } from "@/lib/obsidian-file-manager";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome";
-import { redPng } from "@/services/excerpt-image/__fixtures__/png";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
-import { layerExcerptPreparation } from "@/services/excerpt-image/prepare";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { FileManagerSource } from "@/lib/obsidian-file-manager.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
+import { redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
+import { layerExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import type {
   ExcerptOutcome,
   ExcerptRequest,
-} from "@/services/excerpt-image/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { Profile, ProfileOperationError } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template, templateFailure } from "@/services/template/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/excerpt-image/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import type { AnnotationInsertOptions } from "./insert-annotation";
-import { prepareAnnotationInsert } from "./insert-annotation";
+import type { AnnotationInsertOptions } from "./insert-annotation.ts";
+import { prepareAnnotationInsert } from "./insert-annotation.ts";
 import {
   AnnotationNoteActions,
   layerAnnotationNoteActions,
-} from "./view-actions";
+} from "./view-actions.ts";
 
 const card: AnnotationRecord = {
   key: "FDRFQ7C2",

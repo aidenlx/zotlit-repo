@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it } from "vitest";
 
-import { nativeCompletion } from "./native-completion";
+import { nativeCompletion } from "./native-completion.ts";
 
 it("writes a code span of a row's description as code", () => {
   const presentation = nativeCompletion(() => ({

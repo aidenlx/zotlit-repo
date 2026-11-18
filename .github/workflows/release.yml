@@ -105,14 +105,14 @@ jobs:
       # skipped once and every later step globs one place.
       - name: Stage resources
         run: |
-          pnpm turbo run generate:language-packs --filter=@zotlit/obsidian
+          pnpm turbo run @zotlit/obsidian#generate:language-packs @zotlit/item-query#generate:schema
           mkdir -p apps/obsidian/dist/resources
           for pack in apps/obsidian/src/lib/i18n/generated/*.json; do
             [ "${pack##*/}" = "en.json" ] && continue
             cp "$pack" apps/obsidian/dist/resources/
           done
           cp packages/db/src/contract/generated/*.schema.json apps/obsidian/dist/resources/
-          cp packages/item-query/dist/query.schema.json apps/obsidian/dist/resources/
+          cp packages/item-query/generated/query.schema.json apps/obsidian/dist/resources/
 
       # The plugin release carries only the three files the Obsidian community
       # scanner accepts, so everything else lives on a Resource Release pinned to

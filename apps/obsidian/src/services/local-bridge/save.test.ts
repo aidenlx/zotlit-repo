@@ -9,17 +9,17 @@ import { expect, vi } from "vitest";
 import { CONTRACT_VERSION } from "@zotlit/db";
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { createLocalBridgeApp } from "./app";
-import { STABLE_DOCS_ORIGIN } from "./origins";
-import type { LocalBridgeReads } from "./reads";
-import { makeLocalBridgeSave } from "./save";
-import { BridgeSessions } from "./sessions";
+import { createLocalBridgeApp } from "./app.ts";
+import { STABLE_DOCS_ORIGIN } from "./origins.ts";
+import type { LocalBridgeReads } from "./reads.ts";
+import { makeLocalBridgeSave } from "./save.ts";
+import { BridgeSessions } from "./sessions.ts";
 
 const BOOKS_PROFILE = "Bk7Qm2Xr9Tz4";
 const BOOKS_PATH = "templates/zotlit-profile.books.md";

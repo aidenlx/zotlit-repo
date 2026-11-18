@@ -9,33 +9,33 @@ import {
   serializeTemplateData,
 } from "@zotlit/workbench/explorer";
 
-import type { CliCommandHandler } from "@/lib/cli-command";
-import { catchRejection } from "@/lib/cli-params";
-import type { CliRejection } from "@/lib/cli-params";
-import { withLogCategory } from "@/lib/effect-log";
-import { DEFAULT_PROFILE, parseProfileSelector } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
+import type { CliCommandHandler } from "@/lib/cli-command.ts";
+import { catchRejection } from "@/lib/cli-params.ts";
+import type { CliRejection } from "@/lib/cli-params.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { DEFAULT_PROFILE, parseProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import type {
   ProfileDiagnostic,
   ProfileOperationError,
-} from "@/services/profile/service";
-import { InertTemplateError } from "@/services/template/errors";
+} from "@/services/profile/service.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
 import type {
   LiteratureNoteTemplateStatus,
   ResolvedLiteratureNoteTemplate,
   SettleOutcome,
   Template,
   TemplateFailure,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
 import type {
   CitationDataLoadResult,
   CitationSelector,
   TemplateDataError,
   TemplateDataLoadResult,
-} from "./data";
-import { discoverTemplateData } from "./discovery";
+} from "./data.ts";
+import { discoverTemplateData } from "./discovery.ts";
 import {
   dataLoadDiagnostic,
   diagnostic,
@@ -45,7 +45,7 @@ import {
   notSettledDiagnostic,
   rejectionDiagnostic,
   templateFaultDiagnostic,
-} from "./envelope";
+} from "./envelope.ts";
 import type {
   Diagnostic,
   DiagnosticCode,
@@ -53,19 +53,19 @@ import type {
   LiteratureNoteProfileRow,
   WorkbenchCommand,
   WorkbenchIdentity,
-} from "./envelope";
-import { renderGuide } from "./guide";
-import type { InspectionNote } from "./inspect";
-import { INSPECT_DIAGNOSTICS } from "./inspect-contract";
+} from "./envelope.ts";
+import { renderGuide } from "./guide.ts";
+import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";
+import type { InspectionNote } from "./inspect.ts";
 import {
   parseDataRequest,
   parseDocumentRenderRequest,
   parseGuideRequest,
   parseStatusRequest,
   targetMismatch,
-} from "./request";
+} from "./request.ts";
 
-export type { WorkbenchIdentity } from "./envelope";
+export type { WorkbenchIdentity } from "./envelope.ts";
 
 export const TEMPLATE_STATUS_COMMAND =
   "zotlit:template-status" as const satisfies WorkbenchCommand;

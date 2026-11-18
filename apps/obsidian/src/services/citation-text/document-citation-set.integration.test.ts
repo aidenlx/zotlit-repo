@@ -7,19 +7,19 @@ import { dirname, join } from "node:path";
 import type { CachedMetadata, TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import { subscribe } from "@/lib/effect-stream";
-import { themeHook } from "@/lib/theme-hooks";
+import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
 import {
   annotationRows,
   annotationUri,
-} from "@/services/citation-index/__fixtures__/annotations";
-import { citationOutcome } from "@/services/citation-index/outcome";
+} from "@/services/citation-index/__fixtures__/annotations.ts";
+import { citationOutcome } from "@/services/citation-index/outcome.ts";
 import type {
   Citation,
   ReferenceSource,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   GROUP_LIBRARY_ID,
@@ -28,24 +28,24 @@ import {
   link,
   makeFile,
   MY_LIBRARY_ID,
-} from "@/services/citation-index/test-harness";
+} from "@/services/citation-index/test-harness.ts";
 import type {
   CitationIndexHarness,
   CitationIndexHarnessOptions,
-} from "@/services/citation-index/test-harness";
-import { createCitationEngine } from "@/services/pandoc/engine";
-import type { CitationEngine } from "@/services/pandoc/engine";
-import { inlineText, noteContent } from "@/services/pandoc/inline-content";
-import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { buildReferenceEntries } from "@/views/references/entries";
-import type { ReferenceEntry } from "@/views/references/entries";
+} from "@/services/citation-index/test-harness.ts";
+import { createCitationEngine } from "@/services/pandoc/engine.ts";
+import type { CitationEngine } from "@/services/pandoc/engine.ts";
+import { inlineText, noteContent } from "@/services/pandoc/inline-content.tsx";
+import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { buildReferenceEntries } from "@/views/references/entries.ts";
+import type { ReferenceEntry } from "@/views/references/entries.ts";
 
-import { firstText } from "./__fixtures__";
-import { citationTextFixture } from "./__fixtures__";
-import type { CitationTextFixture as CitationText } from "./__fixtures__";
-import { citationElement, citationKey } from "./present";
-import type { DocumentCitations, FormattedOccurrence } from "./present";
+import { firstText } from "./__fixtures__.ts";
+import { citationTextFixture } from "./__fixtures__.ts";
+import type { CitationTextFixture as CitationText } from "./__fixtures__.ts";
+import { citationElement, citationKey } from "./present.ts";
+import type { DocumentCitations, FormattedOccurrence } from "./present.ts";
 
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),

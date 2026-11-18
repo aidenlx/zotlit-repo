@@ -22,7 +22,7 @@ import {
   METHOD_ENTRIES,
   parameterAt,
   PROPERTY_ENTRIES,
-} from ".";
+} from "./index.ts";
 import type {
   FilterValueType,
   FunctionDefinition,
@@ -32,7 +32,7 @@ import type {
   ItemQuerySchema,
   SchemaFunction,
   SchemaParameter,
-} from ".";
+} from "./index.ts";
 import {
   describeAnnotationQuery,
   describeAttachmentQuery,
@@ -40,8 +40,8 @@ import {
   describeItemQueryVocabulary,
   describeQuery,
   describeQueryVocabulary,
-} from "./schema";
-import { faultCode, runEffect } from "./test-helpers";
+} from "./schema.ts";
+import { faultCode, runEffect } from "./test-helpers.ts";
 
 it("generates field capabilities from the supplied Query Dataset descriptor", async () => {
   using scenario = openScenarioDatabase();
@@ -589,7 +589,7 @@ it("exports the registry entries with their registry types", () => {
 });
 
 it("publishes the Formula path, name form, result types, Fault codes, and Error Value", async () => {
-  const { describeQueryVocabulary } = await import("./schema");
+  const { describeQueryVocabulary } = await import("./schema.ts");
   expect(describeQueryVocabulary().formulas).toEqual({
     path: "formula.<name>",
     name: "^[A-Za-z_][A-Za-z0-9_]*$",

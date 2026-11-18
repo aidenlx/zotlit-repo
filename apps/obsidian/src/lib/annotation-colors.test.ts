@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 // The colour menu builds its titles with `createFragment`, which needs a DOM.
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -8,7 +8,7 @@ import {
   buildColorMenu,
   offeredSwatches,
   withRecentColor,
-} from "./annotation-colors";
+} from "./annotation-colors.ts";
 
 describe("the recent colours", () => {
   const [yellow, red, green, blue, purple] = ANNOTATION_COLORS;

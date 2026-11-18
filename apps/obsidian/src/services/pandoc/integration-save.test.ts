@@ -16,9 +16,9 @@ import {
   pandocDefaults,
   PANDOC_DEFAULTS_FILENAME,
   PANDOC_FILTER_FILENAME,
-} from "./filter";
-import { pandocIntegrationFiles } from "./integration";
-import { savePandocIntegrationFiles } from "./integration-save";
+} from "./filter/index.ts";
+import { savePandocIntegrationFiles } from "./integration-save.ts";
+import { pandocIntegrationFiles } from "./integration.ts";
 
 const FOLDER = "/project/pandoc";
 const FILTER_PATH = posix.join(FOLDER, PANDOC_FILTER_FILENAME);

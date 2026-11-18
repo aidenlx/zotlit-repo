@@ -9,7 +9,7 @@ import {
   resolveZoteroHttpPort,
   resolveProfileDir,
   selectDefaultProfile,
-} from "./prefs-file";
+} from "./prefs-file.ts";
 
 describe("resolveZoteroHttpPort", () => {
   it("uses the active profile's configured port", () => {

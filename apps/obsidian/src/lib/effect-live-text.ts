@@ -3,10 +3,10 @@
 import { Effect, Schema } from "effect";
 import type { TFile } from "obsidian";
 
-import { setViewDataKeepingScroll } from "@/lib/live-text";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { vaultError } from "@/lib/vault-errors";
+import { setViewDataKeepingScroll } from "@/lib/live-text.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
 
 /** The rewrite function of {@link processLiveText} threw; `cause` holds what it threw. */
 export class LiveTextRewriteFailed extends Schema.TaggedError<

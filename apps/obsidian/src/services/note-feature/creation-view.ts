@@ -4,32 +4,32 @@ import type { App, TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { listInstalledStyles } from "@/services/pandoc/installed-styles";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type {
   CreateProfileDialog,
   ImportProfileDialog,
-} from "@/setting-tab/profile-dialogs";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
+} from "@/setting-tab/profile-dialogs.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type {
   LiteratureNoteProfileChoice,
   ProfilePick,
-} from "@/views/quick-switch/profile-picker";
+} from "@/views/quick-switch/profile-picker.ts";
 
 import type {
   CreateNoteResult,
   CreationProfileSelection,
   CreationProfileSources,
   CreationSelectionProblem,
-} from "./operations";
-import { describeSelectionProblem } from "./selection-copy";
-import { NoteFeature } from "./service";
-import { createWithNotice } from "./update-single";
+} from "./operations.ts";
+import { describeSelectionProblem } from "./selection-copy.ts";
+import { NoteFeature } from "./service.ts";
+import { createWithNotice } from "./update-single.ts";
 
 const logged = withLogCategory("note-feature");
 

@@ -9,9 +9,9 @@ import type {
   TFile,
 } from "obsidian";
 
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { obsidianEventSource } from "@/lib/obsidian-event-source";
-import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { obsidianEventSource } from "@/lib/obsidian-event-source.ts";
+import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source.ts";
 
 /** One metadata cache event, tagged with its Obsidian event name. */
 export type MetadataEvent =

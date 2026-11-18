@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler";
+import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler.ts";
 
 /** `steps` operations that each take `stepMs` of the fake time `clock`. */
 function work(steps: number, stepMs: number, clock: { now: number }) {

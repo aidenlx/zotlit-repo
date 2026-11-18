@@ -12,15 +12,15 @@ import {
 } from "@zotlit/workbench/explorer";
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 
-import { attachmentFileLink } from "@/lib/annotation-render";
-import * as m from "@/lib/i18n/generated/messages";
-import { creatorSummary } from "@/lib/item-summary";
-import { fileUrlLink } from "@/lib/markdown-link";
+import { attachmentFileLink } from "@/lib/annotation-render.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { creatorSummary } from "@/lib/item-summary.ts";
+import { fileUrlLink } from "@/lib/markdown-link.ts";
 import {
   commentToMarkdown,
   createCommentTurndown,
-} from "@/lib/turndown/comment";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+} from "@/lib/turndown/comment.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 export { findExistingLitNote };
 export type { ExcerptImageContext };

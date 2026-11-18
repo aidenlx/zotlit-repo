@@ -1,17 +1,17 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier, reportOutcome } from "@/lib/notifier";
-import type { NoticeMessage } from "@/lib/notifier";
-import type { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import type { Customize } from "@/services/local-bridge/customize";
-import type { Profile } from "@/services/profile/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier, reportOutcome } from "@/lib/notifier.ts";
+import type { NoticeMessage } from "@/lib/notifier.ts";
+import type { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { Customize } from "@/services/local-bridge/customize.ts";
+import type { Profile } from "@/services/profile/service.ts";
 
-import type { NativeOpenError } from "./open";
+import type { NativeOpenError } from "./open.ts";
 
 /**
  * Run a Template Workbench action and report its outcome: a failure is logged

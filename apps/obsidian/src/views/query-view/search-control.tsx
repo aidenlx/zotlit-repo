@@ -7,15 +7,15 @@ import type { RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { SearchInput } from "@/components/obsidian/search-input";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
-import { useAnnotStore, useSetFilterQuery } from "@/views/annot-view/store";
+import { SearchInput } from "@/components/obsidian/search-input.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
+import { useAnnotStore, useSetFilterQuery } from "@/views/annot-view/store.ts";
 
-import { datasetSpec } from "./datasets";
-import { useQueryViewState } from "./model";
-import { ToolbarButton } from "./toolbar-button";
-import type { QueryView } from "./view";
+import { datasetSpec } from "./datasets.ts";
+import { useQueryViewState } from "./model.ts";
+import { ToolbarButton } from "./toolbar-button.tsx";
+import type { QueryView } from "./view.tsx";
 
 /** Whether the search row stands, and how the button and the row change it. */
 export interface SearchBar {

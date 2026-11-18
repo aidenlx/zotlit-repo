@@ -11,7 +11,7 @@ import {
 import { liquidTemplate, templatePairing } from "@zotlit/workbench/language";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 
-import { webCompletion } from "./completion";
+import { webCompletion } from "./completion.tsx";
 
 it("accepts a field with editor focus retained and undoes only the completion", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

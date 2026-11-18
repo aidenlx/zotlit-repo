@@ -8,7 +8,7 @@ vi.hoisted(() => {
   };
 });
 
-import { registerApplicationBlur } from "./application-blur.js";
+import { registerApplicationBlur } from "./application-blur.ts";
 
 class FakeWindow extends EventTarget {
   setTimeout = globalThis.setTimeout;

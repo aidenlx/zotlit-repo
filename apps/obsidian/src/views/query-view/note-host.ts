@@ -8,14 +8,14 @@
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import { Component, Scope } from "obsidian";
 
-import { keepPlaces } from "@/lib/keep-places";
-import { observeResize } from "@/lib/observe-resize";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
+import { keepPlaces } from "@/lib/keep-places.ts";
+import { observeResize } from "@/lib/observe-resize.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
 import "./note-host.css";
-import { makeNoteBindingAtom } from "./note-binding";
-import { QueryView } from "./view";
-import type { QueryViewDeps, QueryViewHost } from "./view";
+import { makeNoteBindingAtom } from "./note-binding.ts";
+import { QueryView } from "./view.tsx";
+import type { QueryViewDeps, QueryViewHost } from "./view.tsx";
 
 /** What a note host gives the view beside the note: its storage. */
 export type NoteStorage = Pick<QueryViewHost, "save" | "canSave" | "openFile">;

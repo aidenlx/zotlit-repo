@@ -24,14 +24,14 @@ import type {
 } from "@zotlit/workbench/bridge";
 import { SAMPLE_ITEMS } from "@zotlit/workbench/render";
 
-import { layerRendering } from "./rendering";
-import type { Rendering } from "./rendering";
-import { layerTransfer } from "./transfer";
-import type { Transfer } from "./transfer";
+import { layerRendering } from "./rendering.ts";
+import type { Rendering } from "./rendering.ts";
+import { layerTransfer } from "./transfer.ts";
+import type { Transfer } from "./transfer.ts";
 import {
   layerWorkbenchConnection,
   WorkbenchConnection,
-} from "./workbench-connection";
+} from "./workbench-connection.ts";
 
 export type PageServices =
   | LocalBridgeClient

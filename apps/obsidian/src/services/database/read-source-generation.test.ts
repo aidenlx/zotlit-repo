@@ -50,7 +50,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   };
 });
 
-import { snapshotSource, sourceFingerprintsEqual } from "./read-source";
+import { snapshotSource, sourceFingerprintsEqual } from "./read-source.ts";
 
 const fingerprint = (path: string) => Effect.runPromise(snapshotSource(path));
 

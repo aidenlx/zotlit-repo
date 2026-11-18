@@ -4,16 +4,16 @@ import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
-import { useWorkbenchController } from "./editor";
-import { WorkbenchHostProvider } from "./host";
-import { PropertiesPane } from "./properties-tab";
-import { fakeHost, mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { useWorkbenchController } from "./editor.tsx";
+import { WorkbenchHostProvider } from "./host.tsx";
+import { PropertiesPane } from "./properties-tab.tsx";
+import { fakeHost, mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { documentRevision } from "#/document/atoms";
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
-import { renderProfile, SAMPLE_ITEMS } from "#/render/index";
+import { documentRevision } from "#document/atoms.ts";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
+import { renderProfile, SAMPLE_ITEMS } from "#render/index.ts";
 
 afterEach(cleanup);
 

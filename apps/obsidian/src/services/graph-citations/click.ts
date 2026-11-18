@@ -3,11 +3,11 @@
 import { around } from "monkey-around";
 import { Keymap } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import { getLogger } from "@/lib/log";
-import type { NavigationPane } from "@/services/citekey-navigation";
+import { disposable } from "@/lib/disposables.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
-import type { GraphLeafMembers } from "./install";
+import type { GraphLeafMembers } from "./install.ts";
 
 const logger = getLogger("graph-citations");
 

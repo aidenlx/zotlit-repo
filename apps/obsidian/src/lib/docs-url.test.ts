@@ -6,8 +6,8 @@ vi.mock("obsidian", async (importOriginal) => ({
   getLanguage: () => language.current,
 }));
 
-const { DOCS_SITE_URL } = await import("./constants");
-const { docsUrl } = await import("./docs-url");
+const { DOCS_SITE_URL } = await import("./constants.ts");
+const { docsUrl } = await import("./docs-url.ts");
 
 afterEach(() => {
   language.current = "en";

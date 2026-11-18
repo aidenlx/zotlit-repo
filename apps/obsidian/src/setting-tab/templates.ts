@@ -8,22 +8,22 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm";
-import * as m from "@/lib/i18n/generated/messages";
-import { showMenuAtButton } from "@/lib/menu";
-import { Notifier } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { leaveSettingsFor } from "@/lib/plugin-host";
-import type { AutoTrim } from "@/services/settings/schema";
-import { reportCitationTemplateOpen } from "@/services/template/actions";
-import { Template } from "@/services/template/service";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
-import { createSharedPartial } from "@/views/template-workbench/partial-command";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { leaveSettingsFor } from "@/lib/plugin-host.ts";
+import type { AutoTrim } from "@/services/settings/schema.ts";
+import { reportCitationTemplateOpen } from "@/services/template/actions.ts";
+import { Template } from "@/services/template/service.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
+import { createSharedPartial } from "@/views/template-workbench/partial-command.ts";
 
-import { appendCompileError } from "./compile-error";
-import type { SettingsKey, SettingTabContext } from "./context";
-import { SettingTab } from "./effect-tab";
-import { defaultPlaceholder } from "./placeholder";
+import { appendCompileError } from "./compile-error.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { SettingTab } from "./effect-tab.ts";
+import { defaultPlaceholder } from "./placeholder.ts";
 
 /** Auto-trim dropdown sentinel for "keep whitespace" (`false` isn't a string). */
 const TRIM_KEEP = "keep";

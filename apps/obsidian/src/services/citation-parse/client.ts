@@ -2,7 +2,7 @@
 import { Schema } from "effect";
 import type { Effect } from "effect";
 
-import type { NoteScanRecord } from "@/services/citation-index/scan-note";
+import type { NoteScanRecord } from "@/services/citation-index/scan-note.ts";
 
 export class ParseWorkerDied extends Schema.TaggedError<
   ParseWorkerDied,

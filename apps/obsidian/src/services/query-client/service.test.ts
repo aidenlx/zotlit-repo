@@ -3,8 +3,8 @@ import type { QueryKey } from "@tanstack/query-core";
 import { Effect } from "effect";
 import { describe, expect, vi } from "vitest";
 
-import { queryClientsOf } from "./__fixtures__";
-import type { Held } from "./service";
+import { queryClientsOf } from "./__fixtures__.ts";
+import type { Held } from "./service.ts";
 
 const KEY: QueryKey = ["read", "a"];
 const PREFIX: QueryKey = ["read"];

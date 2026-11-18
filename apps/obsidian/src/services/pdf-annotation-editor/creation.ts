@@ -20,70 +20,70 @@ import type { ReactNode, RefObject } from "react";
 
 import type { PdfTextStructure, SelectedText } from "@zotlit/pdf-structure";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors";
-import { registerDomEvent } from "@/lib/disposables";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { showMenuAtButton } from "@/lib/menu";
-import { themeHook } from "@/lib/theme-hooks";
-import * as toast from "@/lib/toast";
-import { watch } from "@/lib/view-atoms";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { registerDomEvent } from "@/lib/disposables.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import * as toast from "@/lib/toast.ts";
+import { watch } from "@/lib/view-atoms.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,
   AnnotationRepository,
-} from "@/services/annotation-repository/service";
-import { blockedReason } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import { blockedReason } from "@/services/annotation-repository/write.ts";
 import type {
   InkPosition,
   TextPosition,
-} from "@/services/annotation-repository/write";
-import { raiseMenu } from "@/services/menu-events";
+} from "@/services/annotation-repository/write.ts";
+import { raiseMenu } from "@/services/menu-events.ts";
 import {
   capabilityBlock,
   fieldEditorControls,
   editingLive,
   textFieldWording,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 import type {
   EditorSheet,
   EditorSheetStatus,
-} from "@/views/annot-view/editor-sheet";
+} from "@/views/annot-view/editor-sheet.ts";
 
-import { inTextEntry, isEditGesture } from "./capability-affordance";
-import { CreateMarkPopup, createPopupRow } from "./create-popup";
-import type { CreatePopupAction } from "./create-popup";
+import { inTextEntry, isEditGesture } from "./capability-affordance.ts";
+import { CreateMarkPopup, createPopupRow } from "./create-popup.tsx";
+import type { CreatePopupAction } from "./create-popup.tsx";
 import {
   removeCreationToolbar,
   renderCreationToolbar,
-} from "./creation-toolbar";
+} from "./creation-toolbar.ts";
 import type {
   CreationToolbarControl,
   CreationToolbarNodes,
-} from "./creation-toolbar";
-import { captureRect } from "./geometry-edit";
-import type { PdfPoint, PdfRect } from "./geometry-edit";
-import { CLICK_SLOP, distance } from "./hit-test";
-import type { Point } from "./hit-test";
-import { InkStroke } from "./ink-stroke";
-import type { MarkPopupHost } from "./mark-popup-host";
+} from "./creation-toolbar.ts";
+import { captureRect } from "./geometry-edit.ts";
+import type { PdfPoint, PdfRect } from "./geometry-edit.ts";
+import { CLICK_SLOP, distance } from "./hit-test.ts";
+import type { Point } from "./hit-test.ts";
+import { InkStroke } from "./ink-stroke.ts";
+import type { MarkPopupHost } from "./mark-popup-host.ts";
 import {
   createMark,
   oneAtATime,
   placeSelection,
   queued,
   settledOf,
-} from "./operations";
-import type { BindingWrites, CreateWrite, WriteRun } from "./operations";
+} from "./operations.ts";
+import type { BindingWrites, CreateWrite, WriteRun } from "./operations.ts";
 import {
   current,
   modify,
   recordColorUse,
   setToolColor,
   update,
-} from "./reader-surface-model";
-import type { ReaderSurface } from "./reader-surface-model";
+} from "./reader-surface-model.ts";
+import type { ReaderSurface } from "./reader-surface-model.ts";
 import {
   appendPendingStroke,
   arm,
@@ -107,19 +107,19 @@ import {
   settleTextDraft,
   textDraftPosition,
   toggleMarks,
-} from "./reader-surface-state";
+} from "./reader-surface-state.ts";
 import type {
   AnchorAt,
   Floating,
   PendingStroke,
   ReaderSurfaceState,
   TextDraft,
-} from "./reader-surface-state";
-import { interfaceFont } from "./render";
-import type { OverlayPageView } from "./render";
-import type { SelectOptions } from "./selection";
-import { selectionPagesOf } from "./selection-capture";
-import type { SelectionPage } from "./selection-capture";
+} from "./reader-surface-state.ts";
+import { interfaceFont } from "./render.ts";
+import type { OverlayPageView } from "./render.ts";
+import { selectionPagesOf } from "./selection-capture.ts";
+import type { SelectionPage } from "./selection-capture.ts";
+import type { SelectOptions } from "./selection.ts";
 import {
   addInkWidths,
   addTextFontSizes,
@@ -129,20 +129,20 @@ import {
   pdfPointAt,
   selectionCollapsed,
   releaseCapture,
-} from "./surface";
+} from "./surface.ts";
 import {
   MARK_TOOLS,
   gestureOf,
   isClickTool,
   isSelectionTool,
   selectionToolOf,
-} from "./tools";
+} from "./tools.ts";
 import type {
   ClickTool,
   MarkTool,
   SelectionTool,
   ToolColorStore,
-} from "./tools";
+} from "./tools.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

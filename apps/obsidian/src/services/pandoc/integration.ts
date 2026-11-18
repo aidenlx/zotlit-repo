@@ -3,25 +3,29 @@
 import { Effect, Schema } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler } from "@/lib/cli-command";
-import { decodeCliParams, noCliParams, rejectionText } from "@/lib/cli-params";
+import type { CliCommandHandler } from "@/lib/cli-command.ts";
+import {
+  decodeCliParams,
+  noCliParams,
+  rejectionText,
+} from "@/lib/cli-params.ts";
 
-import { CONTRACT_VERSION } from "./contract";
+import { CONTRACT_VERSION } from "./contract.ts";
 import {
   pandocCliFilter,
   pandocDefaults,
   PANDOC_DEFAULTS_FILENAME,
   PANDOC_FILTER_FILENAME,
-} from "./filter";
+} from "./filter/index.ts";
 
 export const PANDOC_FILES_COMMAND = "zotlit:pandoc-files";
 export const PANDOC_GUIDE_COMMAND = "zotlit:pandoc-guide";
 
-export { savePandocIntegrationFiles } from "./integration-save";
+export { savePandocIntegrationFiles } from "./integration-save.ts";
 export type {
   SavePandocIntegrationOptions,
   SavePandocIntegrationResult,
-} from "./integration-save";
+} from "./integration-save.ts";
 
 export type PandocIntegrationHandlers = Record<
   typeof PANDOC_FILES_COMMAND | typeof PANDOC_GUIDE_COMMAND,

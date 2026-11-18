@@ -4,8 +4,12 @@ import {
   citationClickIntent,
   citationTarget,
   navigationIntent,
-} from "./intent";
-import type { CitedWork, NavigationGesture, NavigationTarget } from "./intent";
+} from "./intent.ts";
+import type {
+  CitedWork,
+  NavigationGesture,
+  NavigationTarget,
+} from "./intent.ts";
 
 const editorGesture = (
   overrides: Partial<NavigationGesture> = {},

@@ -1,7 +1,7 @@
 pre-commit:
   piped: true
   commands:
-    # Runs first: lint builds the working tree, so files outside the commit
+    # Runs first: lint reads the working tree, so files outside the commit
     # would reach it. See packages/scripts/lib/commit-tree.ts.
     tree:
       priority: 1

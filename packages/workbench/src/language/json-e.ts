@@ -5,17 +5,23 @@ import type { Node } from "jsonc-parser";
 
 import type { ContractType } from "@zotlit/db/contract/ir";
 
-import { contract, describe, members, resolve, sampleJson } from "./contract";
-import { expressionClasses } from "./expression-tokens";
-import type { ExpressionRole } from "./expression-tokens";
-import { templateToken } from "./highlight";
-import { jsonOperators, jsonFunctions } from "./json-e-catalog";
-import { rankSuggestions } from "./matching";
+import {
+  contract,
+  describe,
+  members,
+  resolve,
+  sampleJson,
+} from "./contract.ts";
+import { expressionClasses } from "./expression-tokens.ts";
+import type { ExpressionRole } from "./expression-tokens.ts";
+import { templateToken } from "./highlight.ts";
+import { jsonOperators, jsonFunctions } from "./json-e-catalog.ts";
+import { rankSuggestions } from "./matching.ts";
 import type {
   Suggestion,
   SuggestionConfig,
   SuggestionResult,
-} from "./suggestions";
+} from "./suggestions.ts";
 
 type Binding = { type?: ContractType; path?: string[] };
 type Scope = Map<string, Binding>;

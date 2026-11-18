@@ -2,9 +2,9 @@ import { it } from "@effect/vitest";
 import { Context, Effect, Layer } from "effect";
 import { expect } from "vitest";
 
-import { buildRuntime } from "@/lib/effect-layer";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { ServiceStartupFailed, startingAs } from "./startup-failure";
+import { ServiceStartupFailed, startingAs } from "./startup-failure.ts";
 
 class Base extends Context.Service<Base, { readonly value: number }>()(
   "zotlit/test/Base",

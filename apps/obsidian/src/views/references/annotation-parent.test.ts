@@ -4,21 +4,21 @@ import type { EventRef, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   annotationRows,
   annotationUri,
-} from "@/services/citation-index/__fixtures__/annotations";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationIndex } from "@/services/citation-index/service";
+} from "@/services/citation-index/__fixtures__/annotations.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   harnessApp,
   KEY_A,
-} from "@/services/citation-index/test-harness";
+} from "@/services/citation-index/test-harness.ts";
 
-import { makeReferencesHost } from "./__fixtures__";
-import { ReferencesView } from "./view";
+import { makeReferencesHost } from "./__fixtures__.ts";
+import { ReferencesView } from "./view.tsx";
 
 class TestReferencesView extends ReferencesView {
   open() {

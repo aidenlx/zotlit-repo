@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { formatPath } from "./display-tree";
+import { formatPath } from "./display-tree.ts";
 import type {
   DisplayNode,
   DisplayValueType,
   PathSegment,
-} from "./display-tree";
-import { buildDisplayTree } from "./display-tree";
-import { renderSnippet, snippetKindsFor, snippetResult } from "./snippets";
-import type { SnippetKind } from "./snippets";
-import { withText } from "./test-records";
+} from "./display-tree.ts";
+import { buildDisplayTree } from "./display-tree.ts";
+import { renderSnippet, snippetKindsFor, snippetResult } from "./snippets.ts";
+import type { SnippetKind } from "./snippets.ts";
+import { withText } from "./test-records.ts";
 
 function value(
   path: PathSegment[],

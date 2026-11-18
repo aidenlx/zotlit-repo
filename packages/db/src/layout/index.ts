@@ -1,3 +1,8 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import { inArray, sql } from "drizzle-orm";
+
+import { logLibrary } from "@zotlit/shared/logging";
+
 // The layout of a Zotero database copy: the columns of each table and view,
 // and the version stamps. Every reader asks this module which columns a copy
 // has; the stamps are for logging only. It reads a copy once and keeps the
@@ -5,13 +10,8 @@
 // adapter of the Item Query readers (`readLayout`, `checkLayout`) is in
 // `src/item-query/database.ts`; `src/item-query/layout.ts` gives the typed
 // failure and the synchronous check `checkDatabaseLayout`.
-import { version } from "@drizzle/schema";
-import { inArray, sql } from "drizzle-orm";
-
-import { logLibrary } from "@zotlit/shared/logging";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { defineQuery } from "@/queries/_shared";
+import { version } from "#drizzle/schema.ts";
+import { defineQuery } from "#queries/_shared.ts";
 
 /**
  * The layout manifest of the readers: every table and column that a reader

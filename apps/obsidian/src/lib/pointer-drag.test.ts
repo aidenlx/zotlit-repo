@@ -2,8 +2,8 @@
 import type { Scope } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { keymapApp, pressTop } from "./__fixtures__/keymap";
-import { pointerDrag } from "./pointer-drag";
+import { keymapApp, pressTop } from "./__fixtures__/keymap.ts";
+import { pointerDrag } from "./pointer-drag.ts";
 
 const CURSOR = "zt-is-dragging-test";
 

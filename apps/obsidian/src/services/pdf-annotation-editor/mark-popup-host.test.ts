@@ -5,17 +5,17 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import type { SelectedText } from "@zotlit/pdf-structure";
 
-import { annotation, readerSurface, toolColors } from "./__fixtures__";
-import type { Point } from "./hit-test";
-import { MarkPopupHost } from "./mark-popup-host";
-import { current, update } from "./reader-surface-model";
+import { annotation, readerSurface, toolColors } from "./__fixtures__.ts";
+import type { Point } from "./hit-test.ts";
+import { MarkPopupHost } from "./mark-popup-host.ts";
+import { current, update } from "./reader-surface-model.ts";
 import {
   captureSelection,
   ingestCommentDraft,
   ingestRecords,
   selectMark,
   setCommenting,
-} from "./reader-surface-state";
+} from "./reader-surface-state.ts";
 
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 

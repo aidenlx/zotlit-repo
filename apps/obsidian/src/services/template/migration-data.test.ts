@@ -5,26 +5,26 @@ import { expect, vi } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,
-} from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { workbenchContext } from "@/services/template-workbench/__fixtures__";
-import { readTemplateData } from "@/services/template-workbench/data";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { workbenchContext } from "@/services/template-workbench/__fixtures__.ts";
+import { readTemplateData } from "@/services/template-workbench/data.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { readMigrationVerificationData } from "./migration-data";
+import { readMigrationVerificationData } from "./migration-data.ts";
 
-vi.mock("@/services/template-workbench/data", async (original) => ({
-  ...(await original<typeof import("@/services/template-workbench/data")>()),
+vi.mock("@/services/template-workbench/data.ts", async (original) => ({
+  ...(await original<typeof import("@/services/template-workbench/data.ts")>()),
   readTemplateData: vi.fn(),
 }));
 

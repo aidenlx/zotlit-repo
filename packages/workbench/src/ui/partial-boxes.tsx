@@ -10,7 +10,7 @@ import type {
   PartialRenderSite,
   WorkbenchDocumentController,
   WorkbenchSliceId,
-} from "#/document/index";
+} from "#document/index.ts";
 import { MapMode, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
 import { Decoration, ViewPlugin } from "@codemirror/view";
@@ -25,13 +25,13 @@ import { createPortal } from "react-dom";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { PreviewWidget, boxAt, boxField, boxRanges } from "./editor-boxes";
-import { useTooltip, useWorkbenchHost, WorkbenchHostError } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { useIcon, useParts } from "./theme";
+import { PreviewWidget, boxAt, boxField, boxRanges } from "./editor-boxes.ts";
+import { useTooltip, useWorkbenchHost, WorkbenchHostError } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useIcon, useParts } from "./theme.tsx";
 
-import { documentRevision } from "#/document/atoms";
-import { partialCalls } from "#/document/index";
+import { documentRevision } from "#document/atoms.ts";
+import { partialCalls } from "#document/index.ts";
 
 /** What a failed partial render shows: the host failure's own cause, whole. */
 function failureMessage(cause: Cause.Cause<unknown>): string {

@@ -1,10 +1,7 @@
-import { relations } from "@drizzle/relations";
+import type { ScenarioDatabase } from "#test-scenario/index.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
-
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-import type { ScenarioDatabase } from "@/test-scenario";
 
 import {
   ItemQueryDatabase,
@@ -13,7 +10,13 @@ import {
   readCollectionPaths,
   readFieldVocabulary,
   readLibraryRowCount,
-} from ".";
+} from "./index.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 function runOk<A, E>(
   scenario: ScenarioDatabase,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { annotation } from "./__fixtures__";
-import { readingOrder, stepReadingOrder } from "./reading-order";
+import { annotation } from "./__fixtures__.ts";
+import { readingOrder, stepReadingOrder } from "./reading-order.ts";
 
 /**
  * Four Annotations whose reading order is known by hand. PDF user space counts

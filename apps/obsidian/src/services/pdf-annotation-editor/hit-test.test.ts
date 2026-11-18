@@ -5,14 +5,14 @@ import {
   marksAtPoint,
   pagePointOf,
   resolveMarkClick,
-} from "./hit-test";
+} from "./hit-test.ts";
 import type {
   MarkClick,
   MarkClickInput,
   MarkSelectionPoint,
   PageBox,
-} from "./hit-test";
-import type { MarkTarget } from "./render";
+} from "./hit-test.ts";
+import type { MarkTarget } from "./render.ts";
 
 /**
  * A US Letter page laid out at 100 % zoom, offset inside the reader, so page

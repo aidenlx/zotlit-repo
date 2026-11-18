@@ -2,11 +2,11 @@
 import { LanguageSupport, LRLanguage } from "@codemirror/language";
 import { parseMixed } from "@lezer/common";
 
-import { etaAutoPair } from "./eta-auto-pair";
-import { etaParser } from "./eta-syntax";
-import { markdownParser } from "./markdown";
-export { etaRange } from "./eta-syntax";
-export type { EtaRange } from "./eta-syntax";
+import { etaAutoPair } from "./eta-auto-pair.ts";
+import { etaParser } from "./eta-syntax.ts";
+import { markdownParser } from "./markdown.ts";
+export { etaRange } from "./eta-syntax.ts";
+export type { EtaRange } from "./eta-syntax.ts";
 
 export const etaLanguage = LRLanguage.define({
   name: "eta",

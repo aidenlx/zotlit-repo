@@ -1,7 +1,7 @@
 // One sentence per conversion outcome, shared by the transient notice and the
 // Welcome banner so a refusal the notice named stays readable in the view.
-import * as m from "@/lib/i18n/generated/messages";
-import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
 
 export function templateMigrationNotice(
   result: LiteratureNoteTemplateMigrationResult,

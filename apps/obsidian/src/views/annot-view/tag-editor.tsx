@@ -15,18 +15,18 @@ import { tagTypeToName } from "@zotlit/db";
 import { TagsInput, useTagsInput, useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { useObsidianApp } from "@/lib/app-context";
-import { holdScopeWhileFocused } from "@/lib/focus-scope";
-import * as m from "@/lib/i18n/generated/messages";
-import { tooltipAttrs } from "@/lib/utils";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { tooltipAttrs } from "@/lib/utils.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import { sameHeldTags } from "./card-controls";
-import type { HeldTags } from "./card-controls";
-import { renderHeldTagsPanel } from "./editor-sheet";
-import type { EditorSurface, HeldDraftActions } from "./editor-sheet";
-import { tagChipVariants } from "./tag-chip";
+import { sameHeldTags } from "./card-controls.ts";
+import type { HeldTags } from "./card-controls.ts";
+import { renderHeldTagsPanel } from "./editor-sheet.ts";
+import type { EditorSurface, HeldDraftActions } from "./editor-sheet.ts";
+import { tagChipVariants } from "./tag-chip.ts";
 
 /**
  * Ends a tag editing session as its editor would: the text still typed is

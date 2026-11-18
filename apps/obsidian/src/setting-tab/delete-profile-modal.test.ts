@@ -3,15 +3,15 @@ import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileDeletionPlan } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileDeletionPlan } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import type { ProfileDeletionConsent } from "./delete-profile-modal";
-import { openProfileDeletion } from "./delete-profile-modal";
+import type { ProfileDeletionConsent } from "./delete-profile-modal.ts";
+import { openProfileDeletion } from "./delete-profile-modal.ts";
 
 /** The user's answer to the deletion dialog for `plan`. */
 function confirmProfileDeletion(

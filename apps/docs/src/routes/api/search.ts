@@ -7,8 +7,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createFromSource } from "fumadocs-core/search/server";
 
-import { isSiteLocale } from "@/lib/i18n";
-import { source } from "@/lib/source";
+import { isSiteLocale } from "@/lib/i18n.ts";
+import { source } from "@/lib/source.ts";
 
 /**
  * Only the docs loader is indexed; the changelog and the blog stay out of

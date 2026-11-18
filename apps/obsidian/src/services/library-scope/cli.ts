@@ -7,13 +7,17 @@
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler, CliHost } from "@/lib/cli-command";
-import { createCliDiagnostics } from "@/lib/cli-diagnostic";
-import { catchRejection, decodeCliParams, noCliParams } from "@/lib/cli-params";
-import type { CliRejection } from "@/lib/cli-params";
-import { PluginHost } from "@/lib/plugin-host";
+import type { CliCommandHandler, CliHost } from "@/lib/cli-command.ts";
+import { createCliDiagnostics } from "@/lib/cli-diagnostic.ts";
+import {
+  catchRejection,
+  decodeCliParams,
+  noCliParams,
+} from "@/lib/cli-params.ts";
+import type { CliRejection } from "@/lib/cli-params.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
 
-import { LibraryScope } from "./service";
+import { LibraryScope } from "./service.ts";
 
 /**
  * The wire format of the `zotlit:library-scope` commands, versioned on its

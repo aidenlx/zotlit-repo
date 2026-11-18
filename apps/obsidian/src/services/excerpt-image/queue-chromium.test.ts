@@ -2,8 +2,11 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
-import { runInElectron, testElectron } from "./__fixtures__/electron-renderer";
-import type { ChromiumQueueReport } from "./queue-chromium.browser-test";
+import {
+  runInElectron,
+  testElectron,
+} from "./__fixtures__/electron-renderer.ts";
+import type { ChromiumQueueReport } from "./queue-chromium.browser-test.ts";
 
 /**
  * The queue's in-app half, in the same Chromium the plugin ships on: a window

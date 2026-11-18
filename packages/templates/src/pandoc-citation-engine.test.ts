@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { TemplateFacade } from "./facade";
+import { TemplateFacade } from "./facade.ts";
 
 const citation = {
   item: { citationKey: "doe2024" },

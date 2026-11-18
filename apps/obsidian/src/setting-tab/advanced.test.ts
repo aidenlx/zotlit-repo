@@ -1,28 +1,28 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { DropdownComponent, renderRow } from "@mock/obsidian";
+import { DropdownComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Stream } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { LegacyPortError } from "@/lib/legacy-port";
-import { Vault } from "@/lib/obsidian-vault";
-import * as electron from "@/lib/require";
-import { FileNotFound } from "@/lib/vault-errors";
-import { LocalBridge } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { LegacyPortError } from "@/lib/legacy-port.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import * as electron from "@/lib/require.ts";
+import { FileNotFound } from "@/lib/vault-errors.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { profileRowServices, testSettingTab } from "./__fixtures__";
+import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
 import {
   advancedPageItems,
   openLogFileInSystem,
   saveLogArchive,
-} from "./advanced";
-import type { SettingsKey, SettingTabContext } from "./context";
+} from "./advanced.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
 
 function items(overrides: Partial<SettingTabContext> = {}) {
   const settings = { ...defaults, "log.to-file": false };

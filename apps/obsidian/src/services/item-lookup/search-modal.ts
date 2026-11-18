@@ -6,18 +6,18 @@ import type { Effect } from "effect";
 import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { modalAnswer } from "@/lib/modal-answer";
-import type { PluginSettings } from "@/services/settings/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { modalAnswer } from "@/lib/modal-answer.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import { CurrentAnswer, takeEnter } from "./current-answer";
-import { FirstAnswerGate } from "./first-answer";
-import type { ItemLookupHandle, SearchSession } from "./handle";
-import { renderSuggestion as renderSearchHit } from "./render-hit";
-import { DEFAULT_LIMIT } from "./service";
-import type { SearchHit, SearchOptions } from "./service";
+import { CurrentAnswer, takeEnter } from "./current-answer.ts";
+import { FirstAnswerGate } from "./first-answer.ts";
+import type { ItemLookupHandle, SearchSession } from "./handle.ts";
+import { renderSuggestion as renderSearchHit } from "./render-hit.ts";
+import { DEFAULT_LIMIT } from "./service.ts";
+import type { SearchHit, SearchOptions } from "./service.ts";
 
 export interface ItemSearchDeps {
   app: App;

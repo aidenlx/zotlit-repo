@@ -16,110 +16,110 @@ import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary, QueryContext } from "@zotlit/item-query";
 import { useUniqueId } from "@zotlit/ui";
 
-import { PaneState } from "@/components/pane-state";
-import { withLogCategory } from "@/lib/effect-log";
-import type { SubscriptionRuntime } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { reportOutcome } from "@/lib/notifier";
-import type { NoticeMessage } from "@/lib/notifier";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import { makeViewRunner } from "@/lib/view-runner";
-import type { ViewRunner } from "@/lib/view-runner";
-import type { HistorySurface } from "@/services/annotation-repository/actions";
-import type { HistoryDirection } from "@/services/annotation-repository/service";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions";
-import { queryRevisionAtom } from "@/services/item-query/atoms";
-import type { Diagnostic } from "@/services/item-query/contract";
-import type { QueryHandle } from "@/services/item-query/handle";
+import { PaneState } from "@/components/pane-state.tsx";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { reportOutcome } from "@/lib/notifier.ts";
+import type { NoticeMessage } from "@/lib/notifier.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
+import type { ViewRunner } from "@/lib/view-runner.ts";
+import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
+import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
+import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
+import { queryRevisionAtom } from "@/services/item-query/atoms.ts";
+import type { Diagnostic } from "@/services/item-query/contract.ts";
+import type { QueryHandle } from "@/services/item-query/handle.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import { QueryService } from "@/services/item-query/service";
-import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms";
-import type { LibraryScope } from "@/services/library-scope/scope";
+} from "@/services/item-query/query-view.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import {
   zoteroRevisionAtom,
   zoteroQueryUnavailableRevisionAtom,
-} from "@/services/zotero-reads/atoms";
-import { AnnotList } from "@/views/annot-view/AnnotView";
-import { CardDisplayContext } from "@/views/annot-view/card-display";
-import type { CardDisplay } from "@/views/annot-view/card-display";
-import { AnnotationsLayout } from "@/views/annot-view/layout";
+} from "@/services/zotero-reads/atoms.ts";
+import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
+import { CardDisplayContext } from "@/views/annot-view/card-display.ts";
+import type { CardDisplay } from "@/views/annot-view/card-display.ts";
+import { AnnotationsLayout } from "@/views/annot-view/layout.tsx";
 import type {
   AnnotationsLayoutDeps,
   AnnotationsLayoutHost,
-} from "@/views/annot-view/layout";
-import { useAnnotStore } from "@/views/annot-view/store";
-import type { AnnotState } from "@/views/annot-view/store";
-import { viewTargetOpener } from "@/views/open-target";
+} from "@/views/annot-view/layout.tsx";
+import { useAnnotStore } from "@/views/annot-view/store.ts";
+import type { AnnotState } from "@/views/annot-view/store.ts";
+import { viewTargetOpener } from "@/views/open-target.ts";
 
-import { makeRunQueryCommand } from "./atoms";
-import type { QueryCardFocus } from "./card-focus";
-import { CardsLayout } from "./cards-layout";
-import { contextHint } from "./context-hint";
-import type { ContextSource } from "./context-hint";
-import { datasetSpec, grouping } from "./datasets";
-import { DrawLatch } from "./draw-latch";
-import { FilterButton } from "./filter-popover";
-import { GroupEditor } from "./group-control";
-import type { ItemRowGestures } from "./item-rows";
-import { annotationsLayoutOptions, layoutOf } from "./layouts";
-import { ListLayout } from "./list-layout";
-import { QueryTaskProvider, useQueryViewState } from "./model";
+import { makeRunQueryCommand } from "./atoms.ts";
+import type { QueryCardFocus } from "./card-focus.ts";
+import { CardsLayout } from "./cards-layout.tsx";
+import { contextHint } from "./context-hint.ts";
+import type { ContextSource } from "./context-hint.ts";
+import { datasetSpec, grouping } from "./datasets.ts";
+import { DrawLatch } from "./draw-latch.ts";
+import { FilterButton } from "./filter-popover.tsx";
+import { GroupEditor } from "./group-control.tsx";
+import type { ItemRowGestures } from "./item-rows.ts";
+import { annotationsLayoutOptions, layoutOf } from "./layouts.ts";
+import { ListLayout } from "./list-layout.tsx";
+import { QueryTaskProvider, useQueryViewState } from "./model.ts";
 import {
   holdQueryViewModel,
   makeQueryViewModel,
   queryStateHandle,
-} from "./model";
-import { PapersLayout } from "./papers-layout";
-import { groupOptions } from "./properties";
-import { PropertiesMenu } from "./properties-menu";
-import { LITERATURE_NOTE, sameSort, vaultName } from "./query-file";
+} from "./model.ts";
+import { PapersLayout } from "./papers-layout.tsx";
+import { PropertiesMenu } from "./properties-menu.tsx";
+import { groupOptions } from "./properties.ts";
+import { QueryFileDocument } from "./query-file-document.ts";
+import { LITERATURE_NOTE, sameSort, vaultName } from "./query-file.ts";
 import type {
   QueryFile,
   QueryFileDataset,
   QueryFileProblem,
   QueryFileSort,
   QueryFileView,
-} from "./query-file";
-import { QueryFileDocument } from "./query-file-document";
+} from "./query-file.ts";
 import {
   correctionsText,
   readerDiagnostic,
   readerText,
-} from "./reader-diagnostic";
-import { NO_RESULTS } from "./results";
+} from "./reader-diagnostic.ts";
+import { ResultsMenu } from "./results-menu.tsx";
+import { NO_RESULTS } from "./results.ts";
 import type {
   FormulaIssue,
   QueryViewFailure,
   QueryViewWarning,
   ResultSnapshot,
-} from "./results";
-import { ResultsMenu } from "./results-menu";
-import { layoutRows } from "./rows";
-import type { LayoutRows } from "./rows";
-import { SearchButton, SearchRow, useSearchBar } from "./search-control";
-import { SortEditor } from "./sort-control";
-import { resultTable } from "./table";
-import type { ResultTable } from "./table";
-import { TableLayout } from "./table-layout";
-import type { ChildQuery } from "./table-layout";
-import type { LiteratureNotes, VaultHost } from "./table-notes";
-import { ToolbarButton } from "./toolbar-button";
-import { ToolbarPopover } from "./toolbar-popover";
-import { useVaultPropertyNames, vaultText } from "./vault-cell";
-import { viewSortOptions } from "./vault-sort";
-import { ViewMenu } from "./view-menu";
-import { ViewPlanner } from "./view-plan/view-plan";
-import type { ViewPlan } from "./view-plan/view-plan";
+} from "./results.ts";
+import { layoutRows } from "./rows.ts";
+import type { LayoutRows } from "./rows.ts";
+import { SearchButton, SearchRow, useSearchBar } from "./search-control.tsx";
+import { SortEditor } from "./sort-control.tsx";
+import { TableLayout } from "./table-layout.tsx";
+import type { ChildQuery } from "./table-layout.tsx";
+import type { LiteratureNotes, VaultHost } from "./table-notes.ts";
+import { resultTable } from "./table.ts";
+import type { ResultTable } from "./table.ts";
+import { ToolbarButton } from "./toolbar-button.tsx";
+import { ToolbarPopover } from "./toolbar-popover.tsx";
+import { useVaultPropertyNames, vaultText } from "./vault-cell.tsx";
+import { viewSortOptions } from "./vault-sort.ts";
+import { ViewMenu } from "./view-menu.tsx";
+import { ViewPlanner } from "./view-plan/view-plan.ts";
+import type { ViewPlan } from "./view-plan/view-plan.ts";
 import {
   usedGroupBy,
   useViewProperties,
   viewProperties,
-} from "./view-properties";
+} from "./view-properties.ts";
 
 /** The services a Query View reads through. */
 export interface QueryViewDeps extends AnnotationsLayoutDeps {

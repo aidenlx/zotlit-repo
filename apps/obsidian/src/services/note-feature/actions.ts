@@ -7,18 +7,18 @@ import type {
   Plugin,
 } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { FileMenuContext, FileMenuSegment } from "@/services/file-menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { FileMenuContext, FileMenuSegment } from "@/services/file-menu.ts";
 import {
   isLiteratureNote,
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "@/services/note-index/service";
+} from "@/services/note-index/service.ts";
 
-import type { NoteActions } from "./actions-handle";
-import type { UpdateScope } from "./operations";
-import type { ActiveNote } from "./update-notes-view";
+import type { NoteActions } from "./actions-handle.ts";
+import type { UpdateScope } from "./operations.ts";
+import type { ActiveNote } from "./update-notes-view.ts";
 
 interface NoteFeatureActionDeps {
   app: App;

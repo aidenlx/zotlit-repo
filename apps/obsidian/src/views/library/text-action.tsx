@@ -4,7 +4,7 @@
 // wherever it stands, and every one of them looks the same.
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 
 /**
  * Obsidian's unlayered `button` rules outrank utilities and draw a filled

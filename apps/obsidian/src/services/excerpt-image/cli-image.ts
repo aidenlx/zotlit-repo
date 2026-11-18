@@ -10,14 +10,14 @@ import {
   cliIndexedKey,
   cliParams,
   decodeCliParams,
-} from "@/lib/cli-params";
-import { diagnostic } from "@/services/item-query/contract";
-import { rejectionDiagnostic } from "@/services/item-query/contract";
+} from "@/lib/cli-params.ts";
+import { diagnostic } from "@/services/item-query/contract.ts";
+import { rejectionDiagnostic } from "@/services/item-query/contract.ts";
 
-import type { ExcerptRequest } from "./contract";
-import type { ExcerptImage } from "./format";
-import type { ExcerptSourceUnavailable } from "./request";
-import type { ExcerptOutcome } from "./service";
+import type { ExcerptRequest } from "./contract.ts";
+import type { ExcerptImage } from "./format.ts";
+import type { ExcerptSourceUnavailable } from "./request.ts";
+import type { ExcerptOutcome } from "./service.ts";
 
 // Annotation Image keeps its existing envelope independently of Query v3.
 const contractVersion = 2;

@@ -1,10 +1,10 @@
 import { parseIndexedKey } from "@zotlit/db";
 
-import type { QueryDataset } from "./dataset";
-import type { Span } from "./fault";
-import type { FilterNode } from "./filter-plan";
-import { RECORD_VOCABULARIES } from "./record-vocabularies";
-import type { TargetLibrary } from "./request";
+import type { QueryDataset } from "./dataset.ts";
+import type { Span } from "./fault.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import { RECORD_VOCABULARIES } from "./record-vocabularies.ts";
+import type { TargetLibrary } from "./request.ts";
 
 type KeyTarget = "self" | "item" | "attachment";
 function keyTarget(

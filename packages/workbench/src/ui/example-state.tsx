@@ -1,16 +1,16 @@
-import type { RenderDiagnostic, TemplateRenderResult } from "#/render/index";
+import type { RenderDiagnostic, TemplateRenderResult } from "#render/index.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { useOptionalEditor, useWorkbenchModel } from "./editor";
-import { useOptionalHost } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import type { WorkbenchModel } from "./model";
-import { pendingView } from "./pending-view";
-import { useIcon, useParts } from "./theme";
+import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
+import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import type { WorkbenchModel } from "./model.ts";
+import { pendingView } from "./pending-view.ts";
+import { useIcon, useParts } from "./theme.tsx";
 
-import { renderFailed } from "#/render/index";
+import { renderFailed } from "#render/index.ts";
 
 /** A preview surface with a tab of its own that names its condition. */
 type ExampleSurface = "filename" | "properties";

@@ -1,7 +1,7 @@
 // External URLs surfaced by the Welcome View — docs, community, and news links.
 // The docs-site links follow the reader's language, so each is read when used.
 
-import { docsUrl } from "@/lib/docs-url";
+import { docsUrl } from "@/lib/docs-url.ts";
 
 export const docsHomeUrl = (): string => docsUrl("/docs");
 export const gettingStartedUrl = (): string => docsUrl("/learn");

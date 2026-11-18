@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { createMockPlugin, Keymap } from "@mock/obsidian";
+import { createMockPlugin, Keymap } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { TFile } from "obsidian";
 import type {
@@ -14,18 +14,18 @@ import type {
 } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 import {
   addGraphCitationsActions,
   citationGraphReadiness,
   openLocalCitationGraph,
-} from "./actions";
-import type { GraphCitationsActionDeps } from "./actions";
-import { installDisplayRows } from "./display";
-import { applyCitationGraphPreset } from "./preset";
-import { FakeColorGroupSection, FakeControlSection } from "./test-double";
+} from "./actions.ts";
+import type { GraphCitationsActionDeps } from "./actions.ts";
+import { installDisplayRows } from "./display.ts";
+import { applyCitationGraphPreset } from "./preset.ts";
+import { FakeColorGroupSection, FakeControlSection } from "./test-double.ts";
 
 /** Every command id, in registration order. */
 const ALL_COMMAND_IDS = ["open-citation-graph", "open-local-citation-graph"];

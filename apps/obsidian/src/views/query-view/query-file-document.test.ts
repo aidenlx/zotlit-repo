@@ -3,8 +3,8 @@
 // and edits in, the file, the view on screen and the saved text out.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { QueryFileDocument, SAVE_DELAY_MS } from "./query-file-document";
-import type { DocumentHost } from "./query-file-document";
+import { QueryFileDocument, SAVE_DELAY_MS } from "./query-file-document.ts";
+import type { DocumentHost } from "./query-file-document.ts";
 
 const FILE = `views:
   - type: annotations

@@ -5,8 +5,8 @@ import { Context, Effect, Logger, Tracer } from "effect";
 import { Scheduler } from "effect/Scheduler";
 import { expect, it } from "vitest";
 
-import { browserScheduler } from "./browser-scheduler";
-import { logTapeLogger } from "./effect-log";
+import { browserScheduler } from "./browser-scheduler.ts";
+import { logTapeLogger } from "./effect-log.ts";
 
 // Failure mode: the redirect is gone, so `Effect.runSync` from `effect` runs
 // with Node's scheduler, Effect's console logger and trace propagation.

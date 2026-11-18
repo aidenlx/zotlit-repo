@@ -2,8 +2,11 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
-import { runInElectron, testElectron } from "./__fixtures__/electron-renderer";
-import type { EncodeReport } from "./encode.browser-test";
+import {
+  runInElectron,
+  testElectron,
+} from "./__fixtures__/electron-renderer.ts";
+import type { EncodeReport } from "./encode.browser-test.ts";
 
 /**
  * The recorded run's slowest single encode is 17.5 ms

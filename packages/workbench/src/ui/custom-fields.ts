@@ -3,7 +3,7 @@
 import { useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 
-import { useWorkbenchModel } from "./editor";
+import { useWorkbenchModel } from "./editor.tsx";
 
 const NONE: readonly string[] = [];
 

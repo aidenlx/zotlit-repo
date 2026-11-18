@@ -1,6 +1,6 @@
-import { isPlainObject } from "./classify";
-import { defaults } from "./schema";
-import type { LogLevel, Settings } from "./schema";
+import { isPlainObject } from "./classify.ts";
+import { defaults } from "./schema.ts";
+import type { LogLevel, Settings } from "./schema.ts";
 
 const DEFAULT_CITEKEY_FIELD = {
   key: "citekey",

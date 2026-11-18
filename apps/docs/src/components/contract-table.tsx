@@ -2,19 +2,22 @@ import Link from "fumadocs-core/link";
 import { asMarkdown } from "fumadocs-core/server";
 import type { ReactNode } from "react";
 
-import { CONTRACT_IR } from "@/lib/template-contract/contract";
-import { renderContractTableMarkdown } from "@/lib/template-contract/gfm";
-import { buildPageModel, sectionOf } from "@/lib/template-contract/page-model";
+import { CONTRACT_IR } from "@/lib/template-contract/contract.ts";
+import { renderContractTableMarkdown } from "@/lib/template-contract/gfm.ts";
+import {
+  buildPageModel,
+  sectionOf,
+} from "@/lib/template-contract/page-model.ts";
 import type {
   Doc,
   ItemTypeRow,
   RowModel,
   TableModel,
-} from "@/lib/template-contract/page-model";
+} from "@/lib/template-contract/page-model.ts";
 import * as m from "@/paraglide/messages.js";
 
-import { TypeTable } from "./type-table";
-import type { DetailNode, TypeNode } from "./type-table";
+import { TypeTable } from "./type-table.tsx";
+import type { DetailNode, TypeNode } from "./type-table.tsx";
 
 const model = buildPageModel(CONTRACT_IR);
 

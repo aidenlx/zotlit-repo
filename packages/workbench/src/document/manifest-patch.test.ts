@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { entrySlice, WorkbenchDocumentController } from "./controller";
-import { followEntries } from "./manifest-patch";
-import type { ManagedEntryAction } from "./manifest-patch";
+import { entrySlice, WorkbenchDocumentController } from "./controller.ts";
+import { followEntries } from "./manifest-patch.ts";
+import type { ManagedEntryAction } from "./manifest-patch.ts";
 
 /**
  * A hand-written Profile whose Managed Frontmatter list carries a comment, a

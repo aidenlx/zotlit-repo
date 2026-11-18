@@ -2,7 +2,7 @@
 
 import { regex } from "arkregex";
 
-import { assertCitationItems } from "./citation-items";
+import { assertCitationItems } from "./citation-items.ts";
 
 const SIMPLE_KEY_SOURCE =
   "[\\p{L}\\p{N}_*](?:[\\p{L}\\p{N}_]|[:.#$%&+?<>~/-](?=[\\p{L}\\p{N}_])|[:/](?=/))*";

@@ -1,9 +1,9 @@
 // Shared invalidation of Item queries when device Uses change.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { QueryService } from "./service";
+import { QueryService } from "./service.ts";
 
 export const queryRevisionAtom = held(
   Stream.unwrap(

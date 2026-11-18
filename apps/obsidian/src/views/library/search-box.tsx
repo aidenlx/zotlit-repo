@@ -13,29 +13,29 @@ import type { Root } from "react-dom/client";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { SearchInput } from "@/components/obsidian/search-input";
-import * as m from "@/lib/i18n/generated/messages";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import { SearchInput } from "@/components/obsidian/search-input.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope";
-import type { QueryView } from "@/views/query-view/view";
+} from "@/services/library-scope/scope.ts";
+import type { QueryView } from "@/views/query-view/view.tsx";
 
-import type { LibraryNode } from "./document";
-import type { HeaderSearch } from "./heading";
-import { waitForRead } from "./model";
+import type { LibraryNode } from "./document.ts";
+import type { HeaderSearch } from "./heading.tsx";
+import { waitForRead } from "./model.ts";
 import {
   makeSearchModel,
   patchSearch,
   SearchModelProvider,
   useSearchState,
-} from "./search-model";
-import type { SearchSession } from "./search-model";
-import { TextAction } from "./text-action";
-import { TreeModelProvider, useTreeState } from "./tree-model";
-import type { TreeModel } from "./tree-model";
+} from "./search-model.ts";
+import type { SearchSession } from "./search-model.ts";
+import { TextAction } from "./text-action.tsx";
+import { TreeModelProvider, useTreeState } from "./tree-model.ts";
+import type { TreeModel } from "./tree-model.ts";
 
 export interface LibrarySearchDeps {
   registry: ViewRegistryHandle;

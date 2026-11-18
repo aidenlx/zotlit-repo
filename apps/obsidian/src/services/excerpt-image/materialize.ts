@@ -13,25 +13,25 @@ import { basename, dirname, join, relative, isAbsolute, sep } from "node:path";
 
 import { parseIndexedKey } from "@zotlit/db";
 
-import { attachmentFolderPath } from "@/lib/attachment-folder";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { joinFolderPath } from "@/lib/ensure-folder";
-import type { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import type { Settings } from "@/services/settings/schema";
+import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { joinFolderPath } from "@/lib/ensure-folder.ts";
+import type { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
-import { excerptKey, excerptSourceIdentities } from "./contract";
-import type { ExcerptRequest } from "./contract";
+import { excerptKey, excerptSourceIdentities } from "./contract.ts";
+import type { ExcerptRequest } from "./contract.ts";
 import {
   EXCERPT_IMAGE_EXTENSIONS,
   detectExcerptImageFormat,
   isExcerptImage,
   isExcerptPayload,
-} from "./format";
-import { usableExcerptPng } from "./png";
-import type { ExcerptOutcome } from "./service";
-import { usableExcerptWebpPixels } from "./webp-pixels";
+} from "./format.ts";
+import { usableExcerptPng } from "./png.ts";
+import type { ExcerptOutcome } from "./service.ts";
+import { usableExcerptWebpPixels } from "./webp-pixels.ts";
 
 const logged = withLogCategory("excerpt-materialize");
 const MAX_PREVIOUS_BYTES = 32 * 1024 * 1024;

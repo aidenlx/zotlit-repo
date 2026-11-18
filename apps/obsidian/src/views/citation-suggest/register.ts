@@ -1,20 +1,20 @@
 import type { App, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 import "./style.css";
-import type { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationIndex } from "@/services/citation-index/service";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import type { NoteFeatureHandle } from "@/services/note-feature";
-import type { PluginSettings } from "@/services/settings/service";
-import type { UseLedger } from "@/services/use-ledger/service";
+import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationIndex } from "@/services/citation-index/service.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import type { NoteFeatureHandle } from "@/services/note-feature/index.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import type { UseLedger } from "@/services/use-ledger/service.ts";
 
-import { AnnotationEditorSuggest } from "./annotation-suggest";
-import type { AnnotationSuggestDeps } from "./annotation-suggest";
-import { CitationEditorSuggest } from "./editor-suggest";
-import { InsertCitationModal } from "./insert-modal";
+import { AnnotationEditorSuggest } from "./annotation-suggest.ts";
+import type { AnnotationSuggestDeps } from "./annotation-suggest.ts";
+import { CitationEditorSuggest } from "./editor-suggest.ts";
+import { InsertCitationModal } from "./insert-modal.ts";
 
 export interface CitationSuggestDeps {
   app: App;

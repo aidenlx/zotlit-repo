@@ -12,14 +12,14 @@ import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { env } from "cloudflare:workers";
 import { isMarkdownPreferred } from "fumadocs-core/negotiation";
 
-import { localizedPath } from "./lib/i18n";
-import type { SiteLocale } from "./lib/i18n";
-import { getPageLocaleState } from "./lib/locale-state";
-import { negotiatedContentRoute } from "./lib/markdown-routes";
-import { markdownEditionHeaders } from "./lib/shared";
-import { buildV1Redirects } from "./lib/v1-redirects";
+import { localizedPath } from "./lib/i18n.ts";
+import type { SiteLocale } from "./lib/i18n.ts";
+import { getPageLocaleState } from "./lib/locale-state.ts";
+import { negotiatedContentRoute } from "./lib/markdown-routes.ts";
+import { markdownEditionHeaders } from "./lib/shared.ts";
+import { buildV1Redirects } from "./lib/v1-redirects.ts";
 import { deLocalizeUrl } from "./paraglide/runtime.js";
-import { paraglideMiddleware } from "./paraglide/server";
+import { paraglideMiddleware } from "./paraglide/server.js";
 
 /**
  * The request as the rest of the site should see it. An agent that prefers

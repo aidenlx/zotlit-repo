@@ -4,45 +4,48 @@ import type { TFile } from "obsidian";
 
 import type { Item, ItemFacets } from "@zotlit/db";
 
-import { toInstant } from "@/lib/effect-clock";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { Vault } from "@/lib/obsidian-vault";
-import { DEFAULT_PROFILE, unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { classifyStream } from "@/services/batch-run";
-import type { QueryService } from "@/services/item-query/service";
+import { toInstant } from "@/lib/effect-clock.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { Vault } from "@/lib/obsidian-vault.ts";
+import {
+  DEFAULT_PROFILE,
+  unknownProfileDiagnostic,
+} from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { classifyStream } from "@/services/batch-run.ts";
+import type { QueryService } from "@/services/item-query/service.ts";
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service";
-import { selectProfilesByMatch } from "@/services/profile-selection";
-import type { MatchSelection } from "@/services/profile-selection";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { relocatedNotePath } from "@/services/profile/relocation";
-import { Profile } from "@/services/profile/service";
-import { Template, templateFailure } from "@/services/template/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/note-index/service.ts";
+import { selectProfilesByMatch } from "@/services/profile-selection/index.ts";
+import type { MatchSelection } from "@/services/profile-selection/index.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { relocatedNotePath } from "@/services/profile/relocation.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { applyComposedFrontmatter } from "./compose";
-import type { ComposeNoteDeps } from "./compose";
-import { templateFacets } from "./context";
-import { composeWarn } from "./diagnostics";
-import { ItemNotFound } from "./errors";
-import { prepareManagedFrontmatter } from "./frontmatter";
+import { applyComposedFrontmatter } from "./compose.ts";
+import type { ComposeNoteDeps } from "./compose.ts";
+import { templateFacets } from "./context.ts";
+import { composeWarn } from "./diagnostics.ts";
+import { ItemNotFound } from "./errors.ts";
+import { prepareManagedFrontmatter } from "./frontmatter.ts";
 import {
   renderDocumentFilename,
   resolveNotePath,
   resolveRenderedNotePath,
-} from "./note-path";
+} from "./note-path.ts";
 import {
   readItem,
   relocationSource,
   resolveProfileDocument,
-} from "./note-reads";
+} from "./note-reads.ts";
 import type {
   CompanionNoteTarget,
   CreateNoteInternalOptions,
@@ -57,8 +60,8 @@ import type {
   ProfileNotePreview,
   ProfileNotePreviewOptions,
   ProfilePreview,
-} from "./types";
-import type { CreateNoteError } from "./write-pipeline";
+} from "./types.ts";
+import type { CreateNoteError } from "./write-pipeline.ts";
 
 const logged = withLogCategory("note-feature");
 

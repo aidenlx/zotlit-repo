@@ -2,17 +2,17 @@ import type {
   DisplayNode,
   SnippetKind,
   TemplateEngine,
-} from "#/explorer/index";
+} from "#explorer/index.ts";
 import { describe, expect, it } from "vitest";
 
 import { TemplateEngine as EtaEngine } from "@zotlit/templates";
 import { createLiquidEngine } from "@zotlit/templates/liquid";
 
-import { fieldForm } from "./field-insertion";
-import type { FieldInsertionContext } from "./field-insertion";
+import { fieldForm } from "./field-insertion.ts";
+import type { FieldInsertionContext } from "./field-insertion.ts";
 
-import { buildDisplayTree } from "#/explorer/index";
-import { withText } from "#/explorer/test-records";
+import { buildDisplayTree } from "#explorer/index.ts";
+import { withText } from "#explorer/test-records.ts";
 
 function shapeNodes(): { authors: DisplayNode; family: DisplayNode } {
   const [authors] = buildDisplayTree(

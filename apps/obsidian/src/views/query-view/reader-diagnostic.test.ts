@@ -3,8 +3,8 @@
 // fields rather than from the CLI report.
 import { expect, it } from "vitest";
 
-import { readerDiagnostic, readerText } from "./reader-diagnostic";
-import type { ReaderDiagnosticSource } from "./reader-diagnostic";
+import { readerDiagnostic, readerText } from "./reader-diagnostic.ts";
+import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 
 const SYNTAX_FORMS = ["!", "(", "a name", "a string"];
 

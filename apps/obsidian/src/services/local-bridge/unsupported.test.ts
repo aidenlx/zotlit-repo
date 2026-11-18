@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
 
-import { unsupportedProfileSourceReason } from "./unsupported";
+import { unsupportedProfileSourceReason } from "./unsupported.ts";
 
 /** The build the checks read a Profile against. */
 const PLUGIN_VERSION = "2.3.0";

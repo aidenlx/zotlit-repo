@@ -1,9 +1,9 @@
-import { Menu, TFile, TFolder } from "@mock/obsidian";
+import { Menu, TFile, TFolder } from "@mock/obsidian.ts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu";
+import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu.ts";
 
-import { indexedKeyFileMenu } from "./menu";
+import { indexedKeyFileMenu } from "./menu.ts";
 
 let writeText: ReturnType<typeof vi.fn>;
 

@@ -9,18 +9,18 @@ import type { App } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { AppContext } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import { viewRuntime, ViewRegistryProvider } from "@/lib/view-atoms";
-import { readFilterValues } from "@/views/query-view/atoms";
-import { useFilterExpressions } from "@/views/query-view/expression-vocabulary";
-import { FilterEditor } from "@/views/query-view/filter-popover";
-import type { FilterValues } from "@/views/query-view/filter-popover";
-import { allViewsDataset } from "@/views/query-view/query-file";
-import type { QueryView } from "@/views/query-view/view";
-import { useViewProperties } from "@/views/query-view/view-properties";
+import { AppContext } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { viewRuntime, ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { readFilterValues } from "@/views/query-view/atoms.ts";
+import { useFilterExpressions } from "@/views/query-view/expression-vocabulary.ts";
+import { FilterEditor } from "@/views/query-view/filter-popover.tsx";
+import type { FilterValues } from "@/views/query-view/filter-popover.tsx";
+import { allViewsDataset } from "@/views/query-view/query-file.ts";
+import { useViewProperties } from "@/views/query-view/view-properties.ts";
+import type { QueryView } from "@/views/query-view/view.tsx";
 
-import { resultValue } from "./atoms";
+import { resultValue } from "./atoms.ts";
 
 const NO_VALUES: FilterValues = { tags: [], collections: [], libraries: [] };
 

@@ -2,9 +2,9 @@ import type { IconName } from "obsidian";
 import type { ButtonHTMLAttributes, Ref } from "react";
 import type { VariantProps } from "tailwind-variants";
 
-import { tv } from "@/lib/tw";
+import { tv } from "@/lib/tw.ts";
 
-import { Icon } from "./icon";
+import { Icon } from "./icon.tsx";
 
 const button = tv({
   base: "zt:gap-1.5",

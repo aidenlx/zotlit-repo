@@ -2,11 +2,11 @@
 // the settings store, encoded for the control that shows it.
 import { Effect } from "effect";
 
-import { PluginSettings } from "@/services/settings/service";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { decodeLogLevel, encodeLogLevel, LOG_LEVEL_KEY } from "./advanced";
-import type { ProfileControlKey, SettingsKey } from "./context";
-import { AUTO_TRIM_KEYS, decodeAutoTrim, encodeAutoTrim } from "./templates";
+import { decodeLogLevel, encodeLogLevel, LOG_LEVEL_KEY } from "./advanced.ts";
+import type { ProfileControlKey, SettingsKey } from "./context.ts";
+import { AUTO_TRIM_KEYS, decodeAutoTrim, encodeAutoTrim } from "./templates.ts";
 
 export type ProfileControlField =
   | "folder"

@@ -2,7 +2,7 @@
 import { Keymap, Menu } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { defaults } from "@/services/settings/schema";
+import { defaults } from "@/services/settings/schema.ts";
 
 import {
   attachCitationHover,
@@ -10,12 +10,12 @@ import {
   attachClosedCitationGestures,
   clickWikilinkCitation,
   markCitationClick,
-} from "./citation";
-import type { CitationHoverRequest } from "./citation";
-import { CITEKEY_HOVER_SOURCE, hoverPreferences } from "./hover";
-import type { HoverPreferences } from "./hover";
-import type { CitedWork, NavigationPane } from "./intent";
-import type { GestureSurface } from "./shell";
+} from "./citation.ts";
+import type { CitationHoverRequest } from "./citation.ts";
+import { CITEKEY_HOVER_SOURCE, hoverPreferences } from "./hover.ts";
+import type { HoverPreferences } from "./hover.ts";
+import type { CitedWork, NavigationPane } from "./intent.ts";
+import type { GestureSurface } from "./shell.ts";
 
 const menuMock = Menu as typeof Menu & {
   instances: {

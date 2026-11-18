@@ -1,15 +1,15 @@
 // Pure value-walker mapping an anchor root object + expansion set to typed display nodes.
 
-import { formatAccessorPath, memberAccessor } from "./accessor-path";
-import type { TemplatePathSegment } from "./accessor-path";
-import { inertPlaceholderReason } from "./inert-placeholder";
+import { formatAccessorPath, memberAccessor } from "./accessor-path.ts";
+import type { TemplatePathSegment } from "./accessor-path.ts";
+import { inertPlaceholderReason } from "./inert-placeholder.ts";
 import {
   evaluateHelper,
   isPlainObject,
   readList,
   shownTexts,
-} from "./list-items";
-import { coerceToString } from "./string-coercion";
+} from "./list-items.ts";
+import { coerceToString } from "./string-coercion.ts";
 
 export type PathSegment = TemplatePathSegment;
 

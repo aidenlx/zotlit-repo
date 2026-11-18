@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { unionOutlinePath } from "./rect-union-outline";
+import { unionOutlinePath } from "./rect-union-outline.ts";
 
 it("draws nothing for an empty run", () => {
   expect(unionOutlinePath([], 2)).toBe("");

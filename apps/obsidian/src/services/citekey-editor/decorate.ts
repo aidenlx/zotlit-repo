@@ -3,12 +3,12 @@
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 import type { PandocTextSpan as TextSpan } from "@zotlit/templates/pandoc-citation";
 
-import { maskWikilinks } from "@/services/citation-index/scan";
+import { maskWikilinks } from "@/services/citation-index/scan.ts";
 import type {
   CitationKeyState,
   CitationSource,
   KeyStateOf,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 
 /** A citekey span to mark, with the key the click flow resolves. */
 export interface CitekeyMark extends TextSpan {

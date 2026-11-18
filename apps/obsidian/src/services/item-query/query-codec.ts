@@ -8,7 +8,7 @@ import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary } from "@zotlit/item-query";
 import { DELIMITED_FORMATS } from "@zotlit/shared/delimited";
 
-import { libraryScopeWire } from "@/services/library-scope/scope";
+import { libraryScopeWire } from "@/services/library-scope/scope.ts";
 
 export const QUERY_DATASETS = ["items", "attachments", "annotations"] as const;
 

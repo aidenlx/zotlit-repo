@@ -3,7 +3,7 @@ import type { Extension } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin } from "@codemirror/view";
 import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 
-import type { Span } from "./span";
+import type { Span } from "./span.ts";
 
 /**
  * Calls `put` for each part of `span` that no hole covers, in document order.

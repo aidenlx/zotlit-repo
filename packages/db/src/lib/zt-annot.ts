@@ -1,8 +1,8 @@
-import type { AnnotationPositionRaw } from "@drizzle/schema";
+import type { AnnotationPositionRaw } from "#drizzle/schema.ts";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
-import type { TagType } from "./zt-tag";
+import type { TagType } from "./zt-tag.ts";
 
 /**
  * Maps Zotero's numeric annotation type IDs to string names.

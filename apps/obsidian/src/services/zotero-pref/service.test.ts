@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { expect } from "vitest";
 
-import { zoteroPrefFixture } from "./__fixtures__";
+import { zoteroPrefFixture } from "./__fixtures__.ts";
 
 /** The failure `FileSystem` gives for a file the process may not read. */
 const unreadable = (path: string) =>

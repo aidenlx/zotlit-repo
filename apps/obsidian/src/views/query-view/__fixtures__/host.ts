@@ -1,25 +1,25 @@
 // A Query View test registry over in-memory host services and controlled query reads.
 import { Effect, Layer, Queue, Stream } from "effect";
-import type { QueryHandle } from "@/services/item-query/handle";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope";
-import type { ZoteroReadsEvents, ZoteroReadLease } from "@/services/zotero-reads/service";
+import type { QueryHandle } from "@/services/item-query/handle.ts";
+import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
+import type { ZoteroReadsEvents, ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { QueryService } from "@/services/item-query/service";
-import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service";
-import { layerAnnotServices } from "@/views/annot-view/__fixtures__/host";
-import type { AnnotHostOptions } from "@/views/annot-view/__fixtures__/host";
-import type { QueryViewDeps } from "@/views/query-view/view";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
+import { layerAnnotServices } from "@/views/annot-view/__fixtures__/host.ts";
+import type { AnnotHostOptions } from "@/views/annot-view/__fixtures__/host.ts";
+import type { QueryViewDeps } from "@/views/query-view/view.tsx";
 
 export interface QueryHostDeps extends Pick<QueryViewDeps, "app"> {
   query: Pick<QueryHandle, "run" | "on" | "customFieldNames">;

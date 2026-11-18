@@ -4,12 +4,12 @@ import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { describe, expect, test } from "vitest";
 
-import { runCli } from "./cli.js";
-import type { CliIo } from "./cli.js";
-import { addLocale, createFixtureProject } from "./test-fixtures.js";
+import { runCli } from "./cli.ts";
+import type { CliIo } from "./cli.ts";
+import { addLocale, createFixtureProject } from "./test-fixtures.ts";
 
 const packageRoot = resolve(import.meta.dirname, "..");
-const cliMainPath = resolve(packageRoot, "dist", "cli-main.mjs");
+const cliMainPath = resolve(packageRoot, "src", "cli-main.ts");
 const execFileAsync = promisify(execFile);
 
 describe("runCli", () => {

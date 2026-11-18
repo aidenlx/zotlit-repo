@@ -4,7 +4,7 @@
 import { asMarkdown, md } from "fumadocs-core/server";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 
-import { lessons } from "@/lib/collections";
+import { lessons } from "@/lib/collections.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

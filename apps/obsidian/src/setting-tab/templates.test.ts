@@ -5,30 +5,30 @@ import {
   ExtraButtonComponent,
   Menu,
   renderRow,
-} from "@mock/obsidian";
-import type { Setting } from "@mock/obsidian";
+} from "@mock/obsidian.ts";
+import type { Setting } from "@mock/obsidian.ts";
 import { Effect, Layer, Queue } from "effect";
 import { TFile } from "obsidian";
 import type { App, Modal, SettingDefinitionList } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { Vault } from "@/lib/obsidian-vault";
-import { Template } from "@/services/template/service";
-import type { CitationTemplateStatus } from "@/services/template/service";
-import { openNewPartialPrompt } from "@/views/template-workbench/new-partial";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Template } from "@/services/template/service.ts";
+import type { CitationTemplateStatus } from "@/services/template/service.ts";
+import { openNewPartialPrompt } from "@/views/template-workbench/new-partial.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { rebuildingSettingTab } from "./__fixtures__";
-import type { SettingsKey, SettingTabContext } from "./context";
-import { citationTextItems, partialItems } from "./templates";
+import { rebuildingSettingTab } from "./__fixtures__.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { citationTextItems, partialItems } from "./templates.ts";
 
-vi.mock("@/views/template-workbench/open", () => ({
+vi.mock("@/views/template-workbench/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
-vi.mock("@/views/template-workbench/new-partial", () => ({
+vi.mock("@/views/template-workbench/new-partial.ts", () => ({
   openNewPartialPrompt: vi.fn(),
 }));
 

@@ -2,31 +2,31 @@ import { Effect } from "effect";
 import { strToU8, zipSync } from "fflate";
 import type { SettingDefinitionItem } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm";
-import { withLogCategory } from "@/lib/effect-log-category";
-import { exportTimestamp, saveFile } from "@/lib/file-save";
-import * as m from "@/lib/i18n/generated/messages";
-import { LegacyPortError, portCall } from "@/lib/legacy-port";
-import { reportOutcome } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { requireElectron } from "@/lib/require";
-import { LOG_FILENAME } from "@/services/log/service";
-import { isLogLevel, LOG_LEVELS } from "@/services/settings/schema";
-import type { LogLevel } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { exportTimestamp, saveFile } from "@/lib/file-save.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { LegacyPortError, portCall } from "@/lib/legacy-port.ts";
+import { reportOutcome } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { requireElectron } from "@/lib/require.ts";
+import { LOG_FILENAME } from "@/services/log/service.ts";
+import { isLogLevel, LOG_LEVELS } from "@/services/settings/schema.ts";
+import type { LogLevel } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   profileCustomization,
   saveProfileCustomization,
-} from "@/views/template-workbench/preferences";
+} from "@/views/template-workbench/preferences.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { localServerItems } from "./local-server";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { localServerItems } from "./local-server.ts";
 import {
   reportClearExcerptCache,
   reportResetCitationIndex,
   resetLanguagePacks,
-} from "./recovery";
-import { templateEngineItems } from "./templates";
+} from "./recovery.ts";
+import { templateEngineItems } from "./templates.ts";
 
 const LOG_LEVEL_OFF_KEY = "off";
 

@@ -13,20 +13,20 @@ import { renderToMarkdown } from "fumadocs-core/server";
 import { llms } from "fumadocs-core/source";
 import type { ComponentType, ElementType } from "react";
 
-import { ActionLink } from "@/components/action-link";
-import { Callout } from "@/components/callout";
-import { Command } from "@/components/command";
-import { ContractTable } from "@/components/contract-table";
-import { lessonMarkdownComponents } from "@/components/learn/lesson-mdx";
-import { LessonLink } from "@/components/lesson-link";
-import { SettingsPath } from "@/components/settings-path";
-import { UiLabel } from "@/components/ui-label";
+import { ActionLink } from "@/components/action-link.tsx";
+import { Callout } from "@/components/callout.tsx";
+import { Command } from "@/components/command.tsx";
+import { ContractTable } from "@/components/contract-table.tsx";
+import { lessonMarkdownComponents } from "@/components/learn/lesson-mdx.tsx";
+import { LessonLink } from "@/components/lesson-link.tsx";
+import { SettingsPath } from "@/components/settings-path.tsx";
+import { UiLabel } from "@/components/ui-label.tsx";
 import * as m from "@/paraglide/messages.js";
 
-import type { SiteLocale } from "./i18n";
-import { localizeMarkdownLinks } from "./markdown-locale-links";
-import type { MarkdownPage } from "./markdown-routes";
-import { docsPageTitle } from "./shared";
+import type { SiteLocale } from "./i18n.ts";
+import { localizeMarkdownLinks } from "./markdown-locale-links.ts";
+import type { MarkdownPage } from "./markdown-routes.ts";
+import { docsPageTitle } from "./shared.ts";
 import {
   blog,
   changelog,
@@ -36,7 +36,7 @@ import {
   learn,
   lessonFurther,
   source,
-} from "./source";
+} from "./source.ts";
 
 /** Every edition is authored Markdown, never HTML converted after the fact. */
 export const markdownHeaders = {

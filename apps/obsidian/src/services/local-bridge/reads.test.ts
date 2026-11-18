@@ -1,6 +1,6 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { configureSync, resetSync } from "@logtape/logtape";
-import "@mock/dom-parser";
+import "@mock/dom-parser.ts";
 import type { LogRecord } from "@logtape/logtape";
 import { Effect, Layer, Scope } from "effect";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -23,33 +23,33 @@ import type {
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { buildRuntime } from "@/lib/effect-layer";
-import * as m from "@/lib/i18n/generated/messages";
-import { excerptAssetIdentities } from "@/services/excerpt-image/materialize";
-import { NoteIndex } from "@/services/note-index/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { excerptAssetIdentities } from "@/services/excerpt-image/materialize.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { createLocalBridgeApp } from "./app";
-import { STABLE_DOCS_ORIGIN } from "./origins";
-import { makeLocalBridgeReads } from "./reads";
-import { BridgeSessions } from "./sessions";
+import { createLocalBridgeApp } from "./app.ts";
+import { STABLE_DOCS_ORIGIN } from "./origins.ts";
+import { makeLocalBridgeReads } from "./reads.ts";
+import { BridgeSessions } from "./sessions.ts";
 
 const INSTALLATION_ID = "install-1";
 const VAULT_NAME = "Research";

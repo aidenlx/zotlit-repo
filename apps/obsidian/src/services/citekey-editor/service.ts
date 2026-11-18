@@ -3,32 +3,32 @@
 // extension registers in ./register.
 import { Cause, Context, Effect, Layer, PubSub, Stream } from "effect";
 
-import { logAndContinue, withLogCategory } from "@/lib/effect-log";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { describeCandidatesEffect } from "@/services/citation-index/ambiguity";
-import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity";
-import { heldResolution } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
+import { logAndContinue, withLogCategory } from "@/lib/effect-log.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { describeCandidatesEffect } from "@/services/citation-index/ambiguity.ts";
+import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { heldResolution } from "@/services/citation-index/lookup.ts";
 import type {
   CitationLookupAnswer,
   SnapshotItem,
-} from "@/services/citation-index/service";
-import { hoverPreferences } from "@/services/citekey-navigation";
+} from "@/services/citation-index/service.ts";
+import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
 import type {
   HoverPreferences,
   NavigationPane,
-} from "@/services/citekey-navigation";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { NoteCreationServices } from "@/services/note-feature/creation-handle";
-import { createNoteInteractively } from "@/services/note-feature/creation-view";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import { resolveLiteratureNoteWithWarning } from "@/services/note-feature/update-single";
-import { NoteIndex } from "@/services/note-index/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/citekey-navigation/index.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { NoteCreationServices } from "@/services/note-feature/creation-handle.ts";
+import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import { resolveLiteratureNoteWithWarning } from "@/services/note-feature/update-single.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-export type { AmbiguousCandidate } from "@/services/citation-index/ambiguity";
+export type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 
 /** One Ambiguous Citation Key, as the candidate picker is asked to show it. */
 export interface AmbiguousCitekey {

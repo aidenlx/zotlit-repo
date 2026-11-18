@@ -17,8 +17,8 @@ import {
 } from "@zotlit/item-query";
 import type { FilterValueType, FunctionDefinition } from "@zotlit/item-query";
 
-import type { ExpressionReceiver } from "./expression-options";
-import type { Span } from "./span";
+import type { ExpressionReceiver } from "./expression-options.ts";
+import type { Span } from "./span.ts";
 
 /** One parameter as the hint names it. */
 export interface HintParameter {

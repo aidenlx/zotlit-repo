@@ -3,7 +3,7 @@
 // draws in, in one ink, as a ribbon icon takes `currentColor` (docs/brand.md).
 import markSvg from "@brand/zotlit-mark-16.svg?raw";
 
-import { brandPaths } from "@/lib/brand";
+import { brandPaths } from "@/lib/brand.ts";
 
 /** The id the Library View's tab and ribbon icon draw. */
 export const ZOTLIT_MARK_ICON = "zotlit-mark";

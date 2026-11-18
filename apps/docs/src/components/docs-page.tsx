@@ -20,20 +20,20 @@ import {
 } from "fumadocs-ui/layouts/docs/page";
 import { use } from "react";
 
-import { DocsLastUpdated } from "@/components/docs-last-updated";
-import { DocsPageFooter } from "@/components/docs-page-footer";
-import { getMDXComponents } from "@/components/mdx";
-import { RedirectNotice } from "@/components/redirect-notice";
-import { ReleaseSnapshotProvider } from "@/components/release-snapshot";
-import { docs } from "@/lib/collections";
-import { installPageSlugs } from "@/lib/github-releases";
-import { localeInput } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { contentRouteUrl } from "@/lib/markdown-routes";
-import { ztProse } from "@/lib/prose";
-import { getReleaseSnapshot } from "@/lib/release-data";
-import type { ReleaseSnapshot } from "@/lib/release-data";
-import { pageHead } from "@/lib/seo";
+import { DocsLastUpdated } from "@/components/docs-last-updated.tsx";
+import { DocsPageFooter } from "@/components/docs-page-footer.tsx";
+import { getMDXComponents } from "@/components/mdx.tsx";
+import { RedirectNotice } from "@/components/redirect-notice.tsx";
+import { ReleaseSnapshotProvider } from "@/components/release-snapshot.tsx";
+import { docs } from "@/lib/collections.ts";
+import { installPageSlugs } from "@/lib/github-releases.ts";
+import { localeInput } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { contentRouteUrl } from "@/lib/markdown-routes.ts";
+import { ztProse } from "@/lib/prose.ts";
+import { getReleaseSnapshot } from "@/lib/release-data.ts";
+import type { ReleaseSnapshot } from "@/lib/release-data.ts";
+import { pageHead } from "@/lib/seo.ts";
 import {
   appName,
   docsPageTitle,
@@ -41,14 +41,14 @@ import {
   docsSourceBranch,
   gitConfig,
   ogImageUrl,
-} from "@/lib/shared";
-import { source } from "@/lib/source";
-import type { Crumb } from "@/lib/structured-data";
+} from "@/lib/shared.ts";
+import { source } from "@/lib/source.ts";
+import type { Crumb } from "@/lib/structured-data.ts";
 import {
   breadcrumbListSchema,
   docsArticleSchema,
   faqPageSchema,
-} from "@/lib/structured-data";
+} from "@/lib/structured-data.ts";
 import * as m from "@/paraglide/messages.js";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 

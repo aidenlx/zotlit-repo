@@ -2,15 +2,15 @@
 import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
 
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { Notifier } from "@/lib/notifier";
-import type { NoticeHandle } from "@/lib/notifier";
-import { revealSetting } from "@/lib/open-settings";
-import { PluginHost } from "@/lib/plugin-host";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { NoticeHandle } from "@/lib/notifier.ts";
+import { revealSetting } from "@/lib/open-settings.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
 
-import { LibraryScope, scopeChanges } from "./service";
+import { LibraryScope, scopeChanges } from "./service.ts";
 
 interface LibraryScopeNoticeCopy {
   title: string;

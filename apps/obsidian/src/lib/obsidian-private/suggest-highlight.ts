@@ -8,7 +8,7 @@
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import type { PopoverSuggest } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger(["obsidian-private", "suggest-highlight"]);
 

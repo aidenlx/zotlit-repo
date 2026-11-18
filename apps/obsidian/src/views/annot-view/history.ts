@@ -2,10 +2,10 @@
 // "a card has focus" they answer to.
 import type { Scope } from "obsidian";
 
-import { registerKeymap } from "@/lib/disposables";
-import type { HistoryDirection } from "@/services/annotation-repository/service";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance";
-import { historyVerbOf } from "@/services/pdf-annotation-editor/reader-keymap";
+import { registerKeymap } from "@/lib/disposables.ts";
+import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
+import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
+import { historyVerbOf } from "@/services/pdf-annotation-editor/reader-keymap.ts";
 
 /** The Annotation Card, as the card's own DOM names it. */
 export const CARD_SELECTOR = ".zt-annot-card";

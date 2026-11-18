@@ -27,7 +27,7 @@ const VI = new Set(["vi"]);
 /** Modules exporting the `Effect` namespace by that name. */
 const EFFECT_NAMESPACE_MODULES = new Set(["effect"]);
 /** Modules that are the `Effect` namespace, run entry points included. */
-const EFFECT_MODULES = new Set(["effect/Effect", "@/lib/effect-runtime"]);
+const EFFECT_MODULES = new Set(["effect/Effect", "@/lib/effect-runtime.ts"]);
 
 const isRun = (name: string) => name.startsWith("run");
 
@@ -437,7 +437,7 @@ export const typedFake: Rule = {
 };
 
 /** The notice modules a test reaches only by mocking them. */
-const NOTICE_MODULES = new Set(["@/lib/notice", "@/lib/toast"]);
+const NOTICE_MODULES = new Set(["@/lib/notice.ts", "@/lib/toast.ts"]);
 
 /**
  * A test that mocks a notice module asserts what the seam renders, not what

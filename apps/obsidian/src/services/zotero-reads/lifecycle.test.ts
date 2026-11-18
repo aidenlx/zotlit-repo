@@ -3,9 +3,9 @@ import { Context, Deferred, Effect, Fiber, Layer, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { layerRcRef } from "./connection";
-import { layerZoteroReads, ZoteroReads } from "./service";
-import { inProcessClient, memoryOpener } from "./test-utils";
+import { layerRcRef } from "./connection.ts";
+import { layerZoteroReads, ZoteroReads } from "./service.ts";
+import { inProcessClient, memoryOpener } from "./test-utils.ts";
 
 // Startup waits for the feed seed; database progress remains state.
 it.effect("publishes the first database connection through state", () =>

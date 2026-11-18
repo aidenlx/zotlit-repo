@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTemplateDataExport } from "./export";
+import { buildTemplateDataExport } from "./export.ts";
 
 const BASE = {
   indexedKey: "ABCD2345",

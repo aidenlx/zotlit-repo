@@ -1,3 +1,7 @@
+import type { AnnotationType } from "#lib/zt-annot.ts";
+import type { LinkMode } from "#lib/zt-attach.ts";
+import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import type { TagType } from "#lib/zt-tag.ts";
 import { sql } from "drizzle-orm";
 import {
   sqliteTable,
@@ -9,11 +13,6 @@ import {
   customType,
 } from "drizzle-orm/sqlite-core";
 import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
-
-import type { AnnotationType } from "@/lib/zt-annot";
-import type { LinkMode } from "@/lib/zt-attach";
-import type { CreatorFieldMode } from "@/lib/zt-creator";
-import type { TagType } from "@/lib/zt-tag";
 
 type SqliteAnyOut =
   | null

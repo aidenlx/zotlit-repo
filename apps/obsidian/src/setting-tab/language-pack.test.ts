@@ -1,20 +1,20 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian";
+import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Layer, Stream } from "effect";
 import type { SettingDefinition } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { fakeDevice, startOn } from "@/services/language-pack/__fixtures__";
-import { LanguagePack } from "@/services/language-pack/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { fakeDevice, startOn } from "@/services/language-pack/__fixtures__.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingsKey, SettingTabContext } from "./context";
-import { resourcesGroup } from "./resources";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { resourcesGroup } from "./resources.ts";
 
 /** The Language Pack row of the resources group, when it stands. */
 const languagePackRow = (ctx: SettingTabContext) =>

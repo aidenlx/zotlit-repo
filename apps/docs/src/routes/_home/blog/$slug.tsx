@@ -2,25 +2,28 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { use } from "react";
 
-import { BackCrumb } from "@/components/back-crumb";
-import { Comments } from "@/components/comments";
-import { DocsLastUpdated } from "@/components/docs-last-updated";
-import { getMDXComponents } from "@/components/mdx";
-import { FooterCards } from "@/layouts/docs/page/slots/footer";
-import { cn } from "@/lib/cn";
-import { blogs } from "@/lib/collections";
-import { localeInput, unlocalizedPath } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { ztProse } from "@/lib/prose";
-import { pageHead } from "@/lib/seo";
+import { BackCrumb } from "@/components/back-crumb.tsx";
+import { Comments } from "@/components/comments.tsx";
+import { DocsLastUpdated } from "@/components/docs-last-updated.tsx";
+import { getMDXComponents } from "@/components/mdx.tsx";
+import { FooterCards } from "@/layouts/docs/page/slots/footer.tsx";
+import { cn } from "@/lib/cn.ts";
+import { blogs } from "@/lib/collections.ts";
+import { localeInput, unlocalizedPath } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { ztProse } from "@/lib/prose.ts";
+import { pageHead } from "@/lib/seo.ts";
 import {
   appName,
   blogRoute,
   formatReleaseDate,
   ogImageUrl,
-} from "@/lib/shared";
-import { blog, getBlogPages } from "@/lib/source";
-import { blogPostingSchema, breadcrumbListSchema } from "@/lib/structured-data";
+} from "@/lib/shared.ts";
+import { blog, getBlogPages } from "@/lib/source.ts";
+import {
+  blogPostingSchema,
+  breadcrumbListSchema,
+} from "@/lib/structured-data.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 

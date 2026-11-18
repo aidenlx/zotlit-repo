@@ -2,40 +2,40 @@ import { Context, Deferred, Effect, Layer, PubSub, Stream } from "effect";
 import { TFile } from "obsidian";
 import type { CachedMetadata, TAbstractFile } from "obsidian";
 
-import { NON_VAULT_PROPERTY_KEYS } from "@/lib/constants";
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
+import { NON_VAULT_PROPERTY_KEYS } from "@/lib/constants.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
 import type {
   MetadataCacheShape,
   MetadataEvent,
-} from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import type { VaultEvent } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { DEFAULT_PROFILE, profileStampOf } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { LiteratureNoteTarget } from "@/lib/wikilink-citation";
-import { heldCitekeyOf } from "@/services/citation-index/lookup";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup";
+} from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { VaultEvent } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { DEFAULT_PROFILE, profileStampOf } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { LiteratureNoteTarget } from "@/lib/wikilink-citation.ts";
+import { heldCitekeyOf } from "@/services/citation-index/lookup.ts";
+import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
 
-import { literatureNoteOf } from "./literature-note";
+import { literatureNoteOf } from "./literature-note.ts";
 import {
   diffContributions,
   EMPTY_CONTRIBUTIONS,
   fileContributions,
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "./parse";
-import type { ContribDiff, FileContributions } from "./parse";
+} from "./parse.ts";
+import type { ContribDiff, FileContributions } from "./parse.ts";
 
 export { itemKeyFromFrontmatter, noteKeyFromFrontmatter };
 export {
   isLiteratureNote,
   resolveIndexedKey,
   type ResolvedLiteratureNote,
-} from "./literature-note";
+} from "./literature-note.ts";
 
 /** The metadata cache holds no entry for the file's path yet. */
 const UNREAD = Symbol("unread");

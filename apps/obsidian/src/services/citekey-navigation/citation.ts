@@ -3,25 +3,25 @@
 import { Menu } from "obsidian";
 import type { HoverParent, Workspace } from "obsidian";
 
-import { getLogger } from "@/lib/log";
-import type { ShownCitation } from "@/services/citation-text/present";
-import { menuSections, raiseMenu } from "@/services/menu-events";
+import { getLogger } from "@/lib/log.ts";
+import type { ShownCitation } from "@/services/citation-text/present.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
-import { citationHoverIntent } from "./hover";
-import type { CitationHoverIntent, HoverPreferences } from "./hover";
+import { citationHoverIntent } from "./hover.ts";
+import type { CitationHoverIntent, HoverPreferences } from "./hover.ts";
 import {
   citationClickIntent,
   citationTarget,
   navigationIntent,
-} from "./intent";
+} from "./intent.ts";
 import type {
   CitationClickIntent,
   CitedWork,
   HoveredWork,
   NavigationPane,
-} from "./intent";
-import { hoverGesture, mouseGesture, triggerCitekeyHover } from "./shell";
-import type { GestureSurface } from "./shell";
+} from "./intent.ts";
+import { hoverGesture, mouseGesture, triggerCitekeyHover } from "./shell.ts";
+import type { GestureSurface } from "./shell.ts";
 
 const logger = getLogger("citekey-navigation");
 

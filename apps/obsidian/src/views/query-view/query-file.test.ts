@@ -12,7 +12,7 @@ import {
   withFormula,
   parseQueryFile,
   serializeQueryFile,
-} from "./query-file";
+} from "./query-file.ts";
 
 const NEW_FILE_NAMES = {
   items: "Items",

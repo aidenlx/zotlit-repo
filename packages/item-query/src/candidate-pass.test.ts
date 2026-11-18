@@ -1,12 +1,12 @@
 import { Effect, Exit } from "effect";
 import { beforeEach, expect, it } from "vitest";
 
-import { runCandidatePass } from "./candidate-pass";
-import type { CandidateDataset } from "./dataset";
-import { planFilter } from "./filter-plan";
-import { runEffect } from "./test-helpers";
-import type { CapturedLog } from "./test-helpers";
-import { PRODUCTION_TUNING } from "./tuning";
+import { runCandidatePass } from "./candidate-pass.ts";
+import type { CandidateDataset } from "./dataset.ts";
+import { planFilter } from "./filter-plan.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { CapturedLog } from "./test-helpers.ts";
+import { PRODUCTION_TUNING } from "./tuning.ts";
 
 const logs: CapturedLog[] = [];
 beforeEach(() => {
@@ -453,7 +453,7 @@ it.each([
 it.each([false, true])(
   "logs a Parent Record page budget outcome (exhausted: %s)",
   async (exhausted) => {
-    const { ATTACHMENTS } = await import("./query-attachments");
+    const { ATTACHMENTS } = await import("./query-attachments.ts");
     const parent = fake(40_000, []);
     const reads: { budget: number; limit: number }[] = [];
     const dataset: CandidateDataset = {

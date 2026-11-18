@@ -19,10 +19,10 @@ import {
 } from "@zotlit/db";
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 
-import { disposable } from "@/lib/disposables";
-import { getLogger } from "@/lib/log";
+import { disposable } from "@/lib/disposables.ts";
+import { getLogger } from "@/lib/log.ts";
 
-import { PDF_VIEW_TYPE } from "./seam";
+import { PDF_VIEW_TYPE } from "./seam.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

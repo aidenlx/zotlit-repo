@@ -5,32 +5,32 @@ import { Effect, Layer } from "effect";
 import { MarkdownRenderChild, setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { renderProfileRecovery } from "@/lib/profile-recovery";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { renderProfileRecovery } from "@/lib/profile-recovery.ts";
 import {
   rerenderReadingViewsIn,
   retireReadingSurface,
-} from "@/lib/reading-surface";
+} from "@/lib/reading-surface.ts";
 import {
   LiveSections,
   isDraftMarkdown,
   markdownViewOf,
   sectionRange,
-} from "@/lib/reading-view";
-import { themeHook } from "@/lib/theme-hooks";
-import { heldResolution } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
+} from "@/lib/reading-view.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { heldResolution } from "@/services/citation-index/lookup.ts";
 import type {
   CitationLookupAnswer,
   CitationLookupObservation,
-} from "@/services/citation-index/service";
-import { CitationPopover } from "@/services/citation-popover/service";
+} from "@/services/citation-index/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   citationContent,
   citationElement,
@@ -42,33 +42,33 @@ import {
   literalKeyStateOf,
   presentedCitationEqual,
   sectionCoordinates,
-} from "@/services/citation-text/present";
+} from "@/services/citation-text/present.ts";
 import type {
   CitationKeyState,
   DocumentCitations,
   PresentedCitation,
-} from "@/services/citation-text/present";
-import { CitationText } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
+} from "@/services/citation-text/present.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import {
   attachCitationHover,
   attachCitationNavigation,
   attachClosedCitationGestures,
   hoverPreferences,
   markCitationClick,
-} from "@/services/citekey-navigation";
+} from "@/services/citekey-navigation/index.ts";
 import type {
   CitationNavigation,
   HoverPreferences,
-} from "@/services/citekey-navigation";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
-import type { Held } from "@/services/query-client/service";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/citekey-navigation/index.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { replaceCitations, sectionCitations } from "./render";
-import type { SectionCitation } from "./render";
+import { replaceCitations, sectionCitations } from "./render.ts";
+import type { SectionCitation } from "./render.ts";
 import "./style.css";
 
 /** One element standing in a citation's place, and what it was built from. */

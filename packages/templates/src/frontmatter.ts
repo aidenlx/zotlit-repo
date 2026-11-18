@@ -2,32 +2,32 @@ import { Context, toValueSync, Value } from "liquidjs";
 import type { Liquid } from "liquidjs";
 import { stringify as stringifyYaml } from "yaml";
 
-import { basename } from "./basename";
+import { basename } from "./basename.ts";
 import type {
   FrontmatterField,
   FrontmatterLanguage,
   FrontmatterMergeStrategy,
-} from "./constants";
+} from "./constants.ts";
 import {
   assertFrontmatterOutputDomain,
   assertFrontmatterSpreadOutput,
   ManagedFrontmatterError,
   renderJsonEFrontmatterValue,
-} from "./frontmatter-json-e";
-import type { FrontmatterJsonValue } from "./frontmatter-json-e";
-import { FRONTMATTER_ABSENT } from "./frontmatter-merge";
-import type { EvaluatedFrontmatterField } from "./frontmatter-merge";
-import type { ManagedFrontmatterEntry } from "./literature-note-template";
+} from "./frontmatter-json-e.ts";
+import type { FrontmatterJsonValue } from "./frontmatter-json-e.ts";
+import { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
+import type { EvaluatedFrontmatterField } from "./frontmatter-merge.ts";
+import type { ManagedFrontmatterEntry } from "./literature-note-template.ts";
 
 export {
   FrontmatterJsonEError,
   renderJsonEFrontmatterValue,
-} from "./frontmatter-json-e";
+} from "./frontmatter-json-e.ts";
 export type {
   FrontmatterJsonValue,
   RenderJsonEFrontmatterValueOptions,
-} from "./frontmatter-json-e";
-export { FRONTMATTER_ABSENT } from "./frontmatter-merge";
+} from "./frontmatter-json-e.ts";
+export { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
 
 type BasenameHelper = (path: string, ext?: string) => string;
 type FrontmatterEvaluator = (zt: object, basename: BasenameHelper) => unknown;
@@ -365,4 +365,4 @@ function defineFrontmatterValue(
 }
 
 export { basename };
-export type { FrontmatterField, FrontmatterLanguage } from "./constants";
+export type { FrontmatterField, FrontmatterLanguage } from "./constants.ts";

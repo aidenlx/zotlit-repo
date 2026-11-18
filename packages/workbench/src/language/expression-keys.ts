@@ -2,14 +2,14 @@
 // fields' path: the names the host knows, quoted.
 import type { SyntaxNode } from "@lezer/common";
 
-import { noteOf, ranked } from "./expression-options";
+import { noteOf, ranked } from "./expression-options.ts";
 import type {
   Caret,
   ExpressionCompletionResult,
   ExpressionName,
   ExpressionOption,
   ExpressionVocabulary,
-} from "./expression-options";
+} from "./expression-options.ts";
 
 /**
  * The key of a bracket access the caret is in or right after the `[` of:

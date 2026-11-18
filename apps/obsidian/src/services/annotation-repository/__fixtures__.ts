@@ -23,17 +23,17 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 // repository itself produces.
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { toInstant } from "@/lib/effect-clock";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
-import type { AvailableExcerpt } from "@/services/excerpt-image/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import type { AvailableExcerpt } from "@/services/excerpt-image/service.ts";
 import {
   layerQueryClients,
   QueryClients,
-} from "@/services/query-client/service";
+} from "@/services/query-client/service.ts";
 import {
   annotationItem,
   annotationPage,
@@ -49,35 +49,35 @@ import {
   staleVersionPatch,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 import type {
   ClientOptions,
   WireAnnotation,
   ZoteroAnswers,
   ZoteroRequest,
-} from "@/services/zotero-local-api/__fixtures__";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
-import type { WireTag } from "@/services/zotero-local-api/wire";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/zotero-local-api/__fixtures__.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import type { WireTag } from "@/services/zotero-local-api/wire.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadLease,
   ZoteroReadsEvent,
-} from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationSource,
-} from "./service";
-import { layerAnnotationRepository, AnnotationRepository } from "./service";
-import type { GeometryEdit, TextField } from "./write";
+} from "./service.ts";
+import { layerAnnotationRepository, AnnotationRepository } from "./service.ts";
+import type { GeometryEdit, TextField } from "./write.ts";
 
 export const NOW = toInstant(DateTime.makeUnsafe("2026-09-16T15:52:21Z"));
 

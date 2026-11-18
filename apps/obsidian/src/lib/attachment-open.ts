@@ -6,18 +6,18 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { ATTACHMENT_ANCHOR_KEY, attachmentOpenUri } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { showMenuAtBox, showMenuAtButton } from "@/lib/menu";
-import type { MenuAnchor } from "@/lib/menu";
-import type { WorkspaceEventHost } from "@/lib/obsidian-workspace";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { showMenuAtBox, showMenuAtButton } from "@/lib/menu.ts";
+import type { MenuAnchor } from "@/lib/menu.ts";
+import type { WorkspaceEventHost } from "@/lib/obsidian-workspace.ts";
 import type {
   ReaderOutcome,
   TargetReader,
-} from "@/services/attachment-open/open-target";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
-import type { ZoteroOpenableAttachment } from "@/services/citation-index/service";
-import { menuSections, raiseMenu } from "@/services/menu-events";
+} from "@/services/attachment-open/open-target.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
+import type { ZoteroOpenableAttachment } from "@/services/citation-index/service.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
 const logger = getLogger("attachment-open");
 

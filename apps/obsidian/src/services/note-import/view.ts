@@ -2,17 +2,17 @@
 import type { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm";
-import type { ConfirmOptions } from "@/lib/confirm";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { chooseBatchProfile } from "@/services/batch-profile-choice";
+import { awaitConfirm } from "@/lib/confirm.ts";
+import type { ConfirmOptions } from "@/lib/confirm.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { chooseBatchProfile } from "@/services/batch-profile-choice.ts";
 import type {
   BatchProfilePickerDeps,
   BatchProfilePickerOptions,
-} from "@/services/batch-profile-choice";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
-import { BatchModal } from "@/views/batch-modal";
-import type { BatchModalOptions } from "@/views/batch-modal";
+} from "@/services/batch-profile-choice.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
+import { BatchModal } from "@/views/batch-modal/index.ts";
+import type { BatchModalOptions } from "@/views/batch-modal/index.ts";
 
 /**
  * The view capabilities the batch-import runners drive. Bundling them keeps the

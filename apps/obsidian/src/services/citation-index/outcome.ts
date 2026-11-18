@@ -1,8 +1,8 @@
 // The resolution verdict attached when a Document Citation Set joins its sources.
-import type { AmbiguousCandidate } from "./ambiguity";
-import type { Citation } from "./query";
-import type { CitekeyResolution } from "./snapshot";
-import type { ReferenceSource, DatabaseReadability } from "./sources";
+import type { AmbiguousCandidate } from "./ambiguity.ts";
+import type { Citation } from "./query.ts";
+import type { CitekeyResolution } from "./snapshot.ts";
+import type { ReferenceSource, DatabaseReadability } from "./sources.ts";
 
 export type CitationOutcome =
   | { kind: "resolved"; source: ReferenceSource }

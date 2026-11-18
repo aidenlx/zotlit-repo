@@ -2,26 +2,26 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 /** The real bibliography layer over the dependency ports used by consumer fixtures. */
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { AbortError } from "@/lib/abort-error";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { ManagedBinaryHandle } from "@/services/managed-binary/handle";
-import type { CitationEngine } from "@/services/pandoc/engine";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { AbortError } from "@/lib/abort-error.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { ManagedBinaryHandle } from "@/services/managed-binary/handle.ts";
+import type { CitationEngine } from "@/services/pandoc/engine.ts";
 import {
   BibliographyRender,
   BibliographyRenderError,
   layerBibliographyRender,
-} from "@/services/pandoc/render-cache";
-import { PandocEngine } from "@/services/pandoc/service";
-import { Profile } from "@/services/profile/service";
+} from "@/services/pandoc/render-cache.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { Profile } from "@/services/profile/service.ts";
 import {
   QueryClients,
   layerQueryClients,
-} from "@/services/query-client/service";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/query-client/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**
  * A render read's rejection as the real member fails: an abort and a

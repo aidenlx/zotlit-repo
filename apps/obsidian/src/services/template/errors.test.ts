@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { engineFaultSpan, reportedFaultSpan } from "./errors";
+import { engineFaultSpan, reportedFaultSpan } from "./errors.ts";
 
 /** The error `define` throws for `source`. */
 function compileFault(source: string, language: "liquid" | "eta"): unknown {

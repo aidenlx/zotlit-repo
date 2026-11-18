@@ -7,9 +7,9 @@ import {
   WorkbenchThemeProvider,
 } from "@zotlit/workbench/ui";
 
-import { useWebHost } from "./host";
-import { PageRuntime } from "./runtime";
-import { WEB_THEME } from "./theme";
+import { useWebHost } from "./host.tsx";
+import { PageRuntime } from "./runtime.tsx";
+import { WEB_THEME } from "./theme.tsx";
 
 export function WebTestHost({ children }: { children: ReactNode }) {
   return (

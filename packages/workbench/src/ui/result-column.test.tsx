@@ -1,22 +1,22 @@
-import type { RenderDiagnostic, TemplateRenderResult } from "#/render/result";
+import type { RenderDiagnostic, TemplateRenderResult } from "#render/result.ts";
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import type { PreviewSettings } from "./model";
-import { PreviewControls } from "./preview-controls";
-import { PropertyList } from "./property-list";
+import type { PreviewSettings } from "./model.ts";
+import { PreviewControls } from "./preview-controls.tsx";
+import { PropertyList } from "./property-list.tsx";
 import {
   PreviewFilenameLabel,
   previewFilename,
   ResultBody,
   ResultColumn,
-} from "./result-column";
-import type { ResultColumnProps } from "./result-column";
-import { mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+} from "./result-column.tsx";
+import type { ResultColumnProps } from "./result-column.tsx";
+import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { failedRender } from "#/render/result";
+import { failedRender } from "#render/result.ts";
 
 const result: TemplateRenderResult = {
   ...failedRender(

@@ -8,16 +8,16 @@ import type { PaneType } from "obsidian";
 
 import type { Item } from "@zotlit/db";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open";
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import {
   openGesture,
   pdfPickerReader,
-} from "@/services/attachment-open/actions";
-import type { AttachmentOpenDeps } from "@/services/attachment-open/actions";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import { openLiteratureNote } from "@/services/note-feature/navigation";
+} from "@/services/attachment-open/actions.ts";
+import type { AttachmentOpenDeps } from "@/services/attachment-open/actions.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
 
 export interface NoteResultDeps {
   registry: ViewRegistryHandle;

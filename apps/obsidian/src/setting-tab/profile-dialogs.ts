@@ -9,24 +9,24 @@ import type { App } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
 
-import { AbortError } from "@/lib/abort-error";
-import { recover } from "@/lib/effect-cause";
-import { awaitModal } from "@/lib/effect-modal";
-import type { ClosableModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { portCall } from "@/lib/legacy-port";
-import { Notifier } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { PluginHost } from "@/lib/plugin-host";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { requireDialog } from "@/lib/require";
-import { UserCancelled } from "@/lib/user-cancel";
-import type { LibraryScope } from "@/services/library-scope/service";
-import { ProfileDocumentMissingError } from "@/services/local-bridge/reads";
-import { installedStyles } from "@/services/note-feature/creation-view";
-import { NoteFeature } from "@/services/note-feature/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile, ProfileOperationError } from "@/services/profile/service";
+import { AbortError } from "@/lib/abort-error.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import type { ClosableModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { portCall } from "@/lib/legacy-port.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { requireDialog } from "@/lib/require.ts";
+import { UserCancelled } from "@/lib/user-cancel.ts";
+import type { LibraryScope } from "@/services/library-scope/service.ts";
+import { ProfileDocumentMissingError } from "@/services/local-bridge/reads.ts";
+import { installedStyles } from "@/services/note-feature/creation-view.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import type {
   LiteratureNoteProfile,
   PreparedProfileCreation,
@@ -34,26 +34,29 @@ import type {
   ProfileCreation,
   ProfileImport,
   ProfileShare,
-} from "@/services/profile/service";
-import { readTemplateData } from "@/services/template-workbench/data";
-import type { TemplateDataServices } from "@/services/template-workbench/data";
-import { readMigrationVerificationData } from "@/services/template/migration-data";
-import { Template } from "@/services/template/service";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+} from "@/services/profile/service.ts";
+import { readTemplateData } from "@/services/template-workbench/data.ts";
+import type { TemplateDataServices } from "@/services/template-workbench/data.ts";
+import { readMigrationVerificationData } from "@/services/template/migration-data.ts";
+import { Template } from "@/services/template/service.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { CreateProfileModal } from "./create-profile-modal";
+import { CreateProfileModal } from "./create-profile-modal.ts";
 import type {
   CreatedProfile,
   CreateProfileOptions,
   ProfileCreationData,
-} from "./create-profile-modal";
-import { ImportProfileModal, ImportSourceModal } from "./import-profile-modal";
-import type { ImportSource } from "./import-profile-modal";
-import { ProfileDestinationModal } from "./profile-destination-modal";
-import { ShareProfileModal } from "./share-profile-modal";
-import type { ShareDestination } from "./share-profile-modal";
+} from "./create-profile-modal.ts";
+import {
+  ImportProfileModal,
+  ImportSourceModal,
+} from "./import-profile-modal.ts";
+import type { ImportSource } from "./import-profile-modal.ts";
+import { ProfileDestinationModal } from "./profile-destination-modal.ts";
+import { ShareProfileModal } from "./share-profile-modal.ts";
+import type { ShareDestination } from "./share-profile-modal.ts";
 
 /** What the Profile dialogs read. */
 export type ProfileDialogServices =

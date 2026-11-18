@@ -16,15 +16,15 @@ import type {
   Receiver,
   Role,
   Span,
-} from "./fault";
-export type { Span } from "./fault";
-import { BUILT_IN_NAMES, itemFilterRegistry } from "./fields";
+} from "./fault.ts";
+export type { Span } from "./fault.ts";
+import { BUILT_IN_NAMES, itemFilterRegistry } from "./fields.ts";
 import type {
   FieldNeeds,
   FilterValueDefinition,
   QueryItem,
   FilterField,
-} from "./fields";
+} from "./fields.ts";
 import {
   GLOBAL_FUNCTION_NAMES,
   GLOBAL_FUNCTIONS,
@@ -37,17 +37,17 @@ import {
   propertiesNamed,
   propertyOf,
   takesType,
-} from "./filter-functions";
-import type { FunctionDefinition } from "./filter-functions";
-import { isQueryRecord } from "./filter-values";
+} from "./filter-functions.ts";
+import type { FunctionDefinition } from "./filter-functions.ts";
+import { isQueryRecord } from "./filter-values.ts";
 import type {
   FilterValue,
   FilterValueType,
   RecordValue,
-} from "./filter-values";
-import { FORMULA_SEGMENT } from "./formulas";
-import type { FilterNavigation } from "./record-field";
-import type { QueryContext } from "./request";
+} from "./filter-values.ts";
+import { FORMULA_SEGMENT } from "./formulas.ts";
+import type { FilterNavigation } from "./record-field.ts";
+import type { QueryContext } from "./request.ts";
 
 /**
  * The type of a node's value as validation knows it. Each type also holds

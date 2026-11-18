@@ -8,16 +8,16 @@ import {
 } from "@zotlit/workbench/language";
 import type { WorkbenchTheme, WorkbenchIcon } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { selectionControl } from "@/components/obsidian/selection-control";
-import { obsidianPopupKeys } from "@/lib/field-popup";
-import { paneDivider } from "@/lib/pane-divider";
-import { themeHook } from "@/lib/theme-hooks";
-import { tv } from "@/lib/tw";
-import { cn } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { selectionControl } from "@/components/obsidian/selection-control.ts";
+import { obsidianPopupKeys } from "@/lib/field-popup.ts";
+import { paneDivider } from "@/lib/pane-divider.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { tv } from "@/lib/tw.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { codePane, hostedEditor, popoverTooltips } from "./editor-extension";
-import { nativeCompletion } from "./native-completion";
+import { codePane, hostedEditor, popoverTooltips } from "./editor-extension.ts";
+import { nativeCompletion } from "./native-completion.ts";
 
 export const templateWorkbenchIcons: Record<WorkbenchIcon, string> = {
   copy: "copy",

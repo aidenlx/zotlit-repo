@@ -4,28 +4,31 @@
 import type { Extension } from "@codemirror/state";
 import { Effect, Layer, Stream } from "effect";
 
-import { dispatchToMarkdownEditors } from "@/lib/editor-decoration";
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import { AnnotationPopover } from "@/services/annotation-popover/service";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import { CitationText } from "@/services/citation-text/service";
+import { dispatchToMarkdownEditors } from "@/lib/editor-decoration.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import { CitationText } from "@/services/citation-text/service.ts";
 import {
   CITEKEY_HOVER_SOURCE,
   hoverPreferences,
-} from "@/services/citekey-navigation";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
+} from "@/services/citekey-navigation/index.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { annotationLinkHoverExtension } from "./annotation-link";
-import { citekeyDecorationsChanged, citekeyEditorExtension } from "./extension";
-import { CitekeyEditor, citekeyTreatment } from "./service";
-import type { CitekeyTreatment } from "./service";
+import { annotationLinkHoverExtension } from "./annotation-link.ts";
+import {
+  citekeyDecorationsChanged,
+  citekeyEditorExtension,
+} from "./extension.ts";
+import { CitekeyEditor, citekeyTreatment } from "./service.ts";
+import type { CitekeyTreatment } from "./service.ts";
 
 /**
  * Marks literal Pandoc `@citekey` text in the editor while the settings ask

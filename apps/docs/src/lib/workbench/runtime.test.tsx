@@ -7,7 +7,7 @@ import { expect, it, vi } from "vitest";
 
 import { layerTabStorage } from "@zotlit/workbench/bridge";
 
-import { layerPage, PageRuntime, usePageBridge } from "./runtime";
+import { layerPage, PageRuntime, usePageBridge } from "./runtime.tsx";
 
 it("interrupts a read still running when the page closes", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

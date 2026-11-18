@@ -7,14 +7,14 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { testReads } from "./__fixtures__";
-import type { TestReads } from "./__fixtures__";
-import { layerRcRef } from "./connection";
-import type { Connection, ConnectionOpener } from "./connection";
-import type { HandlersOptions } from "./handlers";
-import { makeInProcessClient } from "./in-process";
-import type { ZoteroReadsClient } from "./in-process";
-import type { SnapshotId } from "./rpc";
+import { testReads } from "./__fixtures__.ts";
+import type { TestReads } from "./__fixtures__.ts";
+import { layerRcRef } from "./connection.ts";
+import type { Connection, ConnectionOpener } from "./connection.ts";
+import type { HandlersOptions } from "./handlers.ts";
+import { makeInProcessClient } from "./in-process.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import type { SnapshotId } from "./rpc.ts";
 
 /**
  * The handler layer on this runtime over `connection` and the Node file
@@ -107,7 +107,9 @@ export function stubbedReads(): Pick<
   TestReads,
   "reads" | "ready" | "acquireRead"
 > &
-  AsyncDisposable & { state: import("./service").ZoteroReadsState["state"] } {
+  AsyncDisposable & {
+    state: import("./service.ts").ZoteroReadsState["state"];
+  } {
   const service = inProcessReadsService(memoryOpener(() => "").open);
   return {
     state: "ready",
@@ -126,7 +128,7 @@ export function stubbedReads(): Pick<
  */
 export function withState<S extends TestReads>(
   service: S,
-  state: import("./service").ZoteroReadsState["state"],
+  state: import("./service.ts").ZoteroReadsState["state"],
 ): S {
   return Object.assign(service, {
     current: Effect.map(service.current, (current) => ({ ...current, state })),

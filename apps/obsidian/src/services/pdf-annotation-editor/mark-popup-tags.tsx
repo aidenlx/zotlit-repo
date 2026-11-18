@@ -5,24 +5,24 @@
 import { useMemo } from "react";
 import type { RefObject } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import type {
   AnnotationRecord,
   TagDraft,
-} from "@/services/annotation-repository/service";
-import { shownTagNames } from "@/views/annot-view/card-controls";
-import type { HeldTags } from "@/views/annot-view/card-controls";
-import type { HeldDraftActions } from "@/views/annot-view/editor-sheet";
-import { tagChipVariants } from "@/views/annot-view/tag-chip";
+} from "@/services/annotation-repository/service.ts";
+import { shownTagNames } from "@/views/annot-view/card-controls.ts";
+import type { HeldTags } from "@/views/annot-view/card-controls.ts";
+import type { HeldDraftActions } from "@/views/annot-view/editor-sheet.ts";
+import { tagChipVariants } from "@/views/annot-view/tag-chip.ts";
 import {
   autoTags,
   HeldTagsPanel,
   TagEditor,
-} from "@/views/annot-view/tag-editor";
+} from "@/views/annot-view/tag-editor.tsx";
 import type {
   EndTagSession,
   TagEditorProps,
-} from "@/views/annot-view/tag-editor";
+} from "@/views/annot-view/tag-editor.tsx";
 
 export interface TagSectionProps {
   annotation: AnnotationRecord;

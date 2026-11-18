@@ -3,7 +3,7 @@
 
 import * as v from "valibot";
 
-import type { SiteLocale } from "./i18n.js";
+import type { SiteLocale } from "./i18n.ts";
 
 export const appName = "ZotLit";
 /** The documentation line selected by the Worker configuration. */

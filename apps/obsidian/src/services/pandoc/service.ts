@@ -3,17 +3,17 @@
 import { Context } from "effect";
 import { unzipSync } from "fflate";
 
-import { layerManagedBinary } from "@/services/managed-binary/service";
+import { layerManagedBinary } from "@/services/managed-binary/service.ts";
 import type {
   ManagedBinary,
   ManagedBinaryApi,
   ManagedBinaryFailure,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service";
+} from "@/services/managed-binary/service.ts";
 
-import { createCitationEngine } from "./engine";
-import type { CitationEngine } from "./engine";
-import { PINNED_PANDOC_ENGINE } from "./pinned-engine";
+import { createCitationEngine } from "./engine.ts";
+import type { CitationEngine } from "./engine.ts";
+import { PINNED_PANDOC_ENGINE } from "./pinned-engine.ts";
 
 /** Name the official WASM asset carries the binary under, inside its archive. */
 const BINARY_ENTRY = "pandoc.wasm";

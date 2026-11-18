@@ -1,14 +1,14 @@
 export { ANNOTATION_HEADER } from "@zotlit/templates/constants";
 
-export { workbenchDocumentAtoms } from "./atoms";
-export type { WorkbenchDocumentAtoms } from "./atoms";
+export { workbenchDocumentAtoms } from "./atoms.ts";
+export type { WorkbenchDocumentAtoms } from "./atoms.ts";
 export {
   entryPosition,
   entrySlice,
   externalEdit,
   sliceEdit,
   WorkbenchDocumentController,
-} from "./controller";
+} from "./controller.ts";
 export type {
   WorkbenchAnnotationSection,
   WorkbenchDocumentKind,
@@ -19,7 +19,7 @@ export type {
   WorkbenchSliceId,
   WorkbenchSliceRange,
   WorkbenchUpdate,
-} from "./controller";
+} from "./controller.ts";
 export {
   followEntries,
   managedEntryEdit,
@@ -28,7 +28,7 @@ export {
   manifestNodeRange,
   manifestScalarSlice,
   manifestValueEdit,
-} from "./manifest-patch";
+} from "./manifest-patch.ts";
 export type {
   ManagedEntryAction,
   ManagedEntryLanguage,
@@ -36,16 +36,16 @@ export type {
   ManagedFrontmatterList,
   ManifestScalar,
   ManifestScalarSlice,
-} from "./manifest-patch";
-export { noteRegions, partialCalls, templateCalls } from "./regions";
+} from "./manifest-patch.ts";
+export { noteRegions, partialCalls, templateCalls } from "./regions.ts";
 export type {
   AnnotationRenderSite,
   ManagedBlockRegion,
   NoteRegions,
   PartialRenderSite,
-} from "./regions";
-export { sliceOffsets, sliceShownText, workbenchSlice } from "./slice";
-export { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec";
-export type { SliceCodec } from "./slice-codec";
+} from "./regions.ts";
+export { sliceOffsets, sliceShownText, workbenchSlice } from "./slice.ts";
+export { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec.ts";
+export type { SliceCodec } from "./slice-codec.ts";
 
-export { jsonLayout, jsonPosition } from "./json-source";
+export { jsonLayout, jsonPosition } from "./json-source.ts";

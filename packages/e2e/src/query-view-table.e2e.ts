@@ -78,7 +78,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app }) => {
         const view = app.workspace.getMostRecentLeaf()!.view;
         if (view.getViewType() !== "zotlit-query-file") return "none";
-        await (view as import("@/views/query-view/file-view").QueryFileView)
+        await (view as import("@/views/query-view/file-view.ts").QueryFileView)
           .query.settled;
         return (
           (
@@ -119,7 +119,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view").QueryFileView
+                view as import("@/views/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const keys = (kind: string) =>
@@ -812,7 +812,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 app.workspace.getLeavesOfType("zotlit-query-file")[0]!.view;
               if (!view) return "null";
               await (
-                view as import("@/views/query-view/file-view").QueryFileView
+                view as import("@/views/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -1668,7 +1668,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { middle, text }) => {
         const view = app.workspace.getLeavesOfType("zotlit-query-file")[0]
-          ?.view as import("@/views/query-view/file-view").QueryFileView;
+          ?.view as import("@/views/query-view/file-view.ts").QueryFileView;
         if (!view) return [];
         await view.query.settled;
         const box =
@@ -1872,7 +1872,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view").QueryFileView
+                view as import("@/views/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({

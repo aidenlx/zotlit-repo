@@ -5,18 +5,18 @@ import { TestClock } from "effect/testing";
 import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { effectTestParse } from "@/lib/__fixtures__/parse-client";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   annotationRows,
   annotationUri,
-} from "@/services/citation-index/__fixtures__/annotations";
-import { createCitationIndexHarness } from "@/services/citation-index/test-harness";
-import type { CitationIndexHarness } from "@/services/citation-index/test-harness";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
+} from "@/services/citation-index/__fixtures__/annotations.ts";
+import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import type { CitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 
-import { registerCitationsCli } from "./register";
+import { registerCitationsCli } from "./register.ts";
 
 function commands(h: CitationIndexHarness) {
   const cli = fakeCliHost();

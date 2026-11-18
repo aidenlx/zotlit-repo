@@ -15,7 +15,7 @@ import {
   layerTransfer,
   Transfer,
   writeDraft,
-} from "./transfer";
+} from "./transfer.ts";
 
 const STANDALONE = { reference: "standalone" };
 const KEY = `zotlit.workbench.draft.${STANDALONE.reference}`;

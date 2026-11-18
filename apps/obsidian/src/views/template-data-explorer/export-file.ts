@@ -2,14 +2,14 @@
 // request remains reproducible and device image handling stays with that loader.
 import type { TemplateRoot } from "@zotlit/workbench/ui";
 
-import { exportTimestamp, saveFile } from "@/lib/file-save";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
-import type { TemplateDataLoadResult } from "@/services/template-workbench/data";
-import { getSampleItem } from "@/views/template-workbench/selection-data";
+import { exportTimestamp, saveFile } from "@/lib/file-save.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
+import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 
-import { buildTemplateDataExport } from "./export";
+import { buildTemplateDataExport } from "./export.ts";
 
 const logger = getLogger(["views", "template-data-explorer"]);
 export interface TemplateDataExportTarget {

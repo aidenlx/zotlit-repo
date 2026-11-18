@@ -2,10 +2,10 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { defaults } from "./schema";
-import { PluginSettings } from "./service";
+import { defaults } from "./schema.ts";
+import { PluginSettings } from "./service.ts";
 
 export const settingsAtom = held(
   Stream.unwrap(Effect.map(PluginSettings, (settings) => settings.changes)),

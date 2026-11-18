@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyDiskData } from "./classify";
+import { classifyDiskData } from "./classify.ts";
 
 describe("classifyDiskData", () => {
   it("treats null as missing", () => {

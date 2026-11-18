@@ -14,11 +14,11 @@ import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { Profile } from "@/services/profile/service";
-import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults";
-import { Template } from "@/services/template/service";
+import { Profile } from "@/services/profile/service.ts";
+import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { renderCitation } from "./citation";
+import { renderCitation } from "./citation.ts";
 
 /** The Template and Profile tags, with `renderCitation` over `render`. */
 function citationLayer(

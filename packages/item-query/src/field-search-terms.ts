@@ -5,7 +5,7 @@
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
-import type { QueryDataset } from "./dataset";
+import type { QueryDataset } from "./dataset.ts";
 
 /** The Query Dataset whose meaning a name has. */
 type DatasetId = QueryDataset["id"];

@@ -22,15 +22,19 @@ import {
   decodeCliParams,
   expectSourceParam,
   noCliParams,
-} from "@/lib/cli-params";
-import type { CliOutput, CliParamName, CliRejection } from "@/lib/cli-params";
-import { isPartialNameShape } from "@/services/template/defaults";
+} from "@/lib/cli-params.ts";
+import type {
+  CliOutput,
+  CliParamName,
+  CliRejection,
+} from "@/lib/cli-params.ts";
+import { isPartialNameShape } from "@/services/template/defaults.ts";
 
-import { diagnostic } from "./envelope";
-import type { Diagnostic, WorkbenchIdentity } from "./envelope";
-import { GUIDE_TOPIC_NAMES } from "./guide";
-import type { GuideTopic } from "./guide";
-import { CONTRACT_ROOT_NAMES } from "./schema";
+import { diagnostic } from "./envelope.ts";
+import type { Diagnostic, WorkbenchIdentity } from "./envelope.ts";
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
+import type { GuideTopic } from "./guide.ts";
+import { CONTRACT_ROOT_NAMES } from "./schema.ts";
 import {
   choices,
   CITATION_EXAMPLE_NAMES,
@@ -44,8 +48,8 @@ import {
   quotedList,
   RENDER_TEMPLATE_NAMES,
   TEMPLATE_SLOT_NAMES,
-} from "./vocabulary";
-import type { RenderTemplate } from "./vocabulary";
+} from "./vocabulary.ts";
+import type { RenderTemplate } from "./vocabulary.ts";
 
 export {
   CITATION_EXAMPLE_NAMES,

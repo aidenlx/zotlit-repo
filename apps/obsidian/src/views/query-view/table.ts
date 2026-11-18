@@ -3,10 +3,10 @@
 // this table.
 import { delimited } from "@zotlit/shared/delimited";
 
-import type { QueryViewRow } from "@/services/item-query/query-view";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
 
-import { cellText } from "./value-text";
-import type { PropertyEntry } from "./view-properties";
+import { cellText } from "./value-text.ts";
+import type { PropertyEntry } from "./view-properties.ts";
 
 export interface ResultTable {
   readonly header: readonly string[];

@@ -9,8 +9,8 @@ export {
   type SchemaMethod,
   type SchemaParameter,
   type SchemaProperty,
-} from "./describe-item-query";
-export { describeQueryCustomFields } from "./describe-query-custom-fields";
+} from "./describe-item-query.ts";
+export { describeQueryCustomFields } from "./describe-query-custom-fields.ts";
 export {
   parameterTexts,
   parameterTypeText,
@@ -18,7 +18,7 @@ export {
   signatureText,
   type ParameterText,
   type SignatureShape,
-} from "./signature-text";
+} from "./signature-text.ts";
 // The function registry of the Filter Expression language, for in-process
 // editors. The Query Schema stays the agent contract.
 export {
@@ -31,77 +31,77 @@ export {
   type FunctionParameter,
   type ParameterType,
   type PropertyDefinition,
-} from "./filter-functions";
-export type { FilterValueType } from "./filter-values";
-export { cellProperties } from "./cell-properties";
-export { fieldSearchTerms, matchesSearchTerm } from "./field-search-terms";
+} from "./filter-functions.ts";
+export type { FilterValueType } from "./filter-values.ts";
+export { cellProperties } from "./cell-properties.ts";
+export { fieldSearchTerms, matchesSearchTerm } from "./field-search-terms.ts";
 export {
   AttachmentFileResolver,
   type QueryDataset,
   type ResolveAttachmentFile,
-} from "./dataset";
-export { ITEMS } from "./query-items";
+} from "./dataset.ts";
+export { ITEMS } from "./query-items.ts";
 export {
   planItemFilter,
   testItemSeed,
   type ItemFilter,
   type SeedTest,
-} from "./item-filter";
+} from "./item-filter.ts";
 export {
   queryItemFrom,
   queryItemSeedSchema,
   readQueryItemSeed,
   type QueryItemSeed,
-} from "./item-seed";
-export { ANNOTATIONS } from "./query-annotations";
+} from "./item-seed.ts";
+export { ANNOTATIONS } from "./query-annotations.ts";
 export {
   ItemQueryError,
   type ItemQueryErrorCode,
   type ItemQueryErrorLocation,
-} from "./error";
+} from "./error.ts";
 // The typed database failures of `collectQuery`, `consumeQuery`, and
 // `describeQueryCustomFields`, from the readers of `@zotlit/db/item-query`.
 export {
   ItemQueryDatabaseError,
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
-export { QueryTimeZone } from "./query-clock";
+export { QueryTimeZone } from "./query-clock.ts";
 export {
   collectQuery,
   consumeQuery,
   type QueryConsumer,
   type QuerySummary,
-} from "./query";
-export { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request";
-export { planPath } from "./projection";
+} from "./query.ts";
+export { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request.ts";
+export { planPath } from "./projection.ts";
 export {
   subexpressionTypes,
   type ContextRecord,
   type PlannedMember,
   type SubexpressionType,
-} from "./subexpression-types";
-export type { StaticType } from "./filter-plan";
+} from "./subexpression-types.ts";
+export type { StaticType } from "./filter-plan.ts";
 export {
   projectedSortKey,
   type LastActivitySource,
   type SortKey,
-} from "./fields";
-export { compareScalars, compareStrings } from "./collation";
-export { errorValueText } from "./filter-values";
+} from "./fields.ts";
+export { compareScalars, compareStrings } from "./collation.ts";
+export { errorValueText } from "./filter-values.ts";
 export {
   errorCell,
   valueText,
   type ErrorCell,
   type ProjectionJson,
-} from "./value-text";
-export { nameDictionary, type NameDictionary } from "./name-dictionary";
+} from "./value-text.ts";
+export { nameDictionary, type NameDictionary } from "./name-dictionary.ts";
 export {
   FORMULA_NAME,
   FORMULA_SEGMENT,
   formulaReferences,
   type FormulaFaultPolicy,
   type FormulaReference,
-} from "./formulas";
+} from "./formulas.ts";
 export type {
   FormulaDiagnostics,
   ItemQuery,
@@ -114,21 +114,21 @@ export type {
   QueryRow,
   SortSpec,
   TargetLibrary,
-} from "./request";
+} from "./request.ts";
 export {
   ItemQueryScheduler,
   ItemQuerySliceObserver,
   SLICE_BUDGET_MS,
   type SliceObserver,
-} from "./scheduler";
+} from "./scheduler.ts";
 
 export {
   diagnoseDecode,
   renderDiagnostic,
   type Diagnostic,
   type DiagnosticLocation,
-} from "./diagnose";
-export { nearMatches } from "./near-match";
+} from "./diagnose.ts";
+export { nearMatches } from "./near-match.ts";
 export type {
   Fault,
   ItemQueryFault,
@@ -138,8 +138,8 @@ export type {
   Receiver,
   Callee,
   SyntaxFault,
-} from "./fault";
+} from "./fault.ts";
 
-export { ATTACHMENTS } from "./query-attachments";
+export { ATTACHMENTS } from "./query-attachments.ts";
 
-export { listQueryValues, type QueryValuesRequest } from "./query-values";
+export { listQueryValues, type QueryValuesRequest } from "./query-values.ts";

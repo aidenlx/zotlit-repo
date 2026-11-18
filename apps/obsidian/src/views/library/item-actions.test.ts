@@ -14,25 +14,25 @@ import type {
 } from "obsidian";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
-import { stateEditor } from "@/views/annot-view/__fixtures__/editor";
-import { waitFor } from "@/views/welcome/__fixtures__";
+} from "@/services/zotero-reads/test-utils.ts";
+import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
+import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
-import { makeLibraryHost } from "./__fixtures__";
-import { libraryItemCommand, itemActions } from "./item-actions";
-import type { CitationTarget, ItemActionsDeps } from "./item-actions";
+import { makeLibraryHost } from "./__fixtures__.ts";
+import { libraryItemCommand, itemActions } from "./item-actions.ts";
+import type { CitationTarget, ItemActionsDeps } from "./item-actions.ts";
 
 const KEY = "ABCD2345";
 

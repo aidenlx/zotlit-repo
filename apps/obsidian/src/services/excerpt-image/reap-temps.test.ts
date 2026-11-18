@@ -14,8 +14,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect } from "vitest";
 
-import { reapExcerptTemps } from "./reap-temps";
-import { excerptTempDirectory } from "./temp-store";
+import { reapExcerptTemps } from "./reap-temps.ts";
+import { excerptTempDirectory } from "./temp-store.ts";
 
 let parent: string;
 let directory: string;

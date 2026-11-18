@@ -4,23 +4,23 @@ import { Effect, Layer } from "effect";
 import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginHost } from "@/lib/plugin-host";
-import { candidateRow } from "@/services/citation-index/ambiguity";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import { candidateRow } from "@/services/citation-index/ambiguity.ts";
 import type {
   AmbiguousCandidate,
   CandidateRow,
-} from "@/services/citation-index/ambiguity";
+} from "@/services/citation-index/ambiguity.ts";
 import {
   FLAIR_ROW_CLASS,
   appendInlineFlair,
   appendTrailingFlair,
-} from "@/services/item-lookup/render-hit";
+} from "@/services/item-lookup/render-hit.ts";
 
-import { CitekeyEditor } from "./service";
-import type { AmbiguousCitekey } from "./service";
+import { CitekeyEditor } from "./service.ts";
+import type { AmbiguousCitekey } from "./service.ts";
 
 /** Whether a candidate row answers a typed filter, over the text it shows. */
 export function candidateMatches(row: CandidateRow, query: string): boolean {

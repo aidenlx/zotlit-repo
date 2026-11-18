@@ -5,31 +5,31 @@ import type { DragEvent, KeyboardEvent, MouseEvent, RefObject } from "react";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { useObsidianApp } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
 import {
   activatable,
   claimClick,
   clickClaimed,
   cn,
   tooltipAttrs,
-} from "@/lib/utils";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { AnnotationLock } from "@/services/annotation-repository/lock";
-import { lockReasonText } from "@/services/annotation-repository/lock-copy";
+} from "@/lib/utils.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { lockReasonText } from "@/services/annotation-repository/lock-copy.ts";
+import type { AnnotationLock } from "@/services/annotation-repository/lock.ts";
 import type {
   AnnotationRecord,
   TextField,
   WriteConflict,
-} from "@/services/annotation-repository/service";
-import { isTextField } from "@/services/annotation-repository/write";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance";
+} from "@/services/annotation-repository/service.ts";
+import { isTextField } from "@/services/annotation-repository/write.ts";
+import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 
-import { AnnotActionsContext } from "./actions";
-import type { AnnotActions } from "./actions";
+import { AnnotActionsContext } from "./actions.tsx";
+import type { AnnotActions } from "./actions.tsx";
 import {
   annotationBlocks,
   cardControls,
@@ -43,22 +43,22 @@ import {
   shownTagNames,
   tagEditorControls,
   textFieldWording,
-} from "./card-controls";
+} from "./card-controls.ts";
 import type {
   CardControl,
   CardControls,
   HeldDraft,
   VerbBlocks,
-} from "./card-controls";
-import { CardDisplayContext } from "./card-display";
-import type { CardPlace } from "./card-selection";
+} from "./card-controls.ts";
+import { CardDisplayContext } from "./card-display.ts";
+import type { CardPlace } from "./card-selection.ts";
 import {
   CommentView,
   ConflictPanelSlot,
   controlEntry,
   EditorSheetSlot,
   HeldDraftSlot,
-} from "./comment-parts";
+} from "./comment-parts.tsx";
 import type {
   CaretPoint,
   CommentEntry,
@@ -66,27 +66,27 @@ import type {
   EditorSheet,
   HeldDraftActions,
   TextDraftActions,
-} from "./editor-sheet";
-import { excerptImageTarget } from "./excerpt-image-state";
-import type { ExcerptImageTarget } from "./excerpt-image-state";
+} from "./editor-sheet.ts";
+import { excerptImageTarget } from "./excerpt-image-state.ts";
+import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
 import {
   ExcerptPicture,
   ExcerptText,
   excerptImageAlt,
   pageLocator,
-} from "./excerpt-parts";
-import { CARD_SELECTOR } from "./history";
+} from "./excerpt-parts.tsx";
+import { CARD_SELECTOR } from "./history.ts";
 import {
   useAnnotStore,
   useEditingTarget,
   useMutation,
   useToggleSelectedTag,
-} from "./model";
-import { capabilityOf, fieldDraft, isEditing, selectedAlone } from "./state";
-import { tagChipVariants } from "./tag-chip";
-import { autoTags, HeldTagsPanel, TagEditor } from "./tag-editor";
-import type { EndTagSession } from "./tag-editor";
-import { typeIcon } from "./type-icon";
+} from "./model.ts";
+import { capabilityOf, fieldDraft, isEditing, selectedAlone } from "./state.ts";
+import { tagChipVariants } from "./tag-chip.ts";
+import { autoTags, HeldTagsPanel, TagEditor } from "./tag-editor.tsx";
+import type { EndTagSession } from "./tag-editor.tsx";
+import { typeIcon } from "./type-icon.ts";
 
 /**
  * A verb the Editing Capability blocks rests dimmed, as the state it reports is

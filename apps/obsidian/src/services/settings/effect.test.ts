@@ -15,14 +15,14 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { testPluginData } from "@/lib/__fixtures__/plugin-data";
+import { testPluginData } from "@/lib/__fixtures__/plugin-data.ts";
 
-import { settingsOf, settingsRuntimeOf } from "./__fixtures__";
+import { settingsOf, settingsRuntimeOf } from "./__fixtures__.ts";
 import {
   layerPluginSettings,
   layerPluginSettingsOf,
   PluginSettings,
-} from "./service";
+} from "./service.ts";
 
 // A pending edit must reach disk before the settings scope finishes closing.
 it.effect("scope close flushes a pending edit and waits for its write", () =>

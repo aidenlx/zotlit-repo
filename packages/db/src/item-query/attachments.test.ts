@@ -1,8 +1,6 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-
 import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
@@ -13,7 +11,12 @@ import {
   readAttachmentUniverseRows,
   readAttachmentRowCount,
   readAttachmentHydrateChunk,
-} from ".";
+} from "./index.ts";
+
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 it("reads only live Attachments of top-level live Items in the Target Library", () => {
   using scenario = openScenarioDatabase({ annotations: true });

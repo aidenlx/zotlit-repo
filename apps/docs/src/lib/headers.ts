@@ -4,10 +4,10 @@
 
 import { regex } from "arkregex";
 
-import { chinesePrefix, unlocalizedPath } from "./i18n.js";
-import { htmlPagePath } from "./markdown-routes.js";
-import { markdownEditionHeaders } from "./shared.js";
-import type { DocsLine } from "./shared.js";
+import { chinesePrefix, unlocalizedPath } from "./i18n.ts";
+import { htmlPagePath } from "./markdown-routes.ts";
+import { markdownEditionHeaders } from "./shared.ts";
+import type { DocsLine } from "./shared.ts";
 
 /** One `_headers` block: a path pattern and the headers it adds. */
 export interface HeaderRule {

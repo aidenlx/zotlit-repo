@@ -23,28 +23,28 @@ import {
 } from "@zotlit/workbench/bridge";
 import type { ProfileBindingDefaults } from "@zotlit/workbench/bridge";
 
-import { DOCS_SITE_URL } from "@/lib/constants";
-import { docsUrl } from "@/lib/docs-url";
-import { instantClock } from "@/lib/effect-clock";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import type { DeviceStorage } from "@/lib/obsidian-device-storage";
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { LocalServer } from "@/services/local-server/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import type { Settings } from "@/services/settings/service";
+import { DOCS_SITE_URL } from "@/lib/constants.ts";
+import { docsUrl } from "@/lib/docs-url.ts";
+import { instantClock } from "@/lib/effect-clock.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import type { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { Settings } from "@/services/settings/service.ts";
 
-import { createLocalBridgeApp } from "./app";
-import type { ConnectionGrantDescription } from "./app";
-import { loadInstallationId } from "./installation";
-import { ALLOWED_DOCS_ORIGINS } from "./origins";
-import { profileDisplayName } from "./profile-name";
-import { makeLocalBridgeReads } from "./reads";
-import type { BridgeReadServices } from "./reads";
-import { makeLocalBridgeSave } from "./save";
-import { BridgeSessions } from "./sessions";
-import type { BridgeConnection, SelectedItemIdentity } from "./sessions";
+import { createLocalBridgeApp } from "./app.ts";
+import type { ConnectionGrantDescription } from "./app.ts";
+import { loadInstallationId } from "./installation.ts";
+import { ALLOWED_DOCS_ORIGINS } from "./origins.ts";
+import { profileDisplayName } from "./profile-name.ts";
+import { makeLocalBridgeReads } from "./reads.ts";
+import type { BridgeReadServices } from "./reads.ts";
+import { makeLocalBridgeSave } from "./save.ts";
+import { BridgeSessions } from "./sessions.ts";
+import type { BridgeConnection, SelectedItemIdentity } from "./sessions.ts";
 
 /** The page the launch URL opens on the docs site. */
 const WORKBENCH_PATH = "/workbench";

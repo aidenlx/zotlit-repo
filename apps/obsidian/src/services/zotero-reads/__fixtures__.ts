@@ -3,16 +3,16 @@ import { Context, Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime, Scope } from "effect";
 import { RpcSchema } from "effect/rpc";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import type { ZoteroReadsClient } from "./in-process";
-import { acquireReadLease } from "./lease";
-import { ZoteroReads as ZoteroReadsRpc } from "./rpc";
-import { layerZoteroReads, ZoteroReads } from "./service";
-import type { ZoteroReadsApi, ZoteroReadLease } from "./service";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { acquireReadLease } from "./lease.ts";
+import { ZoteroReads as ZoteroReadsRpc } from "./rpc.ts";
+import { layerZoteroReads, ZoteroReads } from "./service.ts";
+import type { ZoteroReadsApi, ZoteroReadLease } from "./service.ts";
 
 export const readsFixture = Effect.fn("readsFixture")(function* (
   client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>,

@@ -2,10 +2,10 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
 import { createHash } from "node:crypto";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { openManagedBinary } from "./__fixtures__";
-import { memoryDevice } from "./test-utils";
+import { openManagedBinary } from "./__fixtures__.ts";
+import { memoryDevice } from "./test-utils.ts";
 
 it.effect(
   "returns released values from every handle method after runtime disposal",

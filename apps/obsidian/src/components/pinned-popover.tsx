@@ -49,9 +49,9 @@ import { createPortal } from "react-dom";
 
 import { composing } from "@zotlit/ui";
 
-import { useObsidianApp } from "@/lib/app-context";
-import { HoverPopover } from "@/lib/hover-popover";
-import { observeResize } from "@/lib/observe-resize";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import { HoverPopover } from "@/lib/hover-popover.ts";
+import { observeResize } from "@/lib/observe-resize.ts";
 
 import "./pinned-popover.css";
 

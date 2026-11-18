@@ -12,13 +12,13 @@ import type {
   ValueToken,
 } from "liquidjs";
 
-import { formatBlockquote } from "./blockquote";
-import { coerceOutput } from "./coerce";
-import { filenameSuffix } from "./filename-suffix";
-import { isItemDateLike, toLiquidDate } from "./liquid-date";
-import { normalizeObsidianTag } from "./obsidian-tag";
-import { formatTemplatePandocCitation } from "./pandoc-citation-adapter";
-import { formatTemplateTexCitation } from "./tex-citation-adapter";
+import { formatBlockquote } from "./blockquote.ts";
+import { coerceOutput } from "./coerce.ts";
+import { filenameSuffix } from "./filename-suffix.ts";
+import { isItemDateLike, toLiquidDate } from "./liquid-date.ts";
+import { normalizeObsidianTag } from "./obsidian-tag.ts";
+import { formatTemplatePandocCitation } from "./pandoc-citation-adapter.ts";
+import { formatTemplateTexCitation } from "./tex-citation-adapter.ts";
 
 export { ParseError, TokenizationError } from "liquidjs";
 

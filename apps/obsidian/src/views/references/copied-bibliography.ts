@@ -1,6 +1,6 @@
 // Serialization of a Copied Bibliography: a complete bibliography rendering, written for a destination outside the vault.
 
-import type { Inlines } from "@/services/pandoc/ast";
+import type { Inlines } from "@/services/pandoc/ast.ts";
 import {
   DISPLAY_CLASSES,
   flowWriter,
@@ -8,7 +8,7 @@ import {
   linkHref,
   QUOTE_MARKS,
   WRAPPER_TAGS,
-} from "@/services/pandoc/inline-content";
+} from "@/services/pandoc/inline-content.tsx";
 
 /** A named value: the guideline rule on inline styles matches a literal one. */
 const SMALL_CAPS = "small-caps";

@@ -1,53 +1,53 @@
-import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service";
-import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service";
+import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service.ts";
+import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service.ts";
 // The Note Feature's layer over a test's plain deps, and the edge handle a test drives.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer } from "effect";
 import type { ManagedRuntime } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { layerFileManagerFrom } from "@/lib/obsidian-file-manager";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerFileManagerFrom } from "@/lib/obsidian-file-manager.ts";
 import type {
   FileManager,
   FileManagerSource,
-} from "@/lib/obsidian-file-manager";
+} from "@/lib/obsidian-file-manager.ts";
 import {
   layerMetadataCacheFrom,
   MetadataCache,
-} from "@/lib/obsidian-metadata-cache";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache";
-import { layerVaultFrom, Vault } from "@/lib/obsidian-vault";
-import type { VaultSource } from "@/lib/obsidian-vault";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import type { Workspace, WorkspaceSource } from "@/lib/obsidian-workspace";
-import { AttachmentImport } from "@/services/attachment-import/service";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
+} from "@/lib/obsidian-metadata-cache.ts";
+import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
+import { layerVaultFrom, Vault } from "@/lib/obsidian-vault.ts";
+import type { VaultSource } from "@/lib/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import type { Workspace, WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
   layerExcerptPreparation,
-} from "@/services/excerpt-image/prepare";
+} from "@/services/excerpt-image/prepare.ts";
 import type {
   NoteExcerptOptions,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare";
-import type { QueryService } from "@/services/item-query/service";
-import { PluginSettings } from "@/services/settings/service";
-import { snapshotAt } from "@/services/attachment-import/__fixtures__";
-import { Template } from "@/services/template/service";
-import type { TemplateOperations } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/services/excerpt-image/prepare.ts";
+import type { QueryService } from "@/services/item-query/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { snapshotAt } from "@/services/attachment-import/__fixtures__.ts";
+import { Template } from "@/services/template/service.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import type { NoteCitations } from "@/services/note-feature/citations-handle";
-import { bindNoteFeature } from "@/services/note-feature/handle";
-import type { NoteCreation } from "@/services/note-feature/creation-handle";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations";
-import { layerNoteFeature, NoteFeature } from "@/services/note-feature/service";
-import type { NoteFeatureServices } from "@/services/note-feature/service";
+import type { NoteCitations } from "@/services/note-feature/citations-handle.ts";
+import { bindNoteFeature } from "@/services/note-feature/handle.ts";
+import type { NoteCreation } from "@/services/note-feature/creation-handle.ts";
+import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
+import { layerNoteFeature, NoteFeature } from "@/services/note-feature/service.ts";
+import type { NoteFeatureServices } from "@/services/note-feature/service.ts";
 
-import { planningContext } from "./planning-context";
-import type { PlanningSources } from "./planning-context";
+import { planningContext } from "./planning-context.ts";
+import type { PlanningSources } from "./planning-context.ts";
 
 /** The vault, file manager, metadata cache and workspace the note writes touch. */
 export interface NoteFeatureApp {

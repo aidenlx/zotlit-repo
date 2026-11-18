@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { modalAnswer } from "@/lib/modal-answer";
+import { modalAnswer } from "@/lib/modal-answer.ts";
 
 test("modalAnswer opens the modal before it returns, and answers once", async () => {
   let open = false;

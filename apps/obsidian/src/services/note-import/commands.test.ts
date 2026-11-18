@@ -3,26 +3,26 @@ import { Cause, Effect, Exit, Fiber, Layer, Option } from "effect";
 import type { App } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+} from "@/services/zotero-reads/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
-import type { BatchImportPorts } from "./batch-import";
+import type { BatchImportPorts } from "./batch-import.ts";
 import {
   importAllNotes,
   importChildNotes,
   layerNoteImportCommands,
-} from "./commands";
-import { NoteImporter } from "./service";
-import type { NoteImportView } from "./view";
+} from "./commands.ts";
+import { NoteImporter } from "./service.ts";
+import type { NoteImportView } from "./view.ts";
 
 const app = stubService<App>("App", {});
 const ports: BatchImportPorts = {

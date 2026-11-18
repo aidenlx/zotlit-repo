@@ -2,11 +2,11 @@
 import { Scope } from "effect";
 import type { Exit } from "effect";
 
-import { valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { openScope } from "@/lib/effect-scope";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { openScope } from "@/lib/effect-scope.ts";
 
-import type { ItemLookup, SearchHit, SearchOptions } from "./service";
+import type { ItemLookup, SearchHit, SearchOptions } from "./service.ts";
 
 /**
  * The searches of one search surface, such as a picker or the Citation

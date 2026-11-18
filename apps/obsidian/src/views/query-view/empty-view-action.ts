@@ -7,9 +7,9 @@ import { around } from "monkey-around";
 import { Platform, setIcon, setTooltip } from "obsidian";
 import type { App, EmptyView, PlatformInternals } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
+import { disposable } from "@/lib/disposables.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger(["views", "query-view", "empty-view"]);
 

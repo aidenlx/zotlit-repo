@@ -35,9 +35,9 @@ import { joinForked } from "@zotlit/workbench/ui";
 
 import { m } from "@/paraglide/messages.js";
 
-import type { SampleItem } from "./fields";
-import { readDraft } from "./transfer";
-import type { WorkbenchDraft } from "./transfer";
+import type { SampleItem } from "./fields.ts";
+import { readDraft } from "./transfer.ts";
+import type { WorkbenchDraft } from "./transfer.ts";
 
 export interface ProfileHydration {
   readonly selected: SelectedProfileResponse;

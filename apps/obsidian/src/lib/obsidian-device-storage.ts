@@ -4,7 +4,7 @@
 import { Context, Effect, Layer, Schema } from "effect";
 import type { App } from "obsidian";
 
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
 /** The Obsidian object the tag reads: what `app` gives. */
 export type DeviceStorageSource = Pick<

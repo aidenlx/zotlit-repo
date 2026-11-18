@@ -7,9 +7,9 @@ import { expect, it, vi } from "vitest";
 
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { createItemDrag, ITEM_DRAG_TYPE, refuseItemDrop } from "./item-drag";
+import { createItemDrag, ITEM_DRAG_TYPE, refuseItemDrop } from "./item-drag.ts";
 
 /** A drag's data, as the browser keeps it across one drag. */
 function transfer() {

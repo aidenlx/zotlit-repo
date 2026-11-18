@@ -12,45 +12,45 @@ import type {
   WorkbenchPreviewSettings,
 } from "@zotlit/workbench/ui";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { SubscriptionRuntime } from "@/lib/effect-stream";
-import { Notifier } from "@/lib/notifier";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import { vaultError } from "@/lib/vault-errors";
-import type { ViewServices } from "@/lib/view-atoms";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { ItemLookup } from "@/services/item-lookup/service";
-import type { SearchOptions } from "@/services/item-lookup/service";
-import type { QueryHandle } from "@/services/item-query/handle";
-import { QueryService } from "@/services/item-query/service";
-import { Customize } from "@/services/local-bridge/customize";
-import { NoteWriteAborted } from "@/services/note-feature/errors";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations";
-import { NoteFeature } from "@/services/note-feature/service";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import type { TemplateDataDeps } from "@/services/template-workbench/data";
-import type { TemplateOperations } from "@/services/template/service";
-import { Template } from "@/services/template/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
+import type { ViewServices } from "@/lib/view-atoms.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { ItemLookup } from "@/services/item-lookup/service.ts";
+import type { SearchOptions } from "@/services/item-lookup/service.ts";
+import type { QueryHandle } from "@/services/item-query/handle.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { Customize } from "@/services/local-bridge/customize.ts";
+import { NoteWriteAborted } from "@/services/note-feature/errors.ts";
+import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
+import { NoteFeature } from "@/services/note-feature/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import type { TemplateDataDeps } from "@/services/template-workbench/data.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
+import { Template } from "@/services/template/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadLease,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import type { ExplorerViewDeps } from "@/views/template-data-explorer/view";
-import type { NativeRenderDeps } from "@/views/template-workbench/preview/render";
+} from "@/services/zotero-reads/service.ts";
+import type { ExplorerViewDeps } from "@/views/template-data-explorer/view.tsx";
+import type { NativeRenderDeps } from "@/views/template-workbench/preview/render.ts";
 
-import type { WorkbenchActionServices } from "./actions";
-import type { TemplateWorkbenchDeps, TemplateWorkbenchView } from "./view";
+import type { WorkbenchActionServices } from "./actions.ts";
+import type { TemplateWorkbenchDeps, TemplateWorkbenchView } from "./view.tsx";
 type TemplateFixture = TemplateOperations & {
   readonly "compile-status-changed": Stream.Stream<void>;
 };
@@ -336,7 +336,7 @@ export function makeWorkbenchHost(
       stubService<ZoteroPref["Service"]>("ZoteroPref", {
         current: Effect.sync(() =>
           stubService<
-            import("@/services/zotero-pref/service").ZoteroPrefSnapshot
+            import("@/services/zotero-pref/service.ts").ZoteroPrefSnapshot
           >("ZoteroPrefSnapshot", { dataDir: deps.zoteroPref.dataDir }),
         ),
       }),

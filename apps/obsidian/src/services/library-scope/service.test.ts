@@ -5,18 +5,21 @@ import { describe, expect, vi } from "vitest";
 
 import type { Library } from "@zotlit/db";
 
-import { subscribe } from "@/lib/effect-stream";
-import { layerRcRef } from "@/services/zotero-reads/connection";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { layerRcRef } from "@/services/zotero-reads/connection.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { libraryScopeFixture } from "./__fixtures__";
-import type { LibraryScope as SavedScope, ResolvedLibraryScope } from "./scope";
-import { scopeChanges } from "./service";
-import { LIBRARY_SCOPE_KEY } from "./service";
+import { libraryScopeFixture } from "./__fixtures__.ts";
+import type {
+  LibraryScope as SavedScope,
+  ResolvedLibraryScope,
+} from "./scope.ts";
+import { scopeChanges } from "./service.ts";
+import { LIBRARY_SCOPE_KEY } from "./service.ts";
 
 // Group-id order differs from local library-id order.
 const MY_LIBRARY: Library = {

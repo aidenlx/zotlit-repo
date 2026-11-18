@@ -2,11 +2,11 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { DEFAULT_LIBRARY_SCOPE } from "./scope";
-import { LibraryScope } from "./service";
-import type { LibraryScopeState } from "./service";
+import { DEFAULT_LIBRARY_SCOPE } from "./scope.ts";
+import { LibraryScope } from "./service.ts";
+import type { LibraryScopeState } from "./service.ts";
 
 export const libraryScopeStateAtom = held<LibraryScopeState>(
   Stream.unwrap(Effect.map(LibraryScope, (scope) => scope.changes)),

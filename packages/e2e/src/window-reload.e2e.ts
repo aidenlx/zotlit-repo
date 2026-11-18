@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { releaseKeyDescription } from "@/lib/plugin-release-key";
+import { releaseKeyDescription } from "@/lib/plugin-release-key.ts";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { reachable, runVaultScript, workspaceRoot } from "./e2e-run-fixture.ts";

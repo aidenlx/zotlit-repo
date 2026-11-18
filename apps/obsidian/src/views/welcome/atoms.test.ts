@@ -4,17 +4,17 @@ import { Effect, Layer } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginSettings } from "@/services/settings/service";
-import { TemplateMigration } from "@/services/template/migration";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { TemplateMigration } from "@/services/template/migration.ts";
 
-import { makeWelcomeHost, waitFor } from "./__fixtures__";
+import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import {
   dismissWelcomeCommand,
   keepWelcomeCommand,
   makeConversionCommand,
-} from "./atoms";
+} from "./atoms.ts";
 
 it.effect("saves a banner request and folds its saved steps on dismissal", () =>
   Effect.gen(function* () {

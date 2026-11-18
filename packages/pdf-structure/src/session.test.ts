@@ -1,11 +1,11 @@
+import type { ObsidianTextItem } from "#chars.ts";
+import type { PdfPageSource } from "#session.ts";
+import type { PdfPosition } from "#sort-index.ts";
 import type { LogRecord } from "@logtape/logtape";
 import { configure, reset } from "@logtape/logtape";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import type { ObsidianTextItem } from "@/chars";
-import type { PdfPageSource } from "@/session";
-import { PdfTextStructure } from "@/session";
-import type { PdfPosition } from "@/sort-index";
+import { PdfTextStructure } from "#session.ts";
 
 let records: LogRecord[] = [];
 

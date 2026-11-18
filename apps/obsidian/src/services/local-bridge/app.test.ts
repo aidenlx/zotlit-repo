@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 
-import { createLocalBridgeApp } from "./app";
-import type { ConnectionGrantDescription } from "./app";
-import { PRERELEASE_DOCS_ORIGIN, STABLE_DOCS_ORIGIN } from "./origins";
-import type { LocalBridgeReads } from "./reads";
-import type { LocalBridgeSave } from "./save";
-import { BridgeSessions } from "./sessions";
-import type { BridgeConnection } from "./sessions";
+import { createLocalBridgeApp } from "./app.ts";
+import type { ConnectionGrantDescription } from "./app.ts";
+import { PRERELEASE_DOCS_ORIGIN, STABLE_DOCS_ORIGIN } from "./origins.ts";
+import type { LocalBridgeReads } from "./reads.ts";
+import type { LocalBridgeSave } from "./save.ts";
+import { BridgeSessions } from "./sessions.ts";
+import type { BridgeConnection } from "./sessions.ts";
 
 const OTHER_ORIGIN = "https://zotlit.example.com";
 /** The Profile the harness' own connection is bound to. */

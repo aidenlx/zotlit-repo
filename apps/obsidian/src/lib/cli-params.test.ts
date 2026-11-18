@@ -18,8 +18,8 @@ import {
   cliValue,
   cliVariants,
   decodeCliParams,
-} from "./cli-params";
-import type { CliParamName } from "./cli-params";
+} from "./cli-params.ts";
+import type { CliParamName } from "./cli-params.ts";
 
 const pick = cliParams({
   key: Schema.optionalKey(

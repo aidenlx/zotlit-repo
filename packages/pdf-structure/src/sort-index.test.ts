@@ -1,7 +1,7 @@
+import type { Rect, StructuredChar, StructuredPage } from "#chars.ts";
 import { describe, expect, it } from "vitest";
 
-import type { Rect, StructuredChar, StructuredPage } from "@/chars";
-import { computeSortIndex, sortIndexRect } from "@/sort-index";
+import { computeSortIndex, sortIndexRect } from "#sort-index.ts";
 
 /** Letter-sized page, origin at zero, so `top` is 792 minus the rect's `y2`. */
 const page = (chars: readonly Partial<StructuredChar>[]): StructuredPage => ({

@@ -4,12 +4,12 @@ import type { FileSystem, Scope } from "effect";
 import { RpcClient, RpcServer } from "effect/rpc";
 import type { RpcClientError, RpcGroup } from "effect/rpc";
 
-import { makeInMemoryRpcProtocols } from "@/lib/effect-rpc-in-process";
+import { makeInMemoryRpcProtocols } from "@/lib/effect-rpc-in-process.ts";
 
-import type { Connection } from "./connection";
-import { handlersLayer } from "./handlers";
-import type { HandlersOptions } from "./handlers";
-import { ZoteroReads } from "./rpc";
+import type { Connection } from "./connection.ts";
+import { handlersLayer } from "./handlers.ts";
+import type { HandlersOptions } from "./handlers.ts";
+import { ZoteroReads } from "./rpc.ts";
 
 /** The client interface every ZoteroReads caller holds. */
 export type ZoteroReadsClient = RpcClient.RpcClient<

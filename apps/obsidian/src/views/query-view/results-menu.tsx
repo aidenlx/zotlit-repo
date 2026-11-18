@@ -9,26 +9,26 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { PinnedPopover } from "@/components/pinned-popover";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover";
-import { writeClipboardRichText } from "@/lib/clipboard";
-import { saveFile } from "@/lib/file-save";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { BaseNotice } from "@/lib/notice";
-import { themeHook } from "@/lib/theme-hooks";
-import { cn } from "@/lib/utils";
+import { PinnedPopover } from "@/components/pinned-popover.tsx";
+import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
+import { writeClipboardRichText } from "@/lib/clipboard.ts";
+import { saveFile } from "@/lib/file-save.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { cn } from "@/lib/utils.ts";
 
-import { useQueryViewState } from "./model";
-import { toCSV, toHTML, toTSV } from "./table";
-import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button";
+import { useQueryViewState } from "./model.ts";
+import { toCSV, toHTML, toTSV } from "./table.ts";
+import { ToolbarButtonContent, toolbarButtonClass } from "./toolbar-button.tsx";
 import {
   PopoverAction,
   PopoverActions,
   PopoverSection,
   toolbarPopoverClass,
-} from "./toolbar-popover";
-import type { QueryView } from "./view";
+} from "./toolbar-popover.tsx";
+import type { QueryView } from "./view.tsx";
 
 const logger = getLogger(["views", "query-view", "results"]);
 

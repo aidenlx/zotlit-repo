@@ -3,7 +3,7 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import {
   annotationItem,
   annotationPage,
@@ -14,7 +14,7 @@ import {
   staleVersion,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 import {
   annotationBlocks,
   capabilityBlock,
@@ -22,7 +22,7 @@ import {
   fieldEditorControls,
   heldTagDraft,
   heldTextDraft,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 
 import {
   collect,
@@ -43,14 +43,14 @@ import {
   colorOf,
   zoteroHolding,
   moved,
-} from "./__fixtures__";
-import type { GroupLibrary } from "./__fixtures__";
+} from "./__fixtures__.ts";
+import type { GroupLibrary } from "./__fixtures__.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationRepository,
   LockReason,
-} from "./service";
+} from "./service.ts";
 
 // #region annotation locks
 

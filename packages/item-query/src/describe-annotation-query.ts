@@ -1,9 +1,9 @@
-import { ANNOTATION_POSITION_SHAPES } from "./annotation-position";
+import { ANNOTATION_POSITION_SHAPES } from "./annotation-position.ts";
 import {
   describeDatasetVocabulary,
   describeQuery,
-} from "./describe-item-query";
-import { ANNOTATIONS } from "./query-annotations";
+} from "./describe-item-query.ts";
+import { ANNOTATIONS } from "./query-annotations.ts";
 
 /** Source-independent Annotation vocabulary; generated only at build time. */
 export function describeAnnotationQueryVocabulary() {

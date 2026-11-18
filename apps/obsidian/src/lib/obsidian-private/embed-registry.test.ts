@@ -1,13 +1,13 @@
 import type { App, EmbedRegistry } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import { registerEmbed } from "./embed-registry";
-import type { EmbedCreator } from "./embed-registry";
+import { registerEmbed } from "./embed-registry.ts";
+import type { EmbedCreator } from "./embed-registry.ts";
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
 }));
 

@@ -3,9 +3,9 @@ import { Effect } from "effect";
 import type { RequestUrlResponse } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { requestUrlHttpClient } from "@/lib/http-client";
+import { requestUrlHttpClient } from "@/lib/http-client.ts";
 
-import { downloadBytes } from "./platform";
+import { downloadBytes } from "./platform.ts";
 
 const ASSET_URL = "https://example.com/pandoc.wasm";
 

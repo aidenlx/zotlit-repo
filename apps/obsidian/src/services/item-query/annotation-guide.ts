@@ -7,7 +7,7 @@ import {
   QUERY_CANCEL_COMMAND,
   QUERY_ID_FORM,
   queryCancelledText,
-} from "./contract";
+} from "./contract.ts";
 
 const ANNOTATION_IMAGE_COMMAND = "zotlit:annotation-image";
 

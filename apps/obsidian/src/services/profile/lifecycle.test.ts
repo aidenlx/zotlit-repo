@@ -3,14 +3,14 @@ import { Context, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { FileExists } from "@/lib/vault-errors";
-import { createTemplateHost } from "@/services/template/__fixtures__";
-import { TemplateOperationError } from "@/services/template/errors";
+import { subscribe } from "@/lib/effect-stream.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { FileExists } from "@/lib/vault-errors.ts";
+import { createTemplateHost } from "@/services/template/__fixtures__.ts";
+import { TemplateOperationError } from "@/services/template/errors.ts";
 
-import { profileOver, profileRuntimeOf } from "./__fixtures__";
-import { Profile } from "./service";
+import { profileOver, profileRuntimeOf } from "./__fixtures__.ts";
+import { Profile } from "./service.ts";
 
 it.effect("a built Profile exposes and replays its first registry", () =>
   Effect.gen(function* () {

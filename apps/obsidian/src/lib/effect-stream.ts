@@ -2,8 +2,8 @@
 import type { ManagedRuntime, Scope } from "effect";
 import { Effect, Stream } from "effect";
 
-import { logAndContinue } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
+import { logAndContinue } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
 
 /**
  * The events of the given tags from a tagged-union Stream, narrowed to those

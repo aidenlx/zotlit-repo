@@ -3,11 +3,11 @@
 
 import type { SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginSettings } from "@/services/settings/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import { approvedFoldersPage } from "./approved-folders";
-import type { SettingsKey, SettingTabContext } from "./context";
+import { approvedFoldersPage } from "./approved-folders.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
 
 export function attachmentPageItems(
   ctx: SettingTabContext,

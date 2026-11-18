@@ -3,14 +3,14 @@
 import { around } from "monkey-around";
 import type { GraphColor, GraphLink, GraphLinkSprite } from "obsidian";
 
-import { disposable } from "@/lib/disposables";
-import { themeProperty } from "@/lib/theme-hooks";
+import { disposable } from "@/lib/disposables.ts";
+import { themeProperty } from "@/lib/theme-hooks.ts";
 
-import type { GraphCitationAdditions } from "./adapter";
-import { membersPresent } from "./install";
-import type { GraphLeafMembers } from "./install";
-import { readThemeColor } from "./node-color";
-import type { ThemeColorRole } from "./node-color";
+import type { GraphCitationAdditions } from "./adapter.ts";
+import { membersPresent } from "./install.ts";
+import type { GraphLeafMembers } from "./install.ts";
+import { readThemeColor } from "./node-color.ts";
+import type { ThemeColorRole } from "./node-color.ts";
 
 /**
  * The property a theme states the citation edge colour in, and the Obsidian

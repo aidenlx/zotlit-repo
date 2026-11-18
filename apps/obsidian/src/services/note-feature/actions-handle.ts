@@ -3,9 +3,9 @@
 import type { Context, Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import { exitOver, valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import type { NoteImportView } from "@/services/note-import/view";
+import { exitOver, valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { NoteImportView } from "@/services/note-import/view.ts";
 
 import {
   overwriteNote,
@@ -14,14 +14,14 @@ import {
   updateAll,
   updateNote,
   updateNotes,
-} from "./actions-view";
-import type { NoteActionPorts, NoteActionServices } from "./actions-view";
-import type { InteractiveCreationPorts } from "./creation-view";
-import type { UpdateScope } from "./operations";
-import type { BatchUpdateOptions } from "./update-batch";
-import { awaitUpdateNotesChoice } from "./update-notes-view";
-import type { ActiveNote } from "./update-notes-view";
-import type { BatchUpdateNotices } from "./update-single";
+} from "./actions-view.ts";
+import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
+import type { InteractiveCreationPorts } from "./creation-view.ts";
+import type { UpdateScope } from "./operations.ts";
+import type { BatchUpdateOptions } from "./update-batch.ts";
+import { awaitUpdateNotesChoice } from "./update-notes-view.ts";
+import type { ActiveNote } from "./update-notes-view.ts";
+import type { BatchUpdateNotices } from "./update-single.ts";
 
 /** Each action asks, runs, and reports on a notice; it settles when it ends. */
 export interface NoteActions {

@@ -1,7 +1,7 @@
 import { Scheduler } from "effect/Scheduler";
 import { expect, it } from "vitest";
 
-import { browserScheduler } from "./browser-scheduler";
+import { browserScheduler } from "./browser-scheduler.ts";
 import {
   Context,
   Effect,
@@ -10,7 +10,7 @@ import {
   FiberSet,
   Logger,
   Scope,
-} from "./effect";
+} from "./effect.ts";
 
 // Failure modes: raw root defaults, explicit-context roots, synchronous runtime
 // factories, and cancellation losing the supplied AbortSignal.

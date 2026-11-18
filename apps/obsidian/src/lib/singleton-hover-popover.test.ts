@@ -2,7 +2,7 @@
 import type { HoverParent } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SingletonHoverPopover } from "./singleton-hover-popover";
+import { SingletonHoverPopover } from "./singleton-hover-popover.ts";
 
 function setup() {
   vi.useFakeTimers();

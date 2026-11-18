@@ -6,14 +6,14 @@ import { describe, expect, it } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 
-import { buildEngineIndex, searchEngineIndex } from "./engine";
-import { makeIndexedItem as item } from "./fixtures";
+import { buildEngineIndex, searchEngineIndex } from "./engine.ts";
+import { makeIndexedItem as item } from "./fixtures.ts";
 import {
   layerSegmenterJieba,
   layerSegmenterNone,
   Segmenter,
   SegmenterUnavailable,
-} from "./segmenter";
+} from "./segmenter.ts";
 
 // The web target binary, as the Chinese Segmenter download delivers it.
 const JIEBA_WASM = readFileSync(

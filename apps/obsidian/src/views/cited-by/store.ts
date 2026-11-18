@@ -6,12 +6,12 @@ import type {
   SectionCache,
 } from "obsidian";
 
-import type { ParsedNote } from "@/services/citation-index/parsed-note";
+import type { ParsedNote } from "@/services/citation-index/parsed-note.ts";
 import type {
   CitationOccurrence,
   CitedByGroup,
   CitedBySnapshot,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
 /** A half-open `[start, end)` offset range into a citing note's source. */
 export interface SourceRange {

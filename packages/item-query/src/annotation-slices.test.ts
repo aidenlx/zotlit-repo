@@ -8,9 +8,9 @@ import {
   seedBulkLibrary,
 } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, collectQuery, ITEMS } from ".";
-import { ItemQueryScheduler, SLICE_BUDGET_MS } from "./scheduler";
-import { runEffect } from "./test-helpers";
+import { ANNOTATIONS, collectQuery, ITEMS } from "./index.ts";
+import { ItemQueryScheduler, SLICE_BUDGET_MS } from "./scheduler.ts";
+import { runEffect } from "./test-helpers.ts";
 
 /** The cost of one scan page; each other statement costs `OTHER_MS`. */
 const PAGE_MS = 10;

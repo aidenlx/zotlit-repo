@@ -2,8 +2,8 @@
 import { evalQuotedToken, toValueSync, TypeGuards, Value } from "liquidjs";
 import type { Context, Liquid, Template } from "liquidjs";
 
-import { PandocCitationError } from "./pandoc-citation";
-import { TexCitationError } from "./tex-citation";
+import { PandocCitationError } from "./pandoc-citation.ts";
+import { TexCitationError } from "./tex-citation.ts";
 
 /** The citation source filters that read `zt.citations` as their whole input. */
 const CITATION_SOURCE_FILTERS: readonly string[] = ["pandoc_cite", "tex_cite"];

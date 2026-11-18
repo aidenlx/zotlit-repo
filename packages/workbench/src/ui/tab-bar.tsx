@@ -6,15 +6,15 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { useOptionalEditor, useWorkbenchModel } from "./editor";
-import { useContainerName, useOptionalHost } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { setTab as tabTransition } from "./model";
-import { SliceEditorVisibility } from "./slice-editor";
-import { TABS, tabDocs, tabLabel, tabLede } from "./tabs";
-import type { WorkbenchTab } from "./tabs";
-import { useParts } from "./theme";
-import { useRetention } from "./visited";
+import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
+import { useContainerName, useOptionalHost } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { setTab as tabTransition } from "./model.ts";
+import { SliceEditorVisibility } from "./slice-editor.tsx";
+import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
+import type { WorkbenchTab } from "./tabs.ts";
+import { useParts } from "./theme.tsx";
+import { useRetention } from "./visited.ts";
 
 function tabId(prefix: string, tab: WorkbenchTab): string {
   return `${prefix}tab-${tab}`;

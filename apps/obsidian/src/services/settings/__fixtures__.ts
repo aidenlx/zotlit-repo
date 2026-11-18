@@ -1,16 +1,16 @@
 import { Context, Effect, Layer, Stream } from "effect";
 import type { Plugin } from "obsidian";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { SubscriptionRuntime } from "@/lib/effect-stream";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 
-import { defaults } from "./schema";
-import { layerPluginSettings, PluginSettings } from "./service";
-import type { PluginSettingsOptions, Settings } from "./service";
+import { defaults } from "./schema.ts";
+import { layerPluginSettings, PluginSettings } from "./service.ts";
+import type { PluginSettingsOptions, Settings } from "./service.ts";
 
 export type SettingsFixtureOptions = Partial<PluginSettingsOptions> & {
   plugin: Pick<Plugin, "loadData" | "saveData">;

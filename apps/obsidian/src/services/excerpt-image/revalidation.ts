@@ -1,13 +1,13 @@
 // A saved pixel edit revalidates its Excerpt Image wherever the image stands.
 import { Effect, FiberMap, Layer } from "effect";
 
-import { forkEach } from "@/lib/effect-stream";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroReads } from "@/services/zotero-reads/service";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { ExcerptDisplays } from "./display";
-import { savedExcerptRequestFor } from "./request";
+import { ExcerptDisplays } from "./display.ts";
+import { savedExcerptRequestFor } from "./request.ts";
 
 /**
  * Revalidate the Excerpt Image of each saved pixel edit: the card that shows

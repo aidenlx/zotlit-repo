@@ -1,5 +1,5 @@
 // Open documents a test controls: open and close a path, as a workspace leaf would.
-import type { OpenDocuments } from "@/lib/open-documents";
+import type { OpenDocuments } from "@/lib/open-documents.ts";
 
 export class OpenDocumentsStub implements OpenDocuments {
   readonly #open = new Map<string, number>();

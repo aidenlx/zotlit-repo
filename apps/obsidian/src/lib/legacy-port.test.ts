@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Option } from "effect";
 import { expect } from "vitest";
 
-import { AbortError } from "./abort-error";
-import { LegacyPortError, portCall } from "./legacy-port";
+import { AbortError } from "./abort-error.ts";
+import { LegacyPortError, portCall } from "./legacy-port.ts";
 
 // A port whose run unload stopped rejects with an AbortError at its
 // Promise edge; in Effect, that stop is an interrupt again.

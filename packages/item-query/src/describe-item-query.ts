@@ -6,22 +6,25 @@ import type {
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
 
-import type { QueryDataset } from "./dataset";
-import { describeQueryCustomFields } from "./describe-query-custom-fields";
-import type { ValueShape } from "./fields";
+import type { QueryDataset } from "./dataset.ts";
+import { describeQueryCustomFields } from "./describe-query-custom-fields.ts";
+import type { ValueShape } from "./fields.ts";
 import {
   GLOBAL_FUNCTIONS,
   IF_FUNCTION,
   METHOD_ENTRIES,
   PROPERTY_ENTRIES,
   VALUE_TYPES,
-} from "./filter-functions";
-import type { FunctionDefinition, FunctionParameter } from "./filter-functions";
-import type { FilterValueType } from "./filter-values";
-import { canGroup } from "./projection";
-import { parseProjectionPath } from "./projection-path";
-import { ITEMS } from "./query-items";
-import type { SortSpec } from "./request";
+} from "./filter-functions.ts";
+import type {
+  FunctionDefinition,
+  FunctionParameter,
+} from "./filter-functions.ts";
+import type { FilterValueType } from "./filter-values.ts";
+import { parseProjectionPath } from "./projection-path.ts";
+import { canGroup } from "./projection.ts";
+import { ITEMS } from "./query-items.ts";
+import type { SortSpec } from "./request.ts";
 
 /** The JSON type of a value in a Query Row. Every value can also be null. */
 export type JsonType =

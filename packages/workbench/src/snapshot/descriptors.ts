@@ -1,20 +1,20 @@
 // Browser-safe descriptor contract and extraction for serialized Template data.
 
-import type { TemplatePathSegment } from "#/explorer/accessor-path";
+import type { TemplatePathSegment } from "#explorer/accessor-path.ts";
 
 import type {
   SnapshotGraphReference,
   SnapshotRootDescriptors,
   SnapshotStringCoercion,
   SnapshotTemporalValue,
-} from "./schema";
+} from "./schema.ts";
 
 export type {
   SnapshotGraphReference,
   SnapshotRootDescriptors,
   SnapshotStringCoercion,
   SnapshotTemporalValue,
-} from "./schema";
+} from "./schema.ts";
 
 export function collectRootDescriptors(root: object): SnapshotRootDescriptors {
   const stringCoercions: SnapshotStringCoercion[] = [];

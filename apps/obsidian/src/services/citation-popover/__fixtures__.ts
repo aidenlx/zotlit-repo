@@ -3,40 +3,40 @@ import { Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { buildRuntime } from "@/lib/effect-layer";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupStatus } from "@/services/citation-index/lookup-service.ts";
 import type {
   CitationLookupAnswer,
   CitationLookupRequest,
-} from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import type { CitationLookupStatus } from "@/services/citation-index/lookup-service";
-import { CitationIndex } from "@/services/citation-index/service";
-import type { DocumentCitationSet } from "@/services/citation-index/service";
-import { CitationText } from "@/services/citation-text/service";
-import type { DocumentCitations } from "@/services/citation-text/service";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { EffectivePresentation } from "@/services/pandoc/document-presentation";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
+} from "@/services/citation-index/lookup.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
+import type { DocumentCitationSet } from "@/services/citation-index/service.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { DocumentCitations } from "@/services/citation-text/service.ts";
+import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import type {
   BibliographyRenderOutcome,
   BibliographyRenderResult,
   RenderPresentation,
-} from "@/services/pandoc/render-cache";
-import { Profile } from "@/services/profile/service";
-import type { ProfileReader } from "@/services/profile/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/pandoc/render-cache.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadLease,
   ZoteroReadsApi,
-} from "@/services/zotero-reads/service";
-import { ShowInLibrary } from "@/views/library/show-in-library";
+} from "@/services/zotero-reads/service.ts";
+import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
-import { layerCitationPopover, CitationPopover } from "./service";
+import { layerCitationPopover, CitationPopover } from "./service.tsx";
 
 export interface CitationPopoverFixtureDeps {
   /** The Obsidian objects the capability tags read; a missing one is empty. */

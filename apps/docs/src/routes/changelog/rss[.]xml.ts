@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 // `/changelog/rss.xml`: the changelog feed, at the current URL.
 import { Feed } from "feed";
 
-import { baseURL, changelogRoute } from "@/lib/shared";
-import { getChangelogPages } from "@/lib/source";
+import { baseURL, changelogRoute } from "@/lib/shared.ts";
+import { getChangelogPages } from "@/lib/source.ts";
 import { m } from "@/paraglide/messages.js";
 
 function renderFeed(): string {

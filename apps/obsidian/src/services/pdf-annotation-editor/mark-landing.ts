@@ -6,10 +6,10 @@
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
+import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
 
-import type { PdfPageAnnotation } from "./render";
+import type { PdfPageAnnotation } from "./render.ts";
 
 /** Why an Anchor lands on its page alone, as the debug record names it. */
 export type MarkLandingMiss =

@@ -8,20 +8,20 @@ import { Effect, Layer } from "effect";
 import type { Context, Scope } from "effect";
 import type { WorkspaceLeaf } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { reportOutcome } from "@/lib/notifier";
-import type { Notifier } from "@/lib/notifier";
-import type { Vault } from "@/lib/obsidian-vault";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import { PluginHost } from "@/lib/plugin-host";
-import type { PluginHostShape } from "@/lib/plugin-host";
-import type { Profile } from "@/services/profile/service";
-import { openTemplateWorkbench } from "@/views/template-workbench/open";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { reportOutcome } from "@/lib/notifier.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import type { Vault } from "@/lib/obsidian-vault.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import type { Profile } from "@/services/profile/service.ts";
+import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
-import { Template } from "./service";
+import { Template } from "./service.ts";
 
 /** The services the Citation Template open runs with. */
 type CitationTemplateServices =

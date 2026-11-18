@@ -1,16 +1,16 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { CollectionCache } from "@/lib/zt-collection";
-import { createFixtureSchema } from "@/test-utils";
-
 import {
   collectionIDsByItemQuery,
   collectionNodesByLibraryQuery,
-} from "./collections";
+} from "./collections.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { CollectionCache } from "#lib/zt-collection.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

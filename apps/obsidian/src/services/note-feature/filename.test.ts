@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { EmptyFilenameError, resolveFreeFlatName } from "./filename";
+import { EmptyFilenameError, resolveFreeFlatName } from "./filename.ts";
 
 describe("resolveFreeFlatName", () => {
   it("keeps the name flat: a slash becomes an underscore", () => {

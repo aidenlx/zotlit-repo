@@ -4,13 +4,13 @@ import { Cause, Effect, Exit, Result } from "effect";
 
 import type { CompiledFrontmatterField } from "@zotlit/templates/frontmatter";
 
-import type { ProfileOperationError } from "@/services/profile/service";
-import { plainTemplateError } from "@/services/template/errors";
-import { Template } from "@/services/template/service";
+import type { ProfileOperationError } from "@/services/profile/service.ts";
+import { plainTemplateError } from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
 import type {
   TemplateFailure,
   TemplateOperations,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
 /**
  * A Template call that fails with what the Template threw, as `Effect.try`

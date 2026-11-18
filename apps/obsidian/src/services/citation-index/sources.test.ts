@@ -5,18 +5,21 @@ import { afterEach, describe, expect } from "vitest";
 import type { Attachment } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db/test-utils";
 
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   recordCalls,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
-import type { SeededWork } from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
+import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
 
-import type { Citation } from "./query";
-import { readReferenceSources, toZoteroOpenableAttachments } from "./sources";
+import type { Citation } from "./query.ts";
+import {
+  readReferenceSources,
+  toZoteroOpenableAttachments,
+} from "./sources.ts";
 
 const KEY = "ABCD2345";
 const OTHER_KEY = "EFGH6789";

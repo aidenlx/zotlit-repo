@@ -6,7 +6,7 @@ import {
   headerSort,
   resizedWidth,
   toggledSortDirection,
-} from "./table-columns";
+} from "./table-columns.ts";
 
 describe("headerSort", () => {
   const SORT = [

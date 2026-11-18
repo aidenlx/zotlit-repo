@@ -6,7 +6,7 @@ import type {
   FilterFieldKind,
   FilterOperator,
   FilterRow,
-} from "#/match/fields";
+} from "#match/fields.ts";
 // The conditions of a Query Dataset as the Match editor offers them: the
 // kind picker's names and icons, and each field's operator and value
 // controls. The Query View's Filter and the Profile Match share them.
@@ -14,19 +14,19 @@ import type { ReactNode } from "react";
 
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import { useContainerName, useWorkbenchHost } from "./host";
-import { ChipInput } from "./match.chips";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
+import { ChipInput } from "./match.chips.tsx";
 import type {
   MatchConditionKind,
   MatchVocabulary,
   RowCondition,
-} from "./match.draft";
-import { MatchInput } from "./match.input";
-import { MatchSelect } from "./match.rows";
-import { useWorkbenchMessages } from "./messages";
-import { useIcon, useParts } from "./theme";
-import type { WorkbenchIcon } from "./theme";
+} from "./match.draft.ts";
+import { MatchInput } from "./match.input.tsx";
+import { MatchSelect } from "./match.rows.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useIcon, useParts } from "./theme.tsx";
+import type { WorkbenchIcon } from "./theme.tsx";
 
 import {
   FILTER_OPERATORS,
@@ -36,7 +36,7 @@ import {
   freshFilterRow,
   parseFilterRow,
   withOperator,
-} from "#/match/fields";
+} from "#match/fields.ts";
 
 /** The values a condition offers, from the Libraries the filter reads. */
 export interface FilterValues {

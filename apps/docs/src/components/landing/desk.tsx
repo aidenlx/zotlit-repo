@@ -25,12 +25,12 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { Message } from "@/components/message";
-import { cn } from "@/lib/cn";
+import { Message } from "@/components/message.tsx";
+import { cn } from "@/lib/cn.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 
-import { BY_YEAR, COLLECTION, QUERY_FOLDER, TAGS } from "./papers";
+import { BY_YEAR, COLLECTION, QUERY_FOLDER, TAGS } from "./papers.ts";
 
 /** A raised sheet of paper on the desk. */
 const PAPER = "[box-shadow:var(--desk-shadow)]";

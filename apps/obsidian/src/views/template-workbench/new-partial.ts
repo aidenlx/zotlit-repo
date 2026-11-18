@@ -8,21 +8,21 @@ import type { App, WorkspaceLeaf } from "obsidian";
 
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import {
   normalizePartialName,
   partialFilename,
   partialNameRefusal,
-} from "@/services/template/defaults";
-import type { PartialNameRefusal } from "@/services/template/defaults";
-import type { TemplateOperations } from "@/services/template/service";
+} from "@/services/template/defaults.ts";
+import type { PartialNameRefusal } from "@/services/template/defaults.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
 import {
   dialogFooter,
   field,
   footerButton,
   frameDialog,
   note,
-} from "@/setting-tab/profile-dialog";
+} from "@/setting-tab/profile-dialog.ts";
 
 /** The template surface every Shared Partial entry point reads. */
 export type SharedPartialActions = Pick<

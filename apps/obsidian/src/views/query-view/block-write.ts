@@ -11,8 +11,8 @@
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import type { MarkdownPostProcessorContext, Vault } from "obsidian";
 
-import { processLiveText } from "@/lib/live-text";
-import type { LiveTextApp } from "@/lib/live-text";
+import { processLiveText } from "@/lib/live-text.ts";
+import type { LiveTextApp } from "@/lib/live-text.ts";
 
 /** The host a block write needs. */
 export type BlockWriteApp = LiveTextApp & {

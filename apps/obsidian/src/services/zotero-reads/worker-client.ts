@@ -4,14 +4,14 @@ import workerSource from "virtual:zotero-reads-worker";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
 
-import { ObsidianEnv } from "@/lib/obsidian-env";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service";
-import { reapReadClones } from "@/services/database/reap-temps";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { reapReadClones } from "@/services/database/reap-temps.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import type { ReadsConfig } from "./rpc";
-import { connectWorker, makeWorkerReads } from "./worker-host";
+import type { ReadsConfig } from "./rpc.ts";
+import { connectWorker, makeWorkerReads } from "./worker-host.ts";
 
 const sameConfig = (a: ReadsConfig, b: ReadsConfig) =>
   a.databasePath === b.databasePath &&

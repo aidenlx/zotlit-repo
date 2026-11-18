@@ -2,9 +2,9 @@
 // Preview and the examples on the Properties and Name tabs, which keep only
 // their own wording and layout.
 
-import type { TemplateRenderResult } from "#/render/index";
+import type { TemplateRenderResult } from "#render/index.ts";
 
-import type { RenderSchedulerState } from "./scheduler-atoms";
+import type { RenderSchedulerState } from "./scheduler-atoms.ts";
 
 /**
  * Why a surface is not showing a current result:

@@ -2,18 +2,18 @@
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type { Scope } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { AvailableLibrary } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import type { LibraryScopeState } from "@/services/library-scope/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
-import { layerZoteroReads } from "@/services/zotero-reads/service";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import type { LibraryScopeState } from "@/services/library-scope/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
+import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { bindItemLookup } from "./handle";
-import type { ItemLookupHandle } from "./handle";
-import { ItemLookup, layerItemLookup } from "./service";
+import { bindItemLookup } from "./handle.ts";
+import type { ItemLookupHandle } from "./handle.ts";
+import { ItemLookup, layerItemLookup } from "./service.ts";
 
 /** The Library Scope state that holds `libraries`, or an unresolved one for `null`. */
 export function scopeState(

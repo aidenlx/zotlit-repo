@@ -1,16 +1,16 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { createFixtureSchema } from "@/test-utils";
 
 import {
   getAccountUserID,
   getZoteroDatabaseIdentity,
   getZoteroIdentity,
-} from "./account";
+} from "./account.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { createFixtureSchema } from "#test-utils.ts";
 
 function withFixture(
   test: (sqlite: DatabaseSync, db: NodeDatabaseClient) => void,

@@ -3,16 +3,16 @@
 import { TFile } from "obsidian";
 import type { App, PaneType, Plugin } from "obsidian";
 
-import { openAttachments } from "@/lib/attachment-open";
-import type { AttachmentReader } from "@/lib/attachment-open";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service";
+import { openAttachments } from "@/lib/attachment-open.ts";
+import type { AttachmentReader } from "@/lib/attachment-open.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 
-import type { LiteratureNoteAttachmentsHandle } from "./handle";
-import type { OpenTarget, TargetOpener } from "./open-target";
-import type { ObsidianOpenableAttachment } from "./resolve";
+import type { LiteratureNoteAttachmentsHandle } from "./handle.ts";
+import type { OpenTarget, TargetOpener } from "./open-target.ts";
+import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
 /**
  * An open a gesture starts outside Effect. Its caller runs each open on a

@@ -3,18 +3,18 @@ import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, onTestFinished, vi } from "vitest";
 
-import { keymapApp, pressTop } from "@/lib/__fixtures__/keymap";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { modalAnswer } from "@/lib/modal-answer";
-import type { ProfileId } from "@/lib/profile-stamp";
-import type { ProfilePreview } from "@/services/note-feature";
+import { keymapApp, pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { modalAnswer } from "@/lib/modal-answer.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfilePreview } from "@/services/note-feature/index.ts";
 
-import { openLiteratureNoteProfile } from "./profile-picker";
+import { openLiteratureNoteProfile } from "./profile-picker.ts";
 import type {
   LiteratureNoteProfileChoice,
   ProfilePick,
-} from "./profile-picker";
+} from "./profile-picker.ts";
 
 const books = { id: "Bk3Qn7XvT2Lp" as ProfileId };
 /** The Default and Books rows, in that order. */

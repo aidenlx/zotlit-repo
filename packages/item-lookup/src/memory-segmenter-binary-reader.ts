@@ -1,10 +1,10 @@
 // An in-memory SegmenterBinaryReader with the controls an Item Index test drives.
 import { Effect, Layer } from "effect";
 
-import { makeGate } from "./make-gate";
-import { SegmenterUnavailable } from "./segmenter";
-import { SegmenterBinaryReader } from "./segmenter-switch";
-import type { SegmenterBinary } from "./segmenter-switch";
+import { makeGate } from "./make-gate.ts";
+import { SegmenterBinaryReader } from "./segmenter-switch.ts";
+import type { SegmenterBinary } from "./segmenter-switch.ts";
+import { SegmenterUnavailable } from "./segmenter.ts";
 
 /**
  * A {@link SegmenterBinaryReader} that answers the bytes `bytesFor` names,

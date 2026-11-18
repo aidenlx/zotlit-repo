@@ -14,8 +14,8 @@ import { getSlugs } from "fumadocs-core/source";
 import { globSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import type { SiteLocale } from "./i18n.js";
-import type { MarkdownSection } from "./markdown-routes.js";
+import type { SiteLocale } from "./i18n.ts";
+import type { MarkdownSection } from "./markdown-routes.ts";
 
 /** One content file, addressed the way the loaders address it. */
 export interface ContentEntry {

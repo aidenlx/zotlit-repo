@@ -14,8 +14,8 @@ import {
 } from "effect";
 import { expect } from "vitest";
 
-import { LogCategory } from "@/lib/effect-log";
-import { filterTag, forkEach, subscribe } from "@/lib/effect-stream";
+import { LogCategory } from "@/lib/effect-log.ts";
+import { filterTag, forkEach, subscribe } from "@/lib/effect-stream.ts";
 
 type Tagged =
   | { readonly _tag: "a"; readonly n: number }

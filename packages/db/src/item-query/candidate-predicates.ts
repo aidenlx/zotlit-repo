@@ -1,11 +1,11 @@
-// Leaf predicates shared by Item, Attachment, and Annotation candidate readers.
-import { items, itemTags, tags } from "@drizzle/schema";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { and, eq, sql } from "drizzle-orm";
 import type { SQLWrapper } from "drizzle-orm";
 
-import type { NodeDatabaseClient } from "@/client/node";
+import { unindexed } from "./database.ts";
 
-import { unindexed } from "./database";
+// Leaf predicates shared by Item, Attachment, and Annotation candidate readers.
+import { items, itemTags, tags } from "#drizzle/schema.ts";
 
 export function candidateTag(
   db: NodeDatabaseClient,

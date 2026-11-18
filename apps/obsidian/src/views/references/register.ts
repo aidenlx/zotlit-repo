@@ -1,13 +1,13 @@
 import type { App, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { revealSetting } from "@/lib/open-settings";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { revealSetting } from "@/lib/open-settings.ts";
 
 import "./style.css";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 
-import { REFERENCES_VIEW_TYPE, ReferencesView } from "./view";
-import type { ReferencesViewDeps } from "./view";
+import { REFERENCES_VIEW_TYPE, ReferencesView } from "./view.tsx";
+import type { ReferencesViewDeps } from "./view.tsx";
 
 type ReferencesPlugin = Pick<
   Plugin,

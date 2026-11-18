@@ -1,14 +1,14 @@
 import { it } from "@effect/vitest";
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Effect, Layer } from "effect";
 import type { App, FileSystemAdapter, Vault } from "obsidian";
 import { afterEach, describe, expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
-import { layerTestObsidianEnv } from "./__fixtures__/obsidian-env";
-import { layerObsidianEnv, ObsidianEnv } from "./obsidian-env";
+import { layerTestObsidianEnv } from "./__fixtures__/obsidian-env.ts";
+import { layerObsidianEnv, ObsidianEnv } from "./obsidian-env.ts";
 
 afterEach(() => {
   resetMockPlatform();

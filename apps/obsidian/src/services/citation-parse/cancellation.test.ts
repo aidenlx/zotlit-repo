@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Queue } from "effect";
 import { expect, vi } from "vitest";
 
-import { cancellableParse, makeParseHarness } from "./__fixtures__";
-import { ParseFailed } from "./client";
+import { cancellableParse, makeParseHarness } from "./__fixtures__.ts";
+import { ParseFailed } from "./client.ts";
 
 vi.mock("virtual:citation-parse-worker", () => ({ default: "" }));
 

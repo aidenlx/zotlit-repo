@@ -1,7 +1,12 @@
 // @vitest-environment happy-dom
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { ConfirmationModal, Menu, Modal, SuggestModal } from "@mock/obsidian";
+import {
+  ConfirmationModal,
+  Menu,
+  Modal,
+  SuggestModal,
+} from "@mock/obsidian.ts";
 import { Cause, Effect, Exit } from "effect";
 import type { Fiber } from "effect";
 import type { App } from "obsidian";
@@ -18,11 +23,11 @@ import {
   WorkbenchHostError,
 } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { createTemplateWorkbenchHost } from "./host";
-import type { NativeWorkbenchSuggesterRequest } from "./host";
+import { createTemplateWorkbenchHost } from "./host.tsx";
+import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
 
 const SECTIONLESS_PROFILE = `---
 id: paper

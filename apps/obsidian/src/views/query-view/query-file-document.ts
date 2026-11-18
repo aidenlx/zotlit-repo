@@ -5,8 +5,8 @@
 // remembers the view through its save and select-view callbacks.
 import type { MatchTree } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
 
 import {
   editView,
@@ -17,17 +17,17 @@ import {
   withDisplayName,
   withFilters,
   withFormula,
-} from "./query-file";
+} from "./query-file.ts";
 import type {
   FilterSection,
   QueryFile,
   QueryFileDataset,
   QueryFileView,
   QueryFileViewEdit,
-} from "./query-file";
-import type { QueryViewHost } from "./view";
-import * as edits from "./view-edits";
-import { viewProperties } from "./view-properties";
+} from "./query-file.ts";
+import * as edits from "./view-edits.ts";
+import { viewProperties } from "./view-properties.ts";
+import type { QueryViewHost } from "./view.tsx";
 
 const logger = getLogger(["views", "query-view"]);
 

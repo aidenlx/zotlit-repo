@@ -4,18 +4,18 @@ import { Effect } from "effect";
 import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   annotationRows,
   annotationUri,
-} from "@/services/citation-index/__fixtures__/annotations";
-import type { CitationIndexHarnessOptions } from "@/services/citation-index/test-harness";
-import { createCitationIndexHarness } from "@/services/citation-index/test-harness";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { seedWorksSql } from "@/services/zotero-reads/test-utils";
+} from "@/services/citation-index/__fixtures__/annotations.ts";
+import type { CitationIndexHarnessOptions } from "@/services/citation-index/test-harness.ts";
+import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { seedWorksSql } from "@/services/zotero-reads/test-utils.ts";
 
-import { registerCitationsCli } from "./register";
+import { registerCitationsCli } from "./register.ts";
 
 /** The App the commands read the vault's name from. */
 function cliApp(): App {

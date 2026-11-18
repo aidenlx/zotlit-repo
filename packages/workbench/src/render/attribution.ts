@@ -14,15 +14,15 @@ import {
 } from "@zotlit/templates/facade";
 import { ParseError, TokenizationError } from "@zotlit/templates/liquid";
 
-import { errorChain } from "./report";
+import { errorChain } from "./report.ts";
 import type {
   RenderCaller,
   RenderDiagnostic,
   RenderEngineLocation,
   SliceSite,
-} from "./result";
+} from "./result.ts";
 
-import { templateCalls } from "#/document/regions";
+import { templateCalls } from "#document/regions.ts";
 
 /** The source one render read, which a repair location is an offset into. */
 export interface RenderCallerSource {

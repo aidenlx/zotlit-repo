@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FirstAnswerGate, LOADING_REVEAL_MS } from "./first-answer";
+import { FirstAnswerGate, LOADING_REVEAL_MS } from "./first-answer.ts";
 
 function setup() {
   const calls: string[] = [];

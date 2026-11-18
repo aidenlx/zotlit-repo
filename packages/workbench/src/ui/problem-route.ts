@@ -6,15 +6,15 @@ import type {
   WorkbenchDocumentController,
   WorkbenchProblem,
   WorkbenchSliceId,
-} from "#/document/controller";
+} from "#document/controller.ts";
 
-import type { WorkbenchViewState } from "./model";
-import type { WorkbenchDiagnosis } from "./problems";
-import type { SliceReveal } from "./slice-editor";
-import { isProfileProblem } from "./tabs";
+import type { WorkbenchViewState } from "./model.ts";
+import type { WorkbenchDiagnosis } from "./problems.ts";
+import type { SliceReveal } from "./slice-editor.tsx";
+import { isProfileProblem } from "./tabs.ts";
 
-import { entryPosition } from "#/document/controller";
-import { currentCallSite } from "#/render/locate";
+import { entryPosition } from "#document/controller.ts";
+import { currentCallSite } from "#render/locate.ts";
 
 /** The document facts the routing reads. */
 export type RoutedDocument = Pick<

@@ -1,4 +1,4 @@
-import type { WorkbenchDocumentController } from "#/document/controller";
+import type { WorkbenchDocumentController } from "#document/controller.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -10,12 +10,12 @@ import { ITEMS } from "@zotlit/item-query";
 import type { MatchTree } from "@zotlit/templates/facade";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
-import { useCustomFieldNames } from "./custom-fields";
-import { useWorkbenchModel } from "./editor";
-import { ExampleActions } from "./example-state";
-import { schemaLocale } from "./explorer-sections";
-import { useWorkbenchHost } from "./host";
-import type { WorkbenchMatchResult } from "./host";
+import { useCustomFieldNames } from "./custom-fields.ts";
+import { useWorkbenchModel } from "./editor.tsx";
+import { ExampleActions } from "./example-state.tsx";
+import { schemaLocale } from "./explorer-sections.ts";
+import { useWorkbenchHost } from "./host.tsx";
+import type { WorkbenchMatchResult } from "./host.tsx";
 import {
   appendAt,
   asExpression,
@@ -35,7 +35,7 @@ import {
   storedFilter,
   storesFilter,
   updateGroup,
-} from "./match.draft";
+} from "./match.draft.ts";
 import type {
   ConditionGroup,
   ConditionPath,
@@ -43,20 +43,20 @@ import type {
   MatchFilter,
   MatchVocabulary,
   RowCondition,
-} from "./match.draft";
-import { MatchExpressionInput } from "./match.expression";
-import { filterVocabulary } from "./match.fields";
-import type { FilterValues } from "./match.fields";
-import { MatchSelect } from "./match.rows";
+} from "./match.draft.ts";
+import { MatchExpressionInput } from "./match.expression.tsx";
+import { filterVocabulary } from "./match.fields.tsx";
+import type { FilterValues } from "./match.fields.tsx";
+import { MatchSelect } from "./match.rows.tsx";
 // One Match tree over the document controller; rows write through the master history.
-import { useWorkbenchMessages } from "./messages";
-import { useReorder } from "./reorder";
-import type { Reorder } from "./reorder";
-import { TabDocsLink } from "./tab-bar";
-import { useParts, useIcon } from "./theme";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useReorder } from "./reorder.ts";
+import type { Reorder } from "./reorder.ts";
+import { TabDocsLink } from "./tab-bar.tsx";
+import { useParts, useIcon } from "./theme.tsx";
 
-import { datasetVocabulary } from "#/language/expression-vocabulary";
-import { isDatasetFieldKind } from "#/match/fields";
+import { datasetVocabulary } from "#language/expression-vocabulary.ts";
+import { isDatasetFieldKind } from "#match/fields.ts";
 
 export type {
   ConditionControlProps,
@@ -67,7 +67,7 @@ export type {
   MatchFilter,
   MatchVocabulary,
   RowCondition,
-} from "./match.draft";
+} from "./match.draft.ts";
 
 const NO_VALUES: FilterValues = { tags: [], collections: [], libraries: [] };
 

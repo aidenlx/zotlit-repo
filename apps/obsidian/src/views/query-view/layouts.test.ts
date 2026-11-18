@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { layoutsFor } from "./layouts";
+import { layoutsFor } from "./layouts.ts";
 
 const types = (layouts: { type: string }[]) => layouts.map(({ type }) => type);
 

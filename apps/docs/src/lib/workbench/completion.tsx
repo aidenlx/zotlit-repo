@@ -15,7 +15,7 @@ import type {
   SuggestionSource,
 } from "@zotlit/workbench/language";
 
-import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover.tsx";
 // Web presentation for the shared Template Completion results. CodeMirror keeps focus.
 import { m } from "@/paraglide/messages.js";
 

@@ -1,6 +1,6 @@
 // Shared copyright footer for the (home) index surfaces (landing, blog, changelog).
 
-import { currentYear, gitConfig } from "@/lib/shared";
+import { currentYear, gitConfig } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 

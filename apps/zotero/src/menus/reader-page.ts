@@ -1,11 +1,11 @@
-import { requireMessage } from "@/lib/l10n";
-import { logger as appLogger } from "@/lib/logger";
+import { requireMessage } from "@/lib/l10n.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
 
 import {
   openAttachmentInObsidian,
   openInObsidian,
   readerTopLevelItem,
-} from "./obsidian.js";
+} from "./obsidian.ts";
 
 const logger = appLogger.getChild(["menus", "reader-page"]);
 

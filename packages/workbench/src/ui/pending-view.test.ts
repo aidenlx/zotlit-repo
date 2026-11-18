@@ -1,10 +1,10 @@
-import type { TemplateRenderResult } from "#/render/index";
+import type { TemplateRenderResult } from "#render/index.ts";
 import { describe, expect, it } from "vitest";
 
-import { pendingView } from "./pending-view";
-import type { RenderSchedulerState } from "./scheduler-atoms";
+import { pendingView } from "./pending-view.ts";
+import type { RenderSchedulerState } from "./scheduler-atoms.ts";
 
-import { failedRender } from "#/render/index";
+import { failedRender } from "#render/index.ts";
 
 const result = (filename: string | null): TemplateRenderResult => ({
   ...failedRender(

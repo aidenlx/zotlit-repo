@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { conflictPanel } from "./card-conflict";
+import { conflictPanel } from "./card-conflict.ts";
 
 it("names a text field's two verbs for that field", () => {
   const labels = (write: "color" | "comment" | "text") =>

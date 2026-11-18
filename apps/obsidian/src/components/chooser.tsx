@@ -46,12 +46,12 @@ import type {
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { SearchInput } from "@/components/obsidian/search-input";
-import { useObsidianApp } from "@/lib/app-context";
-import { registerKeymap } from "@/lib/disposables";
-import { themeHook } from "@/lib/theme-hooks";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { SearchInput } from "@/components/obsidian/search-input.tsx";
+import { useObsidianApp } from "@/lib/app-context.ts";
+import { registerKeymap } from "@/lib/disposables.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import {
   activatedRow,
@@ -59,15 +59,15 @@ import {
   clampedHighlight,
   movedHighlight,
   rehomedHighlight,
-} from "./chooser-logic";
+} from "./chooser-logic.ts";
 import type {
   ChooserActivation,
   ChooserGroup,
   ChooserMove,
   ChooserRow,
-} from "./chooser-logic";
-import { PinnedPopover } from "./pinned-popover";
-import type { PinnedPopoverHandle } from "./pinned-popover";
+} from "./chooser-logic.ts";
+import { PinnedPopover } from "./pinned-popover.tsx";
+import type { PinnedPopoverHandle } from "./pinned-popover.tsx";
 import "./chooser.css";
 
 // `chooser-logic.ts` is a module of its own rather than an implementation

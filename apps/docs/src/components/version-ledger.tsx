@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { useReleaseSnapshot } from "@/components/release-snapshot";
-import type { ReleaseChannel } from "@/lib/github-releases";
-import { formatReleaseInstant } from "@/lib/shared";
+import { useReleaseSnapshot } from "@/components/release-snapshot.tsx";
+import type { ReleaseChannel } from "@/lib/github-releases.ts";
+import { formatReleaseInstant } from "@/lib/shared.ts";
 // Current-version and compatibility ledger for the install pages.
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";

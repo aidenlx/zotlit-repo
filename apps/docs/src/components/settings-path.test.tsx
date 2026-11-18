@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { m } from "@/paraglide/messages.js";
 
-import { SettingsPath } from "./settings-path";
+import { SettingsPath } from "./settings-path.tsx";
 
 describe("SettingsPath", () => {
   it("renders the tab-only route as bold Markdown", async () => {

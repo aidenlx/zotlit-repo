@@ -2,7 +2,7 @@ import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPosition, AnnotationPositionRaw } from "@zotlit/db";
 import type { AnnotationDetails } from "@zotlit/db/item-query";
 
-import type { ValueShape } from "./fields";
+import type { ValueShape } from "./fields.ts";
 
 const STRING: ValueShape = { kind: "scalar", type: "string" };
 const NUMBER: ValueShape = { kind: "scalar", type: "number" };

@@ -1,7 +1,7 @@
 // Inline color marks shared by Zotero annotation excerpts and note-editor color
 // spans, rendered as HTML or opt-in Colored Highlight Syntax.
-import { highlightEmoji } from "@/lib/highlight-mapping";
-import type { HighlightMappings } from "@/lib/highlight-mapping";
+import { highlightEmoji } from "@/lib/highlight-mapping.ts";
+import type { HighlightMappings } from "@/lib/highlight-mapping.ts";
 
 export interface HighlightOptions {
   useColoredHighlightSyntax: boolean;

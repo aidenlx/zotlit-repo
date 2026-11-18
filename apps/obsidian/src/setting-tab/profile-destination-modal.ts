@@ -2,13 +2,13 @@
 import { Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { isUserStop } from "@/lib/user-cancel";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { isUserStop } from "@/lib/user-cancel.ts";
 import type {
   LiteratureNoteProfile,
   PreparedProfileCreation,
   ProfileCreateOptions,
-} from "@/services/profile/service";
+} from "@/services/profile/service.ts";
 
 import {
   dialogFooter,
@@ -16,7 +16,7 @@ import {
   footerButton,
   frameDialog,
   note,
-} from "./profile-dialog";
+} from "./profile-dialog.ts";
 
 /** What the destination dialog reads and runs while it is open. */
 export interface ProfileDestinationDeps {

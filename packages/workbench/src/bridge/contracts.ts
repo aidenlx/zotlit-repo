@@ -126,7 +126,7 @@ export type TemplateSchemaResponse = v.InferOutput<
   typeof templateSchemaResponseSchema
 >;
 
-export { itemSnapshotSchema } from "#/snapshot/schema";
+export { itemSnapshotSchema } from "#snapshot/schema.ts";
 
 export const profileDocumentSchema = v.variant("state", [
   v.object({

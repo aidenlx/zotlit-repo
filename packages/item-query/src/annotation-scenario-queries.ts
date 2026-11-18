@@ -1,4 +1,4 @@
-import type { ItemQueryRequest } from "./request";
+import type { ItemQueryRequest } from "./request.ts";
 
 /** Every Annotation scenario request is checked against the forced scan. */
 export const ANNOTATION_SCENARIO_QUERIES: readonly Omit<

@@ -2,9 +2,9 @@
 import { parseIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 
-import type { ReaderSessionTarget } from "@/services/reader-session/session";
+import type { ReaderSessionTarget } from "@/services/reader-session/session.ts";
 
-import type { AttachmentLock } from "./state";
+import type { AttachmentLock } from "./state.ts";
 
 /** What the view reads, in the one identity every surface shares. */
 export interface LoadTarget {

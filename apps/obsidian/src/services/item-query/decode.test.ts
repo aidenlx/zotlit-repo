@@ -3,10 +3,10 @@ import { Effect, Schema } from "effect";
 import type { CliData } from "obsidian";
 import { describe, expect } from "vitest";
 
-import type { CliRejection } from "@/lib/cli-params";
+import type { CliRejection } from "@/lib/cli-params.ts";
 
-import * as decode from "./decode";
-import { DecodedQuery } from "./query-codec";
+import * as decode from "./decode.ts";
+import { DecodedQuery } from "./query-codec.ts";
 
 /** The decoded value, or the diagnostic the handler answers with. */
 const answered =

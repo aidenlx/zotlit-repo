@@ -4,7 +4,7 @@
 import { ButtonComponent, stringifyYaml } from "obsidian";
 import type { Modal } from "obsidian";
 
-import type { ProfileNotePreview } from "@/services/note-feature";
+import type { ProfileNotePreview } from "@/services/note-feature/index.ts";
 
 /** `--dialog-width` is what `.modal` reads; the wide window borrows the
  * community-browser size so two columns fit. */

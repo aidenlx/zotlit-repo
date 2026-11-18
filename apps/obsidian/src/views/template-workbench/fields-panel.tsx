@@ -20,34 +20,34 @@ import type {
   WorkbenchModel,
 } from "@zotlit/workbench/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button";
-import * as m from "@/lib/i18n/generated/messages";
-import { tooltipAttrs } from "@/lib/utils";
-import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { tooltipAttrs } from "@/lib/utils.ts";
+import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms.ts";
 import {
   createExplorerActions,
   ExplorerActionsContext,
-} from "@/views/template-data-explorer/actions";
-import type { ExplorerActions } from "@/views/template-data-explorer/actions";
-import { Explorer } from "@/views/template-data-explorer/Explorer";
-import { exportTarget } from "@/views/template-data-explorer/export-file";
-import type { TemplateDataExportTarget } from "@/views/template-data-explorer/export-file";
+} from "@/views/template-data-explorer/actions.ts";
+import type { ExplorerActions } from "@/views/template-data-explorer/actions.ts";
+import { Explorer } from "@/views/template-data-explorer/Explorer.tsx";
+import { exportTarget } from "@/views/template-data-explorer/export-file.ts";
+import type { TemplateDataExportTarget } from "@/views/template-data-explorer/export-file.ts";
 import {
   ExplorerModelContext,
   inNoteAnnotations,
   NO_PRESENTATION,
   toggleSections,
-} from "@/views/template-data-explorer/model";
+} from "@/views/template-data-explorer/model.ts";
 import type {
   ExplorerLoad,
   ExplorerSession,
   ExplorerState,
   ExplorerSurface,
-} from "@/views/template-data-explorer/model";
+} from "@/views/template-data-explorer/model.ts";
 
-import { copyToClipboard } from "./host";
-import type { TemplateWorkbenchModel, WorkbenchItemRead } from "./model";
-import type { TemplateWorkbenchView } from "./view";
+import { copyToClipboard } from "./host.tsx";
+import type { TemplateWorkbenchModel, WorkbenchItemRead } from "./model.ts";
+import type { TemplateWorkbenchView } from "./view.tsx";
 
 type FieldsData = Omit<ExplorerLoad, "itemId">;
 

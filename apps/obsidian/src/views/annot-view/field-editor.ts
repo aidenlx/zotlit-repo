@@ -20,10 +20,10 @@ import { Decoration, EditorView, keymap, placeholder } from "@codemirror/view";
 import { Menu, Scope } from "obsidian";
 import type { App, ExtendedHotkey } from "obsidian";
 
-import { overlapsSelection } from "@/lib/editor-decoration";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import { menuSections, raiseMenu } from "@/services/menu-events";
+import { overlapsSelection } from "@/lib/editor-decoration.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
 import {
   activeFormats,
@@ -31,9 +31,9 @@ import {
   htmlToComment,
   parseComment,
   toggleFormat,
-} from "./comment-format";
-import type { CommentEdit, CommentFormat } from "./comment-format";
-import type { EditorSurface } from "./editor-sheet";
+} from "./comment-format.ts";
+import type { CommentEdit, CommentFormat } from "./comment-format.ts";
+import type { EditorSurface } from "./editor-sheet.ts";
 
 const logger = getLogger(["views", "annot-view"]);
 

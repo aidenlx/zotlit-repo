@@ -1,10 +1,10 @@
 // The evaluator of a validated Filter Expression: the authority for every
 // match. Missing data gives null; a value that the Item cannot compute gives
 // an Error Value, which passes through every node that does not read a truth.
-import { addDuration } from "./filter-dates";
-import { errorValue, firstError, isError } from "./filter-error";
-import { finite, invoke, methodOf, propertyOf } from "./filter-functions";
-import type { FilterNode } from "./filter-plan";
+import { addDuration } from "./filter-dates.ts";
+import { errorValue, firstError, isError } from "./filter-error.ts";
+import { finite, invoke, methodOf, propertyOf } from "./filter-functions.ts";
+import type { FilterNode } from "./filter-plan.ts";
 import {
   compare,
   equals,
@@ -14,9 +14,9 @@ import {
   toText,
   truthy,
   typeOf,
-} from "./filter-values";
-import type { FilterValue } from "./filter-values";
-import type { QueryClock } from "./query-clock";
+} from "./filter-values.ts";
+import type { FilterValue } from "./filter-values.ts";
+import type { QueryClock } from "./query-clock.ts";
 
 /** The values of the names the enclosing element expressions bind. */
 type Bindings = ReadonlyMap<string, FilterValue>;

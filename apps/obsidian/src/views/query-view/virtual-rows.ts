@@ -17,7 +17,7 @@ import type { Range, VirtualItem } from "@tanstack/react-virtual";
 import { defaultRangeExtractor } from "@tanstack/react-virtual";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { observeResize } from "@/lib/observe-resize";
+import { observeResize } from "@/lib/observe-resize.ts";
 
 /** The fewest entries a list mounts only near the screen. */
 const VIRTUAL_MIN_ENTRIES = 100;

@@ -7,18 +7,18 @@
 // is written once here and neither can drift from the other.
 import { Menu } from "obsidian";
 
-import { buildColorMenu } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import { menuSections } from "@/services/menu-events";
+import { buildColorMenu } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { menuSections } from "@/services/menu-events.ts";
 
-import type { PdfPoint } from "./geometry-edit";
-import type { PageBox, Point } from "./hit-test";
-import { pageUnitSize } from "./render";
-import type { OverlayPageView } from "./render";
-import { applyTransform, inverseTransform } from "./selection-capture";
-import { INK_WIDTHS, TEXT_FONT_SIZES } from "./tools";
-import type { InkWidth, TextFontSize } from "./tools";
+import type { PdfPoint } from "./geometry-edit.ts";
+import type { PageBox, Point } from "./hit-test.ts";
+import { pageUnitSize } from "./render.ts";
+import type { OverlayPageView } from "./render.ts";
+import { applyTransform, inverseTransform } from "./selection-capture.ts";
+import { INK_WIDTHS, TEXT_FONT_SIZES } from "./tools.ts";
+import type { InkWidth, TextFontSize } from "./tools.ts";
 
 const SECTION = menuSections("zotlit:annotation-color-menu");
 

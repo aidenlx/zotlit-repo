@@ -5,7 +5,7 @@ import {
   docsArticleSchema,
   faqPageSchema,
   lessonArticleSchema,
-} from "./structured-data";
+} from "./structured-data.ts";
 
 const publisher = {
   "@type": "Organization",

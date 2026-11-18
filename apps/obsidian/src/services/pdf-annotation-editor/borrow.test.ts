@@ -2,7 +2,7 @@
 // open PDF view's document, and what a closed or replaced one withdraws.
 
 // @vitest-environment happy-dom
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { FileSystemAdapter, Scope } from "obsidian";
 import type {
   App,
@@ -15,9 +15,9 @@ import type {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { openNoteVault } from "@/services/note-index/__fixtures__";
-import { NoteIndex } from "@/services/note-index/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openNoteVault } from "@/services/note-index/__fixtures__.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
 
 import {
   annotationReads,
@@ -26,8 +26,8 @@ import {
   markGestures,
   pdfReader,
   readerSettings,
-} from "./__fixtures__";
-import { openPdfEditor as PdfAnnotationEditor } from "./__fixtures__/editor";
+} from "./__fixtures__.ts";
+import { openPdfEditor as PdfAnnotationEditor } from "./__fixtures__/editor.ts";
 
 /** The bytes a document holding the open file answers with. */
 const PDF_BYTES = new Uint8Array([37, 80, 68, 70]);

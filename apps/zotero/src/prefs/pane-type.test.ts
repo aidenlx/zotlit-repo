@@ -6,7 +6,7 @@ vi.hoisted(() => {
   (globalThis as { Localization?: unknown }).Localization = class {};
 });
 
-import { preferredPaneType } from "./pane-type";
+import { preferredPaneType } from "./pane-type.ts";
 
 /** Stand in for the Zotero global the `prefs` wrapper reads through. */
 function storePref(value: unknown): void {

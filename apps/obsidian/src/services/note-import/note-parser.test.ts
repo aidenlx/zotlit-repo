@@ -25,16 +25,16 @@ import { inlineCitation, TemplateEngine } from "@zotlit/templates";
 import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { renderAnnotationSources } from "@/lib/annotation-render";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { renderAnnotationSources } from "@/lib/annotation-render.ts";
 import type {
   AttachmentSource,
   ResolveLinkOptions,
   SourceOrigin,
-} from "@/services/attachment-import/service";
+} from "@/services/attachment-import/service.ts";
 
-import { noteReferences, parseNote } from "./note-parser";
-import type { ParseNoteDeps } from "./note-parser";
+import { noteReferences, parseNote } from "./note-parser.ts";
+import type { ParseNoteDeps } from "./note-parser.ts";
 
 const packageRoot = getPackageRoot(import.meta.filename);
 

@@ -1,17 +1,17 @@
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import type { QueryDataset } from "@zotlit/item-query";
 
-import type { LibraryScope } from "@/services/library-scope/scope";
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import type {
   QUERY_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QueryCliCommand,
-} from "./contract";
-import type { DecodedQuery, DecodedValues } from "./query-codec";
-import type { QueryViewOutcome, QueryViewRequest } from "./query-view";
-import type { WorkerMeasurement } from "./trace";
+} from "./contract.ts";
+import type { DecodedQuery, DecodedValues } from "./query-codec.ts";
+import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
+import type { WorkerMeasurement } from "./trace.ts";
 
 /** The Query Dataset that a job reads: Items or Annotations. */
 export type QueryDatasetId = QueryDataset["id"];

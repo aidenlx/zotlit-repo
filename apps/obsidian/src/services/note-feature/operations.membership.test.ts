@@ -15,28 +15,28 @@ import { createFixtureSchema } from "@zotlit/db/test-utils";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream";
+import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
 import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_KEY,
-} from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { buildQueryService } from "@/services/item-query/__fixtures__";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import { Template } from "@/services/template/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { listCollectionChoices } from "@/services/zotero-reads/membership";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import type { ZoteroReadsEvents } from "@/services/zotero-reads/service";
+} from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { listCollectionChoices } from "@/services/zotero-reads/membership.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import type { ZoteroReadsEvents } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { noteFeatureHandle } from "./__fixtures__/note-feature";
-import type { NoteFeatureSources } from "./__fixtures__/note-feature";
-import type { CreationPlanOptions } from "./operations";
+import { noteFeatureHandle } from "./__fixtures__/note-feature.ts";
+import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";
+import type { CreationPlanOptions } from "./operations.ts";
 
 vi.mock("@zotlit/db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@zotlit/db")>();

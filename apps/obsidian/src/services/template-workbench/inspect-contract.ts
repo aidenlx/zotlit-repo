@@ -1,10 +1,10 @@
 // Shared facts for inspection parsing, registered flags, and generated help.
 import type { CliFlag } from "obsidian";
 
-import { RESERVED_PARTIAL_NAME_LIST } from "@/services/template/defaults";
+import { RESERVED_PARTIAL_NAME_LIST } from "@/services/template/defaults.ts";
 
-import type { InspectParam } from "./inspect";
-import { quotedList } from "./vocabulary";
+import type { InspectParam } from "./inspect.ts";
+import { quotedList } from "./vocabulary.ts";
 
 export const TEMPLATE_INSPECT_COMMAND = "zotlit:template-inspect";
 export const INSPECT_SOURCE_FULL = "full";

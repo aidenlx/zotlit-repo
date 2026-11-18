@@ -4,7 +4,7 @@ import {
   DocsPageView,
   docsPageHead,
   loadDocsPage,
-} from "@/components/docs-page";
+} from "@/components/docs-page.tsx";
 
 export const Route = createFileRoute("/docs/")({
   component: DocsIndex,

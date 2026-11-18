@@ -19,9 +19,9 @@ import type {
   UpdateScope,
 } from "@zotlit/protocol";
 
-import { getLogger } from "@/lib/log";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { rejectIncompatibleProtocol } from "@/services/protocol/compat";
+import { getLogger } from "@/lib/log.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { rejectIncompatibleProtocol } from "@/services/protocol/compat.ts";
 
 const logger = getLogger("live-update");
 

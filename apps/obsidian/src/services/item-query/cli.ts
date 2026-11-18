@@ -11,9 +11,9 @@
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler, CliHost } from "@/lib/cli-command";
-import { catchRejection } from "@/lib/cli-params";
-import { PluginHost } from "@/lib/plugin-host";
+import type { CliCommandHandler, CliHost } from "@/lib/cli-command.ts";
+import { catchRejection } from "@/lib/cli-params.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
 
 import {
   envelope,
@@ -27,12 +27,12 @@ import {
   queryFlags,
   queryCancelFlags,
   rejectionDiagnostic,
-} from "./contract";
-import type { QueryCliCommand } from "./contract";
-import { decodeCancelArguments, decodeGuideArguments } from "./decode";
-import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide";
-import { QueryService } from "./service";
-import type { ItemQueryError, QueryCancelled } from "./service";
+} from "./contract.ts";
+import type { QueryCliCommand } from "./contract.ts";
+import { decodeCancelArguments, decodeGuideArguments } from "./decode.ts";
+import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide.ts";
+import { QueryService } from "./service.ts";
+import type { ItemQueryError, QueryCancelled } from "./service.ts";
 
 /** The runs of the service; interrupting a handler interrupts its run. */
 export type QueryRuns = Pick<

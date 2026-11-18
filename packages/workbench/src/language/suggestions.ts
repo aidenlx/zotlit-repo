@@ -22,17 +22,17 @@ import {
   describe,
   child,
   sampleJson,
-} from "./contract";
-import { etaRange } from "./eta-syntax";
-import type { EtaRange } from "./eta-syntax";
-import type { WorkbenchHostError } from "./host-effects";
-import { jsonSuggestions, jsonHover } from "./json-e";
-import { liquidCodeRange, STRUCTURAL_TAGS } from "./liquid-ranges";
-import type { LiquidRange } from "./liquid-ranges";
-import { rankSuggestions } from "./matching";
-import { localsAt } from "./scope";
-import { DOCUMENTED_TAG_NAMES, tagHelp } from "./tag-help";
-import type { LiquidTagName } from "./tag-help";
+} from "./contract.ts";
+import { etaRange } from "./eta-syntax.ts";
+import type { EtaRange } from "./eta-syntax.ts";
+import type { WorkbenchHostError } from "./host-effects.ts";
+import { jsonSuggestions, jsonHover } from "./json-e.ts";
+import { liquidCodeRange, STRUCTURAL_TAGS } from "./liquid-ranges.ts";
+import type { LiquidRange } from "./liquid-ranges.ts";
+import { rankSuggestions } from "./matching.ts";
+import { localsAt } from "./scope.ts";
+import { DOCUMENTED_TAG_NAMES, tagHelp } from "./tag-help.ts";
+import type { LiquidTagName } from "./tag-help.ts";
 const JSDOC_LINK = regex("\\{@link (?<target>[^}]+)}", "g");
 const ANNOTATION_SHORTCUT_DETAIL =
   "Renders the Profile's final Annotation Section with the argument bound to zt. Outside a Profile, uses the named annotation partial. Missing or null data is an error.";

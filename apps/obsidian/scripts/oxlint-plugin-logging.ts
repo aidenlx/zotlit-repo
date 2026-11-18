@@ -6,7 +6,7 @@ import { hasSource, importsEffect } from "./oxlint-ast.ts";
 import type { ModuleProgram, ModuleStatement, Rule } from "./oxlint-ast.ts";
 
 const LOGTAPE_MODULE = "@logtape/logtape";
-const OBSIDIAN_LOG_MODULE = "@/lib/log";
+const OBSIDIAN_LOG_MODULE = "@/lib/log.ts";
 const LOG_MODULE_PATH = `${sep}src${sep}lib${sep}log`;
 const LOG_FILE_SUFFIXES = [
   ".ts",

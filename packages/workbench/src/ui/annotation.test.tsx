@@ -3,20 +3,20 @@ import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { Effect } from "effect";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { annotationSamples } from "./annotation-samples.ts";
 import {
   AnnotationPane,
   AnnotationSampleBar,
   annotationOption,
-} from "./annotation";
-import { annotationSamples } from "./annotation-samples";
-import { WorkbenchHostProvider } from "./host";
-import { SampleSuggester } from "./sample-suggester";
-import { fakeHost, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+} from "./annotation.tsx";
+import { WorkbenchHostProvider } from "./host.tsx";
+import { SampleSuggester } from "./sample-suggester.tsx";
+import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
-import { SAMPLE_ANNOTATIONS, SAMPLE_ITEMS } from "#/render/index";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
+import { SAMPLE_ANNOTATIONS, SAMPLE_ITEMS } from "#render/index.ts";
 
 afterEach(cleanup);
 

@@ -9,24 +9,24 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { pressTop } from "@/lib/__fixtures__/keymap";
-import { AppContext } from "@/lib/app-context";
-import * as m from "@/lib/i18n/generated/messages";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+import { pressTop } from "@/lib/__fixtures__/keymap.ts";
+import { AppContext } from "@/lib/app-context.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,
   MutationState,
   TextFieldDraft,
-} from "@/services/annotation-repository/service";
-import type { ExcerptRequest } from "@/services/excerpt-image/contract";
+} from "@/services/annotation-repository/service.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
 
-import { editorApp } from "./__fixtures__/editor-app";
-import { makeAnnotHost } from "./__fixtures__/host";
-import { AnnotActionsContext } from "./actions";
-import type { AnnotActions } from "./actions";
-import { Annotation } from "./Annotation";
-import { cardPlace } from "./card-selection";
-import { AnnotStoreProvider } from "./store";
+import { editorApp } from "./__fixtures__/editor-app.ts";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
+import { AnnotActionsContext } from "./actions.tsx";
+import type { AnnotActions } from "./actions.tsx";
+import { Annotation } from "./Annotation.tsx";
+import { cardPlace } from "./card-selection.ts";
+import { AnnotStoreProvider } from "./store.ts";
 
 const CARD: AnnotationRecord = {
   key: "AAAA1111",

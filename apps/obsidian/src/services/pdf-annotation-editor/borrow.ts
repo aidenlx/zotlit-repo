@@ -4,13 +4,13 @@
 
 import type { PDFDocumentProxy, PDFViewerController } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 import type {
   BorrowedExcerptDocument,
   ExcerptCropPage,
-} from "@/services/excerpt-image/reader-borrow";
+} from "@/services/excerpt-image/reader-borrow.ts";
 
-import { pdfDocumentOf } from "./seam";
+import { pdfDocumentOf } from "./seam.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

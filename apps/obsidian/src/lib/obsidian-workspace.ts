@@ -21,14 +21,14 @@ import type {
   WorkspaceRoot,
 } from "obsidian";
 
-import { logAndContinue } from "@/lib/effect-log";
-import { loadedTextFileView } from "@/lib/live-text";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { logAndContinue } from "@/lib/effect-log.ts";
+import { loadedTextFileView } from "@/lib/live-text.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import {
   obsidianEventSource,
   obsidianListener,
-} from "@/lib/obsidian-event-source";
-import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source";
+} from "@/lib/obsidian-event-source.ts";
+import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source.ts";
 
 /** Obsidian rejected an `openLinkText` call. `cause` holds what it threw. */
 export class OpenLinkFailed extends Schema.TaggedError<

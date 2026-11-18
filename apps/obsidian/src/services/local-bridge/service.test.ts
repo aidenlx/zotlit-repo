@@ -11,31 +11,31 @@ import {
   LOCAL_BRIDGE_PATHS,
 } from "@zotlit/workbench/bridge";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { DOCS_SITE_URL } from "@/lib/constants";
-import { effectBridge } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { subscribe } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { buildLocalServer } from "@/services/local-server/__fixtures__";
-import type { LocalServer } from "@/services/local-server/service";
-import { NoteIndex } from "@/services/note-index/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import type { PluginSettings, Settings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { DOCS_SITE_URL } from "@/lib/constants.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { buildLocalServer } from "@/services/local-server/__fixtures__.ts";
+import type { LocalServer } from "@/services/local-server/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { PluginSettings, Settings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { bindLocalBridge } from "./handle";
-import type { LocalBridgeHandle } from "./handle";
-import { layerLocalBridge, LocalBridge } from "./service";
-import type { WorkbenchConnection, WorkbenchLaunch } from "./service";
+import { bindLocalBridge } from "./handle.ts";
+import type { LocalBridgeHandle } from "./handle.ts";
+import { layerLocalBridge, LocalBridge } from "./service.ts";
+import type { WorkbenchConnection, WorkbenchLaunch } from "./service.ts";
 
 const VAULT_NAME = "Research";
 /** A Profile id of the shape the registry mints: twelve alphanumerics. */

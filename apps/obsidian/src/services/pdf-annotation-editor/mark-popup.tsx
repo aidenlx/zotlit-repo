@@ -19,42 +19,42 @@ import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { IconButton } from "@/components/obsidian/icon-button";
-import { AppContext } from "@/lib/app-context";
-import { HoverPopover } from "@/lib/hover-popover";
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { AppContext } from "@/lib/app-context.ts";
+import { HoverPopover } from "@/lib/hover-popover.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type {
   MutationState,
   WriteConflict,
-} from "@/services/annotation-repository/write";
-import { cardControls } from "@/views/annot-view/card-controls";
+} from "@/services/annotation-repository/write.ts";
+import { cardControls } from "@/views/annot-view/card-controls.ts";
 import type {
   CardBlock,
   CardControl,
   HeldDraft,
   VerbBlocks,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 import {
   CommentView,
   ConflictPanelSlot,
   EditorSheetSlot,
   HeldDraftSlot,
-} from "@/views/annot-view/comment-parts";
+} from "@/views/annot-view/comment-parts.tsx";
 import type {
   CommentEntry,
   EditorSheetSlotProps,
-} from "@/views/annot-view/comment-parts";
-import type { CommentRenderer } from "@/views/annot-view/comment-render";
-import { copiedText } from "@/views/annot-view/copied-text";
-import { commentFrameClass } from "@/views/annot-view/editor-sheet";
-import type { TextDraftActions } from "@/views/annot-view/editor-sheet";
+} from "@/views/annot-view/comment-parts.tsx";
+import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
+import { copiedText } from "@/views/annot-view/copied-text.ts";
+import { commentFrameClass } from "@/views/annot-view/editor-sheet.ts";
+import type { TextDraftActions } from "@/views/annot-view/editor-sheet.ts";
 
-import type { Point } from "./hit-test";
-import { MarkPopupTagSection } from "./mark-popup-tags";
-import type { MarkPopupTagSectionProps } from "./mark-popup-tags";
+import type { Point } from "./hit-test.ts";
+import { MarkPopupTagSection } from "./mark-popup-tags.tsx";
+import type { MarkPopupTagSectionProps } from "./mark-popup-tags.tsx";
 import "./style.css";
 
 /** Layout only; Obsidian's `clickable-icon` owns the look of each verb. */

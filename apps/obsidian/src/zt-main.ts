@@ -2,83 +2,89 @@ import { View } from "obsidian";
 import type { Plugin } from "obsidian";
 import semverGte from "semver/functions/gte";
 
-import type { CliCommand, CliHost } from "@/lib/cli-command";
-import { handlerCheckedFlags, printableCliHandler } from "@/lib/cli-rejection";
+import type { CliCommand, CliHost } from "@/lib/cli-command.ts";
+import {
+  handlerCheckedFlags,
+  printableCliHandler,
+} from "@/lib/cli-rejection.ts";
 import {
   ANNOTATION_SUGGESTER_ENABLED,
   WEB_WORKBENCH_ENABLED,
-} from "@/lib/constants";
-import { docsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import { revealSetting } from "@/lib/open-settings";
-import { logLateRelease, UnloadAwarePlugin } from "@/lib/plugin-lifecycle";
+} from "@/lib/constants.ts";
+import { docsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { revealSetting } from "@/lib/open-settings.ts";
+import { logLateRelease, UnloadAwarePlugin } from "@/lib/plugin-lifecycle.ts";
 
-import { startI18n } from "./lib/i18n";
-import { enableStartupLogging } from "./lib/log";
-import { BaseNotice } from "./lib/notice";
-import { addAnnotationHistoryActions } from "./services/annotation-repository/actions";
-import type { HistorySurface } from "./services/annotation-repository/actions";
-import { annotationHistoryFileMenu } from "./services/annotation-repository/menu";
-import { addAttachmentOpenActions } from "./services/attachment-open/actions";
-import { registerFileLinkCapture } from "./services/attachment-open/capture";
-import { attachmentOpenFileMenu } from "./services/attachment-open/menu";
-import { addCitekeyEditorActions } from "./services/citekey-editor/actions";
-import { registerFileMenu } from "./services/file-menu";
-import { addGraphCitationsActions } from "./services/graph-citations/actions";
-import { addIndexedKeyActions } from "./services/indexed-key/actions";
-import { indexedKeyFileMenu } from "./services/indexed-key/menu";
-import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices";
+import { startI18n } from "./lib/i18n.ts";
+import { enableStartupLogging } from "./lib/log.ts";
+import { BaseNotice } from "./lib/notice.ts";
+import { addAnnotationHistoryActions } from "./services/annotation-repository/actions.ts";
+import type { HistorySurface } from "./services/annotation-repository/actions.ts";
+import { annotationHistoryFileMenu } from "./services/annotation-repository/menu.ts";
+import { addAttachmentOpenActions } from "./services/attachment-open/actions.ts";
+import { registerFileLinkCapture } from "./services/attachment-open/capture.ts";
+import { attachmentOpenFileMenu } from "./services/attachment-open/menu.ts";
+import { addCitekeyEditorActions } from "./services/citekey-editor/actions.ts";
+import { registerFileMenu } from "./services/file-menu.ts";
+import { addGraphCitationsActions } from "./services/graph-citations/actions.ts";
+import { addIndexedKeyActions } from "./services/indexed-key/actions.ts";
+import { indexedKeyFileMenu } from "./services/indexed-key/menu.ts";
+import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices.ts";
 import {
   addNoteFeatureActions,
   noteFeatureFileMenu,
-} from "./services/note-feature/actions";
-import { createPluginRuntime } from "./services/plugin-runtime";
-import { ServiceStartupFailed } from "./services/startup-failure";
+} from "./services/note-feature/actions.ts";
+import { createPluginRuntime } from "./services/plugin-runtime.ts";
+import { ServiceStartupFailed } from "./services/startup-failure.ts";
 import {
   createProfileDialog,
   importProfileDialog,
-} from "./setting-tab/profile-dialogs";
-import { createCommentRenderer } from "./views/annot-view/comment-render";
-import { registerAnnotView } from "./views/annot-view/register";
-import { AnnotationView } from "./views/annot-view/view";
+} from "./setting-tab/profile-dialogs.ts";
+import { createCommentRenderer } from "./views/annot-view/comment-render.ts";
+import { registerAnnotView } from "./views/annot-view/register.ts";
+import { AnnotationView } from "./views/annot-view/view.tsx";
 import {
   citationPresentationFileMenu,
   registerCitationPresentation,
-} from "./views/citation-presentation/register";
+} from "./views/citation-presentation/register.ts";
 import {
   registerAnnotationSuggest,
   registerCitationSuggest,
-} from "./views/citation-suggest/register";
-import { registerCitedByView } from "./views/cited-by/register";
-import { itemActions } from "./views/library/item-actions";
-import { registerLibraryView, showInLibrary } from "./views/library/register";
-import { showInLibraryFileMenu } from "./views/library/show-in-library-actions";
-import { openTargetCommand } from "./views/open-target";
-import { registerPandocExport } from "./views/pandoc-export/register";
-import { registerPdfNote } from "./views/pdf-note/register";
-import { registerQueryBlock } from "./views/query-view/block";
-import { QueryCardFocus } from "./views/query-view/card-focus";
-import { QueryFileView } from "./views/query-view/file-view";
-import { whenNear } from "./views/query-view/note-host";
+} from "./views/citation-suggest/register.ts";
+import { registerCitedByView } from "./views/cited-by/register.ts";
+import { itemActions } from "./views/library/item-actions.ts";
+import {
+  registerLibraryView,
+  showInLibrary,
+} from "./views/library/register.ts";
+import { showInLibraryFileMenu } from "./views/library/show-in-library-actions.ts";
+import { openTargetCommand } from "./views/open-target.ts";
+import { registerPandocExport } from "./views/pandoc-export/register.ts";
+import { registerPdfNote } from "./views/pdf-note/register.ts";
+import { registerQueryBlock } from "./views/query-view/block.ts";
+import { QueryCardFocus } from "./views/query-view/card-focus.ts";
+import { QueryFileView } from "./views/query-view/file-view.ts";
+import { whenNear } from "./views/query-view/note-host.ts";
 import {
   queryFileFileMenu,
   queryFileFolderMenu,
   registerQueryFileView,
-} from "./views/query-view/register";
-import { literatureNotes } from "./views/query-view/table-notes";
-import type { QueryViewDeps } from "./views/query-view/view";
-import { registerQuickSwitch } from "./views/quick-switch/register";
-import { registerReferencesView } from "./views/references/register";
+} from "./views/query-view/register.ts";
+import { literatureNotes } from "./views/query-view/table-notes.ts";
+import type { QueryViewDeps } from "./views/query-view/view.tsx";
+import { registerQuickSwitch } from "./views/quick-switch/register.ts";
+import { registerReferencesView } from "./views/references/register.ts";
 import {
   explorerFileMenu,
   registerTemplateDataExplorer,
-} from "./views/template-data-explorer/register";
+} from "./views/template-data-explorer/register.ts";
 import {
   templateWorkbenchFileMenu,
   registerTemplateWorkbenchView,
-} from "./views/template-workbench/register";
-import { registerWelcomeView } from "./views/welcome/register";
-import { createSetupActions } from "./views/welcome/setup-actions";
+} from "./views/template-workbench/register.ts";
+import { registerWelcomeView } from "./views/welcome/register.ts";
+import { createSetupActions } from "./views/welcome/setup-actions.ts";
 import "./zt-main.css";
 
 function showInstallerUpdateNotice(): BaseNotice {

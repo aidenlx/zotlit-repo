@@ -21,50 +21,50 @@ import type {
 import {
   registerDomEvent,
   registerMigratingWindowEvent,
-} from "@/lib/disposables";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import type { Notifier } from "@/lib/notifier";
-import { themeAttribute } from "@/lib/theme-hooks";
-import { watch } from "@/lib/view-atoms";
-import type { HistorySurface } from "@/services/annotation-repository/actions";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy";
+} from "@/lib/disposables.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { themeAttribute } from "@/lib/theme-hooks.ts";
+import { watch } from "@/lib/view-atoms.ts";
+import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
+import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationRepository,
   AnnotationSource,
   HistoryDirection,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import type {
   AttachmentResolution,
   AttachmentResolver,
-} from "@/services/attachment-resolver/service";
-import type { BorrowedExcerptDocument } from "@/services/excerpt-image/reader-borrow";
-import type { NoteIndex } from "@/services/note-index/service";
-import { ReaderSessionHost } from "@/services/reader-session/session";
-import type { ReaderSession } from "@/services/reader-session/session";
-import { editingLive } from "@/views/annot-view/card-controls";
-import { createCommentRenderer } from "@/views/annot-view/comment-render";
-import { createDragInsertHandler } from "@/views/annot-view/drag-insert";
-import type { InsertRunner } from "@/views/annot-view/insert-run";
+} from "@/services/attachment-resolver/service.ts";
+import type { BorrowedExcerptDocument } from "@/services/excerpt-image/reader-borrow.ts";
+import type { NoteIndex } from "@/services/note-index/service.ts";
+import { ReaderSessionHost } from "@/services/reader-session/session.ts";
+import type { ReaderSession } from "@/services/reader-session/session.ts";
+import { editingLive } from "@/views/annot-view/card-controls.ts";
+import { createCommentRenderer } from "@/views/annot-view/comment-render.ts";
+import { createDragInsertHandler } from "@/views/annot-view/drag-insert.ts";
+import type { InsertRunner } from "@/views/annot-view/insert-run.ts";
 
-import { dropPendingAnchor, peekPendingAnchor } from "./anchor-capture";
-import { borrowReaderDocument } from "./borrow";
+import { dropPendingAnchor, peekPendingAnchor } from "./anchor-capture.ts";
+import { borrowReaderDocument } from "./borrow.ts";
 import {
   isEditGesture,
   removeCapabilityAffordance,
   renderCapabilityAffordance,
-} from "./capability-affordance";
-import { MarkCreation } from "./creation";
-import type { ReaderPage } from "./creation";
-import { isRangeGrip, rangeHandles } from "./geometry-edit";
-import type { TextRotation } from "./geometry-edit";
-import { decideMarkLanding } from "./mark-landing";
-import type { MarkLandingMiss, MarkLandingTarget } from "./mark-landing";
-import { MarkPopupHost } from "./mark-popup-host";
+} from "./capability-affordance.ts";
+import { MarkCreation } from "./creation.ts";
+import type { ReaderPage } from "./creation.ts";
+import { isRangeGrip, rangeHandles } from "./geometry-edit.ts";
+import type { TextRotation } from "./geometry-edit.ts";
+import { decideMarkLanding } from "./mark-landing.ts";
+import type { MarkLandingMiss, MarkLandingTarget } from "./mark-landing.ts";
+import { MarkPopupHost } from "./mark-popup-host.ts";
 import {
   oneAtATime,
   pressHistory,
@@ -72,20 +72,20 @@ import {
   reportBlockedEdit,
   settledOf,
   stepMarkHistory,
-} from "./operations";
-import type { BindingWrites, WriteRun } from "./operations";
-import { mountReaderKeymap } from "./reader-keymap";
+} from "./operations.ts";
+import type { BindingWrites, WriteRun } from "./operations.ts";
+import { mountReaderKeymap } from "./reader-keymap.ts";
 import {
   current,
   ingestAnnotations,
   listenAnnotationEvents,
   makeReaderSurfaceModel,
   update,
-} from "./reader-surface-model";
+} from "./reader-surface-model.ts";
 import type {
   ReaderSurface,
   ReaderSurfaceRegistry,
-} from "./reader-surface-model";
+} from "./reader-surface-model.ts";
 import {
   ingestCapability,
   initialReaderSurfaceState,
@@ -94,9 +94,9 @@ import {
   selectMarkHandles,
   selectSelectedKey,
   selectTextDraft,
-} from "./reader-surface-state";
-import type { Adjustment, ReaderSurfaceState } from "./reader-surface-state";
-import type { PdfReads } from "./reads";
+} from "./reader-surface-state.ts";
+import type { Adjustment, ReaderSurfaceState } from "./reader-surface-state.ts";
+import type { PdfReads } from "./reads.ts";
 import {
   groupAnnotationsByPage,
   interfaceFont,
@@ -106,8 +106,8 @@ import {
   renderLiveStroke,
   scrollMarkIntoView,
   withPosition,
-} from "./render";
-import type { PdfPageAnnotation } from "./render";
+} from "./render.ts";
+import type { PdfPageAnnotation } from "./render.ts";
 import {
   initialViewSet,
   loadedPageOf,
@@ -128,17 +128,17 @@ import {
   renderedPagesOf,
   toolbarSlotOf,
   whenViewerReady,
-} from "./seam";
-import type { PdfSeamProbeResult } from "./seam";
-import { MarkSelection } from "./selection";
-import type { MarkGestures } from "./selection";
+} from "./seam.ts";
+import type { PdfSeamProbeResult } from "./seam.ts";
+import { MarkSelection } from "./selection.ts";
+import type { MarkGestures } from "./selection.ts";
 import {
   createTextDraftArea,
   placeTextDraft,
   removeTextDraftArea,
-} from "./text-draft";
-import { pdfPageSource } from "./text-structure";
-import type { MarkTool, ToolColorStore } from "./tools";
+} from "./text-draft.ts";
+import { pdfPageSource } from "./text-structure.ts";
+import type { MarkTool, ToolColorStore } from "./tools.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

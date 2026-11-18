@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { renderFunctionsReference } from "./reference";
-import type { LanguageVocabulary } from "./reference";
+import { renderFunctionsReference } from "./reference.ts";
+import type { LanguageVocabulary } from "./reference.ts";
 
 const VOCABULARY: LanguageVocabulary = {
   types: ["null", "string", "list", "duration"],

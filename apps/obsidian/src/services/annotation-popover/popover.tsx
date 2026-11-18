@@ -6,25 +6,25 @@ import type { Component, HoverParent } from "obsidian";
 import { formatIndexedKey } from "@zotlit/db";
 import type { AnnotationOpenUriOptions } from "@zotlit/db";
 
-import { AbortError } from "@/lib/abort-error";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { getLogger } from "@/lib/log";
+import { AbortError } from "@/lib/abort-error.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { getLogger } from "@/lib/log.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationRepository,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import type { PopoverPart } from "@/services/citation-popover/visits";
-import type { NavigationPane } from "@/services/citekey-navigation";
+} from "@/services/annotation-repository/service.ts";
+import type { PopoverPart } from "@/services/citation-popover/visits.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 import type {
   ExcerptDisplayDemand,
   ExcerptDisplays,
-} from "@/services/excerpt-image/display";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
-import type { CommentRenderer } from "@/views/annot-view/comment-render";
+} from "@/services/excerpt-image/display.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
+import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 
-import { AnnotationPopoverContent } from "./content";
+import { AnnotationPopoverContent } from "./content.tsx";
 
 const logger = getLogger("annotation-popover");
 

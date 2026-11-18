@@ -9,33 +9,33 @@ import type {
   HydratedAnnotation,
 } from "@zotlit/db/item-query";
 
-import type { AnnotationNeeds } from "./annotation-hydration";
+import type { AnnotationNeeds } from "./annotation-hydration.ts";
 import {
   annotationPageIndex,
   ANNOTATION_POSITION_SHAPE,
   readAnnotationPosition,
-} from "./annotation-position";
-import type { QueryAttachment } from "./attachment-fields";
-import type { AttachmentNeeds } from "./attachment-hydration";
-import { compareStrings } from "./collation";
-import type { SortableField } from "./dataset";
-import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields";
+} from "./annotation-position.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
+import type { AttachmentNeeds } from "./attachment-hydration.ts";
+import { compareStrings } from "./collation.ts";
+import type { SortableField } from "./dataset.ts";
+import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import type {
   FieldDefinition as ItemFieldDefinition,
   QueryItem,
   FieldNeeds,
   ValueShape,
-} from "./fields";
-import { timestamp } from "./filter-dates";
-import type { FilterRegistry } from "./filter-plan";
-import type { FilterValue } from "./filter-values";
-import { keyField, indexedKeyField } from "./key-fields";
-import { libraryField } from "./library-field";
-import { liftParentRecord, parentSortFields } from "./parent-records";
-import { definitionFilter } from "./record-field";
-import { attachmentVocabulary } from "./record-vocabularies";
-import { itemVocabulary } from "./record-vocabularies";
-import type { ProjectionValue } from "./request";
+} from "./fields.ts";
+import { timestamp } from "./filter-dates.ts";
+import type { FilterRegistry } from "./filter-plan.ts";
+import type { FilterValue } from "./filter-values.ts";
+import { keyField, indexedKeyField } from "./key-fields.ts";
+import { libraryField } from "./library-field.ts";
+import { liftParentRecord, parentSortFields } from "./parent-records.ts";
+import { definitionFilter } from "./record-field.ts";
+import { attachmentVocabulary } from "./record-vocabularies.ts";
+import { itemVocabulary } from "./record-vocabularies.ts";
+import type { ProjectionValue } from "./request.ts";
 
 type FieldDefinition = ItemFieldDefinition<QueryAnnotation, AnnotationNeeds>;
 

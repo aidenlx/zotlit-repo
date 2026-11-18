@@ -1,8 +1,8 @@
-export { BatchModal } from "./shell";
-export { FlatManifest } from "./flat-manifest";
-export type { FlatGroupDef, FlatTask } from "./flat-manifest";
-export { HierarchyManifest } from "./hierarchy-manifest";
-export type { HierarchyParent } from "./hierarchy-manifest";
+export { BatchModal } from "./shell.ts";
+export { FlatManifest } from "./flat-manifest.ts";
+export type { FlatGroupDef, FlatTask } from "./flat-manifest.ts";
+export { HierarchyManifest } from "./hierarchy-manifest.ts";
+export type { HierarchyParent } from "./hierarchy-manifest.ts";
 export type {
   BatchClassifyControls,
   BatchFailure,
@@ -14,4 +14,4 @@ export type {
   BatchModalText,
   BatchRunControls,
   BatchRunResult,
-} from "./types";
+} from "./types.ts";

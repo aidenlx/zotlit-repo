@@ -5,26 +5,26 @@ import { isChildItemFields, itemToCsl } from "@zotlit/db";
 import type { CslItemData } from "@zotlit/db";
 import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
 
-import type { CitationSource } from "@/lib/citation-source";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { ViewServices } from "@/lib/view-atoms";
-import type { WikilinkCitation } from "@/lib/wikilink-citation";
+import type { CitationSource } from "@/lib/citation-source.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { ViewServices } from "@/lib/view-atoms.ts";
+import type { WikilinkCitation } from "@/lib/wikilink-citation.ts";
 import {
   citationOfRun,
   citationRuns,
   citationTarget,
   wikilinkCitation,
-} from "@/lib/wikilink-citation";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationParse } from "@/services/citation-parse/service";
-import type { PresentedCitation } from "@/services/citation-text/present";
-import { resolveLiteratureNoteIn } from "@/services/note-index/service";
-import { holdsNote } from "@/services/pandoc/inline-content";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { PandocEngine } from "@/services/pandoc/service";
-import type { PandocEngineStatus } from "@/services/pandoc/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/lib/wikilink-citation.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import type { PresentedCitation } from "@/services/citation-text/present.ts";
+import { resolveLiteratureNoteIn } from "@/services/note-index/service.ts";
+import { holdsNote } from "@/services/pandoc/inline-content.tsx";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 export interface PreviewCitation extends PresentedCitation {
   source: string;

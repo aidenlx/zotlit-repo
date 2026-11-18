@@ -2,7 +2,7 @@
 
 import { resolveLocale } from "@zotlit/obsidian-i18n";
 
-import { catalog } from "@/lib/i18n/generated/catalog";
+import { catalog } from "@/lib/i18n/generated/catalog.ts";
 
 /** Obsidian language codes that name a catalog locale under another code. */
 const ALIASES = { zh: "zh-CN" } as const;

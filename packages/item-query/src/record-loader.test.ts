@@ -12,15 +12,15 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ItemQueryError } from "./error";
-import { ITEM_LOADING } from "./hydration";
-import { ITEMS } from "./query-items";
-import { openQuerySources } from "./query-sources";
-import { openRecordLoader } from "./record-loader";
-import { planRequest } from "./request";
-import type { ItemQueryRequest, TargetLibrary } from "./request";
-import { runEffect } from "./test-helpers";
-import type { RunEvent } from "./test-helpers";
+import { ItemQueryError } from "./error.ts";
+import { ITEM_LOADING } from "./hydration.ts";
+import { ITEMS } from "./query-items.ts";
+import { openQuerySources } from "./query-sources.ts";
+import { openRecordLoader } from "./record-loader.ts";
+import { planRequest } from "./request.ts";
+import type { ItemQueryRequest, TargetLibrary } from "./request.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { RunEvent } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

@@ -2,8 +2,8 @@ import * as Context from "effect/Context";
 import * as References from "effect/References";
 import { Scheduler } from "effect/Scheduler";
 
-import { browserScheduler } from "./browser-scheduler";
-import { makeRunSurface } from "./effect-runtime-factory";
+import { browserScheduler } from "./browser-scheduler.ts";
+import { makeRunSurface } from "./effect-runtime-factory.ts";
 
 /**
  * Browser scheduling without the renderer's LogTape bridge. Every level

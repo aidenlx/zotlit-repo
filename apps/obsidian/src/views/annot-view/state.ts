@@ -1,8 +1,8 @@
 // The card state, defaults and pure selectors shared by annotation layouts.
 import type { AnnotViewAttachment } from "@zotlit/db";
 
-import { toggledValues } from "@/components/chooser-logic";
-import type { ItemSummary } from "@/lib/item-summary";
+import { toggledValues } from "@/components/chooser-logic.ts";
+import type { ItemSummary } from "@/lib/item-summary.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
@@ -11,15 +11,15 @@ import type {
   TagDraft,
   TextField,
   TextFieldDraft,
-} from "@/services/annotation-repository/service";
-import { byTextField } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/service.ts";
+import { byTextField } from "@/services/annotation-repository/write.ts";
 
-import { cardPlace, NO_SELECTION } from "./card-selection";
-import type { CardPlace } from "./card-selection";
-import type { CardSelection } from "./card-selection";
-import type { CaretPoint } from "./editor-sheet";
-import { filterAnnotations } from "./filter";
-import type { AnnotFilter } from "./filter";
+import { cardPlace, NO_SELECTION } from "./card-selection.ts";
+import type { CardPlace } from "./card-selection.ts";
+import type { CardSelection } from "./card-selection.ts";
+import type { CaretPoint } from "./editor-sheet.ts";
+import { filterAnnotations } from "./filter.ts";
+import type { AnnotFilter } from "./filter.ts";
 
 /**
  * What one Annotation View instance follows: the active tab (default), the

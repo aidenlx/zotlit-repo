@@ -12,36 +12,36 @@ import type { Span } from "@zotlit/workbench/language";
 import type {
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import { grouping } from "@/views/query-view/datasets";
-import { layoutOf } from "@/views/query-view/layouts";
-import { PAPERS_FIELDS } from "@/views/query-view/papers-layout";
-import { isVaultProperty } from "@/views/query-view/query-file";
+} from "@/services/item-query/query-view.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import { grouping } from "@/views/query-view/datasets.ts";
+import { layoutOf } from "@/views/query-view/layouts.ts";
+import { PAPERS_FIELDS } from "@/views/query-view/papers-layout.tsx";
+import { isVaultProperty } from "@/views/query-view/query-file.ts";
 import type {
   FilterLocation,
   QueryFile,
   QueryFileView,
-} from "@/views/query-view/query-file";
-import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic";
-import { layoutRows } from "@/views/query-view/rows";
-import type { LayoutRows } from "@/views/query-view/rows";
-import { TABLE_FIELDS } from "@/views/query-view/table-layout";
-import type { VaultHost, VaultValue } from "@/views/query-view/table-notes";
+} from "@/views/query-view/query-file.ts";
+import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
+import { layoutRows } from "@/views/query-view/rows.ts";
+import type { LayoutRows } from "@/views/query-view/rows.ts";
+import { TABLE_FIELDS } from "@/views/query-view/table-layout.tsx";
+import type { VaultHost, VaultValue } from "@/views/query-view/table-notes.ts";
 import {
   vaultSortRequest,
   vaultSortedLayout,
-} from "@/views/query-view/vault-sort";
+} from "@/views/query-view/vault-sort.ts";
 import {
   unusedSettings,
   usedGroupBy,
   viewProperties,
-} from "@/views/query-view/view-properties";
+} from "@/views/query-view/view-properties.ts";
 
-import { splitFilters } from "./filter-split";
-import type { ConditionFault, FilterSplit } from "./filter-split";
-import { planVaultFilter } from "./vault-filter";
-import type { VaultFilter } from "./vault-filter";
+import { splitFilters } from "./filter-split.ts";
+import type { ConditionFault, FilterSplit } from "./filter-split.ts";
+import { planVaultFilter } from "./vault-filter.ts";
+import type { VaultFilter } from "./vault-filter.ts";
 
 /** The Literature Notes a plan reads, as the Query View's reader gives them. */
 export interface ViewPlanNotes {

@@ -22,16 +22,16 @@ import { pathToFileURL } from "node:url";
 
 import { sourceIdFromUris } from "@zotlit/protocol";
 
-import { COMPANION_ADDON_ID, ZOTERO_DB_FILENAME } from "@/lib/constants";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { startupBarrier } from "@/lib/effect-startup";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { COMPANION_ADDON_ID, ZOTERO_DB_FILENAME } from "@/lib/constants.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { startupBarrier } from "@/lib/effect-startup.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
 import {
   loadZoteroPathOverrides,
   saveZoteroPathOverrides,
-} from "./device-paths";
+} from "./device-paths.ts";
 import {
   EXTENSIONS_FILENAME,
   isAddonActive,
@@ -44,9 +44,9 @@ import {
   resolveProfileDir,
   selectDefaultProfile,
   ZOTERO_HTTP_PORT_PREF,
-} from "./prefs-file";
-import type { PrefValue } from "./prefs-file";
-import { zoteroProfilesRoot } from "./profile-root";
+} from "./prefs-file.ts";
+import type { PrefValue } from "./prefs-file.ts";
+import { zoteroProfilesRoot } from "./profile-root.ts";
 
 /** The file-system boundary, replaced by controlled reads in lifecycle tests. */
 export class ZoteroPrefFiles extends Context.Service<

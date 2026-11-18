@@ -5,12 +5,12 @@ import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 import { afterEach, describe, expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { subscribe } from "@/lib/effect-stream";
-import { ParseFailed } from "@/services/citation-parse/client";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { buildSeededSettings } from "@/services/settings/__fixtures__";
+import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { ParseFailed } from "@/services/citation-parse/client.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
 
 import {
   GROUP_KEY,
@@ -18,10 +18,10 @@ import {
   sameLibraryTwin,
   groupTwin,
   bothLibraries,
-} from "./__fixtures__/ambiguous";
-import type { CitationSyntax } from "./scan";
-import type { CitedBySnapshot, Citation } from "./service";
-import { CitationIndex } from "./service";
+} from "./__fixtures__/ambiguous.ts";
+import type { CitationSyntax } from "./scan.ts";
+import type { CitedBySnapshot, Citation } from "./service.ts";
+import { CitationIndex } from "./service.ts";
 import {
   createCitationIndexHarness,
   DatabaseStub,
@@ -34,11 +34,11 @@ import {
   MemoryStore,
   MY_LIBRARY_ID,
   personalLibrary,
-} from "./test-harness";
+} from "./test-harness.ts";
 import type {
   CitationIndexHarness,
   CitationIndexHarnessOptions,
-} from "./test-harness";
+} from "./test-harness.ts";
 
 const harnesses: CitationIndexHarness[] = [];
 

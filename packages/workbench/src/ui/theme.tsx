@@ -2,14 +2,14 @@
 // the icons it draws. The tree marks its parts with `data-part` and their
 // state with `data-state`, and carries no class of its own (ADR 0044).
 
-import type { WorkbenchSliceId } from "#/document/controller";
-import type { CompletionPresentation } from "#/language/completion";
+import type { WorkbenchSliceId } from "#document/controller.ts";
+import type { CompletionPresentation } from "#language/completion.ts";
 import type { Extension } from "@codemirror/state";
 import { createContext, useContext } from "react";
 import type { ComponentType, ReactNode } from "react";
 
-import type { ExplorerSectionId } from "./explorer-sections";
-import type { SliceLanguage } from "./slice-editor";
+import type { ExplorerSectionId } from "./explorer-sections.ts";
+import type { SliceLanguage } from "./slice-editor.tsx";
 
 /**
  * Every component of the tree and the parts it marks. A component that joins

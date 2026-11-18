@@ -2,23 +2,23 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import type {
   AvailableLibrary,
   LibraryScope as SavedLibraryScope,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { defaults } from "@/services/settings/schema";
+} from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   PluginSettings,
   SettingsMutationError,
-} from "@/services/settings/service";
+} from "@/services/settings/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__";
-import type { SettingTabContext } from "./context";
-import { libraryScopeRow, selectedLibrariesList } from "./library-scope";
+import { scopedSettingTab } from "./__fixtures__.ts";
+import type { SettingTabContext } from "./context.ts";
+import { libraryScopeRow, selectedLibrariesList } from "./library-scope.ts";
 
 const MY_LIBRARY: AvailableLibrary = {
   selector: { type: "personal" },

@@ -2,8 +2,8 @@ import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { describe, expect, it } from "vitest";
 
-import { workbenchDocumentAtoms } from "./atoms";
-import { WorkbenchDocumentController } from "./controller";
+import { workbenchDocumentAtoms } from "./atoms.ts";
+import { WorkbenchDocumentController } from "./controller.ts";
 
 const PROFILE = `---
 name: Reading notes

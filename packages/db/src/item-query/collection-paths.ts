@@ -1,9 +1,10 @@
-import { collections, deletedCollections } from "@drizzle/schema";
 import { and, eq, notExists } from "drizzle-orm";
 import { Effect } from "effect";
 
-import { defineStatement } from "./database";
-import type { ItemQueryDatabase, ItemQueryReaderError } from "./database";
+import { defineStatement } from "./database.ts";
+import type { ItemQueryDatabase, ItemQueryReaderError } from "./database.ts";
+
+import { collections, deletedCollections } from "#drizzle/schema.ts";
 
 /**
  * The root-first name path of each live Collection of one Library, by

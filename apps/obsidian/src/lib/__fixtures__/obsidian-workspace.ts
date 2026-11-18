@@ -15,9 +15,9 @@ import type {
   WorkspaceWindow,
 } from "obsidian";
 
-import type { WorkspaceSource } from "@/lib/obsidian-workspace";
+import type { WorkspaceSource } from "@/lib/obsidian-workspace.ts";
 
-import { stubService } from "./service-stub";
+import { stubService } from "./service-stub.ts";
 
 type Callback = (...args: unknown[]) => unknown;
 

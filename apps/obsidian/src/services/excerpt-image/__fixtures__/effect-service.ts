@@ -1,8 +1,8 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
 
-import { ExcerptImageService, layerExcerptImage } from "@/services/excerpt-image/service";
-import type { ExcerptDeps } from "@/services/excerpt-image/service";
+import { ExcerptImageService, layerExcerptImage } from "@/services/excerpt-image/service.ts";
+import type { ExcerptDeps } from "@/services/excerpt-image/service.ts";
 
 /** One real layer, with a child scope a shutdown test can close itself. */
 export const excerptImageFixture = Effect.fnUntraced(function* (deps: ExcerptDeps = {}) {

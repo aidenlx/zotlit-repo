@@ -1,12 +1,12 @@
 // Owns scoped worker recovery and bounded requests across connection lifetimes.
 import { Deferred, Effect, Exit, Fiber, Ref, Schedule, Scope } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { isScopeClosed } from "@/lib/effect-scope";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
 
-import { ParseFailed, ParseWorkerDied } from "./client";
-import type { ParseClient, ParseRequest } from "./client";
-import type { ParseConnection } from "./worker-host";
+import { ParseFailed, ParseWorkerDied } from "./client.ts";
+import type { ParseClient, ParseRequest } from "./client.ts";
+import type { ParseConnection } from "./worker-host.ts";
 
 export interface RecoveringParseClient extends ParseClient {
   readonly start: Effect.Effect<void>;

@@ -1,35 +1,35 @@
 // @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { DateTime, Effect } from "effect";
 import type { App } from "obsidian";
 import type { MouseEvent } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as confirmation from "@/lib/confirm";
-import { toInstant } from "@/lib/effect-clock";
-import * as m from "@/lib/i18n/generated/messages";
-import { makeViewRunner } from "@/lib/view-runner";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as confirmation from "@/lib/confirm.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { makeViewRunner } from "@/lib/view-runner.ts";
 import type {
   AnnotationRepository,
   AnnotationRecord,
   TagDraft,
   TextFieldDraft,
-} from "@/services/annotation-repository/service";
-import type { AnnotationCitation } from "@/services/note-feature/annotation-citation";
-import type { AnnotationNoteActions } from "@/services/note-feature/view-actions";
-import { annotation } from "@/services/pdf-annotation-editor/__fixtures__";
+} from "@/services/annotation-repository/service.ts";
+import type { AnnotationCitation } from "@/services/note-feature/annotation-citation.ts";
+import type { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { annotation } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 
-import { makeAnnotHost } from "./__fixtures__/host";
-import { createAnnotActions } from "./actions";
-import type { AnnotActionDeps as ActionDeps } from "./actions";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
+import { createAnnotActions } from "./actions.tsx";
+import type { AnnotActionDeps as ActionDeps } from "./actions.tsx";
 type AnnotActionDeps = ActionDeps & {
   annotations: AnnotationRepository["Service"];
   notes?: Partial<AnnotationNoteActions["Service"]>;
 };
-import { hasQuotedText } from "./card-controls";
-import type { CardControl, CardControls } from "./card-controls";
-import type { AnnotState } from "./store";
+import { hasQuotedText } from "./card-controls.ts";
+import type { CardControl, CardControls } from "./card-controls.ts";
+import type { AnnotState } from "./store.ts";
 
 const FIRST = annotation("PUPR5FG5", "highlight", { pageIndex: 0, rects: [] });
 const SECOND = annotation("K3JRFLFQ", "underline", { pageIndex: 0, rects: [] });

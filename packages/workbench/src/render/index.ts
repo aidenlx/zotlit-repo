@@ -3,8 +3,8 @@
 // Obsidian because this preview produces the Profile's generated Markdown and
 // has no bibliography or citation processor.
 
-import type { SelectedCitationStyleResponse } from "#/bridge/contracts";
-import type { ItemSnapshot } from "#/snapshot/index";
+import type { SelectedCitationStyleResponse } from "#bridge/contracts.ts";
+import type { ItemSnapshot } from "#snapshot/index.ts";
 import { regex } from "arkregex";
 import { stringify as stringifyYaml } from "yaml";
 
@@ -34,24 +34,24 @@ import {
 import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-merge";
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 
-import { renderFailureDiagnostic, renderFailureSpan } from "./attribution";
-import type { RenderCallerSource } from "./attribution";
-import { engineEvidence, errorChain } from "./report";
-import type { RenderOptions } from "./request";
-import { restoreTemplateData } from "./restore-template-data";
-import { failedRender, renderIdentity } from "./result";
+import { renderFailureDiagnostic, renderFailureSpan } from "./attribution.ts";
+import type { RenderCallerSource } from "./attribution.ts";
+import { engineEvidence, errorChain } from "./report.ts";
+import type { RenderOptions } from "./request.ts";
+import { restoreTemplateData } from "./restore-template-data.ts";
+import { failedRender, renderIdentity } from "./result.ts";
 import type {
   SliceSite,
   TemplateRenderResult,
   RenderDiagnostic,
   RenderedProperty,
   RenderedRange,
-} from "./result";
+} from "./result.ts";
 
-import book from "#/samples/book.json" with { type: "json" };
-import conferencePaper from "#/samples/conference-paper.json" with { type: "json" };
-import journalArticle from "#/samples/journal-article.json" with { type: "json" };
-import thesis from "#/samples/thesis.json" with { type: "json" };
+import book from "#samples/book.json" with { type: "json" };
+import conferencePaper from "#samples/conference-paper.json" with { type: "json" };
+import journalArticle from "#samples/journal-article.json" with { type: "json" };
+import thesis from "#samples/thesis.json" with { type: "json" };
 
 export {
   CITATION_EXAMPLE_IDS,
@@ -60,34 +60,34 @@ export {
   DEFAULT_CITATION_EXAMPLE,
   isCitationExampleId,
   sampleItemCitation,
-} from "./citation-examples";
+} from "./citation-examples.ts";
 export type {
   CitationExampleId,
   CitationPreviewSelection,
-} from "./citation-examples";
-export { DEFAULT_PROFILE_SOURCE } from "./default-profile";
+} from "./citation-examples.ts";
+export { DEFAULT_PROFILE_SOURCE } from "./default-profile.ts";
 export {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
   PARTIAL_CONTEXTS,
-} from "./partial-preview";
+} from "./partial-preview.ts";
 export type {
   PartialChoice,
   PartialContext,
   PartialPreviewSelection,
-} from "./partial-preview";
+} from "./partial-preview.ts";
 export {
   captureProblemReport,
   captureRenderReport,
   engineEvidence,
   formatRenderReport,
   REPORT_UNAVAILABLE,
-} from "./report";
+} from "./report.ts";
 export type {
   EngineEvidence,
   RenderReport,
   WorkbenchReportContext,
-} from "./report";
+} from "./report.ts";
 export {
   emptyRender,
   failedRender,
@@ -95,7 +95,7 @@ export {
   retainOutputs,
   templateSourceRevision,
   renderIdentity,
-} from "./result";
+} from "./result.ts";
 export type {
   SliceSite,
   TemplateRenderResult,
@@ -107,18 +107,22 @@ export type {
   RenderedRange,
   RenderEngineLocation,
   RenderIdentity,
-} from "./result";
+} from "./result.ts";
 export {
   renderFailureCause,
   renderFailureDiagnostic,
   renderFailureSpan,
-} from "./attribution";
-export { currentCallSite, currentSliceSite } from "./locate";
-export type { RenderCallerSource, RenderFailureCause } from "./attribution";
-export type { RenderRequest, RenderOptions, RenderResources } from "./request";
-export { restoreTemplateData } from "./restore-template-data";
-export { SAMPLE_ANNOTATIONS } from "./sample-annotations";
-export type { AnnotationExample } from "./sample-annotations";
+} from "./attribution.ts";
+export { currentCallSite, currentSliceSite } from "./locate.ts";
+export type { RenderCallerSource, RenderFailureCause } from "./attribution.ts";
+export type {
+  RenderRequest,
+  RenderOptions,
+  RenderResources,
+} from "./request.ts";
+export { restoreTemplateData } from "./restore-template-data.ts";
+export { SAMPLE_ANNOTATIONS } from "./sample-annotations.ts";
+export type { AnnotationExample } from "./sample-annotations.ts";
 
 export const SAMPLE_ITEMS = [
   journalArticle,

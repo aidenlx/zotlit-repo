@@ -4,24 +4,24 @@ import { dirname } from "node:path/posix";
 import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { awaitModal } from "@/lib/effect-modal";
-import { normalizeFolderPath } from "@/lib/ensure-folder";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier, withProgress } from "@/lib/notifier";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier, withProgress } from "@/lib/notifier.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "@/services/note-index/service";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
-import type { ProfilePick } from "@/views/quick-switch/profile-picker";
+} from "@/services/note-index/service.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
+import type { ProfilePick } from "@/views/quick-switch/profile-picker.ts";
 
-import { installedStyles, settleProfilePick } from "./creation-view";
-import type { InteractiveCreationPorts } from "./creation-view";
-import { NoteFeature } from "./service";
-import { noteOperationDiagnosticContent } from "./update-single";
+import { installedStyles, settleProfilePick } from "./creation-view.ts";
+import type { InteractiveCreationPorts } from "./creation-view.ts";
+import { NoteFeature } from "./service.ts";
+import { noteOperationDiagnosticContent } from "./update-single.ts";
 
 const logged = withLogCategory("note-feature");
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { suggestionsFor } from "./vault-editors";
+import { suggestionsFor } from "./vault-editors.tsx";
 
 describe("suggestionsFor", () => {
   const values = [

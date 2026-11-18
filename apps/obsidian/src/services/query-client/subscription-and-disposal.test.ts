@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { queryClientsFixture, queryClientsOf } from "./__fixtures__";
-import type { HeldReadChange } from "./service";
+import { queryClientsFixture, queryClientsOf } from "./__fixtures__.ts";
+import type { HeldReadChange } from "./service.ts";
 
 it.effect(
   "keeps a throwing listener subscribed for both immediate settlements",

@@ -6,8 +6,8 @@
 import { ArrowUpRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { cn } from "@/lib/cn";
-import { zotlitLegacyUrl } from "@/lib/shared";
+import { cn } from "@/lib/cn.ts";
+import { zotlitLegacyUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 
 /** What the query says about how the reader arrived, or null for a direct visit. */

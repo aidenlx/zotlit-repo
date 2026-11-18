@@ -25,9 +25,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect } from "vitest";
 
-import { LogCategory } from "./effect-log-category";
-import { isOlderThan, sweepTempDirectory } from "./temp-sweep";
-import type { TempSweepOptions } from "./temp-sweep";
+import { LogCategory } from "./effect-log-category.ts";
+import { isOlderThan, sweepTempDirectory } from "./temp-sweep.ts";
+import type { TempSweepOptions } from "./temp-sweep.ts";
 
 let directory: string;
 

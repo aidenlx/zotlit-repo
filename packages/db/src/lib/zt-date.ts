@@ -1,6 +1,6 @@
 import { regex } from "arkregex";
 
-import { defineToString } from "./to-string";
+import { defineToString } from "./to-string.ts";
 
 /** Full Y/M/D date parsed into a `Temporal.PlainDate`. */
 export interface ItemDateYMD {

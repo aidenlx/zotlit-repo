@@ -3,7 +3,7 @@
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 import type { PandocTextSpan as TextSpan } from "@zotlit/templates/pandoc-citation";
 
-import type { CitationSource } from "@/services/citation-text/present";
+import type { CitationSource } from "@/services/citation-text/present.ts";
 
 /**
  * Elements whose text is never a citation. Code, math, and the frontmatter

@@ -4,7 +4,7 @@ import { Input as InputPrimitive } from "@base-ui/react/input";
 import { cva } from "class-variance-authority";
 import type { ComponentProps } from "react";
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 export const inputVariants = cva(
   "w-full min-w-0 rounded-md border border-fd-border bg-fd-card text-base placeholder:text-fd-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-ring disabled:cursor-default disabled:opacity-50 aria-invalid:border-fd-foreground",

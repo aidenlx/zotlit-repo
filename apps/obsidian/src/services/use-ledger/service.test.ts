@@ -13,13 +13,13 @@ import { TestClock } from "effect/testing";
 import { TFile } from "obsidian";
 import { expect } from "vitest";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants";
-import { LogCategory } from "@/lib/effect-log";
+import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
+import { LogCategory } from "@/lib/effect-log.ts";
 
-import { ledgerHost, useLedgerOf } from "./__fixtures__";
+import { ledgerHost, useLedgerOf } from "./__fixtures__.ts";
 
 const itemKey = (n: number) =>
   n

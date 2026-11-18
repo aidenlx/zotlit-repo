@@ -3,34 +3,34 @@ import type * as Atom from "effect/reactivity/Atom";
 // A view registry over controlled repository and Zotero services for annotation tests.
 import { onTestFinished } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { openScope } from "@/lib/effect-scope";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { ExcerptDisplays } from "@/services/excerpt-image/display";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { openScope } from "@/lib/effect-scope.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import type {
   ExcerptImageDisplay,
-} from "@/services/excerpt-image/display";
-import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { LocalServer } from "@/services/local-server/service";
-import { AnnotationNoteActions } from "@/services/note-feature/view-actions";
-import { NoteIndex } from "@/services/note-index/service";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/excerpt-image/display.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   annotationDraftCommand,
   annotationWriteCommand,
   openExcerptDemandCommand,
   refreshExcerptDisplayCommand,
-} from "@/views/annot-view/atoms";
-import { createAnnotStore } from "@/views/annot-view/model";
+} from "@/views/annot-view/atoms.ts";
+import { createAnnotStore } from "@/views/annot-view/model.ts";
 
 export const ANNOT_PATHS: ZoteroPrefSnapshot = {
   state: "ready",

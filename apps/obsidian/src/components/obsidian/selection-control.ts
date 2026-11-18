@@ -2,8 +2,8 @@
 // the flat `clickable-icon` surface — shared by the Workbench view and the
 // Annotation View.
 import "./selection-control.css";
-import { tv } from "@/lib/tw";
-import { cn } from "@/lib/utils";
+import { tv } from "@/lib/tw.ts";
+import { cn } from "@/lib/utils.ts";
 
 /** Icons beside 12 px regular text carry the same optical weight. */
 const captionIcon = "zt:[--icon-size:var(--icon-xs)] zt:[--icon-stroke:1.5]";

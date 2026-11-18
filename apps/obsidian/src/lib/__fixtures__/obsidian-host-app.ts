@@ -4,32 +4,32 @@
 import type { App } from "obsidian";
 
 import { Layer } from "effect";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { layerDeviceStorageFrom } from "@/lib/obsidian-device-storage";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { layerDeviceStorageFrom } from "@/lib/obsidian-device-storage.ts";
 import type {
   DeviceStorage,
   DeviceStorageSource,
-} from "@/lib/obsidian-device-storage";
-import { layerFileManagerFrom } from "@/lib/obsidian-file-manager";
+} from "@/lib/obsidian-device-storage.ts";
+import { layerFileManagerFrom } from "@/lib/obsidian-file-manager.ts";
 import type {
   FileManager,
   FileManagerSource,
-} from "@/lib/obsidian-file-manager";
-import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache";
+} from "@/lib/obsidian-file-manager.ts";
+import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache.ts";
 import type {
   MetadataCache,
   MetadataCacheSource,
-} from "@/lib/obsidian-metadata-cache";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import type { Workspace, WorkspaceSource } from "@/lib/obsidian-workspace";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import type { Vault, VaultSource } from "@/lib/obsidian-vault";
+} from "@/lib/obsidian-metadata-cache.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import type { Workspace, WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import type { Vault, VaultSource } from "@/lib/obsidian-vault.ts";
 
-import { MemoryDeviceStorage } from "./obsidian-device-storage";
-import { MemoryFileManager } from "./obsidian-file-manager";
-import { MemoryMetadataCache } from "./obsidian-metadata-cache";
-import { MemoryVault } from "./obsidian-vault";
-import { MemoryWorkspace } from "./obsidian-workspace";
+import { MemoryDeviceStorage } from "./obsidian-device-storage.ts";
+import { MemoryFileManager } from "./obsidian-file-manager.ts";
+import { MemoryMetadataCache } from "./obsidian-metadata-cache.ts";
+import { MemoryVault } from "./obsidian-vault.ts";
+import { MemoryWorkspace } from "./obsidian-workspace.ts";
 
 /** The Obsidian objects a test host gives the capability tags. */
 export interface HostSources {

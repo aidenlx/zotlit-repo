@@ -7,25 +7,25 @@ import { expect, vi } from "vitest";
 
 import { MissingTemplateError } from "@zotlit/templates/facade";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace as WorkspaceTag } from "@/lib/obsidian-workspace";
-import { LibraryScope } from "@/services/library-scope/service";
-import { NoteImporter } from "@/services/note-import/service";
-import { NoteIndex } from "@/services/note-index/service";
-import { Profile } from "@/services/profile/service";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace as WorkspaceTag } from "@/lib/obsidian-workspace.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { NoteImporter } from "@/services/note-import/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+} from "@/services/zotero-reads/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import {
   batchUpdateAllNotice,
@@ -34,11 +34,11 @@ import {
   reimportNoteToast,
   updateAll,
   updateNotes,
-} from "./actions-view";
-import type { NoteActionPorts, NoteActionServices } from "./actions-view";
-import { NoteWriteAborted } from "./errors";
-import { NoteFeature } from "./service";
-import type { BatchUpdatePorts } from "./update-batch";
+} from "./actions-view.ts";
+import type { NoteActionPorts, NoteActionServices } from "./actions-view.ts";
+import { NoteWriteAborted } from "./errors.ts";
+import { NoteFeature } from "./service.ts";
+import type { BatchUpdatePorts } from "./update-batch.ts";
 
 function appStub(): App {
   return stubService<App>("App", {

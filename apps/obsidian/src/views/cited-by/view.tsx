@@ -4,13 +4,13 @@ import type { App, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { activeKeyAtom } from "@/services/note-index/atoms";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { activeKeyAtom } from "@/services/note-index/atoms.ts";
 
-import { revisionsAtom } from "./atoms";
-import { CitedBy } from "./CitedBy";
+import { revisionsAtom } from "./atoms.ts";
+import { CitedBy } from "./CitedBy.tsx";
 import {
   CitedByModelContext,
   dropExpansions,
@@ -18,8 +18,8 @@ import {
   holdCitedByModel,
   makeCitedByModel,
   readSavedLayout,
-} from "./model";
-import type { CitedByLayout } from "./model";
+} from "./model.ts";
+import type { CitedByLayout } from "./model.ts";
 
 export const CITED_BY_VIEW_TYPE = "zotlit-cited-by";
 

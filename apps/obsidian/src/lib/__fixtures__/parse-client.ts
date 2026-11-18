@@ -5,7 +5,7 @@ import type {
   ParseReply,
   ParseRequest,
   ParseWorkerDied,
-} from "@/services/citation-parse/client";
+} from "@/services/citation-parse/client.ts";
 
 export const effectTestParseClient = (
   parse: (request: ParseRequest, signal: AbortSignal) => Promise<ParseReply>,

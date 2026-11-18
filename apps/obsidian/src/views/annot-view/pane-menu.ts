@@ -2,12 +2,12 @@
 // and the rare action the header row no longer carries.
 import type { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { AnnotActions } from "./actions";
-import { buildHeaderMenu } from "./menus";
-import { headerMenu } from "./presentation";
-import type { HeaderMenuState } from "./presentation";
+import type { AnnotActions } from "./actions.tsx";
+import { buildHeaderMenu } from "./menus.ts";
+import { headerMenu } from "./presentation.ts";
+import type { HeaderMenuState } from "./presentation.ts";
 
 export interface PaneMenuInput {
   state: HeaderMenuState;

@@ -7,12 +7,12 @@ import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { CliRejection } from "@/lib/cli-params";
-import type { LibraryScope } from "@/services/library-scope/scope";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+import { CliRejection } from "@/lib/cli-params.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
-import { answer } from "./answer";
-import { decodeValues } from "./decode";
+import { answer } from "./answer.ts";
+import { decodeValues } from "./decode.ts";
 
 const identity = {
   vault: { name: "Research", path: "/vaults/research" },

@@ -10,7 +10,7 @@ export {
   type CitationHoverRequest,
   type CitationHoverTarget,
   type CitationNavigation,
-} from "./citation";
+} from "./citation.ts";
 export {
   citationHoverIntent,
   CITEKEY_HOVER_SOURCE,
@@ -20,7 +20,7 @@ export {
   type CitationHoverIntent,
   type HoverEditingMode,
   type HoverPreferences,
-} from "./hover";
+} from "./hover.ts";
 export {
   citationClickIntent,
   citationTarget,
@@ -37,7 +37,7 @@ export {
   type NavigationPane,
   type NavigationSurface,
   type NavigationTarget,
-} from "./intent";
+} from "./intent.ts";
 export {
   hoverGesture,
   mouseGesture,
@@ -45,4 +45,4 @@ export {
   triggerCitekeyHover,
   type CitekeyHoverLink,
   type GestureSurface,
-} from "./shell";
+} from "./shell.ts";

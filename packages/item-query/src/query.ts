@@ -8,18 +8,18 @@ import type {
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
 
-import { collectionWarnings } from "./collection-warnings";
-import type { QueryDataset } from "./dataset";
-import { diagnoseUnusedFormula, diagnoseWarning } from "./diagnose";
-import type { WarningSource } from "./diagnose";
-import type { ItemQueryError } from "./error";
-import { consumeDataset } from "./execution";
-import type { FilterPlan } from "./filter-plan";
-import { indexedKeyWarnings } from "./indexed-key-selection";
-import { readQueryClock } from "./query-clock";
-import { openQuerySources } from "./query-sources";
-import type { QuerySources } from "./query-sources";
-import { planRequest } from "./request";
+import { collectionWarnings } from "./collection-warnings.ts";
+import type { QueryDataset } from "./dataset.ts";
+import { diagnoseUnusedFormula, diagnoseWarning } from "./diagnose.ts";
+import type { WarningSource } from "./diagnose.ts";
+import type { ItemQueryError } from "./error.ts";
+import { consumeDataset } from "./execution.ts";
+import type { FilterPlan } from "./filter-plan.ts";
+import { indexedKeyWarnings } from "./indexed-key-selection.ts";
+import { readQueryClock } from "./query-clock.ts";
+import { openQuerySources } from "./query-sources.ts";
+import type { QuerySources } from "./query-sources.ts";
+import { planRequest } from "./request.ts";
 import type {
   ItemQueryRequest,
   QueryResult,
@@ -27,7 +27,7 @@ import type {
   QueryMetadata,
   QueryGroup,
   TargetLibrary,
-} from "./request";
+} from "./request.ts";
 
 /** Metadata known before the projection pass begins. */
 export interface QuerySummary extends QueryMetadata {

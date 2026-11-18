@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, onTestFinished } from "vitest";
 
-import { fluentPlugin } from "./vite-fluent-plugin.js";
+import { fluentPlugin } from "./vite-fluent-plugin.ts";
 
 type Catalogs = Record<string, Record<string, unknown>>;
 

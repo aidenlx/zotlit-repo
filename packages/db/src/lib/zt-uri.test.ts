@@ -8,7 +8,7 @@ import {
   itemWebUrl,
   libraryViewUri,
   parseAnnotationOpenUri,
-} from "./zt-uri";
+} from "./zt-uri.ts";
 
 describe("libraryViewUri", () => {
   it("names a personal-library item by its bare key", () => {

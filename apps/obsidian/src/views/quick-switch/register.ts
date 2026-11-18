@@ -1,14 +1,14 @@
 import type { App, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle";
-import type { TargetOpener } from "@/services/attachment-open/open-target";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import type { PluginSettings } from "@/services/settings/service";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
+import type { TargetOpener } from "@/services/attachment-open/open-target.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import { QuickSwitchModal } from "./modal";
-import type { NoteResultDeps } from "./result-actions";
+import { QuickSwitchModal } from "./modal.ts";
+import type { NoteResultDeps } from "./result-actions.ts";
 
 export interface QuickSwitchDeps extends NoteResultDeps {
   app: App;

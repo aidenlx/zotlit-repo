@@ -17,36 +17,45 @@ import { TemplateEngine } from "@zotlit/templates";
 import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FileManager, layerFileManagerFrom } from "@/lib/obsidian-file-manager";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import { NoteIndex } from "@/services/note-index/service";
-import type { NoteProfile, ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import { defaults as settingsDefaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { InertTemplateError } from "@/services/template/errors";
-import { Template } from "@/services/template/service";
-import type { CompileError } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import {
+  FileManager,
+  layerFileManagerFrom,
+} from "@/lib/obsidian-file-manager.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type {
+  NoteProfile,
+  ResolvedProfile,
+} from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults as settingsDefaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
+import { Template } from "@/services/template/service.ts";
+import type { CompileError } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { workbenchContext, workbenchIdentity } from "./__fixtures__";
-import { createTemplateWorkbenchHandlers, TEMPLATE_DATA_COMMAND } from "./cli";
+import { workbenchContext, workbenchIdentity } from "./__fixtures__.ts";
+import {
+  createTemplateWorkbenchHandlers,
+  TEMPLATE_DATA_COMMAND,
+} from "./cli.ts";
 import {
   excerptImageContext,
   readCitationData,
   readTemplateData,
-} from "./data";
-import type { TemplateDataServices } from "./data";
-import { registerTemplateWorkbench } from "./register";
+} from "./data.ts";
+import type { TemplateDataServices } from "./data.ts";
+import { registerTemplateWorkbench } from "./register.ts";
 
 function registeredData(deps: FixtureDeps) {
   const { host, command } = fakeCliHost();

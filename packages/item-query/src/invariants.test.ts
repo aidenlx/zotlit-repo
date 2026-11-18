@@ -18,11 +18,11 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from ".";
-import type { ItemQueryRequest, QueryResult } from ".";
-import type { CandidateFallback } from "./candidate-plan";
-import { runEffect } from "./test-helpers";
-import type { Run, RunEvent, RunOptions } from "./test-helpers";
+import type { CandidateFallback } from "./candidate-plan.ts";
+import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
+import type { ItemQueryRequest, QueryResult } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { Run, RunEvent, RunOptions } from "./test-helpers.ts";
 
 /**
  * The bulk Library: 2,600 `items` rows, all of them top-level Items, so the

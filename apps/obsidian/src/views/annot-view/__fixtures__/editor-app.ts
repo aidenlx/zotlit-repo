@@ -2,8 +2,8 @@
 // Needs a DOM, so every consumer runs under `// @vitest-environment happy-dom`.
 import type { App, Scope } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { keymapApp } from "@/lib/__fixtures__/keymap";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { keymapApp } from "@/lib/__fixtures__/keymap.ts";
 
 /**
  * The app the comment editor takes its keys through: a keymap whose pushed

@@ -10,24 +10,24 @@ import type {
   WorkspaceRoot,
 } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { scopedBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { PluginHostShape } from "@/lib/plugin-host";
-import { Profile } from "@/services/profile/service";
-import { TEMPLATE_WORKBENCH_VIEW_TYPE } from "@/views/template-workbench/view";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { TEMPLATE_WORKBENCH_VIEW_TYPE } from "@/views/template-workbench/view.tsx";
 
 import {
   addCitationTemplateActions,
   openCitationTemplate,
   reportCitationTemplateOpen,
-} from "./actions";
-import { Template, templateFailure } from "./service";
-import type { TemplateFailure } from "./service";
+} from "./actions.ts";
+import { Template, templateFailure } from "./service.ts";
+import type { TemplateFailure } from "./service.ts";
 
 const CITATION = Object.assign(new TFile(), {
   path: "Templates/zotlit-citation.md",

@@ -1,6 +1,6 @@
 // Clipboard writing of one payload in several representations, so the destination takes the one it reads.
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger("clipboard");
 

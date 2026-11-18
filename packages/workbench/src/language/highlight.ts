@@ -5,7 +5,7 @@ import { syntaxHighlighting } from "@codemirror/language";
 import type { NodeType } from "@lezer/common";
 import { tagHighlighter, tags } from "@lezer/highlight";
 
-import { markdownTop } from "./markdown";
+import { markdownTop } from "./markdown.ts";
 
 /** The theme hook for each kind of template token. */
 export const templateToken = {

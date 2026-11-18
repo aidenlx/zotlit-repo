@@ -5,12 +5,12 @@ import {
   resetMockPlatform,
   setMockPlatform,
   TextFileView as MockTextFileView,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import type {
   ItemView as MockItemView,
   MenuItem,
   Scope as MockScope,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import { Cause, Effect, Exit } from "effect";
 import { Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -34,22 +34,22 @@ import {
 } from "@zotlit/workbench/render";
 import { fieldForm } from "@zotlit/workbench/ui";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm";
-import { dispatchKey, keymapApp } from "@/lib/__fixtures__/keymap";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { VaultError } from "@/lib/vault-errors";
-import { bindProfile } from "@/services/profile/bindings";
-import { defaults } from "@/services/settings/schema";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process";
+import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
+import { dispatchKey, keymapApp } from "@/lib/__fixtures__/keymap.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { VaultError } from "@/lib/vault-errors.ts";
+import { bindProfile } from "@/services/profile/bindings.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils";
-import { createRenderFixture } from "@/views/template-workbench/preview/__fixtures__/render";
+} from "@/services/zotero-reads/test-utils.ts";
+import { createRenderFixture } from "@/views/template-workbench/preview/__fixtures__/render.ts";
 
 import {
   chooseSample,
@@ -58,16 +58,16 @@ import {
   runRender,
   setViewItem,
   viewState,
-} from "./__fixtures__";
-import type { WorkbenchHostDeps as TemplateWorkbenchDeps } from "./__fixtures__";
-import { createSharedPartialEffect } from "./partial-command";
-import { SAMPLE_ITEM_CHOICES } from "./selection-data";
-import { windowMigration } from "./test-window-migration";
+} from "./__fixtures__.ts";
+import type { WorkbenchHostDeps as TemplateWorkbenchDeps } from "./__fixtures__.ts";
+import { createSharedPartialEffect } from "./partial-command.ts";
+import { SAMPLE_ITEM_CHOICES } from "./selection-data.ts";
+import { windowMigration } from "./test-window-migration.ts";
 import {
   TemplateWorkbenchView,
   originatingNoteUpdateNotice,
   unpackedPartialNotices,
-} from "./view";
+} from "./view.tsx";
 
 /**
  * Every entry of `menu` and of the submenus under it, each before its own
@@ -81,7 +81,7 @@ const insertNode = (view: TemplateWorkbenchView, node: DisplayNode) =>
   view.insertField(fieldForm(node, view.fieldInsertion()).snippet);
 
 // The real leaf edges stand in: the layout module imports this view.
-vi.mock("./layout", () => ({
+vi.mock("./layout.ts", () => ({
   setLeafState: (leaf: WorkspaceLeaf, state: ViewState) =>
     Effect.tryPromise(() => leaf.setViewState(state)),
   WORKBENCH_WINDOW: { width: 1440, height: 900 },
@@ -92,34 +92,37 @@ vi.mock("./layout", () => ({
 // new-partial.test.ts. Here it stands in, so a right-click reports the source
 // and the language it was handed and the extraction's own edit is what the
 // assertions read.
-vi.mock("./partial-command", () => ({
+vi.mock("./partial-command.ts", () => ({
   createSharedPartialEffect: vi.fn(() => Effect.succeed(null)),
 }));
 
 // The renderers are the Preview panel's own; here they stand in, so a render reports
 // which document kind the view asked for and what the session fed it.
-vi.mock("@/views/template-workbench/preview/render", async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import("@/views/template-workbench/preview/render")
-    >();
-  const { failedRender, renderIdentity } =
-    await import("@zotlit/workbench/render");
-  return {
-    ...actual,
-    makeNativeRenderer: (
-      deps: Parameters<typeof actual.makeNativeRenderer>[0],
-    ) => ({
-      ...actual.makeNativeRenderer(deps),
-      render: (request: import("@zotlit/workbench/render").RenderRequest) =>
-        Effect.succeed(
-          actual.nativeResult(
-            failedRender(renderIdentity(request), { code: "render-error" }),
+vi.mock(
+  "@/views/template-workbench/preview/render.ts",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@/views/template-workbench/preview/render.ts")
+      >();
+    const { failedRender, renderIdentity } =
+      await import("@zotlit/workbench/render");
+    return {
+      ...actual,
+      makeNativeRenderer: (
+        deps: Parameters<typeof actual.makeNativeRenderer>[0],
+      ) => ({
+        ...actual.makeNativeRenderer(deps),
+        render: (request: import("@zotlit/workbench/render").RenderRequest) =>
+          Effect.succeed(
+            actual.nativeResult(
+              failedRender(renderIdentity(request), { code: "render-error" }),
+            ),
           ),
-        ),
-    }),
-  };
-});
+      }),
+    };
+  },
+);
 
 const SOURCE = `---
 id: paper

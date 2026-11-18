@@ -16,7 +16,7 @@ import {
   keep,
   title,
   shownItem,
-} from "./page-test-host";
+} from "./page-test-host.tsx";
 
 describe("the kept draft on the next visit", () => {
   it("holds the last visit's work back until the prompt is accepted", async () => {

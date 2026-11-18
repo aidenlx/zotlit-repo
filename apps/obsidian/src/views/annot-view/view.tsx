@@ -8,62 +8,62 @@ import type {
 import { annotationOpenUri, parseIndexedKey } from "@zotlit/db";
 import type { AnnotViewAttachment } from "@zotlit/db";
 
-import { registerMigratingWindowEvent } from "@/lib/disposables";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ItemSummary } from "@/lib/item-summary";
-import { getLogger } from "@/lib/log";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { HistorySurface } from "@/services/annotation-repository/actions";
+import { registerMigratingWindowEvent } from "@/lib/disposables.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ItemSummary } from "@/lib/item-summary.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import {
   annotationCapabilityAtom,
   attachmentCapabilityAtom,
-} from "@/services/annotation-repository/atoms";
+} from "@/services/annotation-repository/atoms.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
   HistoryDirection,
-} from "@/services/annotation-repository/service";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import { pickItem } from "@/services/item-lookup/search-modal";
-import { libraryRowsAtom } from "@/services/library-scope/atoms";
+} from "@/services/annotation-repository/service.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import { pickItem } from "@/services/item-lookup/search-modal.ts";
+import { libraryRowsAtom } from "@/services/library-scope/atoms.ts";
 import {
   liveUpdatesAtom,
   readerClosedAtom,
-} from "@/services/local-server/atoms";
+} from "@/services/local-server/atoms.ts";
 import {
   activeKeyAtom,
   activeNoteAtom,
   noteSourceAtom,
-} from "@/services/note-index/atoms";
-import { pdfSessionsAtom } from "@/services/pdf-annotation-editor/atoms";
-import type { ReaderSession } from "@/services/reader-session/session";
-import { ReaderSessionHost } from "@/services/reader-session/session";
-import type { PluginSettings } from "@/services/settings/service";
+} from "@/services/note-index/atoms.ts";
+import { pdfSessionsAtom } from "@/services/pdf-annotation-editor/atoms.ts";
+import type { ReaderSession } from "@/services/reader-session/session.ts";
+import { ReaderSessionHost } from "@/services/reader-session/session.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
-} from "@/services/zotero-reads/atoms";
-import { viewTargetOpener } from "@/views/open-target";
-import { readerText } from "@/views/query-view/reader-diagnostic";
-import { QueryView } from "@/views/query-view/view";
-import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register";
-import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions";
-import type { WorkbenchActionDeps } from "@/views/template-workbench/actions";
+} from "@/services/zotero-reads/atoms.ts";
+import { viewTargetOpener } from "@/views/open-target.ts";
+import { readerText } from "@/views/query-view/reader-diagnostic.ts";
+import { QueryView } from "@/views/query-view/view.tsx";
+import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view.tsx";
+import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
+import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions.ts";
+import type { WorkbenchActionDeps } from "@/views/template-workbench/actions.ts";
 
-import type { AnnotActions } from "./actions";
-import { AnnotView } from "./AnnotView";
+import type { AnnotActions } from "./actions.tsx";
+import { AnnotView } from "./AnnotView.tsx";
 import {
   makeTargetRead,
   readerResolutionAtom,
   resultValue,
   enableLiveUpdatesCommand,
-} from "./atoms";
-import { sanitizeSavedFilter } from "./filter";
-import type { SavedFilter } from "./filter";
-import { SidebarFilterModal } from "./filter-modal";
-import type { AnnotationsLayout } from "./layout";
+} from "./atoms.ts";
+import { SidebarFilterModal } from "./filter-modal.tsx";
+import { sanitizeSavedFilter } from "./filter.ts";
+import type { SavedFilter } from "./filter.ts";
+import type { AnnotationsLayout } from "./layout.tsx";
 import {
   holdAnnotViewModel,
   observeRead,
@@ -72,22 +72,22 @@ import {
   sameAnnotViewState,
   setFollowMode,
   unpin,
-} from "./model";
-import type { AnnotViewModel } from "./model";
-import type { AnnotStore } from "./model";
-import { buildPaneMenu } from "./pane-menu";
-import { resolveLoadTarget } from "./resolve-target";
-import type { ActiveLeafTarget, LoadTarget } from "./resolve-target";
-import { saveSidebarAsQueryFile } from "./save-query-file";
-import { addSidebarQueryMenu, sidebarQueryText } from "./sidebar-query";
-import { INITIAL_FILTER_STATE, selectActiveAttachment } from "./state";
-import type { AnnotState, FollowMode } from "./state";
+} from "./model.ts";
+import type { AnnotViewModel } from "./model.ts";
+import type { AnnotStore } from "./model.ts";
+import { buildPaneMenu } from "./pane-menu.ts";
+import { resolveLoadTarget } from "./resolve-target.ts";
+import type { ActiveLeafTarget, LoadTarget } from "./resolve-target.ts";
+import { saveSidebarAsQueryFile } from "./save-query-file.ts";
+import { addSidebarQueryMenu, sidebarQueryText } from "./sidebar-query.ts";
+import { INITIAL_FILTER_STATE, selectActiveAttachment } from "./state.ts";
+import type { AnnotState, FollowMode } from "./state.ts";
 import {
   parseAnnotViewState,
   readSidebarQuery,
   serializeAnnotViewState,
-} from "./view-state";
-import type { AnnotViewState } from "./view-state";
+} from "./view-state.ts";
+import type { AnnotViewState } from "./view-state.ts";
 
 export const ANNOT_VIEW_TYPE = "zotero-annotation-view";
 

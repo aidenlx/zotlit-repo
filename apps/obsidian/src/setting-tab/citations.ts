@@ -7,26 +7,26 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style";
-import { ANNOTATION_SUGGESTER_ENABLED } from "@/lib/constants";
-import { recover } from "@/lib/effect-cause";
-import * as m from "@/lib/i18n/generated/messages";
-import { isLanguageTag } from "@/lib/language-tag";
-import { GRAPH_CORE_PLUGIN_ID } from "@/services/graph-citations/install";
-import { listInstalledStyles } from "@/services/pandoc/installed-styles";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import { defaults } from "@/services/settings/schema";
-import type { HoverAction, Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service";
-import { annotationTriggerError } from "@/views/citation-suggest/annotation-trigger";
+import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
+import { ANNOTATION_SUGGESTER_ENABLED } from "@/lib/constants.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { isLanguageTag } from "@/lib/language-tag.ts";
+import { GRAPH_CORE_PLUGIN_ID } from "@/services/graph-citations/install.ts";
+import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { HoverAction, Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { annotationTriggerError } from "@/views/citation-suggest/annotation-trigger.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { zoteroDataDir } from "./database";
-import { paintEach } from "./effect-tab";
-import { pandocEngineDefinition } from "./pandoc-engine";
-import { pandocIntegrationDefinition } from "./pandoc-integration";
-import { citationTextItems } from "./templates";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { zoteroDataDir } from "./database.ts";
+import { paintEach } from "./effect-tab.ts";
+import { pandocEngineDefinition } from "./pandoc-engine.ts";
+import { pandocIntegrationDefinition } from "./pandoc-integration.ts";
+import { citationTextItems } from "./templates.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 

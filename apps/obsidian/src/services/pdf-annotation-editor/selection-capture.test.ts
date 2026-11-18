@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
-import type { OverlayPageView } from "./render";
-import { selectionPagesOf } from "./selection-capture";
-import type { ClientBox } from "./selection-capture";
+import type { OverlayPageView } from "./render.ts";
+import { selectionPagesOf } from "./selection-capture.ts";
+import type { ClientBox } from "./selection-capture.ts";
 
 /**
  * A US Letter page as PDF.js lays it out at 150 %: the matrix is the one

@@ -13,14 +13,14 @@ import type {
   LocalBridgeConnection,
 } from "@zotlit/workbench/bridge";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/popover.tsx";
 import { m } from "@/paraglide/messages.js";
 
 interface ConnectionBarProps {

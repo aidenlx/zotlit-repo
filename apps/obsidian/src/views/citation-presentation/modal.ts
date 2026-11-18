@@ -4,16 +4,16 @@
 import { Modal, Setting } from "obsidian";
 import type { App, TextComponent } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { citationLocaleError } from "@/setting-tab/citations";
-import type { StyleDropdownOptions } from "@/views/style-dropdown";
-import { addStyleDropdown } from "@/views/style-dropdown";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { citationLocaleError } from "@/setting-tab/citations.ts";
+import type { StyleDropdownOptions } from "@/views/style-dropdown.ts";
+import { addStyleDropdown } from "@/views/style-dropdown.ts";
 
-import { STYLE_INHERITED, stylePickerOptions } from "./presentation";
+import { STYLE_INHERITED, stylePickerOptions } from "./presentation.ts";
 import type {
   CitationPresentationChoice,
   DeclaredPresentation,
-} from "./presentation";
+} from "./presentation.ts";
 
 export interface CitationPresentationModalOptions extends Pick<
   StyleDropdownOptions,

@@ -3,8 +3,8 @@
 // service abandons before any answer is recorded as cancelled rather than
 // answered. The service aborts the signal of its own finished job too, so only a
 // render that was answered nothing counts as abandoned.
-import type { ExcerptImage } from "@/services/excerpt-image/format";
-import type { ExcerptRequest } from "@/services/excerpt-image/service";
+import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
+import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
 
 /** One crop held open, with the ways a harness answers or abandons it. */
 export interface GatedRender {

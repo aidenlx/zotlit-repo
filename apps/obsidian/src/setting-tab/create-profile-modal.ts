@@ -4,20 +4,20 @@ import type { App } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
 
-import { citationStyleLabel } from "@/lib/citation-style";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { isUserStop } from "@/lib/user-cancel";
-import type { ProfileNoteDraft } from "@/services/note-feature/service";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import type { ResolvedProfile } from "@/services/profile/bindings";
+import { citationStyleLabel } from "@/lib/citation-style.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { isUserStop } from "@/lib/user-cancel.ts";
+import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type {
   LiteratureNoteProfile,
   ProfileBindings,
   ProfileCreateOptions,
   PreparedProfileCreation,
-} from "@/services/profile/service";
+} from "@/services/profile/service.ts";
 
 import {
   dialogFooter,
@@ -28,7 +28,7 @@ import {
   note,
   previewPanel,
   twoColumns,
-} from "./profile-dialog";
+} from "./profile-dialog.ts";
 
 const logger = getLogger(["setting-tab", "profiles"]);
 

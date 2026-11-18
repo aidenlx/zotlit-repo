@@ -8,16 +8,16 @@
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
 import type { IconName } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { IDLE } from "@/services/annotation-repository/write";
-import { editingBlockedReason } from "@/views/annot-view/card-controls";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
+import { editingBlockedReason } from "@/views/annot-view/card-controls.ts";
 
-import { renderIconButton, updateIconButton } from "./icon-button";
+import { renderIconButton, updateIconButton } from "./icon-button.ts";
 import "./style.css";
-import { MARK_TOOLS } from "./tools";
-import type { MarkTool } from "./tools";
+import { MARK_TOOLS } from "./tools.ts";
+import type { MarkTool } from "./tools.ts";
 
 /** Layout only; Obsidian's `clickable-icon` owns the look of each control. */
 const LAYOUT_CLASSES = ["zt:flex", "zt:items-center", "zt:gap-0.5"];

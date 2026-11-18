@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties, InputHTMLAttributes, Ref } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 
 /** 2-decimal format for fractional/`"any"` steps, integer string otherwise. */
 function getValuePretty(value: number, step: number | "any"): string {

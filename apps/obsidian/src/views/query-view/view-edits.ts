@@ -1,9 +1,13 @@
 // The edits the view menu and "Configure view" make to a Query File's views,
 // as plain functions from one file to the next. Each one leaves every key it
 // does not touch where it was, so a save writes them back.
-import { layoutsFor } from "./layouts";
-import { NEW_QUERY_FILE_LIMIT } from "./query-file";
-import type { QueryFile, QueryFileDataset, QueryFileView } from "./query-file";
+import { layoutsFor } from "./layouts.ts";
+import { NEW_QUERY_FILE_LIMIT } from "./query-file.ts";
+import type {
+  QueryFile,
+  QueryFileDataset,
+  QueryFileView,
+} from "./query-file.ts";
 
 /** A file after an edit, and the view to show in it. */
 export interface ViewEdit {

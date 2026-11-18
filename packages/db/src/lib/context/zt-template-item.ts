@@ -1,16 +1,17 @@
+import type { TemplateCollection } from "#lib/zt-collection.ts";
+import type { ItemDate } from "#lib/zt-date.ts";
+import type { ItemExtra } from "#lib/zt-extra.ts";
+import type { ItemTag, TemplateTag } from "#lib/zt-tag.ts";
+import type { Creator, Item } from "#queries/items.ts";
+
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 
-import { ZT_FIELD_ALIASES } from "@/lib/context/zt-field-aliases";
-import { defineToString } from "@/lib/to-string";
-import type { TemplateCollection } from "@/lib/zt-collection";
-import { parseItemDate } from "@/lib/zt-date";
-import type { ItemDate } from "@/lib/zt-date";
-import { parseItemExtra } from "@/lib/zt-extra";
-import type { ItemExtra } from "@/lib/zt-extra";
-import { toTemplateTag } from "@/lib/zt-tag";
-import type { ItemTag, TemplateTag } from "@/lib/zt-tag";
-import { itemSelectUri, itemWebUrl, libraryViewUri } from "@/lib/zt-uri";
-import type { Creator, Item } from "@/queries/items";
+import { ZT_FIELD_ALIASES } from "#lib/context/zt-field-aliases.ts";
+import { defineToString } from "#lib/to-string.ts";
+import { parseItemDate } from "#lib/zt-date.ts";
+import { parseItemExtra } from "#lib/zt-extra.ts";
+import { toTemplateTag } from "#lib/zt-tag.ts";
+import { itemSelectUri, itemWebUrl, libraryViewUri } from "#lib/zt-uri.ts";
 
 /**
  * One creator of an item, in the template vocabulary. Coerces to

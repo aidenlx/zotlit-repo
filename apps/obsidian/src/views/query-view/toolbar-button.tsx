@@ -21,9 +21,9 @@
 import type { IconName } from "obsidian";
 import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
-import { Icon } from "@/components/obsidian/icon";
-import { themeHook } from "@/lib/theme-hooks";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import "./toolbar-button.css";
 

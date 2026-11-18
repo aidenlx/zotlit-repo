@@ -2,8 +2,8 @@ import { act, cleanup, render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, expect, it } from "vitest";
 
-import { useCustomFieldNames } from "./custom-fields";
-import { mount } from "./test-host";
+import { useCustomFieldNames } from "./custom-fields.ts";
+import { mount } from "./test-host.tsx";
 
 afterEach(cleanup);
 

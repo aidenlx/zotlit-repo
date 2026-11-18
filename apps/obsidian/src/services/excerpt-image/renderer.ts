@@ -1,22 +1,25 @@
 import { Effect } from "effect";
 import { loadPdfJs } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
-import { excerptSourceIdentity } from "./contract";
-import type { ExcerptRequest } from "./contract";
-import { encodeExcerptImage } from "./encode";
-import { ExcerptImageError } from "./error";
-import { openExcerptFile, pdfStamp, readBounded } from "./file";
+import { excerptSourceIdentity } from "./contract.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import { encodeExcerptImage } from "./encode.ts";
+import { ExcerptImageError } from "./error.ts";
+import { openExcerptFile, pdfStamp, readBounded } from "./file.ts";
 import {
   clipExcerptBounds,
   excerptBounds,
   paintInk,
   viewportBounds,
-} from "./geometry";
-import { MAX_PDF_BYTES, borrowedExcerptPage } from "./reader-borrow";
-import type { ExcerptCropPage, ExcerptReaderDocuments } from "./reader-borrow";
+} from "./geometry.ts";
+import { MAX_PDF_BYTES, borrowedExcerptPage } from "./reader-borrow.ts";
+import type {
+  ExcerptCropPage,
+  ExcerptReaderDocuments,
+} from "./reader-borrow.ts";
 
 export interface ExcerptRenderTask {
   promise: Promise<void>;

@@ -17,7 +17,7 @@
 // @see apps/obsidian/docs/adr/0051-batches-reuse-excerpt-outcomes-with-bounded-memory.md
 import { Effect } from "effect";
 
-import type { ExcerptOutcome, PdfStamp } from "./service";
+import type { ExcerptOutcome, PdfStamp } from "./service.ts";
 
 /** Encoded bytes one batch retains. */
 export const EXCERPT_OUTCOME_BYTES = 32 * 1024 * 1024;

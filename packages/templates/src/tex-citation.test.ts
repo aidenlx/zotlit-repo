@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CitationItemInput } from "./citation-items";
-import { formatTexCitation, TexCitationError } from "./tex-citation";
+import type { CitationItemInput } from "./citation-items.ts";
+import { formatTexCitation, TexCitationError } from "./tex-citation.ts";
 
 function item(
   citationKey: string | null,

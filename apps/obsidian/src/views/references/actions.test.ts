@@ -2,26 +2,26 @@
 import type { App } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { ClipboardRepresentation } from "@/lib/clipboard";
-import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { ClipboardRepresentation } from "@/lib/clipboard.ts";
+import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
 import {
   copyBibliography,
   copyBibliographyMessage,
   createReferenceActions,
-} from "./actions";
+} from "./actions.ts";
 import type {
   CopyBibliographyOutcome,
   CopyBibliographySnapshot,
-} from "./actions";
-import type { CopiedBibliography } from "./copied-bibliography";
-import type { ReferenceEntry } from "./entries";
-import type { ReferencesCopyTarget } from "./state";
+} from "./actions.ts";
+import type { CopiedBibliography } from "./copied-bibliography.ts";
+import type { ReferenceEntry } from "./entries.ts";
+import type { ReferencesCopyTarget } from "./state.ts";
 
 /** What the toolbar offered when the copy action was clicked. */
 const offered: ReferencesCopyTarget = {

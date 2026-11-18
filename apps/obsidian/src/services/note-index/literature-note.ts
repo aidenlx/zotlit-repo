@@ -3,7 +3,7 @@
 // outside Effect.
 import type { CachedMetadata, MetadataCache, TFile } from "obsidian";
 
-import { itemKeyFromFrontmatter } from "./parse";
+import { itemKeyFromFrontmatter } from "./parse.ts";
 
 /** What the reads take from Obsidian: the app, or any host with its metadata cache. */
 export interface LiteratureNoteHost {

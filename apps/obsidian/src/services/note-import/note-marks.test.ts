@@ -5,7 +5,11 @@ import { describe, expect, it } from "vitest";
 
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 
-import { parseAnnotation, parseCitation, parseNoteSchema } from "./note-marks";
+import {
+  parseAnnotation,
+  parseCitation,
+  parseNoteSchema,
+} from "./note-marks.ts";
 
 /** Build an element carrying `attr` set to the URL-encoded JSON of `payload`. */
 function mark(tag: string, attr: string, payload: unknown): Element {

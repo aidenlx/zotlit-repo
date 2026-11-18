@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { describe, expect } from "vitest";
 
-import { testPluginData } from "./__fixtures__/plugin-data";
-import { layerPluginData, PluginData } from "./plugin-data";
+import { testPluginData } from "./__fixtures__/plugin-data.ts";
+import { layerPluginData, PluginData } from "./plugin-data.ts";
 
 describe("layerPluginData", () => {
   it.effect("loads and saves through the plugin", () =>

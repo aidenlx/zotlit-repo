@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Compares each format version at HEAD with the latest release tag. Both are
+// git objects, not working-tree files, so Turbo cannot hash them: the
+// `//#lint:format-versions` task in turbo.json stays uncached.
 import { execFileSync } from "node:child_process";
 
 import {

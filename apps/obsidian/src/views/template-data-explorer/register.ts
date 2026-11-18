@@ -1,21 +1,21 @@
 import { Effect } from "effect";
 import type { App, PaneType, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 import "./style.css";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { FileMenuSegment } from "@/services/file-menu";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import type { PluginSettings } from "@/services/settings/service";
-import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions";
-import type { WorkbenchActionDeps } from "@/views/template-workbench/actions";
-import { inLayoutTurn } from "@/views/template-workbench/layout";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions.ts";
+import type { WorkbenchActionDeps } from "@/views/template-workbench/actions.ts";
+import { inLayoutTurn } from "@/views/template-workbench/layout.ts";
 
-import { EXPLORER_VIEW_TYPE, TemplateDataExplorerView } from "./view";
+import { EXPLORER_VIEW_TYPE, TemplateDataExplorerView } from "./view.tsx";
 
 type ExplorerPlugin = Pick<Plugin, "registerView" | "addCommand" | "manifest">;
 

@@ -8,7 +8,7 @@ import type {
 } from "@zotlit/db";
 import { TemplateError } from "@zotlit/templates/facade";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 /**
  * The template data of `annotation`, the captured card. Each date and fact

@@ -21,8 +21,8 @@ import {
   rangeHandles,
   releasedPosition,
   sameGeometry,
-} from "./geometry-edit";
-import type { Grip } from "./geometry-edit";
+} from "./geometry-edit.ts";
+import type { Grip } from "./geometry-edit.ts";
 
 /** A US Letter page seen from a non-zero origin, as a PDF may describe it. */
 const VIEW_BOX = [10, 20, 622, 812] as const;

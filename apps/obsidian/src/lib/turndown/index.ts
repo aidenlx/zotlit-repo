@@ -2,9 +2,9 @@ import type TurndownService from "turndown";
 
 import { highlightColorToName, textColorToName } from "@zotlit/db";
 
-import { renderColorMark, renderHighlight } from "./color-mark";
-import type { HighlightOptions } from "./color-mark";
-import { createObsidianTurndown } from "./obsidian-base";
+import { renderColorMark, renderHighlight } from "./color-mark.ts";
+import type { HighlightOptions } from "./color-mark.ts";
+import { createObsidianTurndown } from "./obsidian-base.ts";
 
 /**
  * Attribute on the prepass sentinel `<div>` that carries an annotation
@@ -207,4 +207,4 @@ export function createNoteTurndown(
   return td;
 }
 
-export { createObsidianTurndown } from "./obsidian-base";
+export { createObsidianTurndown } from "./obsidian-base.ts";

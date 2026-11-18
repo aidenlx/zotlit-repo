@@ -4,16 +4,16 @@
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { withOutcome } from "@/lib/notifier";
-import { Template } from "@/services/template/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { withOutcome } from "@/lib/notifier.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { openNewPartialPrompt } from "./new-partial";
-import type { CreateSharedPartialOptions } from "./new-partial";
-import { openTemplateWorkbench } from "./open";
+import { openNewPartialPrompt } from "./new-partial.ts";
+import type { CreateSharedPartialOptions } from "./new-partial.ts";
+import { openTemplateWorkbench } from "./open.ts";
 
 /**
  * Ask a name under the shared rule and write `zotlit-partial.<name>.md`. An

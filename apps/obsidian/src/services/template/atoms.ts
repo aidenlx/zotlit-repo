@@ -3,8 +3,8 @@ import { Effect, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { viewRuntime, held } from "@/lib/view-atoms";
-import { Template } from "@/services/template/service";
+import { viewRuntime, held } from "@/lib/view-atoms.ts";
+import { Template } from "@/services/template/service.ts";
 
 export const templateRevisionAtom = held(
   Stream.unwrap(

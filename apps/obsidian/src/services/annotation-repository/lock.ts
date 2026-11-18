@@ -7,9 +7,9 @@
 
 import type { Annotation } from "@zotlit/db";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
-import { lockReasonText } from "./lock-copy";
+import { lockReasonText } from "./lock-copy.ts";
 
 const logger = getLogger("annotation-repository");
 

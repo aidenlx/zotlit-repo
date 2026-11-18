@@ -69,56 +69,56 @@ import type {
   WorkbenchViewState,
 } from "@zotlit/workbench/ui";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/ui/toast";
+} from "@/components/ui/dropdown-menu.tsx";
+import { toast } from "@/components/ui/toast.tsx";
 import { m } from "@/paraglide/messages.js";
 
-import { annotationHeaderMark } from "./annotation-mark";
-import { ConnectionBar, ConnectionNotice } from "./connection-bar";
-import { FieldList } from "./field-list";
+import { annotationHeaderMark } from "./annotation-mark.ts";
+import { ConnectionBar, ConnectionNotice } from "./connection-bar.tsx";
+import { FieldList } from "./field-list.tsx";
 import {
   insertSnippet,
   rootData,
   SNIPPET_ENGINE,
   templateRootAt,
-} from "./fields";
-import { ProfileMenuLabel, WorkbenchFrame, WorkbenchHelp } from "./frame";
-import { ProfileHandoff } from "./handoff";
-import { HelpMenu } from "./help-menu";
-import { useWebHost } from "./host";
-import { makeWebPage } from "./page-model";
+} from "./fields.ts";
+import { ProfileMenuLabel, WorkbenchFrame, WorkbenchHelp } from "./frame.tsx";
+import { ProfileHandoff } from "./handoff.tsx";
+import { HelpMenu } from "./help-menu.tsx";
+import { useWebHost } from "./host.tsx";
+import { makeWebPage } from "./page-model.ts";
 import type {
   PageLayout,
   Replacement,
   WebPage,
   WebWorkbench,
-} from "./page-model";
-import { WebPreview } from "./preview";
-import { PageRuntime, usePageBridge } from "./runtime";
-import type { PageServices } from "./runtime";
-import { SampleBar } from "./sample-bar";
-import { PANEL_HANDLE_WIDTH, WEB_THEME } from "./theme";
+} from "./page-model.ts";
+import { WebPreview } from "./preview.tsx";
+import { PageRuntime, usePageBridge } from "./runtime.tsx";
+import type { PageServices } from "./runtime.tsx";
+import { SampleBar } from "./sample-bar.tsx";
+import { PANEL_HANDLE_WIDTH, WEB_THEME } from "./theme.tsx";
 import {
   downloadProfile,
   profileFileName,
   createProfileHandoffSource,
-} from "./transfer";
-import { unsupportedDependencies, unsupportedProblems } from "./unsupported";
-import { useWorkbenchConnection } from "./use-workbench-connection";
-import { ViewMenu } from "./view-menu";
+} from "./transfer.ts";
+import { unsupportedDependencies, unsupportedProblems } from "./unsupported.ts";
+import { useWorkbenchConnection } from "./use-workbench-connection.ts";
+import { ViewMenu } from "./view-menu.tsx";
 
 /** The result becomes a column once both reading and editing have room. */
 

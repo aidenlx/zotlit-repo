@@ -1,8 +1,8 @@
 import { creatorTypePriority, parseItemDate } from "@zotlit/db";
 import type { Creator, Item } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
 
 export type SummaryItem = Pick<Item, "key" | "creators" | "primaryCreatorType">;
 export type SummaryItemFields = {

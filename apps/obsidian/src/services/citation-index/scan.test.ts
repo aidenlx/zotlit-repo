@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { maskWikilinks } from "./scan";
-import { scanNote } from "./scan-note";
+import { scanNote } from "./scan-note.ts";
+import { maskWikilinks } from "./scan.ts";
 
 it("groups an Author-in-text Citation with its trailing items", () => {
   const source = "Before @a [{p. 3}; @b] after";

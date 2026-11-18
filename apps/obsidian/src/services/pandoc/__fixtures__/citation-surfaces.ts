@@ -1,8 +1,8 @@
-import { missingStyleChanges } from "@/services/pandoc/render-cache";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { Notifier } from "@/lib/notifier";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
+import { missingStyleChanges } from "@/services/pandoc/render-cache.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { delay } from "@std/async";
 import { Context, DateTime, Effect, FileSystem, Layer, Stream } from "effect";
@@ -25,21 +25,21 @@ import type {
 import { act } from "preact/test-utils";
 import { vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms";
-import { buildRuntime } from "@/lib/effect-layer";
+import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 // One vault, read at once through every Citation Presentation surface: the
 // Document Citation Text, the References Sidebar, the Citation Popover, the
 // Copied Bibliography, and the built-in export.
-import { subscribe } from "@/lib/effect-stream";
-import { spliceFrontMatter } from "@/lib/live-text";
-import { makeViewRegistry } from "@/lib/view-atoms";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationIndex } from "@/services/citation-index/service";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { spliceFrontMatter } from "@/lib/live-text.ts";
+import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import {
   createCitationIndexHarness,
   GROUP_LIBRARY_ID,
@@ -49,74 +49,74 @@ import {
   KEY_B,
   LibraryScopeStub,
   personalLibrary,
-} from "@/services/citation-index/test-harness";
-import type { CitationIndexHarness } from "@/services/citation-index/test-harness";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { CitationParse } from "@/services/citation-parse/service";
-import { citationPopoverFixture } from "@/services/citation-popover/__fixtures__";
-import { firstText } from "@/services/citation-text/__fixtures__";
-import { citationTextFixture } from "@/services/citation-text/__fixtures__";
-import { CitationText } from "@/services/citation-text/service";
-import type { ManagedBinaryApi } from "@/services/managed-binary/service";
-import { createCitationEngine } from "@/services/pandoc/engine";
-import type { CitationEngine } from "@/services/pandoc/engine";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { bibliographyRenderFixture } from "@/services/pandoc/render-cache/__fixtures__";
-import { PandocEngine } from "@/services/pandoc/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
+} from "@/services/citation-index/test-harness.ts";
+import type { CitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { citationPopoverFixture } from "@/services/citation-popover/__fixtures__.ts";
+import { firstText } from "@/services/citation-text/__fixtures__.ts";
+import { citationTextFixture } from "@/services/citation-text/__fixtures__.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
+import { createCitationEngine } from "@/services/pandoc/engine.ts";
+import type { CitationEngine } from "@/services/pandoc/engine.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { bibliographyRenderFixture } from "@/services/pandoc/render-cache/__fixtures__.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
 import {
   applySettings,
   buildSeededSettings,
-} from "@/services/settings/__fixtures__";
-import type { SettingsFixture } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/settings/__fixtures__.ts";
+import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 type ProfileFixture = Pick<Settings, "profiles" | "defaultDocument">;
-import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch";
-import { ZoteroHttp } from "@/lib/zotero-http";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents";
-import { seedWorksSql } from "@/services/zotero-reads/test-utils";
-import { applyCitationPresentation } from "@/views/citation-presentation/presentation";
-import type { CitationPresentationChoice } from "@/views/citation-presentation/presentation";
-import { runPandocExport } from "@/views/pandoc-export/register";
-import type { PandocExportDeps } from "@/views/pandoc-export/register";
-import { ReferencesView } from "@/views/references/view";
+import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch.ts";
+import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
+import { seedWorksSql } from "@/services/zotero-reads/test-utils.ts";
+import { applyCitationPresentation } from "@/views/citation-presentation/presentation.ts";
+import type { CitationPresentationChoice } from "@/views/citation-presentation/presentation.ts";
+import { runPandocExport } from "@/views/pandoc-export/register.ts";
+import type { PandocExportDeps } from "@/views/pandoc-export/register.ts";
+import { ReferencesView } from "@/views/references/view.tsx";
 
 import {
   citedWorks,
   clipboardWrites,
   exportRun,
   resetCitationSurfaceMocks,
-} from "./citation-surface-mocks";
-import type { CitedWork } from "./citation-surface-mocks";
+} from "./citation-surface-mocks.ts";
+import type { CitedWork } from "./citation-surface-mocks.ts";
 
 // Every module this vault stands in for, registered once here so each suite
 // that opens one takes the same doubles. The registrations hoist above the
 // imports, so this fixture's own graph loads with them already in place.
-vi.mock("@/views/pandoc-export/modal", async () => ({
-  openPandocExportModal: (await import("./citation-surface-mocks"))
+vi.mock("@/views/pandoc-export/modal.ts", async () => ({
+  openPandocExportModal: (await import("./citation-surface-mocks.ts"))
     .answerExportModal,
 }));
 
 /** Zotero itself, answering for the Items this vault cites. */
-vi.mock("@/services/pandoc/bibliography", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/pandoc/bibliography")>()),
-  fetchBibliography: (await import("./citation-surface-mocks"))
+vi.mock("@/services/pandoc/bibliography.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/pandoc/bibliography.ts")>()),
+  fetchBibliography: (await import("./citation-surface-mocks.ts"))
     .fetchCitedBibliography,
 }));
 
-vi.mock("@/lib/clipboard", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/clipboard")>()),
-  writeClipboardRichText: (await import("./citation-surface-mocks"))
+vi.mock("@/lib/clipboard.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/clipboard.ts")>()),
+  writeClipboardRichText: (await import("./citation-surface-mocks.ts"))
     .collectClipboardWrite,
 }));
 
 
-vi.mock("@/components/obsidian/icon-button", async () => {
+vi.mock("@/components/obsidian/icon-button.tsx", async () => {
   const { createElement } = await import("react");
   return {
     IconButton: ({ icon, ...props }: { icon: string }) =>

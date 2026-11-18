@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "vite";
 import { expect, onTestFinished, test } from "vitest";
 
-import { generateParaglide, paraglideVitePlugin } from "./index.js";
+import { generateParaglide, paraglideVitePlugin } from "./index.ts";
 
 async function fixture(prefix = "paraglide-") {
   const scratch = resolve(import.meta.dirname, "../../../.scratch");

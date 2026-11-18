@@ -56,19 +56,19 @@ import {
   planItemFilter,
 } from "@zotlit/item-query";
 
-import { toInstant } from "@/lib/effect-clock";
-import { answerView } from "@/services/item-query/answer";
-import { QUERY_COMMAND } from "@/services/item-query/contract";
+import { toInstant } from "@/lib/effect-clock.ts";
+import { answerView } from "@/services/item-query/answer.ts";
+import { QUERY_COMMAND } from "@/services/item-query/contract.ts";
 import type {
   QueryViewResult,
   QueryViewRow,
-} from "@/services/item-query/query-view";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
+} from "@/services/item-query/query-view.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
-import { parseQueryFile } from "./query-file";
-import type { QueryFile } from "./query-file";
-import type { VaultValue } from "./table-notes";
-import { ViewPlanner } from "./view-plan/view-plan";
+import { parseQueryFile } from "./query-file.ts";
+import type { QueryFile } from "./query-file.ts";
+import type { VaultValue } from "./table-notes.ts";
+import { ViewPlanner } from "./view-plan/view-plan.ts";
 
 const WORKSPACE = resolve(import.meta.dirname, "../../../../..");
 const SCRATCH = join(WORKSPACE, ".scratch", "mixed-query-bench");

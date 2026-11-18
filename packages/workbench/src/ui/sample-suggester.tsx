@@ -3,9 +3,9 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { useWorkbenchModel } from "./editor";
-import { useTooltip, useWorkbenchHost } from "./host";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchModel } from "./editor.tsx";
+import { useTooltip, useWorkbenchHost } from "./host.tsx";
+import { useIcon, useParts } from "./theme.tsx";
 
 export interface SampleOption {
   readonly value: string;

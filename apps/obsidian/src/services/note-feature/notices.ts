@@ -2,11 +2,11 @@
 // skipped frontmatter expressions, shown through the Notifier.
 import { Effect, Layer } from "effect";
 
-import { forkEach } from "@/lib/effect-stream";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
+import { forkEach } from "@/lib/effect-stream.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
 
-import { eventPayloads, NoteFeature } from "./service";
+import { eventPayloads, NoteFeature } from "./service.ts";
 
 /**
  * Show a notice for each excerpt image summary and each note write that

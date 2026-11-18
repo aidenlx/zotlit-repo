@@ -1,7 +1,7 @@
 // Brings Obsidian's per-glyph text content to parity with the character stream
 // Zotero's PDF text structure is built from.
 
-import { getStructuredChars } from "@/vendor/structure.js";
+import { getStructuredChars } from "#vendor/structure.js";
 
 /** `[x1, y1, x2, y2]` in PDF page space. */
 export type Rect = readonly [number, number, number, number];

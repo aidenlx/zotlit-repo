@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { resolveLocale } from "./index.js";
+import { resolveLocale } from "./index.ts";
 
 const CATALOG = {
   baseLocale: "en",

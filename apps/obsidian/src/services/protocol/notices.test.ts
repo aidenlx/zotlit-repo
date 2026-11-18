@@ -2,13 +2,13 @@ import { it } from "@effect/vitest";
 import { Effect, Exit } from "effect";
 import { describe, expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
 
-import { showProtocolOutcome } from "./notices";
-import { ProtocolOutcome } from "./outcome";
+import { showProtocolOutcome } from "./notices.ts";
+import { ProtocolOutcome } from "./outcome.ts";
 
 /** The notices `outcome` shows: each one's text and duration. */
 const noticesOf = Effect.fn("noticesOf")(function* (outcome: ProtocolOutcome) {

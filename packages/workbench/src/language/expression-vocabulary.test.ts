@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ANNOTATIONS, ITEMS } from "@zotlit/item-query";
 
-import { datasetVocabulary } from "./expression-vocabulary";
+import { datasetVocabulary } from "./expression-vocabulary.ts";
 
 const noLabel = () => undefined;
 

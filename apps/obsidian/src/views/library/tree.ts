@@ -6,15 +6,15 @@
 // @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
 import { parseIndexedKey } from "@zotlit/db";
 
-import type { QueryViewGroup } from "@/services/item-query/query-view";
+import type { QueryViewGroup } from "@/services/item-query/query-view.ts";
 import type {
   AvailableLibrary,
   LibrarySelector,
-} from "@/services/library-scope/scope";
-import { selectorKey } from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
+import { selectorKey } from "@/services/library-scope/scope.ts";
 
-import { nodeKey } from "./document";
-import type { LibraryNode } from "./document";
+import { nodeKey } from "./document.ts";
+import type { LibraryNode } from "./document.ts";
 
 export interface TreeCollection {
   /** The root-first names, the last one this Collection's own. */

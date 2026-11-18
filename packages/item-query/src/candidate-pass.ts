@@ -2,15 +2,15 @@ import { Effect } from "effect";
 
 import { withLogCategory } from "@zotlit/shared/logging";
 
-import type { CandidateDataset } from "./dataset";
-import type { FilterNode } from "./filter-plan";
-import type { QuerySources } from "./query-sources";
+import type { CandidateDataset } from "./dataset.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import type { QuerySources } from "./query-sources.ts";
 import {
   planDatasetCandidates,
   readDatasetCandidates,
-} from "./relation-candidates";
-import type { TargetLibrary } from "./request";
-import type { Tuning } from "./tuning";
+} from "./relation-candidates.ts";
+import type { TargetLibrary } from "./request.ts";
+import type { Tuning } from "./tuning.ts";
 
 /** Choose the candidate set or the scan independently for each Target Library. */
 export const runCandidatePass = Effect.fnUntraced(function* ({

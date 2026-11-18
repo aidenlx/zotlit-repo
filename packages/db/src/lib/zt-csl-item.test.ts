@@ -1,14 +1,14 @@
+import type { Creator, Item } from "#queries/items.ts";
 // ZotLit-specific mapper behavior. Agreement with Zotero across the whole
 // regular-item schema lives in the golden corpus, `zt-csl-item.corpus.test.ts`.
 import { describe, expect, it } from "vitest";
 
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import { itemBaseFields, resolveVenue } from "@/lib/zt-venue";
-import type { Creator, Item } from "@/queries/items";
+import { itemToCsl } from "./zt-csl-item.ts";
 
-import { itemToCsl } from "./zt-csl-item";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { itemBaseFields, resolveVenue } from "#lib/zt-venue.ts";
 
 /** A synced personal account; every fixture item belongs to its library. */
 const USER = {

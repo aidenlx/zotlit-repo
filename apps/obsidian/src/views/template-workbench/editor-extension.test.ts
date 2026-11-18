@@ -11,10 +11,10 @@ import {
   templateHighlighting,
 } from "@zotlit/workbench/language";
 
-import { themeHook } from "@/lib/theme-hooks";
+import { themeHook } from "@/lib/theme-hooks.ts";
 
-import { codePane } from "./editor-extension";
-import { windowMigration } from "./test-window-migration";
+import { codePane } from "./editor-extension.ts";
+import { windowMigration } from "./test-window-migration.ts";
 
 let view: EditorView | null = null;
 afterEach(() => {

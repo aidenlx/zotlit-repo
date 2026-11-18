@@ -5,7 +5,7 @@ import { RpcClient, RpcClientError } from "effect/rpc";
 import type { RpcMessage } from "effect/rpc";
 import { Worker } from "effect/workers";
 
-import { CitationParseRpc } from "./rpc";
+import { CitationParseRpc } from "./rpc.ts";
 
 // This connection owns one stateless worker. The recovery layer replaces the
 // entire connection on death, so requests need neither a pool lease nor a

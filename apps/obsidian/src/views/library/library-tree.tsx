@@ -19,31 +19,31 @@ import type { Root } from "react-dom/client";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import { libraryLabel } from "@/services/library-scope/label";
-import type { AvailableLibrary } from "@/services/library-scope/scope";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
+import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 
-import { FILTER_CHIP_CLASS } from "./chip";
-import { nodeKey, READING_STATE_FACETS, sortTags } from "./document";
-import type { LibraryNode, ReadingStateFacet } from "./document";
-import { waitForRead } from "./model";
-import { TagSelector } from "./tag-selector";
-import { TextAction } from "./text-action";
-import { CLOSED_PREFIX, findNode, knowsNode, sameLibrary } from "./tree";
-import type { TreeCollection, TreeLibrary } from "./tree";
+import { FILTER_CHIP_CLASS } from "./chip.ts";
+import { nodeKey, READING_STATE_FACETS, sortTags } from "./document.ts";
+import type { LibraryNode, ReadingStateFacet } from "./document.ts";
+import { waitForRead } from "./model.ts";
+import { TagSelector } from "./tag-selector.tsx";
+import { TextAction } from "./text-action.tsx";
 import {
   makeTreeModel,
   patchTree,
   refreshTree,
   TreeModelProvider,
   useTreeState,
-} from "./tree-model";
-import type { TreeSession } from "./tree-model";
+} from "./tree-model.ts";
+import type { TreeSession } from "./tree-model.ts";
+import { CLOSED_PREFIX, findNode, knowsNode, sameLibrary } from "./tree.ts";
+import type { TreeCollection, TreeLibrary } from "./tree.ts";
 
 export interface LibraryTreeDeps {
   registry: ViewRegistryHandle;

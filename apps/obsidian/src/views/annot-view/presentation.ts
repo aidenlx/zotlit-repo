@@ -10,13 +10,13 @@ import type { IconName } from "obsidian";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { ItemSummary } from "@/lib/item-summary";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ItemSummary } from "@/lib/item-summary.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 
-import { selectActiveAttachment } from "./state";
-import type { AnnotState, FollowMode } from "./state";
+import { selectActiveAttachment } from "./state.ts";
+import type { AnnotState, FollowMode } from "./state.ts";
 
 /** The label and icon each Follow Mode is named by, everywhere it is named. */
 const FOLLOW_MODES = {

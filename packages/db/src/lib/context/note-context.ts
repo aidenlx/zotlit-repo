@@ -1,46 +1,49 @@
-// Fetches the DB rows a note/annotation template needs and assembles them via the pure zt-* mappers.
-import { distinct } from "@std/collections";
-
-import type { NodeDatabaseClient } from "@/client/node";
-import { annotationToTemplateData } from "@/lib/context/zt-template-annot";
-import type { TemplateAnnotation } from "@/lib/context/zt-template-annot";
-import { resolveTemplateAttachment } from "@/lib/context/zt-template-attach";
-import type { TemplateAttachment } from "@/lib/context/zt-template-attach";
-import {
-  itemToTemplateBaseData,
-  resolveItemCore,
-  withItemPreview,
-} from "@/lib/context/zt-template-item";
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type { TemplateAnnotation } from "#lib/context/zt-template-annot.ts";
+import type { TemplateAttachment } from "#lib/context/zt-template-attach.ts";
 import type {
   TemplateItemResolvers,
   TemplateParentItemData,
-} from "@/lib/context/zt-template-item";
-import type { Annotation } from "@/lib/zt-annot";
-import type { Attachment } from "@/lib/zt-attach";
-import { toTemplateCollection } from "@/lib/zt-collection";
-import type { CollectionCache, TemplateCollection } from "@/lib/zt-collection";
-import type { ItemTag } from "@/lib/zt-tag";
-import { getZoteroIdentity } from "@/queries/account";
-import { getAnnotationsByParent } from "@/queries/annotations";
-import {
-  getAttachmentByItemId,
-  getAttachmentsByParents,
-} from "@/queries/attachments";
-import { getRelatedKeysByItemID } from "@/queries/item-relations";
-import { getItemsByID, getItemsByKey } from "@/queries/items";
-import type { Item } from "@/queries/items";
-import type { GroupIDMemo } from "@/queries/libraries";
-import { getChildNotes } from "@/queries/notes";
-import type { ChildNote } from "@/queries/notes";
-import { resolveItemTagsByIDs } from "@/queries/tags";
-import type { TagMemo } from "@/queries/tags";
+} from "#lib/context/zt-template-item.ts";
+import type { Annotation } from "#lib/zt-annot.ts";
+import type { Attachment } from "#lib/zt-attach.ts";
+import type {
+  CollectionCache,
+  TemplateCollection,
+} from "#lib/zt-collection.ts";
+import type { ItemTag } from "#lib/zt-tag.ts";
+import type { Item } from "#queries/items.ts";
+import type { GroupIDMemo } from "#queries/libraries.ts";
+import type { ChildNote } from "#queries/notes.ts";
+import type { TagMemo } from "#queries/tags.ts";
+// Fetches the DB rows a note/annotation template needs and assembles them via the pure zt-* mappers.
+import { distinct } from "@std/collections";
 
-import { buildNoteContext } from "./zt-template-note";
+import { buildNoteContext } from "./zt-template-note.ts";
 import type {
   AnnotationResolvers,
   NoteTemplateContext,
   TemplateNoteLink,
-} from "./zt-template-note";
+} from "./zt-template-note.ts";
+
+import { annotationToTemplateData } from "#lib/context/zt-template-annot.ts";
+import { resolveTemplateAttachment } from "#lib/context/zt-template-attach.ts";
+import {
+  itemToTemplateBaseData,
+  resolveItemCore,
+  withItemPreview,
+} from "#lib/context/zt-template-item.ts";
+import { toTemplateCollection } from "#lib/zt-collection.ts";
+import { getZoteroIdentity } from "#queries/account.ts";
+import { getAnnotationsByParent } from "#queries/annotations.ts";
+import {
+  getAttachmentByItemId,
+  getAttachmentsByParents,
+} from "#queries/attachments.ts";
+import { getRelatedKeysByItemID } from "#queries/item-relations.ts";
+import { getItemsByID, getItemsByKey } from "#queries/items.ts";
+import { getChildNotes } from "#queries/notes.ts";
+import { resolveItemTagsByIDs } from "#queries/tags.ts";
 
 export type { AnnotationResolvers };
 

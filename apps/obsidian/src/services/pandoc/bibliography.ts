@@ -9,15 +9,15 @@ import { Duration, Effect, Option } from "effect";
 import { formatIndexedKey } from "@zotlit/db";
 import type { CslItemData } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log-category";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
 import {
   parseJson,
   exchangeWithZotero,
   ZoteroHttp,
   zoteroOrigin,
-} from "@/lib/zotero-http";
-import type { ZoteroRequest } from "@/lib/zotero-http";
-import { ZOTERO_HTTP_PORT_PREF } from "@/services/zotero-pref/prefs-file";
+} from "@/lib/zotero-http.ts";
+import type { ZoteroRequest } from "@/lib/zotero-http.ts";
+import { ZOTERO_HTTP_PORT_PREF } from "@/services/zotero-pref/prefs-file.ts";
 
 /** Pref that opens Zotero's local HTTP API; Zotero ships it off. */
 export const LOCAL_API_PREF = "httpServer.localAPI.enabled";

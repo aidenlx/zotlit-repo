@@ -4,8 +4,8 @@ import type { CliData } from "obsidian";
 
 import { Effect, Schema } from "effect";
 
-import { decodeQuery } from "@/services/item-query/decode";
-import { DecodedQuery } from "@/services/item-query/query-codec";
+import { decodeQuery } from "@/services/item-query/decode.ts";
+import { DecodedQuery } from "@/services/item-query/query-codec.ts";
 
 /** Throws the rejection of a malformed test query: fixture data, not a case. */
 export function workerQuery(params: CliData = {}): DecodedQuery {

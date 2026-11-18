@@ -12,13 +12,16 @@ import {
 } from "@zotlit/item-query";
 import type { QueryItemSeed } from "@zotlit/item-query";
 
-import type { LibrarySelector } from "@/services/library-scope/scope";
+import type { LibrarySelector } from "@/services/library-scope/scope.ts";
 import {
   parseQueryFile,
   serializeQueryFile,
-} from "@/views/query-view/query-file";
-import type { QueryFile, QueryFileView } from "@/views/query-view/query-file";
-import { splitFilters } from "@/views/query-view/view-plan/filter-split";
+} from "@/views/query-view/query-file.ts";
+import type {
+  QueryFile,
+  QueryFileView,
+} from "@/views/query-view/query-file.ts";
+import { splitFilters } from "@/views/query-view/view-plan/filter-split.ts";
 
 import {
   CARD_HEIGHT_MIN,
@@ -44,9 +47,9 @@ import {
   withText,
   withTreeCollapsed,
   withTreeWidth,
-} from "./document";
-import type { LibraryNode, LibraryViewDocument } from "./document";
-import { searchTerms, searchTokens } from "./search";
+} from "./document.ts";
+import type { LibraryNode, LibraryViewDocument } from "./document.ts";
+import { searchTerms, searchTokens } from "./search.ts";
 
 /** The filter ZotLit Query runs for a view that holds no vault condition. */
 const viewFilter = (file: QueryFile, view: QueryFileView) =>

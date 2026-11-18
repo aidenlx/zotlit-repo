@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isClonefileUnsupported } from "./reflink";
+import { isClonefileUnsupported } from "./reflink.ts";
 
 /** A rejection shaped like the one `promisify(execFile)` raises. */
 function execFailure(stderr: string): Error {

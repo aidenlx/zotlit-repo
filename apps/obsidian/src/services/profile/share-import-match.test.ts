@@ -6,12 +6,12 @@ import { expect } from "vitest";
 import { planItemFilter, queryItemFrom } from "@zotlit/item-query";
 import type { LanguagePack } from "@zotlit/obsidian-i18n";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
 import chinesePack from "@/lib/i18n/generated/zh-CN.json";
-import type { ProfileId } from "@/lib/profile-stamp";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
 
-import { profileServiceFixture } from "./__fixtures__/service";
+import { profileServiceFixture } from "./__fixtures__/service.ts";
 
 const id = "Bk3Qn7XvT2Lp" as ProfileId;
 const path = "templates/zotlit-profile.books.md";

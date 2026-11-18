@@ -4,30 +4,30 @@ import { Effect } from "effect";
 import {
   contentOf,
   historyFieldsOf,
-} from "@/services/annotation-repository/history";
+} from "@/services/annotation-repository/history.ts";
 import type {
   FieldHistoryStep,
   HistoryChange,
   HistoryJoin,
   HistoryStep,
   AnnotationHistory,
-} from "@/services/annotation-repository/history";
+} from "@/services/annotation-repository/history.ts";
 import {
   annotationTags,
   isTextField,
   noTagChange,
   tagChange,
-} from "@/services/annotation-repository/write";
-import type { TextField } from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
+import type { TextField } from "@/services/annotation-repository/write.ts";
 
-import { TEXT_FIELD_SPECS, sameText } from "./model";
+import { TEXT_FIELD_SPECS, sameText } from "./model.ts";
 import type {
   AnnotationRecord,
   ConfirmedWrite,
   GroupWrite,
   GroupWrites,
-} from "./model";
-import type { CoreState } from "./state";
+} from "./model.ts";
+import type { CoreState } from "./state.ts";
 
 /**
  * What one confirmed write changed, as the History Step that puts it back

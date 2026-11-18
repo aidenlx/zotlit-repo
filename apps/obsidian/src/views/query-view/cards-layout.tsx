@@ -4,16 +4,20 @@
 // narrowest a card is drawn, as in Bases 1.14.4.
 import type { CSSProperties } from "react";
 
-import { Chooser } from "@/components/chooser";
-import { Slider } from "@/components/obsidian/slider";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Chooser } from "@/components/chooser.tsx";
+import { Slider } from "@/components/obsidian/slider.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
-import type { QueryLayout } from "./layouts";
-import { useQueryViewState } from "./model";
-import type { QueryFileView } from "./query-file";
-import { RecordCell, RecordGroupHeading, useRecordGroups } from "./record-rows";
-import type { QueryView } from "./view";
+import type { QueryLayout } from "./layouts.ts";
+import { useQueryViewState } from "./model.ts";
+import type { QueryFileView } from "./query-file.ts";
+import {
+  RecordCell,
+  RecordGroupHeading,
+  useRecordGroups,
+} from "./record-rows.tsx";
+import type { QueryView } from "./view.tsx";
 
 export const CARDS_LAYOUT: QueryLayout = {
   type: "cards",

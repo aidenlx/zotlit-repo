@@ -3,10 +3,10 @@ import type {
   ExpressionSyntaxError,
 } from "@zotlit/filter-expression";
 
-import type { ItemQueryErrorCode } from "./error";
-import type { ValueShape } from "./fields";
-import type { StaticType } from "./filter-plan";
-import type { FormulaError } from "./formulas";
+import type { ItemQueryErrorCode } from "./error.ts";
+import type { ValueShape } from "./fields.ts";
+import type { StaticType } from "./filter-plan.ts";
+import type { FormulaError } from "./formulas.ts";
 
 /** UTF-16 offsets into the caller's argument; `to` is exclusive. */
 export interface Span {

@@ -35,8 +35,8 @@ import {
   openAnnotationChooser,
   bridgeFetch,
   serveBridge,
-} from "./page-test-host";
-import type { BridgeRequest } from "./page-test-host";
+} from "./page-test-host.tsx";
+import type { BridgeRequest } from "./page-test-host.tsx";
 
 describe("a draft the parser refuses", () => {
   it("re-finds a failed call after source moves before the next render", async () => {

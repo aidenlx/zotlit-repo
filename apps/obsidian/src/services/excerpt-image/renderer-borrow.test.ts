@@ -8,16 +8,16 @@ import { loadPdfJs } from "obsidian";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 
-import { sizedWebp } from "./__fixtures__/webp";
+import { sizedWebp } from "./__fixtures__/webp.ts";
 import type {
   BorrowedExcerptDocument,
   ExcerptCropPage,
   ExcerptReaderDocuments,
-} from "./reader-borrow";
-import { excerptKey } from "./service";
-import type { ExcerptEntry, ExcerptRequest } from "./service";
+} from "./reader-borrow.ts";
+import { excerptKey } from "./service.ts";
+import type { ExcerptEntry, ExcerptRequest } from "./service.ts";
 
 vi.mock("obsidian", async (original) => ({
   ...(await original<typeof import("obsidian")>()),

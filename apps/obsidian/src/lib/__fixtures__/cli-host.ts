@@ -1,6 +1,6 @@
 // A CliHost for tests: it keeps each command a namespace registers, so a
 // case reads its help and runs its handler as an Effect.
-import type { CliCommand, CliHost } from "@/lib/cli-command";
+import type { CliCommand, CliHost } from "@/lib/cli-command.ts";
 
 export function fakeCliHost() {
   const commands = new Map<string, CliCommand>();

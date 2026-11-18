@@ -20,13 +20,13 @@ import type { StatementRun } from "@zotlit/db/item-query";
 import { SCENARIO_LIBRARIES } from "@zotlit/db/test-scenario";
 import { LogCategory } from "@zotlit/shared/logging";
 
-import type { QueryDataset } from "./dataset";
-import { collectQuery } from "./query";
-import { QueryTimeZone } from "./query-clock";
-import type { ItemQueryRequest } from "./request";
-import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler";
-import { ItemQueryTuning, PRODUCTION_TUNING } from "./tuning";
-import type { Tuning } from "./tuning";
+import type { QueryDataset } from "./dataset.ts";
+import { QueryTimeZone } from "./query-clock.ts";
+import { collectQuery } from "./query.ts";
+import type { ItemQueryRequest } from "./request.ts";
+import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler.ts";
+import { ItemQueryTuning, PRODUCTION_TUNING } from "./tuning.ts";
+import type { Tuning } from "./tuning.ts";
 
 export interface CapturedLog {
   readonly level: string;

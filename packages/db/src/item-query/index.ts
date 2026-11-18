@@ -9,8 +9,11 @@ export {
   readTextSweepWindow,
   readCandidateSet,
   readLibraryRowCount,
-} from "./candidate-set";
-export { type CollectionPaths, readCollectionPaths } from "./collection-paths";
+} from "./candidate-set.ts";
+export {
+  type CollectionPaths,
+  readCollectionPaths,
+} from "./collection-paths.ts";
 export {
   ItemQueryDatabase,
   ItemQueryDatabaseError,
@@ -18,7 +21,7 @@ export {
   type ItemQueryReaderError,
   ItemQueryStatementObserver,
   type StatementRun,
-} from "./database";
+} from "./database.ts";
 export {
   type FieldVocabulary,
   HYDRATE_CHUNK_SIZE,
@@ -29,20 +32,20 @@ export {
   type HydrateRelation,
   readFieldVocabulary,
   readHydrateChunk,
-} from "./hydrate-chunk";
+} from "./hydrate-chunk.ts";
 export {
   checkDatabaseLayout,
   ItemQueryLayoutError,
   type LayoutGap,
   type LayoutVersions,
-} from "./layout";
-export { readLibraries } from "./libraries";
+} from "./layout.ts";
+export { readLibraries } from "./libraries.ts";
 export {
   readScanPage,
   readUniverseRows,
   SCAN_PAGE_SIZE,
   type ScanRow,
-} from "./scan-page";
+} from "./scan-page.ts";
 
 export {
   readItemAnnotations,
@@ -56,7 +59,7 @@ export {
   type AnnotationScanRow,
   type AnnotationDetails,
   type HydratedAnnotation,
-} from "./annotations";
+} from "./annotations.ts";
 
 export {
   readItemAttachments,
@@ -67,24 +70,24 @@ export {
   type AttachmentScanRow,
   type AttachmentDetails,
   type HydratedAttachment,
-} from "./attachments";
+} from "./attachments.ts";
 
-export { readItemNotes, type NoteScanRow } from "./notes";
+export { readItemNotes, type NoteScanRow } from "./notes.ts";
 
 export {
   readAttachmentCandidateSet,
   type AttachmentCandidateLeaf,
-} from "./attachments";
+} from "./attachments.ts";
 
 export {
   readRelationCandidateSet,
   type CandidateRelation,
-} from "./relation-candidates";
+} from "./relation-candidates.ts";
 
-export { readTagValues } from "./tag-values";
+export { readTagValues } from "./tag-values.ts";
 
 export {
   readParentCandidateSet,
   type ParentCandidates,
   type ParentCandidateLeaf,
-} from "./parent-candidates";
+} from "./parent-candidates.ts";

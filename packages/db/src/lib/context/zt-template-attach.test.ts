@@ -1,9 +1,9 @@
+import type { Attachment } from "#lib/zt-attach.ts";
 import { describe, expect, it } from "vitest";
 
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import type { Attachment } from "@/lib/zt-attach";
+import { attachmentToTemplateData } from "./zt-template-attach.ts";
 
-import { attachmentToTemplateData } from "./zt-template-attach";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
 
 function makeAttachment(overrides: Partial<Attachment>): Attachment {
   return {

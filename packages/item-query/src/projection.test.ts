@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 
-import type { ValueShape } from "./fields";
-import { planPath, readPath } from "./projection";
-import type { ProjectionValue } from "./request";
+import type { ValueShape } from "./fields.ts";
+import { planPath, readPath } from "./projection.ts";
+import type { ProjectionValue } from "./request.ts";
 
 // Projection vectors cover missing members, null positions, nested lists,
 // numeric indexes after [], quoted keys, and an exact empty-bracket token.

@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import type { FileSystem, PlatformError } from "effect";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log-category";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
 
 import {
   HIDDEN_DIR,
@@ -13,8 +13,8 @@ import {
   readStyleDirOrEmpty,
   selectableStyles,
   STYLES_DIR,
-} from "./styles";
-import type { InstalledCslStyle } from "./styles";
+} from "./styles.ts";
+import type { InstalledCslStyle } from "./styles.ts";
 
 /**
  * The styles a user can select, sorted by title. A styles folder that is

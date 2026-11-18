@@ -3,14 +3,17 @@
 // over the values that fill it; every code is written here, once for both
 // hosts, so a reader outside English reads their own language.
 
-import type { WorkbenchProblem, WorkbenchSliceId } from "#/document/controller";
-import type { RenderReport } from "#/render/report";
-import type { RenderDiagnostic } from "#/render/result";
+import type {
+  WorkbenchProblem,
+  WorkbenchSliceId,
+} from "#document/controller.ts";
+import type { RenderReport } from "#render/report.ts";
+import type { RenderDiagnostic } from "#render/result.ts";
 
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchMessageLabel } from "./messages";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
 
-import { entryPosition } from "#/document/controller";
+import { entryPosition } from "#document/controller.ts";
 
 /** What the Problems strip and the handoff screen read for one problem. */
 export interface ProblemText {

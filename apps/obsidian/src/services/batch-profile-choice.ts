@@ -1,19 +1,19 @@
 // The batch confirmation delegates its optional Profile decision to the shared picker.
 import { Effect } from "effect";
 
-import { awaitModal } from "@/lib/effect-modal";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { InteractiveCreationPorts } from "@/services/note-feature";
-import type {
-  CreationProfileSelection,
-  ProfilePreview,
-} from "@/services/note-feature";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import {
   installedStyles,
   settleProfilePick,
-} from "@/services/note-feature/creation-view";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
-import type { ProfilePick } from "@/views/quick-switch/profile-picker";
+} from "@/services/note-feature/creation-view.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/index.ts";
+import type {
+  CreationProfileSelection,
+  ProfilePreview,
+} from "@/services/note-feature/index.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
+import type { ProfilePick } from "@/views/quick-switch/profile-picker.ts";
 
 export type BatchProfilePickerDeps = Pick<
   InteractiveCreationPorts,

@@ -2,32 +2,32 @@
 import { Clock, DateTime, Effect, Layer } from "effect";
 import type { App, FileSystemAdapter, View } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { Vault } from "@/lib/obsidian-vault";
-import type { WorkspaceSource } from "@/lib/obsidian-workspace";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { CapabilityNotices } from "@/services/annotation-repository/notices";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
-import { AttachmentResolver } from "@/services/attachment-resolver/service";
-import { AnnotationNoteActions } from "@/services/note-feature/view-actions";
-import { NoteIndex } from "@/services/note-index/service";
-import { PluginSettings } from "@/services/settings/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
+import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "@/services/pdf-annotation-editor/service";
+import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "@/services/pdf-annotation-editor/service.ts";
 import type {
   AnnotationReads,
   AttachmentReads,
   CapabilityGestures,
   MarkGestures,
-} from "@/services/pdf-annotation-editor/service";
+} from "@/services/pdf-annotation-editor/service.ts";
 
 interface EditorFixtureOptions {
   app: App;

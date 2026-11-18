@@ -1,13 +1,13 @@
-import { parseLiteratureNoteTemplate } from "./literature-note-template";
+import { updateLiteratureNoteTemplateManifestKeys } from "./literature-note-template-manifest-edit.ts";
+import { parseLiteratureNoteTemplate } from "./literature-note-template.ts";
 import type {
   LiteratureNoteTemplateDocument,
   LiteratureNoteTemplateManifest,
   LiteratureNoteTemplatePartial,
-} from "./literature-note-template";
-import { updateLiteratureNoteTemplateManifestKeys } from "./literature-note-template-manifest-edit";
-import { formatPlainTemplateDocument } from "./plain-template-document";
+} from "./literature-note-template.ts";
+import { formatPlainTemplateDocument } from "./plain-template-document.ts";
 
-export type { LiteratureNoteTemplatePartial } from "./literature-note-template";
+export type { LiteratureNoteTemplatePartial } from "./literature-note-template.ts";
 
 export type LiteratureNotePackErrorCode =
   | "match-changed"

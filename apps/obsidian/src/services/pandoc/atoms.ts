@@ -2,11 +2,11 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { BibliographyRender } from "./render-cache";
-import { PandocEngine } from "./service";
-import type { PandocEngineStatus } from "./service";
+import { BibliographyRender } from "./render-cache.ts";
+import { PandocEngine } from "./service.ts";
+import type { PandocEngineStatus } from "./service.ts";
 
 export const pandocEngineAtom = held<PandocEngineStatus>(
   Stream.unwrap(Effect.map(PandocEngine, (engine) => engine.changes)),

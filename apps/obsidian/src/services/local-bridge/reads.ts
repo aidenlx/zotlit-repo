@@ -25,22 +25,22 @@ import type {
   SnapshotSelection,
 } from "@zotlit/workbench/snapshot";
 
-import { profileRevision } from "@/lib/profile-revision";
-import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { NoteIndex } from "@/services/note-index/service";
-import { listInstalledStyles } from "@/services/pandoc/installed-styles";
-import { resolveInstalledStyle } from "@/services/pandoc/styles";
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+import { profileRevision } from "@/lib/profile-revision.ts";
+import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
+import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { profileDisplayName } from "./profile-name";
-import type { SelectedItemIdentity } from "./sessions";
-import { collectVaultTargets } from "./vault-targets";
-import type { VaultTargetServices } from "./vault-targets";
+import { profileDisplayName } from "./profile-name.ts";
+import type { SelectedItemIdentity } from "./sessions.ts";
+import { collectVaultTargets } from "./vault-targets.ts";
+import type { VaultTargetServices } from "./vault-targets.ts";
 
 /** The selected Profile no longer has a document in this vault. */
 export class ProfileDocumentMissingError extends Schema.TaggedError<

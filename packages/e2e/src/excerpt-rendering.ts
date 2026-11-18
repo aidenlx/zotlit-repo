@@ -9,8 +9,8 @@ import {
   EXCERPT_RENDERING_VAULT_DIR,
 } from "@zotlit/scripts/fixture";
 
-import type { ExcerptRequest } from "@/services/excerpt-image/contract";
-import type { ExcerptOutcome } from "@/services/excerpt-image/service";
+import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
+import type { ExcerptOutcome } from "@/services/excerpt-image/service.ts";
 // Real Obsidian acceptance for generated excerpt-rendering PDFs.
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";

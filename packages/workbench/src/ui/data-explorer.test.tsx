@@ -9,11 +9,11 @@ import { Effect } from "effect";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { DataExplorer as ControlledDataExplorer } from "./data-explorer";
-import type { DataExplorerProps } from "./data-explorer";
-import { WorkbenchClipboardError } from "./host";
+import { DataExplorer as ControlledDataExplorer } from "./data-explorer.tsx";
+import type { DataExplorerProps } from "./data-explorer.tsx";
+import { WorkbenchClipboardError } from "./host.tsx";
 
-import { initialTreeState } from "#/explorer/index";
+import { initialTreeState } from "#explorer/index.ts";
 
 function DataExplorer(
   props: Omit<
@@ -38,8 +38,8 @@ function DataExplorer(
     />
   );
 }
-import { mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
 afterEach(cleanup);
 

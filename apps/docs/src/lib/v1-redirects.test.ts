@@ -1,10 +1,10 @@
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { scanContent } from "./content-scan";
-import { zotlitLegacyUrl } from "./shared";
-import { buildV1Redirects, renderRedirectsFile } from "./v1-redirects";
-import { PAGE_MAP } from "./v1-routes";
+import { scanContent } from "./content-scan.ts";
+import { zotlitLegacyUrl } from "./shared.ts";
+import { buildV1Redirects, renderRedirectsFile } from "./v1-redirects.ts";
+import { PAGE_MAP } from "./v1-routes.ts";
 
 const redirects = buildV1Redirects();
 const find = (source: string) => redirects.find((r) => r.source === source);

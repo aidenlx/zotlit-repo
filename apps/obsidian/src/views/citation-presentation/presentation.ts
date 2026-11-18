@@ -3,13 +3,16 @@
 
 import type { CachedMetadata, TFile } from "obsidian";
 
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style";
-import type { ReferencesStyleOption } from "@/lib/citation-style";
-import { FIELD_CITATION_STYLE, FIELD_DOCUMENT_LANGUAGE } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import { processLiveFrontMatter } from "@/lib/live-text";
-import type { LiveTextApp } from "@/lib/live-text";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
+import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
+import type { ReferencesStyleOption } from "@/lib/citation-style.ts";
+import {
+  FIELD_CITATION_STYLE,
+  FIELD_DOCUMENT_LANGUAGE,
+} from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { processLiveFrontMatter } from "@/lib/live-text.ts";
+import type { LiveTextApp } from "@/lib/live-text.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 /** Style-picker value of a note that names no style of its own. */
 export const STYLE_INHERITED = "";

@@ -1,4 +1,4 @@
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 // What a consumer sees when a batch reuses an excerpt: the real pipeline, run
 // through the scope the batch handed out, with the renderer's call count as the
 // evidence. Consumer tests whose subject is the batch (not excerpt rendering)
@@ -6,13 +6,13 @@ import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excer
 // tell a shared retention from a per-note one.
 import { vi } from "vitest";
 
-import { bluePng } from "@/services/excerpt-image/__fixtures__/png";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
+import { bluePng } from "@/services/excerpt-image/__fixtures__/png.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type {
   ExcerptOutcome,
   ExcerptRequest,
-} from "@/services/excerpt-image/service";
+} from "@/services/excerpt-image/service.ts";
 
 /** The one excerpt every note driven through a probe asks for. */
 const reusedRequest: ExcerptRequest = {

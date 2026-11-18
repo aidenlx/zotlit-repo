@@ -4,28 +4,28 @@ import {
   Chooser,
   useChooserPageSave,
   useChooserPageText,
-} from "@/components/chooser";
-import type { ChooserPageMenuItem } from "@/components/chooser";
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown";
-import { Slider } from "@/components/obsidian/slider";
-import { Toggle } from "@/components/obsidian/toggle";
-import * as m from "@/lib/i18n/generated/messages";
+} from "@/components/chooser.tsx";
+import type { ChooserPageMenuItem } from "@/components/chooser.tsx";
+import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
+import { Slider } from "@/components/obsidian/slider.tsx";
+import { Toggle } from "@/components/obsidian/toggle.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { CardsLayoutFields, cardsLayoutOptions } from "./cards-layout";
-import { DATASETS } from "./datasets";
-import { annotationsLayoutOptions, CARD_WIDTH, layoutsFor } from "./layouts";
-import type { AnnotationsLayoutOptions } from "./layouts";
-import { ListLayoutFields, listLayoutOptions } from "./list-layout";
+import { CardsLayoutFields, cardsLayoutOptions } from "./cards-layout.tsx";
+import { DATASETS } from "./datasets.ts";
+import { annotationsLayoutOptions, CARD_WIDTH, layoutsFor } from "./layouts.ts";
+import type { AnnotationsLayoutOptions } from "./layouts.ts";
+import { ListLayoutFields, listLayoutOptions } from "./list-layout.tsx";
 // "Configure view": the name, the rows and the Layout of one view of a
 // Query File, and the options of its Layout, as the view menu's page for that
 // view shows them. Each change saves to the file at once; a typed name saves
 // when its field loses focus.
-import { useQueryViewState } from "./model";
-import { QUERY_FILE_DATASETS } from "./query-file";
-import type { QueryFileDataset } from "./query-file";
-import type { QueryView } from "./view";
-import { VIEW_NAME_RESERVED, viewNameIssue } from "./view-edits";
-import type { ViewNameIssue } from "./view-edits";
+import { useQueryViewState } from "./model.ts";
+import { QUERY_FILE_DATASETS } from "./query-file.ts";
+import type { QueryFileDataset } from "./query-file.ts";
+import { VIEW_NAME_RESERVED, viewNameIssue } from "./view-edits.ts";
+import type { ViewNameIssue } from "./view-edits.ts";
+import type { QueryView } from "./view.tsx";
 
 function issueText(issue: ViewNameIssue): string {
   switch (issue) {

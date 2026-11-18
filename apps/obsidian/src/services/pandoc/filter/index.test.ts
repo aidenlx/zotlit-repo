@@ -6,7 +6,7 @@ import {
   pandocSandboxFilter,
   PANDOC_FILTER_FILENAME,
   PANDOC_RESOLVE_MAP_FILENAME,
-} from ".";
+} from "./index.ts";
 
 describe("bundled Pandoc integration files", () => {
   it("gives each filter variant only its own resolution path", () => {

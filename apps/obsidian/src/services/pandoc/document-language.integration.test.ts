@@ -3,13 +3,13 @@
 
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 import {
   EXPORT_NOTE,
   openCitationVault,
   TIMEOUT,
-} from "./__fixtures__/citation-surfaces";
+} from "./__fixtures__/citation-surfaces.ts";
 
 const VAULT_STYLE_ID = "http://www.zotero.org/styles/vault-localized";
 const NOTE_STYLE_ID = "http://www.zotero.org/styles/note-numbered";

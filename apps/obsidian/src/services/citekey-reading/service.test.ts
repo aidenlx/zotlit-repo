@@ -10,53 +10,53 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { layerVaultFrom } from "@/lib/obsidian-vault";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { themeHook } from "@/lib/theme-hooks";
-import { vaultError } from "@/lib/vault-errors";
-import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup";
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { ParsedNote } from "@/services/citation-index/parsed-note";
-import type { Citation } from "@/services/citation-index/service";
-import { readReferenceSources } from "@/services/citation-index/sources";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
-import { CitationPopover } from "@/services/citation-popover/service";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
+import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { vaultError } from "@/lib/vault-errors.ts";
+import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
+import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
+import type { Citation } from "@/services/citation-index/service.ts";
+import { readReferenceSources } from "@/services/citation-index/sources.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   ALPHA_KEY,
   citation,
   literalOccurrences,
   rendered,
-} from "@/services/citation-text/__fixtures__";
-import { citationTextFixture } from "@/services/citation-text/__fixtures__";
-import { CitationText } from "@/services/citation-text/service";
-import type { CitationTextEvent } from "@/services/citation-text/service";
-import { CitekeyEditor } from "@/services/citekey-editor/service";
-import type { CitationHoverRequest } from "@/services/citekey-navigation";
-import type { RenderedCitation } from "@/services/pandoc/engine";
-import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__";
-import { settingsFeed } from "@/services/settings/__fixtures__";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/citation-text/__fixtures__.ts";
+import { citationTextFixture } from "@/services/citation-text/__fixtures__.ts";
+import { CitationText } from "@/services/citation-text/service.ts";
+import type { CitationTextEvent } from "@/services/citation-text/service.ts";
+import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import type { CitationHoverRequest } from "@/services/citekey-navigation/index.ts";
+import type { RenderedCitation } from "@/services/pandoc/engine.ts";
+import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
+import { settingsFeed } from "@/services/settings/__fixtures__.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   citedWorkSeed,
   inProcessReadsService,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { layerCitekeyReading } from "./service";
+import { layerCitekeyReading } from "./service.ts";
 
 /** The fakes Citekey Reading reads its tags from; a member a case leaves out fails when read. */
 interface ReadingFakes {

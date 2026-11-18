@@ -3,20 +3,20 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
-import { AnnotationPane } from "./annotation";
-import { EditToolbar } from "./edit-toolbar";
-import { useWorkbenchController, useWorkbenchModel } from "./editor";
-import { setTab as tabTransition } from "./model";
-import { NotePane } from "./note-pane";
-import { SliceEditor } from "./slice-editor";
-import { TabBar, TabPanel } from "./tab-bar";
-import type { WorkbenchTab } from "./tabs";
+import { AnnotationPane } from "./annotation.tsx";
+import { EditToolbar } from "./edit-toolbar.tsx";
+import { useWorkbenchController, useWorkbenchModel } from "./editor.tsx";
+import { setTab as tabTransition } from "./model.ts";
+import { NotePane } from "./note-pane.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import { TabBar, TabPanel } from "./tab-bar.tsx";
+import type { WorkbenchTab } from "./tabs.ts";
 // The shared panes together, under a fake adapter and theme in both runtimes.
-import { mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
-import { ANNOTATION_LIST_PROFILE_SOURCE } from "#/render/test-profiles";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
+import { ANNOTATION_LIST_PROFILE_SOURCE } from "#render/test-profiles.ts";
 
 afterEach(cleanup);
 

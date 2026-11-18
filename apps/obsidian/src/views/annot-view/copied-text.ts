@@ -1,8 +1,8 @@
 // What a copy of Annotation Cards puts on the clipboard: one rule for one card
 // and for a group, from the Annotation View and from the Obsidian PDF view.
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import { commentPlainText } from "./comment-format";
+import { commentPlainText } from "./comment-format.ts";
 
 /**
  * The `text/plain` a copy of these cards writes: each card's Quoted Text, or

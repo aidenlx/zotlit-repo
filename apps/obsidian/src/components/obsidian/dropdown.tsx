@@ -5,7 +5,7 @@ import type {
   SelectHTMLAttributes,
 } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 
 export interface DropdownProps extends Omit<
   SelectHTMLAttributes<HTMLSelectElement>,

@@ -3,25 +3,25 @@ import type { App, Plugin, TFile } from "obsidian";
 // The Set citation presentation action: its command-palette entry, its place in
 // the active note's More options menu, and the update a confirmed dialog writes.
 
-import { valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { awaitModal } from "@/lib/effect-modal";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { Notifier, reportOutcome } from "@/lib/notifier";
-import type { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import type { Workspace } from "@/lib/obsidian-workspace";
-import type { FileMenuSegment } from "@/services/file-menu";
-import type { PluginSettings } from "@/services/settings/service";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import type { StyleDropdownOptions } from "@/views/style-dropdown";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { Notifier, reportOutcome } from "@/lib/notifier.ts";
+import type { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { StyleDropdownOptions } from "@/views/style-dropdown.ts";
 
-import { openCitationPresentationModal } from "./modal";
-import type { CitationPresentationChoice } from "./presentation";
+import { openCitationPresentationModal } from "./modal.ts";
+import type { CitationPresentationChoice } from "./presentation.ts";
 import {
   applyCitationPresentation,
   declaredPresentation,
-} from "./presentation";
+} from "./presentation.ts";
 
 class CitationPresentationWriteError extends Schema.TaggedError<
   CitationPresentationWriteError,

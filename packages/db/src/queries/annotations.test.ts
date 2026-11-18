@@ -1,18 +1,18 @@
-import { relations } from "@drizzle/relations";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import { parseAnnotationPosition } from "@/lib/zt-annot-pos";
+import { getAnnotationsByKey, getAnnotationsByParent } from "./annotations.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { parseAnnotationPosition } from "#lib/zt-annot-pos.ts";
 import {
   countCompiles,
   countStatements,
   createFixtureSchema,
-} from "@/test-utils";
-
-import { getAnnotationsByKey, getAnnotationsByParent } from "./annotations";
+} from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

@@ -10,14 +10,14 @@ import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import type { SiteLocale } from "@/lib/i18n";
-import { getPageLocaleState } from "@/lib/locale-state";
-import { zotlitLegacyUrl } from "@/lib/shared";
+import type { SiteLocale } from "@/lib/i18n.ts";
+import { getPageLocaleState } from "@/lib/locale-state.ts";
+import { zotlitLegacyUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 import { deLocalizeUrl, localizeUrl } from "@/paraglide/runtime.js";
 
-import { LanguageBanner } from "./language-banner";
-import { RedirectNotice } from "./redirect-notice";
+import { LanguageBanner } from "./language-banner.tsx";
+import { RedirectNotice } from "./redirect-notice.tsx";
 
 const nativeChinesePages = new Set(["/docs/native"]);
 

@@ -2,21 +2,21 @@
 // List of an Item. Child Notes are not a Query Dataset.
 import type { NoteScanRow } from "@zotlit/db/item-query";
 
-import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields";
+import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";
 import type {
   FieldDefinition as ItemFieldDefinition,
   FieldNeeds,
   QueryItem,
   ValueShape,
-} from "./fields";
-import { timestamp } from "./filter-dates";
-import type { FilterRegistry } from "./filter-plan";
-import { keyField, indexedKeyField } from "./key-fields";
-import { libraryField } from "./library-field";
-import type { NoteNeeds } from "./note-hydration";
-import { liftParentRecord } from "./parent-records";
-import { definitionFilter } from "./record-field";
-import { itemVocabulary } from "./record-vocabularies";
+} from "./fields.ts";
+import { timestamp } from "./filter-dates.ts";
+import type { FilterRegistry } from "./filter-plan.ts";
+import { keyField, indexedKeyField } from "./key-fields.ts";
+import { libraryField } from "./library-field.ts";
+import type { NoteNeeds } from "./note-hydration.ts";
+import { liftParentRecord } from "./parent-records.ts";
+import { definitionFilter } from "./record-field.ts";
+import { itemVocabulary } from "./record-vocabularies.ts";
 
 type FieldDefinition = ItemFieldDefinition<QueryNote, NoteNeeds>;
 

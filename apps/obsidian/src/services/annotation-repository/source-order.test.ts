@@ -5,9 +5,9 @@ import {
   annotationPage,
   ROUGIER_ANNOTATIONS,
   unreachable,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 
-import { writable } from "./__fixtures__";
+import { writable } from "./__fixtures__.ts";
 
 it("hands a failed list read back only after the repository handled the source change it announced", async () => {
   await using stack = new AsyncDisposableStack();

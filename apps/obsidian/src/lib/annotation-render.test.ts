@@ -6,12 +6,12 @@ import { USER_LIBRARY_ID } from "@zotlit/db";
 import type {
   AttachmentSource,
   SourceOrigin,
-} from "@/services/attachment-import/service";
+} from "@/services/attachment-import/service.ts";
 
 import {
   attachmentFileLink,
   buildAnnotationResolvers,
-} from "./annotation-render";
+} from "./annotation-render.ts";
 
 /** Stand-in decision port: every source blocks, so no test copies a file. */
 const blockedDecide = (

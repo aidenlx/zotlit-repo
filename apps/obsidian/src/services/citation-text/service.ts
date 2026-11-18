@@ -20,52 +20,52 @@ import {
 } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import { FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants";
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { obsidianEvents } from "@/lib/effect-obsidian-events";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { mapsEqual } from "@/lib/maps-equal";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { OpenDocuments } from "@/lib/open-documents";
-import { FileNotFound } from "@/lib/vault-errors";
+import { FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants.ts";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { mapsEqual } from "@/lib/maps-equal.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { OpenDocuments } from "@/lib/open-documents.ts";
+import { FileNotFound } from "@/lib/vault-errors.ts";
 import {
   citationOfRun,
   citationRuns,
   wikilinkCitation,
-} from "@/lib/wikilink-citation";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { renderParsedCitation } from "@/services/citation-index/parsed-note";
-import type { NoteScanRecord } from "@/services/citation-index/scan-note";
-import { CitationIndex } from "@/services/citation-index/service";
+} from "@/lib/wikilink-citation.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { renderParsedCitation } from "@/services/citation-index/parsed-note.ts";
+import type { NoteScanRecord } from "@/services/citation-index/scan-note.ts";
+import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   Citation,
   CitationOccurrence,
   DocumentCitationSet,
-} from "@/services/citation-index/service";
-import { NoteIndex } from "@/services/note-index/service";
+} from "@/services/citation-index/service.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
 import {
   documentCitationPresentation,
   documentPresentation,
-} from "@/services/pandoc/document-presentation";
-import { holdsNote } from "@/services/pandoc/inline-content";
-import type { RenderPresentation } from "@/services/pandoc/render-cache";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
-import { Profile } from "@/services/profile/service";
-import { QueryClients } from "@/services/query-client/service";
-import type { Held } from "@/services/query-client/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+} from "@/services/pandoc/document-presentation.ts";
+import { holdsNote } from "@/services/pandoc/inline-content.tsx";
+import type { RenderPresentation } from "@/services/pandoc/render-cache.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
-import { citationKey, presentedCitationEqual } from "./present";
+import { citationKey, presentedCitationEqual } from "./present.ts";
 import type {
   CitationSource,
   DocumentCitations,
   FormattedOccurrence,
-} from "./present";
+} from "./present.ts";
 
-export { type DocumentCitations } from "./present";
+export { type DocumentCitations } from "./present.ts";
 
 /**
  * The key prefix every document's citation text is held under; the vault path

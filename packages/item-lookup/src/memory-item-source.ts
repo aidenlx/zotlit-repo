@@ -3,9 +3,9 @@ import { Effect, Layer, PubSub, Stream } from "effect";
 
 import type { IndexedItem, IndexSignature, Item } from "@zotlit/db";
 
-import { ItemSource, SourceUnavailable } from "./item-index";
-import type { PinnedItemSource } from "./item-index";
-import { makeGate } from "./make-gate";
+import { ItemSource, SourceUnavailable } from "./item-index.ts";
+import type { PinnedItemSource } from "./item-index.ts";
+import { makeGate } from "./make-gate.ts";
 
 /** How often the Item Index read each part of an {@link ItemSource}. */
 export interface MemoryItemSourceReads {

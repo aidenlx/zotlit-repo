@@ -7,8 +7,11 @@ import type {
   WorkbenchDocumentKind,
   WorkbenchProblem,
   WorkbenchSliceId,
-} from "./controller";
-import type { ManagedEntrySource, WorkbenchSliceRange } from "./manifest-patch";
+} from "./controller.ts";
+import type {
+  ManagedEntrySource,
+  WorkbenchSliceRange,
+} from "./manifest-patch.ts";
 
 export interface WorkbenchDocumentAtoms {
   /** The document's authored bytes, as {@link WorkbenchDocumentController.source}. */

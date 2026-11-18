@@ -4,13 +4,13 @@
 
 import type { Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { getLogger } from "@/lib/log";
-import type { NavigationPane } from "@/services/citekey-navigation";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { getLogger } from "@/lib/log.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
-import { citekeyAtPos } from "./extension";
-import type { CitekeyEditor } from "./service";
+import { citekeyAtPos } from "./extension.ts";
+import type { CitekeyEditor } from "./service.ts";
 
 const logger = getLogger("citekey-editor");
 

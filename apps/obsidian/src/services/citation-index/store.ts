@@ -3,7 +3,7 @@
 import { openDB } from "idb";
 import type { DBSchema } from "idb";
 
-import type { NoteScanRecord } from "./scan-note";
+import type { NoteScanRecord } from "./scan-note.ts";
 
 // Persisted version: packages/scripts/lib/format-versions.ts.
 export const SCANNER_REVISION = 1;

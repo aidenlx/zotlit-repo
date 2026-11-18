@@ -1,5 +1,5 @@
-import type { RenderReport, WorkbenchReportContext } from "#/render/report";
-import type { RenderDiagnostic } from "#/render/result";
+import type { RenderReport, WorkbenchReportContext } from "#render/report.ts";
+import type { RenderDiagnostic } from "#render/result.ts";
 // The editor's Problems area: one detected problem at a time, led by the
 // object it is about, and the disclosure the reader controls. Automatic checks
 // leave that choice alone; Show problem, a source marker, and a failed
@@ -33,11 +33,11 @@ import {
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { useWorkbenchModel } from "./editor";
-import type { WorkbenchMessages } from "./generated/messages";
-import { useOptionalHost } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import type { WorkbenchDiagnosis } from "./problems";
+import { useWorkbenchModel } from "./editor.tsx";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import type { WorkbenchDiagnosis } from "./problems.ts";
 import {
   diagnosisEngineSources,
   diagnosisExplanation,
@@ -47,14 +47,14 @@ import {
   diagnosisReport,
   diagnosisWhere,
   problemText,
-} from "./problems";
-import type { RenderTrigger } from "./scheduler-atoms";
-import { WorkbenchOption, WorkbenchSelect } from "./select";
-import { useParts, useIcon } from "./theme";
+} from "./problems.ts";
+import type { RenderTrigger } from "./scheduler-atoms.ts";
+import { WorkbenchOption, WorkbenchSelect } from "./select.tsx";
+import { useParts, useIcon } from "./theme.tsx";
 
-import { captureProblemReport, formatRenderReport } from "#/render/report";
+import { captureProblemReport, formatRenderReport } from "#render/report.ts";
 
-export { problemWhere } from "./problems";
+export { problemWhere } from "./problems.ts";
 
 /** The Problems area's own state: which problem is read, and whether in full. */
 export interface WorkbenchProblemsState {

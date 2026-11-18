@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageSquare } from "lucide-react";
 
-import { DiscordMark } from "@/components/discord-mark";
-import { RepoDatum, loadRepoStats } from "@/components/repo-datum";
-import { SiteFooter } from "@/components/site-footer";
-import { pageHead } from "@/lib/seo";
-import { repoUrl } from "@/lib/shared";
+import { DiscordMark } from "@/components/discord-mark.tsx";
+import { RepoDatum, loadRepoStats } from "@/components/repo-datum.tsx";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { pageHead } from "@/lib/seo.ts";
+import { repoUrl } from "@/lib/shared.ts";
 import { m } from "@/paraglide/messages.js";
 
 export const Route = createFileRoute("/_home/community")({

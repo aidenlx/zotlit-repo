@@ -6,22 +6,22 @@ import type {
   SettingDefinitionGroup,
 } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { languagePackSettingCopy } from "@/lib/i18n/settings-copy";
-import { toastLanguagePackInstall } from "@/services/language-pack/notices";
-import { LanguagePack } from "@/services/language-pack/service";
-import { Release } from "@/services/release/service";
-import { PluginSettings } from "@/services/settings/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { languagePackSettingCopy } from "@/lib/i18n/settings-copy.ts";
+import { toastLanguagePackInstall } from "@/services/language-pack/notices.ts";
+import { LanguagePack } from "@/services/language-pack/service.ts";
+import { Release } from "@/services/release/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 import {
   BUG_REPORT,
   communityUrl,
   docsHomeUrl,
   migrationGuideUrl,
-} from "@/views/welcome/links";
-import { openWelcomeView } from "@/views/welcome/register";
+} from "@/views/welcome/links.ts";
+import { openWelcomeView } from "@/views/welcome/register.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { languagePackDefinition } from "./language-pack";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { languagePackDefinition } from "./language-pack.ts";
 
 /**
  * "Finish migrating from v1" reminder row. Callers include this item only

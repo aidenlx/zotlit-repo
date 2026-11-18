@@ -10,20 +10,20 @@
 import { setIcon } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import { claimClick } from "@/lib/utils";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { claimClick } from "@/lib/utils.ts";
 
-import type { ConflictPanel, ConflictVerb } from "./card-conflict";
+import type { ConflictPanel, ConflictVerb } from "./card-conflict.ts";
 import type {
   fieldEditorControls,
   HeldDraft,
   HeldDraftAction,
   HeldTags,
-} from "./card-controls";
-import { createFieldEditor } from "./field-editor";
-import type { FieldEditor, FieldEditorWording } from "./field-editor";
-import { tagChipVariants } from "./tag-chip";
+} from "./card-controls.ts";
+import { createFieldEditor } from "./field-editor.ts";
+import type { FieldEditor, FieldEditorWording } from "./field-editor.ts";
+import { tagChipVariants } from "./tag-chip.ts";
 
 /**
  * Where the controls stand: an Annotation Card's comment, its Excerpt Block,

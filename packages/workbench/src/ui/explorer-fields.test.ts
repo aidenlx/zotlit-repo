@@ -1,10 +1,10 @@
-import type { DisplayNode } from "#/explorer/index";
+import type { DisplayNode } from "#explorer/index.ts";
 import { describe, expect, it } from "vitest";
 
-import { fieldValueText } from "./explorer-fields";
+import { fieldValueText } from "./explorer-fields.ts";
 
-import { buildDisplayTree } from "#/explorer/index";
-import { withText } from "#/explorer/test-records";
+import { buildDisplayTree } from "#explorer/index.ts";
+import { withText } from "#explorer/test-records.ts";
 
 function shapeNodes(): { authors: DisplayNode; family: DisplayNode } {
   const [authors] = buildDisplayTree(

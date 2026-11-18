@@ -4,7 +4,7 @@ import {
   filenameSuffix,
   hasSuffixMarker,
   replaceSuffixMarkers,
-} from "./filename-suffix";
+} from "./filename-suffix.ts";
 
 describe("filenameSuffix", () => {
   it("emits a marker carrying the default length and prepend", () => {

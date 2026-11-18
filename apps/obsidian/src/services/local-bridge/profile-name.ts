@@ -2,9 +2,9 @@
 
 import { Effect } from "effect";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp";
-import { Profile } from "@/services/profile/service";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp.ts";
+import { Profile } from "@/services/profile/service.ts";
 
 /**
  * The Profile's own label, the built-in name for Default, and the id itself

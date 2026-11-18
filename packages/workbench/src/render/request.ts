@@ -4,12 +4,12 @@
 import type {
   SelectedCitationStyleResponse,
   TemplateDependenciesResponse,
-} from "#/bridge/contracts";
-import type { ItemSnapshot } from "#/snapshot/index";
+} from "#bridge/contracts.ts";
+import type { ItemSnapshot } from "#snapshot/index.ts";
 
-import type { CitationPreviewSelection } from "./citation-examples";
-import type { PartialPreviewSelection } from "./partial-preview";
-import type { AnnotationExample } from "./sample-annotations";
+import type { CitationPreviewSelection } from "./citation-examples.ts";
+import type { PartialPreviewSelection } from "./partial-preview.ts";
+import type { AnnotationExample } from "./sample-annotations.ts";
 
 export interface RenderOptions {
   /** Update uses a synthesized note when the host has no existing note. */

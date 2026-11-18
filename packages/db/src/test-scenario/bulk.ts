@@ -3,7 +3,7 @@
 // scenario Items, whose tests pin exact rows.
 import type { DatabaseSync } from "node:sqlite";
 
-import { lookupID } from "./seed";
+import { lookupID } from "./seed.ts";
 
 /** The Library that {@link seedBulkLibrary} fills. */
 export const BULK_LIBRARY = {

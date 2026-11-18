@@ -8,9 +8,9 @@ import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup";
+} from "@/services/citation-index/__fixtures__/lookup.ts";
 
-import { rendered } from "./__fixtures__";
+import { rendered } from "./__fixtures__.ts";
 import {
   citationContent,
   citationState,
@@ -20,13 +20,13 @@ import {
   literalKeyStateOf,
   presentedCitationEqual,
   sectionCoordinates,
-} from "./present";
+} from "./present.ts";
 import type {
   CitationKeyState,
   CitationSource,
   CitationState,
   DocumentCitations,
-} from "./present";
+} from "./present.ts";
 
 /** One citation, read out of the source text that is nothing but that citation. */
 function citation(source: string): CitationSource {

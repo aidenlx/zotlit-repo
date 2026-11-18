@@ -5,7 +5,7 @@ import { describe, expect, vi } from "vitest";
 
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
-import { createTrace, finishTrace } from "./trace";
+import { createTrace, finishTrace } from "./trace.ts";
 
 /** Advance elapsed time before a host callback, as a pending file write would. */
 function clock() {

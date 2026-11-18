@@ -6,9 +6,9 @@ import gte from "semver/functions/gte";
 import lt from "semver/functions/lt";
 import valid from "semver/functions/valid";
 
-import type { HydrationOrigin } from "@/services/settings/classify";
+import type { HydrationOrigin } from "@/services/settings/classify.ts";
 
-import { V1_TEMPLATE_FOLDER } from "./constants";
+import { V1_TEMPLATE_FOLDER } from "./constants.ts";
 
 const ZOTERO_10_COMPANION_RELEASE = "2.1.0";
 

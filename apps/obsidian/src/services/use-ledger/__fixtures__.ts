@@ -2,14 +2,14 @@
 import { Context, DateTime, Effect, Layer, Stream } from "effect";
 import type { Scope } from "effect";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { buildRuntime } from "@/lib/effect-layer";
+import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
 
-import { layerUseLedger, UseLedger } from "./service";
+import { layerUseLedger, UseLedger } from "./service.ts";
 
 /** The Obsidian objects a ledger reads, each in memory. */
 export interface LedgerHost extends HostSources {

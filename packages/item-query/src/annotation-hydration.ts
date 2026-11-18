@@ -8,14 +8,14 @@ import type {
   HydratedAnnotation,
 } from "@zotlit/db/item-query";
 
-import type { QueryAnnotation } from "./annotation-fields";
-import type { QueryAttachment } from "./attachment-fields";
-import { ATTACHMENT_LOADING } from "./attachment-hydration";
-import type { AttachmentNeeds } from "./attachment-hydration";
-import type { FieldNeeds, QueryItem } from "./fields";
-import { ITEM_LOADING } from "./hydration";
-import { parentRecord } from "./record-loader";
-import type { LoadingDescriptor } from "./record-loader";
+import type { QueryAnnotation } from "./annotation-fields.ts";
+import type { QueryAttachment } from "./attachment-fields.ts";
+import { ATTACHMENT_LOADING } from "./attachment-hydration.ts";
+import type { AttachmentNeeds } from "./attachment-hydration.ts";
+import type { FieldNeeds, QueryItem } from "./fields.ts";
+import { ITEM_LOADING } from "./hydration.ts";
+import { parentRecord } from "./record-loader.ts";
+import type { LoadingDescriptor } from "./record-loader.ts";
 
 /** What Hydration loads for an Annotation field. */
 export interface AnnotationNeeds {

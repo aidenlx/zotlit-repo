@@ -4,17 +4,17 @@ import type * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { expect } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms";
+} from "@/lib/__fixtures__/view-atoms.ts";
 
-import { activeNoteAtom } from "./atoms";
-import type { ActiveNote } from "./atoms";
+import { activeNoteAtom } from "./atoms.ts";
+import type { ActiveNote } from "./atoms.ts";
 
 function host() {
   const vault = new MemoryVault();

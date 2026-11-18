@@ -4,20 +4,23 @@
 import { Keymap, normalizePath } from "obsidian";
 import type { App, Menu, Plugin, TFile, TFolder } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { registerEmbed } from "@/lib/obsidian-private/embed-registry";
-import type { FileMenuSegment, FolderMenuSegment } from "@/services/file-menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { registerEmbed } from "@/lib/obsidian-private/embed-registry.ts";
+import type {
+  FileMenuSegment,
+  FolderMenuSegment,
+} from "@/services/file-menu.ts";
 
-import { createQueryFileEmbed } from "./embed";
-import { installEmptyViewAction } from "./empty-view-action";
-import { QueryFileView, QUERY_FILE_VIEW_TYPE } from "./file-view";
+import { createQueryFileEmbed } from "./embed.ts";
+import { installEmptyViewAction } from "./empty-view-action.ts";
+import { QueryFileView, QUERY_FILE_VIEW_TYPE } from "./file-view.ts";
 import {
   newQueryFileText,
   QUERY_FILE_EXTENSION,
   untitledName,
-} from "./query-file";
-import type { QueryViewDeps } from "./view";
+} from "./query-file.ts";
+import type { QueryViewDeps } from "./view.tsx";
 
 type QueryFilePlugin = Pick<
   Plugin,

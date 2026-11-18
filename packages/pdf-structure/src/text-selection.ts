@@ -9,14 +9,15 @@
 // License v3; ZotLit's AGPL-3.0-or-later grant lets this port be distributed
 // under AGPL v3.
 
-import type { Rect, StructuredChar, StructuredPage } from "@/chars";
-import type { PdfRectsPosition } from "@/sort-index";
+import type { Rect, StructuredChar, StructuredPage } from "#chars.ts";
+import type { PdfRectsPosition } from "#sort-index.ts";
+
 import {
   alignTextUnits,
   buildReaderUnitMap,
   getNormalizedUnits,
   selectionTextMatches,
-} from "@/vendor/native-text-selection-map.js";
+} from "#vendor/native-text-selection-map.js";
 
 /** The rectangles and the text of a run of characters on one page. */
 export interface TextRange {

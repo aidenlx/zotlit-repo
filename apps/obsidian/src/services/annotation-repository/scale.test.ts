@@ -5,12 +5,12 @@ import { Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import { yieldToMain } from "@/lib/yield-to-main";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
 import {
   annotationPage,
   rootOk,
   ROUGIER_ANNOTATIONS,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 
 import {
   nextChange,
@@ -19,9 +19,9 @@ import {
   switchToLocalApi,
   batchReads,
   clearReads,
-} from "./__fixtures__";
-import type { RepositoryClient } from "./__fixtures__";
-import { UNHELD_RETENTION } from "./service";
+} from "./__fixtures__.ts";
+import type { RepositoryClient } from "./__fixtures__.ts";
+import { UNHELD_RETENTION } from "./service.ts";
 
 it("reads the Annotations of several Attachments in one batch read", async () => {
   await using stack = new AsyncDisposableStack();

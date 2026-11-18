@@ -2,13 +2,13 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { vi } from "vitest";
 
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner";
-import type { ZoteroReadLease } from "@/services/zotero-reads/service";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__";
-import { getSampleItem } from "@/views/template-workbench/selection-data";
+import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
+import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
+import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
+import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 
-import { createRenderFixture, PROFILE_SOURCE } from "./__fixtures__/render";
-import { makeNativeRenderer } from "./render";
+import { createRenderFixture, PROFILE_SOURCE } from "./__fixtures__/render.ts";
+import { makeNativeRenderer } from "./render.ts";
 
 describe("preview render commands", () => {
   it.effect("interrupts the render's reads when its view closes", () =>

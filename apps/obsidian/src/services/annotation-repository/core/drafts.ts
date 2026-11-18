@@ -1,7 +1,7 @@
 // Draft editing and autosave: the comment, Quoted Text and tag drafts a surface edits, and how they are saved.
 import { Duration, Effect, FiberMap, FiberSet } from "effect";
 
-import { recover } from "@/lib/effect-cause";
+import { recover } from "@/lib/effect-cause.ts";
 import {
   annotationTags,
   byTextField,
@@ -11,11 +11,11 @@ import {
   tagChange,
   tagsPatch,
   TEXT_FIELDS,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   MutationState,
   TextField,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
 import {
   cancelTextSave,
@@ -24,31 +24,31 @@ import {
   dropDraft,
   saveKey,
   setDraft,
-} from "./draft-store";
-import { capabilityFor, holding } from "./lists";
+} from "./draft-store.ts";
+import { capabilityFor, holding } from "./lists.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
   proposedTags,
   proposedText,
   sameText,
-} from "./model";
+} from "./model.ts";
 import type {
   AnnotationMutation,
   AnnotationState,
   TagDraft,
   TextFieldDraft,
-} from "./model";
+} from "./model.ts";
 import {
   answerOf,
   mutationFor,
   pendingWrites,
   savingText,
   settle,
-} from "./outcomes";
-import type { CoreState } from "./state";
-import { command, lockRefusal, writeBlocked, writeText } from "./writes";
-import type { WriteRunFailed } from "./writes";
+} from "./outcomes.ts";
+import type { CoreState } from "./state.ts";
+import { command, lockRefusal, writeBlocked, writeText } from "./writes.ts";
+import type { WriteRunFailed } from "./writes.ts";
 
 const TEXT_IDLE_SAVE = Duration.seconds(1);
 

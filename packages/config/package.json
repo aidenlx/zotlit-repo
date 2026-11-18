@@ -13,8 +13,7 @@
     "./oxlint": "./oxlint.base.ts",
     "./oxfmt": "./oxfmt.base.ts",
     "./vitest": "./vitest.base.ts",
-    "./memory-gate": "./memory-gate.ts",
-    "./tsdown": "./tsdown.base.ts"
+    "./memory-gate": "./memory-gate.ts"
   },
   "scripts": {
     "test": "node --test"
@@ -30,7 +29,6 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "postcss": "^8.5.23",
-    "tsdown": "catalog:",
     "typescript": "catalog:"
   }
 }

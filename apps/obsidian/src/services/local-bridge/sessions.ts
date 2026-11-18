@@ -3,7 +3,7 @@
 // Both the code and the credential are random and live in memory only: nothing
 // here is written to plugin settings, to device storage, or to a log.
 
-import { randomHex } from "./random";
+import { randomHex } from "./random.ts";
 
 /** The Item a launch put in front of the page, as the grant names it. */
 export interface SelectedItemIdentity {

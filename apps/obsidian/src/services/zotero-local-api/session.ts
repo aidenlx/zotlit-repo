@@ -15,14 +15,14 @@ import * as v from "valibot";
 
 import { parseIndexedKey } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log";
+import { withLogCategory } from "@/lib/effect-log.ts";
 import {
   exchangeWithZotero,
   isTransportAbort,
   parseJson,
   zoteroOrigin,
-} from "@/lib/zotero-http";
-import type { ZoteroHttp, ZoteroMethod } from "@/lib/zotero-http";
+} from "@/lib/zotero-http.ts";
+import type { ZoteroHttp, ZoteroMethod } from "@/lib/zotero-http.ts";
 
 import {
   API_VERSION,
@@ -37,26 +37,26 @@ import {
   readAnnotationPage,
   readGrant,
   totalResults,
-} from "./wire";
+} from "./wire.ts";
 import type {
   AuthorizationGrant,
   LocalApiAnnotation,
   LocalApiFailure,
   LocalApiResult,
   ZoteroReply,
-} from "./wire";
-import type { WriteAuthorizationStore } from "./write-authorization";
+} from "./wire.ts";
+import type { WriteAuthorizationStore } from "./write-authorization.ts";
 
 export type {
   AuthorizationGrant,
   LocalApiAnnotation,
   LocalApiFailure,
   LocalApiResult,
-} from "./wire";
+} from "./wire.ts";
 export type {
   SecretStore,
   WriteAuthorizationStore,
-} from "./write-authorization";
+} from "./write-authorization.ts";
 
 /** The category every record of the session is filed under. */
 const LOG_CATEGORY = "zotero-local-api";

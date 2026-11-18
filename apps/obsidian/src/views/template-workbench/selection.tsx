@@ -9,18 +9,18 @@ import type { AnnotationExample } from "@zotlit/workbench/render";
 import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { selectionControl } from "@/components/obsidian/selection-control";
-import { docsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { selectionControl } from "@/components/obsidian/selection-control.ts";
+import { docsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
 
-import { useRecentItems } from "./item-choice";
+import { useRecentItems } from "./item-choice.ts";
 import {
   getSampleItem,
   getSampleItemType,
   SAMPLE_ITEM_CHOICES,
-} from "./selection-data";
+} from "./selection-data.ts";
 import {
   selectionGroup,
   selectionGroupHeading,
@@ -30,7 +30,7 @@ import {
   selectionOptionLabel,
   selectionSearch,
   selectionSearchContent,
-} from "./theme";
+} from "./theme.tsx";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

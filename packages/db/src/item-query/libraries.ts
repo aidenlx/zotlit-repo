@@ -1,3 +1,4 @@
+import type { Library } from "#queries/libraries.ts";
 // The Library reader of Item Query: the statement of `getLibraries`
 // (`selectLibraries`) through the statement seam of the readers. It selects
 // `libraries.clientVersion` only when the layout of the copy has it, so it
@@ -5,11 +6,10 @@
 // stamps are.
 import { Effect } from "effect";
 
-import { selectLibraries } from "@/queries/libraries";
-import type { Library } from "@/queries/libraries";
+import { checkLayout, defineStatement } from "./database.ts";
+import type { ItemQueryDatabase, ItemQueryReaderError } from "./database.ts";
 
-import { checkLayout, defineStatement } from "./database";
-import type { ItemQueryDatabase, ItemQueryReaderError } from "./database";
+import { selectLibraries } from "#queries/libraries.ts";
 
 const withClientVersion = defineStatement<Record<string, never>>("libraries")(
   (db) => selectLibraries(db, { clientVersion: true }),

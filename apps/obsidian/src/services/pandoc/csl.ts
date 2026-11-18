@@ -6,14 +6,14 @@ import { createHash, randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log-category";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
 
-import { CONTRACT_VERSION } from "./contract";
+import { CONTRACT_VERSION } from "./contract.ts";
 import type {
   DocumentPresentationFailure,
   StyleSource,
-} from "./document-presentation";
-import type { CslStyleFailure, ResolvedCslStyle } from "./styles";
+} from "./document-presentation.ts";
+import type { CslStyleFailure, ResolvedCslStyle } from "./styles.ts";
 
 /** The command every answer of this module names itself with. */
 export const CSL_COMMAND = "zotlit:csl";

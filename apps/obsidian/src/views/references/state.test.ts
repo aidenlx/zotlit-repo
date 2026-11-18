@@ -4,11 +4,11 @@ import type {
   Citation,
   CitationOccurrence,
   ReferenceSource,
-} from "@/services/citation-index/service";
-import type { Inlines } from "@/services/pandoc/ast";
+} from "@/services/citation-index/service.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
 
-import type { ReferenceEntry } from "./entries";
-import { minimalReferencesState, referencesCopyState } from "./state";
+import type { ReferenceEntry } from "./entries.ts";
+import { minimalReferencesState, referencesCopyState } from "./state.ts";
 
 const occurrence: CitationOccurrence = {
   kind: "citekey",

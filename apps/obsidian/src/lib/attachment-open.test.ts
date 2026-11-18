@@ -1,4 +1,4 @@
-import { Keymap, Menu } from "@mock/obsidian";
+import { Keymap, Menu } from "@mock/obsidian.ts";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,17 +6,17 @@ import { TFile } from "obsidian";
 import type { App, Vault, Workspace, WorkspaceLeaf } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
 
 import {
   createObsidianAttachmentReader,
   openAttachments,
-} from "./attachment-open";
+} from "./attachment-open.ts";
 import type {
   AttachmentOpenClickEvent,
   AttachmentReader,
-} from "./attachment-open";
+} from "./attachment-open.ts";
 
 type Row = ObsidianOpenableAttachment;
 

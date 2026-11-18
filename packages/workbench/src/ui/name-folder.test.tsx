@@ -9,16 +9,16 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { WorkbenchHostProvider } from "./host";
-import { NameFolderPane } from "./name-folder";
-import type { NameFolderPaneProps } from "./name-folder";
+import { WorkbenchHostProvider } from "./host.tsx";
+import { NameFolderPane } from "./name-folder.tsx";
+import type { NameFolderPaneProps } from "./name-folder.tsx";
 // The form writes only the chosen manifest value, alongside filename edits in one history.
-import { fakeHost, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { documentRevision } from "#/document/atoms";
-import { WorkbenchDocumentController } from "#/document/index";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { documentRevision } from "#document/atoms.ts";
+import { WorkbenchDocumentController } from "#document/index.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 const SOURCE = DEFAULT_PROFILE_SOURCE.replace(
   "id: default",

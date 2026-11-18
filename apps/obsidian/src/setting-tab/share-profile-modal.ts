@@ -3,12 +3,12 @@ import { Modal, Setting } from "obsidian";
 import type { App, ButtonComponent, TextComponent } from "obsidian";
 import inc from "semver/functions/inc";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { isUserStop } from "@/lib/user-cancel";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { isUserStop } from "@/lib/user-cancel.ts";
 import type {
   PreparedProfileShare,
   ProfileShareOptions,
-} from "@/services/profile/service";
+} from "@/services/profile/service.ts";
 
 import {
   dialogFooter,
@@ -16,7 +16,7 @@ import {
   frameDialog,
   heading,
   note,
-} from "./profile-dialog";
+} from "./profile-dialog.ts";
 
 /** Where Share puts the bundle. */
 export type ShareDestination = "clipboard" | "file";

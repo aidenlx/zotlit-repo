@@ -3,11 +3,11 @@
 import type {
   AmbiguousCandidate,
   AmbiguousCandidatesOf,
-} from "@/services/citation-index/ambiguity";
-import type { ZoteroOpenableAttachment } from "@/services/citation-index/service";
-import type { HoveredWork } from "@/services/citekey-navigation";
-import type { Inlines } from "@/services/pandoc/ast";
-import type { ReferenceEntry } from "@/views/references/entries";
+} from "@/services/citation-index/ambiguity.ts";
+import type { ZoteroOpenableAttachment } from "@/services/citation-index/service.ts";
+import type { HoveredWork } from "@/services/citekey-navigation/index.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
+import type { ReferenceEntry } from "@/views/references/entries.ts";
 
 /** One cited work as the Citation Popover shows it, with what its actions need. */
 export interface CitationEntryBlock {

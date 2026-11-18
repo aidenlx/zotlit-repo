@@ -1,9 +1,9 @@
 import type { ProtocolAction, UpdateScope } from "@zotlit/protocol";
 
-import { l10nArgs, registerMenu } from "@/lib/l10n";
-import { logger as appLogger } from "@/lib/logger";
+import { l10nArgs, registerMenu } from "@/lib/l10n.ts";
+import { logger as appLogger } from "@/lib/logger.ts";
 
-import { copyObjectKeys } from "./copy-key.js";
+import { copyObjectKeys } from "./copy-key.ts";
 import {
   exploreInObsidian,
   importInObsidian,
@@ -11,7 +11,7 @@ import {
   openAttachmentInObsidian,
   openInObsidian,
   updateManyInObsidian,
-} from "./obsidian.js";
+} from "./obsidian.ts";
 
 const logger = appLogger.getChild(["menus", "item"]);
 

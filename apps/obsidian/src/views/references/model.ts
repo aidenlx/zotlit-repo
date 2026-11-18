@@ -5,41 +5,41 @@ import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
 import {
   citationLookupStateAtom,
   documentRevisionsAtom,
-} from "@/services/citation-index/atoms";
+} from "@/services/citation-index/atoms.ts";
 import {
   CitationIndex,
   citationsEqual,
   documentCitationErrorsEqual,
-} from "@/services/citation-index/service";
-import type { DocumentCitationSet } from "@/services/citation-index/service";
-import { entrySerialsAtom } from "@/services/citation-text/atoms";
+} from "@/services/citation-index/service.ts";
+import type { DocumentCitationSet } from "@/services/citation-index/service.ts";
+import { entrySerialsAtom } from "@/services/citation-text/atoms.ts";
 import {
   bibliographyRevisionsAtom,
   pandocEngineAtom,
-} from "@/services/pandoc/atoms";
+} from "@/services/pandoc/atoms.ts";
 import {
   documentCitationPresentation,
   samePresentation,
-} from "@/services/pandoc/document-presentation";
-import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation";
-import { BibliographyRender } from "@/services/pandoc/render-cache";
+} from "@/services/pandoc/document-presentation.ts";
+import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation.ts";
+import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import {
   zoteroReadyAtom,
   zoteroRevisionAtom,
-} from "@/services/zotero-reads/atoms";
+} from "@/services/zotero-reads/atoms.ts";
 
-import type { CopyBibliographySnapshot } from "./actions";
-import { metadataRevisionAtom, referencesSelectionAtom } from "./atoms";
-import type { ReferencesSelection } from "./atoms";
-import { buildReferenceEntries } from "./entries";
-import type { ReferenceEntry, RenderedReference } from "./entries";
-import { minimalReferencesState, referencesCopyState } from "./state";
-import type { ReferencesState, ReferencesFormatting } from "./state";
+import type { CopyBibliographySnapshot } from "./actions.ts";
+import { metadataRevisionAtom, referencesSelectionAtom } from "./atoms.ts";
+import type { ReferencesSelection } from "./atoms.ts";
+import { buildReferenceEntries } from "./entries.ts";
+import type { ReferenceEntry, RenderedReference } from "./entries.ts";
+import { minimalReferencesState, referencesCopyState } from "./state.ts";
+import type { ReferencesState, ReferencesFormatting } from "./state.ts";
 
 interface ReferencesDocument extends ReferencesSelection {
   readonly set: DocumentCitationSet | null;

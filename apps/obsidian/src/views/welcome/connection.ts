@@ -4,11 +4,11 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { homedir } from "node:os";
 
-import { held, viewRuntime } from "@/lib/view-atoms";
-import { QueryClients } from "@/services/query-client/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service";
+import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 
 export type ConnectionReadout =
   | { status: "checking" }

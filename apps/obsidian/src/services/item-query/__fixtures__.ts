@@ -2,19 +2,19 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import type { LibraryScope as SavedLibraryScope } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import type { LibraryScope as SavedLibraryScope } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { bindQuery } from "./handle";
-import type { QueryHandle } from "./handle";
-import { layerQueryService, QueryService } from "./service";
+import { bindQuery } from "./handle.ts";
+import type { QueryHandle } from "./handle.ts";
+import { layerQueryService, QueryService } from "./service.ts";
 
 /** The Zotero source a test's jobs name. */
 export interface QuerySource {

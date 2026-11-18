@@ -12,7 +12,7 @@ import type { Menu, Plugin, WorkspaceLeaf } from "obsidian";
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "@/services/note-index/parse";
+} from "@/services/note-index/parse.ts";
 
 /** What every segment reads, resolved once each time the menu opens. */
 export interface FileMenuContext {

@@ -5,26 +5,26 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
-import { QueryService } from "@/services/item-query/service";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { QueryService } from "@/services/item-query/service.ts";
 import {
   availableLibrariesAtom,
   libraryScopeStateAtom,
   resolvedLibraryScopeAtom,
-} from "@/services/library-scope/atoms";
+} from "@/services/library-scope/atoms.ts";
 import type {
   AvailableLibrary,
   LibraryScope,
-} from "@/services/library-scope/scope";
-import type { LibraryScopeState } from "@/services/library-scope/service";
-import { notedItemKeysAtom } from "@/services/note-index/atoms";
+} from "@/services/library-scope/scope.ts";
+import type { LibraryScopeState } from "@/services/library-scope/service.ts";
+import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
 import {
   zoteroRevisionAtom,
   zoteroTreeUnavailableAtom,
-} from "@/services/zotero-reads/atoms";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/zotero-reads/atoms.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import {
   nodeCount,
@@ -33,10 +33,10 @@ import {
   tagListRequest,
   tagNames,
   unreadCount,
-} from "./document";
-import type { LibraryNode, ReadingStateFacet } from "./document";
-import { collectionTree, sameLibrary } from "./tree";
-import type { LibraryCounts, TreeLibrary } from "./tree";
+} from "./document.ts";
+import type { LibraryNode, ReadingStateFacet } from "./document.ts";
+import { collectionTree, sameLibrary } from "./tree.ts";
+import type { LibraryCounts, TreeLibrary } from "./tree.ts";
 
 export interface TreeSession {
   readonly node: LibraryNode;

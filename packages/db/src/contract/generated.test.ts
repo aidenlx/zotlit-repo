@@ -7,7 +7,7 @@ import filenameSchema from "./generated/filename.schema.json";
 import ir from "./generated/ir.json";
 import runtimeIr from "./generated/ir.runtime.json";
 import noteSchema from "./generated/note.schema.json";
-import { CONTRACT_VERSION, templateSlotsForRoot } from "./roots";
+import { CONTRACT_VERSION, templateSlotsForRoot } from "./roots.ts";
 
 const schemas = {
   note: noteSchema,

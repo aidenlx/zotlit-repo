@@ -5,15 +5,15 @@ import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { awaitModal } from "@/lib/effect-modal";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { awaitModal } from "@/lib/effect-modal.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
-import { chooseBatchProfile } from "./batch-profile-choice";
-import { interruptedWithin } from "./note-feature/__fixtures__/interrupt";
+import { chooseBatchProfile } from "./batch-profile-choice.ts";
+import { interruptedWithin } from "./note-feature/__fixtures__/interrupt.ts";
 
 /** The batch choice's services: no Zotero data folder. */
 function services() {

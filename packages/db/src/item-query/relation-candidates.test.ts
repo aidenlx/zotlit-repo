@@ -1,8 +1,6 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { openScenarioDatabase } from "@/test-scenario";
-
 import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
@@ -10,7 +8,9 @@ import {
   readParentCandidateSet,
   readUniverseRows,
   readAttachmentUniverseRows,
-} from ".";
+} from "./index.ts";
+
+import { openScenarioDatabase } from "#test-scenario/index.ts";
 
 it("maps element candidates to live parents in one statement per chunk", () => {
   using scenario = openScenarioDatabase({ annotations: true });

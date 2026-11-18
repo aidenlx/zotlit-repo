@@ -1,20 +1,21 @@
+import { and, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
+import { Effect } from "effect";
+
+import { readBoundedCandidateSet } from "./candidate-set.ts";
+import type { SeekCandidateLeaf } from "./candidate-set.ts";
+import { defineStatement, idSlots, unindexed } from "./database.ts";
+import type { IdSlot } from "./database.ts";
+import { recordUniverse } from "./record-universe.ts";
+import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+
 // Bound Parent Record work to matching parents and their children in one Target Library.
 import {
   itemAnnotations,
   itemAttachments,
   items,
   itemTypesCombined,
-} from "@drizzle/schema";
-import { and, eq, inArray } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
-import { Effect } from "effect";
-
-import { readBoundedCandidateSet } from "./candidate-set";
-import type { SeekCandidateLeaf } from "./candidate-set";
-import { defineStatement, idSlots, unindexed } from "./database";
-import type { IdSlot } from "./database";
-import { recordUniverse } from "./record-universe";
-import { SCAN_PAGE_SIZE } from "./scan-page";
+} from "#drizzle/schema.ts";
 
 export type ParentCandidateRelation =
   | "attachment-item"

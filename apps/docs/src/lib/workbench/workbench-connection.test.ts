@@ -26,7 +26,7 @@ import { DEFAULT_PROFILE_SOURCE, SAMPLE_ITEMS } from "@zotlit/workbench/render";
 import {
   layerWorkbenchConnection,
   WorkbenchConnection,
-} from "./workbench-connection";
+} from "./workbench-connection.ts";
 
 const CONNECTED: LocalBridgeConnection = {
   state: "connected",

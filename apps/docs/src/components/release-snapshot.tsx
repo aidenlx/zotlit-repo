@@ -11,8 +11,8 @@
 import { createContext, use } from "react";
 import type { ReactNode } from "react";
 
-import type { ReleaseSnapshot } from "@/lib/release-data";
-import { useBakedThenFresh } from "@/lib/use-baked-then-fresh";
+import type { ReleaseSnapshot } from "@/lib/release-data.ts";
+import { useBakedThenFresh } from "@/lib/use-baked-then-fresh.ts";
 
 const SnapshotContext = createContext<ReleaseSnapshot | null>(null);
 

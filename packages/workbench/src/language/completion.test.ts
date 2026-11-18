@@ -4,9 +4,9 @@ import { EditorView } from "@codemirror/view";
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
-import { applyTemplateCompletion } from "./completion";
-import { suggestions } from "./suggestions";
-import type { Suggestion } from "./suggestions";
+import { applyTemplateCompletion } from "./completion.ts";
+import { suggestions } from "./suggestions.ts";
+import type { Suggestion } from "./suggestions.ts";
 
 const CALL = '{% render "';
 

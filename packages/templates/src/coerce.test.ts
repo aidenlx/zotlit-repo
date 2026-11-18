@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createLiquidEngine } from "./liquid";
+import { createLiquidEngine } from "./liquid.ts";
 
 describe("coerceOutput", () => {
   it("renders a JS Date via toISOString", () => {

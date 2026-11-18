@@ -3,26 +3,26 @@ import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { expect, vi } from "vitest";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import type {
   DocumentCitationSet,
   ReferenceSource,
-} from "@/services/citation-index/service";
-import { bibliographyRevisionsAtom } from "@/services/pandoc/atoms";
+} from "@/services/citation-index/service.ts";
+import { bibliographyRevisionsAtom } from "@/services/pandoc/atoms.ts";
 import type {
   BibliographyRenderOutcome,
   BibliographyRenderResult,
-} from "@/services/pandoc/render-cache";
+} from "@/services/pandoc/render-cache.ts";
 
-import { makeReferencesHost } from "./__fixtures__";
-import type { ReferencesHost } from "./__fixtures__";
+import { makeReferencesHost } from "./__fixtures__.ts";
+import type { ReferencesHost } from "./__fixtures__.ts";
 import {
   dismissEngineHintCommand,
   openIndexedKeyCommand,
   openReferenceLinkCommand,
   revealReferenceOccurrenceCommand,
-} from "./atoms";
-import { advanceOccurrence } from "./model";
+} from "./atoms.ts";
+import { advanceOccurrence } from "./model.ts";
 
 type Session = ReturnType<ReferencesHost["openSession"]>;
 const source: ReferenceSource = {

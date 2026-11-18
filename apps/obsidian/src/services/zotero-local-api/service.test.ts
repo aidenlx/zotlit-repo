@@ -2,7 +2,7 @@ import { Cause, Duration, Exit } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
 
 import {
   annotationPage,
@@ -19,18 +19,18 @@ import {
   SERVER_ID,
   serverChanged,
   unreachable,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 import type {
   ChildrenRequest,
   ClientOptions,
   WireAnnotation,
   ZoteroAnswers,
-} from "./__fixtures__";
+} from "./__fixtures__.ts";
 import type {
   LocalApiAnnotation,
   LocalApiResult,
   ZoteroLocalApi,
-} from "./service";
+} from "./service.ts";
 
 it("probes lazily on the first demand and names the server the probe answered", async () => {
   await using stack = new AsyncDisposableStack();

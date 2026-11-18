@@ -14,13 +14,13 @@ import { describe, expect, vi } from "vitest";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
-import { LogCategory, withLogCategory } from "./effect-log";
 import {
   layerHostLogPort,
   layerLibraryLogPort,
   makePortLogger,
-} from "./effect-log-port";
-import type { LogMessagePort, PortLogLevel } from "./effect-log-port";
+} from "./effect-log-port.ts";
+import type { LogMessagePort, PortLogLevel } from "./effect-log-port.ts";
+import { LogCategory, withLogCategory } from "./effect-log.ts";
 
 interface CapturedLog {
   readonly level: string;

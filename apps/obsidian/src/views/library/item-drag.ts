@@ -10,7 +10,7 @@ import type { DragEvent } from "react";
 
 import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
 
-import type { ItemActions } from "./item-actions";
+import type { ItemActions } from "./item-actions.ts";
 
 /** The drag data type of an Item; its value names one drag. */
 export const ITEM_DRAG_TYPE = "application/x-zotlit-item";

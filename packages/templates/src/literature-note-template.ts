@@ -11,17 +11,17 @@ import {
   frontmatterMergeStrategySchema,
   MANAGED_BLOCK_TAG_NAMES,
   RESERVED_FRONTMATTER_KEYS,
-} from "./constants";
-import type { FrontmatterField, TemplateLanguage } from "./constants";
+} from "./constants.ts";
+import type { FrontmatterField, TemplateLanguage } from "./constants.ts";
 import {
   DEFAULT_ANNOTATION_ETA,
   DEFAULT_ANNOTATION_LIQUID,
-} from "./default-annotation";
+} from "./default-annotation.ts";
 import {
   parseManifestYaml,
   splitDocumentFrontmatter,
   trimCarriageReturn,
-} from "./document-frontmatter";
+} from "./document-frontmatter.ts";
 
 const [MANAGED_OPEN_TAG, MANAGED_CLOSE_TAG] = MANAGED_BLOCK_TAG_NAMES;
 const OPEN_MANAGED = `{% ${MANAGED_OPEN_TAG} %}`;

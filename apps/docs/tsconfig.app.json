@@ -13,6 +13,8 @@
       // page polyfills when the runtime has none.
       // @see src/lib/workbench/temporal.ts
       "esnext.temporal",
+      // The checker reads @zotlit/workbench source, which uses Error.isError.
+      "esnext.error",
       "DOM"
     ],
     "module": "esnext",

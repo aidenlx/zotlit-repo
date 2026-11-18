@@ -3,18 +3,18 @@
 // back, and search. Where Zotero lives on this device sits one page deeper.
 import type { SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { chineseSegmenterDefinition } from "./chinese-segmenter";
-import type { SettingsKey, SettingTabContext } from "./context";
+import { chineseSegmenterDefinition } from "./chinese-segmenter.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
 import {
   databaseFileItem,
   databaseLocationItems,
   databaseSyncItems,
-} from "./database";
-import { libraryScopeRow, selectedLibrariesList } from "./library-scope";
-import { liveUpdatesItems } from "./local-server";
-import { zoteroEditingRow } from "./zotero-editing";
+} from "./database.ts";
+import { libraryScopeRow, selectedLibrariesList } from "./library-scope.ts";
+import { liveUpdatesItems } from "./local-server.ts";
+import { zoteroEditingRow } from "./zotero-editing.ts";
 
 export function zoteroPageItems(
   ctx: SettingTabContext,

@@ -7,5 +7,7 @@
 import { lazy } from "react";
 
 export const ResultSheet = lazy(() =>
-  import("./reading-view").then((module) => ({ default: module.ResultSheet })),
+  import("./reading-view.tsx").then((module) => ({
+    default: module.ResultSheet,
+  })),
 );

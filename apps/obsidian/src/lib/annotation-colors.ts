@@ -7,8 +7,8 @@ import type { Menu } from "obsidian";
 import { annotationColorToName } from "@zotlit/db";
 import type { AnnotationColorName } from "@zotlit/db";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { menuSections } from "@/services/menu-events";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { menuSections } from "@/services/menu-events.ts";
 
 const SECTION = menuSections("zotlit:annotation-color-menu");
 

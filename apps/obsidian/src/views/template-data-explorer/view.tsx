@@ -22,44 +22,48 @@ import {
 } from "@zotlit/workbench/ui";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import {
   answerOf,
   inFlightSlot,
   latestSlot,
   makeViewRunner,
-} from "@/lib/view-runner";
-import type { InFlightSlot, LatestSlot, ViewRunner } from "@/lib/view-runner";
-import { indexedKeyForClipboard } from "@/services/indexed-key/actions";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse";
-import type { PluginSettings } from "@/services/settings/service";
+} from "@/lib/view-runner.ts";
+import type {
+  InFlightSlot,
+  LatestSlot,
+  ViewRunner,
+} from "@/lib/view-runner.ts";
+import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
+import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 import {
   copyToClipboard,
   createTemplateWorkbenchHost,
-} from "@/views/template-workbench/host";
+} from "@/views/template-workbench/host.tsx";
 import {
   workbenchAnnotationChoice,
   workbenchItemChoice,
   workbenchItemSearch,
-} from "@/views/template-workbench/item-choice";
+} from "@/views/template-workbench/item-choice.ts";
+import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 import {
   selectionViewTitle,
   updateSelectionTitle,
-} from "@/views/template-workbench/selection";
-import { getSampleItem } from "@/views/template-workbench/selection-data";
-import { templateWorkbenchTheme } from "@/views/template-workbench/theme";
+} from "@/views/template-workbench/selection.tsx";
+import { templateWorkbenchTheme } from "@/views/template-workbench/theme.tsx";
 
-import { createExplorerActions, ExplorerActionsContext } from "./actions";
-import type { ExplorerActions } from "./actions";
-import { makeExportTemplateDataCommand } from "./atoms";
-import { Explorer } from "./Explorer";
-import { exportTarget } from "./export-file";
-import { rememberTemplateItem } from "./item-memory";
+import { createExplorerActions, ExplorerActionsContext } from "./actions.ts";
+import type { ExplorerActions } from "./actions.ts";
+import { makeExportTemplateDataCommand } from "./atoms.ts";
+import { Explorer } from "./Explorer.tsx";
+import { exportTarget } from "./export-file.ts";
+import { rememberTemplateItem } from "./item-memory.ts";
 import {
   allSectionsCollapsed,
   annotationIndexedKey,
@@ -72,8 +76,8 @@ import {
   refresh,
   setTarget,
   toggleSections,
-} from "./model";
-import type { ExplorerSession, ExplorerState } from "./model";
+} from "./model.ts";
+import type { ExplorerSession, ExplorerState } from "./model.ts";
 
 export const EXPLORER_VIEW_TYPE = "zotlit-template-data-explorer";
 export interface ExplorerViewDeps {

@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
 
-import { referencedExcerptPaths } from "./references";
+import { referencedExcerptPaths } from "./references.ts";
 
 const PATH = "Notes/Paper.md";
 

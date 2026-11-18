@@ -3,9 +3,9 @@
 import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
 
-import type { RecordingPlayerProps } from "./recording-player";
+import type { RecordingPlayerProps } from "./recording-player.tsx";
 
-const RecordingPlayer = lazy(() => import("./recording-player"));
+const RecordingPlayer = lazy(() => import("./recording-player.tsx"));
 
 export function Recording({
   fallback,

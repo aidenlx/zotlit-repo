@@ -1,9 +1,9 @@
 import { usePathname } from "fumadocs-core/framework";
 import type { FooterProps } from "fumadocs-ui/layouts/docs/page/slots/footer";
 
-import { Comments } from "@/components/comments";
-import { Footer } from "@/layouts/docs/page/slots/footer";
-import { unlocalizedPath } from "@/lib/i18n";
+import { Comments } from "@/components/comments.tsx";
+import { Footer } from "@/layouts/docs/page/slots/footer.tsx";
+import { unlocalizedPath } from "@/lib/i18n.ts";
 
 /**
  * The docs page tail: the owned prev/next cards, then the comment thread.

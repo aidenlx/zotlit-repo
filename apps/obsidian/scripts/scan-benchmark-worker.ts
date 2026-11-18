@@ -3,7 +3,7 @@ import type { RpcMessage } from "effect/rpc";
 import type { Worker as EffectWorker } from "effect/workers";
 import { Worker } from "node:worker_threads";
 
-import { scanWorkerBundle } from "./scan-worker-bundle.js";
+import { scanWorkerBundle } from "./scan-worker-bundle.ts";
 
 interface TimedMessage {
   data: EffectWorker.PlatformMessage;

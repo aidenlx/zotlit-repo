@@ -4,7 +4,7 @@ import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { CitationHoverPopover, PLACEMENT_CLASS } from "./popover";
+import { CitationHoverPopover, PLACEMENT_CLASS } from "./popover.ts";
 
 const opened: CitationHoverPopover[] = [];
 

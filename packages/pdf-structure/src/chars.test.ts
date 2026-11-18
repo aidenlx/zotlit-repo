@@ -1,7 +1,7 @@
+import type { ObsidianTextItem } from "#chars.ts";
 import { describe, expect, it } from "vitest";
 
-import type { ObsidianTextItem } from "@/chars";
-import { itemMetrics, normalizeChar, toZoteroChars } from "@/chars";
+import { itemMetrics, normalizeChar, toZoteroChars } from "#chars.ts";
 
 /** An upright 10 pt chunk whose baseline sits at y = 700. */
 const upright = (...chars: { c: string; u?: string }[]): ObsidianTextItem => ({

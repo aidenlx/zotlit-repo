@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { DatabaseSync } from "node:sqlite";
 
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
 // A separate SQLite handle checks the owned clone before it can serve reads.
 // Node worker_threads are unavailable in Electron's Node-integrated workers.

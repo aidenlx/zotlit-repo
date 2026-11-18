@@ -1,5 +1,5 @@
 // Available outcomes for consumer tests whose subject is not excerpt identity.
-import type { ExcerptOutcome } from "@/services/excerpt-image/service";
+import type { ExcerptOutcome } from "@/services/excerpt-image/service.ts";
 
 /**
  * The identity a consumer test does not read. Consumers that persist or

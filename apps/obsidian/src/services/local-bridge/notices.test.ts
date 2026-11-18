@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import type { LocalBridgeHandle } from "./handle";
-import { subscribeWorkbenchSaved, workbenchSavedNotice } from "./notices";
+import type { LocalBridgeHandle } from "./handle.ts";
+import { subscribeWorkbenchSaved, workbenchSavedNotice } from "./notices.ts";
 
 describe("workbenchSavedNotice", () => {
   it("carries the approved copy and runs Update all notes through its action", () => {

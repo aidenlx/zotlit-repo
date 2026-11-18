@@ -1,8 +1,8 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 
-import { rewriteMarkdownSuffix } from "./lib/markdown-routes";
+import { rewriteMarkdownSuffix } from "./lib/markdown-routes.ts";
 import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime.js";
-import { routeTree } from "./routeTree.gen";
+import { routeTree } from "./routeTree.gen.ts";
 
 export function getRouter() {
   const router = createTanStackRouter({

@@ -4,7 +4,7 @@ import {
   validateLanguagePack,
 } from "@zotlit/obsidian-i18n";
 
-import type { WorkbenchMessages } from "./generated/messages";
+import type { WorkbenchMessages } from "./generated/messages.ts";
 import english from "./generated/test-en.json";
 
 const pack = validateLanguagePack(JSON.stringify(english), {

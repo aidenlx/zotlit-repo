@@ -4,7 +4,7 @@
 import type { Component, HoverParent } from "obsidian";
 import type { ReactNode } from "react";
 
-import { CitationHoverPopover } from "./popover";
+import { CitationHoverPopover } from "./popover.ts";
 
 /** One hover parent's popover, and what its current target holds. */
 export interface HoverVisit<T> {

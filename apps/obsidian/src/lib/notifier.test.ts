@@ -3,11 +3,11 @@ import { Effect, Exit, Fiber, Layer, Option, Scope } from "effect";
 import { TestClock } from "effect/testing";
 import { describe, expect } from "vitest";
 
-import { testNotifier } from "./__fixtures__/notifier";
-import { AbortError } from "./abort-error";
-import { LegacyPortError } from "./legacy-port";
-import { Notifier, reportOutcome, withProgress } from "./notifier";
-import { UserCancelled } from "./user-cancel";
+import { testNotifier } from "./__fixtures__/notifier.ts";
+import { AbortError } from "./abort-error.ts";
+import { LegacyPortError } from "./legacy-port.ts";
+import { Notifier, reportOutcome, withProgress } from "./notifier.ts";
+import { UserCancelled } from "./user-cancel.ts";
 
 describe("Notifier test layer", () => {
   it.effect("records a shown notice with its duration until it hides", () =>

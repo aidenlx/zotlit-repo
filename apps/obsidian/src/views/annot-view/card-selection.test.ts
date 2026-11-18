@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { NO_SELECTION, cardPlace, nextCardSelection } from "./card-selection";
-import type { CardPlace, CardSelection } from "./card-selection";
+import {
+  NO_SELECTION,
+  cardPlace,
+  nextCardSelection,
+} from "./card-selection.ts";
+import type { CardPlace, CardSelection } from "./card-selection.ts";
 
 /** The place of a card in a list with no groups. */
 const p = (key: string) => cardPlace(key, null);

@@ -2,14 +2,14 @@ import { EditorView } from "@codemirror/view";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { WorkbenchHostProvider } from "./host";
-import { NotePane } from "./note-pane";
-import { SliceEditor } from "./slice-editor";
-import { fakeHost, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { WorkbenchHostProvider } from "./host.tsx";
+import { NotePane } from "./note-pane.tsx";
+import { SliceEditor } from "./slice-editor.tsx";
+import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { ANNOTATION_LIST_PROFILE_SOURCE } from "#/render/test-profiles";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { ANNOTATION_LIST_PROFILE_SOURCE } from "#render/test-profiles.ts";
 
 afterEach(cleanup);
 

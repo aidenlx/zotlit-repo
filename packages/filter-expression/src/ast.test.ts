@@ -6,8 +6,8 @@ import {
   isMemberName,
   parseExpressionAst,
   parsePartialExpressionAst,
-} from "./index";
-import type { ExpressionNode } from "./index";
+} from "./index.ts";
+import type { ExpressionNode } from "./index.ts";
 
 /** The tree without source ranges, so a case reads as the structure alone. */
 function strip(node: ExpressionNode): unknown {

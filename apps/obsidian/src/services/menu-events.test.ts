@@ -1,7 +1,7 @@
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { describe, expect, it, vi } from "vitest";
 
-import { menuSections, raiseMenu } from "./menu-events";
+import { menuSections, raiseMenu } from "./menu-events.ts";
 
 describe("raiseMenu", () => {
   it("registers the menu's sections before its listeners run", () => {

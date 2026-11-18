@@ -4,27 +4,27 @@ import { Effect, Layer, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { ItemLookup } from "@/services/item-lookup/service";
-import type { QueryViewOutcome } from "@/services/item-query/query-view";
-import type { QueryViewRequest } from "@/services/item-query/query-view";
-import { QueryService } from "@/services/item-query/service";
-import { resolveLibraryScope } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { openTargetCommand, viewTargetOpener } from "@/views/open-target";
-import { waitFor } from "@/views/welcome/__fixtures__";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ItemLookup } from "@/services/item-lookup/service.ts";
+import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
+import type { QueryViewRequest } from "@/services/item-query/query-view.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { openTargetCommand, viewTargetOpener } from "@/views/open-target.ts";
+import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
-import { makeLibraryHost } from "./__fixtures__";
-import { itemNodeAtom } from "./atoms";
-import { makeCardModel, patchCard } from "./card-model";
-import { libraryItemCommand } from "./item-actions";
-import { waitForRead } from "./model";
-import { makeSearchModel, patchSearch } from "./search-model";
-import { LibraryViewStorage } from "./storage";
-import { makeTreeModel, patchTree, refreshTree } from "./tree-model";
+import { makeLibraryHost } from "./__fixtures__.ts";
+import { itemNodeAtom } from "./atoms.ts";
+import { makeCardModel, patchCard } from "./card-model.ts";
+import { libraryItemCommand } from "./item-actions.ts";
+import { waitForRead } from "./model.ts";
+import { makeSearchModel, patchSearch } from "./search-model.ts";
+import { LibraryViewStorage } from "./storage.ts";
+import { makeTreeModel, patchTree, refreshTree } from "./tree-model.ts";
 
 const EMPTY: QueryViewOutcome = {
   kind: "result",
@@ -337,13 +337,14 @@ it.live("releases the tree's read snapshot when its leaf closes", () =>
           started = true;
         }).pipe(Effect.andThen(Effect.never)),
     });
-    const state: import("@/services/zotero-reads/service").ZoteroReadsState = {
-      state: "ready",
-      error: null,
-      moved: false,
-      dbFileMissing: false,
-      activeReadMode: null,
-    };
+    const state: import("@/services/zotero-reads/service.ts").ZoteroReadsState =
+      {
+        state: "ready",
+        error: null,
+        moved: false,
+        dbFileMissing: false,
+        activeReadMode: null,
+      };
     const host = yield* Effect.acquireDisposable(
       Effect.promise(() =>
         makeLibraryHost({

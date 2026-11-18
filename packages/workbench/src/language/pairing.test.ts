@@ -4,10 +4,10 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { expect, it, vi } from "vitest";
 
-import { applyTemplateCompletion } from "./completion";
-import { liquidTemplate } from "./liquid";
-import { templatePairing } from "./pairing";
-import { suggestions } from "./suggestions";
+import { applyTemplateCompletion } from "./completion.ts";
+import { liquidTemplate } from "./liquid.ts";
+import { templatePairing } from "./pairing.ts";
+import { suggestions } from "./suggestions.ts";
 
 function editor(
   source = "",

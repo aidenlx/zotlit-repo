@@ -1,8 +1,8 @@
 // Public surface: the generated Filter Expression parser plus positioned error lookup.
 import type { Tree } from "@lezer/common";
 
-import { parser } from "./generated/parser.js";
-import { syntaxFault } from "./syntax-fault.js";
+import { parser } from "./generated/parser.ts";
+import { syntaxFault } from "./syntax-fault.ts";
 
 export { parser };
 
@@ -53,12 +53,12 @@ export {
   parseExpressionAst,
   parsePartialExpressionAst,
   toAst,
-} from "./ast.js";
+} from "./ast.ts";
 export type {
   BinaryOperator,
   ExpressionNode,
   ParseExpressionAstResult,
-} from "./ast.js";
+} from "./ast.ts";
 
 export {
   composeFilterTree,
@@ -68,7 +68,7 @@ export {
   joinComposed,
   isFilterTree,
   readFilterTree,
-} from "./tree.js";
+} from "./tree.ts";
 export type {
   ComposedFilter,
   FilterGroupKind,
@@ -76,4 +76,4 @@ export type {
   FilterPath,
   FilterTree,
   FilterTreeFold,
-} from "./tree.js";
+} from "./tree.ts";

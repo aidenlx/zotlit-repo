@@ -4,19 +4,19 @@ import { TestClock } from "effect/testing";
 // What one initiating batch retains, and what it refuses to retain.
 import { describe, expect, vi } from "vitest";
 
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 
-import { availableOutcome } from "./__fixtures__/outcome";
-import { redPng } from "./__fixtures__/png";
-import { ExcerptCacheWriteError } from "./error";
-import { PNG_FORMAT } from "./format";
-import type { ExcerptImage } from "./format";
-import { ExcerptOutcomeScope } from "./outcome-scope";
+import { availableOutcome } from "./__fixtures__/outcome.ts";
+import { redPng } from "./__fixtures__/png.ts";
+import { ExcerptCacheWriteError } from "./error.ts";
+import { PNG_FORMAT } from "./format.ts";
+import type { ExcerptImage } from "./format.ts";
+import { ExcerptOutcomeScope } from "./outcome-scope.ts";
 import {
   ExcerptImageService as ExcerptImages,
   layerExcerptImage,
-} from "./service";
-import type { ExcerptEntry, ExcerptRequest } from "./service";
+} from "./service.ts";
+import type { ExcerptEntry, ExcerptRequest } from "./service.ts";
 
 const request: ExcerptRequest = {
   annotation: {

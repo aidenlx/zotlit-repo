@@ -1,11 +1,15 @@
-import { fieldRoot } from "./dataset";
-import type { SortableField } from "./dataset";
-import type { FieldDefinition, FilterField } from "./fields";
-import type { FilterNode, FilterRegistry } from "./filter-plan";
-import { indexedKeyField, keyField } from "./key-fields";
-import type { PathResolver } from "./projection";
-import { definitionFilter, mapNavigation, recordField } from "./record-field";
-import type { RecordVocabulary } from "./record-field";
+import { fieldRoot } from "./dataset.ts";
+import type { SortableField } from "./dataset.ts";
+import type { FieldDefinition, FilterField } from "./fields.ts";
+import type { FilterNode, FilterRegistry } from "./filter-plan.ts";
+import { indexedKeyField, keyField } from "./key-fields.ts";
+import type { PathResolver } from "./projection.ts";
+import {
+  definitionFilter,
+  mapNavigation,
+  recordField,
+} from "./record-field.ts";
+import type { RecordVocabulary } from "./record-field.ts";
 
 /** The vocabulary and access to one Parent Record, with its contract lists. */
 export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {

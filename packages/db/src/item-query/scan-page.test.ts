@@ -1,11 +1,9 @@
-import { relations } from "@drizzle/relations";
+import type { ScenarioDatabase } from "#test-scenario/index.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { openScenarioDatabase, SCENARIO_LIBRARIES } from "@/test-scenario";
-import type { ScenarioDatabase } from "@/test-scenario";
-
+import { checkLayout } from "./database.ts";
 import {
   ItemQueryDatabase,
   ItemQueryDatabaseError,
@@ -14,9 +12,14 @@ import {
   readAnnotationScanPage,
   readUniverseRows,
   SCAN_PAGE_SIZE,
-} from ".";
-import type { ScanRow } from ".";
-import { checkLayout } from "./database";
+} from "./index.ts";
+import type { ScanRow } from "./index.ts";
+
+import { relations } from "#drizzle/relations.ts";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "#test-scenario/index.ts";
 
 function run<A, E>(
   scenario: ScenarioDatabase,

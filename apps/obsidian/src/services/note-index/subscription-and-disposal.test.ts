@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { cache, makeHarness } from "./__fixtures__";
-import type { NoteIndexChange } from "./service";
+import { cache, makeHarness } from "./__fixtures__.ts";
+import type { NoteIndexChange } from "./service.ts";
 
 // Attaching late must not lose the first invalidations.
 it.effect("a throwing subscriber receives both immediate edits", () =>

@@ -9,36 +9,36 @@ import { Context, Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { App, HoverParent } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import * as m from "@/lib/i18n/generated/messages";
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { setup } from "@/services/annotation-repository/__fixtures__";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { setup } from "@/services/annotation-repository/__fixtures__.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import { CitationPopover } from "@/services/citation-popover/service";
-import type { WorkHoverRequest } from "@/services/citation-popover/service";
-import { HoverVisits } from "@/services/citation-popover/visits";
-import { ExcerptDisplayFixture } from "@/services/excerpt-image/__fixtures__/display";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
-import { redPng } from "@/services/excerpt-image/__fixtures__/png";
+} from "@/services/annotation-repository/service.ts";
+import { CitationPopover } from "@/services/citation-popover/service.tsx";
+import type { WorkHoverRequest } from "@/services/citation-popover/service.tsx";
+import { HoverVisits } from "@/services/citation-popover/visits.ts";
+import { ExcerptDisplayFixture } from "@/services/excerpt-image/__fixtures__/display.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
+import { redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
 import {
   EXCERPT_DISPLAY,
   ExcerptDisplays,
-} from "@/services/excerpt-image/display";
-import { savedExcerptRequestOver } from "@/services/excerpt-image/request";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/excerpt-image/display.ts";
+import { savedExcerptRequestOver } from "@/services/excerpt-image/request.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { AnnotationPopoverCore } from "./popover";
-import { AnnotationPopover, layerAnnotationPopover } from "./service";
-import type { AnnotationHoverRequest } from "./service";
+import { AnnotationPopoverCore } from "./popover.tsx";
+import { AnnotationPopover, layerAnnotationPopover } from "./service.tsx";
+import type { AnnotationHoverRequest } from "./service.tsx";
 
 /**
  * The Citation Popover's part of a hover: it opens the visit and starts the
@@ -627,7 +627,7 @@ describe("AnnotationPopover with an Excerpt Image", () => {
           pref: stubService<ZoteroPref["Service"]>("ZoteroPref", {
             current: Effect.succeed(
               stubService<
-                import("@/services/zotero-pref/service").ZoteroPrefSnapshot
+                import("@/services/zotero-pref/service.ts").ZoteroPrefSnapshot
               >("ZoteroPrefSnapshot", {
                 dataDir: DATA_DIR,
                 baseAttachmentPath: null,

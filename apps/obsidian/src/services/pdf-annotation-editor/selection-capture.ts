@@ -7,10 +7,10 @@
 // ZotLit never re-renders it.
 import type { Rect, TextLayerSelection } from "@zotlit/pdf-structure";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
-import type { OverlayPageView } from "./render";
-import { pageContentBox } from "./surface";
+import type { OverlayPageView } from "./render.ts";
+import { pageContentBox } from "./surface.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

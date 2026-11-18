@@ -7,7 +7,7 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger("open-settings");
 

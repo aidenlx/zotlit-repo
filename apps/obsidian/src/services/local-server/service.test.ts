@@ -11,10 +11,10 @@ import {
   SOURCE_ID_HEADER,
 } from "@zotlit/protocol";
 
-import { effectBridge } from "@/lib/effect-bridge";
-import { subscribe } from "@/lib/effect-stream";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { buildLocalServer } from "./__fixtures__";
+import { buildLocalServer } from "./__fixtures__.ts";
 
 const SOURCE_ID = "a1b2c3d4";
 

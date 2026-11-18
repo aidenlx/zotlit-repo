@@ -8,13 +8,13 @@ import type {
   ResolvedAnnotationTypeName,
 } from "@zotlit/db";
 
-import type { LockReason } from "./lock";
+import type { LockReason } from "./lock.ts";
 import {
   resolvesSilently,
   sameStoredGeometry,
   storedPosition,
-} from "./reconcile";
-import { annotationTags, writablePosition, writePosition } from "./write";
+} from "./reconcile.ts";
+import { annotationTags, writablePosition, writePosition } from "./write.ts";
 import type {
   AnnotationDraft,
   AnnotationTag,
@@ -23,7 +23,7 @@ import type {
   TextField,
   WriteConflict,
   WriteFailure,
-} from "./write";
+} from "./write.ts";
 
 /** How many History Steps one Attachment's history keeps; the oldest drops first. */
 export const MAX_HISTORY_STEPS = 100;

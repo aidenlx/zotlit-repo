@@ -14,15 +14,15 @@ import type { ChangeSpec, Extension, StateEffect } from "@codemirror/state";
 import { ViewPlugin, keymap } from "@codemirror/view";
 import type { EditorView, PluginValue, ViewUpdate } from "@codemirror/view";
 
-import { sliceEdit } from "./controller";
+import { sliceEdit } from "./controller.ts";
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
   WorkbenchSliceRange,
-} from "./controller";
-import { isJson, jsonSliceEdit } from "./json-source";
-import { jsonCodec, sourceCodec } from "./slice-codec";
-import type { SliceCodec } from "./slice-codec";
+} from "./controller.ts";
+import { isJson, jsonSliceEdit } from "./json-source.ts";
+import { jsonCodec, sourceCodec } from "./slice-codec.ts";
+import type { SliceCodec } from "./slice-codec.ts";
 
 import {
   addPair,
@@ -30,7 +30,7 @@ import {
   restorePairs,
   offsetPair,
   slicePairs,
-} from "#/language/pairing-state";
+} from "#language/pairing-state.ts";
 
 /** Marks a child transaction as the master's own refresh, so it is not echoed back. */
 const fromMaster = Annotation.define<boolean>();

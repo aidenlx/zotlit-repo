@@ -12,25 +12,25 @@ import { RpcGroup, RpcServer, RpcWorker } from "effect/rpc";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { testObsidianEnv } from "@/lib/__fixtures__/obsidian-env";
-import { ObsidianEnv } from "@/lib/obsidian-env";
+import { testObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
+import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import {
   ChineseSegmenter,
   CHINESE_SEGMENTER,
   layerChineseSegmenter,
-} from "@/services/chinese-segmenter/service";
-import { managedBinaryPorts } from "@/services/managed-binary/platform";
-import { ManagedBinaryPlatform } from "@/services/managed-binary/service";
-import { memoryDevice } from "@/services/managed-binary/test-utils";
-import { settingsOf } from "@/services/settings/__fixtures__";
-import { PluginSettings } from "@/services/settings/service";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__";
-import { ZoteroPref } from "@/services/zotero-pref/service";
+} from "@/services/chinese-segmenter/service.ts";
+import { managedBinaryPorts } from "@/services/managed-binary/platform.ts";
+import { ManagedBinaryPlatform } from "@/services/managed-binary/service.ts";
+import { memoryDevice } from "@/services/managed-binary/test-utils.ts";
+import { settingsOf } from "@/services/settings/__fixtures__.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { WorkerInitSchema, ZoteroReads } from "./rpc";
-import type { ReadsConfig } from "./rpc";
-import { workerClient } from "./worker-client";
-import { launchWorker } from "./worker-launch";
+import { WorkerInitSchema, ZoteroReads } from "./rpc.ts";
+import type { ReadsConfig } from "./rpc.ts";
+import { workerClient } from "./worker-client.ts";
+import { launchWorker } from "./worker-launch.ts";
 
 vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 

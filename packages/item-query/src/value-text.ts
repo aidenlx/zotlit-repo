@@ -2,7 +2,7 @@
 // Query View's layouts, search, copy and "Export CSV…", and the CSV and TSV
 // exports of `zotlit:query`, all read it from here, so each writes the same
 // text for the same value.
-import { errorValueText } from "./filter-values";
+import { errorValueText } from "./filter-values.ts";
 
 /** A value of one Projection Path as JSON: a date is its ISO text. */
 export type ProjectionJson =

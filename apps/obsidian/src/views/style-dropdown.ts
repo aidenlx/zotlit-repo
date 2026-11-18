@@ -3,11 +3,11 @@ import { Effect, FileSystem } from "effect";
 // styles the Zotero data directory holds.
 import type { Setting } from "obsidian";
 
-import type { ReferencesStyleOption } from "@/lib/citation-style";
-import { valueOr } from "@/lib/effect-bridge";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
+import type { ReferencesStyleOption } from "@/lib/citation-style.ts";
+import { valueOr } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 export interface StyleDropdownOptions {
   /** Zotero data directory the installed styles are listed from. */

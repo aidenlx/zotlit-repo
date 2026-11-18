@@ -3,16 +3,16 @@
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 
-import { TemplateFacade } from "./facade";
-import {
-  evalManagedFrontmatterEntries,
-  stringifyFrontmatterInOrder,
-} from "./frontmatter";
+import { TemplateFacade } from "./facade.ts";
 import {
   FRONTMATTER_ABSENT,
   mergeManagedFrontmatterEntries,
-} from "./frontmatter-merge";
-import type { FrontmatterMergeConflict } from "./frontmatter-merge";
+} from "./frontmatter-merge.ts";
+import type { FrontmatterMergeConflict } from "./frontmatter-merge.ts";
+import {
+  evalManagedFrontmatterEntries,
+  stringifyFrontmatterInOrder,
+} from "./frontmatter.ts";
 
 const timestamp = Temporal.Instant.from("2026-08-31T01:02:03Z");
 

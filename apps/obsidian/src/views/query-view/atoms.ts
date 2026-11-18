@@ -3,20 +3,20 @@ import { Cause, Effect } from "effect";
 
 import type { FilterValues } from "@zotlit/workbench/ui";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewResult,
-} from "@/services/item-query/query-view";
-import { QueryService } from "@/services/item-query/service";
-import { selectorKey } from "@/services/library-scope/scope";
-import { LibraryScope } from "@/services/library-scope/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/item-query/query-view.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+import { selectorKey } from "@/services/library-scope/scope.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { QueryRowPass } from "./view";
+import type { QueryRowPass } from "./view.tsx";
 
 const listed = (
   result: QueryViewResult,

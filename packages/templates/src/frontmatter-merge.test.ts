@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   FRONTMATTER_ABSENT,
   mergeFrontmatterFields,
-} from "./frontmatter-merge";
+} from "./frontmatter-merge.ts";
 
 describe("mergeFrontmatterFields", () => {
   it("exposes an explicit absent operation", () => {

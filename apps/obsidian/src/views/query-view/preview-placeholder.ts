@@ -12,11 +12,15 @@ import { setIcon } from "obsidian";
 import { foldFilterTree } from "@zotlit/filter-expression";
 import type { FilterTree } from "@zotlit/filter-expression";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { layoutOf } from "./layouts";
-import type { QueryFile, QueryFileDataset, QueryFileView } from "./query-file";
-import { problemText } from "./view";
+import { layoutOf } from "./layouts.ts";
+import type {
+  QueryFile,
+  QueryFileDataset,
+  QueryFileView,
+} from "./query-file.ts";
+import { problemText } from "./view.tsx";
 
 /** A template's note preview. */
 const IN_PREVIEW = "[data-zotlit-draft]";

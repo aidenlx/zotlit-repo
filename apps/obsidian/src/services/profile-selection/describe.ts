@@ -5,9 +5,9 @@ import { planItemFilter } from "@zotlit/item-query";
 import type { MatchTree } from "@zotlit/templates/facade";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { runtime } from "@/lib/i18n/generated/runtime";
-import { readerText } from "@/views/query-view/reader-diagnostic";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { runtime } from "@/lib/i18n/generated/runtime.ts";
+import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 
 /** The label of a built-in Zotero item type in the active locale. */
 export function itemTypeLabel(name: string): string {

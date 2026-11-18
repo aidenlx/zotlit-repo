@@ -8,24 +8,24 @@ import type {
   ScanRow,
 } from "@zotlit/db/item-query";
 
-import { runCandidatePass } from "./candidate-pass";
-import { compareScalars } from "./collation";
-import type { CandidateDataset } from "./dataset";
-import type { SortKey } from "./fields";
-import type { FilterNode } from "./filter-plan";
-import type { Matches } from "./matches";
-import { allMatches, firstMatches } from "./matches";
-import type { QueryConsumer, QuerySummary } from "./query";
-import type { QuerySources } from "./query-sources";
-import type { Loader } from "./record-loader";
+import { runCandidatePass } from "./candidate-pass.ts";
+import { compareScalars } from "./collation.ts";
+import type { CandidateDataset } from "./dataset.ts";
+import type { SortKey } from "./fields.ts";
+import type { FilterNode } from "./filter-plan.ts";
+import type { Matches } from "./matches.ts";
+import { allMatches, firstMatches } from "./matches.ts";
+import type { QuerySources } from "./query-sources.ts";
+import type { QueryConsumer, QuerySummary } from "./query.ts";
+import type { Loader } from "./record-loader.ts";
 import type {
   GroupValue,
   ItemQuery,
   QueryRow,
   TargetLibrary,
   SortSpec,
-} from "./request";
-import { ItemQueryTuning } from "./tuning";
+} from "./request.ts";
+import { ItemQueryTuning } from "./tuning.ts";
 
 interface GroupMatches<S> {
   readonly value: GroupValue;

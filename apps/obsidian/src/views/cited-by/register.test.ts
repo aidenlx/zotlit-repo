@@ -1,11 +1,11 @@
 import type { App, Command, Plugin, WorkspaceLeaf } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 
-import { openCitedByView, registerCitedByView } from "./register";
-import { CITED_BY_VIEW_TYPE } from "./view";
+import { openCitedByView, registerCitedByView } from "./register.ts";
+import { CITED_BY_VIEW_TYPE } from "./view.tsx";
 
 describe("Cited By Sidebar registration", () => {
   it("stays closed until its command creates the right-side view", async () => {

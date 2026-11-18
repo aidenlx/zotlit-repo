@@ -5,19 +5,19 @@ import type {
   Vault as ObsidianVault,
 } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Vault } from "@/lib/obsidian-vault";
-import { QueryService } from "@/services/item-query/service";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { QueryService } from "@/services/item-query/service.ts";
 import type { TFile } from "obsidian";
-import { NoteIndex } from "@/services/note-index/service";
-import type { ProfileReader } from "@/services/profile/service";
-import { Profile } from "@/services/profile/service";
-import { Template, templateFailure } from "@/services/template/service";
-import type { TemplateOperations } from "@/services/template/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { ProfileReader } from "@/services/profile/service.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template, templateFailure } from "@/services/template/service.ts";
+import type { TemplateOperations } from "@/services/template/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { CreationPlanningServices } from "@/services/note-feature/creation-planning";
+import type { CreationPlanningServices } from "@/services/note-feature/creation-planning.ts";
 
 /** The plain deps the planning services read, as a Note Feature test holds them. */
 export interface PlanningSources {

@@ -2,11 +2,11 @@
 // sheet's own list and the Properties tab's columns. It parses no Markdown, so
 // the tab can read it without the reading view's parser stack.
 
-import type { RenderedProperty } from "#/render/result";
+import type { RenderedProperty } from "#render/result.ts";
 import { regex } from "arkregex";
 
-import { useWorkbenchMessages } from "./messages";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useIcon, useParts } from "./theme.tsx";
 
 /** The property types Obsidian's own Properties editor tells apart. */
 export type PropertyType =

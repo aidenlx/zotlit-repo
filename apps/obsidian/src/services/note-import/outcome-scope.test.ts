@@ -31,25 +31,25 @@ import {
   TemplateFacade,
 } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
-import { bluePng } from "@/services/excerpt-image/__fixtures__/png";
-import { ExcerptCacheWriteError } from "@/services/excerpt-image/error";
-import { PNG_FORMAT } from "@/services/excerpt-image/format";
-import type { ExcerptImage } from "@/services/excerpt-image/format";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
-import type { ExcerptEntry } from "@/services/excerpt-image/service";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import { defaults } from "@/services/settings/schema";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
+import { bluePng } from "@/services/excerpt-image/__fixtures__/png.ts";
+import { ExcerptCacheWriteError } from "@/services/excerpt-image/error.ts";
+import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
+import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
+import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import type { ExcerptEntry } from "@/services/excerpt-image/service.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { diskImageHost } from "./__fixtures__/disk-image-host";
-import { noteImporterOver } from "./__fixtures__/importer";
-import type { ImporterFakes } from "./__fixtures__/importer";
+import { diskImageHost } from "./__fixtures__/disk-image-host.ts";
+import { noteImporterOver } from "./__fixtures__/importer.ts";
+import type { ImporterFakes } from "./__fixtures__/importer.ts";
 
 /** One paragraph naming the Shared Annotation both Child Notes quote. */
 const paragraph = `<p><img data-attachment-key="SNAP2345" data-annotation="${encodeURIComponent(

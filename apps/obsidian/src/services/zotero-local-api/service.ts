@@ -2,45 +2,45 @@
 import { Context, Effect, Layer, PubSub, Stream } from "effect";
 import type { DateTime } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { ZoteroHttp } from "@/lib/zotero-http";
-import { LocalServer } from "@/services/local-server/service";
-import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { makeLocalApiSession } from "./session";
+import { makeLocalApiSession } from "./session.ts";
 import type {
   AuthorizedSendOptions,
   LocalApiEvent,
   LocalApiSource,
   LocalApiState,
   WriteAuthorizationState,
-} from "./session";
+} from "./session.ts";
 import type {
   LocalApiAnnotation,
   LocalApiFailure,
   LocalApiResult,
   ZoteroReply,
-} from "./wire";
-import type { WriteAuthorizationStore } from "./write-authorization";
+} from "./wire.ts";
+import type { WriteAuthorizationStore } from "./write-authorization.ts";
 
 export type {
   AuthorizationGrant,
   LocalApiAnnotation,
   LocalApiFailure,
   LocalApiResult,
-} from "./wire";
+} from "./wire.ts";
 export type {
   AuthorizedSendOptions,
   LocalApiEvent,
   LocalApiSource,
   LocalApiState,
   WriteAuthorizationState,
-} from "./session";
+} from "./session.ts";
 export type {
   SecretStore,
   WriteAuthorizationStore,
-} from "./write-authorization";
+} from "./write-authorization.ts";
 
 /** The Zotero Local API client as an Effect service; see {@link makeLocalApiSession}. */
 export class ZoteroLocalApi extends Context.Service<

@@ -2,8 +2,8 @@
 // Source: https://github.com/quartz-community/remark-obsidian/blob/a80395a3d80f351e67a0afdb63b51a604e010c8e/test/parity/corpus.ts
 import { expect, it } from "vitest";
 
-import { scanNote } from "./scan-note";
-import type { NoteScanRecord } from "./scan-note";
+import { scanNote } from "./scan-note.ts";
+import type { NoteScanRecord } from "./scan-note.ts";
 
 const empty: Omit<NoteScanRecord, "links" | "ranges"> = {
   citations: [],

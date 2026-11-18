@@ -4,11 +4,11 @@
 // rows by.
 import { fieldSearchTerms } from "@zotlit/item-query";
 
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { datasetSpec } from "./datasets";
-import { propertyIcon } from "./property-icon";
-import type { QueryFileDataset, QueryFileDirection } from "./query-file";
+import { datasetSpec } from "./datasets.ts";
+import { propertyIcon } from "./property-icon.ts";
+import type { QueryFileDataset, QueryFileDirection } from "./query-file.ts";
 
 /** How a property's values order, which names its two directions. */
 export type PropertyKind = "text" | "date" | "number";

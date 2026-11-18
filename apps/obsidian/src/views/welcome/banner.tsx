@@ -4,26 +4,26 @@ import { Component } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 
-import { WelcomeActionsContext } from "./actions";
-import type { WelcomeActions, WelcomeBannerHost } from "./actions";
+import { WelcomeActionsContext } from "./actions.ts";
+import type { WelcomeActions, WelcomeBannerHost } from "./actions.ts";
 import {
   dismissWelcomeCommand,
   keepWelcomeCommand,
   openReleaseNoteCommand,
-} from "./atoms";
+} from "./atoms.ts";
 import {
   holdWelcomeModel,
   makeWelcomeModel,
   requestWelcome,
   setConverted,
   WelcomeModelProvider,
-} from "./model";
-import { holdSetupCommands } from "./setup-actions";
-import type { SetupActions } from "./setup-actions";
-import { Welcome } from "./Welcome";
+} from "./model.ts";
+import { holdSetupCommands } from "./setup-actions.ts";
+import type { SetupActions } from "./setup-actions.ts";
+import { Welcome } from "./Welcome.tsx";
 
 export interface WelcomeBannerDeps {
   registry: ViewRegistryHandle;

@@ -23,13 +23,13 @@ import type {
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 
-import { creatorSummary } from "@/lib/item-summary";
-import { fileUrlLink } from "@/lib/markdown-link";
+import { creatorSummary } from "@/lib/item-summary.ts";
+import { fileUrlLink } from "@/lib/markdown-link.ts";
 import {
   commentToMarkdown,
   createCommentTurndown,
-} from "@/lib/turndown/comment";
-import type { AttachmentImportBatch } from "@/services/attachment-import/service";
+} from "@/lib/turndown/comment.ts";
+import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 
 /**
  * Build the {@link FallibleTemplateLink} for an attachment's on-disk file

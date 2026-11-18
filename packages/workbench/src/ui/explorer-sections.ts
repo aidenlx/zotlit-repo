@@ -1,18 +1,18 @@
-import type { DisplayNode } from "#/explorer/index";
+import type { DisplayNode } from "#explorer/index.ts";
 
 // Which fields a root lists, in which section and order, and the name a
 // reader sees for each. Common fields lead; every other field has one home.
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 import type { FieldLabelLocale } from "@zotlit/zotero-types/field-labels";
 
-import { COMMON_FIELDS } from "./completion-fields";
-import { commonRows, fieldValueText } from "./explorer-fields";
-import type { FieldRow } from "./explorer-fields";
-import type { WorkbenchMessages } from "./generated/messages";
-import type { WorkbenchMessageLabel } from "./messages";
-import type { TemplateRoot } from "./model";
+import { COMMON_FIELDS } from "./completion-fields.ts";
+import { commonRows, fieldValueText } from "./explorer-fields.ts";
+import type { FieldRow } from "./explorer-fields.ts";
+import type { WorkbenchMessages } from "./generated/messages.ts";
+import type { WorkbenchMessageLabel } from "./messages.tsx";
+import type { TemplateRoot } from "./model.ts";
 
-import { buildDisplayTree, listPropertiesOf } from "#/explorer/index";
+import { buildDisplayTree, listPropertiesOf } from "#explorer/index.ts";
 
 export type ExplorerSectionId =
   | "common"

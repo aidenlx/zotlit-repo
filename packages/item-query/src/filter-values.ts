@@ -1,9 +1,13 @@
-import { compareStrings } from "./collation";
-import { compareDates, dateText, durationsEqual } from "./filter-dates";
-import type { DateComparison, DateValue, DurationValue } from "./filter-dates";
-import { errorValue, isError, renderEvaluationFault } from "./filter-error";
-import type { ErrorValue } from "./filter-error";
-import type { QueryClock } from "./query-clock";
+import { compareStrings } from "./collation.ts";
+import { compareDates, dateText, durationsEqual } from "./filter-dates.ts";
+import type {
+  DateComparison,
+  DateValue,
+  DurationValue,
+} from "./filter-dates.ts";
+import { errorValue, isError, renderEvaluationFault } from "./filter-error.ts";
+import type { ErrorValue } from "./filter-error.ts";
+import type { QueryClock } from "./query-clock.ts";
 
 /**
  * A value of a Filter Expression. A Zotero field value is a string whether

@@ -4,15 +4,15 @@
 // their groups.
 import { compareStrings } from "@zotlit/item-query";
 
-import type { QueryViewRow } from "@/services/item-query/query-view";
-import type { LayoutRow } from "@/views/annot-view/layout";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
+import type { LayoutRow } from "@/views/annot-view/layout.tsx";
 
-import { datasetSpec, grouping } from "./datasets";
+import { datasetSpec, grouping } from "./datasets.ts";
 import type {
   QueryFileDataset,
   QueryFileGroupValue,
   QueryFileView,
-} from "./query-file";
+} from "./query-file.ts";
 
 /** The group paths a view of `dataset` can gather its rows by. */
 export function groupPaths(

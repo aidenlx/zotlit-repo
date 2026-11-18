@@ -2,8 +2,8 @@
 // interrupts.
 import { Plugin } from "obsidian";
 
-import { getLogger } from "@/lib/log";
-import { releaseKeyDescription } from "@/lib/plugin-release-key";
+import { getLogger } from "@/lib/log.ts";
+import { releaseKeyDescription } from "@/lib/plugin-release-key.ts";
 
 const logger = getLogger("plugin-lifecycle");
 

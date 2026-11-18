@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Creator, ItemLanguage } from "@zotlit/db";
 
-import { formatCreator } from "./format-creator";
+import { formatCreator } from "./format-creator.ts";
 
 function author(firstName: string | null, lastName: string | null): Creator {
   return { firstName, lastName, creatorType: "author", fieldMode: 0 };

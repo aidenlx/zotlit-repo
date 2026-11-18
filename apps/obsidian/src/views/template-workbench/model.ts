@@ -41,19 +41,19 @@ import type {
   WorkbenchViewState,
 } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms";
-import { viewRuntime } from "@/lib/view-atoms";
-import { defaultBindingsAtom } from "@/services/settings/atoms";
-import { templateRevisionAtom } from "@/services/template/atoms";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
+import { templateRevisionAtom } from "@/services/template/atoms.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
-} from "@/services/zotero-reads/atoms";
+} from "@/services/zotero-reads/atoms.ts";
 
-import { readChosenItem } from "./atoms";
-import { PartialPreviewFailed, PreviewItemMissing } from "./errors";
+import { readChosenItem } from "./atoms.ts";
+import { PartialPreviewFailed, PreviewItemMissing } from "./errors.ts";
 
 /**
  * The Template Document the leaf holds, as the view last loaded it. Its kind

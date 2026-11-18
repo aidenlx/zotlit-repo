@@ -3,9 +3,9 @@ import * as Logger from "effect/Logger";
 import * as Ref from "effect/Ref";
 import { expect, it } from "vitest";
 
-import { makePortLogger } from "./effect-log-port";
-import type { LogPortRecord, PortLogLevel } from "./effect-log-port";
-import * as WorkerEffect from "./effect-worker-runtime";
+import { makePortLogger } from "./effect-log-port.ts";
+import type { LogPortRecord, PortLogLevel } from "./effect-log-port.ts";
+import * as WorkerEffect from "./effect-worker-runtime.ts";
 
 // Failure mode: Effect's default minimum level is Info, so the worker dropped
 // debug and trace records before the port logger could forward them.

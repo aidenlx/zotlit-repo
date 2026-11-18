@@ -2,11 +2,11 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { changed } from "./events";
-import type { ZoteroReadsState } from "./service";
-import { ZoteroReads } from "./service";
+import { changed } from "./events.ts";
+import type { ZoteroReadsState } from "./service.ts";
+import { ZoteroReads } from "./service.ts";
 
 /**
  * How many times the Zotero database changed this session. A view atom that

@@ -1,11 +1,11 @@
 // UI seam for a creation selection: the words its reason and its problem are
 // shown by. Shared by the picker badge and the batch rows.
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 import type {
   CreationProfileSource,
   CreationSelectionProblem,
-} from "./operations";
+} from "./operations.ts";
 
 /** Where a batch destination came from; Default (`bound`) has no words. */
 export function describeSelectionSource(

@@ -1,4 +1,4 @@
-import { IconButtonSpace } from "@/components/obsidian/icon-button";
+import { IconButtonSpace } from "@/components/obsidian/icon-button.tsx";
 
 /** The room of a chevron, in a row with nothing under it. */
 export function ExpanderSpace() {

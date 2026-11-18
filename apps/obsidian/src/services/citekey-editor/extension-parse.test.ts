@@ -3,11 +3,11 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup";
+import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import {
   lookupAnswerFor,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup";
+} from "@/services/citation-index/__fixtures__/lookup.ts";
 
 const { livePreview, parseState, tokenClassNodeProp, lineClassNodeProp } =
   vi.hoisted(() => ({
@@ -17,8 +17,8 @@ const { livePreview, parseState, tokenClassNodeProp, lineClassNodeProp } =
     lineClassNodeProp: {},
   }));
 
-vi.mock("@/lib/editor-decoration", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/editor-decoration")>()),
+vi.mock("@/lib/editor-decoration.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/editor-decoration.ts")>()),
   livePreviewOf: livePreview,
 }));
 
@@ -59,13 +59,13 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField } from "obsidian";
 
-import { rendered } from "@/services/citation-text/__fixtures__";
-import type { DocumentCitations } from "@/services/citation-text/present";
-import { hoverPreferences } from "@/services/citekey-navigation";
-import type { Held } from "@/services/query-client/service";
-import { defaults } from "@/services/settings/schema";
+import { rendered } from "@/services/citation-text/__fixtures__.ts";
+import type { DocumentCitations } from "@/services/citation-text/present.ts";
+import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { citekeyEditorExtension } from "./extension";
+import { citekeyEditorExtension } from "./extension.ts";
 
 beforeEach(() => {
   parseState.behind = false;

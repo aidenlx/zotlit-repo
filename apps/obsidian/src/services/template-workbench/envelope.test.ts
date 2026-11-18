@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { MissingTemplateError } from "@zotlit/templates/facade";
 
-import { CliRejection } from "@/lib/cli-params";
+import { CliRejection } from "@/lib/cli-params.ts";
 
 import {
   DIAGNOSTIC_HINTS,
   diagnostic,
   rejectionDiagnostic,
   templateFaultDiagnostic,
-} from "./envelope";
+} from "./envelope.ts";
 
 describe("DIAGNOSTIC_HINTS", () => {
   it.each(Object.entries(DIAGNOSTIC_HINTS))(

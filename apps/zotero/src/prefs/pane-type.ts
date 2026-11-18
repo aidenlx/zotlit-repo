@@ -1,7 +1,7 @@
 // Reads the configured Obsidian pane placement for the links this add-on opens.
 import type { PaneType } from "@zotlit/protocol";
 
-import { prefs } from "./index";
+import { prefs } from "./index.ts";
 
 /**
  * The stored value for "replace the active tab". `prefs.js` takes a literal

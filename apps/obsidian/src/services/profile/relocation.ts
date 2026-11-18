@@ -1,8 +1,8 @@
 // The path a note takes when it moves to another Profile's folder.
 import type { TFile } from "obsidian";
 
-import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder";
-import type { ResolvedProfile } from "@/services/profile/bindings";
+import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 
 /**
  * Replace the folder part of a note's path and keep the remainder, so the

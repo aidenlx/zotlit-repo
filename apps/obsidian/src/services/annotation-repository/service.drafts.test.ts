@@ -3,8 +3,8 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Logger } from "effect";
 import { expect, vi } from "vitest";
 
-import { AbortError } from "@/lib/abort-error";
-import * as m from "@/lib/i18n/generated/messages";
+import { AbortError } from "@/lib/abort-error.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 import {
   annotationItem,
   annotationPage,
@@ -17,14 +17,14 @@ import {
   staleVersion,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__";
+} from "@/services/zotero-local-api/__fixtures__.ts";
 import {
   capabilityBlock,
   capabilityBlocks,
   cardControls,
   fieldEditorControls,
   editingBlockedReason,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 
 import {
   afterWrite,
@@ -42,8 +42,8 @@ import {
   scopedStack,
   zoteroTagging,
   TAGGED,
-} from "./__fixtures__";
-import type { AnnotationList, AnnotationRepository } from "./service";
+} from "./__fixtures__.ts";
+import type { AnnotationList, AnnotationRepository } from "./service.ts";
 
 /** The first Annotation an announcement shows `hidden` or `gone`. */
 const firstAnnotation = Effect.fnUntraced(function* (

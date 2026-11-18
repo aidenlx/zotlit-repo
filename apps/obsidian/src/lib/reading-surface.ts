@@ -2,8 +2,8 @@
 // the open reading views through the Workspace tag.
 import { Effect } from "effect";
 
-import type { WorkspaceShape } from "./obsidian-workspace";
-import { rerenderReadingViews } from "./reading-view";
+import type { WorkspaceShape } from "./obsidian-workspace.ts";
+import { rerenderReadingViews } from "./reading-view.ts";
 
 /**
  * Renders every open reading view again, which is how a post-processor's

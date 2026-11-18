@@ -1,7 +1,7 @@
 // Hand-written types for the pinned `native-text-selection-map.js` copy, which
 // ships as JS. Only the functions the port calls are declared.
 
-import type { StructuredChar } from "@/chars";
+import type { StructuredChar } from "#chars.ts";
 
 /**
  * The text's NFKD code points with every whitespace one dropped: the units

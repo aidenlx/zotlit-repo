@@ -1,12 +1,12 @@
-import { deletedItems, itemAnnotations } from "@drizzle/schema";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { and, count, eq, notExists } from "drizzle-orm";
 
-import type { NodeDatabaseClient } from "@/client/node";
-import { formatIndexedKey } from "@/lib/zt-key";
+import { defineQuery } from "./_shared.ts";
+import type { QueryRow } from "./_shared.ts";
+import { groupIDForLibrary } from "./libraries.ts";
 
-import { defineQuery } from "./_shared";
-import type { QueryRow } from "./_shared";
-import { groupIDForLibrary } from "./libraries";
+import { deletedItems, itemAnnotations } from "#drizzle/schema.ts";
+import { formatIndexedKey } from "#lib/zt-key.ts";
 
 export interface AnnotViewAttachment {
   itemID: number;

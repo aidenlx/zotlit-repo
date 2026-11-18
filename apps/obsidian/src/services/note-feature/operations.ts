@@ -3,16 +3,16 @@ import type { TFile } from "obsidian";
 import type { Item } from "@zotlit/db";
 import type { UpdateScope } from "@zotlit/protocol";
 
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 
-import type { NoteCitations } from "./citations-handle";
-import type { NoteCreation } from "./creation-handle";
+import type { NoteCitations } from "./citations-handle.ts";
+import type { NoteCreation } from "./creation-handle.ts";
 import type {
   CreateNoteOptions,
   CreateNoteResult,
   UpdateResult,
-} from "./types";
+} from "./types.ts";
 
 export type {
   CompanionNoteTarget,
@@ -29,7 +29,7 @@ export type {
   ProfilePreview,
   UpdateResult,
   UpdateScope,
-} from "./types";
+} from "./types.ts";
 
 /**
  * The Note Feature for callers outside Effect, as `bindNoteFeature` builds it

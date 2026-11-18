@@ -31,7 +31,6 @@
     "apps/obsidian/src/views/query-view/vault-cell.tsx: VaultCell",
     "apps/obsidian/src/views/template-data-explorer/item-memory.ts: lastTemplateItem",
     "packages/workbench/src/language/contract.ts: sampleValue",
-    "packages/workbench/src/snapshot/index.ts: SnapshotSelectionError",
     "packages/workbench/src/ui/example-state.tsx: useExampleMessage"
   ],
   "types": [
@@ -96,10 +95,7 @@
     "apps/obsidian/src/views/batch-modal/index.ts: BatchModalText",
     "apps/obsidian/src/views/batch-modal/types.ts: BatchFailure",
     "apps/zotero/src/lib/bootstrap-reasons.ts: BootstrapReasonName",
-    "packages/item-query/src/filter-error.ts: EvaluationErrorCodesExhaustive",
-    "packages/workbench/src/snapshot/descriptors.ts: SnapshotGraphReference",
-    "packages/workbench/src/snapshot/descriptors.ts: SnapshotStringCoercion",
-    "packages/workbench/src/snapshot/descriptors.ts: SnapshotTemporalValue"
+    "packages/item-query/src/filter-error.ts: EvaluationErrorCodesExhaustive"
   ],
   "enumMembers": []
 }

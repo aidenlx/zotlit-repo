@@ -1,11 +1,11 @@
 // The Cited By Sidebar's sort menu.
 import { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { showMenuAtButton } from "@/lib/menu";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { showMenuAtButton } from "@/lib/menu.ts";
 
-import { CITED_BY_SORT_GROUPS } from "./store";
-import type { CitedBySortMode } from "./store";
+import { CITED_BY_SORT_GROUPS } from "./store.ts";
+import type { CitedBySortMode } from "./store.ts";
 
 const SORT_LABELS: Record<CitedBySortMode, () => string> = {
   alphabetical: m.cited_by_sort_alphabetical,

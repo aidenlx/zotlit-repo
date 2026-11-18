@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { renderFailureDiagnostic } from "./attribution";
+import { renderFailureDiagnostic } from "./attribution.ts";
 
 /** The diagnostic `render` attributes to the thrown failure, or `null` when
  *  rendering succeeded. Keeps the expectations below unconditional. */

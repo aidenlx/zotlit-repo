@@ -24,25 +24,25 @@ import type {
   QueryViewGroup,
   QueryViewRequest,
   QueryViewRow,
-} from "@/services/item-query/query-view";
+} from "@/services/item-query/query-view.ts";
 import {
   librarySelectorSchema,
   selectorKey,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import {
   parseQueryFile,
   sameSort,
   serializeQueryFile,
-} from "@/views/query-view/query-file";
-import type { QueryFileSort } from "@/views/query-view/query-file";
-import type { LiteratureNotes } from "@/views/query-view/table-notes";
-import type { QueryRowPass } from "@/views/query-view/view";
+} from "@/views/query-view/query-file.ts";
+import type { QueryFileSort } from "@/views/query-view/query-file.ts";
+import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";
+import type { QueryRowPass } from "@/views/query-view/view.tsx";
 
-import { searchTerms } from "./search";
+import { searchTerms } from "./search.ts";
 
 /** The Reading State facets, in the order the Library Tree shows them. */
 export const READING_STATE_FACETS = [

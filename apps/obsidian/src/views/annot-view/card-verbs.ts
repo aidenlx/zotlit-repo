@@ -2,14 +2,14 @@
 // Annotation View's menus and keys, and the Obsidian PDF view's keys and Mark
 // Popup. A delete asks once, and a group names its count; one mark in the PDF
 // is erased with no question.
-import type { ConfirmOptions } from "@/lib/confirm";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import * as toast from "@/lib/toast";
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { ConfirmOptions } from "@/lib/confirm.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import * as toast from "@/lib/toast.ts";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import type { CardBlock } from "./card-controls";
-import { copiedText } from "./copied-text";
+import type { CardBlock } from "./card-controls.ts";
+import { copiedText } from "./copied-text.ts";
 
 /**
  * The confirmation a delete of `count` Annotations asks for. An erase leaves

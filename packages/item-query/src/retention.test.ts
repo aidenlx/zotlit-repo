@@ -22,9 +22,9 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ATTACHMENTS, collectQuery, consumeQuery, ITEMS } from ".";
-import type { ItemQueryRequest } from ".";
-import { runEffect } from "./test-helpers";
+import { ATTACHMENTS, collectQuery, consumeQuery, ITEMS } from "./index.ts";
+import type { ItemQueryRequest } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
 
 setFlagsFromString("--no-opt");
 setFlagsFromString("--no-maglev");

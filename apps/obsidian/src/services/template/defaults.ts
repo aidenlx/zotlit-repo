@@ -9,7 +9,7 @@ import { DEFAULT_ANNOTATION_LIQUID as annotation } from "@zotlit/templates/facad
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 
-import { normalizeVaultPath } from "./path";
+import { normalizeVaultPath } from "./path.ts";
 
 function freezeAll<const T extends readonly object[]>(items: T): Readonly<T> {
   items.forEach(Object.freeze);

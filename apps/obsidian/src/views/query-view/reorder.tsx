@@ -4,9 +4,9 @@
 import { useState } from "react";
 import type { DragEvent, HTMLAttributes, KeyboardEvent } from "react";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn } from "@/lib/utils.ts";
 
 /** The list with the entry at `from` moved to `to`. */
 export function moved<T>(list: readonly T[], from: number, to: number): T[] {

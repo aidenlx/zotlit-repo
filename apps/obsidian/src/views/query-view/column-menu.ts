@@ -3,9 +3,9 @@
 // double click make, spelled out, then the sorts, then the property's page.
 // The header (`table-header.tsx`) fills an Obsidian `Menu` from these
 // entries, a separator between each group.
-import type { QueryFileSort } from "./query-file";
-import type { QueryViewCapabilities } from "./view";
-import type { PropertyKind } from "./view-properties";
+import type { QueryFileSort } from "./query-file.ts";
+import type { PropertyKind } from "./view-properties.ts";
+import type { QueryViewCapabilities } from "./view.tsx";
 
 /** What one entry of a column's menu does. */
 export type ColumnMenuAction =

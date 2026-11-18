@@ -1,5 +1,5 @@
-export { NoteFeature } from "./service";
-export { bindNoteFeature } from "./handle";
+export { NoteFeature } from "./service.ts";
+export { bindNoteFeature } from "./handle.ts";
 export {
   applyComposedFrontmatter,
   composeLiteratureNote,
@@ -11,18 +11,18 @@ export {
   type ComposeProfile,
   type ComposeRefusal,
   type PreparedComposition,
-} from "./compose";
-export { openCompanionNote, companionNoteNotice } from "./companion-view";
-export { noteOperationDiagnosticContent } from "./update-single";
+} from "./compose.ts";
+export { openCompanionNote, companionNoteNotice } from "./companion-view.ts";
+export { noteOperationDiagnosticContent } from "./update-single.ts";
 export {
   awaitProfileSwitchConsent,
   switchNoteProfileInteractively,
   type ProfileSwitchConsent,
-} from "./switch-view";
+} from "./switch-view.ts";
 export {
   type InteractiveCreationOptions,
   type InteractiveCreationPorts,
-} from "./creation-view";
+} from "./creation-view.ts";
 export {
   type CompanionNoteTarget,
   type CreateNoteDiagnostic,
@@ -36,8 +36,8 @@ export {
   type NoteFeatureHandle,
   type UpdateResult,
   type UpdateScope,
-} from "./operations";
+} from "./operations.ts";
 export {
   type ProfileNotePreviewOptions,
   type PreparedProfileSwitch,
-} from "./types";
+} from "./types.ts";

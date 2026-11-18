@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { noteRegions, partialCalls, templateCalls } from "./regions";
+import { noteRegions, partialCalls, templateCalls } from "./regions.ts";
 
 /** The whole body is the note, which is what a Profile without a manifest is. */
 function regions(body: string) {

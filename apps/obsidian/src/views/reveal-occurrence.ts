@@ -1,6 +1,6 @@
 import type { MarkdownView } from "obsidian";
 
-import type { CitationOccurrence } from "@/services/citation-index/service";
+import type { CitationOccurrence } from "@/services/citation-index/service.ts";
 
 /**
  * Scroll `occurrence` into view in `view` and flash it.

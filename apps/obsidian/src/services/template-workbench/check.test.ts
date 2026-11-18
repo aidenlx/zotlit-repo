@@ -15,33 +15,33 @@ import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { TemplateError } from "@zotlit/templates/facade";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { NoteIndex } from "@/services/note-index/service";
-import { profileServiceFixture } from "@/services/profile/__fixtures__/service";
-import { getProfileBinding } from "@/services/profile/bindings";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
+import { getProfileBinding } from "@/services/profile/bindings.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
 import {
   fixtureServices,
   workbenchContext,
   workbenchIdentity,
-} from "./__fixtures__";
-import { TEMPLATE_CHECK_COMMAND } from "./check";
-import { readTemplateData } from "./data";
-import { registerTemplateWorkbench } from "./register";
+} from "./__fixtures__.ts";
+import { TEMPLATE_CHECK_COMMAND } from "./check.ts";
+import { readTemplateData } from "./data.ts";
+import { registerTemplateWorkbench } from "./register.ts";
 
-vi.mock("./data", async (original) => ({
-  ...(await original<typeof import("./data")>()),
+vi.mock("./data.ts", async (original) => ({
+  ...(await original<typeof import("./data.ts")>()),
   readTemplateData: vi.fn(),
 }));
 
@@ -1209,7 +1209,7 @@ My conclusion.
       PRAGMA query_only = ON;
     `);
         const actual = yield* Effect.promise(() =>
-          vi.importActual<typeof import("./data")>("./data"),
+          vi.importActual<typeof import("./data.ts")>("./data"),
         );
         vi.mocked(readTemplateData).mockImplementation(actual.readTemplateData);
         const f = yield* scopedFixture(
@@ -1273,7 +1273,7 @@ My conclusion.
       PRAGMA query_only = ON;
     `);
         const actual = yield* Effect.promise(() =>
-          vi.importActual<typeof import("./data")>("./data"),
+          vi.importActual<typeof import("./data.ts")>("./data"),
         );
         vi.mocked(readTemplateData).mockImplementation(actual.readTemplateData);
         const f = yield* scopedFixture(

@@ -1,18 +1,18 @@
+import type { AnnotationFileLinkAnchor } from "#lib/zt-annot-anchor.ts";
+import type { Annotation } from "#lib/zt-annot.ts";
 import { describe, expect, it, vi } from "vitest";
-
-import { USER_LIBRARY_ID } from "@/lib/constants";
-import type { Annotation } from "@/lib/zt-annot";
-import type { AnnotationFileLinkAnchor } from "@/lib/zt-annot-anchor";
 
 import {
   annotationToTemplateData,
   withAnnotationCitation,
-} from "./zt-template-annot";
+} from "./zt-template-annot.ts";
 import type {
   AnnotationTemplateDataInput,
   TemplateAnnotation,
-} from "./zt-template-annot";
-import type { TemplateAttachment } from "./zt-template-attach";
+} from "./zt-template-annot.ts";
+import type { TemplateAttachment } from "./zt-template-attach.ts";
+
+import { USER_LIBRARY_ID } from "#lib/constants.ts";
 
 function makeAnnotation(overrides?: Partial<Annotation>): Annotation {
   return {

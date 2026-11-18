@@ -1,10 +1,10 @@
 import { Effect, Layer } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { PluginHost } from "@/lib/plugin-host";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { PluginHost } from "@/lib/plugin-host.ts";
 
-import { Release } from "./service";
+import { Release } from "./service.ts";
 
 /** The command that reopens the Release Note for the current version. */
 export const layerReleaseActions: Layer.Layer<

@@ -6,8 +6,8 @@ import { expect, it, vi } from "vitest";
 
 import type { FieldPopupKeys } from "@zotlit/workbench/language";
 
-import { stubService } from "./__fixtures__/service-stub";
-import { popupScope } from "./field-popup";
+import { stubService } from "./__fixtures__/service-stub.ts";
+import { popupScope } from "./field-popup.ts";
 
 /** A keymap that records its stack, and the keys a popup hands it. */
 function setup() {

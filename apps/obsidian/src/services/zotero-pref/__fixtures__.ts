@@ -3,13 +3,13 @@ import { Context, Effect, Layer } from "effect";
 import type { PlatformError } from "effect";
 import type { App } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ObsidianApp } from "@/lib/obsidian-app";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
-import { electronAppData } from "./__fixtures__/electron-app-data";
-import { zoteroProfilesRoot } from "./profile-root";
-import { layerZoteroPref, ZoteroPref, ZoteroPrefFiles } from "./service";
+import { electronAppData } from "./__fixtures__/electron-app-data.ts";
+import { zoteroProfilesRoot } from "./profile-root.ts";
+import { layerZoteroPref, ZoteroPref, ZoteroPrefFiles } from "./service.ts";
 
 /** The real preference layer over device storage and file-system fakes. */
 export const zoteroPrefFixture = Effect.fn("zoteroPrefFixture")(function* (

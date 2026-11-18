@@ -3,21 +3,21 @@ import { Effect } from "effect";
 
 import { annotationOpenUri, parseIndexedKey } from "@zotlit/db";
 
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { AnnotationRepository } from "@/services/annotation-repository/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
-import { plainTemplateError } from "@/services/template/errors";
-import { ProfileAnnotationError } from "@/services/template/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { Placement } from "@/views/annot-view/async-insert";
+} from "@/services/annotation-repository/service.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import { plainTemplateError } from "@/services/template/errors.ts";
+import { ProfileAnnotationError } from "@/services/template/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { Placement } from "@/views/annot-view/async-insert.ts";
 
-import { prepareAnnotationInsert } from "./insert-annotation";
+import { prepareAnnotationInsert } from "./insert-annotation.ts";
 
 export interface AnnotationSnapshot {
   source: AnnotationSource | null;

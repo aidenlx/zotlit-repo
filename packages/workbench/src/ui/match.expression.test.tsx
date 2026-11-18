@@ -5,7 +5,7 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { useLayoutEffect, useState } from "react";
 import { afterEach, expect, it, onTestFinished } from "vitest";
 
-import { MatchExpressionInput } from "./match.expression";
+import { MatchExpressionInput } from "./match.expression.tsx";
 
 afterEach(cleanup);
 

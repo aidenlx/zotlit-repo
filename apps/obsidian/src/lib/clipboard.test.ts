@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MockInstance } from "vitest";
 
-import { writeClipboardRichText } from "./clipboard";
+import { writeClipboardRichText } from "./clipboard.ts";
 
 const payload = {
   html: "<p>Rivers, A. (2020). <i>Field notes</i>. Harbour Press.</p>",

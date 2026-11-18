@@ -29,11 +29,11 @@ import {
   endTurn,
   stopWaiting,
   takeTurn,
-} from "@/components/recording-turn";
+} from "@/components/recording-turn.ts";
 import { m } from "@/paraglide/messages.js";
 
-import { LessonLink, LoopToggle } from "./parts";
-import { DemoWindow, FINAL, Trail, makeFlip } from "./table-window";
+import { LessonLink, LoopToggle } from "./parts.tsx";
+import { DemoWindow, FINAL, Trail, makeFlip } from "./table-window.tsx";
 
 /** The beats: [ms from the cycle start, step]. */
 const TIMELINE: readonly (readonly [number, number])[] = [

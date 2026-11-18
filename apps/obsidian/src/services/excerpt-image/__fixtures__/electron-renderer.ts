@@ -8,7 +8,7 @@ import { build } from "vite";
 
 import { getPackageRoot, getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { effectEntry } from "@/../scripts/effect-entry";
+import { effectEntry } from "@/../scripts/effect-entry.ts";
 
 /** Set ZOTLIT_TEST_ELECTRON_PATH to an installed Electron executable to run these. */
 export const testElectron = process.env.ZOTLIT_TEST_ELECTRON_PATH;

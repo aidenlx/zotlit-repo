@@ -1,27 +1,27 @@
 // @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian";
+import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { yieldToMain } from "@/lib/yield-to-main";
-import { activeCitedByAtom } from "@/services/citation-index/atoms";
-import { ParsedNote } from "@/services/citation-index/parsed-note";
-import { scanNote } from "@/services/citation-index/scan-note";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
+import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
+import { scanNote } from "@/services/citation-index/scan-note.ts";
 import type {
   CitedByGroup,
   CitedBySnapshot,
-} from "@/services/citation-index/service";
-import { activeNoteAtom } from "@/services/note-index/atoms";
+} from "@/services/citation-index/service.ts";
+import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 
-import { makeCitedByHost } from "./__fixtures__";
-import type { CitedByHost } from "./__fixtures__";
-import { activePreviewsAtom } from "./atoms";
-import { SEARCH_DEBOUNCE } from "./CitedBy";
-import { CitedByView } from "./view";
+import { makeCitedByHost } from "./__fixtures__.ts";
+import type { CitedByHost } from "./__fixtures__.ts";
+import { activePreviewsAtom } from "./atoms.ts";
+import { SEARCH_DEBOUNCE } from "./CitedBy.tsx";
+import { CitedByView } from "./view.tsx";
 
 class TestCitedByView extends CitedByView {
   open(): Promise<void> {

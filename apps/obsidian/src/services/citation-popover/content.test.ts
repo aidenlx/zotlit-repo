@@ -5,21 +5,21 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates";
-import type { Inlines } from "@/services/pandoc/ast";
-import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
+import type { Inlines } from "@/services/pandoc/ast.ts";
+import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
 
-import type { CitationPopoverActions } from "./actions";
+import type { CitationPopoverActions } from "./actions.ts";
 import type {
   AmbiguousCitationBlock,
   CitationEntryBlock,
   CitationPopoverBlock,
-} from "./blocks";
-import { CitationPopoverContent } from "./content";
+} from "./blocks.ts";
+import { CitationPopoverContent } from "./content.tsx";
 
-vi.mock("@/components/obsidian/icon-button", async () => {
+vi.mock("@/components/obsidian/icon-button.tsx", async () => {
   const { createElement } = await import("react");
   return {
     IconButton: ({ icon, ...props }: { icon: string }) =>

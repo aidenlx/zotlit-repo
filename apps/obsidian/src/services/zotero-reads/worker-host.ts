@@ -18,18 +18,18 @@ import type { FileSystem } from "effect";
 import { RpcClient, RpcClientError, RpcSchema, RpcWorker } from "effect/rpc";
 import { tmpdir } from "node:os";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { layerHostLogPort } from "@/lib/effect-log-port";
-import { isScopeClosed } from "@/lib/effect-scope";
-import { readParentBeside } from "@/services/database/read-parent";
-import type { EffectiveReadMode } from "@/services/database/read-source";
-import { reapWorkerClones } from "@/services/database/reap-temps";
+import { layerHostLogPort } from "@/lib/effect-log-port.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { readParentBeside } from "@/services/database/read-parent.ts";
+import type { EffectiveReadMode } from "@/services/database/read-source.ts";
+import { reapWorkerClones } from "@/services/database/reap-temps.ts";
 
-import { makeStateFeed } from "./change-feed";
-import type { ZoteroReadsClient } from "./in-process";
-import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "./rpc";
-import type { ChangeEvent, ReadsConfig } from "./rpc";
-import { WORKER_CLOSED } from "./worker-signal";
+import { makeStateFeed } from "./change-feed.ts";
+import type { ZoteroReadsClient } from "./in-process.ts";
+import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "./rpc.ts";
+import type { ChangeEvent, ReadsConfig } from "./rpc.ts";
+import { WORKER_CLOSED } from "./worker-signal.ts";
 
 /**
  * Requests one worker serves at once. A request holds its slot until it

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import type {
   CitationOccurrence,
   DocumentCitationError,
-} from "@/services/citation-index/service";
+} from "@/services/citation-index/service.ts";
 
-import { buildReferenceEntries } from "./entries";
+import { buildReferenceEntries } from "./entries.ts";
 
 describe("buildReferenceEntries citation source errors", () => {
   it("keeps a malformed Citation Fragment as an unnumbered exact error", () => {

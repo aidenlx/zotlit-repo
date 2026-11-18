@@ -18,20 +18,20 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
-import { reflink } from "@/lib/reflink";
+import { reflink } from "@/lib/reflink.ts";
 
-import { attachmentImportFixture } from "./__fixtures__";
-import type { AttachmentImport } from "./service";
-import type { SourceOrigin } from "./source";
+import { attachmentImportFixture } from "./__fixtures__.ts";
+import type { AttachmentImport } from "./service.ts";
+import type { SourceOrigin } from "./source.ts";
 
 /** Lets a test act in the window between the confirmation and the copy. */
 const hooks = vi.hoisted(() => ({
   beforeCopy: null as (() => Promise<void>) | null,
 }));
 
-vi.mock("@/lib/copy-attachments", async (importOriginal) => {
+vi.mock("@/lib/copy-attachments.ts", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@/lib/copy-attachments")>();
+    await importOriginal<typeof import("@/lib/copy-attachments.ts")>();
   return {
     ...actual,
     copyAttachments: (items: Parameters<typeof actual.copyAttachments>[0]) =>
@@ -43,8 +43,8 @@ vi.mock("@/lib/copy-attachments", async (importOriginal) => {
 
 // Spied rather than stubbed: whether a copy reflinks is the observable
 // difference between the two strategies, and the real call still runs.
-vi.mock("@/lib/reflink", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/reflink")>();
+vi.mock("@/lib/reflink.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/reflink.ts")>();
   return { ...actual, reflink: vi.fn(actual.reflink) };
 });
 

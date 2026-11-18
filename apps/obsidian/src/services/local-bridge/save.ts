@@ -15,12 +15,12 @@ import type {
   SaveSelectedProfileResponse,
 } from "@zotlit/workbench/bridge";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { Profile } from "@/services/profile/service";
-import { Template } from "@/services/template/service";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { Template } from "@/services/template/service.ts";
 
-import { profileDocumentMissing, profileSelector } from "./reads";
-import { unsupportedProfileReason } from "./unsupported";
+import { profileDocumentMissing, profileSelector } from "./reads.ts";
+import { unsupportedProfileReason } from "./unsupported.ts";
 
 /**
  * A Save answered. `reference-refused` is the one outcome the contract carries

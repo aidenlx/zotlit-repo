@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Deferred, Effect, Fiber } from "effect";
 import { MarkdownView, TFile } from "obsidian";
 import type {
@@ -21,24 +21,24 @@ import {
   vi,
 } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { testRuntime } from "@/lib/__fixtures__/runtime";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import type { Notifier } from "@/lib/notifier";
-import { registerFileMenu } from "@/services/file-menu";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { registerFileMenu } from "@/services/file-menu.ts";
 import type {
   Customize,
   CustomizeRequest,
   DefaultProfileTarget,
-} from "@/services/local-bridge/customize";
-import { ProfileOperationError } from "@/services/profile/service";
-import type { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
+} from "@/services/local-bridge/customize.ts";
+import { ProfileOperationError } from "@/services/profile/service.ts";
+import type { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { makeWorkbenchHost, workbenchActionContext } from "./__fixtures__";
-import type { WorkbenchHostDeps } from "./__fixtures__";
+import { makeWorkbenchHost, workbenchActionContext } from "./__fixtures__.ts";
+import type { WorkbenchHostDeps } from "./__fixtures__.ts";
 
 type RegistrationHostDeps = WorkbenchHostDeps & {
   webWorkbenchEnabled: boolean;
@@ -65,18 +65,24 @@ type LaunchServices = {
   notifier?: Notifier["Service"];
 };
 
-import type { WorkbenchActionServices } from "./actions";
-import { findWorkbenchLayout, openWorkbenchLayout } from "./layout";
-import { customizeProfile, openTemplateWorkbench } from "./open";
-import { profileCustomization, saveProfileCustomization } from "./preferences";
+import type { WorkbenchActionServices } from "./actions.ts";
+import { findWorkbenchLayout, openWorkbenchLayout } from "./layout.ts";
+import { customizeProfile, openTemplateWorkbench } from "./open.ts";
+import {
+  profileCustomization,
+  saveProfileCustomization,
+} from "./preferences.ts";
 import {
   registerTemplateWorkbenchView,
   templateWorkbenchFileMenu,
-} from "./register";
-import { TEMPLATE_WORKBENCH_VIEW_TYPE, TemplateWorkbenchView } from "./view";
+} from "./register.ts";
+import {
+  TEMPLATE_WORKBENCH_VIEW_TYPE,
+  TemplateWorkbenchView,
+} from "./view.tsx";
 
 // The real leaf edges stand in: the layout module imports this view.
-vi.mock("./layout", () => ({
+vi.mock("./layout.ts", () => ({
   setLeafState: (leaf: WorkspaceLeaf, state: ViewState) =>
     Effect.tryPromise(() => leaf.setViewState(state)),
   WORKBENCH_WINDOW: { width: 1440, height: 900 },

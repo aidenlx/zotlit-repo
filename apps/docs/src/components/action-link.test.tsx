@@ -1,7 +1,7 @@
 import { renderToMarkdown } from "fumadocs-core/server";
 import { describe, expect, it } from "vitest";
 
-import { ActionLink } from "./action-link";
+import { ActionLink } from "./action-link.tsx";
 
 describe("ActionLink", () => {
   it("keeps a block element's label on the link's one line", async () => {

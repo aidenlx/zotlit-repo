@@ -1,8 +1,9 @@
-import { relations } from "@drizzle/relations";
 import type { Logger } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import type { ClientConfig, DatabasePath } from "sqlocal";
 import { SQLocalDrizzle } from "sqlocal/drizzle";
+
+import { relations } from "#drizzle/relations.ts";
 
 export interface DatabaseOptions {
   connection?: Omit<ClientConfig, "databasePath">;

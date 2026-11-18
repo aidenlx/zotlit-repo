@@ -1,9 +1,10 @@
-import citationEta from "@defaults/citation.eta?raw";
-import citationLiquid from "@defaults/citation.liquid?raw";
 import { describe, expect, it } from "vitest";
 
-import { TemplateFacade } from "./facade";
-import { inlineCitation } from "./inline-citation";
+import { TemplateFacade } from "./facade.ts";
+import { inlineCitation } from "./inline-citation.ts";
+
+import citationEta from "#defaults/citation.eta?raw";
+import citationLiquid from "#defaults/citation.liquid?raw";
 
 type CitationVariant = "main" | "alt";
 

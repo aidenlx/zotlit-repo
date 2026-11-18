@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { describe, expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import type { CliCommandHandler } from "@/lib/cli-command";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import type { CliCommandHandler } from "@/lib/cli-command.ts";
 
-import { QUERY_MEASURE_COMMAND, registerQueryMeasureCli } from "./measure";
+import { QUERY_MEASURE_COMMAND, registerQueryMeasureCli } from "./measure.ts";
 
 function measureHandler(): CliCommandHandler {
   const { host, command } = fakeCliHost();

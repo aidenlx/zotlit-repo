@@ -3,12 +3,12 @@ import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { Vault } from "@/lib/obsidian-vault";
-import type { ParseRequest } from "@/services/citation-parse/client";
-import { CitationParse } from "@/services/citation-parse/service";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import type { ParseRequest } from "@/services/citation-parse/client.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
 
-import { readParsedNote } from "./parsed-note";
-import { scanNote } from "./scan-note";
+import { readParsedNote } from "./parsed-note.ts";
+import { scanNote } from "./scan-note.ts";
 
 function note(path: string, mtime: number): TFile {
   const file = new TFile();

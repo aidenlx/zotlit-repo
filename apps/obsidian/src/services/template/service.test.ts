@@ -11,19 +11,19 @@ import {
 } from "@zotlit/templates/frontmatter";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 
-import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host";
-import { toInstant } from "@/lib/effect-clock";
-import * as m from "@/lib/i18n/generated/messages";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { resolveProfile } from "@/services/profile/__fixtures__/reader";
-import { buildSettings } from "@/services/settings/__fixtures__";
-import type { SettingsFixture } from "@/services/settings/__fixtures__";
-import { defaults } from "@/services/settings/schema";
+import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { resolveProfile } from "@/services/profile/__fixtures__/reader.ts";
+import { buildSettings } from "@/services/settings/__fixtures__.ts";
+import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
-import { buildTemplate } from "./__fixtures__";
-import { CITATION_TEMPLATE_SOURCE, DEFAULT_TEMPLATES } from "./defaults";
-import { InertTemplateError, plainTemplateError } from "./errors";
-import type { MissingPartialError } from "./errors";
+import { buildTemplate } from "./__fixtures__.ts";
+import { CITATION_TEMPLATE_SOURCE, DEFAULT_TEMPLATES } from "./defaults.ts";
+import { InertTemplateError, plainTemplateError } from "./errors.ts";
+import type { MissingPartialError } from "./errors.ts";
 
 interface Harness {
   app: App & {

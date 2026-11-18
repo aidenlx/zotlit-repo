@@ -2,11 +2,11 @@ import { it } from "@effect/vitest";
 import { Cause, Deferred, Effect, Fiber, PlatformError } from "effect";
 import { expect } from "vitest";
 
-import { redPng } from "./__fixtures__/png";
-import { answerAnnotationImage } from "./cli-image";
-import type { ExcerptRequest } from "./contract";
-import { PNG_FORMAT } from "./format";
-import { ExcerptSourceUnavailable } from "./request";
+import { redPng } from "./__fixtures__/png.ts";
+import { answerAnnotationImage } from "./cli-image.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import { PNG_FORMAT } from "./format.ts";
+import { ExcerptSourceUnavailable } from "./request.ts";
 
 const request: ExcerptRequest = {
   annotation: {

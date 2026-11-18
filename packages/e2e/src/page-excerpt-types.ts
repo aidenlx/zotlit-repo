@@ -2,12 +2,12 @@
 import type { E2eServices } from "@zotlit/obsidian/e2e";
 import type { FixtureExcerptCase } from "@zotlit/scripts/fixture";
 
-import type { ExcerptRequest } from "@/services/excerpt-image/contract";
+import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
 import type {
   ExcerptRendererDiagnostics,
   ExcerptRendererDiagnosticSnapshot,
-} from "@/services/excerpt-image/renderer";
-import type { ExcerptOutcome } from "@/services/excerpt-image/service";
+} from "@/services/excerpt-image/renderer.ts";
+import type { ExcerptOutcome } from "@/services/excerpt-image/service.ts";
 
 import type { RenderingResult } from "./excerpt-rendering.ts";
 

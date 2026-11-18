@@ -1,19 +1,19 @@
 // @vitest-environment happy-dom
 // The handle is a Promise edge for code outside Effect, so its cases run on
 // plain Vitest over a real runtime and bridge.
-import { ButtonComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import { expect, it } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier";
-import { effectBridge } from "@/lib/effect-bridge";
-import { buildRuntime } from "@/lib/effect-layer";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { buildRuntime } from "@/lib/effect-layer.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
-import { layerCapabilityNotices, CapabilityNotices } from "./notices";
-import { bindCapabilityNotices } from "./notices-handle";
-import { AnnotationRepository } from "./service";
+import { bindCapabilityNotices } from "./notices-handle.ts";
+import { layerCapabilityNotices, CapabilityNotices } from "./notices.ts";
+import { AnnotationRepository } from "./service.ts";
 
 /** Presses the one action of a recorded notice. */
 function press(notice: RecordedNotice): void {

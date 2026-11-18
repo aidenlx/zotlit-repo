@@ -16,20 +16,23 @@ import {
 } from "effect";
 import type { Context, Stream } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log";
-import { startupBarrier } from "@/lib/effect-startup";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { startupBarrier } from "@/lib/effect-startup.ts";
 
-import type { BinaryPin } from "./pin";
+import type { BinaryPin } from "./pin.ts";
 import {
   ManagedBinaryError,
   ManagedBinaryPlatform,
   managedBinaryError,
-} from "./platform";
-export { ManagedBinaryPlatform, layerManagedBinaryPlatform } from "./platform";
-export type { ManagedBinaryHostPorts, ManagedBinaryPorts } from "./platform";
+} from "./platform.ts";
+export {
+  ManagedBinaryPlatform,
+  layerManagedBinaryPlatform,
+} from "./platform.ts";
+export type { ManagedBinaryHostPorts, ManagedBinaryPorts } from "./platform.ts";
 
-export type { BinaryPin } from "./pin";
-export type { BinaryStore } from "./store";
+export type { BinaryPin } from "./pin.ts";
+export type { BinaryStore } from "./store.ts";
 
 /** Suffix of a cached binary; a download still running writes `.part` instead. */
 const BINARY_SUFFIX = ".wasm";

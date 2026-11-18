@@ -1,4 +1,4 @@
-import type { ItemQueryRequest } from "./request";
+import type { ItemQueryRequest } from "./request.ts";
 /** Every Attachment scenario is checked against the forced scan. */
 export const ATTACHMENT_SCENARIO_QUERIES: readonly Omit<
   ItemQueryRequest,

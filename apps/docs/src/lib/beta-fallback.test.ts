@@ -4,7 +4,7 @@ const { env } = vi.hoisted(() => ({ env: { DOCS_LINE: "production" } }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
 
-import { missingReleaseResponse } from "./beta-fallback";
+import { missingReleaseResponse } from "./beta-fallback.ts";
 
 const paths = (version: string) => ({
   release: `/changelog/${version}`,

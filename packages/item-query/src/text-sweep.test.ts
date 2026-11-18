@@ -7,11 +7,11 @@ import {
 } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
-import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from ".";
-import type { QueryDataset, QueryResult } from ".";
-import { runEffect } from "./test-helpers";
-import type { Run, RunOptions } from "./test-helpers";
-import { textSweepPattern } from "./text-sweep";
+import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
+import type { QueryDataset, QueryResult } from "./index.ts";
+import { runEffect } from "./test-helpers.ts";
+import type { Run, RunOptions } from "./test-helpers.ts";
+import { textSweepPattern } from "./text-sweep.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 function result(run: Run<QueryResult, unknown>) {

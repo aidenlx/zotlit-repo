@@ -2,11 +2,11 @@ import { useRef } from "react";
 
 import { TagsInput, useTagsInput } from "@zotlit/ui";
 
-import { useContainerName, useWorkbenchHost } from "./host";
-import { useInputSuggestions } from "./match.input";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
+import { useInputSuggestions } from "./match.input.tsx";
 // Wrapping list values retain free text and optional host suggestions.
-import { useWorkbenchMessages } from "./messages";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { useIcon, useParts } from "./theme.tsx";
 export interface ChipInputProps {
   values: readonly string[];
   onChange: (values: string[]) => void;

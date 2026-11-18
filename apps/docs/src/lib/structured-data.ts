@@ -16,8 +16,8 @@ import type {
 
 import { getLocale } from "@/paraglide/runtime.js";
 
-import { getPageLocaleState } from "./locale-state";
-import { appName, baseURL, gitConfig, repoUrl } from "./shared";
+import { getPageLocaleState } from "./locale-state.ts";
+import { appName, baseURL, gitConfig, repoUrl } from "./shared.ts";
 
 const logoUrl = `${baseURL}/logo/zotlit-logo-512.png`;
 const obsidianDirectoryUrl = "https://community.obsidian.md/plugins/zotlit";

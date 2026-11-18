@@ -4,13 +4,13 @@
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";
 
-import { annotationColorLabel } from "@/lib/annotation-colors";
-import * as m from "@/lib/i18n/generated/messages";
-import type { QueryViewRow } from "@/services/item-query/query-view";
-import { itemTypeLabel } from "@/services/profile-selection/describe";
+import { annotationColorLabel } from "@/lib/annotation-colors.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { QueryViewRow } from "@/services/item-query/query-view.ts";
+import { itemTypeLabel } from "@/services/profile-selection/describe.ts";
 
-import type { PropertyKind } from "./properties";
-import type { QueryFileDataset, QueryFileGroupValue } from "./query-file";
+import type { PropertyKind } from "./properties.ts";
+import type { QueryFileDataset, QueryFileGroupValue } from "./query-file.ts";
 
 /** A property Sort offers: its Projection Path, its label and how its values order. */
 export type SortCandidate = readonly [

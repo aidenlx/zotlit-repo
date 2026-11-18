@@ -1,7 +1,8 @@
-import { deletedItems, items, itemTags, tags } from "@drizzle/schema";
 import { and, eq, notExists } from "drizzle-orm";
 
-import { defineStatement } from "./database";
+import { defineStatement } from "./database.ts";
+
+import { deletedItems, items, itemTags, tags } from "#drizzle/schema.ts";
 
 const tagValuesStatement = defineStatement<{ libraryID: number }>("tag-values")(
   (db, { placeholder }) =>

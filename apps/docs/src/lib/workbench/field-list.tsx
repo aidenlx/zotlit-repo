@@ -8,10 +8,10 @@ import type { DataExplorerProps, TemplateRoot } from "@zotlit/workbench/ui";
 
 import { m } from "@/paraglide/messages.js";
 
-import { FIELD_TRIGGER, rootData } from "./fields";
-import type { SampleItem } from "./fields";
-import { usePageBridge } from "./runtime";
-import { copyThrough } from "./transfer";
+import { FIELD_TRIGGER, rootData } from "./fields.ts";
+import type { SampleItem } from "./fields.ts";
+import { usePageBridge } from "./runtime.tsx";
+import { copyThrough } from "./transfer.ts";
 
 interface FieldListInput {
   sample: SampleItem | null;

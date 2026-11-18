@@ -1,18 +1,18 @@
 // The Annotation History entries in a bound PDF view's More options menu.
 import type { WorkspaceLeaf } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { FileMenuSegment } from "@/services/file-menu";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
 
 import {
   HISTORY_DIRECTIONS,
   historyCommandName,
   historyStands,
-} from "./actions";
-import type { HistorySurface } from "./actions";
-import type { HistoryDirection } from "./history";
-import type { AnnotationRepository } from "./service";
+} from "./actions.ts";
+import type { HistorySurface } from "./actions.ts";
+import type { HistoryDirection } from "./history.ts";
+import type { AnnotationRepository } from "./service.ts";
 
 /** Obsidian's own undo and redo glyphs, so the rows read as the app's do. */
 const ICONS: Readonly<Record<HistoryDirection, string>> = {

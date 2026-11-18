@@ -1,10 +1,10 @@
 // Shared companion reader state for views.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms";
+import { held } from "@/lib/view-atoms.ts";
 
-import { LocalServer } from "./service";
-import type { ReaderTarget } from "./service";
+import { LocalServer } from "./service.ts";
+import type { ReaderTarget } from "./service.ts";
 
 export const liveUpdatesAtom = held(
   Stream.unwrap(Effect.map(LocalServer, (server) => server.availableChanges)),

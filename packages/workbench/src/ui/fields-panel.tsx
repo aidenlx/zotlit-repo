@@ -14,12 +14,12 @@ import type { ReactNode, RefObject } from "react";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { useWorkbenchEditor, useWorkbenchModel } from "./editor";
-import { useOptionalHost, useTooltip } from "./host";
-import { useWorkbenchMessages } from "./messages";
-import { pressFieldsPin } from "./model";
-import type { FieldsPlacement } from "./panel-layout";
-import { useIcon, useParts } from "./theme";
+import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
+import { useOptionalHost, useTooltip } from "./host.tsx";
+import { useWorkbenchMessages } from "./messages.tsx";
+import { pressFieldsPin } from "./model.ts";
+import type { FieldsPlacement } from "./panel-layout.ts";
+import { useIcon, useParts } from "./theme.tsx";
 
 /** What the Fields Panel holds, and what names it. */
 interface FieldsPanelContent {

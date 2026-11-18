@@ -1,9 +1,9 @@
 import { Scheduler } from "effect/Scheduler";
 import { TestClock } from "effect/testing";
 
-import { browserScheduler } from "./browser-scheduler";
-import { Clock, Context, Effect, Layer } from "./effect";
-import { describe, expect, it, layer } from "./effect-vitest";
+import { browserScheduler } from "./browser-scheduler.ts";
+import { describe, expect, it, layer } from "./effect-vitest.ts";
+import { Clock, Context, Effect, Layer } from "./effect.ts";
 
 class Probe extends Context.Service<Probe, number>()(
   "zotlit/effect-vitest/Probe",

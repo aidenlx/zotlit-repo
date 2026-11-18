@@ -5,7 +5,7 @@
 // @see apps/obsidian/policies/keyboard-scope.md
 import type { App, Scope } from "obsidian";
 
-import { disposable } from "./disposables";
+import { disposable } from "./disposables.ts";
 
 /** A Scope held on the keymap while focus stands inside an element. */
 export interface FocusScope extends Disposable {

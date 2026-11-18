@@ -4,8 +4,8 @@ import { resolve } from "node:path";
 import type { MessagePort } from "node:worker_threads";
 import { build } from "vite";
 
-import { effectEntry } from "./effect-entry.js";
-import { embeddedWorker } from "./embedded-worker.js";
+import { effectEntry } from "./effect-entry.ts";
+import { embeddedWorker } from "./embedded-worker.ts";
 
 export interface BenchmarkParseRequest {
   path: string;

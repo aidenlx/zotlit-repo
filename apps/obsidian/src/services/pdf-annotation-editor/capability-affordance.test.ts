@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it } from "vitest";
 
-import { isEditGesture } from "./capability-affordance";
+import { isEditGesture } from "./capability-affordance.ts";
 
 it("reads the reader's edit keystrokes, and nothing else, as edit gestures", () => {
   const gesture = (init: KeyboardEventInit, target?: HTMLElement): boolean => {

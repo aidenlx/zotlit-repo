@@ -15,7 +15,7 @@ import type {
   WorkbenchFieldsPopoverProps,
 } from "@zotlit/workbench/ui";
 
-import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover.tsx";
 import { m } from "@/paraglide/messages.js";
 
 /** The gap between the popover and the panels' edges, in pixels. */

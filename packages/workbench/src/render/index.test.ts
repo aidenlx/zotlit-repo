@@ -6,18 +6,18 @@ import annotationSchema from "@zotlit/db/contract/annotation.schema.json";
 import filenameSchema from "@zotlit/db/contract/filename.schema.json";
 import noteSchema from "@zotlit/db/contract/note.schema.json";
 
-import { DEFAULT_PROFILE_SOURCE } from "./default-profile";
+import { DEFAULT_PROFILE_SOURCE } from "./default-profile.ts";
 import {
   currentSliceSite,
   renderProfile,
   restoreTemplateData,
   SAMPLE_ITEMS,
   SAMPLE_ANNOTATIONS,
-} from "./index";
-import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles";
+} from "./index.ts";
+import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles.ts";
 
-import { WorkbenchDocumentController } from "#/document/index";
-import { workbenchDiagnoses } from "#/ui/problems";
+import { WorkbenchDocumentController } from "#document/index.ts";
+import { workbenchDiagnoses } from "#ui/problems.ts";
 
 /** The default Profile with the annotation section printing `zt.citation`. */
 const SAMPLE_WITH_CITATION = ANNOTATION_LIST_PROFILE_SOURCE.replace(

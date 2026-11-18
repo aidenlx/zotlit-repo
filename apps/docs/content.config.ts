@@ -4,7 +4,7 @@ import type { LLMsOptions } from "fumadocs-core/mdx-plugins";
 import { valid as isValidSemVer } from "semver";
 import * as v from "valibot";
 
-import { publishedOn } from "./src/lib/shared.js";
+import { publishedOn } from "./src/lib/shared.ts";
 
 export const metaSchema = v.object({
   title: v.optional(v.string()),

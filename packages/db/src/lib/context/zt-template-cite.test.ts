@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { makeItem } from "@/test-utils";
-
 import {
   citekeysToCiteTemplateData,
   resolveCitedItem,
-} from "./zt-template-cite";
+} from "./zt-template-cite.ts";
+
+import { makeItem } from "#test-utils.ts";
 
 describe("citekeysToCiteTemplateData", () => {
   it("wraps each citekey in a citekey-only stub item at default citation props", () => {

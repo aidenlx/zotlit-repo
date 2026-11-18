@@ -2,8 +2,8 @@
 import { Scope } from "obsidian";
 import { afterEach, expect, it } from "vitest";
 
-import { keymapApp } from "./__fixtures__/keymap";
-import { holdScopeWhileFocused } from "./focus-scope";
+import { keymapApp } from "./__fixtures__/keymap.ts";
+import { holdScopeWhileFocused } from "./focus-scope.ts";
 
 afterEach(() => {
   document.body.empty();

@@ -17,8 +17,8 @@ import {
   Stream,
 } from "effect";
 
-import { instantClock } from "@/lib/effect-clock";
-import { withLogCategory } from "@/lib/effect-log";
+import { instantClock } from "@/lib/effect-clock.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
 
 /**
  * The answer one key holds, as one immutable snapshot: a surface reads a whole

@@ -1,8 +1,8 @@
 import { parseExpressionAst } from "@zotlit/filter-expression";
 import type { ExpressionNode } from "@zotlit/filter-expression";
 
-import type { QueryDataset } from "./dataset";
-import type { ItemQueryErrorCode, ItemQueryErrorLocation } from "./error";
+import type { QueryDataset } from "./dataset.ts";
+import type { ItemQueryErrorCode, ItemQueryErrorLocation } from "./error.ts";
 import type {
   Callee,
   Fault,
@@ -12,9 +12,9 @@ import type {
   Role,
   Span,
   SyntaxFault,
-} from "./fault";
-import type { ValueShape } from "./fields";
-import { isError, operandMessage, typeNoun } from "./filter-error";
+} from "./fault.ts";
+import type { ValueShape } from "./fields.ts";
+import { isError, operandMessage, typeNoun } from "./filter-error.ts";
 import {
   GLOBAL_FUNCTION_NAMES,
   GLOBAL_FUNCTIONS,
@@ -28,24 +28,24 @@ import {
   PROPERTY_NAMES,
   propertyOf,
   takesType,
-} from "./filter-functions";
-import type { FunctionDefinition } from "./filter-functions";
-import { hasBareForm } from "./filter-plan";
-import type { StaticType } from "./filter-plan";
-import type { FilterValue } from "./filter-values";
-import { nearMatches } from "./near-match";
-import { planPath } from "./projection";
-import type { QueryClock } from "./query-clock";
-import { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request";
-import type { QueryContext } from "./request";
+} from "./filter-functions.ts";
+import type { FunctionDefinition } from "./filter-functions.ts";
+import { hasBareForm } from "./filter-plan.ts";
+import type { StaticType } from "./filter-plan.ts";
+import type { FilterValue } from "./filter-values.ts";
+import { nearMatches } from "./near-match.ts";
+import { planPath } from "./projection.ts";
+import type { QueryClock } from "./query-clock.ts";
+import { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request.ts";
+import type { QueryContext } from "./request.ts";
 
 interface DiagnosisContext extends ItemQueryErrorLocation {
   readonly dataset: QueryDataset<any>;
   /** The Query Context of the request: a correction is planned with it. */
   readonly context?: QueryContext | undefined;
 }
-import type { CollectionWarning } from "./collection-warnings";
-import type { KeyLibraryWarning } from "./indexed-key-selection";
+import type { CollectionWarning } from "./collection-warnings.ts";
+import type { KeyLibraryWarning } from "./indexed-key-selection.ts";
 
 interface WarningContext {
   readonly clock: QueryClock;

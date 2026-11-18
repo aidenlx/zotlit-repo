@@ -1,18 +1,22 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import type {
+  DatabaseLayout,
+  LayoutGap,
+  LayoutVersions,
+} from "#layout/index.ts";
 // The Item Query side of the Layout module (`src/layout/`): the typed failure
 // of a copy the readers cannot read. The layout read and the manifest live in
 // the synchronous core; `database.ts` runs the read through the statement seam
 // of the readers.
 import { Data } from "effect";
 
-import type { NodeDatabaseClient } from "@/client/node";
 import {
   describeLayoutGaps,
   NotZoteroDatabaseError,
   readDatabaseLayout,
-} from "@/layout";
-import type { DatabaseLayout, LayoutGap, LayoutVersions } from "@/layout";
+} from "#layout/index.ts";
 
-export type { LayoutGap, LayoutVersions } from "@/layout";
+export type { LayoutGap, LayoutVersions } from "#layout/index.ts";
 
 /**
  * The Zotero database lacks a table or column that Item Query reads. The

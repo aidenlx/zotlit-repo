@@ -4,12 +4,12 @@ import { Effect, FiberMap } from "effect";
 import {
   isTextField,
   TEXT_FIELDS,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   MutationState,
   TextField,
-} from "@/services/annotation-repository/write";
-import type { Held } from "@/services/query-client/service";
+} from "@/services/annotation-repository/write.ts";
+import type { Held } from "@/services/query-client/service.ts";
 
 import {
   DRAFT_FIELDS,
@@ -17,7 +17,7 @@ import {
   indexedID,
   proposedText,
   sameText,
-} from "./model";
+} from "./model.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
@@ -25,9 +25,9 @@ import type {
   DraftFields,
   TagDraft,
   TextFieldDraft,
-} from "./model";
-import { pendingWrites, settle } from "./outcomes";
-import type { CoreState } from "./state";
+} from "./model.ts";
+import { pendingWrites, settle } from "./outcomes.ts";
+import type { CoreState } from "./state.ts";
 
 /** The active Zotero database's shared draft of one field of an Annotation. */
 const draftFor = Effect.fnUntraced(function* <F extends DraftField>(

@@ -3,10 +3,10 @@ import { Stream } from "effect";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream";
+import { subscribe } from "@/lib/effect-stream.ts";
 
-import { buildUseLedger, ledgerHost } from "./__fixtures__";
-import type { Ledger } from "./service";
+import { buildUseLedger, ledgerHost } from "./__fixtures__.ts";
+import type { Ledger } from "./service.ts";
 
 // A throwing subscriber stays registered and sees both immediate Uses.
 it.effect("keeps a throwing listener subscribed for later Uses", () =>

@@ -1,25 +1,25 @@
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
-import { recover } from "@/lib/effect-cause";
-import * as m from "@/lib/i18n/generated/messages";
-import { BaseNotice } from "@/lib/notice";
-import { withProgress } from "@/lib/notifier";
-import type { NoticeMessage, ProgressCopy } from "@/lib/notifier";
-import { profileRecoveryNotice } from "@/lib/profile-recovery";
-import { missingPartialNotice } from "@/lib/workbench-recovery";
-import { plainNoteError } from "@/services/note-feature/errors";
-import { EmptyFilenameError } from "@/services/note-feature/filename";
+import { recover } from "@/lib/effect-cause.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { BaseNotice } from "@/lib/notice.ts";
+import { withProgress } from "@/lib/notifier.ts";
+import type { NoticeMessage, ProgressCopy } from "@/lib/notifier.ts";
+import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
+import { missingPartialNotice } from "@/lib/workbench-recovery.ts";
+import { plainNoteError } from "@/services/note-feature/errors.ts";
+import { EmptyFilenameError } from "@/services/note-feature/filename.ts";
 import type {
   CreateNoteResult,
   NoteOperationDiagnostic,
   UpdateResult,
   UpdateScope,
-} from "@/services/note-feature/operations";
-import { isInertTemplateError } from "@/services/template/errors";
+} from "@/services/note-feature/operations.ts";
+import { isInertTemplateError } from "@/services/template/errors.ts";
 
-import { NoteFeature } from "./service";
-import type { UpdateNoteOptions } from "./write-pipeline";
+import { NoteFeature } from "./service.ts";
+import type { UpdateNoteOptions } from "./write-pipeline.ts";
 
 /** The progress notice of a single-note update, with its messages as functions. */
 export interface UpdateNoteCopy extends ProgressCopy<UpdateResult> {

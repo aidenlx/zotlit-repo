@@ -15,8 +15,8 @@ import {
   rootData,
   rowMatches,
   templateRootAt,
-} from "./fields";
-import type { SampleItem } from "./fields";
+} from "./fields.ts";
+import type { SampleItem } from "./fields.ts";
 
 const controller = new WorkbenchDocumentController(DEFAULT_PROFILE_SOURCE);
 const profile = controller.document!;

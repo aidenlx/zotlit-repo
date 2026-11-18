@@ -11,19 +11,19 @@ import { pathToFileURL } from "node:url";
 import * as v from "valibot";
 
 type Messages = typeof import("#paraglide/messages.js");
-import { scanContent } from "./content-scan.js";
-import type { ContentEntry } from "./content-scan.js";
-import { chineseCatalogPages } from "./i18n.js";
-import type { SiteLocale } from "./i18n.js";
-import type { CardProps } from "./og-card.js";
+import { scanContent } from "./content-scan.ts";
+import type { ContentEntry } from "./content-scan.ts";
+import { chineseCatalogPages } from "./i18n.ts";
+import type { SiteLocale } from "./i18n.ts";
+import type { CardProps } from "./og-card.tsx";
 import {
   baseURL,
   docsPageTitle,
   formatReleaseDate,
   ogImageUrl,
   publishedOn,
-} from "./shared.js";
-import type { OgType } from "./shared.js";
+} from "./shared.ts";
+import type { OgType } from "./shared.ts";
 
 const docsCard = v.object({
   title: v.string(),

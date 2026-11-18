@@ -1,16 +1,16 @@
 // One Filter Expression over Items held in memory: planned once, as a query
 // plans it, then tested on each Item with the evaluator a query uses.
-import type { Diagnostic } from "./diagnose";
-import { ItemQueryError } from "./error";
-import type { ItemQueryErrorCode } from "./error";
-import type { QueryItem } from "./fields";
-import { matches } from "./filter-evaluate";
-import { planFilter } from "./filter-plan";
-import { queryItemFrom } from "./item-seed";
-import type { QueryItemSeed } from "./item-seed";
-import type { QueryClock } from "./query-clock";
-import { ITEMS } from "./query-items";
-import { missingCustomField } from "./query-sources";
+import type { Diagnostic } from "./diagnose.ts";
+import { ItemQueryError } from "./error.ts";
+import type { ItemQueryErrorCode } from "./error.ts";
+import type { QueryItem } from "./fields.ts";
+import { matches } from "./filter-evaluate.ts";
+import { planFilter } from "./filter-plan.ts";
+import { queryItemFrom } from "./item-seed.ts";
+import type { QueryItemSeed } from "./item-seed.ts";
+import type { QueryClock } from "./query-clock.ts";
+import { ITEMS } from "./query-items.ts";
+import { missingCustomField } from "./query-sources.ts";
 
 /** A planned filter over Items. */
 export interface ItemFilter {

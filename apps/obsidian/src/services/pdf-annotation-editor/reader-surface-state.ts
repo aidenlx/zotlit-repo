@@ -8,58 +8,61 @@
 // signal that changes nothing on screen draws nothing.
 import type { SelectedText } from "@zotlit/pdf-structure";
 
-import { offeredSwatches } from "@/lib/annotation-colors";
+import { offeredSwatches } from "@/lib/annotation-colors.ts";
+import { editingCapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
+import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
 import {
   capabilityReason,
   sameDeadline,
-} from "@/services/annotation-repository/capability";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
-import { editingCapabilityAffordance } from "@/services/annotation-repository/capability-copy";
-import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy";
-import { lockBlock } from "@/services/annotation-repository/lock";
+} from "@/services/annotation-repository/capability.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+import { lockBlock } from "@/services/annotation-repository/lock.ts";
 import type {
   AnnotationRecord,
   TextFieldDraft,
   AnnotationState,
   TagDraft,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import {
   IDLE,
   textIdentity,
   writePosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   AnnotationTag,
   InkPosition,
   MutationState,
   TextPosition,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import {
   annotationBlocks,
   editingLive,
-} from "@/views/annot-view/card-controls";
+} from "@/views/annot-view/card-controls.ts";
 
-import { createPopupRow } from "./create-popup";
-import type { CreatePopupControl, CreatePopupRowInput } from "./create-popup";
-import { creationToolbar } from "./creation-toolbar";
-import type { CreationToolbarControl } from "./creation-toolbar";
-import { fitStoredTextBox } from "./free-text-layout";
-import type { TextMeasure } from "./free-text-layout";
+import { createPopupRow } from "./create-popup.tsx";
+import type {
+  CreatePopupControl,
+  CreatePopupRowInput,
+} from "./create-popup.tsx";
+import { creationToolbar } from "./creation-toolbar.ts";
+import type { CreationToolbarControl } from "./creation-toolbar.ts";
+import { fitStoredTextBox } from "./free-text-layout.ts";
+import type { TextMeasure } from "./free-text-layout.ts";
 import {
   capturesImage,
   isEditablePosition,
   sameGeometry,
-} from "./geometry-edit";
+} from "./geometry-edit.ts";
 import type {
   EditablePosition,
   Grip,
   PdfPoint,
   PdfRect,
-} from "./geometry-edit";
-import { markPopupRow } from "./mark-popup";
-import type { MarkPopupRowInput, MarkPopupVerb } from "./mark-popup";
-import { gestureOf } from "./tools";
-import type { AnnotationTool, MarkTool } from "./tools";
+} from "./geometry-edit.ts";
+import { markPopupRow } from "./mark-popup.tsx";
+import type { MarkPopupRowInput, MarkPopupVerb } from "./mark-popup.tsx";
+import { gestureOf } from "./tools.ts";
+import type { AnnotationTool, MarkTool } from "./tools.ts";
 
 /** Where the create popup hangs, as a fraction of its page box, so a zoom keeps it. */
 export interface AnchorAt {

@@ -1,21 +1,21 @@
-import type { RenderDiagnostic } from "#/render/result";
+import type { RenderDiagnostic } from "#render/result.ts";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { EditToolbar } from "./edit-toolbar";
-import { setAdvanced, setTab } from "./model";
-import type { WorkbenchDiagnosis } from "./problems";
-import { workbenchDiagnoses } from "./problems";
-import { ProblemsFooter, useWorkbenchProblems } from "./problems-footer";
-import type { RenderTrigger } from "./scheduler-atoms";
-import { TabBar, TabPanel } from "./tab-bar";
-import { mount, renderWithMessages as render } from "./test-host";
-import { m } from "./test-messages";
+import { EditToolbar } from "./edit-toolbar.tsx";
+import { setAdvanced, setTab } from "./model.ts";
+import { ProblemsFooter, useWorkbenchProblems } from "./problems-footer.tsx";
+import type { WorkbenchDiagnosis } from "./problems.ts";
+import { workbenchDiagnoses } from "./problems.ts";
+import type { RenderTrigger } from "./scheduler-atoms.ts";
+import { TabBar, TabPanel } from "./tab-bar.tsx";
+import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 afterEach(cleanup);
 

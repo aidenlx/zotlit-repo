@@ -3,15 +3,15 @@ import { expect, it } from "@effect/vitest";
 import { Context, Deferred, Effect, Ref } from "effect";
 import type { SettingDefinitionList } from "obsidian";
 
-import { eventually } from "@/lib/__fixtures__/eventually";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { DeviceStorageError } from "@/lib/obsidian-device-storage";
-import { AttachmentImport } from "@/services/attachment-import/service";
+import { eventually } from "@/lib/__fixtures__/eventually.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { DeviceStorageError } from "@/lib/obsidian-device-storage.ts";
+import { AttachmentImport } from "@/services/attachment-import/service.ts";
 
-import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__";
-import { approvedFoldersPage } from "./approved-folders";
-import type { SettingsKey, SettingTabContext } from "./context";
+import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
+import { approvedFoldersPage } from "./approved-folders.ts";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
 
 /** The approved-folder list of the page over `service`, with the runs it started. */
 const folderList = Effect.fnUntraced(function* (

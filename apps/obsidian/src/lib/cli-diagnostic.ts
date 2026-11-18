@@ -1,7 +1,7 @@
 import { diagnoseDecode, renderDiagnostic } from "@zotlit/item-query";
 import type { Diagnostic as RenderedDiagnostic } from "@zotlit/item-query";
 
-import type { CliRejection } from "./cli-params";
+import type { CliRejection } from "./cli-params.ts";
 
 export type { RenderedDiagnostic };
 

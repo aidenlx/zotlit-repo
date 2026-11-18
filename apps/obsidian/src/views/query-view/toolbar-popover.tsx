@@ -29,12 +29,12 @@ import type {
   Ref,
 } from "react";
 
-import { Icon } from "@/components/obsidian/icon";
-import { PinnedPopover } from "@/components/pinned-popover";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { PinnedPopover } from "@/components/pinned-popover.tsx";
+import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
-import { ToolbarButton } from "./toolbar-button";
+import { ToolbarButton } from "./toolbar-button.tsx";
 
 /**
  * The surface of a toolbar popover: Obsidian's menu, from the `--menu-*`

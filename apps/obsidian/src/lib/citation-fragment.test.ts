@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { CITATION_FRAGMENT_FIXTURES } from "./__fixtures__/citation-fragments";
-import { citationRunItem, parseCitationFragment } from "./citation-fragment";
-import type { CitationLocatorLabel } from "./citation-fragment";
+import { CITATION_FRAGMENT_FIXTURES } from "./__fixtures__/citation-fragments.ts";
+import { citationRunItem, parseCitationFragment } from "./citation-fragment.ts";
+import type { CitationLocatorLabel } from "./citation-fragment.ts";
 
 describe("parseCitationFragment", () => {
   for (const fixture of CITATION_FRAGMENT_FIXTURES) {

@@ -6,16 +6,16 @@ import {
   CHINESE_SEGMENTER,
   ChineseSegmenter,
   layerChineseSegmenter,
-} from "@/services/chinese-segmenter/service";
-import { managedBinaryPorts } from "@/services/managed-binary/platform";
+} from "@/services/chinese-segmenter/service.ts";
+import { managedBinaryPorts } from "@/services/managed-binary/platform.ts";
 import {
   layerPandocEngine,
   PANDOC_ENGINE,
   PandocEngine,
-} from "@/services/pandoc/service";
+} from "@/services/pandoc/service.ts";
 
-import { ManagedBinaryPlatform } from "./service";
-import { memoryDevice } from "./test-utils";
+import { ManagedBinaryPlatform } from "./service.ts";
+import { memoryDevice } from "./test-utils.ts";
 
 // Each binary releases startup while cache discovery remains pending.
 for (const declined of [false, true]) {

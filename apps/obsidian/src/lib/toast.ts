@@ -1,6 +1,6 @@
-import { AbortError } from "./abort-error";
-import { getLogger } from "./log";
-import { LazyNotice } from "./notice";
+import { AbortError } from "./abort-error.ts";
+import { getLogger } from "./log.ts";
+import { LazyNotice } from "./notice.ts";
 
 const logger = getLogger("toast");
 

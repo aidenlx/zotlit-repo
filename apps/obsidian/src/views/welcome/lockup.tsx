@@ -11,9 +11,9 @@
 import markSvg from "@brand/zotlit-mark-16.svg?raw";
 import wordmarkSvg from "@brand/zotlit-wordmark.svg?raw";
 
-import { brandPaths } from "@/lib/brand";
-import type { BrandPaths } from "@/lib/brand";
-import { cn } from "@/lib/utils";
+import { brandPaths } from "@/lib/brand.ts";
+import type { BrandPaths } from "@/lib/brand.ts";
+import { cn } from "@/lib/utils.ts";
 
 /** The wordmark's scale: a 686-unit cap height to 12px. */
 const GLYPH_SCALE = 12 / 686;

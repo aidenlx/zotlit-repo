@@ -12,18 +12,18 @@ import type { Root } from "react-dom/client";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import * as m from "@/lib/i18n/generated/messages";
-import { tooltipAttrs } from "@/lib/utils";
-import { ViewRegistryProvider } from "@/lib/view-atoms";
-import { SaveAsButton, SortButton } from "@/views/query-view/view";
-import type { QueryView } from "@/views/query-view/view";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { tooltipAttrs } from "@/lib/utils.ts";
+import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { SaveAsButton, SortButton } from "@/views/query-view/view.tsx";
+import type { QueryView } from "@/views/query-view/view.tsx";
 
-import type { LibraryNode, ReadingStateFacet } from "./document";
-import { FACET_LABELS, nodeIcon, nodeLabel } from "./library-tree";
-import type { LibraryTree } from "./library-tree";
-import { TextAction } from "./text-action";
-import { TreeModelProvider, useTreeState } from "./tree-model";
+import type { LibraryNode, ReadingStateFacet } from "./document.ts";
+import { FACET_LABELS, nodeIcon, nodeLabel } from "./library-tree.tsx";
+import type { LibraryTree } from "./library-tree.tsx";
+import { TextAction } from "./text-action.tsx";
+import { TreeModelProvider, useTreeState } from "./tree-model.ts";
 
 /** What a search on screen puts in the heading. */
 export interface HeaderSearch {

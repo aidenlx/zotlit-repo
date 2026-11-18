@@ -52,30 +52,10 @@ const config: KnipConfig = {
       vite: false,
     },
     "apps/docs": {
-      entry: [
-        "src/server.ts",
-        "src/router.tsx",
-        "src/routes/**/*.{ts,tsx}",
-        "scripts/*.ts",
-        "*.config.ts",
-      ],
-      // vite.config.ts imports .tsx modules by their .js name, which the
-      // config loader cannot resolve.
-      vite: false,
+      entry: ["src/routes/**/*.{ts,tsx}", "scripts/*.ts", "*.config.ts"],
     },
     "packages/db": {
-      // The tsdown entries: dist/ holds src/ here, so the exports map does not
-      // lead back to these sources.
-      entry: [
-        "src/index.ts",
-        "src/client/*.ts",
-        "src/contract/ir.ts",
-        "src/item-query/index.ts",
-        "src/lib/zt-path.ts",
-        "src/test-utils.ts",
-        "src/test-scenario/index.ts",
-        "scripts/*.ts",
-      ],
+      entry: ["scripts/*.ts"],
       // Loading drizzle.config.js needs a local packages/db/.env.
       drizzle: false,
     },

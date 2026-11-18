@@ -1,5 +1,5 @@
 // Parent → child-note tree body for the batch modal (import child notes).
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 
 import {
   GROUP_SUMMARY_CLS,
@@ -10,15 +10,15 @@ import {
   RowStatusBoard,
   profileChoiceControl,
   profileListGroup,
-} from "./dom";
-import type { BatchRow } from "./dom";
-import type { FlatTask } from "./flat-manifest";
+} from "./dom.ts";
+import type { BatchRow } from "./dom.ts";
+import type { FlatTask } from "./flat-manifest.ts";
 import type {
   BatchCounts,
   BatchManifest,
   BatchListControls,
   BatchProfileChoice,
-} from "./types";
+} from "./types.ts";
 
 export interface HierarchyParent {
   label: string;

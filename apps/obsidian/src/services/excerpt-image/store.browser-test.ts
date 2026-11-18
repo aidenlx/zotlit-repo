@@ -2,11 +2,11 @@ import { Cause, Effect, Exit } from "effect";
 import { MaxOpsBeforeYield } from "effect/Scheduler";
 
 // Runs in a disposable Electron renderer so transactions use Chromium's IndexedDB.
-import { check } from "./__fixtures__/check";
-import { encodeExcerptImage } from "./__fixtures__/encode";
-import { sizedWebp } from "./__fixtures__/webp";
-import { PNG_FORMAT, WEBP_FORMAT } from "./format";
-import { openExcerptStore } from "./store";
+import { check } from "./__fixtures__/check.ts";
+import { encodeExcerptImage } from "./__fixtures__/encode.ts";
+import { sizedWebp } from "./__fixtures__/webp.ts";
+import { PNG_FORMAT, WEBP_FORMAT } from "./format.ts";
+import { openExcerptStore } from "./store.ts";
 
 /** The budget assertions need exact lengths; every payload carries a PNG signature. */
 const UNIT = 1_000;

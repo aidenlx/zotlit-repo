@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian";
+import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { DateTime, Effect } from "effect";
 import {
   FileSystemAdapter,
@@ -11,14 +11,14 @@ import type { App, EventRef, View, Vault, Workspace } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { toInstant } from "@/lib/effect-clock";
-import { themeHook } from "@/lib/theme-hooks";
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy";
-import type { HistoryOutcome } from "@/services/annotation-repository/service";
-import { openNoteVault } from "@/services/note-index/__fixtures__";
-import { NoteIndex } from "@/services/note-index/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import type { HistoryOutcome } from "@/services/annotation-repository/service.ts";
+import { openNoteVault } from "@/services/note-index/__fixtures__.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
 
 import {
   annotation,
@@ -32,9 +32,9 @@ import {
   pageView,
   pdfReader,
   readerSettings,
-} from "./__fixtures__";
-import { openPdfEditor as PdfAnnotationEditor } from "./__fixtures__/editor";
-import type { AttachmentResolution } from "./service";
+} from "./__fixtures__.ts";
+import { openPdfEditor as PdfAnnotationEditor } from "./__fixtures__/editor.ts";
+import type { AttachmentResolution } from "./service.ts";
 
 beforeEach(() => {
   setMockPlatform({ isMacOS: false });

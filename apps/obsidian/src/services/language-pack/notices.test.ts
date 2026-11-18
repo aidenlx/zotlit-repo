@@ -1,20 +1,20 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, controlsOf } from "@mock/obsidian";
+import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { describe, expect } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier";
-import * as m from "@/lib/i18n/generated/messages";
+import { eventually } from "@/lib/__fixtures__/eventually.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
-import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__";
-import type { FakeDevice } from "./__fixtures__";
-import { layerLanguagePackNotices } from "./notices";
-import { LanguagePack } from "./service";
-import type { LanguagePackSituation } from "./service";
+import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__.ts";
+import type { FakeDevice } from "./__fixtures__.ts";
+import { layerLanguagePackNotices } from "./notices.ts";
+import { LanguagePack } from "./service.ts";
+import type { LanguagePackSituation } from "./service.ts";
 
 /** Start on `device` and register the startup notices, as plugin load does. */
 const loadOn = Effect.fn("test.loadOn")(function* (

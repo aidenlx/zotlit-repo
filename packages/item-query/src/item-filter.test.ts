@@ -2,8 +2,8 @@
 // holds keeps its meaning, and a mistake gives the Diagnostic a query gives.
 import { describe, expect, it } from "vitest";
 
-import { planItemFilter, queryItemFrom, testItemSeed } from "./index";
-import type { ItemFilter, QueryItemSeed } from "./index";
+import { planItemFilter, queryItemFrom, testItemSeed } from "./index.ts";
+import type { ItemFilter, QueryItemSeed } from "./index.ts";
 
 const SEED: QueryItemSeed = {
   scan: {

@@ -5,7 +5,7 @@ import {
   DropdownComponent,
   Modal,
   settingsOf,
-} from "@mock/obsidian";
+} from "@mock/obsidian.ts";
 import {
   Cause,
   Context,
@@ -21,32 +21,32 @@ import { TFile } from "obsidian";
 import type { App, Command, FileSystemAdapter, Plugin } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { effectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier } from "@/lib/notifier";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { ZoteroHttp } from "@/lib/zotero-http";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { CitationLookup } from "@/services/citation-index/lookup-service";
-import { CitationParse } from "@/services/citation-parse/service";
-import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects";
-import type { CitationEngine } from "@/services/pandoc/engine";
-import { PandocEngine } from "@/services/pandoc/service";
-import type { InstalledCslStyle } from "@/services/pandoc/styles";
-import { profileReader } from "@/services/profile/__fixtures__/reader";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import { defaults } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier } from "@/lib/notifier.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { CitationParse } from "@/services/citation-parse/service.ts";
+import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects.ts";
+import type { CitationEngine } from "@/services/pandoc/engine.ts";
+import { PandocEngine } from "@/services/pandoc/service.ts";
+import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import { exportWithCitations, registerPandocExport } from "./register";
-import type { PandocExportDeps, PandocExportOutcome } from "./register";
+import { exportWithCitations, registerPandocExport } from "./register.ts";
+import type { PandocExportDeps, PandocExportOutcome } from "./register.ts";
 
 /** The styles Zotero has installed while the export dialog is open. */
 const zotero = vi.hoisted(() => ({ styles: [] as InstalledCslStyle[] }));
@@ -56,9 +56,9 @@ const exportRun = vi.hoisted(() => ({
   unload: false,
 }));
 
-vi.mock("@/services/pandoc/styles", async (importOriginal) => {
+vi.mock("@/services/pandoc/styles.ts", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@/services/pandoc/styles")>();
+    await importOriginal<typeof import("@/services/pandoc/styles.ts")>();
   return {
     ...actual,
     // An installed style resolves as Zotero lists it; anything else takes the
@@ -79,14 +79,14 @@ vi.mock("@/services/pandoc/styles", async (importOriginal) => {
     },
   };
 });
-vi.mock("@/services/pandoc/export", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/pandoc/export")>()),
+vi.mock("@/services/pandoc/export.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/pandoc/export.ts")>()),
   exportCitedDocument: () =>
     exportRun.unload
       ? Effect.interrupt
       : Effect.succeed({ output: new Uint8Array() }),
 }));
-vi.mock("@/services/pandoc/installed-styles", () => ({
+vi.mock("@/services/pandoc/installed-styles.ts", () => ({
   listInstalledStylesOrNone: () => Effect.succeed(zotero.styles),
 }));
 const DATA_DIR = "/zotero";

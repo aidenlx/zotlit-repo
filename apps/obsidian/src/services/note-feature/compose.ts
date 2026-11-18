@@ -12,22 +12,22 @@ import type { FrontmatterMergeConflictHandler } from "@zotlit/templates/frontmat
 import {
   FIELD_CITATION_STYLE,
   FIELD_LITERATURE_NOTE_PROFILE,
-} from "@/lib/constants";
-import type { ResolvedProfile } from "@/services/profile/bindings";
+} from "@/lib/constants.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type {
   ResolvedLiteratureNoteTemplate,
   TemplateOperations,
-} from "@/services/template/service";
+} from "@/services/template/service.ts";
 
 import {
   applyDocumentManagedFrontmatter,
   applyManagedFrontmatter,
   prepareManagedFrontmatter,
-} from "./frontmatter";
+} from "./frontmatter.ts";
 import type {
   ManagedFrontmatterPreparationFailure,
   PreparedManagedFrontmatter,
-} from "./frontmatter";
+} from "./frontmatter.ts";
 
 /** Logs a warning the composition meets, with its annotations. */
 export type ComposeWarn = (

@@ -1,4 +1,4 @@
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 export interface ExcerptViewport {
   convertToViewportPoint(x: number, y: number): [number, number];

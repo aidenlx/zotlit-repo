@@ -1,13 +1,13 @@
 import { findNodeAtLocation, getNodeValue, parseTree } from "jsonc-parser";
 import type { Node } from "jsonc-parser";
 
-import type { RenderCallerSource } from "./attribution";
-import type { RenderDiagnostic } from "./result";
+import type { RenderCallerSource } from "./attribution.ts";
+import type { RenderDiagnostic } from "./result.ts";
 
 // Retained repair targets are re-read against the source the reader edits now.
-import { templateCalls } from "#/document/regions";
+import { templateCalls } from "#document/regions.ts";
 // The operator names JSON-e answers to, which say whether a `$` key is one.
-import { jsonOperators } from "#/language/json-e-catalog";
+import { jsonOperators } from "#language/json-e-catalog.ts";
 
 /** Re-finds a verified call, keeping the missing-partial first-call exception. */
 export function currentCallSite(

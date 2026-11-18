@@ -1,7 +1,7 @@
 // The candidates of one Ambiguous Citation Key, shared by the surfaces that
 // build and render them.
 
-import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity";
+import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 
 /**
  * The two Items one Ambiguous Citation Key names, as a picker shows them: one

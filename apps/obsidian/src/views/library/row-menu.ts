@@ -5,11 +5,11 @@
 import { Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { menuSections, raiseMenu } from "@/services/menu-events";
-import type { LiteratureNotes } from "@/views/query-view/table-notes";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { menuSections, raiseMenu } from "@/services/menu-events.ts";
+import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";
 
-import type { ItemActions } from "./item-actions";
+import type { ItemActions } from "./item-actions.ts";
 
 const SECTION = menuSections("zotlit:item-menu");
 

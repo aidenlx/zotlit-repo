@@ -3,12 +3,18 @@ import { Cause, Effect, Exit, Stream } from "effect";
 import type { CachedMetadata } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache";
-import { subscribe } from "@/lib/effect-stream";
-import type { ProfileId } from "@/lib/profile-stamp";
+import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
 
-import { makeHarness, startup, cache, paths, makeFile } from "./__fixtures__";
-import { isLiteratureNote, resolveIndexedKey } from "./service";
+import {
+  makeHarness,
+  startup,
+  cache,
+  paths,
+  makeFile,
+} from "./__fixtures__.ts";
+import { isLiteratureNote, resolveIndexedKey } from "./service.ts";
 
 const ITEM_A = "ABCD2345";
 const ITEM_B = "ZZZ99999";

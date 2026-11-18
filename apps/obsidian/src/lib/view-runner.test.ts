@@ -2,13 +2,13 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
+import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms";
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner";
-import { Release } from "@/services/release/service";
+} from "@/lib/__fixtures__/view-atoms.ts";
+import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
+import { Release } from "@/services/release/service.ts";
 
 import {
   answerOf,
@@ -16,8 +16,8 @@ import {
   joinOnView,
   latestSlot,
   makeViewRunner,
-} from "./view-runner";
-import type { InFlightSlot } from "./view-runner";
+} from "./view-runner.ts";
+import type { InFlightSlot } from "./view-runner.ts";
 
 const layerServices = Layer.mergeAll(
   layerUnreadViewServices,

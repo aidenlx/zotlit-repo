@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import { templateDocumentKind, templatePartialName } from "./document-kind";
+import { templateDocumentKind, templatePartialName } from "./document-kind.ts";
 
 const file = (path: string) => Object.assign(new TFile(), { path });
 

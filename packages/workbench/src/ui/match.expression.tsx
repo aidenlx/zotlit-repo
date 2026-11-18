@@ -2,9 +2,9 @@
 // CodeMirror editor that colors its Filter Expression as the template panes
 // color theirs, and underlines its Syntax Fault, else the Fault a run found.
 
-import type { CompletionPresentation } from "#/language/completion";
-import type { ExpressionVocabulary } from "#/language/filter-expression-completion";
-import type { PlacedFault } from "#/language/span";
+import type { CompletionPresentation } from "#language/completion.ts";
+import type { ExpressionVocabulary } from "#language/filter-expression-completion.ts";
+import type { PlacedFault } from "#language/span.ts";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { setDiagnostics, setDiagnosticsEffect } from "@codemirror/lint";
 import type { Diagnostic } from "@codemirror/lint";
@@ -19,21 +19,21 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { parseExpression } from "@zotlit/filter-expression";
 import { useUniqueId } from "@zotlit/ui";
 
-import { HiddenName } from "./host";
+import { HiddenName } from "./host.tsx";
 import {
   useExpressionCompletion,
   useExpressionExtension,
   useParts,
-} from "./theme";
-import { underlineOnlyLint } from "./underline-lint";
+} from "./theme.tsx";
+import { underlineOnlyLint } from "./underline-lint.ts";
 
+import { filterExpressionCompletion } from "#language/filter-expression-completion.ts";
 import {
   filterExpressionHighlighting,
   filterExpressionLanguage,
   filterExpressionPairing,
-} from "#/language/filter-expression";
-import { filterExpressionCompletion } from "#/language/filter-expression-completion";
-import { signatureHint } from "#/language/signature-hint-tooltip";
+} from "#language/filter-expression.ts";
+import { signatureHint } from "#language/signature-hint-tooltip.ts";
 
 /**
  * The label and validity of the field, on its editable content. The label

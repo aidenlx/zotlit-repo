@@ -4,18 +4,18 @@ import type { ConfigEnv } from "vite";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { fluentPlugin } from "./scripts/vite-fluent-plugin.js";
-import { prefsPlugin } from "./scripts/vite-prefs-plugin.js";
+import { fluentPlugin } from "./scripts/vite-fluent-plugin.ts";
+import { prefsPlugin } from "./scripts/vite-prefs-plugin.ts";
 import {
   resolveEnv,
   zoteroBuildPlugin,
   zoteroSandboxConfig,
-} from "./scripts/vite-zotero-plugin.js";
+} from "./scripts/vite-zotero-plugin.ts";
 import {
   BOOTSTRAP_BUNDLE_NAME,
   FLUENT_FILE_NAME,
   MAIN_BUNDLE_NAME,
-} from "./src/constant.js";
+} from "./src/constant.ts";
 
 const packageRoot = import.meta.dirname;
 const workspaceRoot = await getWorkspaceRoot(packageRoot);

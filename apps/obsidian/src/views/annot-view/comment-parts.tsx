@@ -11,22 +11,22 @@ import type { HTMLAttributes, RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import * as m from "@/lib/i18n/generated/messages";
-import { themeHook } from "@/lib/theme-hooks";
-import { claimClick, cn } from "@/lib/utils";
-import type { WriteConflict } from "@/services/annotation-repository/write";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { themeHook } from "@/lib/theme-hooks.ts";
+import { claimClick, cn } from "@/lib/utils.ts";
+import type { WriteConflict } from "@/services/annotation-repository/write.ts";
 
-import { conflictPanel } from "./card-conflict";
-import { sameHeldDraft } from "./card-controls";
-import type { CardBlock, CardControl, HeldDraft } from "./card-controls";
-import type { CommentRenderer } from "./comment-render";
+import { conflictPanel } from "./card-conflict.ts";
+import { sameHeldDraft } from "./card-controls.ts";
+import type { CardBlock, CardControl, HeldDraft } from "./card-controls.ts";
+import type { CommentRenderer } from "./comment-render.ts";
 import {
   clickEdits,
   commentViewClass,
   renderEditorSheet,
   renderConflictPanel,
   renderHeldDraftPanel,
-} from "./editor-sheet";
+} from "./editor-sheet.ts";
 import type {
   CommentEntry,
   ConflictActions,
@@ -35,11 +35,11 @@ import type {
   EditorSheetProps,
   EditorSheetStatus,
   EditorSurface,
-} from "./editor-sheet";
+} from "./editor-sheet.ts";
 
 type DivProps = Omit<HTMLAttributes<HTMLDivElement>, "children">;
 
-export type { CommentEntry } from "./editor-sheet";
+export type { CommentEntry } from "./editor-sheet.ts";
 
 /**
  * The comment field's entry for one editing control: its refusal and its

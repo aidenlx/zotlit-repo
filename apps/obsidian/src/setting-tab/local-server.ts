@@ -4,16 +4,16 @@
 import { Effect, Stream } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
-import { companionDocsUrl, docsUrl } from "@/lib/docs-url";
-import * as m from "@/lib/i18n/generated/messages";
-import { revealSetting } from "@/lib/open-settings";
-import { LocalBridge } from "@/services/local-bridge/service";
-import { LocalServer } from "@/services/local-server/service";
-import { PluginSettings } from "@/services/settings/service";
+import { companionDocsUrl, docsUrl } from "@/lib/docs-url.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { revealSetting } from "@/lib/open-settings.ts";
+import { LocalBridge } from "@/services/local-bridge/service.ts";
+import { LocalServer } from "@/services/local-server/service.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context";
-import { paintEach } from "./effect-tab";
-import { defaultPlaceholder } from "./placeholder";
+import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { paintEach } from "./effect-tab.ts";
+import { defaultPlaceholder } from "./placeholder.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 

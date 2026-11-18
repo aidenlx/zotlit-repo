@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { citationStyleLabel } from "./citation-style";
+import { citationStyleLabel } from "./citation-style.ts";
 
 it("names the built-in renderer default for both settings and picker values", () => {
   expect(citationStyleLabel(null)).toBe("Default (Chicago author-date)");

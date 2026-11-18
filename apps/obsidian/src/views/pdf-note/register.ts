@@ -2,17 +2,17 @@
 import { FileView, setIcon, setTooltip } from "obsidian";
 import type { App, Plugin, View, WorkspaceLeaf } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import * as m from "@/lib/i18n/generated/messages";
-import { MENU_SECTION } from "@/lib/menu-section";
-import type { ViewRegistryHandle } from "@/lib/view-atoms";
-import type { FileMenuSegment } from "@/services/file-menu";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import type { ReaderSession } from "@/services/reader-session/session";
-import type { LiteratureNotes } from "@/views/query-view/table-notes";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { FileMenuSegment } from "@/services/file-menu.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import type { ReaderSession } from "@/services/reader-session/session.ts";
+import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";
 
-import { openNoteBeside, pdfNoteOpens } from "./open-note";
-import type { PdfSessions } from "./open-note";
+import { openNoteBeside, pdfNoteOpens } from "./open-note.ts";
+import type { PdfSessions } from "./open-note.ts";
 
 export interface PdfNoteDeps {
   app: App;

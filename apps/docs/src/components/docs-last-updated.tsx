@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Message } from "@/components/message";
-import { cn } from "@/lib/cn";
+import { Message } from "@/components/message.tsx";
+import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 
 /**

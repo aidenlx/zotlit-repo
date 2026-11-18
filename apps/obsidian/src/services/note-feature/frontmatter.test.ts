@@ -14,13 +14,13 @@ import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_KEY,
   RESERVED_KEYS,
-} from "@/lib/constants";
-import { DEFAULT_FRONTMATTER_FIELDS } from "@/services/template/defaults";
+} from "@/lib/constants.ts";
+import { DEFAULT_FRONTMATTER_FIELDS } from "@/services/template/defaults.ts";
 
 import {
   applyManagedFrontmatter,
   prepareManagedFrontmatter,
-} from "./frontmatter";
+} from "./frontmatter.ts";
 
 /** Mirror the production compile (TemplateService): drop reserved keys, then
  *  compile against the shared Liquid vocabulary — applyManagedFrontmatter only

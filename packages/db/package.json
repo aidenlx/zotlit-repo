@@ -3,35 +3,31 @@
   "version": "0.0.0",
   "private": true,
   "description": "Zotero SQLite database layer for reading Zotero libraries",
-  "files": [
-    "dist"
-  ],
   "type": "module",
   "sideEffects": false,
   "imports": {
-    "#contract/*": "./src/contract/*.ts"
+    "#*": "./src/*",
+    "#drizzle/*": "./drizzle/*"
   },
   "exports": {
-    ".": "./dist/index.mjs",
-    "./client/node": "./dist/client/node.mjs",
-    "./client/web": "./dist/client/web.mjs",
-    "./contract/ir": "./dist/contract/ir.mjs",
-    "./item-query": "./dist/item-query.mjs",
-    "./path": "./dist/path.mjs",
-    "./test-scenario": "./dist/test-scenario.mjs",
-    "./test-utils": "./dist/test-utils.mjs",
-    "./package.json": "./package.json",
+    ".": "./src/index.ts",
+    "./client/node": "./src/client/node.ts",
+    "./client/web": "./src/client/web.ts",
+    "./contract/ir": "./src/contract/ir.ts",
+    "./item-query": "./src/item-query/index.ts",
+    "./path": "./src/lib/zt-path.ts",
+    "./test-scenario": "./src/test-scenario/index.ts",
+    "./test-utils": "./src/test-utils.ts",
     "./contract/ir.json": "./src/contract/generated/ir.json",
     "./contract/ir.runtime.json": "./src/contract/generated/ir.runtime.json",
     "./contract/note.schema.json": "./src/contract/generated/note.schema.json",
     "./contract/annotation.schema.json": "./src/contract/generated/annotation.schema.json",
     "./contract/filename.schema.json": "./src/contract/generated/filename.schema.json",
-    "./contract/citation.schema.json": "./src/contract/generated/citation.schema.json"
+    "./contract/citation.schema.json": "./src/contract/generated/citation.schema.json",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsdown",
     "db:pull": "drizzle-kit pull",
-    "dev": "tsdown --watch",
     "generate:contract": "node scripts/generate-contract.ts && oxfmt src/contract/generated",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
@@ -56,7 +52,6 @@
     "drizzle-kit": "catalog:",
     "oxlint": "catalog:",
     "ts-morph": "^28.0.0",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

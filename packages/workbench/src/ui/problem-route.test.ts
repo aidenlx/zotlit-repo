@@ -1,13 +1,13 @@
-import type { RenderDiagnostic } from "#/render/result";
+import type { RenderDiagnostic } from "#render/result.ts";
 import { describe, expect, it } from "vitest";
 
-import { INITIAL_VIEW } from "./model";
-import type { WorkbenchViewState } from "./model";
-import { routeDiagnosis, routeProblem } from "./problem-route";
-import type { WorkbenchDiagnosis } from "./problems";
+import { INITIAL_VIEW } from "./model.ts";
+import type { WorkbenchViewState } from "./model.ts";
+import { routeDiagnosis, routeProblem } from "./problem-route.ts";
+import type { WorkbenchDiagnosis } from "./problems.ts";
 
-import { WorkbenchDocumentController } from "#/document/controller";
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { WorkbenchDocumentController } from "#document/controller.ts";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 const profile = () => new WorkbenchDocumentController(DEFAULT_PROFILE_SOURCE);
 

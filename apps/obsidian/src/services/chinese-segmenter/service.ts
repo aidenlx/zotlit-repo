@@ -2,11 +2,11 @@
 
 import { Context } from "effect";
 
-import { layerManagedBinary } from "@/services/managed-binary/service";
+import { layerManagedBinary } from "@/services/managed-binary/service.ts";
 import type {
   ManagedBinary,
   ManagedBinaryApi,
-} from "@/services/managed-binary/service";
+} from "@/services/managed-binary/service.ts";
 
 /**
  * The verified binary, compiled. The ZoteroReads worker instantiates the

@@ -15,8 +15,9 @@ if (primary) {
   await $`pnpm install --frozen-lockfile`;
 }
 
-await $`turbo run build --filter=./packages/*`;
-
-// Obsidian checks need the generated message facade. The docs Vite lifecycle
-// generates its collections and messages during dev/build.
-await $`turbo run generate:language-packs`;
+// Workspace packages export their TypeScript source, so nothing builds here.
+// Turbo generates these files before each task that reads them; generating
+// them now gives the editor the plugin's message facade and the Workbench
+// message contract. The docs Vite lifecycle generates its collections and
+// messages during dev/build.
+await $`turbo run generate:language-packs generate:message-types`;

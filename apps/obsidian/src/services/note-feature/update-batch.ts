@@ -3,84 +3,87 @@ import type { TFile } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import * as m from "@/lib/i18n/generated/messages";
-import { Notifier, withProgress } from "@/lib/notifier";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache";
-import { Workspace } from "@/lib/obsidian-workspace";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { DEFAULT_PROFILE, unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import { batchProfileSummary } from "@/services/batch-profile-summary";
-import type { BatchProfileCount } from "@/services/batch-profile-summary";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { Notifier, withProgress } from "@/lib/notifier.ts";
+import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { Workspace } from "@/lib/obsidian-workspace.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import {
+  DEFAULT_PROFILE,
+  unknownProfileDiagnostic,
+} from "@/lib/profile-stamp.ts";
+import { batchProfileSummary } from "@/services/batch-profile-summary.ts";
+import type { BatchProfileCount } from "@/services/batch-profile-summary.ts";
 import {
   classifyStream,
   executeBatchRun,
   modalRunner,
-} from "@/services/batch-run";
+} from "@/services/batch-run.ts";
 import type {
   BatchClassifyControls,
   BatchRunControls,
   RunOutcome,
-} from "@/services/batch-run";
+} from "@/services/batch-run.ts";
 import {
   batchGroupKey,
   batchGroups,
   batchLibraries,
   planBatchScope,
   withUnavailableLibraries,
-} from "@/services/batch-scope";
-import type { BatchTarget } from "@/services/batch-scope";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare";
-import type { LibraryScope } from "@/services/library-scope/service";
-import type { NoteImportView } from "@/services/note-import/view";
+} from "@/services/batch-scope.ts";
+import type { BatchTarget } from "@/services/batch-scope.ts";
+import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import type { LibraryScope } from "@/services/library-scope/service.ts";
+import type { NoteImportView } from "@/services/note-import/view.ts";
 import {
   itemKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import { Profile } from "@/services/profile/service";
-import type { LiteratureNoteProfile } from "@/services/profile/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { isInertTemplateError } from "@/services/template/errors";
-import type { ZoteroPref } from "@/services/zotero-pref/service";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref";
-import type { ItemDisplayRef } from "@/services/zotero-reads/display-ref";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs";
-import { FlatManifest } from "@/views/batch-modal";
+} from "@/services/note-index/service.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import { Profile } from "@/services/profile/service.ts";
+import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { isInertTemplateError } from "@/services/template/errors.ts";
+import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
+import type { ItemDisplayRef } from "@/services/zotero-reads/display-ref.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
+import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
+import { FlatManifest } from "@/views/batch-modal/index.ts";
 import type {
   BatchProfileChoice,
   BatchProfileChoiceScope,
   FlatTask,
-} from "@/views/batch-modal";
+} from "@/views/batch-modal/index.ts";
 
 import type {
   PlannedCreation,
   PlannedCreationProfile,
-} from "./creation-planning";
+} from "./creation-planning.ts";
 import type {
   CreateNoteDiagnostic,
   CreateNoteResult,
   NoteOperationDiagnostic,
   UpdateScope,
   CreationProfileSelection,
-} from "./operations";
+} from "./operations.ts";
 import {
   describeSelectionProblem,
   describeSelectionSource,
-} from "./selection-copy";
-import { collectExcerptReports, NoteFeature } from "./service";
+} from "./selection-copy.ts";
+import { collectExcerptReports, NoteFeature } from "./service.ts";
 import {
   createNoteNotice,
   duplicateLiteratureNoteWarning,
   noteOperationDiagnosticNotice,
   updateWithNotice,
-} from "./update-single";
-import type { BatchUpdateNotices } from "./update-single";
+} from "./update-single.ts";
+import type { BatchUpdateNotices } from "./update-single.ts";
 
 const logged = withLogCategory("batch-update");
 

@@ -2,7 +2,7 @@
 // a Duration and a DateTime.Utc, built from the plain values a test holds.
 import { DateTime, Duration } from "effect";
 
-import { fromInstant } from "@/lib/effect-clock";
+import { fromInstant } from "@/lib/effect-clock.ts";
 
 /** A cooldown failure that names `seconds`, as the Local API returns it. */
 export function cooldownFailureOf(seconds: number) {

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 
-import { scanContent } from "./content-scan";
-import { ogCards } from "./og-cards";
-import { docsPageTitle, ogImageUrl } from "./shared";
+import { scanContent } from "./content-scan.ts";
+import { ogCards } from "./og-cards.ts";
+import { docsPageTitle, ogImageUrl } from "./shared.ts";
 
 const frontmatter = v.object({
   title: v.string(),

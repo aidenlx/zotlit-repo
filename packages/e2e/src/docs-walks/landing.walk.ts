@@ -28,8 +28,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import type { AnnotationView } from "@/views/annot-view/view";
-import type { LibraryView } from "@/views/library/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { LibraryView } from "@/views/library/view.ts";
 
 import {
   captureRequested,

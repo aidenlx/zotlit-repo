@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { WalCheckpointStatus } from "@/notify/freshness";
+import type { WalCheckpointStatus } from "@/notify/freshness.ts";
 
-import { databaseStatusMenuModel } from "./model.js";
+import { databaseStatusMenuModel } from "./model.ts";
 
 const NOW = new Date("2026-08-20T08:00:00Z");
 

@@ -17,33 +17,33 @@ import type {
   TextSelection,
 } from "@zotlit/pdf-structure";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import type { Notifier } from "@/lib/notifier";
-import { historyOutcomeNotice } from "@/services/annotation-repository/actions";
-import type { CopyInstant } from "@/services/annotation-repository/capability-copy";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import type { Notifier } from "@/lib/notifier.ts";
+import { historyOutcomeNotice } from "@/services/annotation-repository/actions.ts";
+import type { CopyInstant } from "@/services/annotation-repository/capability-copy.ts";
 import type {
   AnnotationRepository,
   CreateOutcome,
   HistoryDirection,
   HistoryOutcome,
   WriteRunFailed,
-} from "@/services/annotation-repository/service";
+} from "@/services/annotation-repository/service.ts";
 import {
   groupFailureMessages,
   writeFailureReason,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 import type {
   AnnotationDraft,
   GeometryInput,
   MutationState,
   WriteFailure,
-} from "@/services/annotation-repository/write";
+} from "@/services/annotation-repository/write.ts";
 
-import type { EditablePosition } from "./geometry-edit";
-import { readerSurfaceRegistry } from "./reader-surface-model";
-import type { ReaderSurfaceRegistry } from "./reader-surface-model";
+import type { EditablePosition } from "./geometry-edit.ts";
+import { readerSurfaceRegistry } from "./reader-surface-model.ts";
+import type { ReaderSurfaceRegistry } from "./reader-surface-model.ts";
 
 /** One write a PDF view started on its own Scope. */
 export type WriteRun = Fiber.Fiber<unknown, never>;

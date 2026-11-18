@@ -14,9 +14,9 @@ import { createClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { inertPlaceholderReason } from "./inert-placeholder";
-import { buildInertNoteResolvers } from "./inert-resolvers";
-import type { InertNoteResolverDeps } from "./inert-resolvers";
+import { inertPlaceholderReason } from "./inert-placeholder.ts";
+import { buildInertNoteResolvers } from "./inert-resolvers.ts";
+import type { InertNoteResolverDeps } from "./inert-resolvers.ts";
 
 function makeAttachment(overrides: Partial<Attachment>): Attachment {
   return {

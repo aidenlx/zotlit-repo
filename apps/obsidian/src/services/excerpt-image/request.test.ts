@@ -8,35 +8,35 @@ import { createClient } from "@zotlit/db/client/node";
 import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge";
-import { stubService } from "@/lib/__fixtures__/service-stub";
+import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
-} from "@/services/annotation-repository/service";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/annotation-repository/service.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils";
-import type { InProcessReadsOptions } from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
+import type { InProcessReadsOptions } from "@/services/zotero-reads/test-utils.ts";
 
-import { answerAnnotationImage } from "./cli-image";
-import { PNG_FORMAT } from "./format";
+import { answerAnnotationImage } from "./cli-image.ts";
+import { PNG_FORMAT } from "./format.ts";
 import {
   ExcerptSourceUnavailable,
   excerptRequestForKey,
   savedExcerptRequestFor,
   savedExcerptRequestOver,
-} from "./request";
-import { excerptKey, excerptRequest } from "./service";
-import type { ExcerptEntry } from "./service";
+} from "./request.ts";
+import { excerptKey, excerptRequest } from "./service.ts";
+import type { ExcerptEntry } from "./service.ts";
 
 const SERVER_ID = "A8sf5Zsz8ySw";
 const LOCAL_USER_KEY = "v3aG8nQf";

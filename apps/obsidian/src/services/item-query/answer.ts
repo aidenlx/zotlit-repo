@@ -40,17 +40,17 @@ import type {
 import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
 import type { DelimitedFormat } from "@zotlit/shared/delimited";
 
-import { resourceReleaseUrl } from "@/lib/constants";
-import { withLogCategory } from "@/lib/effect-log-category";
+import { resourceReleaseUrl } from "@/lib/constants.ts";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
 import {
   resolveLibraryScope,
   selectorKey,
-} from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope";
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope";
+} from "@/services/library-scope/scope.ts";
+import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import {
   DEFAULT_CLI_LIMIT,
@@ -58,15 +58,15 @@ import {
   envelope,
   failure,
   INLINE_MAX_BYTES,
-} from "./contract";
-import type { Diagnostic, QueryCliCommand, LibraryWire } from "./contract";
-import { CLI_DATASETS } from "./datasets";
-import type { DecodedQuery, NamedLibraries } from "./query-codec";
+} from "./contract.ts";
+import type { Diagnostic, QueryCliCommand, LibraryWire } from "./contract.ts";
+import { CLI_DATASETS } from "./datasets.ts";
+import type { DecodedQuery, NamedLibraries } from "./query-codec.ts";
 import type {
   QueryViewGroup,
   QueryViewResult,
   QueryViewRow,
-} from "./query-view";
+} from "./query-view.ts";
 import type {
   QueryAnswer,
   QueryCommand,
@@ -74,7 +74,7 @@ import type {
   QueryReply,
   QueryViewCommand,
   QueryViewReply,
-} from "./worker-protocol";
+} from "./worker-protocol.ts";
 
 /** What the answer reads of a Query Job. */
 export type AnswerJob = QueryCommand & {

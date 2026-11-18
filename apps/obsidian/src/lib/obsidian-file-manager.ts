@@ -9,10 +9,10 @@ import type {
   TFile,
 } from "obsidian";
 
-import { ObsidianApp } from "@/lib/obsidian-app";
-import { Vault } from "@/lib/obsidian-vault";
-import { FileExists, vaultError } from "@/lib/vault-errors";
-import type { VaultError } from "@/lib/vault-errors";
+import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { FileExists, vaultError } from "@/lib/vault-errors.ts";
+import type { VaultError } from "@/lib/vault-errors.ts";
 
 /** The Obsidian object the tag calls: what `app.fileManager` gives. */
 export type FileManagerSource = Pick<

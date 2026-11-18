@@ -1,16 +1,16 @@
-import type { RenderDiagnostic } from "#/render/result";
+import type { RenderDiagnostic } from "#render/result.ts";
 import * as Atom from "effect/reactivity/Atom";
 import { describe, expect, it } from "vitest";
 
-import { INITIAL_PANELS } from "./panel-layout";
-import type { ViewSize, WorkbenchPanels } from "./panel-layout";
-import { renderDiagnosis } from "./problems";
-import type { WorkbenchDiagnosis } from "./problems";
-import { repairCommands } from "./repair-commands";
-import { mount } from "./test-host";
-import { m } from "./test-messages";
+import { INITIAL_PANELS } from "./panel-layout.ts";
+import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
+import { renderDiagnosis } from "./problems.ts";
+import type { WorkbenchDiagnosis } from "./problems.ts";
+import { repairCommands } from "./repair-commands.ts";
+import { mount } from "./test-host.tsx";
+import { m } from "./test-messages.ts";
 
-import { DEFAULT_PROFILE_SOURCE } from "#/render/default-profile";
+import { DEFAULT_PROFILE_SOURCE } from "#render/default-profile.ts";
 
 const BOTH: WorkbenchPanels = {
   ...INITIAL_PANELS,

@@ -9,16 +9,16 @@ import { openScenarioDatabase } from "@zotlit/db/test-scenario";
 import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope";
-import type { LibraryScope } from "@/services/library-scope/scope";
+import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 
-import { answer } from "./answer";
+import { answer } from "./answer.ts";
 import {
   createQueryCancelHandler,
   guideHandler,
   registerQueryCli,
-} from "./cli";
+} from "./cli.ts";
 import {
   DIAGNOSTIC_HINTS,
   diagnostic,
@@ -27,10 +27,10 @@ import {
   QUERY_COMMAND,
   QUERY_GUIDE_COMMAND,
   QUERY_SCHEMA_COMMAND,
-} from "./contract";
-import type { Diagnostic } from "./contract";
-import { decodeQuery } from "./decode";
-import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide";
+} from "./contract.ts";
+import type { Diagnostic } from "./contract.ts";
+import { decodeQuery } from "./decode.ts";
+import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide.ts";
 
 const itemQueryGuideHandler = guideHandler;
 

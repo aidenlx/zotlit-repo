@@ -3,13 +3,13 @@ import type { Scope, Stream } from "effect";
 import { Effect } from "effect";
 import type { View, WorkspaceLeaf } from "obsidian";
 
-import { recover } from "@/lib/effect-cause";
-import { withLogCategory } from "@/lib/effect-log";
-import { viewRuntime } from "@/lib/view-atoms";
-import type { ViewServices } from "@/lib/view-atoms";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view";
-import { openLiteratureNote } from "@/services/note-feature/navigation";
-import type { ReaderSession } from "@/services/reader-session/session";
+import { recover } from "@/lib/effect-cause.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { viewRuntime } from "@/lib/view-atoms.ts";
+import type { ViewServices } from "@/lib/view-atoms.ts";
+import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
+import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
+import type { ReaderSession } from "@/services/reader-session/session.ts";
 
 /** The Reader Session of each bound PDF view. */
 export type PdfSessions = Stream.Stream<ReadonlyMap<View, ReaderSession>>;

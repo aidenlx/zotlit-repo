@@ -18,15 +18,15 @@ import { ItemQueryScheduler } from "@zotlit/item-query";
 import {
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
-} from "@/services/library-scope/scope";
-import type { LibraryScope } from "@/services/library-scope/scope";
+} from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@/services/library-scope/scope.ts";
 
-import { workerQuery } from "./__fixtures__/worker-query";
-import { answer, QueryOutputError } from "./answer";
-import type { AnswerEnv, QueryWriter } from "./answer";
-import { diagnostic, QUERY_COMMAND, QUERY_SCHEMA_COMMAND } from "./contract";
-import type { Diagnostic } from "./contract";
-import type { QueryReply } from "./worker-protocol";
+import { workerQuery } from "./__fixtures__/worker-query.ts";
+import { answer, QueryOutputError } from "./answer.ts";
+import type { AnswerEnv, QueryWriter } from "./answer.ts";
+import { diagnostic, QUERY_COMMAND, QUERY_SCHEMA_COMMAND } from "./contract.ts";
+import type { Diagnostic } from "./contract.ts";
+import type { QueryReply } from "./worker-protocol.ts";
 
 /** The driver call under every statement of the borrowed client. */
 // oxlint-disable-next-line typescript/unbound-method -- applied to its statement in the test.

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { makeAnnotHost } from "./__fixtures__/host";
+import { makeAnnotHost } from "./__fixtures__/host.ts";
 import {
   holdAnnotViewModel,
   makeAnnotViewModel,
@@ -8,8 +8,8 @@ import {
   pinItem,
   setFollowMode,
   unpin,
-} from "./model";
-import type { AnnotViewState } from "./view-state";
+} from "./model.ts";
+import type { AnnotViewState } from "./view-state.ts";
 
 const ACTIVE_TAB: AnnotViewState = {
   followMode: "active-tab",

@@ -1,10 +1,10 @@
 import type { Profiler } from "node:inspector";
 import type { Editor, MarkdownView, TFile, WorkspaceLeaf } from "obsidian";
 
-import type { AnnotationView } from "@/views/annot-view/view";
-import type { ReferencesView } from "@/views/references/view";
+import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { ReferencesView } from "@/views/references/view.tsx";
 
-export type { FileScan } from "@/services/citation-index/store";
+export type { FileScan } from "@/services/citation-index/store.ts";
 
 type WorkerAttached = { targetInfo: { title: string }; sessionId: string };
 export type DebugListener = (

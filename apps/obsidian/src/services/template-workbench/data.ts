@@ -23,27 +23,27 @@ import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 import { citationExampleData } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
 
-import { annotationCitation } from "@/lib/annotation-render";
-import { attachmentFolderPath } from "@/lib/attachment-folder";
-import { creatorSummary } from "@/lib/item-summary";
-import { FileManager } from "@/lib/obsidian-file-manager";
-import { Vault } from "@/lib/obsidian-vault";
-import { itemFacets } from "@/services/note-feature/context";
-import { NoteIndex } from "@/services/note-index/service";
-import type { Settings } from "@/services/settings/schema";
-import { PluginSettings } from "@/services/settings/service";
-import { CITATION_TEMPLATE_NAME } from "@/services/template/defaults";
-import { InertTemplateError } from "@/services/template/errors";
+import { annotationCitation } from "@/lib/annotation-render.ts";
+import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
+import { creatorSummary } from "@/lib/item-summary.ts";
+import { FileManager } from "@/lib/obsidian-file-manager.ts";
+import { Vault } from "@/lib/obsidian-vault.ts";
+import { itemFacets } from "@/services/note-feature/context.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
+import { CITATION_TEMPLATE_NAME } from "@/services/template/defaults.ts";
+import { InertTemplateError } from "@/services/template/errors.ts";
 import {
   buildObsidianInertNoteResolvers,
   findExistingLitNote,
-} from "@/services/template/inert-resolver-host";
-import type { Template } from "@/services/template/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service";
+} from "@/services/template/inert-resolver-host.ts";
+import type { Template } from "@/services/template/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
-import { syncTemplate } from "./sync-template";
+import { syncTemplate } from "./sync-template.ts";
 
 /**
  * The object one Citation's data is built from: a built-in example set, or an

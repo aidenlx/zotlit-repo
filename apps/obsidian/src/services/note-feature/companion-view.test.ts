@@ -7,40 +7,40 @@ import { expect, vi } from "vitest";
 
 import type { Item, ItemRef } from "@zotlit/db";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace";
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp";
-import type { ProfileId } from "@/lib/profile-stamp";
-import { NoteIndex } from "@/services/note-index/service";
-import { UseLedger } from "@/services/use-ledger/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__";
-import type { ReadsAnswers } from "@/services/zotero-reads/__fixtures__";
-import { DbUnavailable } from "@/services/zotero-reads/rpc";
-import { ZoteroReads } from "@/services/zotero-reads/service";
-import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker";
-import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { NoteIndex } from "@/services/note-index/service.ts";
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
+import type { ReadsAnswers } from "@/services/zotero-reads/__fixtures__.ts";
+import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
+import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
+import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";
 
-import { companionLinkNotice, followCompanionLink } from "./companion-view";
+import { companionLinkNotice, followCompanionLink } from "./companion-view.ts";
 import type {
   PlannedCreation,
   PlannedCreationProfile,
-} from "./creation-planning";
-import { companionNoteNotice } from "./index";
+} from "./creation-planning.ts";
+import { companionNoteNotice } from "./index.ts";
 import type {
   CompanionNoteTarget,
   CreationProfileSelection,
   InteractiveCreationPorts,
-} from "./index";
-import { openLiteratureNote } from "./navigation";
-import { NoteFeature } from "./service";
+} from "./index.ts";
+import { openLiteratureNote } from "./navigation.ts";
+import { NoteFeature } from "./service.ts";
 
-vi.mock("@/views/quick-switch/profile-picker", () => ({
+vi.mock("@/views/quick-switch/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 

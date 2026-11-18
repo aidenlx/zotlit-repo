@@ -4,36 +4,36 @@ import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import { FIELD_CITATION_STYLE } from "@/lib/constants";
-import * as m from "@/lib/i18n/generated/messages";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup";
-import { citationOutcome } from "@/services/citation-index/outcome";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { FIELD_CITATION_STYLE } from "@/lib/constants.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { citationOutcome } from "@/services/citation-index/outcome.ts";
 import type {
   CitationKeyResolution,
   DocumentCitationSet,
-} from "@/services/citation-index/service";
-import { readReferenceSources } from "@/services/citation-index/sources";
-import type { Inline, Inlines } from "@/services/pandoc/ast";
-import type { BibliographyRenderOutcome } from "@/services/pandoc/render-cache";
-import type { BibliographyRenderResult } from "@/services/pandoc/render-cache";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+} from "@/services/citation-index/service.ts";
+import { readReferenceSources } from "@/services/citation-index/sources.ts";
+import type { Inline, Inlines } from "@/services/pandoc/ast.ts";
+import type { BibliographyRenderOutcome } from "@/services/pandoc/render-cache.ts";
+import type { BibliographyRenderResult } from "@/services/pandoc/render-cache.ts";
+import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils";
+} from "@/services/zotero-reads/test-utils.ts";
 
-import { makeReferencesHost } from "./__fixtures__";
-import type { ReferencesHost } from "./__fixtures__";
-import { ReferencesView } from "./view";
+import { makeReferencesHost } from "./__fixtures__.ts";
+import type { ReferencesHost } from "./__fixtures__.ts";
+import { ReferencesView } from "./view.tsx";
 
 type RenderedBibliography = Extract<
   BibliographyRenderOutcome,
   { kind: "held" }
 >;
 
-vi.mock("@/components/obsidian/icon-button", async () => {
+vi.mock("@/components/obsidian/icon-button.tsx", async () => {
   const { createElement } = await import("react");
   return {
     IconButton: ({ icon, ...props }: { icon: string }) =>

@@ -4,24 +4,24 @@ import { around } from "monkey-around";
 import { Keymap, PopoverState } from "obsidian";
 import type { GraphData, MetadataCache, Workspace } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { getLogger } from "@/lib/log";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { getLogger } from "@/lib/log.ts";
 import type {
   CitationPopover,
   WorkHoverRequest,
-} from "@/services/citation-popover/service";
+} from "@/services/citation-popover/service.tsx";
 import {
   hoverPreferences,
   triggerCitekeyHover,
-} from "@/services/citekey-navigation";
-import type { NavigationPane } from "@/services/citekey-navigation";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service";
-import type { PluginSettings } from "@/services/settings/service";
+} from "@/services/citekey-navigation/index.ts";
+import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
+import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
 
-import type { GraphCitationAdditions } from "./adapter";
-import { CITATION_POPOVER } from "./display";
-import type { GraphLeafMembers } from "./install";
-import { rowFlag } from "./rows";
+import type { GraphCitationAdditions } from "./adapter.ts";
+import { CITATION_POPOVER } from "./display.ts";
+import type { GraphLeafMembers } from "./install.ts";
+import { rowFlag } from "./rows.ts";
 import "./style.css";
 
 const logger = getLogger("graph-citations");

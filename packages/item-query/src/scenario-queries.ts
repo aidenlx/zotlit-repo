@@ -4,7 +4,7 @@
 // scan. Add an entry for each new scenario query, leaf, or function.
 import type { ScenarioLibraryName } from "@zotlit/db/test-scenario";
 
-import type { ItemQueryRequest, SortSpec } from "./request";
+import type { ItemQueryRequest, SortSpec } from "./request.ts";
 
 export interface ScenarioQuery {
   /** A unique name; it names the test. */

@@ -2,14 +2,14 @@ import { Stream } from "effect";
 // ProfileReader test double for consumers; registry behavior is tested with a vault.
 import type { MetadataCache } from "obsidian";
 
-import { readProfileStamp } from "@/lib/profile-stamp";
-import type { ProfileSelector } from "@/lib/profile-stamp";
-import { bindProfile } from "@/services/profile/bindings";
-import type { ResolvedProfile } from "@/services/profile/bindings";
-import type { LiteratureNoteProfile, ProfileReader } from "@/services/profile/service";
-import { compileProfileMatch } from "@/services/profile-selection";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
+import { readProfileStamp } from "@/lib/profile-stamp.ts";
+import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { bindProfile } from "@/services/profile/bindings.ts";
+import type { ResolvedProfile } from "@/services/profile/bindings.ts";
+import type { LiteratureNoteProfile, ProfileReader } from "@/services/profile/service.ts";
+import { compileProfileMatch } from "@/services/profile-selection/index.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
 
 export type ProfileFixture = Pick<LiteratureNoteProfile, "id" | "label"> & Partial<Pick<LiteratureNoteProfile, "document" | "bindings" | "path" | "match">>;
 export type ProfileFixtureSettings = Settings & { profiles?: readonly ProfileFixture[]; defaultDocument?: string };

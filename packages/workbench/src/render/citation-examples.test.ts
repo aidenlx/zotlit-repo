@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { citationExampleData } from "./index";
+import { citationExampleData } from "./index.ts";
 
 describe("citation example sets", () => {
   it("leaves the note-root properties off a cited item and keeps its Zotero fields", () => {
@@ -34,7 +34,7 @@ describe("citation example sets", () => {
     const native = globalThis.Temporal;
     Reflect.deleteProperty(globalThis, "Temporal");
     try {
-      const entry = await import("./index");
+      const entry = await import("./index.ts");
       expect(entry.CITATION_EXAMPLE_IDS).toHaveLength(6);
       expect(() => entry.citationExampleData("one-item", "main")).toThrow(
         /Temporal is not defined/,

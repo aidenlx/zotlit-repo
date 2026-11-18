@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { TemplateFacade } from "./facade";
-import { TemplateEngine } from "./index";
-import { createLiquidEngine } from "./liquid";
+import { TemplateFacade } from "./facade.ts";
+import { TemplateEngine } from "./index.ts";
+import { createLiquidEngine } from "./liquid.ts";
 
 const callers = [
   {

@@ -12,12 +12,16 @@
 import { planItemFilter } from "@zotlit/item-query";
 import type { Span } from "@zotlit/workbench/language";
 
-import * as m from "@/lib/i18n/generated/messages";
-import type { FilterLocation } from "@/views/query-view/query-file";
-import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic";
-import type { VaultValue } from "@/views/query-view/table-notes";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import type { FilterLocation } from "@/views/query-view/query-file.ts";
+import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
+import type { VaultValue } from "@/views/query-view/table-notes.ts";
 
-import type { ConditionFault, VaultCondition, VaultRead } from "./filter-split";
+import type {
+  ConditionFault,
+  VaultCondition,
+  VaultRead,
+} from "./filter-split.ts";
 
 /** The Literature Notes a vault filter reads. */
 export interface VaultFilterNotes {

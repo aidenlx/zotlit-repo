@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service";
+import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 import {
   cappedSelection,
@@ -9,8 +9,8 @@ import {
   filterAnnotations,
   isFilterActive,
   sanitizeSavedFilter,
-} from "./filter";
-import type { AnnotFilter } from "./filter";
+} from "./filter.ts";
+import type { AnnotFilter } from "./filter.ts";
 
 function makeAnnot(
   overrides: Partial<AnnotationRecord> = {},

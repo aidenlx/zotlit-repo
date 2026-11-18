@@ -1,5 +1,5 @@
 // Test support: a fake device for Managed Binary services, with an in-memory store and consent record.
-import type { BinaryStore, ManagedBinaryHostPorts } from "./service";
+import type { BinaryStore, ManagedBinaryHostPorts } from "./service.ts";
 
 /**
  * The device: one origin-wide store root with a directory per Managed Binary,

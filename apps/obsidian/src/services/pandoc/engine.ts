@@ -4,7 +4,7 @@ import { getFrontMatterInfo } from "obsidian";
 
 import type { CslItemData } from "@zotlit/db";
 
-import { getLogger } from "@/lib/log";
+import { getLogger } from "@/lib/log.ts";
 
 import type {
   Blocks,
@@ -12,16 +12,16 @@ import type {
   Inline,
   Inlines,
   Pandoc,
-} from "./ast";
-import { bibliographyHeadingFilter } from "./bibliography-heading";
-import { createPandocRuntime } from "./runtime";
+} from "./ast.ts";
+import { bibliographyHeadingFilter } from "./bibliography-heading.ts";
+import { createPandocRuntime } from "./runtime.ts";
 import type {
   PandocConvertResult,
   PandocOptions,
   PandocRuntime,
   VirtualFiles,
-} from "./runtime";
-import { defaultLocaleOf } from "./styles";
+} from "./runtime.ts";
+import { defaultLocaleOf } from "./styles.ts";
 
 const logger = getLogger("pandoc");
 

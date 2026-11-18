@@ -5,7 +5,7 @@ import {
   MARKER_END,
   MARKER_START,
   replaceManagedRegion,
-} from "./obsidian";
+} from "./obsidian.ts";
 
 const oldRegion = `${MARKER_START}\nOLD\n${MARKER_END}`;
 

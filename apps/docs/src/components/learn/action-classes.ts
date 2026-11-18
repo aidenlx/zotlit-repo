@@ -1,6 +1,6 @@
 // The lesson's meta size and secondary action, which the recording player's end actions share without loading the lesson's MDX parts.
 
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn.ts";
 
 /** 15px: secondary text, meta lines, buttons and links beside the step text. */
 export const metaClass = "text-[0.9375rem] leading-[1.45]";

@@ -5,10 +5,10 @@
  * to an item; the format-agnostic `open` scheme navigates to an annotation
  * within its attachment (PDF / EPUB / snapshot).
  */
-import type { ZoteroUserIdentity } from "@/queries/account";
+import type { ZoteroUserIdentity } from "#queries/account.ts";
 
-import { isItemKey } from "./zt-item-key";
-import { formatIndexedKey } from "./zt-key";
+import { isItemKey } from "./zt-item-key.ts";
+import { formatIndexedKey } from "./zt-key.ts";
 
 function libraryPath(groupID: number | null): string {
   return groupID == null ? "library" : `groups/${groupID}`;

@@ -8,7 +8,7 @@ import {
   LANGUAGE_PACK_SCHEMA_VERSION,
   LanguagePackSchemaVersionError,
   validateLanguagePack,
-} from "./validation.js";
+} from "./validation.ts";
 
 describe("validateLanguagePack", () => {
   test("accepts a pack matching the schema version, locale, and node shapes", () => {

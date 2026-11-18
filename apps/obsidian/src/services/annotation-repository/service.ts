@@ -10,20 +10,20 @@ import {
   Stream,
 } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { filterTag, forkEach } from "@/lib/effect-stream";
-import { savedExcerptRequestFor } from "@/services/excerpt-image/request";
-import { ExcerptImageService } from "@/services/excerpt-image/service";
-import type { Held } from "@/services/query-client/service";
-import { QueryClients } from "@/services/query-client/service";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service";
-import { ZoteroPref } from "@/services/zotero-pref/service";
-import { changed } from "@/services/zotero-reads/events";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { savedExcerptRequestFor } from "@/services/excerpt-image/request.ts";
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import type { Held } from "@/services/query-client/service.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { changed } from "@/services/zotero-reads/events.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
-import type { EditingCapability } from "./capability";
-import type { DatabaseRowsError } from "./core/bridge";
+import type { EditingCapability } from "./capability.ts";
+import type { DatabaseRowsError } from "./core/bridge.ts";
 import {
   annotationState,
   discardTagDraft,
@@ -36,7 +36,7 @@ import {
   submitTextField,
   tagDraftFor,
   textDraftFor,
-} from "./core/drafts";
+} from "./core/drafts.ts";
 import {
   canRedo,
   canUndo,
@@ -44,7 +44,7 @@ import {
   openHistory,
   redo,
   undo,
-} from "./core/history-steps";
+} from "./core/history-steps.ts";
 import {
   capability,
   capabilityFor,
@@ -56,8 +56,8 @@ import {
   refresh,
   refreshLocks,
   sourceMoved,
-} from "./core/lists";
-import type { AnnotationLibraryUnresolved } from "./core/lists";
+} from "./core/lists.ts";
+import type { AnnotationLibraryUnresolved } from "./core/lists.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
@@ -67,9 +67,9 @@ import type {
   AnnotationState,
   TagDraft,
   TextFieldDraft,
-} from "./core/model";
-import { mutationFor } from "./core/outcomes";
-import { CoreState } from "./core/state";
+} from "./core/model.ts";
+import { mutationFor } from "./core/outcomes.ts";
+import { CoreState } from "./core/state.ts";
 import {
   createAnnotation,
   deleteAnnotation,
@@ -80,24 +80,24 @@ import {
   patchComment,
   patchGeometry,
   retryWrite,
-} from "./core/writes";
+} from "./core/writes.ts";
 import type {
   CreateOutcome,
   WriteReadError,
   WriteRunFailed,
-} from "./core/writes";
-import type { HistoryOutcome } from "./history";
+} from "./core/writes.ts";
+import type { HistoryOutcome } from "./history.ts";
 import type {
   AnnotationDraft,
   GeometryEdit,
   GeometryInput,
   MutationState,
   TextField,
-} from "./write";
+} from "./write.ts";
 
-export type { CreateOutcome, WriteReadError } from "./core/writes";
-export { WriteRunFailed } from "./core/writes";
-export { UNHELD_RETENTION, AnnotationLibraryUnresolved } from "./core/lists";
+export type { CreateOutcome, WriteReadError } from "./core/writes.ts";
+export { WriteRunFailed } from "./core/writes.ts";
+export { UNHELD_RETENTION, AnnotationLibraryUnresolved } from "./core/lists.ts";
 export type {
   DatabaseAnnotationSource,
   AnnotationSource,
@@ -107,10 +107,10 @@ export type {
   TagDraft,
   AnnotationState,
   AnnotationRepositoryEvent,
-} from "./core/model";
-export type { EditingCapability } from "./capability";
-export type { LockReason } from "./lock";
-export type { HistoryDirection, HistoryOutcome } from "./history";
+} from "./core/model.ts";
+export type { EditingCapability } from "./capability.ts";
+export type { LockReason } from "./lock.ts";
+export type { HistoryDirection, HistoryOutcome } from "./history.ts";
 export type {
   AnnotationDraft,
   GeometryEdit,
@@ -118,8 +118,8 @@ export type {
   MutationState,
   TextField,
   WriteConflict,
-} from "./write";
-export type { DatabaseRowsError } from "./core/bridge";
+} from "./write.ts";
+export type { DatabaseRowsError } from "./core/bridge.ts";
 
 export type AnnotationRepositoryShape = {
   /**

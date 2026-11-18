@@ -3,15 +3,15 @@
 import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
-import { reportOutcome, withProgress } from "@/lib/notifier";
+import { reportOutcome, withProgress } from "@/lib/notifier.ts";
 import type {
   ManagedBinaryApi,
   ManagedBinaryFailure,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service";
+} from "@/services/managed-binary/service.ts";
 
-import type { SettingsKey } from "./context";
-import type { SettingTabEnv, SettingTabShape } from "./effect-tab";
+import type { SettingsKey } from "./context.ts";
+import type { SettingTabEnv, SettingTabShape } from "./effect-tab.ts";
 
 /** The binary's service as the row reads it: its tag, or a fake in a test. */
 export type ManagedBinaryTag = Effect.Effect<

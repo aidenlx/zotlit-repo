@@ -3,14 +3,18 @@ import { Effect, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client";
-import { effectBridge } from "@/lib/effect-bridge";
-import { subscribe } from "@/lib/effect-stream";
-import { inProcessParseClient } from "@/services/citation-parse/in-process";
+import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
+import { effectBridge } from "@/lib/effect-bridge.ts";
+import { subscribe } from "@/lib/effect-stream.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 
-import type { CitationIndexState } from "./service";
-import { CitationIndex } from "./service";
-import { createCitationIndexHarness, KEY_A, MemoryStore } from "./test-harness";
+import type { CitationIndexState } from "./service.ts";
+import { CitationIndex } from "./service.ts";
+import {
+  createCitationIndexHarness,
+  KEY_A,
+  MemoryStore,
+} from "./test-harness.ts";
 
 it.effect("disposes a store opened during runtime disposal exactly once", () =>
   Effect.promise(async () => {

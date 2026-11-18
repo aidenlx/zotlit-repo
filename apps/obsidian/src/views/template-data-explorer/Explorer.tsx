@@ -12,30 +12,30 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon";
-import { IconButton } from "@/components/obsidian/icon-button";
-import { selectionControl } from "@/components/obsidian/selection-control";
-import * as m from "@/lib/i18n/generated/messages";
-import { cn, tooltipAttrs } from "@/lib/utils";
+import { IconButton } from "@/components/obsidian/icon-button.tsx";
+import { Icon } from "@/components/obsidian/icon.tsx";
+import { selectionControl } from "@/components/obsidian/selection-control.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
+import { cn, tooltipAttrs } from "@/lib/utils.ts";
 import {
   ItemSelectionList,
   AnnotationSelectionList,
   selectionName,
-} from "@/views/template-workbench/selection";
+} from "@/views/template-workbench/selection.tsx";
 import {
   templateWorkbenchButton,
   selectionBar,
   selectionHint,
-} from "@/views/template-workbench/theme";
+} from "@/views/template-workbench/theme.tsx";
 
-import { ExplorerActionsContext } from "./actions";
+import { ExplorerActionsContext } from "./actions.ts";
 import {
   clearRestore,
   setCollapsedSections,
   setNavigation,
   setPresentation,
   useExplorerModel,
-} from "./model";
+} from "./model.ts";
 
 const sidebarBar = selectionBar({ placement: "sidebar" });
 

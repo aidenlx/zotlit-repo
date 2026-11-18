@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 
-import { createNoteTurndown } from "./index";
+import { createNoteTurndown } from "./index.ts";
 
 const packageRoot = getPackageRoot(import.meta.filename);
 

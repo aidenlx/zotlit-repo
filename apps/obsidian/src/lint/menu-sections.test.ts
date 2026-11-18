@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noLiteralMenuSection } from "../../scripts/oxlint-plugin-menu-sections";
+import { noLiteralMenuSection } from "../../scripts/oxlint-plugin-menu-sections.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

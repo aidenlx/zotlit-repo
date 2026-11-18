@@ -2,22 +2,22 @@
 import type { GraphColor, GraphEngine, GraphOptions } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub";
-import * as m from "@/lib/i18n/generated/messages";
+import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import * as m from "@/lib/i18n/generated/messages.ts";
 
 import {
   addLiteratureNotesGroup,
   groupsTarget,
   installGroupsButton,
-} from "./groups";
-import { GraphNodeColors } from "./node-color";
-import { FakeColorGroupSection } from "./test-double";
-import { themeStates, themeStatesNothing } from "./test-stub";
+} from "./groups.ts";
+import { GraphNodeColors } from "./node-color.ts";
+import { FakeColorGroupSection } from "./test-double.ts";
+import { themeStates, themeStatesNothing } from "./test-stub.ts";
 
 const DEFAULT_COLOR = { a: 1, rgb: 0xe8622c };
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/log", () => ({
+vi.mock("@/lib/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

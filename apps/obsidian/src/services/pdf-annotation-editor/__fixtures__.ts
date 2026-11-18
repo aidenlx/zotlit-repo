@@ -20,67 +20,67 @@ import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
 import type { PdfPosition, PdfTextStructure } from "@zotlit/pdf-structure";
 
-import { dispatchKey } from "@/lib/__fixtures__/keymap";
-import { testNotifier } from "@/lib/__fixtures__/notifier";
-import { passAborted } from "@/lib/abort-error";
-import { withRecentColor } from "@/lib/annotation-colors";
-import type { EffectBridge } from "@/lib/effect-bridge";
-import { toInstant } from "@/lib/effect-clock";
+import { dispatchKey } from "@/lib/__fixtures__/keymap.ts";
+import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { passAborted } from "@/lib/abort-error.ts";
+import { withRecentColor } from "@/lib/annotation-colors.ts";
+import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { toInstant } from "@/lib/effect-clock.ts";
 import {
   markExternal,
   nextChange,
   writable,
   zoteroLibrary,
-} from "@/services/annotation-repository/__fixtures__";
-import type { EditingCapability } from "@/services/annotation-repository/capability";
+} from "@/services/annotation-repository/__fixtures__.ts";
+import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationList,
   AnnotationRecord,
   AnnotationRepositoryEvent,
   AnnotationState,
   HistoryOutcome,
-} from "@/services/annotation-repository/service";
-import { IDLE } from "@/services/annotation-repository/write";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service";
-import { ReaderSessionHost } from "@/services/reader-session/session";
-import { defaults } from "@/services/settings/schema";
-import type { Settings } from "@/services/settings/schema";
-import type { PluginSettings } from "@/services/settings/service";
-import { freshnessSignal } from "@/services/zotero-local-api/__fixtures__";
-import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app";
+} from "@/services/annotation-repository/service.ts";
+import { IDLE } from "@/services/annotation-repository/write.ts";
+import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
+import { ReaderSessionHost } from "@/services/reader-session/session.ts";
+import { defaults } from "@/services/settings/schema.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import type { PluginSettings } from "@/services/settings/service.ts";
+import { freshnessSignal } from "@/services/zotero-local-api/__fixtures__.ts";
+import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__.ts";
+import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
-import type { AttachmentReads } from "./binding";
-import { MarkCreation } from "./creation";
-import type { AnnotationCreates } from "./creation";
-import { MarkPopupHost } from "./mark-popup-host";
-import { bindingResources } from "./operations";
-import { mountReaderKeymap } from "./reader-keymap";
-import type { HistoryVerb } from "./reader-keymap";
+import type { AttachmentReads } from "./binding.ts";
+import { MarkCreation } from "./creation.ts";
+import type { AnnotationCreates } from "./creation.ts";
+import { MarkPopupHost } from "./mark-popup-host.ts";
+import { bindingResources } from "./operations.ts";
+import { mountReaderKeymap } from "./reader-keymap.ts";
+import type { HistoryVerb } from "./reader-keymap.ts";
 import {
   current,
   ingestAnnotations,
   listenAnnotationEvents,
   makeReaderSurfaceModel,
-} from "./reader-surface-model";
-import type { AnnotationFacts, ReaderSurface } from "./reader-surface-model";
-import { initialReaderSurfaceState } from "./reader-surface-state";
-import type { ReaderSurfaceState } from "./reader-surface-state";
-import { groupAnnotationsByPage } from "./render";
-import type { OverlayPageView } from "./render";
-import { MarkSelection } from "./selection";
-import type { AnnotationEdits, MarkSelectionDeps } from "./selection";
+} from "./reader-surface-model.ts";
+import type { AnnotationFacts, ReaderSurface } from "./reader-surface-model.ts";
+import { initialReaderSurfaceState } from "./reader-surface-state.ts";
+import type { ReaderSurfaceState } from "./reader-surface-state.ts";
+import { groupAnnotationsByPage } from "./render.ts";
+import type { OverlayPageView } from "./render.ts";
+import { MarkSelection } from "./selection.ts";
+import type { AnnotationEdits, MarkSelectionDeps } from "./selection.ts";
 import {
   DEFAULT_INK_WIDTH,
   DEFAULT_TEXT_FONT_SIZE,
   resolveToolColors,
-} from "./tools";
+} from "./tools.ts";
 import type {
   AnnotationToolColors,
   InkWidth,
   TextFontSize,
   ToolColorStore,
-} from "./tools";
+} from "./tools.ts";
 
 /** One glyph as Obsidian's patched worker answers it, from the 1.14.2 reading. */
 export const GLYPH = {

@@ -5,20 +5,20 @@ import { hashKey } from "@tanstack/query-core";
 import type { QueryKey } from "@tanstack/query-core";
 import { Context, Effect, Fiber, FiberSet, Layer, Ref, Schema } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log-category";
-import { QueryClients } from "@/services/query-client/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
 
 import {
   excerptAnnotationIdentity,
   excerptAnnotationRecord,
   excerptKey,
-} from "./contract";
-import type { ExcerptRequest } from "./contract";
-import type { ExcerptImage } from "./format";
-import { ExcerptImageService } from "./service";
-import { supersedes } from "./service";
-import type { AvailableExcerpt } from "./service";
+} from "./contract.ts";
+import type { ExcerptRequest } from "./contract.ts";
+import type { ExcerptImage } from "./format.ts";
+import { ExcerptImageService } from "./service.ts";
+import { supersedes } from "./service.ts";
+import type { AvailableExcerpt } from "./service.ts";
 
 /** The key prefix every live display read lives under. */
 export const EXCERPT_DISPLAY = "excerpt-image-display";

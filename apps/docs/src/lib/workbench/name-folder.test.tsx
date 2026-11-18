@@ -9,7 +9,7 @@ import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 import { NameFolderPane } from "@zotlit/workbench/ui";
 
-import { WebTestHost } from "./test-host";
+import { WebTestHost } from "./test-host.tsx";
 
 beforeEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
 afterEach(() => vi.unstubAllGlobals());

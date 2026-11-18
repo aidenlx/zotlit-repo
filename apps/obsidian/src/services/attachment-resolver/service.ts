@@ -14,14 +14,14 @@ import type { AttachmentWithParentKey } from "@zotlit/db";
 import { attachmentAbsPath, attachmentPathKey } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 
-import { scopedBridge } from "@/lib/effect-bridge";
-import { withLogCategory } from "@/lib/effect-log";
-import { forkEach } from "@/lib/effect-stream";
-import { isPdfAttachment } from "@/services/attachment-open/resolve";
-import { QueryClients } from "@/services/query-client/service";
-import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service";
-import { changed } from "@/services/zotero-reads/events";
-import { ZoteroReads } from "@/services/zotero-reads/service";
+import { scopedBridge } from "@/lib/effect-bridge.ts";
+import { withLogCategory } from "@/lib/effect-log.ts";
+import { forkEach } from "@/lib/effect-stream.ts";
+import { isPdfAttachment } from "@/services/attachment-open/resolve.ts";
+import { QueryClients } from "@/services/query-client/service.ts";
+import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { changed } from "@/services/zotero-reads/events.ts";
+import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**
  * What an open PDF resolves to in the Zotero library. Both keys are Indexed
