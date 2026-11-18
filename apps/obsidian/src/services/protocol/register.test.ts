@@ -29,6 +29,7 @@ import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
@@ -60,7 +61,6 @@ import { NoteImporter } from "@/services/note-import/service.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 

@@ -2,7 +2,6 @@ import { defineConfig } from "oxlint";
 
 import baseConfig, {
   datePattern,
-  parentImportPattern,
   testBaselineOverrides,
 } from "@zotlit/config/oxlint";
 import {
@@ -20,19 +19,8 @@ export default defineConfig({
   overrides: [
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     {
-      files: ["src/services/citekey-editor/decorate.ts"],
-      rules: {
-        "no-restricted-imports": [
-          "error",
-          { ...runtimeImports, patterns: [parentImportPattern, datePattern] },
-        ],
-      },
-    },
-    {
       // Logging backlog: rework the file to log through Effect, then remove it from the list.
       files: [
-        "src/services/citation-index/sources.ts",
-        "src/services/pandoc/document-presentation.ts",
         "src/services/template/actions.ts",
         "src/views/annot-view/view.tsx",
         "src/views/library/item-actions.ts",
@@ -40,16 +28,10 @@ export default defineConfig({
         "src/views/library/reading-card.tsx",
         "src/views/library/view.ts",
         "src/views/query-view/view.tsx",
-        "src/views/references/view.tsx",
         "src/views/template-workbench/view.tsx",
         "src/views/welcome/banner.tsx",
       ],
       rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
-    },
-    {
-      // These adapters own effect/rpc worker creation, shutdown and log transport.
-      files: ["src/services/citation-parse/worker-host.ts"],
-      rules: { "zotlit-services/worker-rpc": "off" },
     },
     // Capability backlog: files that import Effect and still reach the App,
     // grouped by what blocks the change. A file moves off its list when it
@@ -69,21 +51,10 @@ export default defineConfig({
       // A file moves off the list when its view reads the tags.
       files: [
         "src/views/annot-view/view.tsx",
-        "src/views/references/view.tsx",
         "src/views/template-data-explorer/view.tsx",
         "src/views/template-workbench/view.tsx",
         "src/views/welcome/banner.tsx",
       ],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      // No tag member yet: `vault.getName`.
-      files: ["src/services/citation-index/cli/register.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      // No tag member yet: `vault.adapter`.
-      files: ["src/views/pandoc-export/register.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
@@ -109,12 +80,8 @@ export default defineConfig({
     },
     {
       // Helpers and constructors that take a raw App object
-      // (`documentPresentation(app.metadataCache, …)`,
-      // `readProfileStamp(app.metadataCache, …)`, `vault: app.vault`).
-      files: [
-        "src/services/plugin-runtime.ts",
-        "src/services/pandoc/register.ts",
-      ],
+      // (`readProfileStamp(app.metadataCache, …)`, `vault: app.vault`).
+      files: ["src/services/plugin-runtime.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
@@ -127,7 +94,6 @@ export default defineConfig({
       // Default-runtime backlog: run the Effect through the bridge, a layer context runner or a runtime, then remove the file from the list.
       files: [
         "src/services/batch-run.ts",
-        "src/services/citation-index/sources.ts",
         "src/services/profile/service.ts",
         "src/views/annot-view/view.tsx",
         "src/views/library/item-actions.ts",
@@ -206,11 +172,7 @@ export default defineConfig({
       },
     },
     {
-      files: [
-        "vite.config.ts",
-        "src/services/pandoc/filter/zotlit-cite.pandoc.test.ts",
-        "src/zt-main.ts",
-      ],
+      files: ["vite.config.ts", "src/zt-main.ts"],
       rules: {
         "effecttsgo/global-console": "off",
         "effecttsgo/global-console-in-effect": "off",
@@ -261,14 +223,8 @@ export default defineConfig({
       // Tests written before the rule that assert zt: classes; a file moves off
       // this list when its assertions move to behavior.
       files: [
-        "src/services/citation-popover/content.test.ts",
-        "src/services/citekey-navigation/citation.test.ts",
-        "src/services/pandoc/inline-content.test.ts",
         "src/setting-tab/create-profile-modal.test.ts",
         "src/setting-tab/profile-destination-modal.test.ts",
-        "src/views/cited-by/CitedBy.test.ts",
-        "src/views/references/References.test.ts",
-        "src/views/references/view.test.ts",
         "src/views/template-workbench/host.test.ts",
         "src/views/welcome/Welcome.test.ts",
       ],

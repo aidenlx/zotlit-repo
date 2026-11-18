@@ -41,7 +41,7 @@ export type CitationFragmentParseResult =
  * exporter would reject comes back as the same reason string, so a consumer
  * can render raw instead of guessing.
  *
- * @see apps/obsidian/src/services/pandoc/filter/zotlit-cite.lua — `parse_fragment`
+ * @see packages/citations/src/core/pandoc/filter/zotlit-cite.lua — `parse_fragment`
  */
 export function parseCitationFragment(
   fragment: string,

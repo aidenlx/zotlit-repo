@@ -112,7 +112,9 @@
         "packages/plugin-services/src/**",
         "packages/plugin-services/tsconfig*.json",
         "packages/annotations/src/**",
-        "packages/annotations/tsconfig*.json"
+        "packages/annotations/tsconfig*.json",
+        "packages/citations/src/**",
+        "packages/citations/tsconfig*.json"
       ]
     },
     "//#review:manifest": {

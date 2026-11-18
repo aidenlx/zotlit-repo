@@ -2,6 +2,7 @@
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
+import { listInstalledStyles } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
 import type { Item } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -10,7 +11,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
-import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import type {
   CreateProfileDialog,
   ImportProfileDialog,

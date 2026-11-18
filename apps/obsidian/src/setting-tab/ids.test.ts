@@ -8,6 +8,7 @@ import type {
 } from "obsidian";
 import { expect, it, vi } from "vitest";
 
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -19,7 +20,6 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";

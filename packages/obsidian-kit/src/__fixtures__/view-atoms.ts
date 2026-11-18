@@ -8,6 +8,7 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { Notifier } from "#notifier.ts";
 import { ObsidianEnv } from "#obsidian-env.ts";
 import { FileManager } from "#obsidian-file-manager.ts";
+import { ShowInLibrary } from "#show-in-library.ts";
 import { makeViewRegistry } from "#view-atoms.ts";
 import type { ViewServices } from "#view-atoms.ts";
 
@@ -26,6 +27,7 @@ export const layerUnreadKitViewServices = Layer.mergeAll(
     stubService<ObsidianEnv["Service"]>("ObsidianEnv", {}),
   ),
   Layer.mock(Notifier, {}),
+  Layer.mock(ShowInLibrary, {}),
 );
 
 /**

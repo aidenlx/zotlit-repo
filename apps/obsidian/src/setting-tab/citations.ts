@@ -7,9 +7,17 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
+import { citationLocaleError } from "@zotlit/citations/core/citation-index/settings.ts";
+import type { HoverAction } from "@zotlit/citations/core/citation-index/settings.ts";
+import {
+  referencesStyleOptions,
+  STYLE_DEFAULT,
+} from "@zotlit/citations/core/pandoc/citation-style.ts";
+import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";
+import { listInstalledStyles } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
+import { GRAPH_CORE_PLUGIN_ID } from "@zotlit/citations/obsidian/graph-citations/install.ts";
 import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
-import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import {
@@ -18,17 +26,9 @@ import {
 } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import type { HoverAction } from "@/services/citation-index/settings.ts";
-import { GRAPH_CORE_PLUGIN_ID } from "@/services/graph-citations/install.ts";
-import {
-  referencesStyleOptions,
-  STYLE_DEFAULT,
-} from "@/services/pandoc/citation-style.ts";
-import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
-import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { annotationTriggerError } from "@/views/citation-suggest/annotation-trigger.ts";
+import { annotationTriggerError } from "@/views/annotation-suggest/annotation-trigger.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { zoteroDataDir } from "./database.ts";
@@ -281,15 +281,6 @@ function requireModPage(
       control: { type: "toggle", key },
     })),
   };
-}
-
-/**
- * @returns why the Citation Locale was refused, or nothing for one the CSL
- *   processor reads — an empty value included, which is Style default.
- */
-export function citationLocaleError(locale: string): string | undefined {
-  if (locale === "" || isLanguageTag(locale)) return undefined;
-  return m.settings_citation_locale_invalid();
 }
 
 /**

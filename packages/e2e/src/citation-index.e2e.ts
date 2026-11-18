@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { backup, DatabaseSync } from "node:sqlite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { CitationLookupObservation } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
 import {
   buildFixture,
   discardFixture,
@@ -12,8 +13,6 @@ import {
   ITEMS,
 } from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import type { CitationLookupObservation } from "@/services/citation-index/lookup-service.ts";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { obRun } from "./obsidian-cli.ts";

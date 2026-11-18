@@ -3,6 +3,7 @@ import { Cause, Context, Effect, Exit } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -11,8 +12,6 @@ import {
   LanguagePack,
   LanguagePackStorageFailed,
 } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
-
-import { CitationIndex } from "@/services/citation-index/service.ts";
 
 import {
   clearExcerptCache,

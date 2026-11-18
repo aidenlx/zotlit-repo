@@ -1,0 +1,73 @@
+{
+  "name": "@zotlit/citations",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The citations of the ZotLit Obsidian plugins: the Citation Index, citation parsing and the Citation Suggester, the Document Citation Text in the editor and reading view, the Citation and Annotation Popovers, Graph Citations, the References Sidebar and the Cited By Sidebar, and the Pandoc Engine with Pandoc export",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./vite": "./scripts/lua-filter.ts",
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "test:lua-filter": "vitest run --project pandoc"
+  },
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "^0.4.2",
+    "@codemirror/language": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@effect/atom-react": "catalog:",
+    "@effect/platform-browser": "catalog:",
+    "@lezer/markdown": "catalog:",
+    "@tanstack/query-core": "catalog:",
+    "@zotlit/annotations": "workspace:*",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/templates": "workspace:*",
+    "@zotlit/ui": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "arkregex": "catalog:",
+    "effect": "catalog:",
+    "entities": "7.0.1",
+    "fflate": "catalog:",
+    "idb": "catalog:",
+    "monkey-around": "catalog:",
+    "preact": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "fake-indexeddb": "6.2.5",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "pandoc-wasm": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

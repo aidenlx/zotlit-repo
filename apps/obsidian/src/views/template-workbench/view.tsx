@@ -19,6 +19,7 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { bibliographyRevisionAtom } from "@zotlit/citations/obsidian/pandoc/atoms.ts";
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
@@ -149,7 +150,6 @@ import { plainNoteError } from "@/services/note-feature/errors.ts";
 import type { UpdateResult } from "@/services/note-feature/operations.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { updateNoteToast } from "@/services/note-feature/update-single.ts";
-import { bibliographyRevisionAtom } from "@/services/pandoc/atoms.ts";
 import {
   defaultProfilePathAtom,
   profilesAtom,

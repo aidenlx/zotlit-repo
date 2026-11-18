@@ -424,7 +424,7 @@ function withRenderedCitation(
  * The root element every standalone CSL style opens with, and the element a
  * processor formats through. A style carrying neither renders nothing, so the
  * bundle answers for a style the preview cannot be shown under.
- * @see apps/obsidian/src/services/pandoc/styles.ts isStandaloneCslStyle
+ * @see packages/citations/src/core/pandoc/csl-style.ts isStandaloneCslStyle
  */
 const CSL_ELEMENT_PREFIX = "(?:[^\\s/<>=:]+:)?";
 const CSL_STYLE_ROOT = regex(`<${CSL_ELEMENT_PREFIX}style(?=[\\s/>])`);

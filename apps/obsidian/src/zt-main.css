@@ -144,6 +144,7 @@
 @source "../../../packages/obsidian-kit/src";
 @source "../../../packages/plugin-services/src";
 @source "../../../packages/annotations/src";
+@source "../../../packages/citations/src";
 
 /* Scoped preflight. Resets UA/Obsidian element defaults *inside plugin UI roots
    only* — mark a root with `class="zt-root"` — so semantic HTML (blockquote, p,

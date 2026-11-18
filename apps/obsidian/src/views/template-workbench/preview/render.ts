@@ -3,6 +3,7 @@ import { Cause, DateTime, Effect, Exit } from "effect";
 import { stringifyYaml } from "obsidian";
 import type { App } from "obsidian";
 
+import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
 import { DEFAULT_CITATION_VARIANT, withAnnotationCitation } from "@zotlit/db";
 import type {
   AnnotationTemplateContext,
@@ -57,7 +58,6 @@ import {
   composeLiteratureNote,
   prepareLiteratureNote,
 } from "@/services/note-feature/index.ts";
-import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { bindProfile } from "@/services/profile/bindings.ts";
 import { bindUnvalidatedDraftProfile } from "@/services/profile/service.ts";
 import { Profile } from "@/services/profile/service.ts";

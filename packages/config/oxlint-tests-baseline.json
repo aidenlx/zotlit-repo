@@ -70,42 +70,42 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/citation-popover/content.test.ts": [
+  "packages/citations/src/desktop/citation-popover/content.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/citation-popover/lifecycle.test.ts": [
+  "packages/citations/src/obsidian/citation-popover/lifecycle.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/citation-popover/popover.test.ts": [
+  "packages/citations/src/obsidian/citation-popover/popover.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/citation-popover/service.test.ts": [
+  "packages/citations/src/obsidian/citation-popover/service.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/citekey-editor/extension-parse.test.ts": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-markup-assertion",
-    "zotlit-tests/no-source-text"
-  ],
-  "apps/obsidian/src/services/citekey-editor/extension.test.ts": [
+  "packages/citations/src/obsidian/citekey-editor/extension-parse.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/citekey-editor/service.test.ts": [
+  "packages/citations/src/obsidian/citekey-editor/extension.test.ts": [
+    "zotlit-tests/no-internal-mock",
+    "zotlit-tests/no-markup-assertion",
+    "zotlit-tests/no-source-text"
+  ],
+  "apps/obsidian/src/services/citations/citekey-editor.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/citekey-navigation/citation.test.ts": [
+  "packages/citations/src/obsidian/citekey-navigation/citation.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/citekey-reading/render.test.ts": [
+  "packages/citations/src/obsidian/citekey-reading/render.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/citekey-reading/service.test.ts": [
+  "packages/citations/src/obsidian/citekey-reading/service.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "packages/zotero-reads/src/desktop/read-source-fallback.test.ts": [
@@ -116,24 +116,24 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/graph-citations/groups.test.ts": [
+  "packages/citations/src/obsidian/graph-citations/groups.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/graph-citations/node-color.test.ts": [
+  "packages/citations/src/obsidian/graph-citations/node-color.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/graph-citations/rows.test.ts": [
+  "packages/citations/src/obsidian/graph-citations/rows.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/graph-citations/saved-options.test.ts": [
+  "packages/citations/src/obsidian/graph-citations/saved-options.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/graph-citations/service.test.ts": [
+  "packages/citations/src/obsidian/graph-citations/service.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
@@ -195,7 +195,7 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/pandoc/inline-content.test.ts": [
+  "packages/citations/src/obsidian/pandoc/inline-content.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
@@ -234,16 +234,16 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/wikilink-editor/hover.test.ts": [
+  "packages/citations/src/obsidian/wikilink-editor/hover.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/wikilink-editor/theme-hooks.test.ts": [
+  "packages/citations/src/obsidian/wikilink-editor/theme-hooks.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/wikilink-reading/service.test.ts": [
+  "packages/citations/src/obsidian/wikilink-reading/service.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/setting-tab/create-profile-modal.test.ts": [
@@ -281,14 +281,14 @@
   "packages/annotations/src/desktop/annot-view/layout.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/citation-presentation/modal.test.ts": [
+  "packages/citations/src/desktop/citation-presentation/modal.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/cited-by/CitedBy.test.ts": [
+  "packages/citations/src/obsidian/cited-by/CitedBy.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/cited-by/view.test.ts": [
+  "packages/citations/src/obsidian/cited-by/view.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/views/library/view.test.ts": [
@@ -297,7 +297,7 @@
   "apps/obsidian/src/views/template-workbench/preview/markdown.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/pandoc-export/register.test.ts": [
+  "apps/obsidian/src/services/citations/pandoc-export-register.test.ts": [
     "zotlit-tests/no-internal-mock"
   ],
   "apps/obsidian/src/views/query-view/note-host.test.ts": [
@@ -314,12 +314,12 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/references/References.test.ts": [
+  "packages/citations/src/desktop/references/References.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/references/view.test.ts": [
+  "packages/citations/src/desktop/references/view.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],

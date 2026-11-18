@@ -15,12 +15,23 @@ import type { ExcerptReaderDocuments } from "@zotlit/annotations/obsidian/excerp
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { openExcerptStore } from "@zotlit/annotations/obsidian/excerpt-image/store.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
+import type { PandocExportServices } from "@zotlit/citations/desktop/pandoc-export/register.ts";
+import { AnnotationPopover } from "@zotlit/citations/obsidian/annotation-popover/service.ts";
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
+import { CitationPopover } from "@zotlit/citations/obsidian/citation-popover/service.ts";
+import { CitationText } from "@zotlit/citations/obsidian/citation-text/service.ts";
+import { CitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
+import { GraphCitations } from "@zotlit/citations/obsidian/graph-citations/service.ts";
+import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { cliRunner } from "@zotlit/obsidian-kit/cli-command.ts";
 import { DisposableAbortController } from "@zotlit/obsidian-kit/disposables.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -51,8 +62,6 @@ import {
   annotationCardShown,
   revealAnnotationInView,
 } from "@/views/annot-view/register.ts";
-import { ShowInLibrary } from "@/views/library/show-in-library.ts";
-import type { PandocExportServices } from "@/views/pandoc-export/register.ts";
 import type { WorkbenchActionServices } from "@/views/template-workbench/actions.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 import {
@@ -62,13 +71,6 @@ import {
 import { openWelcomeView } from "@/views/welcome/register.ts";
 import type ZotLitPlugin from "@/zt-main.ts";
 
-import { AnnotationPopover } from "./annotation-popover/service.tsx";
-import { CitationLookup } from "./citation-index/lookup-service.ts";
-import { CitationIndex } from "./citation-index/service.ts";
-import { CitationPopover } from "./citation-popover/service.tsx";
-import { CitationText } from "./citation-text/service.ts";
-import { CitekeyEditor } from "./citekey-editor/service.ts";
-import { GraphCitations } from "./graph-citations/service.ts";
 import { bindQuery } from "./item-query/handle.ts";
 import { QueryService } from "./item-query/service.ts";
 import type { DefaultProfileTarget } from "./local-bridge/customize.ts";
@@ -89,7 +91,6 @@ import { bindBatchImport } from "./note-import/batch-import-handle.ts";
 import type { BatchImportServices } from "./note-import/batch-import.ts";
 import { importChildNotes, importStarter } from "./note-import/commands.ts";
 import { createNoteImportView } from "./note-import/view.ts";
-import { PandocEngine } from "./pandoc/service.ts";
 import { pluginLayer } from "./plugin-layer.ts";
 import { Profile } from "./profile/service.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
@@ -363,6 +364,7 @@ export async function createPluginRuntime(
     ),
     pandocEngine: bindManagedBinary(bridge, pandocEngine),
     citationText: runtime.runSync(CitationText),
+    profileStyles: runtime.runSync(ProfileStyles),
     citationPopover: runtime.runSync(CitationPopover),
     annotationPopover: runtime.runSync(AnnotationPopover),
     citekeyEditor: runtime.runSync(CitekeyEditor),

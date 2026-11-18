@@ -3,6 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Stream } from "effect";
 import { describe, vi } from "vitest";
 
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import {
   ButtonComponent,
@@ -18,8 +19,6 @@ import type {
   ManagedBinaryApi,
   ManagedBinaryStatus,
 } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
-
-import { PandocEngine } from "@/services/pandoc/service.ts";
 
 import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
 import { chineseSegmenterDefinition } from "./chinese-segmenter.ts";

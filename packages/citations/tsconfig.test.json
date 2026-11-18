@@ -1,0 +1,19 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "types": ["node-24"],
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "../obsidian-kit/src/typings/*.d.ts",
+    // The build constants the platform services read.
+    "../plugin-services/src/typings/*.d.ts",
+    // The reader slice of the settings, which the annotation feature's Open
+    // Targets read and which only a host program otherwise imports.
+    "../annotations/src/obsidian/pdf-annotation-editor/settings.ts"
+  ],
+  "exclude": ["./node_modules"]
+}

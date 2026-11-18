@@ -1,6 +1,7 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { configureSync, resetSync } from "@logtape/logtape";
-import "@mock/dom-parser.ts";
+
+import "@zotlit/citations/__fixtures__/dom-parser.ts";
 import type { LogRecord } from "@logtape/logtape";
 import { Effect, Layer, Scope } from "effect";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";

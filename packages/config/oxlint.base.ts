@@ -73,6 +73,7 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/zotero-reads",
   "packages/plugin-services",
   "packages/annotations",
+  "packages/citations",
 ]);
 
 /**

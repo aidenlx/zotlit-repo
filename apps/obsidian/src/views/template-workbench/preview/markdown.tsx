@@ -3,6 +3,12 @@ import { Component, MarkdownRenderer } from "obsidian";
 import type { App } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 
+import { citationElement } from "@zotlit/citations/obsidian/citation-text/present.ts";
+import {
+  replaceCitations,
+  sectionCitations,
+} from "@zotlit/citations/obsidian/citekey-reading/render.ts";
+import { renderCitationRuns } from "@zotlit/citations/obsidian/wikilink-reading/render.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
@@ -10,13 +16,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { RenderedProperty, RenderedRange } from "@zotlit/workbench/render";
 import { PropertyList } from "@zotlit/workbench/ui";
 import type { WorkbenchMarkdownProps } from "@zotlit/workbench/ui";
-
-import { citationElement } from "@/services/citation-text/present.ts";
-import {
-  replaceCitations,
-  sectionCitations,
-} from "@/services/citekey-reading/render.ts";
-import { renderCitationRuns } from "@/services/wikilink-reading/render.ts";
 
 import type { PreviewCitation } from "./citations.ts";
 import type { NativeRenderResult } from "./render.ts";

@@ -90,6 +90,7 @@ const PLUGIN_SOURCES = [
   "packages/zotero-reads/src",
   "packages/plugin-services/src",
   "packages/annotations/src",
+  "packages/citations/src",
 ];
 
 export default [

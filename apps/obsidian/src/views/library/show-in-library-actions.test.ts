@@ -7,6 +7,7 @@ import { Menu, TFile } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { fileMenuHandler } from "@zotlit/plugin-services/__fixtures__/file-menu.ts";
@@ -15,7 +16,6 @@ import {
   layerShowInLibraryActions,
   showInLibraryFileMenu,
 } from "./show-in-library-actions.ts";
-import { ShowInLibrary } from "./show-in-library.ts";
 
 function note(extension = "md"): TFile {
   const file = new TFile();

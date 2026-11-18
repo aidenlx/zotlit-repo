@@ -3,6 +3,7 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Layer } from "effect";
 import type { FileSystem } from "effect";
 import type { Plugin } from "obsidian";
+import citationParseWorker from "virtual:citation-parse-worker";
 
 import { openWithSystem } from "@zotlit/annotations/desktop/attachment-open/capture.ts";
 import { layerTargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
@@ -30,6 +31,37 @@ import type {
   PdfAnnotationEditor,
   PdfAnnotationEditorPorts,
 } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
+import { layerAnnotationPopover } from "@zotlit/citations/desktop/annotation-popover/layer.tsx";
+import { layerCitationPopover } from "@zotlit/citations/desktop/citation-popover/layer.tsx";
+import { layerPandocResolve } from "@zotlit/citations/desktop/pandoc/register.ts";
+import { layerBibliographyRender } from "@zotlit/citations/desktop/pandoc/render-cache-layer.ts";
+import { layerAnnotationLinkReading } from "@zotlit/citations/obsidian/annotation-popover/reading.ts";
+import type { AnnotationPopover } from "@zotlit/citations/obsidian/annotation-popover/service.ts";
+import { layerCitationsCli } from "@zotlit/citations/obsidian/citation-index/cli/register.ts";
+import { layerCitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import type { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import { layerCitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
+import type { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
+import { layerCitationParse } from "@zotlit/citations/obsidian/citation-parse/service.ts";
+import type { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service.ts";
+import type { CitationPopover } from "@zotlit/citations/obsidian/citation-popover/service.ts";
+import { layerCitationText } from "@zotlit/citations/obsidian/citation-text/service.ts";
+import type { CitationText } from "@zotlit/citations/obsidian/citation-text/service.ts";
+import { layerCitekeyCandidatePicker } from "@zotlit/citations/obsidian/citekey-editor/candidates.ts";
+import { layerCitekeyEditorNotices } from "@zotlit/citations/obsidian/citekey-editor/notices.ts";
+import { layerCitekeyEditorExtension } from "@zotlit/citations/obsidian/citekey-editor/register.ts";
+import { layerCitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
+import type { CitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
+import { layerCitekeyReading } from "@zotlit/citations/obsidian/citekey-reading/service.ts";
+import { layerGraphCitations } from "@zotlit/citations/obsidian/graph-citations/service.ts";
+import type { GraphCitations } from "@zotlit/citations/obsidian/graph-citations/service.ts";
+import { layerCitationStyleNotice } from "@zotlit/citations/obsidian/pandoc/notices.ts";
+import type { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
+import type { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
+import { layerPandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { layerWikilinkEditor } from "@zotlit/citations/obsidian/wikilink-editor/service.ts";
+import { layerWikilinkReading } from "@zotlit/citations/obsidian/wikilink-reading/service.ts";
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { layerRequestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
 import { layerNotifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -48,6 +80,7 @@ import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { layerWorkspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { openSettingsTab } from "@zotlit/obsidian-kit/open-settings.ts";
 import { layerPluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { layerViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
@@ -107,31 +140,8 @@ import {
   openLibraryView,
 } from "@/views/library/register.ts";
 import { layerShowInLibraryActions } from "@/views/library/show-in-library-actions.ts";
-import type { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { layerZoteroHttpNode } from "@/zotero-http-node.ts";
 
-import { layerAnnotationLinkReading } from "./annotation-popover/reading.ts";
-import { layerAnnotationPopover } from "./annotation-popover/service.tsx";
-import type { AnnotationPopover } from "./annotation-popover/service.tsx";
-import { layerCitationsCli } from "./citation-index/cli/register.ts";
-import { layerCitationLookup } from "./citation-index/lookup-service.ts";
-import type { CitationLookup } from "./citation-index/lookup-service.ts";
-import { layerCitationIndex } from "./citation-index/service.ts";
-import type { CitationIndex } from "./citation-index/service.ts";
-import { layerCitationParse } from "./citation-parse/service.ts";
-import type { CitationParse } from "./citation-parse/service.ts";
-import { layerCitationPopover } from "./citation-popover/service.tsx";
-import type { CitationPopover } from "./citation-popover/service.tsx";
-import { layerCitationText } from "./citation-text/service.ts";
-import type { CitationText } from "./citation-text/service.ts";
-import { layerCitekeyCandidatePicker } from "./citekey-editor/candidates.ts";
-import { layerCitekeyEditorNotices } from "./citekey-editor/notices.ts";
-import { layerCitekeyEditorExtension } from "./citekey-editor/register.ts";
-import { layerCitekeyEditor } from "./citekey-editor/service.ts";
-import type { CitekeyEditor } from "./citekey-editor/service.ts";
-import { layerCitekeyReading } from "./citekey-reading/service.ts";
-import { layerGraphCitations } from "./graph-citations/service.ts";
-import type { GraphCitations } from "./graph-citations/service.ts";
 import { layerQueryCli } from "./item-query/cli.ts";
 import { layerQueryMeasureCli } from "./item-query/measure.ts";
 import { layerQueryService } from "./item-query/service.ts";
@@ -140,6 +150,7 @@ import { layerCustomize } from "./local-bridge/customize.ts";
 import type { Customize, CustomizePorts } from "./local-bridge/customize.ts";
 import { layerLocalBridge } from "./local-bridge/service.ts";
 import type { LocalBridge } from "./local-bridge/service.ts";
+import { layerCitekeyNoteActions } from "./note-feature/citekey-actions.ts";
 import type { InteractiveCreationPorts } from "./note-feature/creation-view.ts";
 import { layerNoteFeatureNotices } from "./note-feature/notices.ts";
 import { layerNoteFeature } from "./note-feature/service.ts";
@@ -147,13 +158,8 @@ import type { NoteFeature } from "./note-feature/service.ts";
 import { layerNoteImportCommands } from "./note-import/commands.ts";
 import { layerNoteImporter } from "./note-import/service.ts";
 import type { NoteImporter } from "./note-import/service.ts";
-import { layerCitationStyleNotice } from "./pandoc/notices.ts";
-import { layerPandocResolve } from "./pandoc/register.ts";
-import { layerBibliographyRender } from "./pandoc/render-cache.ts";
-import type { BibliographyRender } from "./pandoc/render-cache.ts";
-import { layerPandocEngine } from "./pandoc/service.ts";
-import type { PandocEngine } from "./pandoc/service.ts";
 import { layerProfileActions } from "./profile/actions.ts";
+import { layerProfileStyles } from "./profile/profile-styles.ts";
 import { layerProfile } from "./profile/service.ts";
 import type { Profile } from "./profile/service.ts";
 import { layerProtocolHandlers } from "./protocol/register.ts";
@@ -172,8 +178,6 @@ import type {
 } from "./template/migration.ts";
 import { layerTemplate } from "./template/service.ts";
 import type { Template } from "./template/service.ts";
-import { layerWikilinkEditor } from "./wikilink-editor/service.ts";
-import { layerWikilinkReading } from "./wikilink-reading/service.ts";
 import { workerClient } from "./zotero-reads/worker-client.ts";
 
 /**
@@ -241,6 +245,7 @@ export function pluginLayer(
   | BibliographyRender
   | CitationLookup
   | Profile
+  | ProfileStyles
   | LibraryScope
   | AttachmentImport
   | TargetOpener
@@ -326,6 +331,8 @@ export function pluginLayer(
         startingAs("TargetOpener"),
       ),
     ),
+    // The citations read the Profiles through their port.
+    Layer.provideMerge(layerProfileStyles.pipe(startingAs("ProfileStyles"))),
     Layer.provideMerge(
       Layer.mergeAll(
         layerLibraryScope.pipe(startingAs("LibraryScope")),
@@ -380,7 +387,9 @@ export function pluginLayer(
           layerPandocEngine.pipe(startingAs("PandocEngine")),
         ).pipe(Layer.provide(layerManagedBinaryPlatform)),
         layerNoteIndex.pipe(startingAs("NoteIndex")),
-        layerCitationParse.pipe(startingAs("CitationParse")),
+        layerCitationParse(citationParseWorker).pipe(
+          startingAs("CitationParse"),
+        ),
         layerQueryClients.pipe(startingAs("QueryClients")),
         layerZoteroHttpNode.pipe(startingAs("ZoteroHttp")),
       ),
@@ -480,7 +489,10 @@ export function pluginLayer(
   // the other services. The citekey editor creates notes through it.
   // Customize launches over the Local Bridge.
   const noteFeature = Layer.mergeAll(
-    layerCitekeyEditor(creation).pipe(startingAs("CitekeyEditor")),
+    layerCitekeyEditor.pipe(
+      startingAs("CitekeyEditor"),
+      Layer.provide(layerCitekeyNoteActions(creation)),
+    ),
     layerCustomize(customize).pipe(startingAs("Customize")),
   ).pipe(
     Layer.provide(layerNotifier),

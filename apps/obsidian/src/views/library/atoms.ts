@@ -1,5 +1,4 @@
-// The Library View's Collection lookup, read from the plugin's Effect services,
-// and Show in Library for the views that open the Library View on an Item.
+// The Library View's Collection lookup, read from the plugin's Effect services.
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -12,19 +11,7 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 
 import type { LibraryNode } from "./document.ts";
-import { ShowInLibrary } from "./show-in-library.ts";
 import { libraryOf, sameLibrary } from "./tree.ts";
-
-/** The Library View can open after the pane that asked for it closes. */
-export const showInLibraryCommand = Atom.keepAlive(
-  viewRuntime.fn(
-    (indexedKey: string) =>
-      Effect.gen(function* () {
-        yield* (yield* ShowInLibrary).show(indexedKey);
-      }),
-    { concurrent: true },
-  ),
-);
 
 /**
  * The node of an Item's first Collection, or of its Library, by the Item's

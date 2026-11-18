@@ -7,11 +7,11 @@ import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { CitationParse } from "@/services/citation-parse/service.ts";
-import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
-import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service.ts";
+import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
@@ -21,9 +21,9 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { TemplateDataDeps } from "@/services/template-workbench/data.ts";
 import type { findExistingLitNote } from "@/services/template/inert-resolver-host.ts";
-import type { ParseClient } from "@/services/citation-parse/client.ts";
+import type { ParseClient } from "@zotlit/citations/core/citation-parse/client.ts";
 import type { CitationLookupRequest, CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
-import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
+import type { EffectivePresentation } from "@zotlit/citations/obsidian/pandoc/document-presentation.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 
 type PromiseMethods<T> = {
@@ -55,7 +55,7 @@ interface PreviewHostDeps extends TemplateDataDeps {
 }
 import { Stream } from "effect";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
-import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { inProcessParseClient } from "@zotlit/citations/core/citation-parse/in-process.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 // Live database and TemplateService boundaries for native preview tests.
 import type { App, Events } from "obsidian";
@@ -64,7 +64,7 @@ import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
-import type { RenderedCitation } from "@/services/pandoc/engine.ts";
+import type { RenderedCitation } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 
 import { buildTemplate } from "@/services/template/__fixtures__.ts";
 import { createObsidianHost, PluginStub } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";

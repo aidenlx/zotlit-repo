@@ -8,13 +8,13 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { CitationText } from "@/services/citation-text/service.ts";
-import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
-import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
-import { CitationParse } from "@/services/citation-parse/service.ts";
-import { CitationIndex } from "@/services/citation-index/service.ts";
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import { CitationText } from "@zotlit/citations/obsidian/citation-text/service.ts";
+import { CitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
+import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service.ts";
+import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { QueryService } from "@/services/item-query/service.ts";
@@ -24,6 +24,7 @@ import { NoteFeature } from "@/services/note-feature/service.ts";
 import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
+import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { Release } from "@/services/release/service.ts";
@@ -34,7 +35,7 @@ import { Template } from "@/services/template/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-import { ShowInLibrary } from "@/views/library/show-in-library.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 
 /**
  * Every view service outside the Obsidian host tags, as an empty mock. Merge
@@ -70,6 +71,10 @@ export const layerUnreadViewServices = Layer.mergeAll(
   Layer.mock(NoteIndex, {}),
   Layer.mock(NoteFeature, {}),
   Layer.mock(Profile, {}),
+  Layer.mock(
+    ProfileStyles,
+    stubService<ProfileStyles["Service"]>("ProfileStyles", {}),
+  ),
   Layer.mock(Template, {}),
   Layer.mock(Notifier, {}),
   Layer.mock(QueryService, {}),

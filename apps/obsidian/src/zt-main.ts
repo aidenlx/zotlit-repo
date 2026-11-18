@@ -10,6 +10,16 @@ import { createCommentRenderer } from "@zotlit/annotations/obsidian/annot-view/c
 import { addAnnotationHistoryActions } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
 import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
 import { annotationHistoryFileMenu } from "@zotlit/annotations/obsidian/annotation-repository/menu.ts";
+import {
+  citationPresentationFileMenu,
+  registerCitationPresentation,
+} from "@zotlit/citations/desktop/citation-presentation/register.ts";
+import { registerPandocExport } from "@zotlit/citations/desktop/pandoc-export/register.ts";
+import { registerReferencesView } from "@zotlit/citations/desktop/references/register.ts";
+import { registerCitationSuggest } from "@zotlit/citations/obsidian/citation-suggest/register.ts";
+import { registerCitedByView } from "@zotlit/citations/obsidian/cited-by/register.ts";
+import { addCitekeyEditorActions } from "@zotlit/citations/obsidian/citekey-editor/actions.ts";
+import { addGraphCitationsActions } from "@zotlit/citations/obsidian/graph-citations/actions.ts";
 import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -28,13 +38,12 @@ import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
 import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
 
 import { startI18n } from "./i18n.ts";
-import { addCitekeyEditorActions } from "./services/citekey-editor/actions.ts";
-import { addGraphCitationsActions } from "./services/graph-citations/actions.ts";
 import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices.ts";
 import {
   addNoteFeatureActions,
   noteFeatureFileMenu,
 } from "./services/note-feature/actions.ts";
+import { citationTemplateOf } from "./services/note-feature/citation-template.ts";
 import { createPluginRuntime } from "./services/plugin-runtime.ts";
 import { ServiceStartupFailed } from "./services/startup-failure.ts";
 import {
@@ -43,22 +52,13 @@ import {
 } from "./setting-tab/profile-dialogs.ts";
 import { registerAnnotView } from "./views/annot-view/register.ts";
 import { AnnotationView } from "./views/annot-view/view.tsx";
-import {
-  citationPresentationFileMenu,
-  registerCitationPresentation,
-} from "./views/citation-presentation/register.ts";
-import {
-  registerAnnotationSuggest,
-  registerCitationSuggest,
-} from "./views/citation-suggest/register.ts";
-import { registerCitedByView } from "./views/cited-by/register.ts";
+import { registerAnnotationSuggest } from "./views/annotation-suggest/register.ts";
 import { itemActions } from "./views/library/item-actions.ts";
 import {
   registerLibraryView,
   showInLibrary,
 } from "./views/library/register.ts";
 import { showInLibraryFileMenu } from "./views/library/show-in-library-actions.ts";
-import { registerPandocExport } from "./views/pandoc-export/register.ts";
 import { registerPdfNote } from "./views/pdf-note/register.ts";
 import { registerQueryBlock } from "./views/query-view/block.ts";
 import { QueryCardFocus } from "./views/query-view/card-focus.ts";
@@ -72,7 +72,6 @@ import {
 import { literatureNotes } from "./views/query-view/table-notes.ts";
 import type { QueryViewDeps } from "./views/query-view/view.tsx";
 import { registerQuickSwitch } from "./views/quick-switch/register.ts";
-import { registerReferencesView } from "./views/references/register.ts";
 import {
   explorerFileMenu,
   registerTemplateDataExplorer,
@@ -290,7 +289,7 @@ export default class ZotLitPlugin extends UnloadAwarePlugin implements CliHost {
     registerCitationSuggest(this, {
       app: this.app,
       lookup: services.itemLookup,
-      noteFeature: services.noteFeature,
+      citationTemplate: citationTemplateOf(services.noteFeature),
       settings: services.settings,
       bridge: services.bridge,
       ...services.citationSuggestServices,
@@ -472,6 +471,7 @@ export default class ZotLitPlugin extends UnloadAwarePlugin implements CliHost {
       zoteroPref: services.zoteroPref,
       notifier: services.notifier,
       settings: services.settings,
+      profiles: services.profileStyles,
       bridge: services.bridge,
     };
     registerCitationPresentation(this, citationPresentationDeps);

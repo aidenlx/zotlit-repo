@@ -4,7 +4,8 @@ import type { Profiler } from "node:inspector";
 import { join } from "node:path";
 
 // oxlint-disable-next-line no-restricted-imports -- share the host benchmark's fixture without importing its Vitest suite.
-import { syntheticNote } from "../../../apps/obsidian/src/services/citation-index/__fixtures__/scan-pipeline-note.ts";
+import { syntheticNote } from "@zotlit/citations/__fixtures__/citation-index/scan-pipeline-note.ts";
+
 import { obRun } from "./obsidian-cli.ts";
 import type { PageDebugger, FileScan } from "./page-citation-types.ts";
 import { e2eResultsDir } from "./results-dir.ts";

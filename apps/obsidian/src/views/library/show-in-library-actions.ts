@@ -7,13 +7,12 @@ import { TFile } from "obsidian";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
-
-import { ShowInLibrary } from "./show-in-library.ts";
 
 /** The "Show item in Zotero library" command, on the active Literature Note. */
 export const layerShowInLibraryActions: Layer.Layer<

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+import { pandocFilterVariants } from "@zotlit/citations/vite";
 import { testDefaults } from "@zotlit/config/vitest";
 import {
   obsidianMock,
@@ -10,8 +11,6 @@ import {
   packageSource,
 } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
-
-import { pandocFilterVariants } from "./scripts/lua-filter.ts";
 
 const packageRoot = import.meta.dirname;
 
@@ -22,10 +21,10 @@ const packageRoot = import.meta.dirname;
  * @see {@link ./vitest.env.happy-dom-native-response.ts}
  */
 const HAPPY_DOM_NATIVE_RESPONSE_FILES = [
-  "src/services/pandoc/citation-locale.integration.test.ts",
-  "src/services/pandoc/citation-presentation.integration.test.ts",
-  "src/services/pandoc/document-language.integration.test.ts",
-  "src/services/citation-text/document-citation-set.integration.test.ts",
+  "src/services/citations/citation-locale.integration.test.ts",
+  "src/services/citations/citation-presentation.integration.test.ts",
+  "src/services/citations/document-language.integration.test.ts",
+  "src/services/citations/document-citation-set.integration.test.ts",
 ];
 
 export default defineConfig({
@@ -76,6 +75,7 @@ export default defineConfig({
           import.meta.resolve("@zotlit/plugin-services/package.json"),
         ),
         packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
+        packageSource(import.meta.resolve("@zotlit/citations/package.json")),
       ],
     }),
     preact(),
@@ -83,7 +83,7 @@ export default defineConfig({
   ],
   test: {
     ...testDefaults,
-    // `include`/`exclude` live on the two projects below, not here: Vite's
+    // `include`/`exclude` live on the projects below, not here: Vite's
     // `mergeConfig` concatenates array fields a project shares with this root
     // config, so an `include` set here would survive alongside each project's
     // own and widen it back to everything. Keeping them project-only turns
@@ -117,19 +117,7 @@ export default defineConfig({
           exclude: [
             ...testDefaults.exclude,
             ...HAPPY_DOM_NATIVE_RESPONSE_FILES,
-            // Needs a native Pandoc; the `pandoc` project runs it.
-            "src/**/*.pandoc.test.ts",
           ],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "pandoc",
-          include: ["src/**/*.pandoc.test.ts"],
-          // The style validator reads XML through the DOMParser Obsidian's
-          // renderer supplies.
-          environment: "happy-dom",
         },
       },
       {

@@ -31,8 +31,8 @@ const CLIENT_ENTRY = `
 export { default } from "virtual:scan-worker";
 import { Effect, Scope } from "effect";
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
-import { decodeParseReply } from "@/services/citation-parse/client";
-import { makeParseWorkerClient } from "@/services/citation-parse/worker-client";
+import { decodeParseReply } from "@zotlit/citations/core/citation-parse/client.ts";
+import { makeParseWorkerClient } from "@zotlit/citations/core/citation-parse/worker-client.ts";
 export async function connect(spawn, onEncode) {
   const { scope, close } = openScope();
   try {
@@ -72,6 +72,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
     packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
     packageSource(import.meta.resolve("@zotlit/plugin-services/package.json")),
     packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
+    packageSource(import.meta.resolve("@zotlit/citations/package.json")),
   ];
   const result = await build({
     configFile: false,

@@ -17,6 +17,11 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, vi } from "vitest";
 
 import {
+  referencesStyleOptions,
+  STYLE_DEFAULT,
+} from "@zotlit/citations/core/pandoc/citation-style.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import {
   DropdownComponent,
   ExtraButtonComponent,
   renderRow,
@@ -32,11 +37,6 @@ import {
   SettingsMutationError,
 } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import {
-  referencesStyleOptions,
-  STYLE_DEFAULT,
-} from "@/services/pandoc/citation-style.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
 import type { DefaultLiteratureNoteProfile } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
@@ -48,7 +48,6 @@ import {
   testSettingTab,
 } from "./__fixtures__.ts";
 import {
-  citationLocaleError,
   citationsPageItems,
   referencesStyleDefinition,
   referencesStyleDescription,
@@ -528,50 +527,5 @@ describe("referencesStyleDescription", () => {
     expect(referencesStyleDescription(true).textContent).toBe(
       m.settings_citation_references_style_warning(),
     );
-  });
-});
-
-describe("citationLocaleError", () => {
-  it("accepts the locale forms Pandoc and CSL read", () => {
-    for (const locale of [
-      "",
-      "de",
-      "en-US",
-      "pt-BR",
-      "zh-Hans-CN",
-      "es-419",
-      // Pandoc sorts a bibliography by the collation this extension names.
-      "de-u-co-phonebk",
-      // The extended language, private-use, and irregular tags BCP 47 keeps.
-      "zh-cmn-Hans-CN",
-      "x-pmr",
-      "i-klingon",
-      "en-GB-oed",
-      // Case carries no meaning in a language tag, irregular ones included.
-      "I-KLINGON",
-      "SGN-BE-FR",
-      "DE-de",
-    ]) {
-      expect(citationLocaleError(locale)).toBeUndefined();
-    }
-  });
-
-  it("names the form an unreadable locale should take", () => {
-    for (const locale of [
-      "en_US",
-      "en US",
-      " de-DE",
-      "1234",
-      "de-",
-      "de--DE",
-      "abcdefghi",
-      // A tag writes each variant and each extension once.
-      "de-1901-1901",
-      "en-u-ca-gregory-u-nu-latn",
-    ]) {
-      expect(citationLocaleError(locale)).toBe(
-        m.settings_citation_locale_invalid(),
-      );
-    }
   });
 });

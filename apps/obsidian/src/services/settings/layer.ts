@@ -19,7 +19,8 @@ import { settingsDefinition } from "./schema.ts";
 /** The options a caller may replace; the definition is this plugin's own. */
 export type SettingsOptions = Partial<PluginSettingsOptions>;
 
-const withHost = (options: SettingsOptions): PluginSettingsOptions => ({
+/** The platform's settings options under this plugin's definition and migrations. */
+export const withHost = (options: SettingsOptions): PluginSettingsOptions => ({
   definition: settingsDefinition,
   ...settingsMigrations,
   ...options,

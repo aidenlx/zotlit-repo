@@ -7,13 +7,13 @@ import type { App, Plugin } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { LIBRARY_VIEW_ROW_LIMIT } from "./document.ts";
 import { ZOTLIT_MARK_ICON, zotlitMarkSvg } from "./icon.ts";
 import { libraryItemCommand } from "./item-actions.ts";
-import { ShowInLibrary } from "./show-in-library.ts";
 import { LIBRARY_VIEW_TYPE, LibraryView } from "./view.ts";
 import type { LibraryViewDeps } from "./view.ts";
 

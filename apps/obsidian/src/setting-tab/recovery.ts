@@ -4,12 +4,11 @@ import { Effect } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
-
-import { CitationIndex } from "@/services/citation-index/service.ts";
 
 /**
  * Clear every stored citekey scan and rebuild it from the vault. The rebuild

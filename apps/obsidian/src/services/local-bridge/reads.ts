@@ -8,6 +8,8 @@
 import { Effect, FiberSet, Schema } from "effect";
 import type { FileSystem } from "effect";
 
+import { listInstalledStyles } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
+import { resolveInstalledStyle } from "@zotlit/citations/desktop/pandoc/styles.ts";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json" with { type: "json" };
 import filenameSchema from "@zotlit/db/contract/filename.schema.json" with { type: "json" };
 import noteSchema from "@zotlit/db/contract/note.schema.json" with { type: "json" };
@@ -35,8 +37,6 @@ import type {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
-import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 

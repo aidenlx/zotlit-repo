@@ -2,9 +2,8 @@
 
 import type { SettingDefinition } from "obsidian";
 
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { PandocEngine } from "@/services/pandoc/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { managedBinaryDefinition } from "./managed-binary.ts";

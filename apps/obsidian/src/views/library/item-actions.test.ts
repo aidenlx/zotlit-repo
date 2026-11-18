@@ -15,6 +15,7 @@ import type {
 import { afterEach, expect, it, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -28,7 +29,6 @@ import {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
 import { makeLibraryHost } from "./__fixtures__.ts";

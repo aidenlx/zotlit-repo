@@ -1,6 +1,13 @@
 // Draft citations use their own source and presentation, without entering the saved-note cache.
 import { Effect } from "effect";
 
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
+import { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service.ts";
+import type { PresentedCitation } from "@zotlit/citations/obsidian/citation-text/present.ts";
+import { holdsNote } from "@zotlit/citations/obsidian/pandoc/inline-content.tsx";
+import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { isChildItemFields, itemToCsl } from "@zotlit/db";
 import type { CslItemData } from "@zotlit/db";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -17,14 +24,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { CitationParse } from "@/services/citation-parse/service.ts";
-import type { PresentedCitation } from "@/services/citation-text/present.ts";
-import { holdsNote } from "@/services/pandoc/inline-content.tsx";
-import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
-import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 
 export interface PreviewCitation extends PresentedCitation {
   source: string;

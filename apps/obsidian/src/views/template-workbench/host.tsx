@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { awaitModal, openModalIn } from "@zotlit/obsidian-kit/effect-modal.ts";
@@ -58,7 +59,6 @@ import type {
   WorkbenchRunner,
 } from "@zotlit/workbench/ui";
 
-import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
 import { obsidianPopupKeys } from "@/views/template-workbench/field-popup.ts";
 import { communityUrl } from "@/views/welcome/links.ts";
 

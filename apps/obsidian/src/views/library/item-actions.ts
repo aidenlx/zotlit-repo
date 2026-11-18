@@ -19,6 +19,7 @@ import { viewTargetOpener } from "@zotlit/annotations/desktop/attachment-open/vi
 import { captureInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import { getInsertionEditor } from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
 import { literatureNoteAttachments } from "@zotlit/annotations/obsidian/attachment-open/literature-note.ts";
+import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
 import type { Item } from "@zotlit/db";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -34,7 +35,6 @@ import { readActionItem } from "@zotlit/zotero-reads/client/read-item.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
 import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";

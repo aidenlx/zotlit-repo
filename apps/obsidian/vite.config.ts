@@ -8,6 +8,7 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import { analyzer, unstableRolldownAdapter } from "vite-bundle-analyzer";
 
+import { pandocFilterVariants } from "@zotlit/citations/vite";
 import { obsidianI18n } from "@zotlit/obsidian-i18n/vite";
 import { packageSource } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
@@ -31,7 +32,6 @@ import {
 } from "./scripts/chinese-segmenter.ts";
 import { deriveDevVersion } from "./scripts/dev-version.ts";
 import { embeddedWorker } from "./scripts/embedded-worker.ts";
-import { pandocFilterVariants } from "./scripts/lua-filter.ts";
 import { resolvePandocEnginePin } from "./scripts/pandoc-engine.ts";
 
 const builtins = [
@@ -62,6 +62,7 @@ const pluginCode = [
   packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
   packageSource(import.meta.resolve("@zotlit/plugin-services/package.json")),
   packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
+  packageSource(import.meta.resolve("@zotlit/citations/package.json")),
 ];
 const fullContractIRPath = fileURLToPath(
   import.meta.resolve("@zotlit/db/contract/ir.json"),

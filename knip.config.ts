@@ -71,6 +71,9 @@ const config: KnipConfig = {
     "packages/annotations": {
       includeEntryExports: true,
     },
+    "packages/citations": {
+      includeEntryExports: true,
+    },
     "packages/plugin-messages": {
       // Generated: the facade exports every Message, read or not.
       ignore: ["generated/**"],

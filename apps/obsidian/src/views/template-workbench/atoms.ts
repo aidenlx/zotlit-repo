@@ -2,6 +2,7 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
+import { listInstalledStylesOrNone } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
 import { isChildItemFields } from "@zotlit/db";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -9,7 +10,6 @@ import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 
 import { ItemUnavailable } from "./errors.ts";

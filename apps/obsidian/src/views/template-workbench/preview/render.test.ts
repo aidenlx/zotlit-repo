@@ -2,11 +2,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 
+import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { emptyRender, SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { annotationSamples } from "@zotlit/workbench/ui";
 
-import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,

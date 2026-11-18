@@ -1,12 +1,12 @@
-import { Context, Effect, Layer, Stream } from "effect";
 import type { Plugin } from "obsidian";
 
-import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
-import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
-import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
+  buildSettings as buildHostSettings,
+  settingsOf as hostSettingsOf,
+  settingsRuntimeOf as hostSettingsRuntimeOf,
+} from "@zotlit/plugin-services/__fixtures__/settings.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type {
   PluginSettingsOptions,
   Settings,
@@ -14,76 +14,33 @@ import type {
 
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
-import { layerSettings } from "@/services/settings/layer.ts";
+import { withHost } from "@/services/settings/layer.ts";
 
-import { defaults } from "./schema.ts";
+export type { SettingsFixture } from "@zotlit/plugin-services/__fixtures__/settings.ts";
 
 export type SettingsFixtureOptions = Partial<PluginSettingsOptions> & {
   plugin: Pick<Plugin, "loadData" | "saveData">;
 };
 
-export const settingsOf = Effect.fnUntraced(function* ({
+/** The platform fixtures' options, under this plugin's definition and migrations. */
+const hostOptions = ({ plugin, ...options }: SettingsFixtureOptions) => ({
   plugin,
-  ...options
-}: SettingsFixtureOptions) {
-  return Context.get(
-    yield* Layer.build(layerSettings(plugin, options)),
-    PluginSettings,
-  );
+  ...withHost(options),
 });
+
+export const settingsOf = (options: SettingsFixtureOptions) =>
+  hostSettingsOf(hostOptions(options));
 
 /**
  * The settings service, its bridge, and its runtime, using the test's Clock and
  * logger; all three close with the test Scope.
  */
-export const settingsRuntimeOf = Effect.fnUntraced(function* (
-  options: SettingsFixtureOptions,
-) {
-  const context = yield* Effect.context<never>();
-  const handle = yield* Effect.acquireRelease(
-    Effect.promise(() => openSettings(options, context)),
-    (handle) => Effect.promise(() => handle.close()),
-  );
-  return handle;
-});
-
-export type SettingsFixture = PluginSettings["Service"] &
-  AsyncDisposable & {
-    readonly bridge: EffectBridge;
-    readonly runtime: SubscriptionRuntime;
-  };
+export const settingsRuntimeOf = (options: SettingsFixtureOptions) =>
+  hostSettingsRuntimeOf(hostOptions(options));
 
 /** Consumer fixtures outside Effect own the service's runtime through this handle. */
-export async function buildSettings(
-  options: SettingsFixtureOptions,
-): Promise<SettingsFixture> {
-  const { settings, bridge, close, runtime } = await openSettings(options);
-  return Object.assign(settings, {
-    bridge,
-    runtime,
-    [Symbol.asyncDispose]: close,
-  });
-}
-
-async function openSettings(
-  { plugin, ...options }: SettingsFixtureOptions,
-  context = Context.empty(),
-) {
-  await using stack = new AsyncDisposableStack();
-  const layer = layerSettings(plugin, options).pipe(
-    Layer.provideMerge(Layer.succeedContext(context)),
-  );
-  const runtime = buildRuntime(layer, stack);
-  await runtime.context();
-  const settings = runtime.runSync(PluginSettings);
-  const lifetime = stack.move();
-  return {
-    settings,
-    bridge: effectBridge(runtime),
-    runtime,
-    close: () => lifetime.disposeAsync(),
-  };
-}
+export const buildSettings = (options: SettingsFixtureOptions) =>
+  buildHostSettings(hostOptions(options));
 
 /** Values a test seeds: persisted settings, and default Profile bindings by name. */
 export type SettingsOverrides = Partial<Settings> &
@@ -134,29 +91,4 @@ export async function buildSeededSettings(overrides: SettingsOverrides = {}) {
   });
   applySettings(settings, settings.bridge, overrides);
   return settings;
-}
-
-/**
- * Settings whose changes the test publishes, for a layer that reads only
- * `current` and `changes`. `changes` replays the current value to a new
- * subscriber, then each `update`. `update` returns once every subscriber's
- * runnable handling of the new value has run.
- */
-export function settingsFeed(overrides: Partial<Settings> = {}) {
-  let current: Readonly<Settings> = { ...defaults, ...overrides };
-  const events = testEvent<Readonly<Settings>>();
-  return {
-    layer: Layer.mock(PluginSettings, {
-      current: Effect.sync(() => current),
-      changes: Stream.suspend(() =>
-        events.stream.pipe(Stream.prepend([current])),
-      ),
-    }),
-    update(patch: Partial<Settings>): void {
-      if (events.subscribers === 0)
-        throw new Error("No layer follows the settings yet");
-      current = { ...current, ...patch };
-      events.emit(current);
-    },
-  };
 }

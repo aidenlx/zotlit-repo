@@ -16,7 +16,7 @@ import { libraryLabel } from "#core/library-scope/label.ts";
  *  visible column width. Themes override by setting the same variable. */
 const TITLE_MAX_CHARS_VAR = "--zt-citation-title-max-chars";
 
-/** Must match the CSS default in `views/citation-suggest/style.css`; used
+/** Must match the CSS default in `@zotlit/citations/obsidian/citation-suggest/style.css`; used
  *  only when CSS hasn't loaded yet (Vitest, very early renders). */
 const TITLE_MAX_CHARS_FALLBACK = 60;
 

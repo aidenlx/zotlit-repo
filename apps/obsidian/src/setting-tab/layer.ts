@@ -2,6 +2,7 @@
 // definitions current, and removes it when its Scope closes.
 import { Duration, Effect, Layer, Stream } from "effect";
 
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
@@ -16,7 +17,6 @@ import {
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 

@@ -4,6 +4,7 @@ import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 import { TestClock } from "effect/testing";
 import type { App, Plugin, PluginManifest } from "obsidian";
 
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -18,7 +19,6 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { Template } from "@/services/template/service.ts";

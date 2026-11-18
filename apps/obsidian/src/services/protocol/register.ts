@@ -32,6 +32,7 @@ import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import {
@@ -96,7 +97,6 @@ import type {
 } from "@/services/note-import/batch-import.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
-import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
 import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";

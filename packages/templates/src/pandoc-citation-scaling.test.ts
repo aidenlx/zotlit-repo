@@ -1,4 +1,4 @@
-// Same harness shape as apps/obsidian/src/services/citation-index/scan-note-scaling.test.ts:
+// Same harness shape as packages/citations/src/core/citation-index/scan-note-scaling.test.ts:
 // keep the two in step. A shared helper would need a new export from a production package.
 import { expect, it } from "vitest";
 

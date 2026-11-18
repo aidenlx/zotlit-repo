@@ -16,6 +16,8 @@ import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/displ
 import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
+import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
@@ -35,11 +37,9 @@ import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-ap
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { CitationIndex } from "@/services/citation-index/service.ts";
 import { Customize } from "@/services/local-bridge/customize.ts";
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
-import { PandocEngine } from "@/services/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Release } from "@/services/release/service.ts";
 import { Template } from "@/services/template/service.ts";

@@ -128,7 +128,7 @@ export interface RunMember<T> {
  * named by its Literature Note's filename — so two Items can derive one
  * spelling. The Indexed Keys are what identify the Citation.
  *
- * @see apps/obsidian/src/services/citation-text/present.ts — `HeldCitation`
+ * @see packages/citations/src/obsidian/citation-text/present.ts — `HeldCitation`
  */
 export interface RunCitationSource extends CitationSource {
   /** {@link WikilinkCitation.indexedKey} of each of `keys`, in the same order. */
@@ -193,7 +193,7 @@ function pandocItem({
  * @param textBetween the text separating two links, or null when they are too
  *   far apart to join at all — a paragraph away, or in another container.
  * @returns the runs, in document order, each holding at least one member.
- * @see apps/obsidian/src/services/pandoc/filter/zotlit-cite.lua — `process_inlines`
+ * @see packages/citations/src/core/pandoc/filter/zotlit-cite.lua — `process_inlines`
  */
 export function citationRuns<T>(
   links: readonly T[],

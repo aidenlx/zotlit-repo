@@ -11,12 +11,12 @@ export interface FormatVersion {
 export const formatVersions: readonly FormatVersion[] = [
   {
     name: "Citation store",
-    file: "apps/obsidian/src/services/citation-index/store.ts",
+    file: "packages/citations/src/core/citation-index/store.ts",
     constant: "SCHEMA_VERSION",
   },
   {
     name: "Citation scanner",
-    file: "apps/obsidian/src/services/citation-index/store.ts",
+    file: "packages/citations/src/core/citation-index/store.ts",
     constant: "SCANNER_REVISION",
   },
   {
