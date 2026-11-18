@@ -4,7 +4,7 @@ Item Query over the top-level, non-trashed Items of one or more Target Libraries
 
 ## Commands
 
-Run `build` / `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests import the built `@zotlit/db`, so build it first: `turbo run build --filter=@zotlit/db`.
+Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests read `@zotlit/db` from its source, so a single-file Vitest run needs no build.
 
 ## Effect
 
@@ -17,7 +17,7 @@ Run `build` / `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests
 
 - A field: one entry in the registry of `src/fields.ts`. Validation, execution, and the Query Schema read that registry. The entry's `shape` decides the Projection Paths below it and their JSON types; its `needs` names what the hydrate reader loads.
 - The Search Terms of a field: its entry in the tables of `src/field-search-terms.ts`, which only lists that offer fields read. Give a new field its words there; keep them out of the registry, the planner, and the Query Schema.
-- The Query Schema: `describeQueryVocabulary` in the build-only `@zotlit/item-query/schema` entry reads the field and function registries; `scripts/write-schema.mjs` writes `dist/query.schema.json` after the package build. The runtime entry exports `describeQueryCustomFields(dataset)` for the active source. Keep static schema generation behind the build-only entry so it stays out of the plugin bundle. The `filter` capability of a nested Projection Path is the answer of `planFilter` for the path text: a type, `"any"` for a value whose type depends on the Item (a list element), or `null`. `src/describe-item-query.test.ts` runs every entry of the schema through `collectQuery`.
+- The Query Schema: `describeQueryVocabulary` in the build-only `@zotlit/item-query/schema` entry reads the field and function registries; the `generate:schema` task runs `scripts/write-schema.mjs`, which writes the git-ignored `generated/query.schema.json`; the docs reference page and the release read that file. The runtime entry exports `describeQueryCustomFields(dataset)` for the active source. Keep static schema generation behind the build-only entry so it stays out of the plugin bundle. The `filter` capability of a nested Projection Path is the answer of `planFilter` for the path text: a type, `"any"` for a value whose type depends on the Item (a list element), or `null`. `src/describe-item-query.test.ts` runs every entry of the schema through `collectQuery`.
 - A relation list (`creators`, `tags`, `collections`) or Attachment presence: the entry names a `HydrateRelation` of `@zotlit/db/item-query` in `needs.relations`; the hydrate reader runs one statement for each named relation.
 - A Sortable Field: the `sortKey` of its registry entry, which gives a string, a number, or null. It gets the Query Clock: a calendar-day `accessDate` orders from its start in the query time zone. An entry without `sortKey` fails a sort with `unsortable-field`.
 - The string order of sort, ordered comparison, and relation lists: `compareStrings` in `src/collation.ts`.

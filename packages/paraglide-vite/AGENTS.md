@@ -2,7 +2,7 @@
 
 ## Commands
 
-Run `build` / `test` / `lint` through Turbo (see root AGENTS.md).
+Run `test` / `lint` through Turbo (see root AGENTS.md).
 
 ## Compilation lifecycle
 

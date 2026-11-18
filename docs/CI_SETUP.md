@@ -50,8 +50,9 @@ needs, and stops before dependency installation. The deploy job runs only when
 the gate reports a deployment, and starts from its own checkout.
 
 The deploy job installs
-`@zotlit/docs` and its dependency closure with a pnpm filter, then lets
-`turbo run build --filter=@zotlit/docs` build dependencies in graph order.
+`@zotlit/docs` and its dependency closure with a pnpm filter, then runs
+`turbo run build --filter=@zotlit/docs`. The workspace packages export their
+source, so only the generate tasks the docs build reads run before it.
 
 The docs build reads `GITHUB_SHA`, which GitHub Actions sets for every step and
 which the build declares in its Turbo task hash. This keeps commit-pinned

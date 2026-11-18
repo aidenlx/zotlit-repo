@@ -4,9 +4,8 @@ Zotero database layer — Drizzle schema, typed queries, and domain helpers for 
 
 ## Commands
 
-Run `build` / `test` / `lint` via turbo (see root AGENTS.md → Commands). Package-specific tools:
+Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Package-specific tools:
 
-- `pnpm --filter @zotlit/db dev` — tsdown watch.
 - `pnpm --filter @zotlit/db db:pull` — drizzle-kit pull.
 
 ## Item fields

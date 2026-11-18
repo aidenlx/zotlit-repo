@@ -4,13 +4,9 @@ Shared utilities consumed by multiple packages — app-agnostic.
 
 ## Module resolution
 
-`tsconfig.lib.json` uses `"moduleResolution": "bundler"` and the package is bundled by tsdown. Relative imports do **not** need a `.ts` extension:
+The package exports its TypeScript source, which Node loads by stripping its types and the app bundlers compile. Relative imports name their file with its extension:
 
 ```ts
-// correct
-import { createNanoEvents } from "./nanoevents";
-
-// wrong — bundler resolution, not Node ESM
 import { createNanoEvents } from "./nanoevents.ts";
 ```
 
@@ -21,7 +17,7 @@ Log through Effect in files that import it, with `withLogCategory` from `src/log
 ```ts
 import { Effect } from "effect";
 
-import { withLogCategory } from "./logging";
+import { withLogCategory } from "./logging.ts";
 
 Effect.logDebug("Event emitted").pipe(
   withLogCategory("zotlit", "shared", "nanoevents"),

@@ -17,7 +17,7 @@ Generated TypeScript item-field shapes from the pinned Zotero schema.
    branch.
 2. Confirm `zotero-schema/schema.json` has the intended `version`.
 3. Run `pnpm --filter @zotlit/zotero-types generate`.
-4. Run `pnpm --filter @zotlit/zotero-types build`.
+4. Run `pnpm exec turbo run typecheck --filter=@zotlit/zotero-types`.
 
 ## Item-to-CSL Fixture
 

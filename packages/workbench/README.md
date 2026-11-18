@@ -14,13 +14,12 @@ the host logs. That is a package-scoped exception to
 
 ## Development
 
-The `development` export condition maps each browser-safe entry to its source,
-so a host's Vite dev server and Vitest read `src/` directly and an edit here
-hot-updates the page without a rebuild. A production build, Node, and the type
-checker take the built `default` entry, so `pnpm build` still has to run before
-a release or a Node consumer sees a change. Imports inside `src/` use the
-`#/` subpath import the package's `imports` field maps to `src/`, which every
-consumer of the source resolves without an alias of its own.
+Each entry of the `exports` map is a source file, so a host's Vite dev server,
+its production build, Vitest, Node and the type checker all read `src/`
+directly, and an edit here reaches every consumer without a build. Imports
+inside `src/` use the `#` subpath import the package's `imports` field maps to
+`src/` (`#document/index.ts`), which every consumer of the source resolves
+without an alias of its own.
 
 ## Document
 
@@ -242,8 +241,8 @@ skeleton, can use `WorkbenchMessagesProvider` directly.
 `pnpm generate:message-types` reads the root `workbench_*` catalog through the
 existing message compiler and emits the `WorkbenchMessages` type contract.
 The English pack it emits is used only by shared tests. Turbo runs generation
-before `build`, `test`, `typecheck`, and `typecheck:test`; direct package-tool
-runs need those generated files first. The tree stays inside the
+before `test`, `typecheck`, and `typecheck:test` here and in each host that
+reads the contract; direct package-tool runs need those generated files first. The tree stays inside the
 `preact/compat` surface, and its suite under `src/ui/` runs twice in `pnpm test`:
 the `ui-react` and `ui-preact` Vitest projects, the second with React aliased to
 `preact/compat` and Testing Library to its Preact build.

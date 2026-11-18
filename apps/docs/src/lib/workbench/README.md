@@ -76,10 +76,10 @@ One module owns each surface, and each says what it owns at its head:
 
 ## In dev
 
-The dev server reads `@zotlit/workbench` from its source through the package's `development`
-export condition, so an edit there hot-updates through the page's React boundary with the
-editor's state kept and needs no `tsdown --watch`; `@zotlit/templates` and `@zotlit/db` stay on
-their built output. `optimizeDeps.entries` in [`vite.config.ts`](../../../vite.config.ts) names
+The dev server reads `@zotlit/workbench`, `@zotlit/templates` and `@zotlit/db` from the
+source each package exports, so an edit there reaches the page with no package build. An
+edit in `@zotlit/workbench` hot-updates through the page's React boundary with the editor's
+state kept. `optimizeDeps.entries` in [`vite.config.ts`](../../../vite.config.ts) names
 the Workbench module, so the dependency scan finds CodeMirror, the Lezer parsers, the template
 engines, and the reading view's parser stack before the first request instead of re-optimizing
 round by round. Component modules here export components alone — `unsupported.ts` and
