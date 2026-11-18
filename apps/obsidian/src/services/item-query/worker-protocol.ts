@@ -1,5 +1,6 @@
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import type { QueryDataset } from "@zotlit/item-query";
+import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/envelope.ts";
 import type {
   ItemQueryAnswer,
   ItemQueryJob,
@@ -9,8 +10,6 @@ import type {
   DecodedQuery,
   DecodedValues,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
-
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import type {
   QUERY_COMMAND,

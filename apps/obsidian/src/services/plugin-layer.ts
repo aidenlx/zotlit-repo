@@ -62,6 +62,32 @@ import { layerPandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts"
 import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { layerWikilinkEditor } from "@zotlit/citations/obsidian/wikilink-editor/service.ts";
 import { layerWikilinkReading } from "@zotlit/citations/obsidian/wikilink-reading/service.ts";
+import type { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
+import { layerCitekeyNoteActions } from "@zotlit/notes/desktop/note-feature/citekey-actions.ts";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import { layerNoteFeatureNotices } from "@zotlit/notes/desktop/note-feature/notices.ts";
+import { layerNoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import type { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import { layerAnnotationNoteActions } from "@zotlit/notes/desktop/note-feature/view-actions.ts";
+import { layerNoteImportCommands } from "@zotlit/notes/desktop/note-import/commands.ts";
+import { layerNoteImporter } from "@zotlit/notes/desktop/note-import/service.ts";
+import type { NoteImporter } from "@zotlit/notes/desktop/note-import/service.ts";
+import { layerProfileActions } from "@zotlit/notes/desktop/profile/actions.ts";
+import { layerTemplateDataReads } from "@zotlit/notes/desktop/template/data-reads.ts";
+import { readMigrationVerificationData } from "@zotlit/notes/desktop/template/migration-data.ts";
+import { layerTemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
+import type {
+  TemplateMigration,
+  TemplateMigrationOptions,
+} from "@zotlit/notes/desktop/template/migration.ts";
+import { layerProfileStyles } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
+import { layerProfile } from "@zotlit/notes/obsidian/profile/service.ts";
+import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { layerCitationTemplateActions } from "@zotlit/notes/obsidian/template/actions.ts";
+import { layerTemplate } from "@zotlit/notes/obsidian/template/service.ts";
+import type { Template } from "@zotlit/notes/obsidian/template/service.ts";
+import type { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
+import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { layerRequestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
 import { layerNotifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -127,12 +153,19 @@ import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/serv
 import { layerZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { SecretWriteAuthorizationStore } from "@zotlit/plugin-services/obsidian/zotero-local-api/write-authorization.ts";
+import { layerTemplateWorkbenchCli } from "@zotlit/template-workbench/desktop/cli/register.ts";
+import { layerCustomize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import type {
+  Customize,
+  CustomizePorts,
+} from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import { layerLocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
+import type { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
+import { layerTemplateWorkbenchLauncher } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 import { layerSettings } from "@/services/settings/layer.ts";
-import { layerTemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import { layerSettingTab } from "@/setting-tab/layer.ts";
 import { pdfReader } from "@/views/annot-view/pdf-reader.ts";
 import {
@@ -143,41 +176,16 @@ import { layerShowInLibraryActions } from "@/views/library/show-in-library-actio
 import { layerZoteroHttpNode } from "@/zotero-http-node.ts";
 
 import { layerQueryCli } from "./item-query/cli.ts";
+import { layerItemMatchQuery } from "./item-query/item-matches.ts";
 import { layerQueryMeasureCli } from "./item-query/measure.ts";
 import { layerQueryService } from "./item-query/service.ts";
 import type { QueryService } from "./item-query/service.ts";
-import { layerCustomize } from "./local-bridge/customize.ts";
-import type { Customize, CustomizePorts } from "./local-bridge/customize.ts";
-import { layerLocalBridge } from "./local-bridge/service.ts";
-import type { LocalBridge } from "./local-bridge/service.ts";
-import { layerCitekeyNoteActions } from "./note-feature/citekey-actions.ts";
-import type { InteractiveCreationPorts } from "./note-feature/creation-view.ts";
-import { layerNoteFeatureNotices } from "./note-feature/notices.ts";
-import { layerNoteFeature } from "./note-feature/service.ts";
-import type { NoteFeature } from "./note-feature/service.ts";
-import { layerNoteImportCommands } from "./note-import/commands.ts";
-import { layerNoteImporter } from "./note-import/service.ts";
-import type { NoteImporter } from "./note-import/service.ts";
-import { layerProfileActions } from "./profile/actions.ts";
-import { layerProfileStyles } from "./profile/profile-styles.ts";
-import { layerProfile } from "./profile/service.ts";
-import type { Profile } from "./profile/service.ts";
 import { layerProtocolHandlers } from "./protocol/register.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
 import { layerReleaseActions } from "./release/actions.ts";
 import { layerRelease } from "./release/service.ts";
 import type { Release } from "./release/service.ts";
 import { startingAs } from "./startup-failure.ts";
-import { layerTemplateWorkbenchCli } from "./template-workbench/register.ts";
-import { layerCitationTemplateActions } from "./template/actions.ts";
-import { readMigrationVerificationData } from "./template/migration-data.ts";
-import { layerTemplateMigration } from "./template/migration.ts";
-import type {
-  TemplateMigration,
-  TemplateMigrationOptions,
-} from "./template/migration.ts";
-import { layerTemplate } from "./template/service.ts";
-import type { Template } from "./template/service.ts";
 import { workerClient } from "./zotero-reads/worker-client.ts";
 
 /**
@@ -236,6 +244,8 @@ export function pluginLayer(
   | Customize
   | ItemLookup
   | QueryService
+  | ItemMatchQuery
+  | TemplateWorkbenchLauncher
   | ExcerptDisplays
   | ExcerptImageService
   | ExcerptPreparation
@@ -305,8 +315,20 @@ export function pluginLayer(
       webWorkbenchEnabled: WEB_WORKBENCH_ENABLED,
       pluginVersion: plugin.manifest.version,
     }).pipe(startingAs("LocalBridge")),
-    layerQueryService({ pluginVersion: plugin.manifest.version }).pipe(
-      startingAs("QueryService"),
+    // The Citation Template's actions and the Profile dialogs open a
+    // document in the Template Workbench View through this port.
+    layerTemplateWorkbenchLauncher.pipe(
+      startingAs("TemplateWorkbenchLauncher"),
+    ),
+    // Profile selection and the Template Workbench test Profile Matches
+    // through ZotLit Query.
+    layerItemMatchQuery.pipe(
+      startingAs("ItemMatchQuery"),
+      Layer.provideMerge(
+        layerQueryService({ pluginVersion: plugin.manifest.version }).pipe(
+          startingAs("QueryService"),
+        ),
+      ),
     ),
   ).pipe(
     Layer.provideMerge(layerCitationText().pipe(startingAs("CitationText"))),
@@ -336,7 +358,7 @@ export function pluginLayer(
     Layer.provideMerge(
       Layer.mergeAll(
         layerLibraryScope.pipe(startingAs("LibraryScope")),
-        layerProfile.pipe(startingAs("Profile")),
+        layerProfile(profileRevision).pipe(startingAs("Profile")),
         layerAttachmentResolver().pipe(startingAs("AttachmentResolver")),
         layerAttachmentImport().pipe(startingAs("AttachmentImport")),
       ),

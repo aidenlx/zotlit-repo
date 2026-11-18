@@ -25,6 +25,28 @@ import {
 import type { AttachmentReader } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import type { ItemRef } from "@zotlit/db";
+import { openCompanionNote } from "@zotlit/notes/desktop/note-feature/index.ts";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/index.ts";
+import {
+  runBatchUpdate,
+  runBatchUpdateAll,
+} from "@zotlit/notes/desktop/note-feature/update-batch.ts";
+import type {
+  BatchUpdateOptions,
+  BatchUpdatePorts,
+  BatchUpdateServices,
+} from "@zotlit/notes/desktop/note-feature/update-batch.ts";
+import { batchUpdateNotices } from "@zotlit/notes/desktop/note-feature/update-single.ts";
+import {
+  runBatchImport,
+  runBatchImportAll,
+} from "@zotlit/notes/desktop/note-import/batch-import.ts";
+import type {
+  BatchImportPorts,
+  BatchImportServices,
+} from "@zotlit/notes/desktop/note-import/batch-import.ts";
+import type { NoteImportView } from "@zotlit/notes/desktop/note-import/view.ts";
+import type { ProfileDialogServices } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -72,34 +94,11 @@ import {
   updateAllProtocolActionId,
 } from "@zotlit/protocol";
 import type { ImportMode, ProtocolAction } from "@zotlit/protocol";
+import { openTemplateDataExplorer } from "@zotlit/template-workbench/desktop/data-explorer/register.ts";
+import { explainWorkbenchOpen } from "@zotlit/template-workbench/desktop/editor/actions.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-
-import { openCompanionNote } from "@/services/note-feature/index.ts";
-import type { InteractiveCreationPorts } from "@/services/note-feature/index.ts";
-import {
-  runBatchUpdate,
-  runBatchUpdateAll,
-} from "@/services/note-feature/update-batch.ts";
-import type {
-  BatchUpdateOptions,
-  BatchUpdatePorts,
-  BatchUpdateServices,
-} from "@/services/note-feature/update-batch.ts";
-import { batchUpdateNotices } from "@/services/note-feature/update-single.ts";
-import {
-  runBatchImport,
-  runBatchImportAll,
-} from "@/services/note-import/batch-import.ts";
-import type {
-  BatchImportPorts,
-  BatchImportServices,
-} from "@/services/note-import/batch-import.ts";
-import type { NoteImportView } from "@/services/note-import/view.ts";
-import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
 import { showProtocolOutcome } from "./notices.ts";
 import { ProtocolOutcome } from "./outcome.ts";

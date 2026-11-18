@@ -76,6 +76,10 @@ export default defineConfig({
         ),
         packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
         packageSource(import.meta.resolve("@zotlit/citations/package.json")),
+        packageSource(import.meta.resolve("@zotlit/notes/package.json")),
+        packageSource(
+          import.meta.resolve("@zotlit/template-workbench/package.json"),
+        ),
       ],
     }),
     preact(),

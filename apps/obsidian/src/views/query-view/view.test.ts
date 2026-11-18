@@ -35,6 +35,7 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -49,7 +50,6 @@ import type {
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
 // @vitest-environment happy-dom
 import { makeQueryHost } from "./__fixtures__/host.ts";

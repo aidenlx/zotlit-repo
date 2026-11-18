@@ -21,6 +21,15 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  createTemplateWorkbenchHost,
+  refuseRender,
+} from "@zotlit/template-workbench/obsidian/editor/host.tsx";
+import { matchTheme } from "@zotlit/template-workbench/obsidian/editor/match-pane.tsx";
+import {
+  matchRows,
+  onKeymap,
+} from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ExpressionVocabulary } from "@zotlit/workbench/language";
 import {
@@ -36,13 +45,6 @@ import type {
   FilterValues,
   MatchFilter,
 } from "@zotlit/workbench/ui";
-
-import {
-  createTemplateWorkbenchHost,
-  refuseRender,
-} from "@/views/template-workbench/host.tsx";
-import { matchTheme } from "@/views/template-workbench/match-pane.tsx";
-import { matchRows, onKeymap } from "@/views/template-workbench/theme.tsx";
 
 import { filterValuesAtom } from "./atoms.ts";
 import {

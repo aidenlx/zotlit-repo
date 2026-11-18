@@ -25,6 +25,35 @@ import { CitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service
 import { GraphCitations } from "@zotlit/citations/obsidian/graph-citations/service.ts";
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { bindNoteActions } from "@zotlit/notes/desktop/note-feature/actions-handle.ts";
+import type { NoteActionServices } from "@zotlit/notes/desktop/note-feature/actions-view.ts";
+import { bindNoteCitations } from "@zotlit/notes/desktop/note-feature/citations-handle.ts";
+import type { NoteCitationServices } from "@zotlit/notes/desktop/note-feature/citations-handle.ts";
+import { bindNoteCreation } from "@zotlit/notes/desktop/note-feature/creation-handle.ts";
+import type { NoteCreationServices } from "@zotlit/notes/desktop/note-feature/creation-handle.ts";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import {
+  bindNoteFeature,
+  NoteFeature,
+} from "@zotlit/notes/desktop/note-feature/index.ts";
+import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/index.ts";
+import { batchUpdateNotices } from "@zotlit/notes/desktop/note-feature/update-single.ts";
+import { bindBatchImport } from "@zotlit/notes/desktop/note-import/batch-import-handle.ts";
+import type { BatchImportServices } from "@zotlit/notes/desktop/note-import/batch-import.ts";
+import {
+  importChildNotes,
+  importStarter,
+} from "@zotlit/notes/desktop/note-import/commands.ts";
+import { createNoteImportView } from "@zotlit/notes/desktop/note-import/view.ts";
+import {
+  createProfileDialog,
+  importProfileDialog,
+} from "@zotlit/notes/desktop/profile/dialogs.ts";
+import { bindTemplateData } from "@zotlit/notes/desktop/template/data-handle.ts";
+import type { TemplateDataServices } from "@zotlit/notes/desktop/template/data.ts";
+import type { TemplateMigrationOptions } from "@zotlit/notes/desktop/template/migration.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { cliRunner } from "@zotlit/obsidian-kit/cli-command.ts";
 import { DisposableAbortController } from "@zotlit/obsidian-kit/disposables.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -51,54 +80,31 @@ import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.t
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import type { WorkbenchActionServices } from "@zotlit/template-workbench/desktop/editor/actions.ts";
+import type { DefaultProfileTarget } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import { bindLocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/handle.ts";
+import { createLaunchSheet } from "@zotlit/template-workbench/desktop/local-bridge/launch-sheet.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
+import {
+  profileCustomization,
+  saveProfileCustomization,
+} from "@zotlit/template-workbench/obsidian/local-bridge/preferences.ts";
 import { acquireReadLease } from "@zotlit/zotero-reads/client/lease.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
-  createProfileDialog,
-  importProfileDialog,
-} from "@/setting-tab/profile-dialogs.ts";
-import {
   annotationCardShown,
   revealAnnotationInView,
 } from "@/views/annot-view/register.ts";
-import type { WorkbenchActionServices } from "@/views/template-workbench/actions.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
-import {
-  profileCustomization,
-  saveProfileCustomization,
-} from "@/views/template-workbench/preferences.ts";
 import { openWelcomeView } from "@/views/welcome/register.ts";
 import type ZotLitPlugin from "@/zt-main.ts";
 
 import { bindQuery } from "./item-query/handle.ts";
 import { QueryService } from "./item-query/service.ts";
-import type { DefaultProfileTarget } from "./local-bridge/customize.ts";
-import { bindLocalBridge } from "./local-bridge/handle.ts";
-import { createLaunchSheet } from "./local-bridge/launch-sheet.ts";
-import { LocalBridge } from "./local-bridge/service.ts";
-import { bindNoteActions } from "./note-feature/actions-handle.ts";
-import type { NoteActionServices } from "./note-feature/actions-view.ts";
-import { bindNoteCitations } from "./note-feature/citations-handle.ts";
-import type { NoteCitationServices } from "./note-feature/citations-handle.ts";
-import { bindNoteCreation } from "./note-feature/creation-handle.ts";
-import type { NoteCreationServices } from "./note-feature/creation-handle.ts";
-import type { InteractiveCreationPorts } from "./note-feature/creation-view.ts";
-import { bindNoteFeature, NoteFeature } from "./note-feature/index.ts";
-import type { NoteFeatureHandle } from "./note-feature/index.ts";
-import { batchUpdateNotices } from "./note-feature/update-single.ts";
-import { bindBatchImport } from "./note-import/batch-import-handle.ts";
-import type { BatchImportServices } from "./note-import/batch-import.ts";
-import { importChildNotes, importStarter } from "./note-import/commands.ts";
-import { createNoteImportView } from "./note-import/view.ts";
 import { pluginLayer } from "./plugin-layer.ts";
-import { Profile } from "./profile/service.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
 import { Release } from "./release/service.ts";
-import { bindTemplateData } from "./template-workbench/data-handle.ts";
-import type { TemplateDataServices } from "./template-workbench/data.ts";
-import type { TemplateMigrationOptions } from "./template/migration.ts";
-import { Template } from "./template/service.ts";
 
 /** What the protocol handlers open: the note import's modals. */
 type ProtocolViews = Pick<ProtocolDeps, "noteImportView">;

@@ -6,6 +6,9 @@ import * as v from "valibot";
 
 import { readerSettings } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings.ts";
 import { citationSettings } from "@zotlit/citations/core/citation-index/settings.ts";
+import { noteImportSettings } from "@zotlit/notes/core/note-import/settings.ts";
+import { templateSettings } from "@zotlit/notes/core/template/settings.ts";
+import { profileSettings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { attachmentSettings } from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import { databaseSettings } from "@zotlit/plugin-services/core/database/settings.ts";
 import { itemLookupSettings } from "@zotlit/plugin-services/core/item-lookup/settings.ts";
@@ -17,10 +20,7 @@ import type {
   SettingsDefinition,
 } from "@zotlit/plugin-services/core/settings/schema.ts";
 
-import { noteImportSettings } from "@/services/note-import/settings.ts";
-import { profileSettings } from "@/services/profile/settings.ts";
 import { releaseSettings } from "@/services/release/settings.ts";
-import { templateSettings } from "@/services/template/settings.ts";
 import { librarySettings } from "@/views/library/settings.ts";
 import { welcomeSettings } from "@/views/welcome/settings.ts";
 

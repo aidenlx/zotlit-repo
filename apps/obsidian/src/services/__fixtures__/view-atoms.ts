@@ -18,20 +18,22 @@ import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { QueryService } from "@/services/item-query/service.ts";
+import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
+import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
-import { Profile } from "@/services/profile/service.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { Release } from "@/services/release/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
-import { TemplateMigration } from "@/services/template/migration.ts";
-import { Template } from "@/services/template/service.ts";
+import { TemplateDataReads } from "@zotlit/notes/desktop/template/data-reads.ts";
+import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -78,6 +80,8 @@ export const layerUnreadViewServices = Layer.mergeAll(
   Layer.mock(Template, {}),
   Layer.mock(Notifier, {}),
   Layer.mock(QueryService, {}),
+  Layer.mock(ItemMatchQuery, {}),
+  Layer.mock(TemplateWorkbenchLauncher, {}),
   Layer.mock(LibraryScope, {}),
   Layer.mock(UseLedger, {}),
   Layer.mock(PluginSettings, {}),

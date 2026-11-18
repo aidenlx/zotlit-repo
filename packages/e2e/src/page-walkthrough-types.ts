@@ -16,8 +16,8 @@ import type { PageApp } from "./page-host.ts";
 export interface WalkthroughViews {
   markdown: MarkdownView;
   "zotlit-cited-by": import("@zotlit/citations/obsidian/cited-by/view.tsx").CitedByView;
-  "zotlit-template-workbench": import("@/views/template-workbench/view.tsx").TemplateWorkbenchView;
-  "zotlit-template-data-explorer": import("@/views/template-data-explorer/view.tsx").TemplateDataExplorerView;
+  "zotlit-template-workbench": import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
+  "zotlit-template-data-explorer": import("@zotlit/template-workbench/desktop/data-explorer/view.tsx").TemplateDataExplorerView;
 }
 export type WalkthroughLeaf<K extends keyof WalkthroughViews> = Omit<
   WorkspaceLeaf,

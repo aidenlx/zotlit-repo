@@ -17,11 +17,10 @@ import {
 import type { LogLevel } from "@zotlit/plugin-services/core/log/settings.ts";
 import { LOG_FILENAME } from "@zotlit/plugin-services/obsidian/log/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
 import {
   profileCustomization,
   saveProfileCustomization,
-} from "@/views/template-workbench/preferences.ts";
+} from "@zotlit/template-workbench/obsidian/local-bridge/preferences.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { localServerItems } from "./local-server.ts";

@@ -1,0 +1,187 @@
+// The views' edge to citation renders.
+import { it } from "@effect/vitest";
+import { Effect, Layer, Stream } from "effect";
+import { expect, vi } from "vitest";
+
+import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { CiteRef } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import { bindNoteCitations } from "./citations-handle.ts";
+import type { NoteCitationServices } from "./citations-handle.ts";
+
+import { defaults } from "#__fixtures__/settings.ts";
+import {
+  InertTemplateError,
+  TemplateRenderError,
+} from "#core/template/errors.ts";
+import { Profile } from "#obsidian/profile/service.ts";
+import { Template } from "#obsidian/template/service.ts";
+
+/**
+ * A journal article with the citation key `Hensher2011` and an attachment
+ * that holds the highlight `ANNT2345` on page 62, in the personal library.
+ */
+const SEED = `
+  insert into version (schema, version) values ('userdata', 129);
+  insert into libraries (libraryID, type, version) values (1, 'user', 0);
+  insert into itemTypes (itemTypeID, typeName)
+    values (1, 'journalArticle'), (2, 'attachment'), (4, 'annotation');
+  insert into fieldsCombined (fieldID, fieldName, custom)
+    values (10, 'title', 0), (11, 'citationKey', 0);
+  insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
+    values
+      (1, 1, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'MAIN2345'),
+      (2, 2, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ATCH2345'),
+      (3, 4, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ANNT2345');
+  insert into itemDataValues (valueID, value)
+    values (1, 'Travel demand'), (2, 'Hensher2011');
+  insert into itemData (itemID, fieldID, valueID) values (1, 10, 1), (1, 11, 2);
+  insert into itemAttachments (itemID, parentItemID, linkMode, contentType, path)
+    values (2, 1, 0, 'application/pdf', 'storage:paper.pdf');
+  insert into itemAnnotations (
+    itemID, parentItemID, type, text, color, pageLabel, sortIndex, position
+  )
+    values (3, 2, 1, 'excerpt', '#ffd400', '62', '00000|000000|00000',
+      '{"pageIndex":61,"rects":[[0,0,1,1]]}');
+`;
+
+const pref = stubService<ZoteroPrefSnapshot>("ZoteroPrefSnapshot", {
+  dataDir: "/zotero",
+  baseAttachmentPath: null,
+});
+
+/** The handle on a plugin-like runtime, with a Citation Template that runs `render`. */
+async function openHandle(
+  render: (refs: readonly CiteRef[]) => string,
+  reads: Layer.Layer<ZoteroReads> = layerZoteroReads(
+    inProcessClient(layerRcRef(memoryOpener(() => SEED).open)),
+  ),
+) {
+  const stack = new AsyncDisposableStack();
+  const forCard = vi.fn(() => Effect.die("This test prepares no excerpt."));
+  const runtime = buildRuntime(
+    Layer.mergeAll(
+      reads,
+      Layer.mock(ExcerptPreparation, { forCard }),
+      Layer.mock(Template, {
+        loaded: Effect.succeed(true),
+        renderCitation: (refs) =>
+          Effect.try({
+            try: () => render(refs),
+            catch: (cause) =>
+              cause instanceof InertTemplateError
+                ? cause
+                : new TemplateRenderError({ message: String(cause), cause }),
+          }),
+      }),
+      Layer.mock(Profile, { loaded: Effect.succeed(true) }),
+      Layer.mock(ZoteroPref, {
+        current: Effect.succeed(pref),
+        changes: Stream.make(pref),
+      }),
+      Layer.mock(PluginSettings, { current: Effect.succeed(defaults) }),
+      Layer.mock(NoteIndex, { getNotesByItemKey: () => Effect.succeed([]) }),
+    ),
+    stack,
+  );
+  await runtime.context();
+  const citations = bindNoteCitations(
+    effectBridge(runtime),
+    runtime.runSync(Effect.context<NoteCitationServices>()),
+  );
+  return { citations, forCard, dispose: () => stack.disposeAsync() };
+}
+
+it.effect(
+  "renders a citation synchronously and throws what the Template threw",
+  () =>
+    Effect.promise(async () => {
+      const inert = new InertTemplateError("The Citation Template is inert");
+      const broken = new Error("engine failed");
+      let fault: Error | null = null;
+      const handle = await openHandle((refs) => {
+        if (fault) throw fault;
+        return `[@${refs[0]!.citationKey}]`;
+      });
+      try {
+        const { citations } = handle;
+        expect(
+          citations.renderCitation([{ citationKey: "smith2024" }], "main"),
+        ).toBe("[@smith2024]");
+        fault = inert;
+        expect(() =>
+          citations.renderCitation([{ citationKey: "smith2024" }], "main"),
+        ).toThrow(inert);
+        fault = broken;
+        expect(() =>
+          citations.renderCitation([{ citationKey: "smith2024" }], "main"),
+        ).toThrow(broken);
+      } finally {
+        await handle.dispose();
+      }
+    }),
+);
+
+it.effect("resolves the annotation reads with their results", () =>
+  Effect.promise(async () => {
+    const handle = await openHandle((refs) => `[@${refs[0]!.citationKey}]`);
+    try {
+      await expect(
+        handle.citations.renderAnnotationCitation("ANNT2345"),
+      ).resolves.toEqual({ kind: "citation", text: "[@Hensher2011]" });
+      await expect(
+        handle.citations.renderAnnotationCitation("MISS2345"),
+      ).resolves.toEqual({ kind: "not-in-database" });
+      expect(handle.forCard).not.toHaveBeenCalled();
+    } finally {
+      await handle.dispose();
+    }
+  }),
+);
+
+it.effect("rejects Copy citation with what the Citation Template threw", () =>
+  Effect.promise(async () => {
+    // The annotation view shows an inert template's own message.
+    const inert = new InertTemplateError("The Citation Template is inert");
+    const handle = await openHandle(() => {
+      throw inert;
+    });
+    try {
+      await expect(
+        handle.citations.renderAnnotationCitation("ANNT2345"),
+      ).rejects.toBe(inert);
+    } finally {
+      await handle.dispose();
+    }
+  }),
+);
+
+it.effect("settles as the bridge does after the runtime is disposed", () =>
+  Effect.promise(async () => {
+    const handle = await openHandle((refs) => `[@${refs[0]!.citationKey}]`);
+    await handle.dispose();
+    const { citations } = handle;
+    // The released Template still answers; the closed reads fail as closed.
+    expect(
+      citations.renderCitation([{ citationKey: "smith2024" }], "alt"),
+    ).toBe("[@smith2024]");
+    await expect(
+      citations.renderAnnotationCitation("MISS2345"),
+    ).rejects.toBeInstanceOf(DbUnavailable);
+  }),
+);

@@ -4,6 +4,13 @@
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
+import type { BatchUpdateResult } from "@zotlit/notes/desktop/note-feature/update-batch.ts";
+import { noteOperationDiagnosticNotice } from "@zotlit/notes/desktop/note-feature/update-single.ts";
+import {
+  batchImportAllToast,
+  batchImportToast,
+  importNotices,
+} from "@zotlit/notes/desktop/note-import/batch-import-notices.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import type {
   NoticeMessage,
@@ -11,14 +18,6 @@ import type {
 } from "@zotlit/obsidian-kit/notifier.ts";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
-import { noteOperationDiagnosticNotice } from "@/services/note-feature/update-single.ts";
-import {
-  batchImportAllToast,
-  batchImportToast,
-  importNotices,
-} from "@/services/note-import/batch-import-notices.ts";
 
 import { ProtocolOutcome } from "./outcome.ts";
 

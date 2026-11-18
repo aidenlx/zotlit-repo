@@ -7,10 +7,10 @@ import {
   documentPresentation as readPresentation,
   samePresentation,
 } from "@zotlit/citations/obsidian/pandoc/document-presentation.ts";
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@zotlit/notes/__fixtures__/profile/reader.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 const FILE = new TFile();

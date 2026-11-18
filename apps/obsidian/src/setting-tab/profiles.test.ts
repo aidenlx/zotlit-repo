@@ -11,6 +11,13 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import type {
+  LiteratureNoteProfile,
+  ProfileCreation,
+} from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
 import {
   ButtonComponent,
@@ -30,25 +37,18 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import type { CustomizeRequest } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 
-import { Customize } from "@/services/local-bridge/customize.ts";
-import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import { Profile } from "@/services/profile/service.ts";
-import type {
-  LiteratureNoteProfile,
-  ProfileCreation,
-} from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { Template } from "@/services/template/service.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
 import { rebuildingSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";
 import { profileControlValue, setProfileControlValue } from "./controls.ts";
 import { literatureNoteItems, profilesPage } from "./profiles.ts";
 
-vi.mock("@/views/template-workbench/open.ts", () => ({
+vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 

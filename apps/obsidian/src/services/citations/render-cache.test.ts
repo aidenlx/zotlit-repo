@@ -32,6 +32,13 @@ import type { CitationRenderOutcome } from "@zotlit/citations/obsidian/pandoc/re
 import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import type { CslItemData } from "@zotlit/db";
+import { profileRuntimeOf } from "@zotlit/notes/__fixtures__/profile.ts";
+import { createTemplateHost } from "@zotlit/notes/__fixtures__/template.ts";
+import {
+  defaultProfileStyle,
+  layerProfileStyles,
+} from "@zotlit/notes/obsidian/profile/profile-styles.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
@@ -42,16 +49,9 @@ import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/_
 import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { profileRuntimeOf } from "@/services/profile/__fixtures__.ts";
-import {
-  defaultProfileStyle,
-  layerProfileStyles,
-} from "@/services/profile/profile-styles.ts";
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsOverrides } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
-import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 
 const APA = "http://www.zotero.org/styles/apa";
 const IEEE = "http://www.zotero.org/styles/ieee";

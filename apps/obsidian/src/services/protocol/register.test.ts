@@ -20,6 +20,17 @@ import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attach
 import { openAttachments } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import type { Attachment, getItemDisplayRefByID, Library } from "@zotlit/db";
+import { openCompanionNote } from "@zotlit/notes/desktop/note-feature/index.ts";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import {
+  runBatchUpdate,
+  runBatchUpdateAll,
+} from "@zotlit/notes/desktop/note-feature/update-batch.ts";
+import type { BatchUpdateResult } from "@zotlit/notes/desktop/note-feature/update-batch.ts";
+import { NoteImporter } from "@zotlit/notes/desktop/note-import/service.ts";
+import type { NoteImportView } from "@zotlit/notes/desktop/note-import/view.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
@@ -43,26 +54,14 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import { openTemplateDataExplorer } from "@zotlit/template-workbench/desktop/data-explorer/register.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
 } from "@zotlit/zotero-reads/client/service.ts";
-
-import { openCompanionNote } from "@/services/note-feature/index.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
-import {
-  runBatchUpdate,
-  runBatchUpdateAll,
-} from "@/services/note-feature/update-batch.ts";
-import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
-import { NoteImporter } from "@/services/note-import/service.ts";
-import type { NoteImportView } from "@/services/note-import/view.ts";
-import { Profile } from "@/services/profile/service.ts";
-import { Template } from "@/services/template/service.ts";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
 import { ProtocolOutcome } from "./outcome.ts";
 import { layerProtocolHandlers, registerProtocolHandlers } from "./register.ts";
@@ -73,26 +72,34 @@ type ImportedProfile = NonNullable<
   Effect.Success<ReturnType<ProtocolDeps["importProfile"]>>
 >;
 
-vi.mock("@/services/note-feature/update-batch.ts", async (importOriginal) => {
-  const { Effect } = await import("effect");
-  return {
-    ...(await importOriginal<
-      typeof import("@/services/note-feature/update-batch.ts")
-    >()),
-    runBatchUpdate: vi.fn(() => Effect.succeed({ outcome: "batch-modal" })),
-    runBatchUpdateAll: vi.fn(() => Effect.succeed({ outcome: "batch-modal" })),
-  };
-});
+vi.mock(
+  "@zotlit/notes/desktop/note-feature/update-batch.ts",
+  async (importOriginal) => {
+    const { Effect } = await import("effect");
+    return {
+      ...(await importOriginal<
+        typeof import("@zotlit/notes/desktop/note-feature/update-batch.ts")
+      >()),
+      runBatchUpdate: vi.fn(() => Effect.succeed({ outcome: "batch-modal" })),
+      runBatchUpdateAll: vi.fn(() =>
+        Effect.succeed({ outcome: "batch-modal" }),
+      ),
+    };
+  },
+);
 
-vi.mock("@/services/note-feature/index.ts", async (importOriginal) => {
-  const { Effect } = await import("effect");
-  return {
-    ...(await importOriginal<
-      typeof import("@/services/note-feature/index.ts")
-    >()),
-    openCompanionNote: vi.fn(() => Effect.void),
-  };
-});
+vi.mock(
+  "@zotlit/notes/desktop/note-feature/index.ts",
+  async (importOriginal) => {
+    const { Effect } = await import("effect");
+    return {
+      ...(await importOriginal<
+        typeof import("@zotlit/notes/desktop/note-feature/index.ts")
+      >()),
+      openCompanionNote: vi.fn(() => Effect.void),
+    };
+  },
+);
 
 vi.mock(
   "@zotlit/annotations/desktop/attachment-open/open-attachments.ts",
@@ -114,11 +121,11 @@ vi.mock(
   }),
 );
 
-vi.mock("@/views/template-workbench/open.ts", () => ({
+vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 
-vi.mock("@/views/template-data-explorer/register.ts", () => ({
+vi.mock("@zotlit/template-workbench/desktop/data-explorer/register.ts", () => ({
   openTemplateDataExplorer: vi.fn(async () => {}),
 }));
 

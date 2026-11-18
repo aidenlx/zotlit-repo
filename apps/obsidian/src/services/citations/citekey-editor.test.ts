@@ -21,6 +21,17 @@ import {
   layerCitekeyEditor,
 } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
 import type { CitekeyEditorEvent } from "@zotlit/citations/obsidian/citekey-editor/service.ts";
+import { layerCitekeyNoteActions } from "@zotlit/notes/desktop/note-feature/citekey-actions.ts";
+import type {
+  PlannedCreation,
+  PlannedCreationProfile,
+} from "@zotlit/notes/desktop/note-feature/creation-planning.ts";
+import type { CreationProfileSelection } from "@zotlit/notes/desktop/note-feature/index.ts";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import { openLiteratureNoteProfile } from "@zotlit/notes/desktop/profile/profile-picker.ts";
+import type { LiteratureNoteProfileChoice } from "@zotlit/notes/desktop/profile/profile-picker.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
@@ -52,19 +63,8 @@ import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { layerCitekeyNoteActions } from "@/services/note-feature/citekey-actions.ts";
-import type {
-  PlannedCreation,
-  PlannedCreationProfile,
-} from "@/services/note-feature/creation-planning.ts";
-import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
-import { Profile } from "@/services/profile/service.ts";
 import { layerSettings } from "@/services/settings/layer.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { Template } from "@/services/template/service.ts";
-import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
-import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";
 
 const MY_LIBRARY: AvailableLibrary = {
   selector: { type: "personal" },
@@ -550,7 +550,7 @@ describe("CitekeyEditor ambiguous citation keys", () => {
   );
 });
 
-vi.mock("@/views/quick-switch/profile-picker.ts", () => ({
+vi.mock("@zotlit/notes/desktop/profile/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 

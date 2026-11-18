@@ -6,7 +6,11 @@ import type { PlatformError } from "effect";
 import type { CliData } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";
-import { createRenderedCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  SOURCE_UNAVAILABLE_HINT,
+  createRenderedCliDiagnostics,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
 import {
   catchRejection,
   cliIndexedKey,
@@ -35,10 +39,8 @@ const { diagnostic, rejectionDiagnostic } = createRenderedCliDiagnostics<
   { parameter: string }
 >(
   {
-    "invalid-argument":
-      "Correct the parameter named in details.parameter, then run the command again.",
-    "source-unavailable":
-      "Run the command again once the connected Zotero source is readable; when the message reports a failure, ask the user to check the plugin log.",
+    "invalid-argument": INVALID_ARGUMENT_HINT,
+    "source-unavailable": SOURCE_UNAVAILABLE_HINT,
   },
   "invalid-argument",
 );

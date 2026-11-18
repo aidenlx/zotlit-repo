@@ -11,5 +11,5 @@ export type CreateOperationReply =
   | { outcome: "created"; path: string; indexedKey: string }
   | {
       outcome: "refused";
-      diagnostic: import("../../../apps/obsidian/src/services/note-feature/types.ts").CreateNoteDiagnostic;
+      diagnostic: import("@zotlit/notes/desktop/note-feature/types.ts").CreateNoteDiagnostic;
     };

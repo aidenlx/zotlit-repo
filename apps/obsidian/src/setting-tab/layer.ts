@@ -3,6 +3,8 @@
 import { Duration, Effect, Layer, Stream } from "effect";
 
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
@@ -15,10 +17,7 @@ import {
   scopeChanges,
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
-import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { Profile } from "@/services/profile/service.ts";
-import { Template } from "@/services/template/service.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
 import type { SettingTabContext } from "./context.ts";
 import { makeSettingTab } from "./effect-tab.ts";

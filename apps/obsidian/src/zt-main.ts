@@ -20,6 +20,15 @@ import { registerCitationSuggest } from "@zotlit/citations/obsidian/citation-sug
 import { registerCitedByView } from "@zotlit/citations/obsidian/cited-by/register.ts";
 import { addCitekeyEditorActions } from "@zotlit/citations/obsidian/citekey-editor/actions.ts";
 import { addGraphCitationsActions } from "@zotlit/citations/obsidian/graph-citations/actions.ts";
+import {
+  addNoteFeatureActions,
+  noteFeatureFileMenu,
+} from "@zotlit/notes/desktop/note-feature/actions.ts";
+import { citationTemplateOf } from "@zotlit/notes/desktop/note-feature/citation-template.ts";
+import {
+  createProfileDialog,
+  importProfileDialog,
+} from "@zotlit/notes/desktop/profile/dialogs.ts";
 import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -33,23 +42,22 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { addIndexedKeyActions } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
 import { indexedKeyFileMenu } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
+import {
+  explorerFileMenu,
+  registerTemplateDataExplorer,
+} from "@zotlit/template-workbench/desktop/data-explorer/register.ts";
+import { registerWorkbenchSavedNotice } from "@zotlit/template-workbench/desktop/local-bridge/notices.ts";
+import {
+  templateWorkbenchFileMenu,
+  registerTemplateWorkbenchView,
+} from "@zotlit/template-workbench/desktop/view/register.ts";
 
 import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
 import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
 
 import { startI18n } from "./i18n.ts";
-import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices.ts";
-import {
-  addNoteFeatureActions,
-  noteFeatureFileMenu,
-} from "./services/note-feature/actions.ts";
-import { citationTemplateOf } from "./services/note-feature/citation-template.ts";
 import { createPluginRuntime } from "./services/plugin-runtime.ts";
 import { ServiceStartupFailed } from "./services/startup-failure.ts";
-import {
-  createProfileDialog,
-  importProfileDialog,
-} from "./setting-tab/profile-dialogs.ts";
 import { registerAnnotView } from "./views/annot-view/register.ts";
 import { AnnotationView } from "./views/annot-view/view.tsx";
 import { registerAnnotationSuggest } from "./views/annotation-suggest/register.ts";
@@ -72,14 +80,6 @@ import {
 import { literatureNotes } from "./views/query-view/table-notes.ts";
 import type { QueryViewDeps } from "./views/query-view/view.tsx";
 import { registerQuickSwitch } from "./views/quick-switch/register.ts";
-import {
-  explorerFileMenu,
-  registerTemplateDataExplorer,
-} from "./views/template-data-explorer/register.ts";
-import {
-  templateWorkbenchFileMenu,
-  registerTemplateWorkbenchView,
-} from "./views/template-workbench/register.ts";
 import { registerWelcomeView } from "./views/welcome/register.ts";
 import { createSetupActions } from "./views/welcome/setup-actions.ts";
 import "./zt-main.css";

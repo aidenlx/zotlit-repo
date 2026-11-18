@@ -26,6 +26,7 @@ import {
   testEvents,
   testEvent,
 } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -47,7 +48,6 @@ import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import { requested } from "@/views/query-view/__fixtures__/query-run.ts";
 import { serializeQueryFile } from "@/views/query-view/query-file.ts";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
 import { AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";

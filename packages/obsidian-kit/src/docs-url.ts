@@ -21,3 +21,6 @@ export function docsUrl(path: string): string {
 /** The ZotLit Companion install guide, in the reader's language. */
 export const companionDocsUrl = (): string =>
   docsUrl("/docs/install-companion");
+
+/** The community page, where readers ask for help, in the reader's language. */
+export const communityUrl = (): string => docsUrl("/community");

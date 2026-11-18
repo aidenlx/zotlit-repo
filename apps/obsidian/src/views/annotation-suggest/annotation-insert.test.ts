@@ -16,6 +16,8 @@ import { describe, expect, vi } from "vitest";
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
 import { setup as repositorySetup } from "@zotlit/annotations/__fixtures__/annotation-repository.ts";
 import type { InsertRunner } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
+import { annotationAction } from "@zotlit/notes/__fixtures__/note-feature/annotation-actions.ts";
+import type { AnnotationInsert } from "@zotlit/notes/desktop/note-feature/insert-annotation.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
@@ -26,9 +28,6 @@ import {
   ledgerHost,
 } from "@zotlit/plugin-services/obsidian/use-ledger/__fixtures__.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
-
-import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
-import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
 
 import { insertAnnotation } from "./annotation-insert.ts";
 import type { AnnotationHit } from "./annotation-search.ts";

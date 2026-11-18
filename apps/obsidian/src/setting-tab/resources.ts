@@ -6,6 +6,7 @@ import type {
   SettingDefinitionGroup,
 } from "obsidian";
 
+import { communityUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { toastLanguagePackInstall } from "@zotlit/plugin-services/obsidian/language-pack/notices.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
@@ -15,7 +16,6 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 import { Release } from "@/services/release/service.ts";
 import {
   BUG_REPORT,
-  communityUrl,
   docsHomeUrl,
   migrationGuideUrl,
 } from "@/views/welcome/links.ts";

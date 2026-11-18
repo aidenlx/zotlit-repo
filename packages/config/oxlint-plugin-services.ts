@@ -800,13 +800,17 @@ const ANNOTATION_SERVICES =
 const CITATION_SERVICES =
   /\/citations\/src\/(core|obsidian|desktop)\/(annotation-popover|citation-index|citation-parse|citation-popover|citation-text|citekey-editor|citekey-navigation|citekey-reading|graph-citations|pandoc|wikilink-editor|wikilink-reading)\//;
 
+/** The folders of `@zotlit/notes` and `@zotlit/template-workbench` that hold Effect services. */
+const NOTES_SERVICES =
+  /\/(notes\/src\/(core|obsidian|desktop)\/(note-feature|note-import|profile|profile-selection|template|batch)|template-workbench\/src\/(core|obsidian|desktop)\/(cli|local-bridge))\//;
+
 /**
  * In an Effect-native file time comes from `Clock`, so `TestClock` drives it
  * (CODING_STANDARDS.md → Effect → Time). A direct read of the system clock
  * (`Date.now()`, `new Date()`, `performance.now()`) skips the Clock service;
  * `temporal-in-effect` reports `Temporal.Now`. Under `src/services/**`, in
- * `@zotlit/plugin-services` and in the services of `@zotlit/annotations` and
- * `@zotlit/citations`, a
+ * `@zotlit/plugin-services` and in the services of `@zotlit/annotations`,
+ * `@zotlit/citations`, `@zotlit/notes` and `@zotlit/template-workbench`, a
  * layer constructor that takes a `now` function in its options asks its
  * caller for a second clock; the layer reads `Clock.Clock` instead. The file that converts the Clock for
  * a non-Effect core, and the backlog, are listed in oxlint.config.ts.
@@ -833,7 +837,8 @@ export const clockTime: Rule = {
       filename.includes("/src/services/") ||
       filename.includes("/plugin-services/src/") ||
       ANNOTATION_SERVICES.test(filename) ||
-      CITATION_SERVICES.test(filename);
+      CITATION_SERVICES.test(filename) ||
+      NOTES_SERVICES.test(filename);
 
     /** Members of a parameter type: a literal, or an interface or alias of this file. */
     const membersOf = (
@@ -992,8 +997,8 @@ export const temporalInEffect: Rule = {
 
 /**
  * Rejects an import or re-export of a `<service>/plain` module under
- * `src/services/`, `@zotlit/plugin-services`, `@zotlit/annotations` or
- * `@zotlit/citations`, in
+ * `src/services/`, `@zotlit/plugin-services`, `@zotlit/annotations`,
+ * `@zotlit/citations`, `@zotlit/notes` or `@zotlit/template-workbench`, in
  * source, tests and fixtures alike. A caller reads the
  * service's Effect tag: Effect code `yield*`s it, and code outside Effect holds
  * the service that `plugin-runtime.ts` reads once and runs each call through
@@ -1028,10 +1033,14 @@ export const noPlainServiceAdapters: Rule = {
           path.startsWith("@zotlit/plugin-services/") ||
           path.startsWith("@zotlit/annotations/") ||
           path.startsWith("@zotlit/citations/") ||
+          path.startsWith("@zotlit/notes/") ||
+          path.startsWith("@zotlit/template-workbench/") ||
           path.includes("/src/services/") ||
           path.includes("/plugin-services/src/") ||
           path.includes("/annotations/src/") ||
-          path.includes("/citations/src/")) &&
+          path.includes("/citations/src/") ||
+          path.includes("/notes/src/") ||
+          path.includes("/template-workbench/src/")) &&
         ["plain", "plain.ts", "plain.js"].includes(path.split("/").at(-1)!)
       )
         context.report({ node: node as never, messageId: "adapter" });

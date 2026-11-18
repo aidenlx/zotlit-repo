@@ -19,13 +19,13 @@ import {
 } from "@zotlit/citations/desktop/pandoc/register.ts";
 import type { PandocResolveDeps } from "@zotlit/citations/desktop/pandoc/register.ts";
 import type { ResolveResponse } from "@zotlit/citations/obsidian/pandoc/resolve.ts";
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
+import type { ProfileReader } from "@zotlit/notes/obsidian/profile/service.ts";
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import { defaultProfileStyle } from "@/services/profile/profile-styles.ts";
-import type { ProfileReader } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 const APA = "http://www.zotero.org/styles/apa";

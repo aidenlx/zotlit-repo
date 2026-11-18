@@ -12,13 +12,13 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
+import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/operations.ts";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import type { buildNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
 import { noteIndexSnapshotAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
-import { Profile } from "@/services/profile/service.ts";
-import { Template } from "@/services/template/service.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -28,7 +28,7 @@ import type {
   VaultEdit,
   VaultWrite,
 } from "@/views/query-view/table-notes.ts";
-import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
+import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 
 export interface NotesHostDeps {
   runtime: SubscriptionRuntime;

@@ -3,9 +3,8 @@
 // each surface can bind, and where a member gets its record otherwise, live
 // here, so no host writes the hint.
 import type { ContextRecord } from "@zotlit/item-query";
+import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 
 /** A record of the Query Context, as a filter reads it from `this`. */
 export type ContextMember = ContextRecord;

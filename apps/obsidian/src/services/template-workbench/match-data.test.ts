@@ -1,0 +1,168 @@
+import { expect, it } from "@effect/vitest";
+// Vault-wide suggestions and the Match test of a real Item read one database,
+// through the host's ZotLit Query service.
+import { Effect, Layer } from "effect";
+import { vi } from "vitest";
+
+import { createFixtureSchema } from "@zotlit/db-testing";
+import { createClient } from "@zotlit/db/client/node";
+import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { makeWorkbenchHost } from "@zotlit/template-workbench/__fixtures__/view.ts";
+import type { WorkbenchHostDeps } from "@zotlit/template-workbench/__fixtures__/view.ts";
+import { createMatchData } from "@zotlit/template-workbench/obsidian/view/match-data.ts";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { layerItemMatchQuery } from "@/services/item-query/item-matches.ts";
+import { queryJobRunner } from "@/services/item-query/job.ts";
+import { QueryService } from "@/services/item-query/service.ts";
+
+/** The Item Match port over the host's query service, as the plugin fills it. */
+function itemMatchesOf(
+  service: QueryService["Service"],
+): NonNullable<WorkbenchHostDeps["query"]> {
+  const port = Effect.runSync(
+    Effect.gen(function* () {
+      return yield* ItemMatchQuery;
+    }).pipe(
+      Effect.provide(
+        layerItemMatchQuery.pipe(
+          Layer.provide(Layer.succeed(QueryService, service)),
+        ),
+      ),
+    ),
+  );
+  return {
+    matches: (items, filters, signal) =>
+      Effect.runPromise(port.matches(items, filters), { signal }),
+    customFieldNames: (signal) =>
+      Effect.runPromise(port.customFieldNames, { signal }),
+  };
+}
+
+/** Match data over one fixture database, with the lease releases counted. */
+async function openMatchData(stack: AsyncDisposableStack) {
+  const client = createClient(":memory:");
+  stack.defer(() => client.$client.close());
+  createFixtureSchema(client.$client);
+  client.$client.exec(`
+    insert into libraries (libraryID,type) values (1,'user'), (2,'group');
+    insert into groups (groupID,libraryID,name) values (118,2,'Team');
+    insert into itemTypes (itemTypeID,typeName) values (1,'book');
+    insert into items (itemID,itemTypeID,libraryID,key) values (1,1,1,'BKKKK222');
+    update items set dateAdded='2026-01-01 00:00:00',dateModified='2026-01-01 00:00:00',clientDateModified='2026-01-01 00:00:00';
+    insert into tags (tagID,name) values (1,'Manual'), (2,'Automatic'), (3,'Other paper');
+    insert into itemTags (itemID,tagID,type) values (1,1,0), (1,2,1);
+    insert into collections (collectionID,collectionName,parentCollectionID,libraryID,key) values (1,'Project',null,1,'PROJ0001'), (2,'Drafts',1,1,'DRFT0001'), (3,'Team only',null,2,'TEAM0001'), (4,'A/B',null,1,'SLASH222');
+    insert into collectionItems (collectionID,itemID) values (2,1), (4,1);
+  `);
+  const service = stack.use(
+    inProcessReadsService(sharedClientOpener(client), {
+      handlers: { queryJobs: queryJobRunner },
+    }),
+  );
+  const dispose = vi.fn();
+  const db = {
+    acquireRead: async () => {
+      const lease = await service.acquireRead();
+      return {
+        reads: lease.reads,
+        [Symbol.asyncDispose]: () => {
+          dispose();
+          return lease[Symbol.asyncDispose]();
+        },
+      };
+    },
+  };
+  const { service: query } = await buildQueryService(
+    {
+      reads: service.reads,
+      source: {
+        sourceId: "match-data",
+        databasePath: ":memory:",
+        dataDir: "/zotero",
+        baseAttachmentPath: "/zotero/linked",
+      },
+      vaultName: "Match tests",
+      basePath: "/vault",
+    },
+    stack,
+  );
+  const host = makeWorkbenchHost(
+    {
+      zoteroReads: stubService<WorkbenchHostDeps["zoteroReads"]>(
+        "ZoteroReads",
+        db,
+      ),
+      query: itemMatchesOf(query),
+    },
+    { unread: layerUnreadViewServices },
+  );
+  const data = createMatchData(
+    stack.use(makeViewRunner(host.registry)).provide,
+  );
+  return { data, dispose };
+}
+
+it.effect(
+  "includes Libraries outside the chosen paper and keeps automatic Tags and direct Collection paths",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* Effect.acquireRelease(
+        Effect.sync(() => new AsyncDisposableStack()),
+        (stack) => Effect.promise(() => stack.disposeAsync()),
+      );
+      const { data, dispose } = yield* Effect.promise(() =>
+        openMatchData(stack),
+      );
+      expect(yield* data.tags).toEqual(["Automatic", "Manual", "Other paper"]);
+      // ADR 0040 accepts slash ambiguity in expressions; provider facts retain real segments.
+      expect(yield* data.collections).toEqual([
+        ["A/B"],
+        ["Project"],
+        ["Project", "Drafts"],
+        ["Team only"],
+      ]);
+      expect(yield* data.libraries).toEqual([
+        { id: "personal" },
+        { id: "group:118", name: "Team" },
+      ]);
+      // Automatic Tags and direct Collection paths count, as in selection.
+      for (const [filter, matched] of [
+        ['itemType == "book" && library == "personal"', true],
+        ['tags.containsAll("Automatic", "Manual")', true],
+        ['collections.contains("Project/Drafts")', true],
+        ['collections.contains("Project")', false],
+        ['collections.within("Project")', true],
+        ['tags.contains("Other paper")', false],
+      ] as const)
+        expect(yield* data.matches("BKKKK222", filter), filter).toEqual({
+          kind: "result",
+          matched,
+        });
+      // The Workbench shows the Match pane twice; overlapping tests both answer.
+      expect(
+        yield* Effect.all(
+          [data.matches("BKKKK222", "true"), data.matches("BKKKK222", "false")],
+          { concurrency: "unbounded" },
+        ),
+      ).toEqual([
+        { kind: "result", matched: true },
+        { kind: "result", matched: false },
+      ]);
+      expect(yield* data.matches("ABSENT22", "true")).toEqual({
+        kind: "missing",
+      });
+      expect(yield* data.matches("BKKKK222", "tags.contain(1)")).toMatchObject({
+        kind: "problem",
+        span: { from: 5, to: 12 },
+      });
+      expect(dispose).toHaveBeenCalledTimes(3);
+    }),
+);

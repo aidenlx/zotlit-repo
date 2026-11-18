@@ -18,8 +18,8 @@ import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segme
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
-import { LocalBridge } from "@/services/local-bridge/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
@@ -33,7 +33,7 @@ import { readerPageItems } from "./reader.ts";
 import { resourcesGroup } from "./resources.ts";
 import { zoteroPageItems } from "./zotero.ts";
 
-vi.mock("@/views/template-workbench/open.ts", () => ({
+vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 

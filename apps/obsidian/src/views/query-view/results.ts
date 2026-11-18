@@ -3,6 +3,7 @@
 // whole or clears them.
 import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary } from "@zotlit/item-query";
+import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { PlacedFault } from "@zotlit/workbench/language";
 
 import type {
@@ -11,7 +12,6 @@ import type {
 } from "@/services/item-query/query-view.ts";
 
 import type { ConditionIssue } from "./query-file.ts";
-import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 import type { ShownRecord } from "./record-rows.tsx";
 import type { LayoutGroup } from "./rows.ts";
 

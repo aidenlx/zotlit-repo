@@ -15,6 +15,7 @@ import {
   setCitationPresentation,
 } from "@zotlit/citations/desktop/citation-presentation/register.ts";
 import type { CitationPresentationDeps } from "@zotlit/citations/desktop/citation-presentation/register.ts";
+import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 import {
@@ -31,7 +32,6 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
 
-import { defaultProfileStyle } from "@/services/profile/profile-styles.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 const STYLE = "http://www.zotero.org/styles/test-style";

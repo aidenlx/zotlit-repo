@@ -2,11 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber, Logger, Queue } from "effect";
 import { beforeEach, describe, expect, vi } from "vitest";
 
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import { RESET_SETTING } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 
 import { settingsRuntimeOf } from "./__fixtures__.ts";
 import type { SettingsFixtureOptions } from "./__fixtures__.ts";

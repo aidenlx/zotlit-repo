@@ -19,7 +19,10 @@ import type {
 } from "#obsidian/citation-index/service.ts";
 import type { Loc } from "obsidian";
 
-import { createCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  createCliDiagnostics,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
 import type { SnapshotItem } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 /** The wire format of the `zotlit:` citation commands, versioned on its own. */
@@ -44,8 +47,7 @@ export interface CitationsIdentity {
  * of both, so a new code arrives with its own hint.
  */
 export const DIAGNOSTIC_HINTS = {
-  INVALID_SELECTOR:
-    "Correct the parameter named in details.parameter, then run the command again.",
+  INVALID_SELECTOR: INVALID_ARGUMENT_HINT,
   TARGET_MISMATCH:
     "Confirm the intended Zotero source with the user before you query citations again.",
   INDEX_NOT_READY:

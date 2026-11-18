@@ -21,6 +21,7 @@ import {
   STYLE_DEFAULT,
 } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { DefaultLiteratureNoteProfile } from "@zotlit/notes/obsidian/profile/settings.ts";
 import {
   DropdownComponent,
   ExtraButtonComponent,
@@ -37,7 +38,6 @@ import {
   SettingsMutationError,
 } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import type { DefaultLiteratureNoteProfile } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import {

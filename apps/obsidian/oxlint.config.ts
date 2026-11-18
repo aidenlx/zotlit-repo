@@ -21,14 +21,12 @@ export default defineConfig({
     {
       // Logging backlog: rework the file to log through Effect, then remove it from the list.
       files: [
-        "src/services/template/actions.ts",
         "src/views/annot-view/view.tsx",
         "src/views/library/item-actions.ts",
         "src/views/library/library-tree.tsx",
         "src/views/library/reading-card.tsx",
         "src/views/library/view.ts",
         "src/views/query-view/view.tsx",
-        "src/views/template-workbench/view.tsx",
         "src/views/welcome/banner.tsx",
       ],
       rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
@@ -37,24 +35,9 @@ export default defineConfig({
     // grouped by what blocks the change. A file moves off its list when it
     // takes Obsidian from the capability tags.
     {
-      // Legacy classes that hold the App (`app`, `#app`, `#deps.app`). A file
-      // moves off the list when its service converts to Effect.
-      files: [
-        "src/services/profile/service.ts",
-        "src/services/template/migration.ts",
-        "src/services/template/service.ts",
-      ],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       // Obsidian views and components, which register on their own lifecycle.
       // A file moves off the list when its view reads the tags.
-      files: [
-        "src/views/annot-view/view.tsx",
-        "src/views/template-data-explorer/view.tsx",
-        "src/views/template-workbench/view.tsx",
-        "src/views/welcome/banner.tsx",
-      ],
+      files: ["src/views/annot-view/view.tsx", "src/views/welcome/banner.tsx"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
@@ -85,25 +68,14 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      // Plain async code, or an Effect.fn, that reaches the App through
-      // `deps.app`: the deps must carry the tag first.
-      files: ["src/views/template-workbench/preview/render.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       // Default-runtime backlog: run the Effect through the bridge, a layer context runner or a runtime, then remove the file from the list.
       files: [
-        "src/services/batch-run.ts",
-        "src/services/profile/service.ts",
         "src/views/annot-view/view.tsx",
         "src/views/library/item-actions.ts",
         "src/views/library/library-tree.tsx",
         "src/views/library/view.ts",
-        "src/views/template-workbench/preview/citations.ts",
         "src/views/query-view/table-notes.ts",
         "src/views/query-view/view.tsx",
-        "src/views/template-workbench/match-data.ts",
-        "src/views/template-workbench/view.tsx",
         "src/views/welcome/connection.ts",
       ],
       rules: { "zotlit-services/no-default-runtime": "off" },
@@ -186,12 +158,6 @@ export default defineConfig({
       },
     },
     {
-      // A reading view of a note: the app's own classes draw its Properties
-      // block, so the sheet reads as the note does in the editor.
-      files: ["src/views/template-workbench/preview/markdown.tsx"],
-      rules: { "zotlit-css/no-obsidian-class": "off" },
-    },
-    {
       // Code written before the rule; new code follows it, and a file moves
       // off this list when it is next reworked.
       files: [
@@ -200,7 +166,6 @@ export default defineConfig({
         "src/views/annot-view/tag-editor.tsx",
         "src/views/query-view/sort-control.tsx",
         "src/views/query-view/table-layout.tsx",
-        "src/views/template-workbench/theme.tsx",
       ],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
@@ -213,21 +178,13 @@ export default defineConfig({
     {
       // Effect tests written before the rule, in plain Vitest. A file moves
       // off this list when its cases move to it.effect.
-      files: [
-        "src/services/zotero-reads/item-query.test.ts",
-        "src/views/template-workbench/view.test.ts",
-      ],
+      files: ["src/services/zotero-reads/item-query.test.ts"],
       rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
     },
     {
       // Tests written before the rule that assert zt: classes; a file moves off
       // this list when its assertions move to behavior.
-      files: [
-        "src/setting-tab/create-profile-modal.test.ts",
-        "src/setting-tab/profile-destination-modal.test.ts",
-        "src/views/template-workbench/host.test.ts",
-        "src/views/welcome/Welcome.test.ts",
-      ],
+      files: ["src/views/welcome/Welcome.test.ts"],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },
     {

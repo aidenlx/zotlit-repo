@@ -15,10 +15,10 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { testPluginData } from "@zotlit/plugin-services/__fixtures__/plugin-data.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { layerSettings, layerSettingsOf } from "@/services/settings/layer.ts";
 
 import { settingsOf, settingsRuntimeOf } from "./__fixtures__.ts";

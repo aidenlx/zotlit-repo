@@ -4,16 +4,15 @@ import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
 
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";
+import {
+  profilePreviewChoice,
+  renderProfileChoice,
+} from "@zotlit/notes/desktop/profile/profile-picker.ts";
+import type { ProfileDeletionPlan } from "@zotlit/notes/obsidian/profile/service.ts";
 import { normalizeFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { ProfileDeletionPlan } from "@/services/profile/service.ts";
-import {
-  profilePreviewChoice,
-  renderProfileChoice,
-} from "@/views/quick-switch/profile-picker.ts";
 
 export interface ProfileDeletionConsent {
   target: ProfileSelector;

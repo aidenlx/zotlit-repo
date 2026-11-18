@@ -74,6 +74,8 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/plugin-services",
   "packages/annotations",
   "packages/citations",
+  "packages/notes",
+  "packages/template-workbench",
 ]);
 
 /**

@@ -2,6 +2,9 @@
 import { Cause, Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
+import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
+import type { LiteratureNoteTemplateMigrationResult } from "@zotlit/notes/desktop/template/migration.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -11,10 +14,7 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { SettingsPatch } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { Release } from "@/services/release/service.ts";
-import { TemplateMigration } from "@/services/template/migration.ts";
-import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
 
 import { templateMigrationNotice } from "./migration-notice.ts";
 

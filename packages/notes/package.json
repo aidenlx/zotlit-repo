@@ -1,0 +1,65 @@
+{
+  "name": "@zotlit/notes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The notes of the ZotLit Obsidian plugins: Literature Notes and their creation, update and import, Literature Note Profiles and Profile selection, the Templates and their data, and batch runs",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@std/collections": "catalog:",
+    "@zotlit/annotations": "workspace:*",
+    "@zotlit/citations": "workspace:*",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/filter-expression": "workspace:*",
+    "@zotlit/item-query": "workspace:*",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/protocol": "workspace:*",
+    "@zotlit/templates": "workspace:*",
+    "@zotlit/workbench": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "arkregex": "catalog:",
+    "effect": "catalog:",
+    "nanoid": "catalog:",
+    "semver": "^7.8.0",
+    "turndown": "catalog:",
+    "valibot": "catalog:",
+    "yaml": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/semver": "^7.7.1",
+    "@types/turndown": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "@zotlit/obsidian-i18n": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

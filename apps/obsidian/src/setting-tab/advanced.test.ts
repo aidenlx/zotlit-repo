@@ -16,8 +16,8 @@ import { FileNotFound } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
-import { LocalBridge } from "@/services/local-bridge/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";

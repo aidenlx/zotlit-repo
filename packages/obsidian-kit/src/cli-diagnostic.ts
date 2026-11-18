@@ -5,6 +5,17 @@ import type { CliRejection } from "./cli-params.ts";
 
 export type { RenderedDiagnostic };
 
+/** The recovery action of a rejected parameter, shared by every CLI namespace. */
+export const INVALID_ARGUMENT_HINT =
+  "Correct the parameter named in details.parameter, then run the command again.";
+
+/**
+ * The recovery action of a command whose Zotero source cannot be read, shared
+ * by the commands that read Items and Annotations.
+ */
+export const SOURCE_UNAVAILABLE_HINT =
+  "Run the command again once the connected Zotero source is readable; when the message reports a failure, ask the user to check the plugin log.";
+
 type DiagnosticCode<THints> = Extract<keyof THints, string>;
 
 /**

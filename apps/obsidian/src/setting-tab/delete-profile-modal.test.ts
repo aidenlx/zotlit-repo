@@ -3,12 +3,12 @@ import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ProfileDeletionPlan } from "@zotlit/notes/obsidian/profile/service.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import type { ProfileDeletionPlan } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import type { ProfileDeletionConsent } from "./delete-profile-modal.ts";

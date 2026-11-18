@@ -18,6 +18,10 @@ import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-re
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
+import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
@@ -34,19 +38,15 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { Customize } from "@/services/local-bridge/customize.ts";
-import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
-import { Profile } from "@/services/profile/service.ts";
 import { Release } from "@/services/release/service.ts";
-import { Template } from "@/services/template/service.ts";
 
 import { makeSettingTab } from "./effect-tab.ts";
 import type { SettingTabShape } from "./effect-tab.ts";
-import type { ProfileDialogServices } from "./profile-dialogs.ts";
 
 /**
  * Every service the tab reads, with no member implemented: a test's own
@@ -73,6 +73,7 @@ export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(AttachmentImport)({}),
   Layer.mock(LocalBridge)({}),
   Layer.mock(Customize)({}),
+  Layer.mock(TemplateWorkbenchLauncher)({}),
   // Services with plain members: a read of a member no test gave throws.
   Layer.succeed(
     LanguagePack,
@@ -100,31 +101,6 @@ export const unimplementedTabServices = Layer.mergeAll(
     stubService<FileSystem.FileSystem>("FileSystem", {}),
   ),
 );
-
-/**
- * Every service a Profile dialog reads, with no member implemented, for a
- * caller's test whose dialogs are fakes: merge it before the test's own
- * services, which replace these.
- */
-export const unimplementedProfileDialogServices = Layer.mergeAll(
-  Layer.mock(Profile)({}),
-  Layer.mock(Template)({}),
-  Layer.mock(NoteFeature)({}),
-  Layer.mock(Vault)({}),
-  Layer.mock(ZoteroPref)({}),
-  Layer.mock(ZoteroReads)({
-    reads: stubService<ZoteroReadsApi>("ZoteroReads.reads", {}),
-  }),
-  Layer.mock(NoteIndex)({}),
-  Layer.mock(PluginSettings)({}),
-  Layer.mock(FileManager)({}),
-  Layer.mock(LibraryScope)({}),
-  Layer.succeed(
-    FileSystem.FileSystem,
-    stubService<FileSystem.FileSystem>("FileSystem", {}),
-  ),
-  testNotifier().layer,
-) satisfies Layer.Layer<ProfileDialogServices>;
 
 /**
  * A tab service whose Effects read `services`, with a recording Notifier

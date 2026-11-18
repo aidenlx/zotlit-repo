@@ -15,12 +15,15 @@ import type {
   SchemaCustomField,
   SortSpec,
 } from "@zotlit/item-query";
-import { createRenderedCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  SOURCE_UNAVAILABLE_HINT,
+  createRenderedCliDiagnostics,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
 import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { DELIMITED_FORMATS } from "@zotlit/shared/delimited";
-
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
-import type { SchemaAsset } from "@/services/template-workbench/schema.ts";
+import type { SchemaAsset } from "@zotlit/template-workbench/core/cli/schema.ts";
+import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/envelope.ts";
 
 import contractVersion from "./contract-version.json" with { type: "json" };
 import type { QueryParam, QueryValuesParam } from "./decode.ts";
@@ -166,11 +169,9 @@ export const DIAGNOSTIC_HINTS = {
     "Run the query with output=<absolute-path> to write the complete response to a new JSON file, or reduce the fields or limit.",
   "output-error":
     "Use an absolute output path in an existing writable directory, with a filename that does not exist.",
-  "invalid-argument":
-    "Correct the parameter named in details.parameter, then run the command again.",
+  "invalid-argument": INVALID_ARGUMENT_HINT,
   "query-id-in-use": `Give this query another id. A query with this id is still running in this vault; the id is free again when that query finishes or is cancelled with ${QUERY_CANCEL_COMMAND}.`,
-  "source-unavailable":
-    "Run the command again once the connected Zotero source is readable; when the message reports a failure, ask the user to check the plugin log.",
+  "source-unavailable": SOURCE_UNAVAILABLE_HINT,
   "library-not-found":
     "Use personal, or group:<groupID> with the group ID of a group Library that the connected Zotero source holds; library=all reads every Library of the source.",
   "no-library-available":

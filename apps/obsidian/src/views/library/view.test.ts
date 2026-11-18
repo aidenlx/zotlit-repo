@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Item } from "@zotlit/db";
 import { makeItem } from "@zotlit/db/item-fixture";
 import { testItemSeed } from "@zotlit/item-query";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import {
   keymapApp,
   pressTop,
@@ -86,7 +87,6 @@ import type {
   QueryViewValue,
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { NoteFeature } from "@/services/note-feature/service.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";

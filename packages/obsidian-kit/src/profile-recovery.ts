@@ -1,5 +1,5 @@
 // UI recovery for an unavailable Profile, shared by notes and citation surfaces.
-import type { App } from "obsidian";
+import type { App, EventRef } from "obsidian";
 
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -61,4 +61,15 @@ export function renderProfileRecovery(
     requestProfileSwitch(host, path);
   });
   container.appendChild(button);
+}
+
+declare module "obsidian" {
+  interface Workspace {
+    /** A request to switch the Profile of the note at `request.path`. */
+    on(
+      name: "zotlit:switch-profile",
+      callback: (request: { path: string }) => void,
+      ctx?: unknown,
+    ): EventRef;
+  }
 }

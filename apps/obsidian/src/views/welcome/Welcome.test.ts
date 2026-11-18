@@ -10,11 +10,10 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { LiteratureNoteTemplateMigrationResult } from "@zotlit/notes/desktop/template/migration.ts";
 import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
 
 import { makeWelcomeHost } from "./__fixtures__.ts";
 import { WelcomeActionsContext } from "./actions.ts";

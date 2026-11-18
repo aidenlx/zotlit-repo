@@ -8,6 +8,8 @@ import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attach
 import { openAttachments } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import type { LiteratureNoteAttachmentsHandle } from "@zotlit/annotations/obsidian/attachment-open/handle.ts";
 import { makeItem } from "@zotlit/db/item-fixture";
+import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -18,8 +20,6 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { NoteFeature } from "@/services/note-feature/service.ts";
-import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { makeLibraryHost } from "@/views/library/__fixtures__.ts";
 

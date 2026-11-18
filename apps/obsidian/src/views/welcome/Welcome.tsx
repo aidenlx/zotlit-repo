@@ -8,7 +8,10 @@ import { useEffect, useRef } from "react";
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
-import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import {
+  communityUrl,
+  companionDocsUrl,
+} from "@zotlit/obsidian-kit/docs-url.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { CONVERTED_DEFAULT_PROFILE_DOCUMENT } from "@zotlit/templates/facade";
@@ -19,7 +22,6 @@ import {
   blogUrl,
   changelogUrl,
   citationsDocsUrl,
-  communityUrl,
   gettingStartedUrl,
   GITHUB,
   migrationGuideUrl,

@@ -91,6 +91,8 @@ const PLUGIN_SOURCES = [
   "packages/plugin-services/src",
   "packages/annotations/src",
   "packages/citations/src",
+  "packages/notes/src",
+  "packages/template-workbench/src",
 ];
 
 export default [

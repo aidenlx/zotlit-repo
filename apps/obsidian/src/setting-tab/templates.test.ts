@@ -4,6 +4,8 @@ import { TFile } from "obsidian";
 import type { App, Modal, SettingDefinitionList } from "obsidian";
 import { expect, vi } from "vitest";
 
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
+import type { CitationTemplateStatus } from "@zotlit/notes/obsidian/template/service.ts";
 import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
 // @vitest-environment happy-dom
 import {
@@ -16,20 +18,17 @@ import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { Template } from "@/services/template/service.ts";
-import type { CitationTemplateStatus } from "@/services/template/service.ts";
-import { openNewPartialPrompt } from "@/views/template-workbench/new-partial.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
+import { openNewPartialPrompt } from "@zotlit/template-workbench/obsidian/view/new-partial.ts";
 
 import { rebuildingSettingTab } from "./__fixtures__.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { citationTextItems, partialItems } from "./templates.ts";
 
-vi.mock("@/views/template-workbench/open.ts", () => ({
+vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
-vi.mock("@/views/template-workbench/new-partial.ts", () => ({
+vi.mock("@zotlit/template-workbench/obsidian/view/new-partial.ts", () => ({
   openNewPartialPrompt: vi.fn(),
 }));
 

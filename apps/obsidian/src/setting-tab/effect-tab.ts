@@ -17,6 +17,10 @@ import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotati
 import type { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import type { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
+import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import type { Template } from "@zotlit/notes/obsidian/template/service.ts";
+import type { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -34,14 +38,11 @@ import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scop
 import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import type { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import type { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import type { Customize } from "@/services/local-bridge/customize.ts";
-import type { LocalBridge } from "@/services/local-bridge/service.ts";
-import type { NoteFeature } from "@/services/note-feature/service.ts";
-import type { Profile } from "@/services/profile/service.ts";
 import type { Release } from "@/services/release/service.ts";
-import type { Template } from "@/services/template/service.ts";
 
 /** Every service a tab Effect may read: the tab layer's whole context. */
 export type SettingTabEnv =
@@ -64,6 +65,7 @@ export type SettingTabEnv =
   | AttachmentImport
   | LocalBridge
   | Customize
+  | TemplateWorkbenchLauncher
   | LanguagePack
   | ExcerptImageService
   | ExcerptDisplays

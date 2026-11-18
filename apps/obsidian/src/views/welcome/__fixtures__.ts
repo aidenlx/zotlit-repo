@@ -1,6 +1,7 @@
 // A Welcome test host over in-memory Obsidian sources and controllable Effect services.
 import { Effect, Layer, Stream } from "effect";
 
+import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
@@ -21,7 +22,6 @@ import type {
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { Release } from "@/services/release/service.ts";
 import { layerSettings } from "@/services/settings/layer.ts";
-import { TemplateMigration } from "@/services/template/migration.ts";
 
 import { connectionLifecycleAtom } from "./connection.ts";
 import { holdWelcomeModel, makeWelcomeModel } from "./model.ts";

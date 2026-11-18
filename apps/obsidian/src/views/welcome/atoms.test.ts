@@ -4,11 +4,10 @@ import { Effect, Layer } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
+import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
-import { TemplateMigration } from "@/services/template/migration.ts";
 
 import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import {

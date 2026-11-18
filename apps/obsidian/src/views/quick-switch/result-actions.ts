@@ -16,11 +16,10 @@ import {
   withFixedPane,
 } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import type { Item } from "@zotlit/db";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import { openLiteratureNote } from "@zotlit/notes/desktop/note-feature/navigation.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
-
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
-import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
 
 export interface NoteResultDeps {
   registry: ViewRegistryHandle;

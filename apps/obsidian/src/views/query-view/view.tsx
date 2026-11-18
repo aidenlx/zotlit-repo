@@ -31,6 +31,11 @@ import type { NameDictionary, QueryContext } from "@zotlit/item-query";
 import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
 import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import {
+  correctionsText,
+  readerDiagnostic,
+  readerText,
+} from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type {
   ViewRegistryHandle,
   ViewServices,
@@ -89,11 +94,6 @@ import type {
   QueryFileSort,
   QueryFileView,
 } from "./query-file.ts";
-import {
-  correctionsText,
-  readerDiagnostic,
-  readerText,
-} from "./reader-diagnostic.ts";
 import { ResultsMenu } from "./results-menu.tsx";
 import { NO_RESULTS } from "./results.ts";
 import type {

@@ -236,7 +236,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -260,7 +260,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -297,7 +297,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               const leaves = app.workspace.getLeavesOfType(
                 "zotlit-template-workbench",
               ) as (import("obsidian").WorkspaceLeaf & {
-                view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+                view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
               })[];
               return (
                 leaves.find(
@@ -339,7 +339,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -379,7 +379,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -402,7 +402,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             const leaves = app.workspace.getLeavesOfType(
               "zotlit-template-workbench",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+              view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
             })[];
             return (
               leaves.find(
@@ -422,7 +422,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -469,7 +469,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -496,7 +496,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -539,7 +539,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const leaves = app.workspace.getLeavesOfType(
             "zotlit-template-workbench",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            view: import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           })[];
           return (
             leaves.find(
@@ -1404,7 +1404,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           run.vaultId,
           async ({ app }, { key }) => {
             const view = app.workspace.activeLeaf!
-              .view as import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+              .view as import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
             if (view.getState().itemIndexedKey !== key)
               await view.setState(
                 { ...view.getState(), itemIndexedKey: key },
@@ -1506,7 +1506,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const { press, until } = page;
           const { trusted } = page;
           const view = app.workspace.activeLeaf!
-            .view as import("../../../apps/obsidian/src/views/template-workbench/view.tsx").TemplateWorkbenchView;
+            .view as import("@zotlit/template-workbench/desktop/view/view.tsx").TemplateWorkbenchView;
           const el = view.contentEl;
           const input = trusted(el.win);
           const contents = (

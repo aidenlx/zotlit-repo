@@ -50,11 +50,10 @@ import {
 } from "@zotlit/citations/obsidian/pandoc/inline-content.tsx";
 import { buildReferenceEntries } from "@zotlit/citations/obsidian/references/entries.ts";
 import type { ReferenceEntry } from "@zotlit/citations/obsidian/references/entries.ts";
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
-
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),

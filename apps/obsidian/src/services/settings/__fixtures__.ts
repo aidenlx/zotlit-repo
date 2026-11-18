@@ -1,5 +1,7 @@
 import type { Plugin } from "obsidian";
 
+import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import {
   buildSettings as buildHostSettings,
@@ -12,8 +14,6 @@ import type {
   Settings,
 } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { withHost } from "@/services/settings/layer.ts";
 
 export type { SettingsFixture } from "@zotlit/plugin-services/__fixtures__/settings.ts";

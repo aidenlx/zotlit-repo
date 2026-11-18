@@ -1,4 +1,5 @@
 import { valueText } from "@zotlit/item-query";
+import { itemTypeLabel } from "@zotlit/notes/obsidian/profile-selection/describe.ts";
 
 // How a Query View writes the value of a property as text. The Table, the
 // List and Cards layouts, their search, and "Copy to clipboard" and "Export
@@ -6,7 +7,6 @@ import { valueText } from "@zotlit/item-query";
 // text of a value comes from `@zotlit/item-query`, as the CLI export writes
 // it; the label of a property comes from view-properties.
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
-import { itemTypeLabel } from "@/services/profile-selection/describe.ts";
 
 /** One value as the text of a cell. */
 export function cellText(

@@ -23,16 +23,15 @@ import {
 import type { AnnotationInsertOutcome } from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
 import type { AnnotationInsertRequest } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
-import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
-import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
+import { annotationAction } from "@zotlit/notes/__fixtures__/note-feature/annotation-actions.ts";
+import type { AnnotationInsert } from "@zotlit/notes/desktop/note-feature/insert-annotation.ts";
 import {
   templateFailure,
   ProfileAnnotationError,
-} from "@/services/template/service.ts";
+} from "@zotlit/notes/obsidian/template/service.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 const card: AnnotationRecord = {
   key: "PUPR5FG5",

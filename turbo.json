@@ -114,7 +114,11 @@
         "packages/annotations/src/**",
         "packages/annotations/tsconfig*.json",
         "packages/citations/src/**",
-        "packages/citations/tsconfig*.json"
+        "packages/citations/tsconfig*.json",
+        "packages/notes/src/**",
+        "packages/notes/tsconfig*.json",
+        "packages/template-workbench/src/**",
+        "packages/template-workbench/tsconfig*.json"
       ]
     },
     "//#review:manifest": {

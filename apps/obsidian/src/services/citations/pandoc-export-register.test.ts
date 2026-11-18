@@ -29,6 +29,10 @@ import { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service
 import type { CitationEngine } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
+import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 // @vitest-environment happy-dom
 import {
@@ -49,10 +53,6 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
-import { defaultProfileStyle } from "@/services/profile/profile-styles.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 /** The styles Zotero has installed while the export dialog is open. */

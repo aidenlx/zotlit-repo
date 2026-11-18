@@ -3,6 +3,9 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect, vi } from "vitest";
 
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import type { LiteratureNoteProfile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type {
@@ -11,12 +14,8 @@ import type {
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { Customize } from "@/services/local-bridge/customize.ts";
-import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import { Profile } from "@/services/profile/service.ts";
-import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import type { CustomizeRequest } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 
 import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
 

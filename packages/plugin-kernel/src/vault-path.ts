@@ -1,8 +1,9 @@
-// `basename` and `dirname` of a vault path, which Obsidian writes with `/` on
-// every platform. The algorithms are those of Node's `path.posix`, copied so
+// `basename`, `dirname` and `join` of a vault path, which Obsidian writes with
+// `/` on every platform. The algorithms are those of Node's `path.posix`, copied so
 // that code which must load on Obsidian Mobile takes no Node built-in.
 
 const SLASH = 0x2f;
+const DOT = 0x2e;
 
 /** The last segment of `path`, as `path.posix.basename(path)` gives it. */
 export function basename(path: string): string {
@@ -43,4 +44,90 @@ export function dirname(path: string): string {
   if (end === -1) return hasRoot ? "/" : ".";
   if (hasRoot && end === 1) return "//";
   return path.slice(0, end);
+}
+
+/**
+ * `segments` joined with `/` and normalized, as `path.posix.join(...segments)`
+ * gives it: `.` and empty segments drop out and `..` removes the segment
+ * before it.
+ */
+export function join(...segments: string[]): string {
+  const parts = segments.filter((segment) => segment.length > 0);
+  if (parts.length === 0) return ".";
+  return normalize(parts.join("/"));
+}
+
+/** `path.posix.normalize(path)`. */
+function normalize(path: string): string {
+  if (path.length === 0) return ".";
+  const isAbsolute = path.charCodeAt(0) === SLASH;
+  const trailingSeparator = path.charCodeAt(path.length - 1) === SLASH;
+  let normalized = normalizeString(path, !isAbsolute);
+  if (normalized.length === 0) {
+    if (isAbsolute) return "/";
+    return trailingSeparator ? "./" : ".";
+  }
+  if (trailingSeparator) normalized += "/";
+  return isAbsolute ? `/${normalized}` : normalized;
+}
+
+/** Resolves `.` and `..` segments of `path`, as Node's `normalizeString` does. */
+function normalizeString(path: string, allowAboveRoot: boolean): string {
+  let res = "";
+  let lastSegmentLength = 0;
+  let lastSlash = -1;
+  let dots = 0;
+  let code = 0;
+  for (let i = 0; i <= path.length; ++i) {
+    if (i < path.length) code = path.charCodeAt(i);
+    else if (code === SLASH) break;
+    else code = SLASH;
+    if (code === SLASH) {
+      if (lastSlash === i - 1 || dots === 1) {
+        // An empty segment or `.`: nothing to add.
+      } else if (dots === 2) {
+        if (
+          res.length < 2 ||
+          lastSegmentLength !== 2 ||
+          res.charCodeAt(res.length - 1) !== DOT ||
+          res.charCodeAt(res.length - 2) !== DOT
+        ) {
+          if (res.length > 2) {
+            const lastSlashIndex = res.lastIndexOf("/");
+            if (lastSlashIndex === -1) {
+              res = "";
+              lastSegmentLength = 0;
+            } else {
+              res = res.slice(0, lastSlashIndex);
+              lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
+            }
+            lastSlash = i;
+            dots = 0;
+            continue;
+          } else if (res.length !== 0) {
+            res = "";
+            lastSegmentLength = 0;
+            lastSlash = i;
+            dots = 0;
+            continue;
+          }
+        }
+        if (allowAboveRoot) {
+          res += res.length > 0 ? "/.." : "..";
+          lastSegmentLength = 2;
+        }
+      } else {
+        if (res.length > 0) res += `/${path.slice(lastSlash + 1, i)}`;
+        else res = path.slice(lastSlash + 1, i);
+        lastSegmentLength = i - lastSlash - 1;
+      }
+      lastSlash = i;
+      dots = 0;
+    } else if (code === DOT && dots !== -1) {
+      ++dots;
+    } else {
+      dots = -1;
+    }
+  }
+  return res;
 }

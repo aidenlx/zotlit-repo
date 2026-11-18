@@ -41,6 +41,7 @@ import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
 import type { DelimitedFormat } from "@zotlit/shared/delimited";
+import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/envelope.ts";
 import {
   resolveLibraryScope,
   selectorKey,
@@ -53,8 +54,6 @@ import type {
   DecodedQuery,
   NamedLibraries,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
-
-import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import {
   DEFAULT_CLI_LIMIT,

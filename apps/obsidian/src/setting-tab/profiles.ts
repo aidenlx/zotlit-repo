@@ -7,6 +7,13 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
+import { installedStyles } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import {
+  addProfileDestination,
+  importProfileDialog,
+  shareProfile,
+} from "@zotlit/notes/desktop/profile/dialogs.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
@@ -17,12 +24,9 @@ import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
-import { Customize } from "@/services/local-bridge/customize.ts";
-import { installedStyles } from "@/services/note-feature/creation-view.ts";
-import { Profile } from "@/services/profile/service.ts";
-import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
+import { explainWorkbenchOpen } from "@zotlit/template-workbench/desktop/editor/actions.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 
 import { referencesStyleDefinition } from "./citations.ts";
 import type {
@@ -37,11 +41,6 @@ import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
 import { SettingTab } from "./effect-tab.ts";
 import type { SettingTabEnv } from "./effect-tab.ts";
 import { defaultProfileBindingPlaceholder } from "./placeholder.ts";
-import {
-  addProfileDestination,
-  importProfileDialog,
-  shareProfile,
-} from "./profile-dialogs.ts";
 import { partialItems } from "./templates.ts";
 
 /** The excluded document left the excluded list before its delete. */

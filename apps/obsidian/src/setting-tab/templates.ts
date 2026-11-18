@@ -8,18 +8,17 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
+import { reportCitationTemplateOpen } from "@zotlit/notes/obsidian/template/actions.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
+import { createSharedPartial } from "@zotlit/template-workbench/desktop/view/partial-command.ts";
 import type { AutoTrim } from "@zotlit/templates/constants";
-
-import { reportCitationTemplateOpen } from "@/services/template/actions.ts";
-import { Template } from "@/services/template/service.ts";
-import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
-import { createSharedPartial } from "@/views/template-workbench/partial-command.ts";
 
 import { appendCompileError } from "./compile-error.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";

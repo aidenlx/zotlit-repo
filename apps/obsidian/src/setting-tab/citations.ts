@@ -16,6 +16,7 @@ import {
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";
 import { listInstalledStyles } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
 import { GRAPH_CORE_PLUGIN_ID } from "@zotlit/citations/obsidian/graph-citations/install.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -26,7 +27,6 @@ import {
 } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { annotationTriggerError } from "@/views/annotation-suggest/annotation-trigger.ts";
 

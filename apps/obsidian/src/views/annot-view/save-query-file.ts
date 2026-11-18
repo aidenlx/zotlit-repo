@@ -13,11 +13,6 @@ import {
 } from "obsidian";
 import type { App, TFolder } from "obsidian";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-import { composing } from "@zotlit/ui";
-
 import {
   dialogFooter,
   field,
@@ -25,7 +20,12 @@ import {
   frameDialog,
   note,
   NOTE_CLASS,
-} from "@/setting-tab/profile-dialog.ts";
+} from "@zotlit/obsidian-kit/dialog-frame.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { composing } from "@zotlit/ui";
+
 import {
   QUERY_FILE_EXTENSION,
   untitledName,

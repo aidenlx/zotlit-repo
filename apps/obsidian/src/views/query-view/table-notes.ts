@@ -14,6 +14,12 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { Keymap, parseLinktext } from "obsidian";
 import type { App, TFile } from "obsidian";
 
+import { createNoteInteractively } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import { profileRevisionAtom } from "@zotlit/notes/obsidian/profile/atoms.ts";
+import type { ProfileOperationError } from "@zotlit/notes/obsidian/profile/service.ts";
+import { templateRevisionAtom } from "@zotlit/notes/obsidian/template/atoms.ts";
+import type { TemplateFailure } from "@zotlit/notes/obsidian/template/service.ts";
 import { processLiveFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
 import type { LiveTextApp } from "@zotlit/obsidian-kit/live-text.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -28,12 +34,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { ItemQueryError } from "@/services/item-query/service.ts";
-import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
-import { profileRevisionAtom } from "@/services/profile/atoms.ts";
-import type { ProfileOperationError } from "@/services/profile/service.ts";
-import { templateRevisionAtom } from "@/services/template/atoms.ts";
-import type { TemplateFailure } from "@/services/template/service.ts";
 import {
   assignedWidget,
   onTypesChanged,

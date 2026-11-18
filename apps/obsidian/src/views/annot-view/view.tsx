@@ -63,6 +63,7 @@ import type {
 import { pdfSessionsAtom } from "@zotlit/annotations/obsidian/pdf-annotation-editor/atoms.ts";
 import type { AnnotViewAttachment } from "@zotlit/db";
 import { registerMigratingWindowEvent } from "@zotlit/obsidian-kit/disposables.ts";
+import { readerText } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
@@ -81,6 +82,9 @@ import {
   noteSourceAtom,
 } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { openTemplateDataExplorer } from "@zotlit/template-workbench/desktop/data-explorer/register.ts";
+import { startTemplateWorkbenchAction } from "@zotlit/template-workbench/desktop/editor/actions.ts";
+import type { WorkbenchActionDeps } from "@zotlit/template-workbench/desktop/editor/actions.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
@@ -88,12 +92,8 @@ import {
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 import { QueryView } from "@/views/query-view/view.tsx";
 import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view.tsx";
-import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
-import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions.ts";
-import type { WorkbenchActionDeps } from "@/views/template-workbench/actions.ts";
 
 import { SidebarFilterModal } from "./filter-modal.tsx";
 import { saveSidebarAsQueryFile } from "./save-query-file.ts";

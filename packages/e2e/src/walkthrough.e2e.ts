@@ -1581,7 +1581,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       const template = (await services.runtime.context()).mapUnsafe.get(
         "zotlit/template/Template",
       ) as import("@zotlit/plugin-kernel/effect.ts").Context.Service.Shape<
-        typeof import("@/services/template/service.ts").Template
+        typeof import("@zotlit/notes/obsidian/template/service.ts").Template
       >;
       const setPermission = (enabled: boolean) =>
         services.bridge.runPromise(

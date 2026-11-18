@@ -3,11 +3,11 @@
 // the surface that binds it.
 import { expect, it } from "vitest";
 
+import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { contextHint } from "./context-hint.ts";
 import type { ContextSource } from "./context-hint.ts";
-import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 
 /** The engine's diagnostic for a filter that reads `at` with nothing bound. */
 function unbound(at: string, code = "unbound-context"): ReaderDiagnosticSource {

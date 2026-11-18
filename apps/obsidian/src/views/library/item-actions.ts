@@ -21,6 +21,10 @@ import { getInsertionEditor } from "@zotlit/annotations/obsidian/annot-view/drag
 import { literatureNoteAttachments } from "@zotlit/annotations/obsidian/attachment-open/literature-note.ts";
 import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
 import type { Item } from "@zotlit/db";
+import { InertTemplateError } from "@zotlit/notes/core/template/errors.ts";
+import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import { openLiteratureNote } from "@zotlit/notes/desktop/note-feature/navigation.ts";
+import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/operations.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
@@ -34,11 +38,6 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { readActionItem } from "@zotlit/zotero-reads/client/read-item.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
-
-import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
-import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
-import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
-import { InertTemplateError } from "@/services/template/errors.ts";
 
 import { lastEditor } from "./last-note.ts";
 

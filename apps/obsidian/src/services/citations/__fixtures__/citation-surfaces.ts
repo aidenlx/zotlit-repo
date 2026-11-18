@@ -63,10 +63,10 @@ import type { CitationEngine } from "@zotlit/citations/obsidian/pandoc/engine.ts
 import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
 import { bibliographyRenderFixture } from "@zotlit/citations/__fixtures__/pandoc/render-cache.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
-import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
-import { defaultProfileStyle } from "@/services/profile/profile-styles.ts";
+import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ProfileFixtureSettings as Settings } from "@zotlit/notes/__fixtures__/profile/reader.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
+import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import {
   applySettings,

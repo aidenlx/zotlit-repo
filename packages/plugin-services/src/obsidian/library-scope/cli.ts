@@ -11,7 +11,10 @@ import type {
   CliCommandHandler,
   CliHost,
 } from "@zotlit/obsidian-kit/cli-command.ts";
-import { createCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  createCliDiagnostics,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
 import {
   catchRejection,
   decodeCliParams,
@@ -42,8 +45,7 @@ type LibraryScopeCommand =
  * the recovery action its diagnostic carries.
  */
 const DIAGNOSTIC_HINTS = {
-  INVALID_SELECTOR:
-    "Correct the parameter named in details.parameter, then run the command again.",
+  INVALID_SELECTOR: INVALID_ARGUMENT_HINT,
   DATABASE_UNREADABLE:
     "Run the command again once the connected Zotero source is readable.",
 } as const satisfies Record<string, string>;

@@ -23,14 +23,13 @@ import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { matchTheme } from "@zotlit/template-workbench/obsidian/editor/match-pane.tsx";
+import { onKeymap } from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
 import type { PlacedFault } from "@zotlit/workbench/language";
 import {
   MatchExpressionInput,
   WorkbenchThemeProvider,
 } from "@zotlit/workbench/ui";
-
-import { matchTheme } from "@/views/template-workbench/match-pane.tsx";
-import { onKeymap } from "@/views/template-workbench/theme.tsx";
 
 import { boundRecords } from "./context-hint.ts";
 import {

@@ -1,13 +1,15 @@
 // Duplicate a Profile and open the copy through the shared workbench flow.
 import { Effect } from "effect";
 
+import {
+  Profile,
+  ProfileOperationError,
+} from "@zotlit/notes/obsidian/profile/service.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { Customize } from "@/services/local-bridge/customize.ts";
-import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 
 export const duplicateProfileToWorkbench = Effect.fn(
   "duplicateProfileToWorkbench",

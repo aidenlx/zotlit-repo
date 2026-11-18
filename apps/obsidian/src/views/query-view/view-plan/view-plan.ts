@@ -7,6 +7,7 @@
 //
 // @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
 import type { QueryContext } from "@zotlit/item-query";
+import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { Span } from "@zotlit/workbench/language";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
@@ -23,7 +24,6 @@ import type {
   QueryFile,
   QueryFileView,
 } from "@/views/query-view/query-file.ts";
-import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
 import { layoutRows } from "@/views/query-view/rows.ts";
 import type { LayoutRows } from "@/views/query-view/rows.ts";
 import { TABLE_FIELDS } from "@/views/query-view/table-layout.tsx";

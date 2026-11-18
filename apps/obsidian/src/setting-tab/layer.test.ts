@@ -5,6 +5,8 @@ import { TestClock } from "effect/testing";
 import type { App, Plugin, PluginManifest } from "obsidian";
 
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -16,12 +18,10 @@ import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/ser
 import type { LanguagePackSituation } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
+import type { WorkbenchConnection } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
-import { LocalBridge } from "@/services/local-bridge/service.ts";
-import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
-import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { Template } from "@/services/template/service.ts";
 
 import { unimplementedTabServices } from "./__fixtures__.ts";
 import { layerSettingTab } from "./layer.ts";
