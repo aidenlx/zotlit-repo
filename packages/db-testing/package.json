@@ -2,11 +2,12 @@
   "name": "@zotlit/db-testing",
   "version": "0.0.0",
   "private": true,
-  "description": "Node-only Zotero SQLite fixtures for the tests of @zotlit/db and its consumers",
+  "description": "Zotero SQLite fixtures for the tests of @zotlit/db and its consumers, and the driver conformance suite",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": "./src/fixtures.ts",
+    "./conformance": "./src/conformance.ts",
     "./scenario": "./src/scenario/index.ts",
     "./package.json": "./package.json"
   },
@@ -15,7 +16,9 @@
     "lint": "oxlint"
   },
   "dependencies": {
-    "@zotlit/zotero-types": "workspace:*"
+    "@zotlit/zotero-types": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "vitest": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
