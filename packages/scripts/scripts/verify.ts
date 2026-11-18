@@ -34,8 +34,9 @@ const ci = process.env.GITHUB_ACTIONS === "true";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
 const base = release ? undefined : await affectedBase(root);
-// `--affected` selects the changed packages and their dependents since
-// TURBO_SCM_BASE. Without a base, every package.
+// `--affected` selects the tasks whose `inputs` changed since TURBO_SCM_BASE
+// and the tasks that depend on them (`futureFlags` in turbo.json). Without a
+// base, every package.
 const scope = base ? ["--affected"] : [];
 const env = base ? { ...process.env, TURBO_SCM_BASE: base } : process.env;
 const sh = $({ cwd: root, stdio: "inherit", env });

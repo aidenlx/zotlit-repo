@@ -67,6 +67,12 @@ jobs:
             .github/actions/setup-workspace/action.yml)" ]; then
             deploy "deployment machinery changed"
           fi
+          # The docs read the root message catalogs, which belong to no package,
+          # so the package dry run below does not see an edit to them.
+          if [ -n "$(git diff --name-only "$BEFORE" HEAD -- \
+            messages project.inlang)" ]; then
+            deploy "messages changed"
+          fi
 
           # The dry run lists docs and its dependencies that changed since the
           # push base. The pinned version tracks the root devDependency.

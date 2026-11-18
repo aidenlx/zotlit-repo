@@ -2,6 +2,9 @@
   "$schema": "https://turborepo.dev/schema.json",
   "cacheMaxAge": "7d",
   "cacheMaxSize": "10GB",
+  "futureFlags": {
+    "affectedUsingTaskInputs": true
+  },
   "globalPassThroughEnv": [
     "AI_AGENT",
     "CLAUDE_CODE",
