@@ -93,3 +93,29 @@ _Avoid_: lock timeout, wait timeout
 The machine-wide check that admits a heavy run (a test invocation or an
 End-to-end Run) in arrival order while the OS reports that memory can grow. It admits a run; it does not hold anything for it.
 _Avoid_: memory lock, memory slot
+
+## Landing
+
+**Land**:
+The one way a change reaches `next`: rebase the task branch onto the newest
+`next`, pass the quality gate on the rebased tree, and push it as a
+fast-forward. A land into `main` fast-forwards it to a commit of `next` after
+the release gate.
+_Avoid_: merge, PR merge
+
+**Land Queue**:
+The machine-wide, first-come-first-served line of lands into one branch. It is
+a Desktop Queue with one slot and no Memory Gate, so a land that dies leaves a
+turn the next land takes over.
+_Avoid_: merge queue, land lock
+
+**Land Turn**:
+The one slot of a Land Queue. Its holder alone fetches, rebases, gates, and
+pushes, and the pre-push hook lets only a push from the Land Turn reach `next`
+or `main`.
+_Avoid_: land lock, push lock
+
+**End-to-end Queue**:
+The line of End-to-end Runs after lands. Each land asks for a run of its new
+`next` tip; a run that waited takes the newest tip, so runs coalesce.
+_Avoid_: post-merge CI

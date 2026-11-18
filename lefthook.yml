@@ -27,13 +27,13 @@ commit-msg:
     ai-attribution:
       run: mise exec -- node packages/scripts/scripts/ai-attribution.ts message {1}
 
-# The quality gate: GitHub runs no pull-request checks, so this is where a
-# branch is checked before anyone sees it. See ADR 0076.
+# next and main take pushes only from `pnpm land`, which runs the quality gate
+# on the rebased result; an agent session pushes nothing itself; and no pushed
+# commit credits an agent. One command makes every check, because Lefthook
+# hands stdin, where Git writes the pushed refs, to one command at most. See
+# packages/scripts/scripts/pre-push.ts.
 pre-push:
   commands:
-    ai-attribution:
+    push-rules:
       use_stdin: true
-      run: mise exec -- node packages/scripts/scripts/ai-attribution.ts push {1}
-    verify:
-      use_stdin: true
-      run: mise exec -- node packages/scripts/scripts/verify.ts --pre-push
+      run: mise exec -- node packages/scripts/scripts/pre-push.ts {1}

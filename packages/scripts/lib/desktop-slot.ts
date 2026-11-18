@@ -17,6 +17,11 @@
 // Gate, and only then starts its Lease. One Admission Deadline covers all three
 // waits. The holder ends its own work when its Lease ends; the head waiter
 // evicts a holder that outlives its Lease by the grace period.
+//
+// The same machinery admits other machine-wide serial work through an
+// `Admission` of its own: its state directory, slot count, token variable and
+// names, and whether a holder passes the Memory Gate. The Land Queue
+// (lib/land-queue.ts) is one such admission, with one slot and no gate.
 
 import { regex } from "arkregex";
 import { Effect } from "effect";
@@ -62,6 +67,26 @@ export const DEFAULT_DESKTOP_SLOTS = 2;
 /** Overrides the default Lease of an automated holder, as a duration. */
 export const DESKTOP_LEASE_ENV = "ZOTLIT_DESKTOP_LEASE";
 
+/**
+ * One kind of admission: where its queue and slots live, how many slots it
+ * has, and what its holders are called. Desktop admission is
+ * {@link DESKTOP_ADMISSION}.
+ */
+export interface Admission {
+  /** The state directory, read at each call so tests can move it. */
+  dir: () => string;
+  /** The number of slots, read at each call. */
+  slots: () => number;
+  /** Holds the holder's token; a child process that inherits it reuses the hold. */
+  tokenEnv: string;
+  /** Whether a holder passes the Memory Gate before its Lease starts. */
+  memoryGate: boolean;
+  /** The name of one slot in messages, such as "Desktop Slot". */
+  slotName: string;
+  /** The name of the queue in messages, such as "Desktop Queue". */
+  queueName: string;
+}
+
 /** The holder's Lease ended before its work did. */
 export const EXIT_LEASE_ENDED = 76;
 
@@ -75,6 +100,16 @@ export const DEFAULT_LEASE_MS = {
   e2eWorker: 10 * MINUTE,
   measureQuery: 2 * HOUR,
 } as const;
+/** The Desktop Slots that drive the desktop Obsidian app (ADR 0077, ADR 0078). */
+export const DESKTOP_ADMISSION: Admission = {
+  dir: desktopStateDir,
+  slots: desktopSlotCount,
+  tokenEnv: DESKTOP_SLOT_ENV,
+  memoryGate: true,
+  slotName: "Desktop Slot",
+  queueName: "Desktop Queue",
+};
+
 /** The cap of a manual hold, which must state its Lease. */
 export const MANUAL_LEASE_CAP_MS = HOUR;
 /** No Lease exceeds this. */
@@ -189,7 +224,9 @@ export class DesktopSlotBlockedError extends Error {
 }
 
 export interface DesktopSlotOptions {
-  /** @default desktopStateDir() */
+  /** The admission this hold joins. @default DESKTOP_ADMISSION */
+  admission?: Admission;
+  /** @default the admission's own directory */
   dir?: string;
   /** Its git toplevel is the holder's worktree. */
   cwd?: string;
@@ -238,7 +275,9 @@ export interface DesktopSlot extends Disposable {
 export async function acquireDesktopSlot(
   options: DesktopSlotOptions,
 ): Promise<DesktopSlot> {
-  const dir = options.dir ?? desktopStateDir();
+  const admission = options.admission ?? DESKTOP_ADMISSION;
+  const { slotName, queueName } = admission;
+  const dir = options.dir ?? admission.dir();
   const now = options.now ?? epochMs;
   const log = options.log ?? ((message: string) => console.error(message));
   const pollMs = options.pollMs ?? 2000;
@@ -248,23 +287,17 @@ export async function acquireDesktopSlot(
   const leaseMs = Math.min(options.leaseMs, MAX_LEASE_MS);
   const waitMs = options.waitMs ?? admissionWaitMs();
   const cwd = options.cwd ?? process.cwd();
-  const count = desktopSlotCount();
+  const count = admission.slots();
   const watch: LeaseWatch = {
     dir,
     now,
-    onEnd: options.onLeaseEnd ?? leaseEnded(log),
+    onEnd: options.onLeaseEnd ?? leaseEnded(log, slotName),
   };
 
-  const inherited = process.env[DESKTOP_SLOT_ENV];
+  const inherited = process.env[admission.tokenEnv];
   if (inherited) {
-    const holder = await findHolder(dir, inherited);
-    if (
-      holder &&
-      now() < epochOf(holder.leaseEndsAt) &&
-      (await isHolderAlive(holder))
-    ) {
-      return reusedSlot(watch, holder);
-    }
+    const holder = await findLiveHolder(inherited, { dir, now });
+    if (holder) return reusedSlot(watch, holder);
   }
 
   await mkdir(join(dir, QUEUE), { recursive: true });
@@ -297,7 +330,7 @@ export async function acquireDesktopSlot(
         await mkdir(join(dir, QUEUE), { recursive: true });
         ticket = await enqueue(dir, record);
         log(
-          `Desktop Slot: this waiter's ticket was removed; joining the back of the Desktop Queue.`,
+          `${slotName}: this waiter's ticket was removed; joining the back of the ${queueName}.`,
         );
         continue;
       }
@@ -328,7 +361,7 @@ export async function acquireDesktopSlot(
         for (const holder of holders) {
           if (!(await isHolderAlive(holder))) {
             log(
-              `Desktop Slot: pid ${holder.pid} (${holder.command}) is gone; taking over ${holder.slots.map((index) => slotPath(dir, index)).join(", ")}.`,
+              `${slotName}: pid ${holder.pid} (${holder.command}) is gone; taking over ${holder.slots.map((index) => slotPath(dir, index)).join(", ")}.`,
             );
             await endOrphanGroup(holder, {
               ownPgid: self.pgid,
@@ -341,7 +374,7 @@ export async function acquireDesktopSlot(
             const signalled = evicting.get(holder.token);
             if (!signalled) {
               log(
-                `Desktop Slot: the Lease of pid ${holder.pid} (${holder.command}) ended at ${holder.leaseEndsAt}; evicting pid ${holder.pid}.`,
+                `${slotName}: the Lease of pid ${holder.pid} (${holder.command}) ended at ${holder.leaseEndsAt}; evicting pid ${holder.pid}.`,
               );
               await signalHolder(holder, "SIGTERM", self.pgid);
               evicting.set(holder.token, { at: now(), killed: false });
@@ -365,6 +398,7 @@ export async function acquireDesktopSlot(
       if (now() >= deadline) {
         throw new DesktopSlotBlockedError(
           blockedMessage({
+            admission,
             waitMs,
             deadline,
             holders,
@@ -374,7 +408,9 @@ export async function acquireDesktopSlot(
       }
       const key = `${holders.map((holder) => holder.token).join()}:${position}`;
       if (reported?.key !== key || now() - reported.at >= remindMs) {
-        log(waitingMessage({ position, waiters, holders, deadline }));
+        log(
+          waitingMessage({ admission, position, waiters, holders, deadline }),
+        );
         reported = { key, at: now() };
       }
       await delay(pollMs);
@@ -383,21 +419,24 @@ export async function acquireDesktopSlot(
     dropTicket();
   }
 
-  let gateAdmitted: boolean;
+  let gateAdmitted = false;
   try {
-    gateAdmitted = await Effect.runPromise(
-      passMemoryGate({
-        dir,
-        deadline: epochMs() + (deadline - now()),
-        pollMs: Math.max(pollMs, 100),
-        log,
-      }),
-    );
+    if (admission.memoryGate) {
+      gateAdmitted = await Effect.runPromise(
+        passMemoryGate({
+          dir,
+          deadline: epochMs() + (deadline - now()),
+          pollMs: Math.max(pollMs, 100),
+          log,
+        }),
+      );
+    }
   } catch (error) {
     releaseIfHeld(dir, owner.token);
     if (!(error instanceof MemoryGateClosedError)) throw error;
     throw new DesktopSlotBlockedError(
       blockedMessage({
+        admission,
         waitMs,
         deadline,
         holders: [],
@@ -417,7 +456,25 @@ export async function acquireDesktopSlot(
   return heldSlot(watch, owner, {
     signals: options.signals ?? true,
     gateAdmitted,
+    tokenEnv: admission.tokenEnv,
   });
+}
+
+/**
+ * The holder whose token is `token`, while it runs and its Lease lasts;
+ * undefined otherwise.
+ */
+export async function findLiveHolder(
+  token: string,
+  options: { dir: string; now?: () => number },
+): Promise<SlotOwner | undefined> {
+  const now = options.now ?? epochMs;
+  const holder = await findHolder(options.dir, token);
+  return holder &&
+    now() < epochOf(holder.leaseEndsAt) &&
+    (await isHolderAlive(holder))
+    ? holder
+    : undefined;
 }
 
 /**
@@ -452,9 +509,10 @@ export interface DesktopSlotStatus {
 }
 
 export async function readDesktopSlotStatus(
-  options: { dir?: string; now?: () => number } = {},
+  options: { admission?: Admission; dir?: string; now?: () => number } = {},
 ): Promise<DesktopSlotStatus> {
-  const dir = options.dir ?? desktopStateDir();
+  const admission = options.admission ?? DESKTOP_ADMISSION;
+  const dir = options.dir ?? admission.dir();
   const now = options.now ?? epochMs;
   const { holders: owners, taken } = await readSlots(dir);
   const holders: HolderStatus[] = [];
@@ -468,7 +526,7 @@ export async function readDesktopSlotStatus(
   let configured = 0;
   let slotCountError: string | undefined;
   try {
-    configured = desktopSlotCount();
+    configured = admission.slots();
   } catch (error) {
     slotCountError = (error as Error).message;
   }
@@ -607,29 +665,33 @@ export function describeWaiters(waiters: readonly QueueTicket[]): string {
 }
 
 function waitingMessage({
+  admission,
   position,
   waiters,
   holders,
   deadline,
 }: {
+  admission: Admission;
   position: number;
   waiters: readonly QueueTicket[];
   holders: readonly SlotOwner[];
   deadline: number;
 }): string {
-  const place = `position ${position + 1} of ${waiters.length} in the Desktop Queue`;
+  const place = `position ${position + 1} of ${waiters.length} in the ${admission.queueName}`;
   const held =
     heldBy(holders) ?? "every slot is free for the head of the queue.";
-  return `Desktop Slot: waiting at ${place}, Admission Deadline ${isoOf(deadline)}; ${held}`;
+  return `${admission.slotName}: waiting at ${place}, Admission Deadline ${isoOf(deadline)}; ${held}`;
 }
 
 function blockedMessage({
+  admission: { slotName, queueName },
   waitMs,
   deadline,
   holders,
   ahead,
   gate,
 }: {
+  admission: Admission;
   waitMs: number;
   deadline: number;
   holders: readonly SlotOwner[];
@@ -646,11 +708,11 @@ function blockedMessage({
     .map((holder) => `pid ${holder.pid} (${holder.command})`)
     .join(", ");
   return [
-    `Desktop Slot: not admitted within ${formatDuration(waitMs)} (Admission Deadline ${isoOf(deadline)}); ${by}`,
+    `${slotName}: not admitted within ${formatDuration(waitMs)} (Admission Deadline ${isoOf(deadline)}); ${by}`,
     ahead.length > 0
-      ? `Ahead in the Desktop Queue:\n${describeWaiters(ahead)}`
-      : "No one was ahead in the Desktop Queue.",
-    `Report this as blocked by the Desktop Slot${named ? `, held by ${named}` : ""}, not as a test failure. Exit ${EXIT_ADMISSION_BLOCKED}.`,
+      ? `Ahead in the ${queueName}:\n${describeWaiters(ahead)}`
+      : `No one was ahead in the ${queueName}.`,
+    `Report this as blocked by the ${slotName}${named ? `, held by ${named}` : ""}, not as a test failure. Exit ${EXIT_ADMISSION_BLOCKED}.`,
   ].join("\n");
 }
 
@@ -1138,10 +1200,10 @@ function watchLease(
   return () => clearTimeout(timer);
 }
 
-function leaseEnded(log: (message: string) => void) {
+function leaseEnded(log: (message: string) => void, slotName: string) {
   return (owner: SlotOwner) => {
     log(
-      `Desktop Slot: the Lease of ${formatDuration(owner.lease)} for pid ${owner.pid} (${owner.command}) ended at ${owner.leaseEndsAt}; ending this run with exit ${EXIT_LEASE_ENDED}.`,
+      `${slotName}: the Lease of ${formatDuration(owner.lease)} for pid ${owner.pid} (${owner.command}) ended at ${owner.leaseEndsAt}; ending this run with exit ${EXIT_LEASE_ENDED}.`,
     );
     process.exit(EXIT_LEASE_ENDED);
   };
@@ -1162,7 +1224,11 @@ function reusedSlot(watch: LeaseWatch, owner: SlotOwner): DesktopSlot {
 function heldSlot(
   watch: LeaseWatch,
   owner: SlotOwner,
-  { signals, gateAdmitted }: { signals: boolean; gateAdmitted: boolean },
+  {
+    signals,
+    gateAdmitted,
+    tokenEnv,
+  }: { signals: boolean; gateAdmitted: boolean; tokenEnv: string },
 ): DesktopSlot {
   const { dir } = watch;
   let released = false;
@@ -1178,9 +1244,7 @@ function heldSlot(
     stopLease();
     process.off("exit", release);
     for (const signal of SIGNALS) process.off(signal, onSignal);
-    if (process.env[DESKTOP_SLOT_ENV] === owner.token) {
-      delete process.env[DESKTOP_SLOT_ENV];
-    }
+    if (process.env[tokenEnv] === owner.token) delete process.env[tokenEnv];
     if (gateAdmitted) delete process.env[MEMORY_GATE_ADMITTED_ENV];
     releaseIfHeld(dir, owner.token);
   }
@@ -1188,7 +1252,7 @@ function heldSlot(
   if (signals) {
     for (const signal of SIGNALS) process.on(signal, onSignal);
   }
-  process.env[DESKTOP_SLOT_ENV] = owner.token;
+  process.env[tokenEnv] = owner.token;
   // What this holder starts was admitted with it.
   if (gateAdmitted) process.env[MEMORY_GATE_ADMITTED_ENV] = "1";
   return {

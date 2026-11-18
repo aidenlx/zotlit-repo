@@ -1,6 +1,7 @@
 // Commits here carry no AI-agent attribution: no `Co-Authored-By` trailer for
 // an agent, no session link, no agent as author or committer. The agent
-// branch namespaces stay local. The commit-msg and pre-push hooks call this.
+// branch namespaces stay local. The commit-msg and pre-push hooks call this,
+// and the pre-push hook tells an agent session apart by its environment.
 import { regex } from "arkregex";
 
 // Patterns are lowercase; callers match against lowercased text.
@@ -38,4 +39,21 @@ export function isAgentIdentity(name: string, email: string): boolean {
 /** Whether a pushed ref lives in an agent branch namespace. */
 export function isAgentBranch(ref: string): boolean {
   return AGENT_BRANCH.test(ref);
+}
+
+/**
+ * The variables an agent session sets. `turbo.json` passes the same names
+ * through to tasks.
+ */
+const AGENT_ENV = [
+  "AI_AGENT",
+  "CLAUDE_CODE",
+  "CLAUDECODE",
+  "CODEX_SANDBOX",
+  "CODEX_THREAD_ID",
+] as const;
+
+/** Whether the process runs in an agent session. */
+export function isAgentEnvironment(env: NodeJS.ProcessEnv): boolean {
+  return AGENT_ENV.some((name) => Boolean(env[name]));
 }
