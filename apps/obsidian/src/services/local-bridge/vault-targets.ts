@@ -13,6 +13,9 @@ import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts"
 import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { SnapshotVaultTargets } from "@zotlit/workbench/snapshot";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -21,9 +24,6 @@ import {
   isOwnedExcerptAssetPath,
 } from "@/services/excerpt-image/materialize.ts";
 import { referencedExcerptPaths } from "@/services/excerpt-image/references.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 /** The services the vault targets read. */
 export type VaultTargetServices =

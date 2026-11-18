@@ -16,10 +16,10 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { makeAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";

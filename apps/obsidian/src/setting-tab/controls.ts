@@ -2,7 +2,9 @@
 // the settings store, encoded for the control that shows it.
 import { Effect } from "effect";
 
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 
 import { decodeLogLevel, encodeLogLevel, LOG_LEVEL_KEY } from "./advanced.ts";
 import type { ProfileControlKey, SettingsKey } from "./context.ts";
@@ -48,7 +50,7 @@ export function setProfileControlValue(key: ProfileControlKey, value: unknown) {
     "note-profile:default:".length,
   ) as ProfileControlField;
   return PluginSettings.use((settings) =>
-    settings.updateDefaultLiteratureNoteProfileBindings({
+    updateDefaultLiteratureNoteProfileBindings(settings, {
       [bindingKeys[field]]:
         field === "colored-highlights" || field === "annotations-as-template"
           ? Boolean(value)

@@ -5,8 +5,7 @@ import type {
   ProfileSelector,
   ProfileStamp,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
-
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { LiteratureNoteProfile } from "./service.ts";
 

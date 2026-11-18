@@ -20,6 +20,12 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { createNoteHost } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
+import { layerNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   inProcessClient,
@@ -40,24 +46,16 @@ import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import type {
   PlannedCreation,
   PlannedCreationProfile,
 } from "@/services/note-feature/creation-planning.ts";
 import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
-import { createNoteHost } from "@/services/note-index/__fixtures__.ts";
-import { layerNoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import {
-  layerPluginSettings,
-  PluginSettings,
-} from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";
 
@@ -184,7 +182,7 @@ const openEditor = Effect.fnUntraced(function* ({
         ),
       ),
       Layer.provideMerge(
-        layerPluginSettings({
+        layerSettings({
           loadData: () => Promise.resolve(null),
           saveData: () => Promise.resolve(),
         }),

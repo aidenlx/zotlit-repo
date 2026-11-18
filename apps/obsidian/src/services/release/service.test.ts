@@ -7,9 +7,8 @@ import { expect, vi } from "vitest";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-
-import type { HydrationOrigin } from "@/services/settings/classify.ts";
-import type { Settings } from "@/services/settings/schema.ts";
+import type { HydrationOrigin } from "@zotlit/plugin-services/core/settings/classify.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import {
   buildRelease,

@@ -11,14 +11,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import {
   createObsidianAttachmentReader,
   openAttachments,
 } from "@/services/attachment-open/open-attachments.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { activateAnnotView } from "@/views/annot-view/register.ts";
 
 import { openOpener } from "./__fixtures__.ts";

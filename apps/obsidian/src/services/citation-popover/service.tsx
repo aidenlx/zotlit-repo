@@ -28,6 +28,7 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
@@ -45,7 +46,6 @@ import { readReferenceSources } from "@/services/citation-index/service.ts";
 import { shownCitationContent } from "@/services/citation-text/present.ts";
 import { CitationText } from "@/services/citation-text/service.ts";
 import type { CitationHoverRequest } from "@/services/citekey-navigation/index.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { Inlines } from "@/services/pandoc/ast.ts";
 import {
   documentCitationPresentation,

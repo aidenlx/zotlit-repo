@@ -1,6 +1,6 @@
 // The state and section decisions of the Welcome banner.
 
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { ConnectionReadout } from "./connection.ts";
 

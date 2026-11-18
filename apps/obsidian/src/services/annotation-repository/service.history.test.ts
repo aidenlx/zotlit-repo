@@ -12,12 +12,13 @@ import {
   ROUGIER_ANNOTATIONS,
   staleVersion,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 import type {
   WireAnnotation,
   ZoteroAnswers,
   ZoteroRequest,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+
 import {
   capabilityBlocks,
   cardControls,

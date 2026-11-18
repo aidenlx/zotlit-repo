@@ -3,9 +3,9 @@ import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { defaults } from "./schema.ts";
-import { PluginSettings } from "./service.ts";
 
 export const settingsAtom = held(
   Stream.unwrap(Effect.map(PluginSettings, (settings) => settings.changes)),

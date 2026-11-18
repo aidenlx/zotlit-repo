@@ -6,12 +6,17 @@ import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type {
+  PluginSettingsOptions,
+  Settings,
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 
 import { defaults } from "./schema.ts";
-import { layerPluginSettings, PluginSettings } from "./service.ts";
-import type { PluginSettingsOptions, Settings } from "./service.ts";
 
 export type SettingsFixtureOptions = Partial<PluginSettingsOptions> & {
   plugin: Pick<Plugin, "loadData" | "saveData">;
@@ -22,7 +27,7 @@ export const settingsOf = Effect.fnUntraced(function* ({
   ...options
 }: SettingsFixtureOptions) {
   return Context.get(
-    yield* Layer.build(layerPluginSettings(plugin, options)),
+    yield* Layer.build(layerSettings(plugin, options)),
     PluginSettings,
   );
 });
@@ -65,7 +70,7 @@ async function openSettings(
   context = Context.empty(),
 ) {
   await using stack = new AsyncDisposableStack();
-  const layer = layerPluginSettings(plugin, options).pipe(
+  const layer = layerSettings(plugin, options).pipe(
     Layer.provideMerge(Layer.succeedContext(context)),
   );
   const runtime = buildRuntime(layer, stack);
@@ -97,10 +102,7 @@ const BINDING_KEYS = [
  * binding name through the default Profile's bindings.
  */
 export function applySettings(
-  settings: Pick<
-    PluginSettings["Service"],
-    "update" | "updateDefaultLiteratureNoteProfileBindings"
-  >,
+  settings: Pick<PluginSettings["Service"], "update">,
   bridge: Pick<EffectBridge, "runSync">,
   overrides: SettingsOverrides,
 ): void {
@@ -115,7 +117,8 @@ export function applySettings(
     bridge.runSync(settings.update(persisted as Partial<Settings>));
   if (Object.keys(bindings).length > 0)
     bridge.runSync(
-      settings.updateDefaultLiteratureNoteProfileBindings(
+      updateDefaultLiteratureNoteProfileBindings(
+        settings,
         bindings as Partial<ResolvedLiteratureNoteProfileBindings>,
       ),
     );

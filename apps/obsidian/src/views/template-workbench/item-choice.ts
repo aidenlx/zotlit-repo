@@ -10,15 +10,17 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
+import { awaitItem } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
+import type { ItemSearchDeps } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
+import {
+  DEFAULT_LIMIT,
+  ItemLookup,
+} from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import type { AnnotationExample } from "@zotlit/workbench/render";
 import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchHost, WorkbenchItemChoice } from "@zotlit/workbench/ui";
-
-import { awaitItem } from "@/services/item-lookup/search-modal.ts";
-import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
-import { DEFAULT_LIMIT, ItemLookup } from "@/services/item-lookup/service.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 
 import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
 import { SAMPLE_ITEM_CHOICES } from "./selection-data.ts";

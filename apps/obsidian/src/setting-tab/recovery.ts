@@ -5,11 +5,11 @@ import { Effect } from "effect";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import { LanguagePack } from "@/services/language-pack/service.ts";
 
 /**
  * Clear every stored citekey scan and rebuild it from the vault. The rebuild

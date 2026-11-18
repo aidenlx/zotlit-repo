@@ -7,7 +7,7 @@ import type {
   LocalApiFailure,
   LocalApiState,
   WriteAuthorizationState,
-} from "@/services/zotero-local-api/service.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 /**
  * One Editing Capability per Attachment drives every control in the reader and

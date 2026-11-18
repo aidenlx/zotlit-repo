@@ -83,6 +83,7 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField } from "obsidian";
 
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
@@ -94,7 +95,6 @@ import { citationKey } from "@/services/citation-text/present.ts";
 import type { DocumentCitations } from "@/services/citation-text/present.ts";
 import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { wikilinkEditorExtension } from "./extension.ts";

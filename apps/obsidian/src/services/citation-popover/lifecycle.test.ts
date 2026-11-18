@@ -9,6 +9,7 @@ import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   inProcessReadsService,
@@ -26,7 +27,6 @@ import type {
 } from "@/services/pandoc/render-cache.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 
 import { citationPopoverFixture } from "./__fixtures__.ts";
 import type { WorkHoverRequest } from "./service.tsx";

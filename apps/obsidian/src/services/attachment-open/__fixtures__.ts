@@ -9,16 +9,16 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import {
   DATA_DIR,
   openResolver,
-} from "@/services/attachment-resolver/__fixtures__.ts";
-import type { ResolverHarnessOptions } from "@/services/attachment-resolver/__fixtures__.ts";
-import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
+} from "@zotlit/plugin-services/obsidian/attachment-resolver/__fixtures__.ts";
+import type { ResolverHarnessOptions } from "@zotlit/plugin-services/obsidian/attachment-resolver/__fixtures__.ts";
+import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { layerTargetOpener, TargetOpener } from "./open-target.ts";
 import type { NativeOpener, ReaderOutcome } from "./open-target.ts";

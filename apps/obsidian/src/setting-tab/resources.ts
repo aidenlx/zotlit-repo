@@ -7,12 +7,12 @@ import type {
 } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { toastLanguagePackInstall } from "@zotlit/plugin-services/obsidian/language-pack/notices.ts";
+import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import { languagePackSettingCopy } from "@zotlit/plugin-services/obsidian/language-pack/setting-copy.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { toastLanguagePackInstall } from "@/services/language-pack/notices.ts";
-import { LanguagePack } from "@/services/language-pack/service.ts";
 import { Release } from "@/services/release/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { languagePackSettingCopy } from "@/setting-tab/language-pack-copy.ts";
 import {
   BUG_REPORT,
   communityUrl,

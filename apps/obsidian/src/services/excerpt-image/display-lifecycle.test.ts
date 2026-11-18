@@ -12,11 +12,10 @@ import {
 import { expect } from "vitest";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
-
 import {
   QueryClients,
   layerQueryClients,
-} from "@/services/query-client/service.ts";
+} from "@zotlit/plugin-services/core/query-client/service.ts";
 
 import { settledDisplay } from "./__fixtures__/display-state.ts";
 import type { ExcerptRequest } from "./contract.ts";

@@ -8,9 +8,9 @@ import { expect, vi } from "vitest";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import { chooseBatchProfile } from "./batch-profile-choice.ts";

@@ -1,6 +1,8 @@
 // The Annotation Drafts the core holds, their autosave timers, and how a read reconciles them.
 import { Effect, FiberMap } from "effect";
 
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+
 import {
   isTextField,
   TEXT_FIELDS,
@@ -9,7 +11,6 @@ import type {
   MutationState,
   TextField,
 } from "@/services/annotation-repository/write.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import {
   DRAFT_FIELDS,

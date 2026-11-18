@@ -8,6 +8,7 @@ import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { activeNoteAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 
 import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
 import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
@@ -16,7 +17,6 @@ import type {
   CitedByGroup,
   CitedBySnapshot,
 } from "@/services/citation-index/service.ts";
-import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 
 import { makeCitedByHost } from "./__fixtures__.ts";
 import type { CitedByHost } from "./__fixtures__.ts";

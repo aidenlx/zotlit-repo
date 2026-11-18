@@ -11,7 +11,14 @@ import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import {
+  resolvedChanged,
+  ZoteroPref,
+} from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
+import type { HoverAction } from "@/services/citation-index/settings.ts";
 import { GRAPH_CORE_PLUGIN_ID } from "@/services/graph-citations/install.ts";
 import {
   referencesStyleOptions,
@@ -19,10 +26,8 @@ import {
 } from "@/services/pandoc/citation-style.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { HoverAction, Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { annotationTriggerError } from "@/views/citation-suggest/annotation-trigger.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
@@ -336,7 +341,7 @@ function renderReferencesStyleRow(
     d.onChange((value) => {
       void ctx.tab.run(
         PluginSettings.use((settings) =>
-          settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(settings, {
             "citation.references-style": value === STYLE_DEFAULT ? null : value,
           }),
         ),

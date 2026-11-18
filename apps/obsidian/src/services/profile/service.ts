@@ -54,6 +54,9 @@ import type {
   VaultFolderBlockedError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   TemplateFacade,
   parseLiteratureNoteTemplate,
@@ -70,7 +73,6 @@ import {
 } from "@zotlit/templates/literature-note-pack";
 import type { LiteratureNotePartialUnpack } from "@zotlit/templates/literature-note-pack";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { compileProfileMatch } from "@/services/profile-selection/index.ts";
 import type { ProfileMatch } from "@/services/profile-selection/index.ts";
 import { bindProfile } from "@/services/profile/bindings.ts";
@@ -80,8 +82,6 @@ import type {
   ResolvedLiteratureNoteProfileBindings,
 } from "@/services/profile/bindings.ts";
 import { relocatedNotePath } from "@/services/profile/relocation.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import {
   DEFAULT_FRONTMATTER_FIELDS,
   DEFAULT_TEMPLATES,

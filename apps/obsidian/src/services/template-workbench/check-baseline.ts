@@ -4,8 +4,8 @@ import { Effect, Result } from "effect";
 import { readLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
 import { parseProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { previewBaseline } from "@/services/template-workbench/preview-baseline.ts";
 
 import { sourceRevision } from "./inspect.ts";

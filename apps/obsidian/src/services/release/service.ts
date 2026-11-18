@@ -10,13 +10,12 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type {
   SettingsMutationError,
   SettingsPatch,
-} from "@/services/settings/service.ts";
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { releaseNoteUrl, V1_TEMPLATE_FOLDER } from "./constants.ts";
 import { decideRelease } from "./decide.ts";

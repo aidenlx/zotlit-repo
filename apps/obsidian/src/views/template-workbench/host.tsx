@@ -31,6 +31,15 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import {
+  CurrentAnswer,
+  takeEnter,
+} from "@zotlit/plugin-services/obsidian/item-lookup/current-answer.ts";
+import {
+  appendInlineFlair,
+  appendTrailingFlair,
+  FLAIR_ROW_CLASS,
+} from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
+import {
   completionSuggestion,
   templateCompletion,
 } from "@zotlit/workbench/language";
@@ -49,15 +58,6 @@ import type {
   WorkbenchRunner,
 } from "@zotlit/workbench/ui";
 
-import {
-  CurrentAnswer,
-  takeEnter,
-} from "@/services/item-lookup/current-answer.ts";
-import {
-  appendInlineFlair,
-  appendTrailingFlair,
-  FLAIR_ROW_CLASS,
-} from "@/services/item-lookup/render-hit.ts";
 import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
 import { obsidianPopupKeys } from "@/views/template-workbench/field-popup.ts";
 import { communityUrl } from "@/views/welcome/links.ts";

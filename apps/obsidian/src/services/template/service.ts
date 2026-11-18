@@ -41,6 +41,8 @@ import {
   VaultFolderBlockedError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { inlineCitation } from "@zotlit/templates";
 import type {
   AutoTrim,
@@ -85,8 +87,6 @@ import {
 } from "@zotlit/templates/obsidian";
 
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   CITATION_TEMPLATE_NAME,

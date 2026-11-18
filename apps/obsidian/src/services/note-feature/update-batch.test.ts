@@ -36,6 +36,11 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   inProcessReadsService,
   recordCalls,
@@ -54,21 +59,16 @@ import { selectorOf } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import type { BatchRunControls } from "@/services/batch-run.ts";
 import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
 import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import { batchUpdateNotices } from "@/services/note-feature/update-single.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import type {
   BatchModalOptions,

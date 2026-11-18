@@ -21,13 +21,13 @@ import { attachmentAbsPath, parseAttachmentPath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { formatIndexedKey } from "@zotlit/zotero-types/keys";
-import { annotationOpenUri } from "@zotlit/zotero-types/uri";
-
 import type {
   AttachmentImportBatch,
   SourceOrigin,
-} from "@/services/attachment-import/service.ts";
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
+
 import {
   renderColorMark,
   renderHighlight,

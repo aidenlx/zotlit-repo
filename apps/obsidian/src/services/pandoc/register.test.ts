@@ -11,11 +11,11 @@ import { describe, expect, vi } from "vitest";
 
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { runFileEffect } from "./__fixtures__/file-effects.ts";
 import type { CslResponse } from "./csl.ts";

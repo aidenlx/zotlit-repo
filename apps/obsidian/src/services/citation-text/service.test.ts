@@ -18,6 +18,14 @@ import {
 } from "@zotlit/plugin-kernel/constants.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import {
+  queryClientsFixture,
+  queryClientsOf,
+} from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
+import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   citedWorkSeed,
@@ -46,7 +54,6 @@ import {
 } from "@/services/citation-index/test-harness.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
-import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import type {
   BibliographyRequest,
   CitationEngine,
@@ -56,14 +63,7 @@ import type { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__.ts";
 import { bibliographyRenderFixture } from "@/services/pandoc/render-cache/__fixtures__.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import {
-  queryClientsFixture,
-  queryClientsOf,
-} from "@/services/query-client/__fixtures__.ts";
-import type { QueryClients } from "@/services/query-client/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import {
   ALPHA_KEY,

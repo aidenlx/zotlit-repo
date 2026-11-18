@@ -8,6 +8,7 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -17,7 +18,6 @@ import { CitationText } from "@/services/citation-text/service.ts";
 import type { CitationTextEvent } from "@/services/citation-text/service.ts";
 import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation/index.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { layerCitekeyEditorExtension } from "./register.ts";
 import { CitekeyEditor } from "./service.ts";

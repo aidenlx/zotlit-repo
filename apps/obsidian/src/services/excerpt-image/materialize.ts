@@ -17,9 +17,8 @@ import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts"
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
-
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { excerptKey, excerptSourceIdentities } from "./contract.ts";
 import type { ExcerptRequest } from "./contract.ts";

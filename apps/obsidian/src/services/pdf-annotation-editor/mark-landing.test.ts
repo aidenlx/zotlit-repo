@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
 
 import { annotation } from "./__fixtures__.ts";
 import { decideMarkLanding } from "./mark-landing.ts";

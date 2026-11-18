@@ -11,12 +11,11 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type {
   LocalApiFailure,
   LocalApiResult,
-} from "@/services/zotero-local-api/service.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import type { EditingCapability } from "./capability.ts";
 import { CapabilityNotices, layerCapabilityNotices } from "./notices.ts";

@@ -12,8 +12,7 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import { bindCapabilityNotices } from "./notices-handle.ts";
 import { layerCapabilityNotices, CapabilityNotices } from "./notices.ts";

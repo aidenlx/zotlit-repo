@@ -23,24 +23,24 @@ import {
 } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import { libraryTagNames } from "@zotlit/plugin-services/obsidian/database/library-tag-names.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import { writeReadUse } from "@zotlit/plugin-services/obsidian/zotero-local-api/last-read.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
-import { libraryTagNames } from "@/services/database/library-tag-names.ts";
 import type {
   BorrowedExcerptDocument,
   ExcerptReaderDocuments,
 } from "@/services/excerpt-image/reader-borrow.ts";
 import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { writeReadUse } from "@/services/zotero-local-api/last-read.ts";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { registerAnnotationAnchorCapture } from "./anchor-capture.ts";
 import { PdfViewBinding } from "./binding.ts";
@@ -50,7 +50,7 @@ import { openFileOf, PDF_VIEW_TYPE } from "./seam.ts";
 import type { MarkGestures } from "./selection.ts";
 import { toolColorStore } from "./tools.ts";
 
-export type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
+export type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 export type {
   ReaderSession,
   ReaderSessionTarget,

@@ -4,6 +4,9 @@ import { beforeEach, describe, expect, vi } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
+import { RESET_SETTING } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 
 import { settingsRuntimeOf } from "./__fixtures__.ts";
 import type { SettingsFixtureOptions } from "./__fixtures__.ts";
@@ -21,7 +24,6 @@ import {
   migrateV10ToV11,
 } from "./migrate.ts";
 import { defaults } from "./schema.ts";
-import { RESET_SETTING } from "./service.ts";
 
 type SettingsServiceOptions = SettingsFixtureOptions;
 
@@ -106,12 +108,10 @@ const makeService = Effect.fnUntraced(function* (
       reset: (keys?: Parameters<typeof settings.reset>[0]) =>
         bridge.runSync(settings.reset(keys)),
       updateDefaultLiteratureNoteProfileBindings: (
-        patch: Parameters<
-          typeof settings.updateDefaultLiteratureNoteProfileBindings
-        >[0],
+        patch: Parameters<typeof updateDefaultLiteratureNoteProfileBindings>[1],
       ) =>
         bridge.runSync(
-          settings.updateDefaultLiteratureNoteProfileBindings(patch),
+          updateDefaultLiteratureNoteProfileBindings(settings, patch),
         ),
       flush: () => bridge.runPromise(settings.flush),
       release: () => bridge.runSync(settings.release),

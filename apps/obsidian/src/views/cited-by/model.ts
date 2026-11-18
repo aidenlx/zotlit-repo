@@ -1,7 +1,7 @@
 // Per-leaf state for one Cited By Sidebar, as atoms in the plugin's view
 // registry, and the pure transitions its controls apply. The followed note,
 // its Cited By and the previews are shared view atoms (`./atoms`,
-// `@/services/note-index/atoms`, `@/services/citation-index/atoms`).
+// `@zotlit/plugin-services/obsidian/note-index/atoms.ts`, `@/services/citation-index/atoms`).
 import { Option, Schema } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";

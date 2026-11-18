@@ -18,11 +18,11 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { openNoteVault } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { HistoryOutcome } from "@/services/annotation-repository/service.ts";
-import { openNoteVault } from "@/services/note-index/__fixtures__.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 
 import {
   annotation,

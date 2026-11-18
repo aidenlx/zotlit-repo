@@ -12,8 +12,8 @@ import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manag
 import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import { layerAttachmentImportOver } from "@/services/attachment-import/__fixtures__.ts";
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { layerAttachmentImportOver } from "@zotlit/plugin-services/desktop/attachment-import/__fixtures__.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
@@ -24,14 +24,15 @@ import type {
   PreparedExcerpts,
 } from "@/services/excerpt-image/prepare.ts";
 import { layerNoteImporter, NoteImporter } from "@/services/note-import/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
-import type { Settings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import type { Settings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { defaults } from "@/services/settings/schema.ts";
 
 /**
  * The real Attachment Import over the importer's vault, with these settings,
@@ -104,6 +105,7 @@ export function layerNoteImporterOver(
         "prepare" in attachments
           ? Layer.mock(AttachmentImport, { prepare: attachments.prepare })
           : layerAttachmentImportOver({
+              defaults,
               settings: attachments.settings,
               pref: { current, changes: Stream.empty },
               host: { vault: fakes.vault, fileManager: attachments.fileManager },

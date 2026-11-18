@@ -9,7 +9,7 @@ import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type { LiteratureNoteProfile, ProfileReader } from "@/services/profile/service.ts";
 import { compileProfileMatch } from "@/services/profile-selection/index.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 export type ProfileFixture = Pick<LiteratureNoteProfile, "id" | "label"> & Partial<Pick<LiteratureNoteProfile, "document" | "bindings" | "path" | "match">>;
 export type ProfileFixtureSettings = Settings & { profiles?: readonly ProfileFixture[]; defaultDocument?: string };

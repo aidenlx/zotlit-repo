@@ -7,6 +7,7 @@ import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.t
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadLease,
@@ -25,7 +26,6 @@ import { CitationIndex } from "@/services/citation-index/service.ts";
 import type { DocumentCitationSet } from "@/services/citation-index/service.ts";
 import { CitationText } from "@/services/citation-text/service.ts";
 import type { DocumentCitations } from "@/services/citation-text/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import type {

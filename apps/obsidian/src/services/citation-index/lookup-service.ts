@@ -20,14 +20,13 @@ import type { RpcClientError } from "effect/rpc";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { CitationLookupRequest } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
-
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import { QueryClients } from "@/services/query-client/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 export interface CitationLookupObservation extends Disposable {
   readonly current: Held<CitationLookupAnswer> | null;

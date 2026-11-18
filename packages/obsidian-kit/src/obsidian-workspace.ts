@@ -195,7 +195,7 @@ export interface WorkspaceShape {
    * entries.
    *
    * ZotLit keeps one `file-menu` listener (the obsidian-actions skill):
-   * `services/file-menu.ts` registers its own today and must move onto this
+   * `@zotlit/plugin-services/obsidian/file-menu.ts` registers its own today and must move onto this
    * hook, in place of that listener, when it converts.
    */
   onFileMenu<R = never>(

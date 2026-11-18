@@ -6,10 +6,10 @@ import type { App, PaneType, Plugin } from "obsidian";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import type { AttachmentReader } from "@/services/attachment-open/open-attachments.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 
 import type { LiteratureNoteAttachmentsHandle } from "./handle.ts";
 import type { OpenTarget, TargetOpener } from "./open-target.ts";

@@ -21,6 +21,10 @@ import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts"
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { NoteIndexChange } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
@@ -37,12 +41,8 @@ import type {
   CitationHoverRequest,
   NavigationPane,
 } from "@/services/citekey-navigation/index.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import type { NoteIndexChange } from "@/services/note-index/service.ts";
 import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { internalLink, section } from "./__fixtures__/internal-link.ts";
 import { layerWikilinkReading } from "./service.ts";

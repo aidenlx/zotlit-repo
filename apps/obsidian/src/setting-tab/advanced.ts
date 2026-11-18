@@ -10,11 +10,14 @@ import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  isLogLevel,
+  LOG_LEVELS,
+} from "@zotlit/plugin-services/core/log/settings.ts";
+import type { LogLevel } from "@zotlit/plugin-services/core/log/settings.ts";
+import { LOG_FILENAME } from "@zotlit/plugin-services/obsidian/log/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { LOG_FILENAME } from "@/services/log/service.ts";
-import { isLogLevel, LOG_LEVELS } from "@/services/settings/schema.ts";
-import type { LogLevel } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import {
   profileCustomization,
   saveProfileCustomization,

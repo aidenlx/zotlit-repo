@@ -11,12 +11,12 @@ import {
   PROFILE_ID_LENGTH,
   PROFILE_ID_RULE,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
 import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 
 import { bindDraftProfile, Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import {
   checkDiagnostic,
   checkNativeProfile,

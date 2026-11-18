@@ -1,6 +1,8 @@
-import { isPlainObject } from "./classify.ts";
+import type { LogLevel } from "@zotlit/plugin-services/core/log/settings.ts";
+import { isPlainObject } from "@zotlit/plugin-services/core/settings/classify.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+
 import { defaults } from "./schema.ts";
-import type { LogLevel, Settings } from "./schema.ts";
 
 const DEFAULT_CITEKEY_FIELD = {
   key: "citekey",

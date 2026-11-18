@@ -7,20 +7,20 @@ import type { App, Plugin, PluginManifest } from "obsidian";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type { LanguagePackSituation } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
-import { LanguagePack } from "@/services/language-pack/service.ts";
-import type { LanguagePackSituation } from "@/services/language-pack/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
 import { PandocEngine } from "@/services/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 
 import { unimplementedTabServices } from "./__fixtures__.ts";

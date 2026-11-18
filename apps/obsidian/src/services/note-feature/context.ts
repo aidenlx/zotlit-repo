@@ -17,15 +17,15 @@ import type { MarkdownLinker } from "@zotlit/obsidian-kit/obsidian-file-manager.
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { joinNotePath } from "@zotlit/templates";
 
-import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import type { PreparedExcerpts } from "@/services/excerpt-image/prepare.ts";
 import { childNoteLink } from "@/services/note-import/child-note-link.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 import { buildAnnotationResolvers } from "@/services/template/annotation-render.ts";
 import { Template } from "@/services/template/service.ts";
 

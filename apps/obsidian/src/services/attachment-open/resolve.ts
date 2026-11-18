@@ -8,6 +8,7 @@ import {
 } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import { EXTERNAL_FILE_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
+import { isPdfAttachment } from "@zotlit/plugin-services/core/attachment-resolver/pdf-attachment.ts";
 
 /** One Attachment Obsidian's PDF view can host a Reader Session for. */
 export interface ObsidianOpenableAttachment {
@@ -25,23 +26,6 @@ export interface ObsidianOpenableAttachment {
    * Absent opens the document at its start.
    */
   subpath?: string;
-}
-
-/** Case-insensitive fallback for a `linked_file` row Zotero leaves with no `contentType`. */
-const PDF_EXTENSION_RE = /\.pdf$/i;
-
-/**
- * Whether Obsidian's PDF view can host this Attachment — the rule that
- * separates an Obsidian-Openable Attachment from a Zotero-Openable one. Also
- * read by the Attachment path index, so one file gets one verdict.
- */
-export function isPdfAttachment(
-  contentType: string | null,
-  absolutePath: string,
-): boolean {
-  return contentType !== null
-    ? contentType === "application/pdf"
-    : PDF_EXTENSION_RE.test(absolutePath);
 }
 
 /** Last segment of an absolute path, cut at either separator — a group library synced from another platform can carry that platform's flavor. */

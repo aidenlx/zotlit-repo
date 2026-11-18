@@ -8,9 +8,8 @@ import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { layerDeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { layerObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { runtimeServices } from "@zotlit/plugin-kernel/effect-services.ts";
-
-import { startLanguagePack } from "@/services/language-pack/service.ts";
-import type { LanguagePackStartup } from "@/services/language-pack/service.ts";
+import { startLanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type { LanguagePackStartup } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 
 /**
  * Apply the Language Pack before any copy shows: `onload`'s own notices (an

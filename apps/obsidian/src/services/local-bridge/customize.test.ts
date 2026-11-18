@@ -14,18 +14,18 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 import type {
   LiteratureNotePackError,
   LiteratureNoteTemplatePartial,
 } from "@zotlit/templates/literature-note-pack";
 
-import { LocalServer } from "@/services/local-server/service.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import {
   profileCustomization,

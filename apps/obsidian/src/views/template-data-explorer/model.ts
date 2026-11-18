@@ -11,6 +11,7 @@ import { createContext, useContext } from "react";
 import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { indexedKeyForClipboard } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
 import {
   initialTreeState,
   setAnchor,
@@ -35,7 +36,6 @@ import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms.ts";

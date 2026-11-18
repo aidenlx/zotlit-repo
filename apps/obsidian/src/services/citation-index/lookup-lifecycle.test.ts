@@ -13,6 +13,8 @@ import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { layerLibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import {
   inProcessClient,
   memoryOpener,
@@ -22,9 +24,7 @@ import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
-import { layerLibraryScope } from "@/services/library-scope/service.ts";
-import { layerQueryClients } from "@/services/query-client/service.ts";
-import { layerPluginSettings } from "@/services/settings/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 
 import { lookupFixture } from "./__fixtures__.ts";
 import { CitationLookup, layerCitationLookup } from "./lookup-service.ts";
@@ -57,7 +57,7 @@ it.effect("builds without waiting for the initial Citation Lookup read", () =>
             Layer.provideMerge(layerQueryClients),
             Layer.provideMerge(layerZoteroReads(client)),
             Layer.provide(
-              layerPluginSettings({
+              layerSettings({
                 loadData: async () => ({ __VERSION__: 10 }),
                 saveData: async () => {},
               }),

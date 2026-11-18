@@ -65,10 +65,11 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField } from "obsidian";
 
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+
 import { rendered } from "@/services/citation-text/__fixtures__.ts";
 import type { DocumentCitations } from "@/services/citation-text/present.ts";
 import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { citekeyEditorExtension } from "./extension.ts";

@@ -4,12 +4,13 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import "./style.css";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+
 import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationIndex } from "@/services/citation-index/service.ts";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
 import type { NoteFeatureHandle } from "@/services/note-feature/index.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
-import type { UseLedger } from "@/services/use-ledger/service.ts";
 
 import { AnnotationEditorSuggest } from "./annotation-suggest.ts";
 import type { AnnotationSuggestDeps } from "./annotation-suggest.ts";

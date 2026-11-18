@@ -16,6 +16,11 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { SearchOptions } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import { chooseItem, setPreview } from "@zotlit/workbench/ui";
 import type {
@@ -30,8 +35,6 @@ import type {
 } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { ItemLookup } from "@/services/item-lookup/service.ts";
-import type { SearchOptions } from "@/services/item-lookup/service.ts";
 import type { QueryHandle } from "@/services/item-query/handle.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { Customize } from "@/services/local-bridge/customize.ts";
@@ -40,12 +43,9 @@ import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import type { TemplateDataDeps } from "@/services/template-workbench/data.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
 import { Template } from "@/services/template/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ExplorerViewDeps } from "@/views/template-data-explorer/view.tsx";
 import type { NativeRenderDeps } from "@/views/template-workbench/preview/render.ts";
 
@@ -336,7 +336,7 @@ export function makeWorkbenchHost(
       stubService<ZoteroPref["Service"]>("ZoteroPref", {
         current: Effect.sync(() =>
           stubService<
-            import("@/services/zotero-pref/service.ts").ZoteroPrefSnapshot
+            import("@zotlit/plugin-services/core/zotero-pref/service.ts").ZoteroPrefSnapshot
           >("ZoteroPrefSnapshot", { dataDir: deps.zoteroPref.dataDir }),
         ),
       }),

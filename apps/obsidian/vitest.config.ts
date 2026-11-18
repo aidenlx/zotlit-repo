@@ -72,6 +72,9 @@ export default defineConfig({
           import.meta.resolve("@zotlit/obsidian-desktop/package.json"),
         ),
         packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
+        packageSource(
+          import.meta.resolve("@zotlit/plugin-services/package.json"),
+        ),
       ],
     }),
     preact(),

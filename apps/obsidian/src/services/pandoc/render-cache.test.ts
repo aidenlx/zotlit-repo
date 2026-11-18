@@ -12,18 +12,19 @@ import type { CslItemData } from "@zotlit/db";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
+import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import { profileRuntimeOf } from "@/services/profile/__fixtures__.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import { layerQueryClients } from "@/services/query-client/service.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsOverrides } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import type { Inlines } from "./ast.ts";
 import type {
@@ -94,12 +95,12 @@ it.effect.each(["Profile", "preference override"] as const)(
       ).pipe(Effect.forkScoped({ startImmediately: true }));
       if (dependency === "Profile") {
         profile.bridge.runSync(
-          profile.settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(profile.settings, {
             "note.literature-folder": "First",
           }),
         );
         profile.bridge.runSync(
-          profile.settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(profile.settings, {
             "note.literature-folder": "Second",
           }),
         );
@@ -777,7 +778,7 @@ describe("BibliographyRenderCache", () => {
           cache.bridge.runPromise(cache.render(items)),
         );
         harness.bridge.runSync(
-          settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(settings, {
             "citation.references-style": IEEE,
           }),
         );
@@ -786,7 +787,7 @@ describe("BibliographyRenderCache", () => {
         );
         // The same style again is no change at all.
         harness.bridge.runSync(
-          settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(settings, {
             "citation.references-style": IEEE,
           }),
         );
@@ -1400,7 +1401,7 @@ describe("BibliographyRenderCache citations", () => {
         cache.bridge.runPromise(cache.renderCitations(["[@alpha]"], items)),
       );
       harness.bridge.runSync(
-        settings.updateDefaultLiteratureNoteProfileBindings({
+        updateDefaultLiteratureNoteProfileBindings(settings, {
           "citation.references-style": IEEE,
         }),
       );

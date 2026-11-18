@@ -1,6 +1,7 @@
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 /** Settings keys whose stored value is a string or number. */
 type SettingsScalarKey = {

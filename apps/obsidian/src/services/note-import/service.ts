@@ -33,6 +33,13 @@ import type {
   VaultFolderBlockedError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import type {
+  AttachmentFlushError,
+  AttachmentImportBatch,
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import {
   MAX_SEGMENT_BYTES,
   normalizeFilename,
@@ -41,11 +48,6 @@ import {
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
-import type {
-  AttachmentFlushError,
-  AttachmentImportBatch,
-} from "@/services/attachment-import/service.ts";
 import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
@@ -55,7 +57,6 @@ import type {
   PreparedExcerpts,
 } from "@/services/excerpt-image/prepare.ts";
 import { randomFilenameId } from "@/services/note-feature/filename.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type {
   ProfileBindingSettings,
@@ -65,7 +66,6 @@ import { Profile } from "@/services/profile/service.ts";
 import type { ProfileOperationError } from "@/services/profile/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
 import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import {
   noteAnnotationKeys,

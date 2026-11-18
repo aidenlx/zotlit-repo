@@ -26,6 +26,7 @@ import type {
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
@@ -40,7 +41,6 @@ import type {
   PresentedCitation,
 } from "@/services/citation-text/present.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import { citekeyDecorationsChanged } from "./extension.ts";
 

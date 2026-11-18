@@ -14,6 +14,11 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { TemplateError } from "@zotlit/templates/facade";
 import {
@@ -22,14 +27,10 @@ import {
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import {
   fixtureServices,
@@ -853,7 +854,7 @@ describe("registered template-check", () => {
           ),
         );
         f.bridge.runSync(
-          f.settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(f.settings, {
             "note.literature-folder": "Inherited",
             "citation.references-style": "inherited-style",
           }),

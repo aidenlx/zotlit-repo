@@ -6,12 +6,11 @@ import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
-
 import {
   annotationPage,
   rootOk,
   ROUGIER_ANNOTATIONS,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 
 import {
   nextChange,

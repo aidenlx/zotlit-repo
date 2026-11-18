@@ -16,13 +16,13 @@ import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { CurrentAnswer } from "@zotlit/plugin-services/obsidian/item-lookup/current-answer.ts";
+import type { SearchSession } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import { renderSuggestion as renderSearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
+import { DEFAULT_LIMIT } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 
-import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
-import type { SearchSession } from "@/services/item-lookup/handle.ts";
-import { renderSuggestion as renderSearchHit } from "@/services/item-lookup/render-hit.ts";
-import { DEFAULT_LIMIT } from "@/services/item-lookup/service.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import {
   isCitationCloser,

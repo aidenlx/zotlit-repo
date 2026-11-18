@@ -5,7 +5,7 @@ import type {
   LocalApiFailure,
   LocalApiState,
   WriteAuthorizationState,
-} from "@/services/zotero-local-api/service.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import { cooldownFailureOf } from "./__fixtures__/capability.ts";
 import { editingCapabilityOf } from "./capability.ts";

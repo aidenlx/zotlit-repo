@@ -7,7 +7,8 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import type { SearchHit } from "@/services/item-lookup/service.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+
 import type { ZotLitSettingTab } from "@/setting-tab/index.ts";
 
 import type { PageApp } from "./page-host.ts";

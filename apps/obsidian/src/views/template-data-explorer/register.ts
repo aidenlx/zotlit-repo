@@ -8,10 +8,10 @@ import "./style.css";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import type { FileMenuSegment } from "@/services/file-menu.ts";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions.ts";
 import type { WorkbenchActionDeps } from "@/views/template-workbench/actions.ts";
 import { inLayoutTurn } from "@/views/template-workbench/layout.ts";

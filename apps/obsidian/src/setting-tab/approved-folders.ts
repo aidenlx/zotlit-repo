@@ -5,8 +5,7 @@
 import type { SettingDefinitionItem, SettingDefinitionPage } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { appendDeviceOverrideNote, browseForDir } from "./device-override.ts";

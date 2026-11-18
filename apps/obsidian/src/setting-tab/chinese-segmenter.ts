@@ -3,8 +3,7 @@
 import type { SettingDefinition } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
+import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { managedBinaryDefinition } from "./managed-binary.ts";

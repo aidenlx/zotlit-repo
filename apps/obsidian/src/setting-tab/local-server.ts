@@ -7,10 +7,10 @@ import type { SettingGroupItem } from "obsidian";
 import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { paintEach } from "./effect-tab.ts";

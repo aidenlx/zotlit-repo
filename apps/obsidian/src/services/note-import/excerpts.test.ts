@@ -26,6 +26,7 @@ import { getNoteByKey } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AttachmentCopyError } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
@@ -36,7 +37,6 @@ import {
   sharedClientOpener,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
-import { AttachmentCopyError } from "@/services/attachment-import/service.ts";
 import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
 import { bluePng, redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
 import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";

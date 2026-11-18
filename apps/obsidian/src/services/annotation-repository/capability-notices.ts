@@ -8,11 +8,10 @@
 import type { DateTime } from "effect";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
 import type {
   LocalApiFailure,
   LocalApiResult,
-} from "@/services/zotero-local-api/service.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import { editingCapabilityCopy } from "./capability-copy.ts";
 import { capabilityReason } from "./capability.ts";

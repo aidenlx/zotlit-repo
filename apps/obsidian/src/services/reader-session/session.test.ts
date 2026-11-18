@@ -4,11 +4,10 @@ import { describe, expect, it } from "vitest";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-
 import type {
   LocalServer,
   ReaderTarget,
-} from "@/services/local-server/service.ts";
+} from "@zotlit/plugin-services/core/local-server/service.ts";
 
 import { ReaderSessionHost } from "./session.ts";
 import type { ReaderSessionTarget } from "./session.ts";

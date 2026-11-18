@@ -47,6 +47,14 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  cache,
+  createNoteHost,
+  noteIndexOver,
+} from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
@@ -64,15 +72,7 @@ import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation/index.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import {
-  cache,
-  createNoteHost,
-  noteIndexOver,
-} from "@/services/note-index/__fixtures__.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 import type { LinkMap } from "./adapter.ts";

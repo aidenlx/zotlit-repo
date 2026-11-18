@@ -15,9 +15,9 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
 
 import type { AnnotationHit } from "./annotation-search.ts";

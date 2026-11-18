@@ -15,6 +15,8 @@ import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { libraryLabel } from "@zotlit/plugin-services/core/library-scope/label.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import {
@@ -27,8 +29,6 @@ import type {
   SnapshotExpired,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { libraryLabel } from "@/services/library-scope/label.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { FlatGroupDef } from "@/views/batch-modal/index.ts";
 
 /** Which items a batch action collects from its scope. */

@@ -1,8 +1,8 @@
 import { Context, Effect, Layer, Stream } from "effect";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-import { buildLibraryScope } from "@/services/library-scope/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
+import { buildLibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/__fixtures__.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { Template } from "@/services/template/service.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";

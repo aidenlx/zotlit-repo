@@ -26,6 +26,11 @@ import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
 import { withRecentColor } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { freshnessSignal } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+import type { WireAnnotation } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 
 import {
   markExternal,
@@ -42,13 +47,8 @@ import type {
   HistoryOutcome,
 } from "@/services/annotation-repository/service.ts";
 import { IDLE } from "@/services/annotation-repository/write.ts";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
 import { ReaderSessionHost } from "@/services/reader-session/session.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
-import { freshnessSignal } from "@/services/zotero-local-api/__fixtures__.ts";
-import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__.ts";
 
 import type { AttachmentReads } from "./binding.ts";
 import { MarkCreation } from "./creation.ts";

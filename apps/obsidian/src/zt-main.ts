@@ -12,6 +12,9 @@ import {
 } from "@zotlit/plugin-kernel/constants.ts";
 import { enableStartupLogging } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
+import { addIndexedKeyActions } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
+import { indexedKeyFileMenu } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
 
 import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
 import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
@@ -24,10 +27,7 @@ import { addAttachmentOpenActions } from "./services/attachment-open/actions.ts"
 import { registerFileLinkCapture } from "./services/attachment-open/capture.ts";
 import { attachmentOpenFileMenu } from "./services/attachment-open/menu.ts";
 import { addCitekeyEditorActions } from "./services/citekey-editor/actions.ts";
-import { registerFileMenu } from "./services/file-menu.ts";
 import { addGraphCitationsActions } from "./services/graph-citations/actions.ts";
-import { addIndexedKeyActions } from "./services/indexed-key/actions.ts";
-import { indexedKeyFileMenu } from "./services/indexed-key/menu.ts";
 import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices.ts";
 import {
   addNoteFeatureActions,

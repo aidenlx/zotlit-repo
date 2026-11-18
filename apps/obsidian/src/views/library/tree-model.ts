@@ -9,6 +9,13 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import {
+  availableLibrariesAtom,
+  libraryScopeStateAtom,
+  resolvedLibraryScopeAtom,
+} from "@zotlit/plugin-services/obsidian/library-scope/atoms.ts";
+import type { LibraryScopeState } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { notedItemKeysAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
+import {
   zoteroRevisionAtom,
   zoteroTreeUnavailableAtom,
 } from "@zotlit/zotero-reads/client/atoms.ts";
@@ -19,13 +26,6 @@ import type {
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { QueryService } from "@/services/item-query/service.ts";
-import {
-  availableLibrariesAtom,
-  libraryScopeStateAtom,
-  resolvedLibraryScopeAtom,
-} from "@/services/library-scope/atoms.ts";
-import type { LibraryScopeState } from "@/services/library-scope/service.ts";
-import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
 
 import {
   nodeCount,

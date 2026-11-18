@@ -9,6 +9,9 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadsEvent,
@@ -16,12 +19,9 @@ import type {
 } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { layerQueryClients } from "@/services/query-client/service.ts";
 import { Release } from "@/services/release/service.ts";
-import { layerPluginSettings } from "@/services/settings/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 import { TemplateMigration } from "@/services/template/migration.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { connectionLifecycleAtom } from "./connection.ts";
 import { holdWelcomeModel, makeWelcomeModel } from "./model.ts";
@@ -67,7 +67,7 @@ export async function makeWelcomeHost<R = never>(
       layerHost(options.sources),
       layerQueryClients,
       testNotifier().layer,
-      layerPluginSettings({
+      layerSettings({
         loadData: async () => null,
         saveData: async () => {},
       }),

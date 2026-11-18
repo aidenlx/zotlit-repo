@@ -11,6 +11,8 @@ import type { CliCommand } from "@zotlit/obsidian-kit/cli-command.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import {
   inProcessClient,
   sharedClientOpener,
@@ -21,9 +23,6 @@ import {
 } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
-
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { ANNOTATION_IMAGE_COMMAND } from "./cli-image.ts";
 import { layerAnnotationImageCli } from "./register-cli.ts";

@@ -10,17 +10,17 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
 import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/settings/schema.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { makeLibraryHost } from "@/views/library/__fixtures__.ts";
 
 import { QuickSwitchModal } from "./modal.ts";

@@ -3,11 +3,10 @@ import { Effect, Stream } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-
 import type {
   LocalServer,
   ReaderTarget,
-} from "@/services/local-server/service.ts";
+} from "@zotlit/plugin-services/core/local-server/service.ts";
 
 import { ReaderSessionHost } from "./session.ts";
 import type { ReaderSessionTarget } from "./session.ts";

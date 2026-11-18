@@ -18,6 +18,7 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
@@ -27,7 +28,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
 import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 

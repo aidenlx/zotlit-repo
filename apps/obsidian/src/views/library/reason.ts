@@ -1,9 +1,9 @@
 import type { LastActivitySource } from "@zotlit/item-query";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
+import type { UseKind } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
-import type { UseKind } from "@/services/use-ledger/service.ts";
 
 interface Use {
   readonly kind: UseKind;

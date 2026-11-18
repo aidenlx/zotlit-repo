@@ -1,6 +1,6 @@
 // The lint rules of the ZotLit Obsidian plugin's code: the app
 // (apps/obsidian) and the plugin packages it bundles (plugin-kernel,
-// obsidian-kit, obsidian-desktop, zotero-reads). Each of those lint configs
+// obsidian-kit, obsidian-desktop, zotero-reads, plugin-services). Each of those lint configs
 // spreads these and adds the overrides that name its own files.
 import { join } from "node:path";
 import type { DummyRuleMap, OxlintOverride } from "oxlint";
@@ -181,12 +181,16 @@ const TESTS = [
 /**
  * The overrides every plugin code config shares, with globs relative to its
  * directory (`src/**`). `imports` is the config's `no-restricted-imports`;
- * the test override relaxes it to `testImports`.
+ * the test override relaxes it to `testImports`. `services` names the files
+ * that hold Effect services: the app's `src/services/**`, or the whole
+ * source of a package of services.
  */
 export function pluginCodeOverrides({
   testImports,
+  services = ["src/services/**"],
 }: {
   testImports: RestrictedImports;
+  services?: string[];
 }): OxlintOverride[] {
   return [
     {
@@ -337,7 +341,7 @@ export function pluginCodeOverrides({
       rules: { "zotlit-services/no-default-runtime": "error" },
     },
     {
-      files: ["src/services/**"],
+      files: services,
       excludeFiles: [
         "**/*.test.{ts,tsx}",
         "**/*.browser-test.ts",

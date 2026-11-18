@@ -26,6 +26,10 @@ import type {
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { indexedKeyForClipboard } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { DisplayNode } from "@zotlit/workbench/explorer";
 import {
   failedRender,
@@ -41,10 +45,6 @@ import {
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 import {
   copyToClipboard,
   createTemplateWorkbenchHost,

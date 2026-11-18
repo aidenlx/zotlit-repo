@@ -23,14 +23,14 @@ import type { CliParamName } from "@zotlit/obsidian-kit/cli-params.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { resolveIndexedKey } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import {
   CSL_COMMAND,

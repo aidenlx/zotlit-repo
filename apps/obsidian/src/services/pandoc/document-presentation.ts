@@ -16,10 +16,10 @@ import {
 } from "@zotlit/plugin-kernel/constants.ts";
 import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { Citation } from "@/services/citation-index/query.ts";
 import type { Profile, ProfileReader } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import type { RenderPresentation } from "./render-cache.ts";
 

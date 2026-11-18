@@ -6,12 +6,13 @@ import type { FileHandle } from "node:fs/promises";
 import { loadPdfJs } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
+
 import type {
   AnnotationRecord,
   AnnotationSource,
 } from "@/services/annotation-repository/service.ts";
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 
 import { settledDisplay } from "./__fixtures__/display-state.ts";
 import { ExcerptDisplayFixture } from "./__fixtures__/display.ts";

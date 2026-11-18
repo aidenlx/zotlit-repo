@@ -106,7 +106,11 @@
         "packages/obsidian-kit/src/**",
         "packages/obsidian-kit/tsconfig*.json",
         "packages/obsidian-desktop/src/**",
-        "packages/obsidian-desktop/tsconfig*.json"
+        "packages/obsidian-desktop/tsconfig*.json",
+        "packages/zotero-reads/src/**",
+        "packages/zotero-reads/tsconfig*.json",
+        "packages/plugin-services/src/**",
+        "packages/plugin-services/tsconfig*.json"
       ]
     },
     "//#review:manifest": {

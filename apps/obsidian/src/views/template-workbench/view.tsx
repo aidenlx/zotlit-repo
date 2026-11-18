@@ -54,6 +54,9 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import type { ItemSearchDeps } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import {
   externalEdit,
@@ -142,13 +145,10 @@ import type {
 } from "@zotlit/workbench/ui";
 import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
-import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
 import { plainNoteError } from "@/services/note-feature/errors.ts";
 import type { UpdateResult } from "@/services/note-feature/operations.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { updateNoteToast } from "@/services/note-feature/update-single.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 import { bibliographyRevisionAtom } from "@/services/pandoc/atoms.ts";
 import {
   defaultProfilePathAtom,

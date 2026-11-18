@@ -30,6 +30,13 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  NoteIndex,
+  resolveLiteratureNoteIn,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   CitationLookupAnswer,
@@ -42,13 +49,6 @@ import type {
   ParseWorkerDied,
 } from "@/services/citation-parse/client.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import {
-  NoteIndex,
-  resolveLiteratureNoteIn,
-} from "@/services/note-index/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { CitationLookup } from "./lookup-service.ts";
 import type { CitationLookupStatus } from "./lookup-service.ts";

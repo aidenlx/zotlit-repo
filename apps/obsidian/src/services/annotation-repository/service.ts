@@ -13,15 +13,15 @@ import {
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { changed } from "@zotlit/zotero-reads/client/events.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { savedExcerptRequestFor } from "@/services/excerpt-image/request.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import { QueryClients } from "@/services/query-client/service.ts";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import type { EditingCapability } from "./capability.ts";
 import type { DatabaseRowsError } from "./core/bridge.ts";

@@ -7,6 +7,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { UseKind } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
@@ -17,10 +20,7 @@ import {
   createCitationIndexHarness,
   KEY_A,
 } from "@/services/citation-index/test-harness.ts";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { UseKind } from "@/services/use-ledger/service.ts";
 
 import { InsertCitationModal } from "./insert-modal.ts";
 import type { CitationSuggestDeps } from "./register.ts";

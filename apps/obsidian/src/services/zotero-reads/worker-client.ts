@@ -4,6 +4,11 @@ import workerSource from "virtual:zotero-reads-worker";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import type { ZoteroReadMode } from "@zotlit/plugin-services/core/database/settings.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   connectWorker,
   makeWorkerReads,
@@ -13,11 +18,6 @@ import {
   reapReadClones,
   reapWorkerSnapshots,
 } from "@zotlit/zotero-reads/desktop/reap-temps.ts";
-
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
-import type { Settings, ZoteroReadMode } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 /** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;

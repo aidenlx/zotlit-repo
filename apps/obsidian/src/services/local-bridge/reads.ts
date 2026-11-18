@@ -17,6 +17,8 @@ import {
   isProfileId,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type {
   InstalledCitationStyle,
@@ -33,12 +35,10 @@ import type {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { profileDisplayName } from "./profile-name.ts";
 import type { SelectedItemIdentity } from "./sessions.ts";

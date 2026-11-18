@@ -13,15 +13,15 @@ import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts"
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 import type { ReadsAnswers } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";

@@ -4,12 +4,11 @@ import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
 import { reportOutcome, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
-
 import type {
   ManagedBinaryApi,
   ManagedBinaryFailure,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 
 import type { SettingsKey } from "./context.ts";
 import type { SettingTabEnv, SettingTabShape } from "./effect-tab.ts";

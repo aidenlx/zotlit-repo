@@ -5,7 +5,8 @@ import { unzipSync } from "fflate";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-import type { BinaryPin } from "../src/services/managed-binary/pin.ts";
+import type { BinaryPin } from "@zotlit/plugin-services/core/managed-binary/pin.ts";
+
 import { readVerifiedPin, sha256Hex, writeVerifiedPin } from "./binary-pin.ts";
 
 const packageRoot = resolve(import.meta.dirname, "..");

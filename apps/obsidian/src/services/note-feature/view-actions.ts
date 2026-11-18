@@ -1,8 +1,9 @@
 // Annotation note gestures as one tag for the view registry.
 import { Context, Effect, Layer } from "effect";
 
+import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type { UseLedger } from "@/services/use-ledger/service.ts";
 
 import { renderAnnotationCitation } from "./annotation-citation.ts";
 import type { AnnotationCitation } from "./annotation-citation.ts";

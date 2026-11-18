@@ -26,12 +26,11 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { SnapshotExpired } from "@zotlit/zotero-reads/contract/rpc.ts";
-
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import {
   QUERY_COMMAND,

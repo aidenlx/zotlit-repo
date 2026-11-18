@@ -28,22 +28,12 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
-import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-import type {
-  ZoteroReadLease,
-  ZoteroReadsEvent,
-} from "@zotlit/zotero-reads/client/service.ts";
-import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
-
-import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import type { AvailableExcerpt } from "@/services/excerpt-image/service.ts";
-import {
   layerQueryClients,
   QueryClients,
-} from "@/services/query-client/service.ts";
+} from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { WireTag } from "@zotlit/plugin-services/core/zotero-local-api/wire.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import {
   annotationItem,
   annotationPage,
@@ -59,17 +49,27 @@ import {
   staleVersionPatch,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 import type {
   ClientOptions,
   WireAnnotation,
   ZoteroAnswers,
   ZoteroRequest,
-} from "@/services/zotero-local-api/__fixtures__.ts";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
-import type { WireTag } from "@/services/zotero-local-api/wire.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadLease,
+  ZoteroReadsEvent,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import type { AvailableExcerpt } from "@/services/excerpt-image/service.ts";
 
 import type {
   AnnotationList,

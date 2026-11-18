@@ -20,6 +20,7 @@ import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { zoteroDataDirAtom } from "@zotlit/plugin-services/obsidian/zotero-pref/atoms.ts";
 
 import { historyOutcomeNotice } from "@/services/annotation-repository/actions.ts";
 import {
@@ -43,7 +44,6 @@ import type { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
 import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
-import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms.ts";
 
 import { AnnotActionsContext, createAnnotActions } from "./actions.tsx";
 import type { AnnotActionDeps, AnnotActions } from "./actions.tsx";

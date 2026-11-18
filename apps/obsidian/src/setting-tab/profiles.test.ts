@@ -28,6 +28,8 @@ import {
 } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { Customize } from "@/services/local-bridge/customize.ts";
 import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
@@ -38,8 +40,6 @@ import type {
   ProfileCreation,
 } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 
@@ -94,7 +94,10 @@ const tabOver = Effect.fnUntraced(function* (
 ) {
   const settings = {
     current: Effect.succeed(fakes.settings ?? defaults),
-    updateDefaultLiteratureNoteProfileBindings: vi.fn(() => Effect.void),
+    update: vi.fn(
+      (_patch: Parameters<PluginSettings["Service"]["update"]>[0]) =>
+        Effect.succeed(fakes.settings ?? defaults),
+    ),
   };
   const customize = vi.fn((_request: CustomizeRequest) => {});
   const { tab, rebuilt } = yield* rebuildingSettingTab(
@@ -353,9 +356,16 @@ describe("Profile settings", () => {
       ctx.tab.sync(
         setProfileControlValue("note-profile:default:folder", "Reading"),
       );
-      expect(
-        settings.updateDefaultLiteratureNoteProfileBindings,
-      ).toHaveBeenCalledWith({ "note.literature-folder": "Reading" });
+      expect(settings.update).toHaveBeenCalledTimes(1);
+      const [patch] = settings.update.mock.calls[0]!;
+      expect(typeof patch === "function" ? patch(defaults) : patch).toEqual({
+        "note.default-profile": {
+          bindings: {
+            ...defaults["note.default-profile"].bindings,
+            "note.literature-folder": "Reading",
+          },
+        },
+      });
     }),
   );
 });

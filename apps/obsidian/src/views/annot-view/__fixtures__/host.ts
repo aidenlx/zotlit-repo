@@ -16,13 +16,13 @@ import type {
   ExcerptImageDisplay,
 } from "@/services/excerpt-image/display.ts";
 import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import {
   annotationDraftCommand,

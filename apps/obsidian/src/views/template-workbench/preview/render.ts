@@ -22,6 +22,9 @@ import { FIELD_DOCUMENT_LANGUAGE } from "@zotlit/plugin-kernel/constants.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { replaceSuffixMarkers, resolveNoteRelPath } from "@zotlit/templates";
 import type { LiteratureNoteTemplateManifest } from "@zotlit/templates/facade";
 import { parsePlainTemplateDocument } from "@zotlit/templates/facade";
@@ -54,13 +57,10 @@ import {
   composeLiteratureNote,
   prepareLiteratureNote,
 } from "@/services/note-feature/index.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { bindProfile } from "@/services/profile/bindings.ts";
 import { bindUnvalidatedDraftProfile } from "@/services/profile/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import {
   readTemplateData,
   readCitationData,

@@ -23,6 +23,9 @@ import { DOCS_SITE_URL } from "@zotlit/plugin-kernel/constants.ts";
 import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { Settings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   BRIDGE_CAPABILITIES,
   BRIDGE_VERSION,
@@ -30,10 +33,7 @@ import {
 } from "@zotlit/workbench/bridge";
 import type { ProfileBindingDefaults } from "@zotlit/workbench/bridge";
 
-import { LocalServer } from "@/services/local-server/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import type { Settings } from "@/services/settings/service.ts";
 
 import { createLocalBridgeApp } from "./app.ts";
 import type { ConnectionGrantDescription } from "./app.ts";

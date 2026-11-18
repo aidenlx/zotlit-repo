@@ -3,6 +3,9 @@ import { Effect } from "effect";
 
 import { buildAnnotationParents } from "@zotlit/db";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
@@ -17,9 +20,7 @@ import {
   excerptInputs,
   excerptRequestFrom,
 } from "@/services/excerpt-image/request.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
 import {
   annotationCitation,
@@ -29,7 +30,6 @@ import {
   ProfileAnnotationError,
   Template,
 } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { annotationInsertData } from "./insert-annotation-data.ts";
 

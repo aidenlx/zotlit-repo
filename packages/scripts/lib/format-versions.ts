@@ -31,12 +31,12 @@ export const formatVersions: readonly FormatVersion[] = [
   },
   {
     name: "Settings",
-    file: "apps/obsidian/src/services/settings/service.ts",
+    file: "packages/plugin-services/src/obsidian/settings/service.ts",
     constant: "CURRENT_VERSION",
   },
   {
     name: "Remembered write authorization",
-    file: "apps/obsidian/src/services/zotero-local-api/write-authorization.ts",
+    file: "packages/plugin-services/src/obsidian/zotero-local-api/write-authorization.ts",
     constant: "RECORD_VERSION",
   },
   {

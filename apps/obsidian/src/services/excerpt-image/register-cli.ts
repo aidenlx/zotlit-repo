@@ -2,9 +2,8 @@
 import { Effect, FileSystem, Layer } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import {
   ANNOTATION_IMAGE_COMMAND,

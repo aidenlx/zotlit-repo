@@ -26,6 +26,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import type { Ledger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { delimited } from "@zotlit/shared/delimited";
 import {
   inProcessClient,
@@ -41,9 +43,6 @@ import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import type { ConnectionOpener } from "@zotlit/zotero-reads/worker/connection.ts";
-
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import type { Ledger } from "@/services/use-ledger/service.ts";
 
 import { buildQueryService, layerTestQueryService } from "./__fixtures__.ts";
 import { queryCancelledText } from "./contract.ts";

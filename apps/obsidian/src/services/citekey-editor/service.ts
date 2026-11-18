@@ -8,6 +8,10 @@ import {
   logAndContinue,
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type {
@@ -23,14 +27,10 @@ import type {
   HoverPreferences,
   NavigationPane,
 } from "@/services/citekey-navigation/index.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { NoteCreationServices } from "@/services/note-feature/creation-handle.ts";
 import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import { resolveLiteratureNoteWithWarning } from "@/services/note-feature/update-single.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 export type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 

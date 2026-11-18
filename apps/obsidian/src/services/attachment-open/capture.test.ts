@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import { FILES, openerHarness } from "./__fixtures__.ts";
 import {

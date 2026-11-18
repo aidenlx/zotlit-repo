@@ -5,6 +5,9 @@ import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-hos
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+// The one cited work, and the Citation Index answer naming it, that the citation-text suites read against.
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { scanNote } from "@/services/citation-index/scan-note.ts";
@@ -14,14 +17,11 @@ import type {
   CitationOccurrence,
 } from "@/services/citation-index/service.ts";
 import type { OpenDocuments } from "@/services/citation-text/open-documents.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 import { inlineText } from "@/services/pandoc/inline-content.tsx";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
-// The one cited work, and the Citation Index answer naming it, that the citation-text suites read against.
-import { QueryClients } from "@/services/query-client/service.ts";
 
 import type { FormattedOccurrence, PresentedCitation } from "./present.ts";
 import { CitationText, layerCitationText } from "./service.ts";

@@ -5,10 +5,10 @@ import { expect } from "vitest";
 
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { QueryClients } from "@/services/query-client/service.ts";
 import { Release } from "@/services/release/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import { requestWelcome, setConverted } from "./model.ts";

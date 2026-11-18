@@ -2,9 +2,9 @@
 import { Effect } from "effect";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { createObsidianAttachmentReader } from "@/services/attachment-open/open-attachments.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { activateAnnotView } from "@/views/annot-view/register.ts";
 
 import type { TargetReader } from "./open-target.ts";

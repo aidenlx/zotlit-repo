@@ -21,6 +21,10 @@ import {
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateEngine } from "@zotlit/templates";
 import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
@@ -30,19 +34,15 @@ import {
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import type {
   NoteProfile,
   ResolvedProfile,
 } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults as settingsDefaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import { Template } from "@/services/template/service.ts";
 import type { CompileError } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { workbenchContext, workbenchIdentity } from "./__fixtures__.ts";
 import {

@@ -13,16 +13,16 @@ import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  itemKeyFromFrontmatter,
+  noteKeyFromFrontmatter,
+  NoteIndex,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { classifyStream } from "@/services/batch-run.ts";
 import type { QueryService } from "@/services/item-query/service.ts";
-import {
-  itemKeyFromFrontmatter,
-  noteKeyFromFrontmatter,
-  NoteIndex,
-} from "@/services/note-index/service.ts";
 import { selectProfilesByMatch } from "@/services/profile-selection/index.ts";
 import type { MatchSelection } from "@/services/profile-selection/index.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";

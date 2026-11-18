@@ -1,8 +1,7 @@
 import type { MarkdownView, WorkspaceLeaf, Modal } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
-
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 export type CodeMirrorContent = HTMLElement & {
   cmTile: { root: { view: MarkdownView["editor"]["cm"] } };

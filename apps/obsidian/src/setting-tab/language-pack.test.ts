@@ -10,11 +10,14 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  fakeDevice,
+  startOn,
+} from "@zotlit/plugin-services/obsidian/language-pack/__fixtures__.ts";
+import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { fakeDevice, startOn } from "@/services/language-pack/__fixtures__.ts";
-import { LanguagePack } from "@/services/language-pack/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";

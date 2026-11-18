@@ -27,11 +27,15 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupObservation } from "@/services/citation-index/service.ts";
+import { citationSettings } from "@/services/citation-index/settings.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   citationContent,
@@ -64,10 +68,6 @@ import type {
   HoverPreferences,
 } from "@/services/citekey-navigation/index.ts";
 import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { replaceCitations, sectionCitations } from "./render.ts";
 import type { SectionCitation } from "./render.ts";
@@ -149,7 +149,7 @@ export const layerCitekeyReading = Layer.effectDiscard(
     let active: boolean | undefined;
     let showFormatted = false;
     let navigationEnabled = false;
-    let hover: HoverPreferences = hoverPreferences(defaults);
+    let hover: HoverPreferences = hoverPreferences(citationSettings.defaults);
     /** The sections this surface rendered into and Obsidian still shows. */
     const sections = new LiveSections();
     /** What a hover raises its `hover-link` on, and a recovery button its Profile switch. */

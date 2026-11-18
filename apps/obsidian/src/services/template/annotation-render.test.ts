@@ -2,11 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
 import { USER_LIBRARY_ID } from "@zotlit/db";
-
 import type {
   AttachmentSource,
   SourceOrigin,
-} from "@/services/attachment-import/service.ts";
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
 import {
   attachmentFileLink,

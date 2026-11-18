@@ -18,15 +18,15 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import {
+  buildUseLedger,
+  ledgerHost,
+} from "@zotlit/plugin-services/obsidian/use-ledger/__fixtures__.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 
 import { setup as repositorySetup } from "@/services/annotation-repository/__fixtures__.ts";
 import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
 import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
-import {
-  buildUseLedger,
-  ledgerHost,
-} from "@/services/use-ledger/__fixtures__.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
 import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
 import type { InsertRunner } from "@/views/annot-view/insert-run.ts";
 

@@ -4,12 +4,12 @@ import * as Atom from "effect/reactivity/Atom";
 
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
-
-import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
   noteIndexSnapshotAtom,
   noteIndexStructureRevisionAtom,
-} from "@/services/note-index/atoms.ts";
+} from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
+
+import { NoteFeature } from "@/services/note-feature/service.ts";
 import { profileRevisionAtom } from "@/services/profile/atoms.ts";
 import { templateRevisionAtom } from "@/services/template/atoms.ts";
 

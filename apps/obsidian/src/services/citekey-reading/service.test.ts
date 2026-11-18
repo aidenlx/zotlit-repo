@@ -20,6 +20,9 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   citedWorkSeed,
@@ -51,11 +54,8 @@ import type { CitationHoverRequest } from "@/services/citekey-navigation/index.t
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 import { renderFailure } from "@/services/pandoc/render-cache/__fixtures__.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 
 import { layerCitekeyReading } from "./service.ts";
 

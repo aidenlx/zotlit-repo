@@ -8,17 +8,17 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  FLAIR_ROW_CLASS,
+  appendInlineFlair,
+  appendTrailingFlair,
+} from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
 
 import { candidateRow } from "@/services/citation-index/ambiguity.ts";
 import type {
   AmbiguousCandidate,
   CandidateRow,
 } from "@/services/citation-index/ambiguity.ts";
-import {
-  FLAIR_ROW_CLASS,
-  appendInlineFlair,
-  appendTrailingFlair,
-} from "@/services/item-lookup/render-hit.ts";
 
 import { CitekeyEditor } from "./service.ts";
 import type { AmbiguousCitekey } from "./service.ts";

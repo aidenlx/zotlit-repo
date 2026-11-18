@@ -6,13 +6,12 @@ import { createHash } from "node:crypto";
 import { describe, expect, vi } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { openManagedBinary } from "@/services/managed-binary/__fixtures__.ts";
+import { openManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import type {
   BinaryPin,
   BinaryStore,
   ManagedBinaryHostPorts,
-} from "@/services/managed-binary/service.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 
 import type { CitationEngine, PreparedDocument } from "./engine.ts";
 import { PANDOC_ENGINE } from "./service.ts";

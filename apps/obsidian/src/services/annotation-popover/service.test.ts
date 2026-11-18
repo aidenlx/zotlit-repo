@@ -14,6 +14,8 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
@@ -34,8 +36,6 @@ import {
   ExcerptDisplays,
 } from "@/services/excerpt-image/display.ts";
 import { savedExcerptRequestOver } from "@/services/excerpt-image/request.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { AnnotationPopoverCore } from "./popover.tsx";
 import { AnnotationPopover, layerAnnotationPopover } from "./service.tsx";
@@ -628,7 +628,7 @@ describe("AnnotationPopover with an Excerpt Image", () => {
           pref: stubService<ZoteroPref["Service"]>("ZoteroPref", {
             current: Effect.succeed(
               stubService<
-                import("@/services/zotero-pref/service.ts").ZoteroPrefSnapshot
+                import("@zotlit/plugin-services/core/zotero-pref/service.ts").ZoteroPrefSnapshot
               >("ZoteroPrefSnapshot", {
                 dataDir: DATA_DIR,
                 baseAttachmentPath: null,

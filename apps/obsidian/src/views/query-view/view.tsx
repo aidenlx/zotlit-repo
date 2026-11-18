@@ -27,6 +27,7 @@ import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { libraryAvailabilityRevisionAtom } from "@zotlit/plugin-services/obsidian/library-scope/atoms.ts";
 import { useUniqueId } from "@zotlit/ui";
 import {
   zoteroRevisionAtom,
@@ -46,7 +47,6 @@ import type {
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.ts";
 import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
 import { CardDisplayContext } from "@/views/annot-view/card-display.ts";
 import type { CardDisplay } from "@/views/annot-view/card-display.ts";

@@ -3,9 +3,8 @@ import type { Editor, TFile } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { ItemSearchModal } from "@/services/item-lookup/search-modal.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
+import { ItemSearchModal } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 
 import { readDocumentCitedKeys } from "./document-citations.ts";
 import {

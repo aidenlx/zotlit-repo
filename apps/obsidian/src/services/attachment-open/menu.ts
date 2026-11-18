@@ -2,9 +2,9 @@
 
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
 import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
-import type { FileMenuSegment } from "@/services/file-menu.ts";
 
 import type { AttachmentOpenDeps } from "./actions.ts";
 import { openGesture, pdfPickerReader } from "./actions.ts";

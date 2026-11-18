@@ -12,15 +12,14 @@ import {
   VaultFolderBlockedError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import {
-  CONVERTED_DEFAULT_PROFILE_DOCUMENT,
-  LegacyTemplateConversionError,
-} from "@zotlit/templates/facade";
-
-import {
   PluginSettings,
   SettingsMutationError,
   SettingsPersistenceError,
-} from "@/services/settings/service.ts";
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
+  CONVERTED_DEFAULT_PROFILE_DOCUMENT,
+  LegacyTemplateConversionError,
+} from "@zotlit/templates/facade";
 
 import { templateFileFromPath } from "./defaults.ts";
 import type { MigrationVerificationData } from "./migration-data.ts";

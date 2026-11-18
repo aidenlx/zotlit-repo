@@ -19,29 +19,29 @@ import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import type { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import type { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import type { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type { AttachmentImport } from "@/services/attachment-import/service.ts";
-import type { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import type { CitationIndex } from "@/services/citation-index/service.ts";
 import type { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import type { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import type { LanguagePack } from "@/services/language-pack/service.ts";
-import type { LibraryScope } from "@/services/library-scope/service.ts";
 import type { Customize } from "@/services/local-bridge/customize.ts";
 import type { LocalBridge } from "@/services/local-bridge/service.ts";
-import type { LocalServer } from "@/services/local-server/service.ts";
 import type { NoteFeature } from "@/services/note-feature/service.ts";
-import type { NoteIndex } from "@/services/note-index/service.ts";
 import type { PandocEngine } from "@/services/pandoc/service.ts";
 import type { Profile } from "@/services/profile/service.ts";
 import type { Release } from "@/services/release/service.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 import type { Template } from "@/services/template/service.ts";
-import type { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 /** Every service a tab Effect may read: the tab layer's whole context. */
 export type SettingTabEnv =

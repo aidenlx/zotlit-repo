@@ -14,7 +14,7 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 import { layerAnnotServices } from "@/views/annot-view/__fixtures__/host.ts";

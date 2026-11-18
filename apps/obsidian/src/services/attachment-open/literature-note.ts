@@ -4,9 +4,8 @@ import { Effect } from "effect";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { toObsidianOpenable } from "./openable.ts";
 import type { ObsidianOpenableAttachment } from "./resolve.ts";

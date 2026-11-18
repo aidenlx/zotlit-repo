@@ -21,6 +21,15 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
+  ZoteroPrefSnapshot,
+  ZoteroProfileInfo,
+} from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import {
+  PluginSettings,
+  SettingsMutationError,
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type {
   ZoteroReadsApi,
   ZoteroReadsEvent,
   ZoteroReadsState,
@@ -29,15 +38,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import {
-  PluginSettings,
-  SettingsMutationError,
-} from "@/services/settings/service.ts";
-import type {
-  ZoteroPrefSnapshot,
-  ZoteroProfileInfo,
-} from "@/services/zotero-pref/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";

@@ -25,6 +25,12 @@ import {
   FIELD_ZOTERO_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
+import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { testClock } from "@zotlit/plugin-services/core/query-client/test-clock.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { LibraryScopeEvents } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { buildNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
 import {
   inProcessReadsService,
   memoryOpener,
@@ -46,14 +52,8 @@ import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { ParseClient } from "@/services/citation-parse/client.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
-import type { LibraryScopeEvents } from "@/services/library-scope/service.ts";
-import { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
-import type { QueryClients } from "@/services/query-client/service.ts";
-import { testClock } from "@/services/query-client/test-clock.ts";
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { citationIndexFixture, citationLookupFixture } from "./__fixtures__.ts";
 import { CitationLookup } from "./lookup-service.ts";

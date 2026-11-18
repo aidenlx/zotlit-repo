@@ -3,13 +3,13 @@
 import { Context } from "effect";
 import { unzipSync } from "fflate";
 
-import { layerManagedBinary } from "@/services/managed-binary/service.ts";
+import { layerManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import type {
   ManagedBinary,
   ManagedBinaryApi,
   ManagedBinaryFailure,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 
 import { createCitationEngine } from "./engine.ts";
 import type { CitationEngine } from "./engine.ts";

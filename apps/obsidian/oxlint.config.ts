@@ -29,11 +29,6 @@ export default defineConfig({
       },
     },
     {
-      // The sink owners may use LogTape directly.
-      files: ["src/services/log/**"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
-    },
-    {
       // Logging backlog: rework the file to log through Effect, then remove it from the list.
       files: [
         "src/services/citation-index/sources.ts",
@@ -88,10 +83,7 @@ export default defineConfig({
     },
     {
       // No tag member yet: `vault.adapter`.
-      files: [
-        "src/services/log/service.ts",
-        "src/views/pandoc-export/register.ts",
-      ],
+      files: ["src/views/pandoc-export/register.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
@@ -161,17 +153,6 @@ export default defineConfig({
       rules: { "zotlit-services/clock-time": "off" },
     },
     {
-      // Date adapter: Obsidian's YAML frontmatter can hand in a Date.
-      files: [
-        "src/services/note-index/frontmatter-date.ts",
-        "src/services/note-index/frontmatter-date.test.ts",
-      ],
-      rules: {
-        "effecttsgo/global-date": "off",
-        "no-restricted-globals": "off",
-      },
-    },
-    {
       // Legacy emitters, written before no-nanoevents. A file moves off this
       // list when its service converts to Effect.
       files: [
@@ -229,7 +210,6 @@ export default defineConfig({
         "vite.config.ts",
         "src/services/pandoc/filter/zotlit-cite.pandoc.test.ts",
         "src/zt-main.ts",
-        "src/services/log/**",
       ],
       rules: {
         "effecttsgo/global-console": "off",
@@ -265,11 +245,7 @@ export default defineConfig({
     {
       // Background work that stands in no window, which lives as long as the
       // plugin and so as the main window.
-      files: [
-        "src/plugin-lifecycle.ts",
-        "src/services/item-query/measure.ts",
-        "src/services/log/vault-sink.ts",
-      ],
+      files: ["src/plugin-lifecycle.ts", "src/services/item-query/measure.ts"],
       rules: { "zotlit-obsidian/no-global-timer": "off" },
     },
     {
@@ -301,8 +277,9 @@ export default defineConfig({
     {
       // Node runs these straight from source, where the `@/` alias does not
       // resolve; and they stay independent of plugin code, which
-      // tsconfig.node.json cannot type-check. The pin is the one shared
-      // contract, a module with no imports.
+      // tsconfig.node.json cannot type-check. The pin
+      // (`@zotlit/plugin-services/core/managed-binary/pin.ts`) is the one
+      // shared contract, a module with no imports.
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": [
@@ -311,7 +288,7 @@ export default defineConfig({
             patterns: [
               datePattern,
               {
-                group: ["../src/**", "!../src/services/managed-binary/pin.ts"],
+                group: ["../src/**"],
                 allowTypeImports: true,
                 message:
                   "Scripts stay independent of plugin code; a check of plugin code is a Vitest test under src/.",

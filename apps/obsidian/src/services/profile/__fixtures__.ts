@@ -3,12 +3,10 @@ import { Effect, Layer } from "effect";
 import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { layerNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { layerNoteIndex } from "@/services/note-index/service.ts";
-import {
-  layerPluginSettings,
-  PluginSettings,
-} from "@/services/settings/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 import type { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { layerTemplate, Template } from "@/services/template/service.ts";
 
@@ -21,7 +19,7 @@ import { layerProfile, Profile } from "./service.ts";
 export function profileOver(host: ReturnType<typeof createTemplateHost>) {
   return layerProfile.pipe(
     Layer.provideMerge(Layer.mergeAll(layerTemplate, layerNoteIndex)),
-    Layer.provideMerge(layerPluginSettings(host.plugin)),
+    Layer.provideMerge(layerSettings(host.plugin)),
     Layer.provideMerge(layerHostApp(host.app)),
   );
 }

@@ -35,14 +35,22 @@ import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import {
+  itemKeyFromFrontmatter,
+  noteKeyFromFrontmatter,
+  NoteIndex,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { UpdateScope } from "@zotlit/protocol";
 import { evalManagedFrontmatterEntries } from "@zotlit/templates/frontmatter";
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
-import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import {
@@ -53,22 +61,14 @@ import type {
   ExcerptSummary,
   PreparedExcerpts,
 } from "@/services/excerpt-image/prepare.ts";
-import {
-  itemKeyFromFrontmatter,
-  noteKeyFromFrontmatter,
-  NoteIndex,
-} from "@/services/note-index/service.ts";
 import { noteProfileSelector } from "@/services/profile/bindings.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { relocatedNotePath } from "@/services/profile/relocation.ts";
 import { Profile } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import { Template } from "@/services/template/service.ts";
 import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { applyComposedFrontmatter, composeLiteratureNote } from "./compose.ts";
 import type { ComposeFrontmatterInput, ComposeNoteDeps } from "./compose.ts";

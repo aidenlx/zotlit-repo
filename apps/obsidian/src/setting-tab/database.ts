@@ -10,6 +10,13 @@ import type {
 import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type {
+  ZoteroPrefSnapshot,
+  ZoteroProfileInfo,
+} from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { PREFS_FILENAME } from "@zotlit/plugin-services/desktop/zotero-pref/prefs-file.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   changed,
   degraded,
@@ -22,14 +29,6 @@ import type {
   ConfiguredReadMode,
   EffectiveReadMode,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
-
-import { PluginSettings } from "@/services/settings/service.ts";
-import { PREFS_FILENAME } from "@/services/zotero-pref/prefs-file.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type {
-  ZoteroPrefSnapshot,
-  ZoteroProfileInfo,
-} from "@/services/zotero-pref/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { appendDeviceOverrideNote, browseForDir } from "./device-override.ts";

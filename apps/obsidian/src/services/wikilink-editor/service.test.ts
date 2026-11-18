@@ -9,6 +9,9 @@ import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { NoteIndexChange } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";
@@ -16,10 +19,7 @@ import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitationText } from "@/services/citation-text/service.ts";
 import type { CitationTextEvent } from "@/services/citation-text/service.ts";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import type { NoteIndexChange } from "@/services/note-index/service.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { layerWikilinkEditor } from "./service.ts";
 

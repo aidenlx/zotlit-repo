@@ -21,7 +21,7 @@ import type { ExplorerHost, ExplorerReads } from "./__fixtures__.ts";
 import { TemplateDataExplorerView } from "./view.tsx";
 import type { ExplorerViewDeps } from "./view.tsx";
 
-vi.mock("@/services/item-lookup/search-modal.ts", () => ({
+vi.mock("@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts", () => ({
   pickItem: vi.fn(async () => null),
 }));
 vi.mock("@/views/template-workbench/item-choice.ts", async (importOriginal) => {

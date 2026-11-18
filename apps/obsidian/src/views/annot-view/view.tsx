@@ -12,6 +12,19 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
+import { pickItem } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
+import { libraryRowsAtom } from "@zotlit/plugin-services/obsidian/library-scope/atoms.ts";
+import {
+  liveUpdatesAtom,
+  readerClosedAtom,
+} from "@zotlit/plugin-services/obsidian/local-server/atoms.ts";
+import {
+  activeKeyAtom,
+  activeNoteAtom,
+  noteSourceAtom,
+} from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
@@ -29,22 +42,9 @@ import type {
   AnnotationSource,
   HistoryDirection,
 } from "@/services/annotation-repository/service.ts";
-import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
-import { pickItem } from "@/services/item-lookup/search-modal.ts";
-import { libraryRowsAtom } from "@/services/library-scope/atoms.ts";
-import {
-  liveUpdatesAtom,
-  readerClosedAtom,
-} from "@/services/local-server/atoms.ts";
-import {
-  activeKeyAtom,
-  activeNoteAtom,
-  noteSourceAtom,
-} from "@/services/note-index/atoms.ts";
 import { pdfSessionsAtom } from "@/services/pdf-annotation-editor/atoms.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
 import { ReaderSessionHost } from "@/services/reader-session/session.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 import { viewTargetOpener } from "@/views/open-target.ts";
 import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 import { QueryView } from "@/views/query-view/view.tsx";

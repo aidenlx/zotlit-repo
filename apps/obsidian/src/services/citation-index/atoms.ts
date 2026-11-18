@@ -5,10 +5,10 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { activeKeyAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type { CitedBySnapshot } from "@/services/citation-index/service.ts";
-import { activeKeyAtom } from "@/services/note-index/atoms.ts";
 
 import { CitationLookup } from "./lookup-service.ts";
 

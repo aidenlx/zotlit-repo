@@ -22,7 +22,7 @@ import { layerVaultFrom, Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { Workspace, WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
@@ -33,11 +33,11 @@ import type {
   PreparedExcerpts,
 } from "@/services/excerpt-image/prepare.ts";
 import type { QueryService } from "@/services/item-query/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { snapshotAt } from "@/services/attachment-import/__fixtures__.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { snapshotAt } from "@zotlit/plugin-services/desktop/attachment-import/__fixtures__.ts";
 import { Template } from "@/services/template/service.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import type { NoteCitations } from "@/services/note-feature/citations-handle.ts";
 import { bindNoteFeature } from "@/services/note-feature/handle.ts";

@@ -6,8 +6,8 @@ import { TFile } from "obsidian";
 
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileFixture } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile } from "@/services/profile/service.ts";

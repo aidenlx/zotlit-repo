@@ -50,11 +50,11 @@
   "packages/obsidian-kit/src/pointer-drag.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/attachment-import/copy-security.test.ts": [
+  "packages/plugin-services/src/desktop/attachment-import/copy-security.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/attachment-import/service.test.ts": [
+  "packages/plugin-services/src/desktop/attachment-import/service.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
@@ -66,7 +66,7 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/chinese-segmenter/service.test.ts": [
+  "packages/plugin-services/src/obsidian/chinese-segmenter/service.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
@@ -138,7 +138,7 @@
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/item-lookup/render-hit.test.ts": [
+  "packages/plugin-services/src/obsidian/item-lookup/render-hit.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/services/note-feature/actions.test.ts": [

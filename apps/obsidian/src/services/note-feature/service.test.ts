@@ -18,9 +18,8 @@ import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-h
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
-
-import { NoteIndex } from "@/services/note-index/service.ts";
 
 import { noteFeatureServices } from "./__fixtures__/note-feature.ts";
 import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";

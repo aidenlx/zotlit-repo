@@ -21,6 +21,7 @@
     "@zotlit/obsidian-kit": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "arkregex": "catalog:",

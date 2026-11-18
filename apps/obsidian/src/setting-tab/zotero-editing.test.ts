@@ -9,12 +9,12 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";

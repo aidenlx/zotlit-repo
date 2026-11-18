@@ -9,13 +9,15 @@ import type {
 
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { FileMenuContext, FileMenuSegment } from "@/services/file-menu.ts";
+import type {
+  FileMenuContext,
+  FileMenuSegment,
+} from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import {
   isLiteratureNote,
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "@/services/note-index/service.ts";
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import type { NoteActions } from "./actions-handle.ts";
 import type { UpdateScope } from "./operations.ts";

@@ -6,8 +6,8 @@ import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
-import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
 import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";

@@ -10,8 +10,7 @@ import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
 import { dateTimeClock } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import {
   allowEditingNotice,

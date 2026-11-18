@@ -6,13 +6,13 @@ import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts"
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
-import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type {
   DefaultProfileTarget,
   NativeProfileTarget,
 } from "@/services/local-bridge/customize.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 import {
   profileStateAtom,
   fileProfileValueAtom,

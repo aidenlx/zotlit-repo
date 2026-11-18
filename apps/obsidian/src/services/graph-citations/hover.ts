@@ -6,6 +6,8 @@ import type { GraphData, MetadataCache, Workspace } from "obsidian";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type {
   CitationPopover,
@@ -16,8 +18,6 @@ import {
   triggerCitekeyHover,
 } from "@/services/citekey-navigation/index.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
 import { CITATION_POPOVER } from "./display.ts";

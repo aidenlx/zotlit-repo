@@ -7,8 +7,7 @@ import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-ap
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import {
   createTemplateHost,

@@ -8,9 +8,9 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type {
   CreateProfileDialog,
   ImportProfileDialog,

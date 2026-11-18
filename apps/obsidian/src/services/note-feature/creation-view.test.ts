@@ -10,11 +10,11 @@ import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { ProfileOperationError } from "@/services/profile/service.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type { ProfilePick } from "@/views/quick-switch/profile-picker.ts";

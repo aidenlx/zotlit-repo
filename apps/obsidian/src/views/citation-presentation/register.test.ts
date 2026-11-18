@@ -23,9 +23,9 @@ import { makeWorkspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
 
 import {
   citationPresentationFileMenu,

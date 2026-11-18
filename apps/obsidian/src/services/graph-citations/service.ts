@@ -23,6 +23,13 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { workLabel } from "@zotlit/plugin-kernel/item-summary.ts";
 import type { WorkLabel } from "@zotlit/plugin-kernel/item-summary.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  itemKeyFromFrontmatter,
+  NoteIndex,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { changed as readsChanged } from "@zotlit/zotero-reads/client/events.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
@@ -35,13 +42,6 @@ import { CitationIndex } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import {
-  itemKeyFromFrontmatter,
-  NoteIndex,
-} from "@/services/note-index/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 import { graphCitationAdditions, NO_ADDITIONS } from "./adapter.ts";

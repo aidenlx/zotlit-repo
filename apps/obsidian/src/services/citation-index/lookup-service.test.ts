@@ -3,6 +3,7 @@ import { Cause, Duration, Effect, Exit, Stream } from "effect";
 import { afterEach, describe, expect, vi } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 import {
   inProcessClient,
   memoryOpener,
@@ -13,7 +14,6 @@ import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 
 import { citationLookupFixture } from "./__fixtures__.ts";
 import {

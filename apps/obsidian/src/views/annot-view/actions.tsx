@@ -13,6 +13,7 @@ import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
 import { observeExit } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
@@ -28,7 +29,6 @@ import type {
   ExcerptImageDisplay,
 } from "@/services/excerpt-image/display.ts";
 import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
-import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 import { buildColorMenu } from "@/services/pdf-annotation-editor/color-menu.ts";
 import { viewTargetOpener } from "@/views/open-target.ts";

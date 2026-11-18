@@ -2,10 +2,10 @@
 import { Effect, Stream } from "effect";
 
 import type { CiteRef } from "@zotlit/db";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import { readTemplateData } from "@/services/template-workbench/data.ts";
 import type { TemplateDataServices } from "@/services/template-workbench/data.ts";
 

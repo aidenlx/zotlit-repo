@@ -22,6 +22,10 @@ import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts"
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateError } from "@zotlit/templates/facade";
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 import { citationExampleData } from "@zotlit/workbench/render";
@@ -30,9 +34,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { itemFacets } from "@/services/note-feature/context.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { annotationCitation } from "@/services/template/annotation-render.ts";
 import { CITATION_TEMPLATE_NAME } from "@/services/template/defaults.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
@@ -41,7 +42,6 @@ import {
   findExistingLitNote,
 } from "@/services/template/inert-resolver-host.ts";
 import type { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { syncTemplate } from "./sync-template.ts";
 

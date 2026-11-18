@@ -33,9 +33,11 @@ import type {
   FileNotFound,
   VaultError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { formatPlainTemplateDocument } from "@zotlit/templates/facade";
 
-import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type {
@@ -43,7 +45,6 @@ import type {
   ProfileOperationError,
 } from "@/services/profile/service.ts";
 import { DEFAULT_PROFILE_DOCUMENT } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
 import {
   citationPath,
@@ -55,7 +56,6 @@ import type {
   LiteratureNoteTemplateStatus,
   TemplateFailure,
 } from "@/services/template/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope.ts";
 import { readWorkbenchIdentity } from "./identity.ts";

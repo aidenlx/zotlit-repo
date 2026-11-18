@@ -17,13 +17,13 @@ import type { Item } from "@zotlit/db";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
-
-import { collectExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import {
   itemKeyFromFrontmatter,
   NoteIndex,
-} from "@/services/note-index/service.ts";
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+
+import { collectExcerptSummary } from "@/services/excerpt-image/prepare.ts";
+import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 
 import {
   getImportedNotesForItem,

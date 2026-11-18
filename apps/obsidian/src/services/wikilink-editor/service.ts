@@ -11,17 +11,17 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import {
+  NoteIndex,
+  literatureNoteTargetIn,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitationText } from "@/services/citation-text/service.ts";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import { WikilinkDisplaySettings } from "@/services/citekey-navigation/wikilink-display-settings.ts";
-import {
-  NoteIndex,
-  literatureNoteTargetIn,
-} from "@/services/note-index/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   wikilinkDecorationsChanged,

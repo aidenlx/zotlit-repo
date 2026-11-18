@@ -27,6 +27,11 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { themeAttribute } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  AttachmentResolution,
+  AttachmentResolver,
+} from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
@@ -38,12 +43,7 @@ import type {
   AnnotationSource,
   HistoryDirection,
 } from "@/services/annotation-repository/service.ts";
-import type {
-  AttachmentResolution,
-  AttachmentResolver,
-} from "@/services/attachment-resolver/service.ts";
 import type { BorrowedExcerptDocument } from "@/services/excerpt-image/reader-borrow.ts";
-import type { NoteIndex } from "@/services/note-index/service.ts";
 import { ReaderSessionHost } from "@/services/reader-session/session.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
 import { editingLive } from "@/views/annot-view/card-controls.ts";

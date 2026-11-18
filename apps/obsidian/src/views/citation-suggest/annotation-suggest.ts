@@ -11,11 +11,11 @@ import type {
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { CurrentAnswer } from "@zotlit/plugin-services/obsidian/item-lookup/current-answer.ts";
+import { DEFAULT_LIMIT } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
-import { DEFAULT_LIMIT } from "@/services/item-lookup/service.ts";
 import type { QueryHandle } from "@/services/item-query/handle.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
 import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 import {
   appendExcerptText,

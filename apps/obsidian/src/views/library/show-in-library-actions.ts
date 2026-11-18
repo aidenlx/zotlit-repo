@@ -10,9 +10,8 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { FileMenuSegment } from "@/services/file-menu.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
 import { ShowInLibrary } from "./show-in-library.ts";
 

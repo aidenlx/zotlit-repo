@@ -28,8 +28,7 @@ import {
   commentToMarkdown,
   createCommentTurndown,
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
-
-import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
+import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
 /**
  * Build the {@link FallibleTemplateLink} for an attachment's on-disk file

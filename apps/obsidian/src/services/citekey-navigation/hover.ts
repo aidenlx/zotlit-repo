@@ -1,6 +1,8 @@
 // What one hover over a recognized citation means, decided without touching the DOM.
 
-import type { HoverAction, Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+
+import type { HoverAction } from "@/services/citation-index/settings.ts";
 
 import type { GestureSurface } from "./shell.ts";
 
@@ -26,7 +28,13 @@ export interface HoverPreferences {
 
 /** The Hover Action settings, as one hover reads them. */
 export function hoverPreferences(
-  settings: Readonly<Settings>,
+  settings: Pick<
+    Readonly<Settings>,
+    | "citation.hover-action"
+    | "citation.hover-require-mod-source"
+    | "citation.hover-require-mod-live-preview"
+    | "citation.hover-require-mod-reading"
+  >,
 ): HoverPreferences {
   return {
     action: settings["citation.hover-action"],

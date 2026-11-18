@@ -250,9 +250,15 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         const s = zotlit.services;
         // The chapter's style is APA, as the journal asks.
         await s.bridge.runPromise(
-          s.settings.updateDefaultLiteratureNoteProfileBindings({
-            "citation.references-style": apa,
-          }),
+          s.settings.update((current) => ({
+            "note.default-profile": {
+              ...current["note.default-profile"],
+              bindings: {
+                ...current["note.default-profile"].bindings,
+                "citation.references-style": apa,
+              },
+            },
+          })),
         );
         await s.bridge.runPromise(s.settings.flush);
         await s.bridge.runPromise(s.attachmentResolver.indexed);

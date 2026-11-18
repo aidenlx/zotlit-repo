@@ -15,9 +15,8 @@ import {
   zoteroOrigin,
 } from "@zotlit/plugin-kernel/zotero-http.ts";
 import type { ZoteroRequest } from "@zotlit/plugin-kernel/zotero-http.ts";
+import { ZOTERO_HTTP_PORT_PREF } from "@zotlit/plugin-services/desktop/zotero-pref/prefs-file.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { ZOTERO_HTTP_PORT_PREF } from "@/services/zotero-pref/prefs-file.ts";
 
 /** Pref that opens Zotero's local HTTP API; Zotero ships it off. */
 export const LOCAL_API_PREF = "httpServer.localAPI.enabled";

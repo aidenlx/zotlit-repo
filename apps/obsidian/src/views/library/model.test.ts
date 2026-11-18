@@ -5,16 +5,16 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import type { QueryViewRequest } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { openTargetCommand, viewTargetOpener } from "@/views/open-target.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 

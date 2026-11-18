@@ -19,6 +19,8 @@ import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { createRefused } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+import type { ZoteroRequest } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 
 import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
@@ -31,8 +33,6 @@ import {
   MAX_POSITION_LENGTH,
   writePosition,
 } from "@/services/annotation-repository/write.ts";
-import { createRefused } from "@/services/zotero-local-api/__fixtures__.ts";
-import type { ZoteroRequest } from "@/services/zotero-local-api/__fixtures__.ts";
 
 import {
   annotation,

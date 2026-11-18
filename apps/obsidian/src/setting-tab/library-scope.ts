@@ -9,6 +9,12 @@ import type {
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
+  libraryLabel,
+  selectorLabel,
+} from "@zotlit/plugin-services/core/library-scope/label.ts";
+import { LibraryScope as LibraryScopeService } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
   compareSelectors,
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
@@ -19,10 +25,6 @@ import type {
   LibraryScope,
   LibrarySelector,
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
-
-import { libraryLabel, selectorLabel } from "@/services/library-scope/label.ts";
-import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 

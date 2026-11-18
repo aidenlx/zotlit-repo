@@ -28,6 +28,9 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -42,9 +45,6 @@ import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fi
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { exportWithCitations, registerPandocExport } from "./register.ts";
 import type { PandocExportDeps, PandocExportOutcome } from "./register.ts";

@@ -14,6 +14,12 @@ import type {
 } from "@zotlit/db";
 import type { LegacyPortError } from "@zotlit/obsidian-kit/legacy-port.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type {
+  LocalApiAnnotation,
+  LocalApiSource,
+  ZoteroLocalApi,
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { FieldHistoryStep } from "@/services/annotation-repository/history.ts";
@@ -40,12 +46,6 @@ import type {
   WriteRequest,
   WriteTarget,
 } from "@/services/annotation-repository/write.ts";
-import type { QueryClients } from "@/services/query-client/service.ts";
-import type {
-  LocalApiAnnotation,
-  LocalApiSource,
-  ZoteroLocalApi,
-} from "@/services/zotero-local-api/service.ts";
 
 /** The namespace this repository owns on the plugin-wide query client. */
 const ANNOTATIONS = "annotations";

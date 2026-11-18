@@ -12,8 +12,7 @@ import {
 } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import type { HighlightMapping } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type {
   SettingsControlKey,

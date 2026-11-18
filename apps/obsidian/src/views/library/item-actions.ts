@@ -19,6 +19,7 @@ import type {
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { readActionItem } from "@zotlit/zotero-reads/client/read-item.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
@@ -35,7 +36,6 @@ import type { InteractiveCreationPorts } from "@/services/note-feature/creation-
 import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
 import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
 import { captureInsertion } from "@/views/annot-view/async-insert.ts";
 import { getInsertionEditor } from "@/views/annot-view/drag-insert.ts";
 import { viewTargetOpener } from "@/views/open-target.ts";

@@ -27,6 +27,7 @@ import {
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type {
   CitationLookupAnswer,
@@ -72,7 +73,6 @@ import type {
   HoverPreferences,
   NavigationPane,
 } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import {
   citationRanges,

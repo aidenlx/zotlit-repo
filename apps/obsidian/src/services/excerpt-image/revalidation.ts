@@ -2,10 +2,10 @@
 import { Effect, FiberMap, Layer } from "effect";
 
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { ExcerptDisplays } from "./display.ts";
 import { savedExcerptRequestFor } from "./request.ts";

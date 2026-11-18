@@ -1,11 +1,12 @@
 // The dependencies and the state that every part of the Annotation Repository core reads and changes.
 import type { DateTime, Effect, FiberMap, FiberSet } from "effect";
 
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+
 import type { AnnotationHistory } from "@/services/annotation-repository/history.ts";
 import type { AnnotationLock } from "@/services/annotation-repository/lock.ts";
 import { newWriteToken } from "@/services/annotation-repository/write.ts";
 import type { MutationState } from "@/services/annotation-repository/write.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import { databaseRowsResolver } from "./bridge.ts";
 import { DRAFT_FIELDS, fieldMaps } from "./model.ts";

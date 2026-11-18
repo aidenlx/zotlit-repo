@@ -9,8 +9,8 @@
 import { Component, Scope } from "obsidian";
 
 import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 import { keepPlaces } from "@/views/query-view/keep-places.ts";
 
 import "./note-host.css";

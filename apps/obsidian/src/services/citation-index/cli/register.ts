@@ -9,10 +9,10 @@ import type { App, CliFlag, CliFlags } from "obsidian";
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { CitationIndex } from "@/services/citation-index/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import {
   ANNOTATION_USES_COMMAND,

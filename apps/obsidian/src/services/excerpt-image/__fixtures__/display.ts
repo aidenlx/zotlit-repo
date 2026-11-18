@@ -3,7 +3,7 @@ import { Effect, Layer } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-import { QueryClients } from "@/services/query-client/service.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 
 import { ExcerptDisplays, layerExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";

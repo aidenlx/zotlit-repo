@@ -31,8 +31,8 @@ import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
-import { registerFileMenu } from "@/services/file-menu.ts";
 import type {
   Customize,
   CustomizeRequest,

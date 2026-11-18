@@ -14,11 +14,11 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FileNotFound } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
 import {

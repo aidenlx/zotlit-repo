@@ -7,13 +7,14 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { SettingsPatch } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 import { Release } from "@/services/release/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import type { SettingsPatch } from "@/services/settings/service.ts";
 import { TemplateMigration } from "@/services/template/migration.ts";
 import type { LiteratureNoteTemplateMigrationResult } from "@/services/template/migration.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { templateMigrationNotice } from "./migration-notice.ts";
 
@@ -131,7 +132,7 @@ export interface ConversionRun {
 
 export const setFolderCommand = viewRuntime.fn((path: string) =>
   PluginSettings.use((settings) =>
-    settings.updateDefaultLiteratureNoteProfileBindings({
+    updateDefaultLiteratureNoteProfileBindings(settings, {
       "note.literature-folder": path,
     }),
   ),

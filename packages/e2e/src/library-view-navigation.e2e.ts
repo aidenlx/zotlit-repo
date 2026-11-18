@@ -3907,9 +3907,15 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app, zotlit }) => {
         zotlit.services.bridge.runSync(
-          zotlit.services.settings.updateDefaultLiteratureNoteProfileBindings({
-            "note.literature-folder": "Not yet created",
-          }),
+          zotlit.services.settings.update((current) => ({
+            "note.default-profile": {
+              ...current["note.default-profile"],
+              bindings: {
+                ...current["note.default-profile"].bindings,
+                "note.literature-folder": "Not yet created",
+              },
+            },
+          })),
         );
         app.commands.executeCommandById("zotlit:open-library-view");
       },
@@ -5046,9 +5052,15 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const { settings, bridge } = zotlit.services;
           bridge.runSync(settings.update(saved.settings));
           bridge.runSync(
-            settings.updateDefaultLiteratureNoteProfileBindings({
-              "note.literature-folder": saved.folder,
-            }),
+            settings.update((current) => ({
+              "note.default-profile": {
+                ...current["note.default-profile"],
+                bindings: {
+                  ...current["note.default-profile"].bindings,
+                  "note.literature-folder": saved.folder,
+                },
+              },
+            })),
           );
           await bridge.runPromise(settings.flush);
           require("@electron/remote")
@@ -5170,9 +5182,15 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         async ({ zotlit }, { choice, settingsInput }) => {
           const { settings, bridge } = zotlit.services;
           bridge.runSync(
-            settings.updateDefaultLiteratureNoteProfileBindings({
-              "note.literature-folder": choice,
-            }),
+            settings.update((current) => ({
+              "note.default-profile": {
+                ...current["note.default-profile"],
+                bindings: {
+                  ...current["note.default-profile"].bindings,
+                  "note.literature-folder": choice,
+                },
+              },
+            })),
           );
           bridge.runSync(settings.update(settingsInput));
           await bridge.runPromise(settings.flush);

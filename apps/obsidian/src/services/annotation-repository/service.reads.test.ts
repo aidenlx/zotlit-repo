@@ -5,9 +5,6 @@ import { expect, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import type { ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
-
-import { excerptFingerprint } from "@/services/excerpt-image/contract.ts";
 import {
   annotationItem,
   annotationPage,
@@ -18,8 +15,11 @@ import {
   SERVER_ID,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__.ts";
-import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+import type { WireAnnotation } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+import type { ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
+
+import { excerptFingerprint } from "@/services/excerpt-image/contract.ts";
 
 import {
   afterWrite,

@@ -11,14 +11,14 @@ import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
+import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "@/services/pdf-annotation-editor/service.ts";

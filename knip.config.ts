@@ -61,6 +61,9 @@ const config: KnipConfig = {
     "packages/zotero-reads": {
       includeEntryExports: true,
     },
+    "packages/plugin-services": {
+      includeEntryExports: true,
+    },
     "packages/plugin-messages": {
       // Generated: the facade exports every Message, read or not.
       ignore: ["generated/**"],

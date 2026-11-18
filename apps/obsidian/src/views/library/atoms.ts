@@ -6,10 +6,10 @@ import * as Atom from "effect/reactivity/Atom";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { QueryService } from "@/services/item-query/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 
 import type { LibraryNode } from "./document.ts";
 import { ShowInLibrary } from "./show-in-library.ts";

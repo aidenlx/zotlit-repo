@@ -17,6 +17,9 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { buildItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/__fixtures__.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { UseKind } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   inProcessClient,
@@ -35,11 +38,8 @@ import {
   createCitationIndexHarness,
   KEY_A,
 } from "@/services/citation-index/test-harness.ts";
-import { buildItemLookup } from "@/services/item-lookup/__fixtures__.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
-import type { UseKind } from "@/services/use-ledger/service.ts";
 import { placeInsertion } from "@/views/annot-view/async-insert.ts";
 
 import { readDocumentCitedKeys } from "./document-citations.ts";

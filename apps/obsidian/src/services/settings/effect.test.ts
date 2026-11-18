@@ -15,14 +15,13 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { testPluginData } from "@/services/settings/__fixtures__/plugin-data.ts";
+import { testPluginData } from "@zotlit/plugin-services/__fixtures__/plugin-data.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
+import { layerSettings, layerSettingsOf } from "@/services/settings/layer.ts";
 
 import { settingsOf, settingsRuntimeOf } from "./__fixtures__.ts";
-import {
-  layerPluginSettings,
-  layerPluginSettingsOf,
-  PluginSettings,
-} from "./service.ts";
 
 // A pending edit must reach disk before the settings scope finishes closing.
 it.effect("scope close flushes a pending edit and waits for its write", () =>
@@ -32,7 +31,7 @@ it.effect("scope close flushes a pending edit and waits for its write", () =>
     const writes: unknown[] = [];
     const scope = yield* Scope.fork(yield* Effect.scope);
     const context = yield* Layer.buildWithScope(
-      layerPluginSettings({
+      layerSettings({
         loadData: async () => null,
         saveData: (data) => {
           writes.push(data);
@@ -173,7 +172,7 @@ it.effect("scope close stops change subscriptions", () =>
   Effect.gen(function* () {
     const scope = yield* Scope.fork(yield* Effect.scope);
     const context = yield* Layer.buildWithScope(
-      layerPluginSettings({
+      layerSettings({
         loadData: async () => null,
         saveData: async () => {},
       }),
@@ -376,7 +375,7 @@ it.effect("bridge calls are safe after whole-runtime disposal", () =>
     ).toEqual(snapshot);
     expect(bridge.runSync(settings.reset())).toEqual(snapshot);
     bridge.runSync(
-      settings.updateDefaultLiteratureNoteProfileBindings({
+      updateDefaultLiteratureNoteProfileBindings(settings, {
         "note.import-colored-highlights": true,
       }),
     );
@@ -418,7 +417,7 @@ it.effect("reads and writes the settings through PluginData", () =>
     });
     const scope = yield* Scope.fork(yield* Effect.scope);
     const context = yield* Layer.buildWithScope(
-      layerPluginSettingsOf().pipe(Layer.provide(data.layer)),
+      layerSettingsOf().pipe(Layer.provide(data.layer)),
       scope,
     );
     const settings = Context.get(context, PluginSettings);

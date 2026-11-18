@@ -14,8 +14,8 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { AutoTrim } from "@zotlit/templates/constants";
 
-import type { AutoTrim } from "@/services/settings/schema.ts";
 import { reportCitationTemplateOpen } from "@/services/template/actions.ts";
 import { Template } from "@/services/template/service.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";

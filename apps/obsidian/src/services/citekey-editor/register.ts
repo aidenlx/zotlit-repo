@@ -14,17 +14,17 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import { citationSettings } from "@/services/citation-index/settings.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitationText } from "@/services/citation-text/service.ts";
 import {
   CITEKEY_HOVER_SOURCE,
   hoverPreferences,
 } from "@/services/citekey-navigation/index.ts";
-import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { annotationLinkHoverExtension } from "./annotation-link.ts";
 import {
@@ -63,7 +63,7 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
       showFormatted: false,
       active: false,
       annotationCitations: false,
-      hover: hoverPreferences(defaults),
+      hover: hoverPreferences(citationSettings.defaults),
     };
     /** Registered once; its contents are the on/off switch. */
     const extensions: Extension[] = [];

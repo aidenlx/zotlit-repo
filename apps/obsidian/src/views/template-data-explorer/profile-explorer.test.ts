@@ -11,6 +11,7 @@ import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { WorkbenchHostProvider } from "@zotlit/workbench/ui";
 import type {
@@ -19,7 +20,6 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import { workbenchAnnotationChoice } from "@/views/template-workbench/item-choice.ts";
 

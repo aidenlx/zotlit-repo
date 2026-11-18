@@ -7,8 +7,7 @@ import { Context, Effect, Fiber, FiberSet, Layer, Ref, Schema } from "effect";
 
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
-
-import { QueryClients } from "@/services/query-client/service.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 
 import {
   excerptAnnotationIdentity,

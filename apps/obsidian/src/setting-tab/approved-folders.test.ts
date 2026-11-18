@@ -7,8 +7,7 @@ import { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { AttachmentImport } from "@/services/attachment-import/service.ts";
+import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
 import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
 import { approvedFoldersPage } from "./approved-folders.ts";

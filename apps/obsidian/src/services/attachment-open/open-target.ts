@@ -19,19 +19,18 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  AttachmentResolver,
+  indexedWithin,
+} from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import type { AttachmentLookup } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 import {
   annotationOpenUri,
   attachmentOpenUri,
   parseAnnotationOpenUri,
 } from "@zotlit/zotero-types/uri";
-
-import {
-  AttachmentResolver,
-  indexedWithin,
-} from "@/services/attachment-resolver/service.ts";
-import type { AttachmentLookup } from "@/services/attachment-resolver/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import type { ObsidianOpenableAttachment } from "./resolve.ts";
 import { filename, obsidianOpenPath } from "./resolve.ts";

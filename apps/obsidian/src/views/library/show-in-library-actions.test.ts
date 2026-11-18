@@ -9,8 +9,7 @@ import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { fileMenuHandler } from "@/services/__fixtures__/file-menu.ts";
+import { fileMenuHandler } from "@zotlit/plugin-services/__fixtures__/file-menu.ts";
 
 import {
   layerShowInLibraryActions,

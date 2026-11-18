@@ -11,6 +11,11 @@ import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { lastmodFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ImportMode } from "@zotlit/protocol";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -38,7 +43,6 @@ import {
 } from "@/services/batch-scope.ts";
 import type { BatchLibrary, BatchTarget } from "@/services/batch-scope.ts";
 import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { LibraryScope } from "@/services/library-scope/service.ts";
 import type {
   CreationProfileSelection,
   ProfilePreview,
@@ -47,11 +51,7 @@ import {
   collectExcerptReports,
   NoteFeature,
 } from "@/services/note-feature/service.ts";
-import { lastmodFromFrontmatter } from "@/services/note-index/parse.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 import { FlatManifest, HierarchyManifest } from "@/views/batch-modal/index.ts";
 import type {

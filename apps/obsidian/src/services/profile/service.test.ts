@@ -10,6 +10,8 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
+
 import { profileServiceFixture as harness } from "./__fixtures__/service.ts";
 
 const BOOKS = "Bk3Qn7XvT2Lp" as ProfileId;
@@ -45,7 +47,7 @@ describe("Profile", () => {
           Effect.tryPromise(() => harness(undefined, undefined, context)),
         );
         f.bridge.runSync(
-          f.settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(f.settings, {
             "note.literature-folder": "Reading",
             "note.import-folder": "Imported",
             "citation.references-style": "http://www.zotero.org/styles/apa",
@@ -74,7 +76,7 @@ describe("Profile", () => {
         expect(exported.manifest.folder).toBeUndefined();
         expect(exported.manifest.importFolder).toBeUndefined();
         f.bridge.runSync(
-          f.settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(f.settings, {
             "note.literature-folder": "Later",
           }),
         );
@@ -212,7 +214,7 @@ describe("Profile", () => {
         );
         const { bridge, profile, settings } = fixture;
         bridge.runSync(
-          settings.updateDefaultLiteratureNoteProfileBindings({
+          updateDefaultLiteratureNoteProfileBindings(settings, {
             "citation.references-style": "apa",
             "note.import-folder": "My notes",
           }),

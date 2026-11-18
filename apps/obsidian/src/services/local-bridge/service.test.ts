@@ -14,6 +14,14 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { buildLocalServer } from "@zotlit/plugin-services/desktop/local-server/__fixtures__.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type {
+  PluginSettings,
+  Settings,
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   BRIDGE_VERSION,
   CONNECT_FRAGMENT_CODE,
@@ -23,14 +31,10 @@ import {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { buildLocalServer } from "@/services/local-server/__fixtures__.ts";
-import type { LocalServer } from "@/services/local-server/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
-import type { PluginSettings, Settings } from "@/services/settings/service.ts";
+import { settingsDefinition } from "@/services/settings/schema.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { bindLocalBridge } from "./handle.ts";
 import type { LocalBridgeHandle } from "./handle.ts";
@@ -146,9 +150,12 @@ async function harness(
   await using stack = new AsyncDisposableStack();
   const localServer = await buildLocalServer(
     {
-      "server.enabled": true,
-      "server.port": 0,
-      ...options.settings,
+      definition: settingsDefinition,
+      overrides: {
+        "server.enabled": true,
+        "server.port": 0,
+        ...options.settings,
+      },
     },
     stack,
   );

@@ -5,7 +5,7 @@ import {
   annotationPage,
   ROUGIER_ANNOTATIONS,
   unreachable,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 
 import { writable } from "./__fixtures__.ts";
 

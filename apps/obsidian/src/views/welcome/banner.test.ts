@@ -17,12 +17,12 @@ import {
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { buildRelease } from "@/services/release/__fixtures__.ts";
 import { Release } from "@/services/release/service.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { makeWelcomeHost } from "./__fixtures__.ts";
 import { WelcomeBanner } from "./banner.tsx";

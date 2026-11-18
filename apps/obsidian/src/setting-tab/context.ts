@@ -1,6 +1,6 @@
 import type { App, PluginManifest } from "obsidian";
 
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { SettingTabShape } from "./effect-tab.ts";
 

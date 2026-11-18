@@ -13,6 +13,14 @@ import {
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  itemKeyFromFrontmatter,
+  NoteIndex,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import type { ItemDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -40,19 +48,11 @@ import {
 import type { BatchTarget } from "@/services/batch-scope.ts";
 import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type { LibraryScope } from "@/services/library-scope/service.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
-import {
-  itemKeyFromFrontmatter,
-  NoteIndex,
-} from "@/services/note-index/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { isInertTemplateError } from "@/services/template/errors.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 import { FlatManifest } from "@/views/batch-modal/index.ts";
 import type {

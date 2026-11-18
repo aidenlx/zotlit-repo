@@ -10,6 +10,7 @@ import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-inp
 import { SidebarToolbar } from "@zotlit/obsidian-kit/components/sidebar-toolbar.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { activeNoteAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
@@ -18,7 +19,6 @@ import type {
   CitedByGroup,
   CitedBySnapshot,
 } from "@/services/citation-index/service.ts";
-import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 import { showInLibraryCommand } from "@/views/library/atoms.ts";
 
 import {

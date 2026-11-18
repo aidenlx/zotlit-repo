@@ -44,6 +44,25 @@ import {
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type {
+  SearchHit,
+  SearchOptions,
+} from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { resolvedLibraryScopeAtom } from "@zotlit/plugin-services/obsidian/library-scope/atoms.ts";
+import { LibraryScope as LibraryScopeService } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { notedItemKeysAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { NoteIndexChange } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { useLedgerAtom } from "@zotlit/plugin-services/obsidian/use-ledger/atoms.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import type {
+  Ledger,
+  UseKind,
+} from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import {
@@ -62,29 +81,13 @@ import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type {
-  SearchHit,
-  SearchOptions,
-} from "@/services/item-lookup/service.ts";
-import { ItemLookup } from "@/services/item-lookup/service.ts";
-import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewValue,
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { resolvedLibraryScopeAtom } from "@/services/library-scope/atoms.ts";
-import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
-import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import type { NoteIndexChange } from "@/services/note-index/service.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { useLedgerAtom } from "@/services/use-ledger/atoms.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import type { Ledger, UseKind } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import {

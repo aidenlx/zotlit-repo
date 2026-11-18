@@ -21,6 +21,11 @@ import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.t
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
@@ -43,15 +48,10 @@ import type {
   ExcerptOutcome,
   ExcerptRequest,
 } from "@/services/excerpt-image/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import type { AnnotationInsertOptions } from "./insert-annotation.ts";
 import { prepareAnnotationInsert } from "./insert-annotation.ts";

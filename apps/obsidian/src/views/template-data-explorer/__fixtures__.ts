@@ -10,13 +10,13 @@ import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { ItemLookup } from "@/services/item-lookup/service.ts";
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import { TemplateDataError } from "@/services/template-workbench/data.ts";
 import type {

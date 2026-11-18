@@ -19,6 +19,7 @@ import {
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
@@ -47,7 +48,6 @@ import type {
   HoverPreferences,
   NavigationPane,
 } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import { wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDecoration } from "./decorate.ts";

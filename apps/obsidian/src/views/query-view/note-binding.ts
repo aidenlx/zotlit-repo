@@ -4,8 +4,7 @@ import { Effect, Stream } from "effect";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
-
-import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
 export const makeNoteBindingAtom = (
   sourcePath: () => string,

@@ -9,9 +9,9 @@ import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-h
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import type { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 
-import type { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
 

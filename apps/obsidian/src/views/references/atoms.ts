@@ -9,10 +9,10 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { activeNoteAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 
 import type { CitationOccurrence } from "@/services/citation-index/service.ts";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
-import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 import {
   documentPresentation,
   profileReaderOf,

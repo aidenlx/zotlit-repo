@@ -15,13 +15,13 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { SettingsPatch } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LegacyTemplateConversionError } from "@zotlit/templates/facade";
 
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
-import type { SettingsPatch } from "@/services/settings/service.ts";
 
 import { buildTemplate, templateSettings } from "./__fixtures__.ts";
 import { layerTemplateMigration, TemplateMigration } from "./migration.ts";

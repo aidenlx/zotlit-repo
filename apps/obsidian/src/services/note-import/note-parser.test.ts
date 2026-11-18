@@ -20,17 +20,17 @@ import type {
 } from "@zotlit/db";
 import { makeItem } from "@zotlit/db/item-fixture";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type {
+  AttachmentSource,
+  ResolveLinkOptions,
+  SourceOrigin,
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 import { inlineCitation, TemplateEngine } from "@zotlit/templates";
 import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import type {
-  AttachmentSource,
-  ResolveLinkOptions,
-  SourceOrigin,
-} from "@/services/attachment-import/service.ts";
 import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 
 import { noteReferences, parseNote } from "./note-parser.ts";

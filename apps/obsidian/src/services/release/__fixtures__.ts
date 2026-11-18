@@ -15,11 +15,10 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-
-import type { HydrationOrigin } from "@/services/settings/classify.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import type { SettingsPatch } from "@/services/settings/service.ts";
+import type { HydrationOrigin } from "@zotlit/plugin-services/core/settings/classify.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { SettingsPatch } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { V1_TEMPLATE_FOLDER } from "./constants.ts";
 import { layerRelease, Release } from "./service.ts";

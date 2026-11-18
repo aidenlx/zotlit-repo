@@ -674,9 +674,15 @@ export async function verifyReaderBackedExcerpts(
         vaultId,
         async ({ zotlit }, { enabled }) => {
           zotlit.services.bridge.runSync(
-            zotlit.services.settings.updateDefaultLiteratureNoteProfileBindings(
-              { "note.import-annotations-as-template": enabled },
-            ),
+            zotlit.services.settings.update((current) => ({
+              "note.default-profile": {
+                ...current["note.default-profile"],
+                bindings: {
+                  ...current["note.default-profile"].bindings,
+                  "note.import-annotations-as-template": enabled,
+                },
+              },
+            })),
           );
         },
         { enabled: templateBinding.enabled },
@@ -823,9 +829,15 @@ export async function verifyReaderBackedExcerpts(
           }
         };
         services.bridge.runSync(
-          services.settings.updateDefaultLiteratureNoteProfileBindings({
-            "note.import-annotations-as-template": true,
-          }),
+          services.settings.update((current) => ({
+            "note.default-profile": {
+              ...current["note.default-profile"],
+              bindings: {
+                ...current["note.default-profile"].bindings,
+                "note.import-annotations-as-template": true,
+              },
+            },
+          })),
         );
         const state: ExcerptImportState =
           (helpers.scratch.__zotlitExcerptImport = {

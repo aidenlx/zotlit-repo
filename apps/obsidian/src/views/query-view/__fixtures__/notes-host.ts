@@ -14,13 +14,13 @@ import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
-import type { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";
-import { noteIndexSnapshotAtom } from "@/services/note-index/atoms.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import type { buildNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
+import { noteIndexSnapshotAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { literatureNotes } from "@/views/query-view/table-notes.ts";
 import type {

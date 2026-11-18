@@ -10,7 +10,7 @@ import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import type { TFile } from "obsidian";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";

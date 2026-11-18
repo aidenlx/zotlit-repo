@@ -19,9 +19,8 @@ import {
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-
-import { openNoteVault } from "@/services/note-index/__fixtures__.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
+import { openNoteVault } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
 import {
   annotationReads,

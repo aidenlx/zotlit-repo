@@ -5,7 +5,6 @@ import { expect, vi } from "vitest";
 
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
 import {
   annotationItem,
   annotationPage,
@@ -18,7 +17,8 @@ import {
   staleVersion,
   unreachable,
   writeAccepted,
-} from "@/services/zotero-local-api/__fixtures__.ts";
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
+
 import {
   capabilityBlock,
   capabilityBlocks,

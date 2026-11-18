@@ -127,7 +127,7 @@ interface ItemQuerySchemaReport {
 }
 
 /** The `zotlit:library-scope` reply shape this suite reads (see
- *  apps/obsidian/src/services/library-scope/cli.ts). */
+ *  packages/plugin-services/src/obsidian/library-scope/cli.ts). */
 interface LibraryScopeReport {
   contractVersion: number;
   ok: boolean;

@@ -28,10 +28,10 @@ import {
   inject,
 } from "vitest";
 
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
 
 import type { AnnotationDraft } from "@/services/annotation-repository/write.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 import type { AnnotationView } from "@/views/annot-view/view.tsx";
 import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
@@ -14432,9 +14432,15 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               );
               await services.bridge.runPromise(services.zoteroReads.refresh);
               services.bridge.runSync(
-                services.settings.updateDefaultLiteratureNoteProfileBindings({
-                  "note.import-annotations-as-template": live,
-                }),
+                services.settings.update((current) => ({
+                  "note.default-profile": {
+                    ...current["note.default-profile"],
+                    bindings: {
+                      ...current["note.default-profile"].bindings,
+                      "note.import-annotations-as-template": live,
+                    },
+                  },
+                })),
               );
               const literature = app.vault.getFileByPath(literaturePath);
               const imported = app.vault.getFileByPath(importedPath);
@@ -14486,9 +14492,15 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ) => {
             const services = zotlit.services;
             services.bridge.runSync(
-              services.settings.updateDefaultLiteratureNoteProfileBindings({
-                "note.import-annotations-as-template": true,
-              }),
+              services.settings.update((current) => ({
+                "note.default-profile": {
+                  ...current["note.default-profile"],
+                  bindings: {
+                    ...current["note.default-profile"].bindings,
+                    "note.import-annotations-as-template": true,
+                  },
+                },
+              })),
             );
             const literature = app.vault.getFileByPath(literaturePath);
             const imported = app.vault.getFileByPath(importedPath);

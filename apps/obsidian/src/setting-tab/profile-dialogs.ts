@@ -20,8 +20,9 @@ import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { UserCancelled } from "@zotlit/plugin-kernel/user-cancel.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 
-import type { LibraryScope } from "@/services/library-scope/service.ts";
 import { ProfileDocumentMissingError } from "@/services/local-bridge/reads.ts";
 import { installedStyles } from "@/services/note-feature/creation-view.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
@@ -39,7 +40,6 @@ import { readTemplateData } from "@/services/template-workbench/data.ts";
 import type { TemplateDataServices } from "@/services/template-workbench/data.ts";
 import { readMigrationVerificationData } from "@/services/template/migration-data.ts";
 import { Template } from "@/services/template/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 

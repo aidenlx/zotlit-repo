@@ -10,9 +10,8 @@ import type { PaneType } from "obsidian";
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-
-import type { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
+import type { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type { TargetOpener } from "./open-target.ts";
 

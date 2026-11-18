@@ -8,6 +8,7 @@ import type { Notifier, ProgressCopy } from "@zotlit/obsidian-kit/notifier.ts";
 import { reportOutcome, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { importedNoteProfileErrorNotice } from "@/services/note-import/batch-import-notices.ts";
 import { reimportNoteByKey } from "@/services/note-import/batch-import.ts";
@@ -18,7 +19,6 @@ import type {
 } from "@/services/note-import/batch-import.ts";
 import { isInertTemplateError } from "@/services/template/errors.ts";
 import { missingPartialNotice } from "@/services/template/workbench-recovery.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import type { InteractiveCreationPorts } from "./creation-view.ts";
 import { plainNoteError } from "./errors.ts";

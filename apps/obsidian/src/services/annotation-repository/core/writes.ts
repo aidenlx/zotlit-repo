@@ -15,6 +15,14 @@ import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
 import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import {
+  libraryPath,
+  readCreateResult,
+} from "@zotlit/plugin-services/core/zotero-local-api/wire.ts";
+import type {
+  LocalApiFailure,
+  LocalApiSource,
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { contentOf } from "@/services/annotation-repository/history.ts";
@@ -55,14 +63,6 @@ import type {
   WriteRequest,
   WriteTarget,
 } from "@/services/annotation-repository/write.ts";
-import type {
-  LocalApiFailure,
-  LocalApiSource,
-} from "@/services/zotero-local-api/service.ts";
-import {
-  libraryPath,
-  readCreateResult,
-} from "@/services/zotero-local-api/wire.ts";
 
 import type { DatabaseRowsError } from "./bridge.ts";
 import {

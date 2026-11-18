@@ -1,8 +1,8 @@
 import { missingStyleChanges } from "@/services/pandoc/render-cache.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { delay } from "@std/async";
 import { Context, DateTime, Effect, FileSystem, Layer, Stream } from "effect";
@@ -57,7 +57,7 @@ import { citationPopoverFixture } from "@/services/citation-popover/__fixtures__
 import { firstText } from "@/services/citation-text/__fixtures__.ts";
 import { citationTextFixture } from "@/services/citation-text/__fixtures__.ts";
 import { CitationText } from "@/services/citation-text/service.ts";
-import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
+import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import { createCitationEngine } from "@/services/pandoc/engine.ts";
 import type { CitationEngine } from "@/services/pandoc/engine.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
@@ -72,7 +72,7 @@ import {
   buildSeededSettings,
 } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 type ProfileFixture = Pick<Settings, "profiles" | "defaultDocument">;

@@ -3,8 +3,7 @@ import type { WorkspaceLeaf } from "obsidian";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
-
-import type { FileMenuSegment } from "@/services/file-menu.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 
 import {
   HISTORY_DIRECTIONS,

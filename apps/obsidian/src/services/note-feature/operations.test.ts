@@ -52,6 +52,10 @@ import {
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  AttachmentSource,
+  SourceOrigin,
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { filenameSuffix, TemplateEngine } from "@zotlit/templates";
 import { MissingTemplateError, TemplateFacade } from "@zotlit/templates/facade";
@@ -76,10 +80,6 @@ import {
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import type {
-  AttachmentSource,
-  SourceOrigin,
-} from "@/services/attachment-import/service.ts";
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
 import {

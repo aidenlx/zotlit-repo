@@ -19,11 +19,11 @@ import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { DOCS_SITE_URL } from "@zotlit/plugin-kernel/constants.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { LocalServer } from "@/services/local-server/service.ts";
-import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
 import type { WorkbenchOpened } from "@/views/template-workbench/actions.ts";

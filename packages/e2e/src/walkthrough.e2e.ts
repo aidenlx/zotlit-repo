@@ -3,9 +3,8 @@ import { basename, join } from "node:path";
 import type { MarkdownView } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import type { SearchHit } from "@/services/item-lookup/service.ts";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";

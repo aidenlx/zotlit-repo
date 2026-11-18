@@ -14,12 +14,12 @@ import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { createExcerptLink, summarizeExcerpts } from "./helper.ts";
 import type { ExcerptSummary } from "./helper.ts";

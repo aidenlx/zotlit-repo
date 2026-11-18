@@ -21,6 +21,7 @@ import type { SectionRange } from "@zotlit/obsidian-kit/reading-view.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
@@ -35,7 +36,6 @@ import {
   citekeyTreatment,
 } from "@/services/citekey-editor/service.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { AnnotationPopover } from "./service.tsx";
 import type { AnnotationHoverRequest } from "./service.tsx";

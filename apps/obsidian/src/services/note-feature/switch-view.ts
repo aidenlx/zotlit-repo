@@ -11,11 +11,11 @@ import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
-} from "@/services/note-index/service.ts";
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+
 import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type { ProfilePick } from "@/views/quick-switch/profile-picker.ts";
 

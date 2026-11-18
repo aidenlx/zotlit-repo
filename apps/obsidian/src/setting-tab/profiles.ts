@@ -16,11 +16,11 @@ import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { Customize } from "@/services/local-bridge/customize.ts";
 import { installedStyles } from "@/services/note-feature/creation-view.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { explainWorkbenchOpen } from "@/views/template-workbench/actions.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 

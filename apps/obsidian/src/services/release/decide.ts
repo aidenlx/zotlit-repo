@@ -6,7 +6,7 @@ import gte from "semver/functions/gte";
 import lt from "semver/functions/lt";
 import valid from "semver/functions/valid";
 
-import type { HydrationOrigin } from "@/services/settings/classify.ts";
+import type { HydrationOrigin } from "@zotlit/plugin-services/core/settings/classify.ts";
 
 import { V1_TEMPLATE_FOLDER } from "./constants.ts";
 

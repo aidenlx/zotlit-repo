@@ -9,6 +9,8 @@ import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { createClient, connectClient } from "@zotlit/db/client/node";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
@@ -24,8 +26,6 @@ import type {
   AnnotationSource,
 } from "@/services/annotation-repository/service.ts";
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { answerAnnotationImage } from "./cli-image.ts";
 import { PNG_FORMAT } from "./format.ts";

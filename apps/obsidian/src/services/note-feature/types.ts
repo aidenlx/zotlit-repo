@@ -7,6 +7,7 @@ import type {
   ProfileSelector,
   UnknownProfileDiagnostic,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import type { UpdateScope } from "@zotlit/protocol";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -14,7 +15,6 @@ import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
 
 export interface UpdateResult {

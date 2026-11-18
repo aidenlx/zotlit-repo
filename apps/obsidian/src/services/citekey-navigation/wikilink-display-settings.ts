@@ -2,10 +2,11 @@
 // mode redraw Literature Note wikilinks as Citations while they hold.
 import { Effect, Stream } from "effect";
 
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+
+import { citationSettings } from "@/services/citation-index/settings.ts";
 import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
 import type { HoverPreferences } from "@/services/citekey-navigation/index.ts";
-import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 /**
  * The settings both wikilink display surfaces read, kept current for as long as
@@ -16,8 +17,8 @@ import type { Settings } from "@/services/settings/schema.ts";
  */
 export class WikilinkDisplaySettings {
   #enabled = false;
-  #openAsLinks = defaults["citation.open-as-links"];
-  #hover: HoverPreferences = hoverPreferences(defaults);
+  #openAsLinks = citationSettings.defaults["citation.open-as-links"];
+  #hover: HoverPreferences = hoverPreferences(citationSettings.defaults);
 
   /** The `enabled` of the wikilink citation core's `WikilinkCitationContext`. */
   get enabled(): boolean {

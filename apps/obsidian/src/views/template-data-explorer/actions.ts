@@ -4,9 +4,8 @@ import { createContext } from "react";
 
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { IndexedKeyCopyTarget } from "@/services/indexed-key/actions.ts";
-import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
+import type { IndexedKeyCopyTarget } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
+import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
 
 export interface ExplorerActions {
   onChooseItem(): void;

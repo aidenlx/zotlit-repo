@@ -2,8 +2,7 @@
 import { Effect } from "effect";
 
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
-
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import type { WorkbenchIdentity } from "./envelope.ts";
 

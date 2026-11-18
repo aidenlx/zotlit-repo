@@ -11,13 +11,13 @@ import {
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";

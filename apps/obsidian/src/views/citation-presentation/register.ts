@@ -11,10 +11,10 @@ import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import type { FileMenuSegment } from "@/services/file-menu.ts";
-import type { PluginSettings } from "@/services/settings/service.ts";
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { StyleDropdownOptions } from "@/views/style-dropdown.ts";
 
 import { openCitationPresentationModal } from "./modal.ts";

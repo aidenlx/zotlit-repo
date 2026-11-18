@@ -12,20 +12,20 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { attachmentImportFixture } from "@zotlit/plugin-services/desktop/attachment-import/__fixtures__.ts";
+import { AttachmentCopyError } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import type {
+  AttachmentImport,
+  AttachmentImportBatch,
+  AttachmentSource,
+  SourceOrigin,
+} from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import {
   inProcessReadsService,
   memoryOpener,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { attachmentImportFixture } from "@/services/attachment-import/__fixtures__.ts";
-import { AttachmentCopyError } from "@/services/attachment-import/service.ts";
-import type {
-  AttachmentImport,
-  AttachmentImportBatch,
-  AttachmentSource,
-  SourceOrigin,
-} from "@/services/attachment-import/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
@@ -224,6 +224,7 @@ function makeAttachmentImport() {
  */
 const makeBlockingAttachmentImport = () =>
   attachmentImportFixture({
+    defaults,
     dataDir: "/nonexistent-zotero-data",
     baseAttachmentPath: null,
   }).pipe(Effect.map(({ service }) => service));

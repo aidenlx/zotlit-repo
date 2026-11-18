@@ -12,13 +12,13 @@ import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
-import { ManagedBinaryError } from "@/services/managed-binary/platform.ts";
+import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
 import type {
   ManagedBinaryApi,
   ManagedBinaryStatus,
-} from "@/services/managed-binary/service.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+
 import { PandocEngine } from "@/services/pandoc/service.ts";
 
 import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";

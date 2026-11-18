@@ -25,6 +25,11 @@ import type {
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { settleAtEdge } from "@zotlit/plugin-kernel/signal-edge.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type {
+  LocalApiFailure,
+  LocalApiSource,
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
 import {
   capabilityReason,
@@ -34,11 +39,6 @@ import type { EditingCapability } from "@/services/annotation-repository/capabil
 import { lockOf } from "@/services/annotation-repository/lock.ts";
 import { isTextField } from "@/services/annotation-repository/write.ts";
 import { excerptFingerprint } from "@/services/excerpt-image/contract.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import type {
-  LocalApiFailure,
-  LocalApiSource,
-} from "@/services/zotero-local-api/service.ts";
 
 import { databaseRows } from "./bridge.ts";
 import type { DatabaseRowsError } from "./bridge.ts";

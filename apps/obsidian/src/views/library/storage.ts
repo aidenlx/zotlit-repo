@@ -7,8 +7,7 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
-
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,

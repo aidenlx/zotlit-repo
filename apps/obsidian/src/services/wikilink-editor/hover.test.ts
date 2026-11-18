@@ -77,6 +77,8 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { Keymap, editorInfoField } from "obsidian";
 
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
@@ -89,9 +91,7 @@ import type { DocumentCitations } from "@/services/citation-text/present.ts";
 import type { CitationHoverRequest } from "@/services/citekey-navigation/index.ts";
 import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
 import type { HoverPreferences } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { wikilinkEditorExtension } from "./extension.ts";
 

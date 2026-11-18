@@ -13,13 +13,13 @@ import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import {
   PluginSettings,
   SettingsMutationError,
-} from "@/services/settings/service.ts";
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
+import { defaults } from "@/services/settings/schema.ts";
 
 import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";

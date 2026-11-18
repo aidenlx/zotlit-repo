@@ -26,11 +26,54 @@ import { layerViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import type { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import type { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { layerAttachmentSkipNotice } from "@zotlit/plugin-services/desktop/attachment-import/notices.ts";
+import { layerAttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import type { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { layerLocalServer } from "@zotlit/plugin-services/desktop/local-server/layer.ts";
+import {
+  layerZoteroPref,
+  layerZoteroPrefFiles,
+} from "@zotlit/plugin-services/desktop/zotero-pref/layer.ts";
+import { layerAttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import type { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import { layerChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import type { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { layerDatabaseActions } from "@zotlit/plugin-services/obsidian/database/actions.ts";
+import { layerItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import type { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
+import { layerLanguagePackNotices } from "@zotlit/plugin-services/obsidian/language-pack/notices.ts";
+import { layerLanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type {
+  LanguagePack,
+  LanguagePackStartup,
+} from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import { layerLibraryScopeCli } from "@zotlit/plugin-services/obsidian/library-scope/cli.ts";
+import { layerLibraryScopeNotices } from "@zotlit/plugin-services/obsidian/library-scope/notices.ts";
+import { layerLibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  layerLogging,
+  layerLogOutput,
+} from "@zotlit/plugin-services/obsidian/log/service.ts";
+import { layerManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import { layerNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { layerUseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import { layerZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import { SecretWriteAuthorizationStore } from "@zotlit/plugin-services/obsidian/zotero-local-api/write-authorization.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 import type { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 import { layerTemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import { layerSettingTab } from "@/setting-tab/layer.ts";
 import {
@@ -51,17 +94,10 @@ import type {
 } from "./annotation-repository/notices.ts";
 import { layerAnnotationRepository } from "./annotation-repository/service.ts";
 import type { AnnotationRepository } from "./annotation-repository/service.ts";
-import { layerAttachmentSkipNotice } from "./attachment-import/notices.ts";
-import { layerAttachmentImport } from "./attachment-import/service.ts";
-import type { AttachmentImport } from "./attachment-import/service.ts";
 import { openWithSystem } from "./attachment-open/capture.ts";
 import { layerTargetOpener } from "./attachment-open/open-target.ts";
 import type { TargetOpener } from "./attachment-open/open-target.ts";
 import { pdfReader } from "./attachment-open/pdf-reader.ts";
-import { layerAttachmentResolver } from "./attachment-resolver/service.ts";
-import type { AttachmentResolver } from "./attachment-resolver/service.ts";
-import { layerChineseSegmenter } from "./chinese-segmenter/service.ts";
-import type { ChineseSegmenter } from "./chinese-segmenter/service.ts";
 import { layerCitationsCli } from "./citation-index/cli/register.ts";
 import { layerCitationLookup } from "./citation-index/lookup-service.ts";
 import type { CitationLookup } from "./citation-index/lookup-service.ts";
@@ -79,7 +115,6 @@ import { layerCitekeyEditorExtension } from "./citekey-editor/register.ts";
 import { layerCitekeyEditor } from "./citekey-editor/service.ts";
 import type { CitekeyEditor } from "./citekey-editor/service.ts";
 import { layerCitekeyReading } from "./citekey-reading/service.ts";
-import { layerDatabaseActions } from "./database/actions.ts";
 import { layerExcerptDisplays } from "./excerpt-image/display.ts";
 import type { ExcerptDisplays } from "./excerpt-image/display.ts";
 import { layerExcerptImages } from "./excerpt-image/layer.ts";
@@ -92,30 +127,14 @@ import type { ExcerptImageService } from "./excerpt-image/service.ts";
 import type { ExcerptStore } from "./excerpt-image/store.ts";
 import { layerGraphCitations } from "./graph-citations/service.ts";
 import type { GraphCitations } from "./graph-citations/service.ts";
-import { layerItemLookup } from "./item-lookup/service.ts";
-import type { ItemLookup } from "./item-lookup/service.ts";
 import { layerQueryCli } from "./item-query/cli.ts";
 import { layerQueryMeasureCli } from "./item-query/measure.ts";
 import { layerQueryService } from "./item-query/service.ts";
 import type { QueryService } from "./item-query/service.ts";
-import { layerLanguagePackNotices } from "./language-pack/notices.ts";
-import { layerLanguagePack } from "./language-pack/service.ts";
-import type {
-  LanguagePack,
-  LanguagePackStartup,
-} from "./language-pack/service.ts";
-import { layerLibraryScopeCli } from "./library-scope/cli.ts";
-import { layerLibraryScopeNotices } from "./library-scope/notices.ts";
-import { layerLibraryScope } from "./library-scope/service.ts";
-import type { LibraryScope } from "./library-scope/service.ts";
 import { layerCustomize } from "./local-bridge/customize.ts";
 import type { Customize, CustomizePorts } from "./local-bridge/customize.ts";
 import { layerLocalBridge } from "./local-bridge/service.ts";
 import type { LocalBridge } from "./local-bridge/service.ts";
-import { layerLocalServer } from "./local-server/service.ts";
-import type { LocalServer } from "./local-server/service.ts";
-import { layerLogging, layerLogOutput } from "./log/service.ts";
-import { layerManagedBinaryPlatform } from "./managed-binary/service.ts";
 import type { InteractiveCreationPorts } from "./note-feature/creation-view.ts";
 import { layerNoteFeatureNotices } from "./note-feature/notices.ts";
 import { layerNoteFeature } from "./note-feature/service.ts";
@@ -123,8 +142,6 @@ import type { NoteFeature } from "./note-feature/service.ts";
 import { layerNoteImportCommands } from "./note-import/commands.ts";
 import { layerNoteImporter } from "./note-import/service.ts";
 import type { NoteImporter } from "./note-import/service.ts";
-import { layerNoteIndex } from "./note-index/service.ts";
-import type { NoteIndex } from "./note-index/service.ts";
 import { layerCitationStyleNotice } from "./pandoc/notices.ts";
 import { layerPandocResolve } from "./pandoc/register.ts";
 import { layerBibliographyRender } from "./pandoc/render-cache.ts";
@@ -141,13 +158,9 @@ import { layerProfile } from "./profile/service.ts";
 import type { Profile } from "./profile/service.ts";
 import { layerProtocolHandlers } from "./protocol/register.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
-import { layerQueryClients } from "./query-client/service.ts";
-import type { QueryClients } from "./query-client/service.ts";
 import { layerReleaseActions } from "./release/actions.ts";
 import { layerRelease } from "./release/service.ts";
 import type { Release } from "./release/service.ts";
-import { layerPluginSettings } from "./settings/service.ts";
-import type { PluginSettings } from "./settings/service.ts";
 import { startingAs } from "./startup-failure.ts";
 import { layerTemplateWorkbenchCli } from "./template-workbench/register.ts";
 import { layerCitationTemplateActions } from "./template/actions.ts";
@@ -159,18 +172,8 @@ import type {
 } from "./template/migration.ts";
 import { layerTemplate } from "./template/service.ts";
 import type { Template } from "./template/service.ts";
-import { layerUseLedger } from "./use-ledger/service.ts";
-import type { UseLedger } from "./use-ledger/service.ts";
 import { layerWikilinkEditor } from "./wikilink-editor/service.ts";
 import { layerWikilinkReading } from "./wikilink-reading/service.ts";
-import { layerZoteroLocalApi } from "./zotero-local-api/service.ts";
-import type { ZoteroLocalApi } from "./zotero-local-api/service.ts";
-import { SecretWriteAuthorizationStore } from "./zotero-local-api/write-authorization.ts";
-import {
-  layerZoteroPref,
-  layerZoteroPrefFiles,
-} from "./zotero-pref/service.ts";
-import type { ZoteroPref } from "./zotero-pref/service.ts";
 import { workerClient } from "./zotero-reads/worker-client.ts";
 
 /**
@@ -411,7 +414,7 @@ export function pluginLayer(
       ),
     ),
     Layer.provideMerge(
-      layerPluginSettings(plugin).pipe(startingAs("PluginSettings")),
+      layerSettings(plugin).pipe(startingAs("PluginSettings")),
     ),
   );
   const registrations = Layer.mergeAll(

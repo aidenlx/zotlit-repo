@@ -5,11 +5,11 @@
 
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 
+import { readSegmenterFromOpfs } from "@zotlit/plugin-services/core/chinese-segmenter/opfs-reader.ts";
 import { prepareRead } from "@zotlit/zotero-reads/desktop/read-source.ts";
 import { layerSource } from "@zotlit/zotero-reads/desktop/source.ts";
 import { serveZoteroReads } from "@zotlit/zotero-reads/worker/serve.ts";
 
-import { readSegmenterFromOpfs } from "@/services/chinese-segmenter/opfs-reader.ts";
 import { queryJobRunner } from "@/services/item-query/job.ts";
 
 // Every read snapshot carries the owner tag the renderer sent. The worker's

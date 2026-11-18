@@ -14,11 +14,9 @@ import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import {
-  layerPluginSettings,
-  PluginSettings,
-} from "@/services/settings/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 
 import { layerTemplate, Template } from "./service.ts";
 
@@ -44,7 +42,7 @@ export function createTemplateHost(files: Record<string, string> = {}) {
 export function templateOver(host: ReturnType<typeof createTemplateHost>) {
   return layerTemplate.pipe(
     Layer.provide(layerHostApp(host.app)),
-    Layer.provideMerge(layerPluginSettings(host.plugin)),
+    Layer.provideMerge(layerSettings(host.plugin)),
   );
 }
 

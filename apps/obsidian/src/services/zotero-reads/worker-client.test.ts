@@ -14,6 +14,17 @@ import { expect, vi } from "vitest";
 
 import { testObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
+import {
+  ChineseSegmenter,
+  CHINESE_SEGMENTER,
+  layerChineseSegmenter,
+} from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { managedBinaryPorts } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
+import { ManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import { memoryDevice } from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   WorkerInitSchema,
   ZoteroReads,
@@ -21,18 +32,7 @@ import {
 import type { ReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { launchWorker } from "@zotlit/zotero-reads/worker/worker-launch.ts";
 
-import {
-  ChineseSegmenter,
-  CHINESE_SEGMENTER,
-  layerChineseSegmenter,
-} from "@/services/chinese-segmenter/service.ts";
-import { managedBinaryPorts } from "@/services/managed-binary/platform.ts";
-import { ManagedBinaryPlatform } from "@/services/managed-binary/service.ts";
-import { memoryDevice } from "@/services/managed-binary/test-utils.ts";
 import { settingsOf } from "@/services/settings/__fixtures__.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import { workerClient } from "./worker-client.ts";
 

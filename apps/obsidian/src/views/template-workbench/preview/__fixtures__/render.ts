@@ -13,9 +13,9 @@ import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { PandocEngine } from "@/services/pandoc/service.ts";
 import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
@@ -24,6 +24,7 @@ import type { findExistingLitNote } from "@/services/template/inert-resolver-hos
 import type { ParseClient } from "@/services/citation-parse/client.ts";
 import type { CitationLookupRequest, CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
+import { updateDefaultLiteratureNoteProfileBindings } from "@/services/profile/settings.ts";
 
 type PromiseMethods<T> = {
   [K in keyof T]: T[K] extends (...args: infer P) => Effect.Effect<infer A, infer _E, infer _R>
@@ -203,7 +204,7 @@ export async function createRenderFixture(options: { existing?: string; javascri
   await settings.bridge.runPromise(settings.loaded);
   if (options.defaultStyle)
     settings.bridge.runSync(
-      settings.updateDefaultLiteratureNoteProfileBindings({
+      updateDefaultLiteratureNoteProfileBindings(settings, {
         "citation.references-style": options.defaultStyle,
       }),
     );

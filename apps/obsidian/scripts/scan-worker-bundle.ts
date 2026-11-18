@@ -70,6 +70,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
     packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
     packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
     packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
+    packageSource(import.meta.resolve("@zotlit/plugin-services/package.json")),
   ];
   const result = await build({
     configFile: false,

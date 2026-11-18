@@ -3,9 +3,9 @@ import { Effect, Fiber } from "effect";
 import { describe, expect } from "vitest";
 
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import { settingsOf } from "@/services/settings/__fixtures__.ts";
-import type { Settings } from "@/services/settings/schema.ts";
 
 import { WikilinkDisplaySettings } from "./wikilink-display-settings.ts";
 

@@ -27,6 +27,13 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type {
+  ImportNotesRequest,
+  UpdateManyRequest,
+} from "@zotlit/plugin-services/core/local-server/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
   batchProtocolActionId,
   exploreProtocolActionId,
@@ -67,11 +74,6 @@ import type { AttachmentReader } from "@/services/attachment-open/open-attachmen
 import { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import { toObsidianOpenable } from "@/services/attachment-open/openable.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
-import type {
-  ImportNotesRequest,
-  UpdateManyRequest,
-} from "@/services/local-server/service.ts";
 import { openCompanionNote } from "@/services/note-feature/index.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/index.ts";
 import {
@@ -93,8 +95,6 @@ import type {
   BatchImportServices,
 } from "@/services/note-import/batch-import.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
-import type { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";

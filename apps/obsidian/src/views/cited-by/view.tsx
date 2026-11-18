@@ -7,8 +7,7 @@ import type { Root } from "react-dom/client";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { activeKeyAtom } from "@/services/note-index/atoms.ts";
+import { activeKeyAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 
 import { revisionsAtom } from "./atoms.ts";
 import { CitedBy } from "./CitedBy.tsx";

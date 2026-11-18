@@ -3,6 +3,8 @@ import { Effect } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
@@ -14,8 +16,6 @@ import type {
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import { plainTemplateError } from "@/services/template/errors.ts";
 import { ProfileAnnotationError } from "@/services/template/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { Placement } from "@/views/annot-view/async-insert.ts";
 
 import { prepareAnnotationInsert } from "./insert-annotation.ts";

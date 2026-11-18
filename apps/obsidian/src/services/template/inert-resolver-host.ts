@@ -13,6 +13,7 @@ import {
   createCommentTurndown,
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import {
   buildInertNoteResolvers,
   findExistingLitNote,
@@ -20,7 +21,6 @@ import {
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 
 import { attachmentFileLink } from "@/services/template/annotation-render.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 export { findExistingLitNote };
 export type { ExcerptImageContext };

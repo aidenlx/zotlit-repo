@@ -5,14 +5,14 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  LanguagePack,
+  LanguagePackStorageFailed,
+} from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import {
-  LanguagePack,
-  LanguagePackStorageFailed,
-} from "@/services/language-pack/service.ts";
 
 import {
   clearExcerptCache,

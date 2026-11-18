@@ -6,8 +6,8 @@ import type { Item } from "@zotlit/db";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
-import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 
 import { createNoteInteractively } from "./creation-view.ts";

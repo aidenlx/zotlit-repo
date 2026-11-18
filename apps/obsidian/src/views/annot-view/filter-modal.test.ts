@@ -8,10 +8,10 @@ import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 
 import { QueryService } from "@/services/item-query/service.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import { QueryView } from "@/views/query-view/view.tsx";
 import type { QueryViewDeps } from "@/views/query-view/view.tsx";

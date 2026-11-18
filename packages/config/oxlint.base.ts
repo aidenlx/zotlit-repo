@@ -71,6 +71,7 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/obsidian-kit",
   "packages/obsidian-desktop",
   "packages/zotero-reads",
+  "packages/plugin-services",
 ]);
 
 /**

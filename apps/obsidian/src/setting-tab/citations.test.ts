@@ -23,20 +23,22 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import {
+  PluginSettings,
+  RESET_SETTING,
+  SettingsMutationError,
+} from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import {
   referencesStyleOptions,
   STYLE_DEFAULT,
 } from "@/services/pandoc/citation-style.ts";
 import { PandocEngine } from "@/services/pandoc/service.ts";
+import type { DefaultLiteratureNoteProfile } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import {
-  PluginSettings,
-  SettingsMutationError,
-} from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import {
   failureOf,
@@ -291,7 +293,10 @@ describe("References style row", () => {
       write = () => Effect.void,
     }: {
       settings?: Settings;
-      write?: PluginSettings["Service"]["updateDefaultLiteratureNoteProfileBindings"];
+      /** Answers the default Profile bindings a choice writes. */
+      write?: (
+        bindings: DefaultLiteratureNoteProfile["bindings"],
+      ) => Effect.Effect<void, SettingsMutationError>;
     } = {},
   ) {
     const reads: StyleReads = {
@@ -320,7 +325,15 @@ describe("References style row", () => {
         Layer.mock(PluginSettings, {
           current: SubscriptionRef.get(stored),
           changes: SubscriptionRef.changes(stored),
-          updateDefaultLiteratureNoteProfileBindings: write,
+          update: (patch) =>
+            Effect.gen(function* () {
+              const current = yield* SubscriptionRef.get(stored);
+              const next = typeof patch === "function" ? patch(current) : patch;
+              const profile = next["note.default-profile"];
+              if (profile !== undefined && profile !== RESET_SETTING)
+                yield* write(profile.bindings);
+              return current;
+            }),
         }),
         Layer.mock(ZoteroPref, {
           current: SubscriptionRef.get(pref),
@@ -461,7 +474,9 @@ describe("References style row", () => {
     Effect.gen(function* () {
       const dir = yield* dataFolder;
       yield* install(dir, APA);
-      const write = vi.fn(() => Effect.void);
+      const write = vi.fn(
+        (_bindings: DefaultLiteratureNoteProfile["bindings"]) => Effect.void,
+      );
       const row = yield* setup(dir, { write });
       yield* eventually(() => expect(row.titles()).toEqual(["APA"]));
 
@@ -469,10 +484,11 @@ describe("References style row", () => {
       row.dropdown.choose(STYLE_DEFAULT);
 
       yield* eventually(() =>
-        expect(write.mock.calls).toEqual([
-          [{ "citation.references-style": APA.id }],
-          [{ "citation.references-style": null }],
-        ]),
+        expect(
+          write.mock.calls.map(
+            ([bindings]) => bindings["citation.references-style"],
+          ),
+        ).toEqual([APA.id, null]),
       );
     }),
   );
@@ -484,15 +500,20 @@ describe("References style row", () => {
         message: "disk full",
         cause: null,
       });
-      const write = vi.fn(() => Effect.fail(failure));
+      const write = vi.fn(
+        (_bindings: DefaultLiteratureNoteProfile["bindings"]) =>
+          Effect.fail(failure),
+      );
       const row = yield* setup(dir, { write });
 
       row.dropdown.choose(STYLE_DEFAULT);
 
       yield* eventually(() => expect(row.runs).toHaveLength(1));
-      expect(write.mock.calls).toEqual([
-        [{ "citation.references-style": null }],
-      ]);
+      expect(
+        write.mock.calls.map(
+          ([bindings]) => bindings["citation.references-style"],
+        ),
+      ).toEqual([null]);
       expect(failureOf(row.runs[0]!)).toBe(failure);
       expect(row.runs[0]!.label).toBe(m.settings_failed_save());
     }),

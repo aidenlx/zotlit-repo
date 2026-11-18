@@ -28,6 +28,9 @@ import {
   citationRuns,
   wikilinkCitation,
 } from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import {
   formatPandocCitation,
   scanPandocCitations,
@@ -46,7 +49,6 @@ import type {
 } from "@/services/citation-index/service.ts";
 import { mapsEqual } from "@/services/citation-text/maps-equal.ts";
 import type { OpenDocuments } from "@/services/citation-text/open-documents.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import {
   documentCitationPresentation,
   documentPresentation,
@@ -55,8 +57,6 @@ import { holdsNote } from "@/services/pandoc/inline-content.tsx";
 import type { RenderPresentation } from "@/services/pandoc/render-cache.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { QueryClients } from "@/services/query-client/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
 
 import { citationKey, presentedCitationEqual } from "./present.ts";
 import type {

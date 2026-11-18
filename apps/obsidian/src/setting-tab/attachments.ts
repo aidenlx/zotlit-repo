@@ -4,8 +4,7 @@
 import type { SettingDefinitionItem } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { PluginSettings } from "@/services/settings/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { approvedFoldersPage } from "./approved-folders.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";

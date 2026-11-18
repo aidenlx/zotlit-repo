@@ -5,15 +5,14 @@ import { describe, expect } from "vitest";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import {
   inProcessClient,
   memoryOpener,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
-
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 import { bindLiteratureNoteAttachments } from "./handle.ts";
 import { literatureNoteAttachments } from "./literature-note.ts";

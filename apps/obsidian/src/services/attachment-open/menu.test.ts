@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { MenuItem as MockMenuItem } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { fileMenuHandler as handlerFor } from "@zotlit/plugin-services/__fixtures__/file-menu.ts";
 
-import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu.ts";
 import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 
 import type { AttachmentOpenDeps } from "./actions.ts";

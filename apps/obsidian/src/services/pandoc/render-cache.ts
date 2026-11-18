@@ -19,13 +19,13 @@ import {
 import type { CslItemData } from "@zotlit/db";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { Profile } from "@/services/profile/service.ts";
-import { QueryClients } from "@/services/query-client/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import {
   effectivePresentation,

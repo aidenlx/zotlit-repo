@@ -47,6 +47,7 @@ vi.mock("obsidian", async (importOriginal) => {
 import { editorInfoField, Keymap } from "obsidian";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type {
   CitekeyResolution,
   SnapshotItem,
@@ -69,7 +70,6 @@ import type {
   CitationHoverRequest,
   HoverPreferences,
 } from "@/services/citekey-navigation/index.ts";
-import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import {

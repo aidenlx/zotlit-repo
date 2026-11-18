@@ -19,6 +19,7 @@ import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
@@ -27,7 +28,6 @@ import type {
   AnnotationRecord,
   AnnotationSource,
 } from "@/services/annotation-repository/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import type { ExcerptRequest } from "./contract.ts";
 

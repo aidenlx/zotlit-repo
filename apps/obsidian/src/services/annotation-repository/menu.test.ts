@@ -7,8 +7,7 @@ import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { MenuItem as MockMenuItem } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-
-import { fileMenuHandler } from "@/services/__fixtures__/file-menu.ts";
+import { fileMenuHandler } from "@zotlit/plugin-services/__fixtures__/file-menu.ts";
 
 import type { HistorySurface } from "./actions.ts";
 import type { HistoryDirection } from "./history.ts";

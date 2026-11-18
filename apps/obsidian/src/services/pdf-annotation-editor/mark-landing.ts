@@ -5,9 +5,9 @@
 // @see apps/obsidian/docs/adr/0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
+import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import type { AttachmentResolution } from "@/services/attachment-resolver/service.ts";
 
 import type { PdfPageAnnotation } from "./render.ts";
 

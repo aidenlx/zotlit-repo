@@ -9,15 +9,15 @@ import * as confirmation from "@zotlit/obsidian-kit/confirm.ts";
 import type { RangeAdjustment, SelectedText } from "@zotlit/pdf-structure";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  libraryReadOnly,
+  staleVersionPatch,
+} from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 
 import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type { MutationState } from "@/services/annotation-repository/write.ts";
-import {
-  libraryReadOnly,
-  staleVersionPatch,
-} from "@/services/zotero-local-api/__fixtures__.ts";
 
 import {
   annotation,

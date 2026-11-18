@@ -37,6 +37,12 @@ import type {
   RunMember,
 } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
+import {
+  NoteIndex,
+  literatureNoteTargetIn,
+} from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
@@ -58,12 +64,6 @@ import {
 } from "@/services/citekey-navigation/index.ts";
 import type { CitationHover } from "@/services/citekey-navigation/index.ts";
 import { WikilinkDisplaySettings } from "@/services/citekey-navigation/wikilink-display-settings.ts";
-import {
-  NoteIndex,
-  literatureNoteTargetIn,
-} from "@/services/note-index/service.ts";
-import type { Held } from "@/services/query-client/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 
 import {
   hasInternalLink,

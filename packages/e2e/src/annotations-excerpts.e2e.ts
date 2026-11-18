@@ -540,9 +540,15 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app, zotlit }, { importedPath }) => {
         const services = zotlit.services;
         services.bridge.runSync(
-          services.settings.updateDefaultLiteratureNoteProfileBindings({
-            "note.import-annotations-as-template": true,
-          }),
+          services.settings.update((current) => ({
+            "note.default-profile": {
+              ...current["note.default-profile"],
+              bindings: {
+                ...current["note.default-profile"].bindings,
+                "note.import-annotations-as-template": true,
+              },
+            },
+          })),
         );
         const file = app.vault.getFileByPath(importedPath)!;
         if (!file) throw new Error("Imported Note missing");

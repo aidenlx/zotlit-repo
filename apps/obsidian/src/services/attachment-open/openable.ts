@@ -1,8 +1,7 @@
 // Narrows Attachments read from the database to the Obsidian-Openable ones, under the active source's paths.
 
 import type { Attachment } from "@zotlit/db";
-
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import type { ObsidianOpenableAttachment } from "./resolve.ts";
 import { toObsidianOpenableAttachments } from "./resolve.ts";

@@ -1,5 +1,7 @@
 import { Effect } from "effect";
 
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
+
 // Runs the production Excerpt Display and Excerpt Image service over Chromium's
 // own IndexedDB, so a saved edit's replacement, a restart, an eviction, and a
 // manual clear are the plugin's own code and the plugin's own store.
@@ -12,7 +14,6 @@ import { Effect } from "effect";
 // survival need a vault and a Zotero data directory, so they are covered where
 // those exist — see `service.test.ts`.
 import { ExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/service.ts";
-import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 
 import { check } from "./__fixtures__/check.ts";
 import { settledDisplay } from "./__fixtures__/display-state.ts";

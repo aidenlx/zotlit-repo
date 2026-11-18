@@ -6,8 +6,8 @@ import { expect } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { PluginSettings } from "@/services/settings/service.ts";
 import { TemplateMigration } from "@/services/template/migration.ts";
 
 import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";

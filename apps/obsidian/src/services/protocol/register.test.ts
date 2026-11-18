@@ -27,6 +27,17 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type {
+  ImportNotesRequest,
+  UpdateManyRequest,
+} from "@zotlit/plugin-services/core/local-server/service.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
@@ -38,12 +49,6 @@ import { openAttachments } from "@/services/attachment-open/open-attachments.ts"
 import { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import { toObsidianOpenableAttachments } from "@/services/attachment-open/resolve.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import { LocalServer } from "@/services/local-server/service.ts";
-import type {
-  ImportNotesRequest,
-  UpdateManyRequest,
-} from "@/services/local-server/service.ts";
 import { openCompanionNote } from "@/services/note-feature/index.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
@@ -53,13 +58,8 @@ import {
 import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
 import { NoteImporter } from "@/services/note-import/service.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";

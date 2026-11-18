@@ -9,6 +9,17 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import {
+  layerQueryClients,
+  QueryClients,
+} from "@zotlit/plugin-services/core/query-client/service.ts";
+import {
+  layerLibraryScope,
+  LibraryScope,
+} from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import type { LibraryScopeState } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
   layerZoteroReads,
   ZoteroReads,
 } from "@zotlit/zotero-reads/client/service.ts";
@@ -16,20 +27,7 @@ import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { ParseClient } from "@/services/citation-parse/client.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
-import {
-  layerLibraryScope,
-  LibraryScope,
-} from "@/services/library-scope/service.ts";
-import type { LibraryScopeState } from "@/services/library-scope/service.ts";
-import { NoteIndex } from "@/services/note-index/service.ts";
-import {
-  layerQueryClients,
-  QueryClients,
-} from "@/services/query-client/service.ts";
-import {
-  layerPluginSettings,
-  PluginSettings,
-} from "@/services/settings/service.ts";
+import { layerSettings } from "@/services/settings/layer.ts";
 
 import { CitationLookup, layerCitationLookup } from "./lookup-service.ts";
 import { CitationIndex, layerCitationIndex } from "./service.ts";
@@ -156,7 +154,7 @@ async function openLookup(
               Effect.tap((client) => client.Libraries({}).pipe(Effect.orDie)),
             ),
           ),
-          layerPluginSettings({
+          layerSettings({
             loadData: async () => ({ __VERSION__: 10 }),
             saveData: async () => {},
           }),
