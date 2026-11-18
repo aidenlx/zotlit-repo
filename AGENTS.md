@@ -9,7 +9,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `apps/docs` — documentation and landing sites.
 - `packages/config` — consumed via `@zotlit/config` exports map.
 - `packages/db` — Drizzle ORM client for Zotero database.
-- `packages/db-testing` — Node-only test fixtures for `@zotlit/db` and its consumers: the fixture schema, statement counters, and the scenario database. Tests depend on it as a dev dependency.
+- `packages/db-testing` — test fixtures for `@zotlit/db` and its consumers: the Node fixture schema, statement counters, and scenario database, and the driver conformance suite (`./conformance`) that each client adapter runs. Tests depend on it as a dev dependency.
 - `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
 - `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
@@ -93,6 +93,7 @@ User- and agent-facing copy has three sources: MDX under `apps/docs/content/`, i
 - `__DEV__` is replaced at build time (`true` in dev mode, `false` in production).
 - Node runs workspace TypeScript directly by stripping its types. Write each relative import with its file extension (`./client.ts`, `./view.tsx`), and write erasable syntax only: a const object in place of an `enum`, a field plus an assignment in place of a constructor parameter property. Inside a package, reach `src/` through the package's `#` subpath imports (`#lib/zt-key.ts`) in place of TypeScript `paths`, because each consumer type-checks the package source under its own tsconfig. The `import/extensions` lint rule and `erasableSyntaxOnly` in the base tsconfig enforce this.
 - Use `pnpm exec` instead of `npx`.
+- The engine packages (`db`, `item-query`, `item-lookup`, `filter-expression`, `zotero-types`, `shared`, `protocol`, `templates`) run on every host, also in a mobile Web Worker. Their source takes each host capability as a value and loads no Node built-in, `obsidian`, `electron` or `@zotlit/db/client/node`; tests, configuration and scripts may. `engineBoundaryRules` in `@zotlit/config/oxlint` enforces it, and `packages/db/AGENTS.md` names the two Node files of `@zotlit/db`.
 - Brand identity — logo geometry, palette, and wordmark (Archivo SemiBold) — is specified in [`docs/brand.md`](docs/brand.md); canonical SVGs live in `assets/logo/`. Consume those assets and follow that spec rather than redrawing the mark.
 
 ## Working files
