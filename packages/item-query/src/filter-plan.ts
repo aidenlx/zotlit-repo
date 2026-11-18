@@ -1,4 +1,3 @@
-import { parseIndexedKey } from "@zotlit/db";
 // Validation of a Filter Expression against the registries. The result is a
 // typed tree in which every name is resolved, so that execution and the
 // planner read one structure.
@@ -8,6 +7,7 @@ import {
   parsePartialExpressionAst,
 } from "@zotlit/filter-expression";
 import type { BinaryOperator, ExpressionNode } from "@zotlit/filter-expression";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type {
   Callee,

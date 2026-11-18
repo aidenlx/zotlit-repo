@@ -4,7 +4,7 @@
 //
 // @see apps/obsidian/docs/adr/0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md
 
-import { isIndexedKey } from "./zt-key.ts";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 /** The fragment key an Annotation Anchor is written under. */
 export const ANNOTATION_ANCHOR_KEY = "zt-annotation";

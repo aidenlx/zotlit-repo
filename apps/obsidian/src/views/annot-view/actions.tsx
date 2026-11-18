@@ -3,8 +3,9 @@ import type { App, PaneType } from "obsidian";
 import { createContext } from "react";
 import type { DragEvent, KeyboardEvent, MouseEvent } from "react";
 
-import { annotationOpenUri, parseIndexedKey } from "@zotlit/db";
 import { observeExit } from "@zotlit/workbench/ui";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import { buildColorMenu } from "@/lib/annotation-colors.ts";
 import { confirm } from "@/lib/confirm.ts";

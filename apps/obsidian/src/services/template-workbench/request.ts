@@ -4,9 +4,10 @@ import { Schema } from "effect";
 import type { Effect } from "effect";
 import type { CliData } from "obsidian";
 
-import { DEFAULT_CITATION_VARIANT, isIndexedKey } from "@zotlit/db";
+import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
 import type { CitationVariant, ContractRoot, TemplateSlot } from "@zotlit/db";
 import type { PartialContext } from "@zotlit/workbench/render";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import {
   cliDefault,

@@ -1,13 +1,13 @@
 // Response schema for GET {host}/literature-notes, the note-status query action.
 import * as v from "valibot";
 
-import { isIndexedKey } from "@zotlit/db";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 /**
  * An Indexed Key: an 8-char base-32 Zotero item key, optionally suffixed
  * `g<groupID>` for group-library items.
  *
- * @see `isIndexedKey` in `@zotlit/db` — the canonical validator
+ * @see `isIndexedKey` in `@zotlit/zotero-types/keys` — the canonical validator
  */
 const indexedKeyValue = v.pipe(v.string(), v.check(isIndexedKey));
 

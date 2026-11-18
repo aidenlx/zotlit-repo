@@ -1,7 +1,7 @@
 // What one Annotation View instance remembers in its workspace state.
 import { Option, Schema } from "effect";
 
-import { isIndexedKey } from "@zotlit/db";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { FollowMode } from "./state.ts";
 

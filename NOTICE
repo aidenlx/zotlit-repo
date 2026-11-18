@@ -36,10 +36,11 @@ Derived files include (non-exhaustive):
   packages/db/src/lib/zt-lang.ts        — languageToISO6391 algorithm
   packages/db/src/lib/zt-annot-pos.ts   — annotation position schemas
   packages/db/src/lib/zt-color.ts       — annotation color palettes
-  packages/db/src/lib/zt-uri.ts         — URI building and slugify rules
-  packages/db/src/lib/zt-key.ts         — object key validation
+  packages/db/src/lib/zt-uri.ts         — Item URI and slugify rules
   packages/db/src/lib/zt-note-mark.ts   — note markup handling
   packages/item-lookup/src/format-creator.ts — creator name formatting
+  packages/zotero-types/src/keys.ts     — object key validation
+  packages/zotero-types/src/uri.ts      — zotero:// link building
 
 Each file contains @see comments linking to the specific upstream source.
 

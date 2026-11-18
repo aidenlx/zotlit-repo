@@ -1,7 +1,7 @@
+import type { Item } from "@zotlit/db";
 // The one Items query of ZotLit Query that tests Profile Matches: the request
 // for many Items and many filters, and what its outcome says of each Item.
-import { formatIndexedKey } from "@zotlit/db";
-import type { Item } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { Diagnostic } from "@/services/item-query/contract.ts";
 import type {

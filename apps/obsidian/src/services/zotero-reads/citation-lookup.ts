@@ -2,7 +2,6 @@
 import { Effect, Fiber, Option, Ref, Scope, Stream } from "effect";
 
 import {
-  formatIndexedKey,
   getLastItemID,
   getCitekeyWindow,
   getLibraries,
@@ -10,6 +9,7 @@ import {
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log-category.ts";
 import type {

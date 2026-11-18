@@ -4,7 +4,8 @@ import { around } from "monkey-around";
 import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
-import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { disposable } from "@/lib/disposables.ts";
 import * as m from "@/lib/i18n/generated/messages.ts";

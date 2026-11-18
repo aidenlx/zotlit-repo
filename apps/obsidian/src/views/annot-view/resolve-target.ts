@@ -1,6 +1,7 @@
 // Pure follow-mode → load-target resolution for the annotation view.
-import { parseIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
+import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { ReaderSessionTarget } from "@/services/reader-session/session.ts";
 

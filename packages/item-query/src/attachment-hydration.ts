@@ -1,12 +1,12 @@
 // The Attachment loading descriptor: its fields, parent Item, and Annotations.
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
 import { readAttachmentHydrateChunk } from "@zotlit/db/item-query";
 import type {
   AttachmentScanRow,
   HydratedAttachment,
 } from "@zotlit/db/item-query";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryAnnotation } from "./annotation-fields.ts";
 import { ANNOTATION_LOADING } from "./annotation-hydration.ts";

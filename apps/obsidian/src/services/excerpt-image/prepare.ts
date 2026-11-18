@@ -3,13 +3,10 @@ import { Context, Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
 import type { TFile } from "obsidian";
 
-import {
-  annotationHasCacheImage,
-  annotationOpenUri,
-  parseAnnotationPosition,
-} from "@zotlit/db";
+import { annotationHasCacheImage, parseAnnotationPosition } from "@zotlit/db";
 import type { Annotation, AnnotationResolvers, TemplateLink } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import { recover } from "@/lib/effect-cause.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

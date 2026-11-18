@@ -1,11 +1,9 @@
 // Renders the captured card once, after its final image outcome is durable.
 import { Effect } from "effect";
 
-import {
-  annotationOpenUri,
-  buildAnnotationParents,
-  parseIndexedKey,
-} from "@zotlit/db";
+import { buildAnnotationParents } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import {
   annotationCitation,

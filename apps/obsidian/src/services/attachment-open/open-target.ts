@@ -12,14 +12,13 @@ import type { Duration } from "effect";
 import { fileURLToPath } from "node:url";
 import type { PaneType } from "obsidian";
 
+import { formatAnnotationSubpath } from "@zotlit/db";
+import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 import {
   annotationOpenUri,
   attachmentOpenUri,
-  formatAnnotationSubpath,
-  formatIndexedKey,
   parseAnnotationOpenUri,
-  parseIndexedKey,
-} from "@zotlit/db";
+} from "@zotlit/zotero-types/uri";
 
 import { recover } from "@/lib/effect-cause.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

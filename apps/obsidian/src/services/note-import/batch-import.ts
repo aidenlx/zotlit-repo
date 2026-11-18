@@ -3,9 +3,10 @@ import { distinct } from "@std/collections";
 import { Cause, Effect, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { parseIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
+import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Note } from "@zotlit/db";
 import type { ImportMode } from "@zotlit/protocol";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { EffectBridge } from "@/lib/effect-bridge.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

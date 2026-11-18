@@ -4,9 +4,10 @@ import { stringifyYaml } from "obsidian";
 import type { TFile } from "obsidian";
 import { afterAll, beforeEach, describe, expect, vi } from "vitest";
 
-import { formatIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
+import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { AnnotationTemplateContext } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db/test-utils";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";

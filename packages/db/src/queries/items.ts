@@ -4,6 +4,7 @@ import type { CreatorFieldMode } from "#lib/zt-creator.ts";
 import type { ItemBaseFieldName, ItemBaseFields } from "#lib/zt-venue.ts";
 
 import type { ItemFields } from "@zotlit/zotero-types";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { getBaseFieldTable, getBaseFieldTableAsync } from "./_base-fields.ts";
 import type { BaseFieldTable } from "./_base-fields.ts";
@@ -16,7 +17,6 @@ import {
 } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
-import { formatIndexedKey } from "#lib/zt-key.ts";
 import {
   EMPTY_ITEM_BASE_FIELDS,
   ITEM_BASE_FIELDS,

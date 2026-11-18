@@ -11,8 +11,9 @@ import {
   Schema,
 } from "effect";
 
-import { parseAnnotationPosition, parseIndexedKey } from "@zotlit/db";
+import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { valueOr } from "@/lib/effect-bridge.ts";
 import { recover } from "@/lib/effect-cause.ts";

@@ -6,8 +6,8 @@ import { Duration, Effect, Option } from "effect";
 // stops the export rather than selecting another source. Failure codes name the
 // situation; the export UI owns the wording that guides the user out of it.
 
-import { formatIndexedKey } from "@zotlit/db";
 import type { CslItemData } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log-category.ts";
 import {

@@ -4,14 +4,16 @@ import type { ItemExtra } from "#lib/zt-extra.ts";
 import type { ItemTag, TemplateTag } from "#lib/zt-tag.ts";
 import type { Creator, Item } from "#queries/items.ts";
 
+import { libraryViewUri } from "@zotlit/protocol";
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { ZT_FIELD_ALIASES } from "#lib/context/zt-field-aliases.ts";
 import { defineToString } from "#lib/to-string.ts";
 import { parseItemDate } from "#lib/zt-date.ts";
 import { parseItemExtra } from "#lib/zt-extra.ts";
 import { toTemplateTag } from "#lib/zt-tag.ts";
-import { itemSelectUri, itemWebUrl, libraryViewUri } from "#lib/zt-uri.ts";
+import { itemWebUrl } from "#lib/zt-uri.ts";
 
 /**
  * One creator of an item, in the template vocabulary. Coerces to

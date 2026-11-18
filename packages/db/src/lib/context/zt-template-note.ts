@@ -17,6 +17,8 @@ import type { ItemTag } from "#lib/zt-tag.ts";
 import type { Item } from "#queries/items.ts";
 import type { ChildNote } from "#queries/notes.ts";
 
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
+
 import { annotationToTemplateData } from "#lib/context/zt-template-annot.ts";
 import { resolveTemplateAttachment } from "#lib/context/zt-template-attach.ts";
 import {
@@ -26,7 +28,6 @@ import {
   withItemPreview,
 } from "#lib/context/zt-template-item.ts";
 import { defineToString } from "#lib/to-string.ts";
-import { itemSelectUri } from "#lib/zt-uri.ts";
 
 /**
  * A single entry in {@link NoteTemplateContext.relatedItems}: the related

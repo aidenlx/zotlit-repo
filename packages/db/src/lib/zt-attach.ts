@@ -1,6 +1,5 @@
 import { logLibrary } from "@zotlit/shared/logging";
-
-import { isItemKey } from "./zt-item-key.ts";
+import { isItemKey } from "@zotlit/zotero-types/keys";
 
 /**
  * Maps Zotero's numeric attachment link-mode IDs to string names. `4`

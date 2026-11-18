@@ -1,6 +1,6 @@
 import type { CachedMetadata } from "obsidian";
 
-import { isIndexedKey } from "@zotlit/db";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import {
   FIELD_ZOTERO_KEY,

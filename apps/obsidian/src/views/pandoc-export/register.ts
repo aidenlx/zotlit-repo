@@ -5,8 +5,9 @@ import type { Context } from "effect";
 import { basename, join } from "node:path";
 import type { App, FileSystemAdapter, Plugin, TFile } from "obsidian";
 
-import { parseIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
+import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { citationStyleLabel } from "@/lib/citation-style.ts";
 import type { EffectBridge } from "@/lib/effect-bridge.ts";

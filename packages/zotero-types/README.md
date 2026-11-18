@@ -1,6 +1,15 @@
 # @zotlit/zotero-types
 
-Generated TypeScript item-field shapes from the pinned Zotero schema.
+Generated TypeScript item-field shapes from the pinned Zotero schema, and the
+hand-written Zotero key grammar that every package shares:
+
+- `./keys` (`src/keys.ts`) — the item key and the Indexed Key: `isItemKey`,
+  `formatIndexedKey`, `parseIndexedKey`, `isIndexedKey`.
+- `./uri` (`src/uri.ts`) — the `zotero://select` and `zotero://open` links that
+  need only a key, and `parseAnnotationOpenUri`.
+
+These modules import no other workspace package, so `@zotlit/db`,
+`@zotlit/protocol` and both apps read them without a database layer.
 
 - Source input: `zotero-schema/schema.json`, copied from
   [`zotero/zotero-schema`](https://github.com/zotero/zotero-schema).

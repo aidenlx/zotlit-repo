@@ -13,7 +13,7 @@ import {
 } from "effect";
 import * as v from "valibot";
 
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log.ts";
 import {

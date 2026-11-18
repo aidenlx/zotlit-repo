@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import type { DateTime } from "effect";
 
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { recover } from "@/lib/effect-cause.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

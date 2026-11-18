@@ -1,11 +1,8 @@
 // Live Items for Indexed Keys: the read `ItemsByIndexedKeys`, `WorkLabels`, and Item Index hydration share.
-import {
-  getItemsByKey,
-  parseIndexedKey,
-  resolveIndexedKeyLibrary,
-} from "@zotlit/db";
+import { getItemsByKey, resolveIndexedKeyLibrary } from "@zotlit/db";
 import type { GroupIDMemo, Item } from "@zotlit/db";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 /**
  * Live items for Indexed Keys, keyed by Indexed Key in request order. Each

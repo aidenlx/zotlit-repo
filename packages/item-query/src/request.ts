@@ -2,7 +2,7 @@
 // applies the defaults and resolves each name against the registries.
 import { Effect } from "effect";
 
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryDataset } from "./dataset.ts";
 import type { Diagnostic } from "./diagnose.ts";

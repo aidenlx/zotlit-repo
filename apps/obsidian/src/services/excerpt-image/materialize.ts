@@ -11,7 +11,7 @@ import {
 import { createHash, randomUUID } from "node:crypto";
 import { basename, dirname, join, relative, isAbsolute, sep } from "node:path";
 
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
 import { recover } from "@/lib/effect-cause.ts";

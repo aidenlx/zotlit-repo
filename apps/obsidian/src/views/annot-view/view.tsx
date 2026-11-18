@@ -5,8 +5,9 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { annotationOpenUri, parseIndexedKey } from "@zotlit/db";
 import type { AnnotViewAttachment } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import { registerMigratingWindowEvent } from "@/lib/disposables.ts";
 import type { EffectBridge } from "@/lib/effect-bridge.ts";

@@ -37,6 +37,7 @@ export {
   type ImportNotesRequest,
   importProtocolActionId,
   type ImportProtocolQuery,
+  libraryViewUri,
   openAttachmentProtocolActionId,
   type OpenAttachmentProtocolQuery,
   parseExploreProtocolQuery,

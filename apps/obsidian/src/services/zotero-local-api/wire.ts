@@ -4,16 +4,13 @@
 import { Duration } from "effect";
 import * as v from "valibot";
 
-import {
-  formatIndexedKey,
-  isItemKey,
-  parseAnnotationPosition,
-} from "@zotlit/db";
+import { parseAnnotationPosition } from "@zotlit/db";
 import type {
   AnnotationPosition,
   AnnotationPositionRaw,
   ResolvedAnnotationTypeName,
 } from "@zotlit/db";
+import { formatIndexedKey, isItemKey } from "@zotlit/zotero-types/keys";
 
 import { parseJson } from "@/lib/zotero-http.ts";
 

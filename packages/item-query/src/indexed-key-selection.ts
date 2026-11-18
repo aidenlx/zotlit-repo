@@ -1,4 +1,4 @@
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryDataset } from "./dataset.ts";
 import type { Span } from "./fault.ts";

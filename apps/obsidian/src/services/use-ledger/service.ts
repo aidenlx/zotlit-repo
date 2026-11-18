@@ -11,7 +11,7 @@ import {
 import type { Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { isIndexedKey } from "@zotlit/db";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { parseInstant, toInstant } from "@/lib/effect-clock.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

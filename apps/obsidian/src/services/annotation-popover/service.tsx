@@ -1,7 +1,7 @@
 // The Annotation Popover as an Effect service.
 import { Context, Effect, Layer } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
 import { withLogCategory } from "@/lib/effect-log.ts";

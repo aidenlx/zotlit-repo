@@ -2,7 +2,6 @@
 // Target Libraries.
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
 import {
   readCandidateSet,
   readRelationCandidateSet,
@@ -10,6 +9,7 @@ import {
   readScanPage,
   readUniverseRows,
 } from "@zotlit/db/item-query";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { lowerItemCandidate } from "./candidate-plan.ts";
 import { fieldRoot } from "./dataset.ts";

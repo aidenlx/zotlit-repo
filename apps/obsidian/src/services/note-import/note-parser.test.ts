@@ -7,7 +7,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildAnnotationsTemplateData,
   citekeysToCiteTemplateData,
-  formatIndexedKey,
 } from "@zotlit/db";
 import type {
   Annotation,
@@ -24,6 +23,7 @@ import { getPackageRoot } from "@zotlit/scripts/package-roots";
 import { inlineCitation, TemplateEngine } from "@zotlit/templates";
 import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";
 import { TemplateFacade } from "@zotlit/templates/facade";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { renderAnnotationSources } from "@/lib/annotation-render.ts";

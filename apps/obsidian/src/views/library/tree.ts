@@ -4,7 +4,7 @@
 // as `collections.within` selects them, so the tree and the list header agree.
 //
 // @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryViewGroup } from "@/services/item-query/query-view.ts";
 import type {

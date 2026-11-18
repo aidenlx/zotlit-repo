@@ -1,13 +1,13 @@
 // Match vocabulary spans every Library in the pinned live database.
 import { Effect } from "effect";
 
-import { formatIndexedKey, parseIndexedKey } from "@zotlit/db";
 import { planItemFilter, testItemSeed } from "@zotlit/item-query";
 import type {
   WorkbenchHost,
   WorkbenchLibrary,
   WorkbenchMatchResult,
 } from "@zotlit/workbench/ui";
+import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { ViewRunner } from "@/lib/view-runner.ts";
 import { QueryService } from "@/services/item-query/service.ts";

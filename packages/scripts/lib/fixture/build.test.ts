@@ -33,13 +33,13 @@ import {
   parseAnnotationPosition,
   getRelatedKeysByItemID,
   getSchemaVersions,
-  isItemKey,
   resolveItemTags,
 } from "@zotlit/db";
 import type { IndexedItem } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import { isItemKey } from "@zotlit/zotero-types/keys";
 
 import {
   ANNOTATIONS,

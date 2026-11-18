@@ -5,7 +5,7 @@
 // decides every item type, field, and creator type ID.
 import type { DatabaseSync } from "node:sqlite";
 
-import { formatIndexedKey } from "#lib/zt-key.ts";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 /** The two Libraries of the scenario. `libraryID` is local to the copy. */
 export const SCENARIO_LIBRARIES = {

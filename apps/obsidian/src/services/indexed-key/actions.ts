@@ -2,8 +2,8 @@
 import { TFile } from "obsidian";
 import type { Plugin } from "obsidian";
 
-import { formatIndexedKey } from "@zotlit/db";
-import type { ParsedIndexedKey } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import type { ParsedIndexedKey } from "@zotlit/zotero-types/keys";
 
 import * as m from "@/lib/i18n/generated/messages.ts";
 import * as toast from "@/lib/toast.ts";

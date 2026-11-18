@@ -7,11 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import type { SQLInputValue } from "node:sqlite";
 import { pathToFileURL } from "node:url";
 
-import {
-  formatAnnotationSubpath,
-  formatIndexedKey,
-  USER_LIBRARY_ID,
-} from "@zotlit/db";
+import { formatAnnotationSubpath, USER_LIBRARY_ID } from "@zotlit/db";
 import type { FrontmatterField } from "@zotlit/templates/constants";
 import {
   DEFAULT_ANNOTATION_ETA,
@@ -19,6 +15,7 @@ import {
   DEFAULT_CITATION_BRANCHES,
   formatPlainTemplateDocument,
 } from "@zotlit/templates/facade";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { FIXTURE_PLUGIN_ID } from "./layout.ts";
 import type { FixtureLayout } from "./layout.ts";

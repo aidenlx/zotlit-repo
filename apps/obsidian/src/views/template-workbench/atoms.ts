@@ -2,8 +2,9 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import { isChildItemFields, parseIndexedKey } from "@zotlit/db";
+import { isChildItemFields } from "@zotlit/db";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { itemSummary } from "@/lib/item-summary.ts";
 import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles.ts";

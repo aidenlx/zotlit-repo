@@ -4,13 +4,13 @@ import { Effect, Exit } from "effect";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { formatIndexedKey } from "@zotlit/db";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import type { ItemQueryDatabase } from "@zotlit/db/item-query";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
 } from "@zotlit/db/test-scenario";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import {
   collectQuery,

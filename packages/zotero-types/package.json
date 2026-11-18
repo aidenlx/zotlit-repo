@@ -9,6 +9,8 @@
     "./csl": "./src/csl.ts",
     "./field-labels": "./src/field-labels.ts",
     "./item-types": "./src/item-types.ts",
+    "./keys": "./src/keys.ts",
+    "./uri": "./src/uri.ts",
     "./schema.json": "./zotero-schema/schema.json",
     "./fixtures/item-to-csl.json": "./fixtures/item-to-csl.json",
     "./package.json": "./package.json"
@@ -20,12 +22,18 @@
     "generate:csl": "node scripts/generate-csl.ts && oxlint --fix src/csl.ts && oxfmt src/csl.ts",
     "generate:fixture": "node scripts/generate-fixture.ts && oxfmt fixtures/item-to-csl.json",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json",
-    "lint": "oxlint"
+    "lint": "oxlint",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "arkregex": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

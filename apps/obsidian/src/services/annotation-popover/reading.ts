@@ -5,8 +5,8 @@ import { MarkdownRenderChild } from "obsidian";
 // citation it is where the settings ask for it.
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 
-import { parseAnnotationOpenUri } from "@zotlit/db";
-import type { AnnotationOpenUriOptions } from "@zotlit/db";
+import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
+import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
 import { scopedBridge } from "@/lib/effect-bridge.ts";
 import { forkEach } from "@/lib/effect-stream.ts";

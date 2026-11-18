@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { isItemKey } from "@zotlit/db";
+import { isItemKey } from "@zotlit/zotero-types/keys";
 
 import { createStressItems } from "./spec.ts";
 

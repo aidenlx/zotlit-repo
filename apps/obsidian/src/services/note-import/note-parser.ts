@@ -6,10 +6,8 @@ import type TurndownService from "turndown";
 
 import {
   annotationColorToName,
-  annotationOpenUri,
   attachmentToTemplateData,
   DEFAULT_LOCATOR_LABEL_SHORT,
-  formatIndexedKey,
   resolveCitedItem,
 } from "@zotlit/db";
 import type {
@@ -21,6 +19,8 @@ import type {
 } from "@zotlit/db";
 import { attachmentAbsPath, parseAttachmentPath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
 import * as m from "@/lib/i18n/generated/messages.ts";
 import { getLogger } from "@/lib/log.ts";

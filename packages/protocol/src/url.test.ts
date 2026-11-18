@@ -15,6 +15,7 @@ import {
   buildOpenAttachmentProtocolUrl,
   buildProtocolUrl,
   buildUpdateAllProtocolUrl,
+  libraryViewUri,
   parseExploreProtocolQuery,
   parseImportAllNotesProtocolQuery,
   parseImportManyProtocolQuery,
@@ -574,5 +575,19 @@ describe("clipboard Profile handoff", () => {
     { clipboard: true },
   ])("refuses a handoff without the explicit clipboard flag: %o", (query) => {
     expect(() => parseImportProfileProtocolQuery(query)).toThrow();
+  });
+});
+
+describe("libraryViewUri", () => {
+  it("names a personal-library item by its bare key", () => {
+    expect(libraryViewUri("ABC12345", null)).toBe(
+      "obsidian://zotlit/show-in-library?item-key=ABC12345",
+    );
+  });
+
+  it("names a group-library item by its Indexed Key", () => {
+    expect(libraryViewUri("ABC12345", 42)).toBe(
+      "obsidian://zotlit/show-in-library?item-key=ABC12345g42",
+    );
   });
 });

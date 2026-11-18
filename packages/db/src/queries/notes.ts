@@ -2,12 +2,12 @@
 
 import type { NodeDatabaseClient } from "#client/node.ts";
 
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { FindManyOptions, QueryRow } from "./_shared.ts";
 import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
-
-import { formatIndexedKey } from "#lib/zt-key.ts";
 
 /** A note's identity and staleness stamp, without its HTML body. */
 export interface ChildNote {

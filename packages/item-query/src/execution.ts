@@ -1,12 +1,12 @@
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
 import { HYDRATE_CHUNK_SIZE, SCAN_PAGE_SIZE } from "@zotlit/db/item-query";
 import type {
   ItemQueryDatabase,
   ItemQueryReaderError,
   ScanRow,
 } from "@zotlit/db/item-query";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { runCandidatePass } from "./candidate-pass.ts";
 import { compareScalars } from "./collation.ts";

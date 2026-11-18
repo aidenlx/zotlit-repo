@@ -7,7 +7,6 @@ import type { Menu, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { parseIndexedKey } from "@zotlit/db";
 import type { DisplayNode } from "@zotlit/workbench/explorer";
 import {
   failedRender,
@@ -21,6 +20,7 @@ import {
   NO_MATCH_DATA,
 } from "@zotlit/workbench/ui";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { EffectBridge } from "@/lib/effect-bridge.ts";
 import * as m from "@/lib/i18n/generated/messages.ts";

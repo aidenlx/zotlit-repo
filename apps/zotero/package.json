@@ -23,6 +23,7 @@
     "@zotlit/db": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/shared": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
     "core-js": "^3.39.0",
     "monkey-around": "catalog:"
   },

@@ -1,7 +1,6 @@
 // The Item loading descriptor: stored fields and its child Relation Lists.
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
 import { readHydrateChunk } from "@zotlit/db/item-query";
 import type {
   CollectionPaths,
@@ -9,6 +8,7 @@ import type {
   HydrateRelation,
   ScanRow,
 } from "@zotlit/db/item-query";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryAnnotation } from "./annotation-fields.ts";
 import { ANNOTATION_LOADING } from "./annotation-hydration.ts";

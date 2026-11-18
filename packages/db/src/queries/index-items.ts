@@ -12,6 +12,8 @@ import {
   sql,
 } from "drizzle-orm";
 
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { getBaseFieldTable } from "./_base-fields.ts";
 import type { BaseFieldTable } from "./_base-fields.ts";
 import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
@@ -20,7 +22,6 @@ import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
 import { deletedItems, items, itemTypes, libraries } from "#drizzle/schema.ts";
-import { formatIndexedKey } from "#lib/zt-key.ts";
 
 export interface IndexedCreator {
   firstName: string | null;

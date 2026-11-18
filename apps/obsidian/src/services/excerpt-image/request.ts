@@ -4,7 +4,6 @@ import type { Scope } from "effect";
 import {
   annotationTypeToName,
   parseAnnotationPosition,
-  parseIndexedKey,
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
 import type {
@@ -16,6 +15,7 @@ import type {
 } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { valueOr } from "@/lib/effect-bridge.ts";
 import type { EffectBridge } from "@/lib/effect-bridge.ts";

@@ -8,7 +8,7 @@ import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 
-import { DEFAULT_CITATION_VARIANT, parseIndexedKey } from "@zotlit/db";
+import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
 import {
   initialTreeState,
   setAnchor,
@@ -30,6 +30,7 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log.ts";
 import { viewRuntime } from "@/lib/view-atoms.ts";

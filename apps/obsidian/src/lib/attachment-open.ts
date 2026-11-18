@@ -4,7 +4,8 @@ import { Keymap, Menu, SuggestModal } from "obsidian";
 import type { App, PaneType } from "obsidian";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
-import { ATTACHMENT_ANCHOR_KEY, attachmentOpenUri } from "@zotlit/db";
+import { ATTACHMENT_ANCHOR_KEY } from "@zotlit/db";
+import { attachmentOpenUri } from "@zotlit/zotero-types/uri";
 
 import * as m from "@/lib/i18n/generated/messages.ts";
 import { getLogger } from "@/lib/log.ts";

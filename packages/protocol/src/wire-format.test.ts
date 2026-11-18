@@ -1,8 +1,6 @@
 import type * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { libraryViewUri } from "@zotlit/db";
-
 import { noteStatusResponseSchema } from "./note-status.ts";
 import { notifyEventSchema } from "./notify.ts";
 import { SOURCE_ID_HEADER } from "./source-id.ts";
@@ -15,6 +13,7 @@ import {
   buildImportProtocolUrl,
   buildImportProfileProtocolUrl,
   importProfileProtocolQuerySchema,
+  libraryViewUri,
   buildProtocolUrl,
   buildUpdateAllProtocolUrl,
   exploreProtocolQuerySchema,

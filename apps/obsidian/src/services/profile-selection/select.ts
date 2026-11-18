@@ -3,7 +3,7 @@
 // Formula; the query engine slices that work in the worker.
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log.ts";
 import { QueryService } from "@/services/item-query/service.ts";

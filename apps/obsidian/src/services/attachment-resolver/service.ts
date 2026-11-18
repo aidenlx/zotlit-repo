@@ -26,7 +26,7 @@ import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 /**
  * What an open PDF resolves to in the Zotero library. Both keys are Indexed
  * Keys — `key` for the personal library, `key + "g" + groupID` for a group — as
- * ADR 0033 settles and `formatIndexedKey` in `@zotlit/db` formats.
+ * ADR 0033 settles and `formatIndexedKey` in `@zotlit/zotero-types/keys` formats.
  *
  * `pending` and `unresolved` are different answers: the first says the resolver
  * cannot answer yet, the second says Zotero does not know this file. A caller

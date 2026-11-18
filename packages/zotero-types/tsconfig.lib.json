@@ -2,12 +2,12 @@
   "extends": ["@zotlit/config/tsconfig"],
   "compilerOptions": {
     "target": "ES2025",
-    "lib": ["ES2025"],
+    "lib": ["ES2025", "DOM"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "isolatedDeclarations": false,
     "types": []
   },
   "include": ["./src/**/*.ts"],
-  "exclude": ["./node_modules"]
+  "exclude": ["./node_modules", "./src/**/*.test.ts"]
 }

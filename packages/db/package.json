@@ -37,6 +37,7 @@
   "dependencies": {
     "@logtape/logtape": "catalog:",
     "@std/collections": "catalog:",
+    "@zotlit/protocol": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

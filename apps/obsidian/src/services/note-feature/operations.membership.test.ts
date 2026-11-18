@@ -7,13 +7,14 @@ import type { TFile } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { stringify as stringifyYaml } from "yaml";
 
-import { formatIndexedKey, getLibraries } from "@zotlit/db";
+import { getLibraries } from "@zotlit/db";
 import type { Item, NoteTemplateContext } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
 import {

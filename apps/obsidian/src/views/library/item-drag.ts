@@ -8,7 +8,8 @@ import { nanoid } from "nanoid";
 import type { App } from "obsidian";
 import type { DragEvent } from "react";
 
-import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import type { ItemActions } from "./item-actions.ts";
 

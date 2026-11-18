@@ -6,11 +6,12 @@ import type { App, CachedMetadata } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { formatIndexedKey, USER_LIBRARY_ID } from "@zotlit/db";
+import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Library, Note } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { createFixtureSchema, rowInstant } from "@zotlit/db/test-utils";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";

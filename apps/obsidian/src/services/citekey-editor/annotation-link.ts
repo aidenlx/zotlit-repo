@@ -14,8 +14,8 @@ import {
 import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, Keymap, livePreviewState } from "obsidian";
 
-import { parseAnnotationOpenUri } from "@zotlit/db";
-import type { AnnotationOpenUriOptions } from "@zotlit/db";
+import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
+import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
 import {
   livePreviewOf,

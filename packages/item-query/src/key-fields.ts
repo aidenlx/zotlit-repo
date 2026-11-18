@@ -1,4 +1,4 @@
-import { formatIndexedKey } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { FieldDefinition } from "./fields.ts";
 

@@ -1,6 +1,10 @@
 import * as v from "valibot";
 
-import { isItemKey, parseIndexedKey } from "@zotlit/db";
+import {
+  formatIndexedKey,
+  isItemKey,
+  parseIndexedKey,
+} from "@zotlit/zotero-types/keys";
 
 /**
  * Obsidian protocol namespace ZotLit owns. Each action is registered as
@@ -436,8 +440,8 @@ const PROTOCOL_SHOW_IN_LIBRARY_ACTION = "show-in-library";
 /**
  * Open the Library View on one Item. The link names the Item by its Indexed
  * Key, which every synced device shares, so a link written into a note keeps
- * working on each of them; it carries no `source-id`. `libraryViewUri` in
- * `@zotlit/db` builds it, for the `zt.librarylink` template variable.
+ * working on each of them; it carries no `source-id`. {@link libraryViewUri}
+ * builds it.
  */
 export const showInLibraryProtocolActionId =
   `${PROTOCOL_NAMESPACE}/${PROTOCOL_SHOW_IN_LIBRARY_ACTION}` as const;
@@ -451,6 +455,18 @@ export const showInLibraryProtocolQuerySchema = v.pipe(
   }),
   v.transform(({ "item-key": indexedKey }) => ({ indexedKey })),
 );
+
+/**
+ * Build the `obsidian://zotlit/show-in-library?item-key=<indexed key>` link
+ * that opens ZotLit's Library View on an Item, for the `zt.librarylink`
+ * template variable.
+ */
+export function libraryViewUri(key: string, groupID: number | null): string {
+  const params = new URLSearchParams({
+    "item-key": formatIndexedKey(key, groupID),
+  });
+  return `obsidian://${showInLibraryProtocolActionId}?${params}`;
+}
 
 type ShowInLibraryProtocolQuery = v.InferOutput<
   typeof showInLibraryProtocolQuerySchema

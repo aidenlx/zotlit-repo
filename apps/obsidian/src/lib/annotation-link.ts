@@ -1,5 +1,6 @@
 // Shared Annotation Occurrence classification for the scanner and note renderers.
-import { formatIndexedKey, parseAnnotationOpenUri } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 
 export type AnnotationLinkShape =
   | { kind: "link"; text: string }

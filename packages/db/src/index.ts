@@ -65,22 +65,9 @@ export {
   type ParsedAnnotationSubpath,
 } from "./lib/zt-annot-anchor.ts";
 export {
-  formatIndexedKey,
-  isIndexedKey,
-  parseIndexedKey,
-  type ParsedIndexedKey,
   resolveIndexedKeyLibrary,
   resolveIndexedKeyLibraryIn,
 } from "./lib/zt-key.ts";
-export { isItemKey } from "./lib/zt-item-key.ts";
-export {
-  annotationOpenUri,
-  attachmentOpenUri,
-  itemSelectUri,
-  libraryViewUri,
-  parseAnnotationOpenUri,
-  type AnnotationOpenUriOptions,
-} from "./lib/zt-uri.ts";
 export { USER_LIBRARY_ID } from "./lib/constants.ts";
 export {
   getAnnotationsByKey,

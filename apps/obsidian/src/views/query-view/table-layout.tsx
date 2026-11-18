@@ -15,7 +15,9 @@ import {
 } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import { isPageNumber, itemSelectUri, parseIndexedKey } from "@zotlit/db";
+import { isPageNumber } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { Icon } from "@/components/obsidian/icon.tsx";
 import * as m from "@/lib/i18n/generated/messages.ts";

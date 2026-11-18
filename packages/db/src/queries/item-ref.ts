@@ -1,11 +1,11 @@
 import type { NodeDatabaseClient } from "#client/node.ts";
 
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { Item } from "./items.ts";
 import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
-
-import { formatIndexedKey } from "#lib/zt-key.ts";
 
 /**
  * A Zotero item resolved to its key + owning library, library-scope-free — the

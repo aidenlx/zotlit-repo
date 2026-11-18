@@ -3,6 +3,8 @@ import type { Annotation, ResolvedAnnotationTypeName } from "#lib/zt-annot.ts";
 import type { AnnotationColorName } from "#lib/zt-color.ts";
 import type { ItemTag, TemplateTag } from "#lib/zt-tag.ts";
 
+import { annotationOpenUri } from "@zotlit/zotero-types/uri";
+
 import { emptyToNull } from "./normalize.ts";
 import type { TemplateAttachment } from "./zt-template-attach.ts";
 import type {
@@ -15,7 +17,6 @@ import { defineToString } from "#lib/to-string.ts";
 import { annotationTypeToName } from "#lib/zt-annot.ts";
 import { annotationColorToName } from "#lib/zt-color.ts";
 import { toTemplateTag } from "#lib/zt-tag.ts";
-import { annotationOpenUri } from "#lib/zt-uri.ts";
 
 /**
  * Annotation data in the v2 template vocabulary. Exposed on `zt.annotations`

@@ -11,7 +11,7 @@ import {
 } from "effect";
 import type { CliData } from "obsidian";
 
-import { parseIndexedKey } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 declare module "effect/Schema" {
   namespace Annotations {

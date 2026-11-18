@@ -1,6 +1,8 @@
 import type { NodeDatabaseClient } from "#client/node.ts";
 import { eq, sql } from "drizzle-orm";
 
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
 import { groupIDForLibrary } from "./libraries.ts";
@@ -12,7 +14,6 @@ import {
   fieldsCombined,
   deletedItems,
 } from "#drizzle/schema.ts";
-import { formatIndexedKey } from "#lib/zt-key.ts";
 
 /** Zotero's native citation-key field name in Zotero's `fieldsCombined`. */
 const CITEKEY_FIELD = "citationKey";

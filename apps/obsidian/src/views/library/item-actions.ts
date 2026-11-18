@@ -9,8 +9,9 @@ import type { Scope } from "effect";
 import { Effect, Exit } from "effect";
 import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
 
-import { itemSelectUri, parseIndexedKey } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
 import { recover } from "@/lib/effect-cause.ts";

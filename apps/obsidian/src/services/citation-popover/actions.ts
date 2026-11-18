@@ -3,7 +3,8 @@
 import { Keymap } from "obsidian";
 import type { MouseEvent } from "react";
 
-import { formatIndexedKey, itemSelectUri } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import {
   openAttachments,

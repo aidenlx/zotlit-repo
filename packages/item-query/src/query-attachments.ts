@@ -2,7 +2,6 @@
 // of the Target Libraries, on the same bounded execution as Item Query.
 import { Effect } from "effect";
 
-import { formatIndexedKey } from "@zotlit/db";
 import {
   readAttachmentCandidateSet,
   readRelationCandidateSet,
@@ -11,6 +10,7 @@ import {
   readAttachmentScanPage,
   readAttachmentUniverseRows,
 } from "@zotlit/db/item-query";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { lowerAttachmentCandidate } from "./attachment-candidates.ts";
 import {

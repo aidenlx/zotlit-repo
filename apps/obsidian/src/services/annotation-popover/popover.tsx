@@ -3,8 +3,8 @@
 
 import type { Component, HoverParent } from "obsidian";
 
-import { formatIndexedKey } from "@zotlit/db";
-import type { AnnotationOpenUriOptions } from "@zotlit/db";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
 import { AbortError } from "@/lib/abort-error.ts";
 import type { EffectBridge } from "@/lib/effect-bridge.ts";
