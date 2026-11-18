@@ -329,7 +329,7 @@ it("closes a field's details on a press on another row, and keeps the popover", 
   expect(popover()).not.toBeNull();
 });
 
-// Walkthrough: the row ↓ selects wears the web theme's
+// The row ↓ selects wears the web theme's
 // selected look and shows its Insert field button. The page's `data-selected`
 // variant (shadcn) reads the value "true", so the row carries that value.
 it("marks the row the keyboard selects for the web theme's selected look", async () => {

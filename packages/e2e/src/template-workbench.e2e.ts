@@ -1644,7 +1644,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
         const outside = action.getAttribute("aria-expanded");
         // A press on a place that takes no focus, the item row's label,
-        // closes it and hands focus back to the action (walkthrough F2).
+        // closes it and hands focus back to the action.
         await input.click(action);
         await until(
           "the popover for the press on the label",
@@ -1991,7 +1991,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(JSON.parse(await walk(false))).toEqual(expected(false));
 
-    // Walkthrough F5: at 200% zoom the narrow leaf is short.
+    // At 200% zoom the narrow leaf is short.
     // The bar gives way, so the list keeps the field's whole row under its
     // sticky section header, and the bar opens on its snippet.
     const zoomed = await obRun(
@@ -2204,7 +2204,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(result.items).toEqual(expect.arrayContaining(ALPHA_CREATORS));
   });
 
-  // Walkthrough F3: ZotLit Research Collective is a one-field
+  // ZotLit Research Collective is a one-field
   // name, with no family name. The details list all three creators and mark
   // that one; both forms pass over it, and the Preview shows what each form's
   // result says.
