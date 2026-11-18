@@ -23,9 +23,11 @@ import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchHost, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
 import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
-import { sampleTypeLabel } from "./selection.tsx";
 
-import { SAMPLE_ITEM_CHOICES } from "#core/editor/selection-data.ts";
+import {
+  getSampleItemType,
+  SAMPLE_ITEM_CHOICES,
+} from "#core/editor/selection-data.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 
@@ -190,3 +192,18 @@ export const workbenchAnnotationChoice = (
     ],
   });
 };
+
+export function sampleTypeLabel(id: string): string {
+  switch (getSampleItemType(id)) {
+    case "journalArticle":
+      return m.workbench_sample_type_journal_article();
+    case "conferencePaper":
+      return m.workbench_sample_type_conference_paper();
+    case "book":
+      return m.workbench_sample_type_book();
+    case "thesis":
+      return m.workbench_sample_type_thesis();
+    default:
+      return m.workbench_example_item();
+  }
+}
