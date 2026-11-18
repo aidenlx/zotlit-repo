@@ -80,9 +80,24 @@ only one that may take a slot when one frees.
 _Avoid_: lock waiters, wait list
 
 **Lease**:
-The bounded time a holder may keep its Desktop Slot, counted from when it was
-admitted; a holder whose Lease ends loses the slot.
-_Avoid_: timeout, hold limit
+What keeps a hung or forgotten holder from keeping its Desktop Slot forever.
+An automated holder's Lease is a silence limit: each sign of progress moves its
+end to now plus that limit, under a cap on total time. A manual hold's Lease
+has no end until a run waits for its slot; it then ends after a notice. A
+holder whose Lease ends loses the slot.
+_Avoid_: timeout, hold limit, duration
+
+**Silence Limit**:
+How long an automated holder may go without a sign of progress, such as a test
+case that starts or a line of a child command's output, before its Lease ends.
+Each kind of holder has one, longer than the longest quiet step of its healthy
+runs.
+_Avoid_: idle timeout, heartbeat timeout
+
+**Notice**:
+The period a manual hold keeps its Desktop Slot after a waiter that needs the
+slot asks for it; the hold prints who waits and when it ends, then ends.
+_Avoid_: preemption warning, grace period
 
 **Admission Deadline**:
 How long a waiter will wait, at the Desktop Queue and the Memory Gate combined,

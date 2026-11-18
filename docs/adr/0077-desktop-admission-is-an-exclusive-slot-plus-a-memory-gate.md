@@ -75,3 +75,51 @@ queue, the Memory Gate, the Admission Deadline and the Leases are the same
 for both. A docs-walk run that captures or records under an outer hold of
 one slot fails at once, before its walks open, and names
 `pnpm desktop-slot run --exclusive`.
+
+## Lease update (2026-11-18)
+
+The Lease has one purpose: a hung or forgotten holder cannot block other runs
+forever. A duration that a person or an agent states in advance does not
+measure that, so no hold states one now.
+
+- **An automated holder renews its Lease on progress.** Its Lease is a limit
+  on silence, not on total time. Each sign of progress moves the Lease end to
+  now plus the silence limit of the holder's kind. For a Vitest run, progress
+  is each test file, test case, and hook that starts or ends, and each stage
+  of the Paired Run setup. A script such as `measure:query` reports progress
+  at its steps. A holder that wraps a child process, such as a Land Turn or
+  the End-to-end Run after a land, takes each output of the child as
+  progress. A healthy run is never ended. A silent run ends itself with exit
+  76 and says how long it was silent and what its last progress was. The
+  silence limits are constants of the tools: 12 min for `pnpm e2e`,
+  `e2e:worker`, and the desktop runs of `pnpm verify --release` (above the
+  longest test or hook timeout of the suite, 10 min, so Vitest reports a hung
+  test first); 22 min for a docs walk (its longest test timeout is 20 min);
+  12 min for `measure:query` (its longest step is one wait of up to 10 min);
+  15 min for a holder that wraps a child (a waiter repeats its message every
+  5 min, and the longest test file prints nothing for about 2 min). A cap of
+  2 h after admission stays as the last backstop for a run that reports
+  progress forever. `ZOTLIT_DESKTOP_LEASE` is gone.
+- **A manual hold states no duration and yields on demand.** `pnpm desktop-slot
+  run` and `pnpm fixture open|dev` take no `--for`. A manual hold keeps its
+  slot while no run waits. When the head waiter cannot get a slot because
+  manual holds have them, the manual hold that has held longest gets 5 min of
+  notice: it prints who waits and when it ends, then ends its command's
+  process group with exit 76. A manual hold that blocks the waiter directly,
+  an Exclusive Hold or a hold from the waiter's worktree, gets the notice
+  instead; an Exclusive Hold waiter gives notice to every manual hold. The
+  notice and the 2 min eviction grace fit inside the default Admission
+  Deadline of 9 min, so a waiter with that deadline is admitted. A notice
+  that ends while no run waits any more ends nothing. An automated holder
+  never yields.
+- **`pnpm desktop-slot extend` is gone.** Progress renews an automated
+  holder, and a manual hold has no end to extend.
+- **The backstop stays.** The head waiter evicts a holder that is alive 2 min
+  after its Lease end, which is now the end of the silence limit or of the
+  notice.
+
+Two failures caused the change. An agent that started a manual hold had to
+guess `--for`: too short, and its session was killed in the middle of the
+work; too long, and other runs waited behind an idle hold. A healthy End-to-end
+Run of 20 min 22 s was killed at its fixed Lease of 20 min, and the runner
+reported a failed run.

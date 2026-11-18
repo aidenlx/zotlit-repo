@@ -32,7 +32,7 @@ The worktree stays on its branch with a clean tree.
 | `rebase`    | as it was                                   | `git rebase origin/next`, resolve the conflicts, run the affected tests, commit, land again. |
 | `gate`      | rebased onto the fetched `origin/next`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `push`      | rebased; `next` moved in each attempt       | Land again.                                                                                  |
-| `lease`     | as the step left it; the land took too long | Land again; when it repeats, report the step that runs past the Lease.                       |
+| `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
 
 ## After the land
 
