@@ -9,6 +9,15 @@ import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { createClient, connectClient } from "@zotlit/db/client/node";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { InProcessReadsOptions } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { TestReads } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type {
   AnnotationRecord,
@@ -17,15 +26,6 @@ import type {
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
-import type { InProcessReadsOptions } from "@/services/zotero-reads/test-utils.ts";
 
 import { answerAnnotationImage } from "./cli-image.ts";
 import { PNG_FORMAT } from "./format.ts";

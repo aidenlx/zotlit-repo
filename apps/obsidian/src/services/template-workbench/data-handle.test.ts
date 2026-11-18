@@ -5,20 +5,20 @@ import { expect } from "vitest";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import {
-  layerZoteroReads,
-  ZoteroReads,
-} from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { workbenchContext } from "./__fixtures__.ts";
 import { bindTemplateData } from "./data-handle.ts";

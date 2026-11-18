@@ -25,15 +25,27 @@ import {
   FIELD_ZOTERO_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-
-import type { ParseClient } from "@/services/citation-parse/client.ts";
-import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
-import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
+import {
+  inProcessReadsService,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { TestReads } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import type {
+  ZoteroReads,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
+import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   LibraryScope,
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import type { ParseClient } from "@/services/citation-parse/client.ts";
+import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 import type { LibraryScopeEvents } from "@/services/library-scope/service.ts";
 import { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";
 import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
@@ -42,18 +54,6 @@ import { testClock } from "@/services/query-client/test-clock.ts";
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
 import type { Settings } from "@/services/settings/schema.ts";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import type {
-  ZoteroReads,
-  ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { citationIndexFixture, citationLookupFixture } from "./__fixtures__.ts";
 import { CitationLookup } from "./lookup-service.ts";

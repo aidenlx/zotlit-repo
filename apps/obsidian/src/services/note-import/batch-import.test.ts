@@ -19,18 +19,28 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  inProcessReadsService,
+  recordCalls,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { TestReads } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsState } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  AvailableLibrary,
+  LibrarySelector,
+  ResolvedLibraryScope,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { selectorOf } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { BatchTarget } from "@/services/batch-scope.ts";
 import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
 import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type {
-  AvailableLibrary,
-  LibrarySelector,
-  ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
-import { selectorOf } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
@@ -43,16 +53,6 @@ import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ProfileAnnotationError } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  recordCalls,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 import type {
   BatchClassifyControls,

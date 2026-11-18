@@ -12,6 +12,10 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  zoteroRevisionAtom,
+  zoteroStateAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
@@ -41,10 +45,6 @@ import { pdfSessionsAtom } from "@/services/pdf-annotation-editor/atoms.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";
 import { ReaderSessionHost } from "@/services/reader-session/session.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
-import {
-  zoteroRevisionAtom,
-  zoteroStateAtom,
-} from "@/services/zotero-reads/atoms.ts";
 import { viewTargetOpener } from "@/views/open-target.ts";
 import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 import { QueryView } from "@/views/query-view/view.tsx";

@@ -5,6 +5,9 @@ import { expect } from "vitest";
 
 import type { AnnotationSources, Attachment } from "@zotlit/db";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
@@ -13,9 +16,6 @@ import type {
 } from "@/services/annotation-repository/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import type { ExcerptRequest } from "./contract.ts";
 import { ExcerptDisplays } from "./display.ts";

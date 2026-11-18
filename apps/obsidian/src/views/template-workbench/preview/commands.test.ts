@@ -3,8 +3,8 @@ import { Effect, Exit, Fiber } from "effect";
 import { vi } from "vitest";
 
 import { scopedViewRunner } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
+import type { ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
 
-import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 

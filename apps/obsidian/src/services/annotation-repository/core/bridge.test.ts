@@ -3,11 +3,12 @@ import { describe, expect, it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, FiberSet, RequestResolver } from "effect";
 import { TestClock } from "effect/testing";
 
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
+
 import {
   scopedStack,
   setup,
 } from "@/services/annotation-repository/__fixtures__.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { databaseRows, databaseRowsResolver } from "./bridge.ts";
 

@@ -15,8 +15,7 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
 import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
-
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { workerQuery } from "./__fixtures__/worker-query.ts";
 import { makeAttachmentFileResolver } from "./attachment-files.ts";

@@ -19,20 +19,20 @@ import * as v from "valibot";
 // @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
 // @see apps/obsidian/docs/adr/0078-the-tag-selector-writes-tag-filters.md
 import type { FilterTree } from "@zotlit/filter-expression";
+import {
+  librarySelectorSchema,
+  selectorKey,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type {
+  LibraryScope,
+  LibrarySelector,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type {
   QueryViewGroup,
   QueryViewRequest,
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
-import {
-  librarySelectorSchema,
-  selectorKey,
-} from "@/services/library-scope/scope.ts";
-import type {
-  LibraryScope,
-  LibrarySelector,
-} from "@/services/library-scope/scope.ts";
 import {
   parseQueryFile,
   sameSort,

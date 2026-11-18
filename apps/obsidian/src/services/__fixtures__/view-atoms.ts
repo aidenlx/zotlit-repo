@@ -33,7 +33,7 @@ import { TemplateMigration } from "@/services/template/migration.ts";
 import { Template } from "@/services/template/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 /**

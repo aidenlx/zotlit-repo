@@ -140,6 +140,7 @@ import type {
   PartialPlaceholderHost,
   ViewSize,
 } from "@zotlit/workbench/ui";
+import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
 import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
@@ -164,7 +165,6 @@ import {
 import { Template } from "@/services/template/service.ts";
 import type { PartialUnpackOutcome } from "@/services/template/service.ts";
 import type { ArrivingProblem } from "@/services/template/workbench-recovery.ts";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 import type { ExplorerActions } from "@/views/template-data-explorer/actions.ts";
 import { makeExportTemplateDataCommand } from "@/views/template-data-explorer/atoms.ts";
 import { exportTarget } from "@/views/template-data-explorer/export-file.ts";

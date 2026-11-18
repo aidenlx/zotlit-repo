@@ -6,15 +6,14 @@ import { isChildItemFields } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
-
-import { libraryLabel } from "@/services/library-scope/label.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { SnapshotItem } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type {
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { SnapshotItem } from "./snapshot.ts";
+import { libraryLabel } from "@/services/library-scope/label.ts";
 
 /**
  * One Item an Ambiguous Citation Key names, as a candidate row shows it: the

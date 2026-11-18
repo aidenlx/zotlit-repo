@@ -11,6 +11,13 @@ import { Workspace as WorkspaceTag } from "@zotlit/obsidian-kit/obsidian-workspa
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadsApi,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { NoteImporter } from "@/services/note-import/service.ts";
@@ -18,13 +25,6 @@ import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type {
-  ZoteroReadsApi,
-  ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import {

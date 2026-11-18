@@ -29,6 +29,8 @@ import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
@@ -45,9 +47,7 @@ import type {
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
 import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 

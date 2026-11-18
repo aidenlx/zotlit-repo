@@ -27,13 +27,11 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { heldResolution } from "@/services/citation-index/lookup.ts";
-import type {
-  CitationLookupAnswer,
-  CitationLookupObservation,
-} from "@/services/citation-index/service.ts";
+import type { CitationLookupObservation } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   citationContent,

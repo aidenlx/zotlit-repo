@@ -4,14 +4,14 @@ import { Effect } from "effect";
 import { expect } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
 
 import { lookupFixture } from "./__fixtures__.ts";
 

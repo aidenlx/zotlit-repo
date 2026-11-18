@@ -5,11 +5,11 @@ import * as Atom from "effect/reactivity/Atom";
 import { homedir } from "node:os";
 
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsState } from "@zotlit/zotero-reads/client/service.ts";
 
 import { QueryClients } from "@/services/query-client/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 
 export type ConnectionReadout =
   | { status: "checking" }

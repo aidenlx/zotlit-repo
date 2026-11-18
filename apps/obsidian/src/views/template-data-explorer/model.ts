@@ -32,13 +32,13 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms.ts";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];

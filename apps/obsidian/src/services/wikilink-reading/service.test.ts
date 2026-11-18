@@ -21,8 +21,8 @@ import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts"
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   occurrences,

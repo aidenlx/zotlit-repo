@@ -8,13 +8,13 @@ import { createContext, useContext } from "react";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { QueryService } from "@/services/item-query/service.ts";
 import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
 import { libraryLabel } from "@/services/library-scope/label.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 
 import {
   cardItem,

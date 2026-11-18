@@ -3,9 +3,8 @@ import type { DateTime } from "effect";
 
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { ZoteroLocalApi } from "./service.ts";
 

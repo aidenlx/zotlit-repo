@@ -27,6 +27,12 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadsApi,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
 
 import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import { TargetOpener } from "@/services/attachment-open/open-target.ts";
@@ -54,12 +60,6 @@ import { Template } from "@/services/template/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type {
-  ZoteroReadsApi,
-  ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";

@@ -5,9 +5,8 @@ import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { exitOver, scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 /**
  * Register the manual `zotlit:refresh-zotero-data` command: the escape hatch for

@@ -22,7 +22,7 @@ import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts
 import type { TemplateDataDeps } from "@/services/template-workbench/data.ts";
 import type { findExistingLitNote } from "@/services/template/inert-resolver-host.ts";
 import type { ParseClient } from "@/services/citation-parse/client.ts";
-import type { CitationLookupRequest, CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import type { CitationLookupRequest, CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
 
 type PromiseMethods<T> = {
@@ -55,7 +55,7 @@ interface PreviewHostDeps extends TemplateDataDeps {
 import { Stream } from "effect";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 // Live database and TemplateService boundaries for native preview tests.
 import type { App, Events } from "obsidian";
 import { Effect } from "effect";
@@ -68,10 +68,10 @@ import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 import { buildTemplate } from "@/services/template/__fixtures__.ts";
 import { createObsidianHost, PluginStub } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { inProcessReadsService, sharedClientOpener } from "@/services/zotero-reads/test-utils.ts";
+import { inProcessReadsService, sharedClientOpener } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { templateDataHandle } from "@/services/template-workbench/__fixtures__.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 type EventSource = Pick<Events, "on" | "offref">;
 

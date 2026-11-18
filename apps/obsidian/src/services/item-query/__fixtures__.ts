@@ -5,13 +5,13 @@ import { Effect, Layer, Stream } from "effect";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { LibraryScope as SavedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { LibraryScope as SavedLibraryScope } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { bindQuery } from "./handle.ts";
 import type { QueryHandle } from "./handle.ts";

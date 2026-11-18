@@ -5,16 +5,16 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import type { QueryViewRequest } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import { openTargetCommand, viewTargetOpener } from "@/views/open-target.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
@@ -338,7 +338,7 @@ it.live("releases the tree's read snapshot when its leaf closes", () =>
           started = true;
         }).pipe(Effect.andThen(Effect.never)),
     });
-    const state: import("@/services/zotero-reads/service.ts").ZoteroReadsState =
+    const state: import("@zotlit/zotero-reads/client/service.ts").ZoteroReadsState =
       {
         state: "ready",
         error: null,

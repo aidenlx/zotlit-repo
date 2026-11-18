@@ -1,7 +1,15 @@
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import type { QueryDataset } from "@zotlit/item-query";
+import type {
+  ItemQueryAnswer,
+  ItemQueryJob,
+} from "@zotlit/zotero-reads/contract/item-query.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type {
+  DecodedQuery,
+  DecodedValues,
+} from "@zotlit/zotero-reads/contract/query-codec.ts";
 
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import type {
@@ -9,7 +17,6 @@ import type {
   QUERY_SCHEMA_COMMAND,
   QueryCliCommand,
 } from "./contract.ts";
-import type { DecodedQuery, DecodedValues } from "./query-codec.ts";
 import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import type { WorkerMeasurement } from "./trace.ts";
 
@@ -89,3 +96,10 @@ export interface QueryAnswer extends QueryReply {
   customFields?: readonly string[];
   measurement?: WorkerMeasurement;
 }
+
+/** Compile-time assert: `T` must be `true`. */
+type Expect<T extends true> = T;
+type Equals<A, B> = [A, B] extends [B, A] ? true : false;
+/** The ZoteroReads contract carries these types (`typings/zotero-reads.d.ts`). */
+type _Job = Expect<Equals<ItemQueryJob, QueryJob>>;
+type _Answer = Expect<Equals<ItemQueryAnswer, QueryAnswer>>;

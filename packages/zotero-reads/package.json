@@ -1,0 +1,51 @@
+{
+  "name": "@zotlit/zotero-reads",
+  "version": "0.0.0",
+  "private": true,
+  "description": "ZoteroReads, the RPC between a ZotLit plugin and the Web Worker that owns the Zotero database: its contract, the Worker's handlers, the renderer's client, and the desktop host's database source",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@effect/platform-browser": "catalog:",
+    "@std/collections": "catalog:",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/item-lookup": "workspace:*",
+    "@zotlit/item-query": "workspace:*",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/shared": "workspace:*",
+    "@zotlit/workbench": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "arkregex": "catalog:",
+    "effect": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "jieba-wasm": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

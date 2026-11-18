@@ -38,6 +38,8 @@ import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { UpdateScope } from "@zotlit/protocol";
 import { evalManagedFrontmatterEntries } from "@zotlit/templates/frontmatter";
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
@@ -67,8 +69,6 @@ import { InertTemplateError } from "@/services/template/errors.ts";
 import { Template } from "@/services/template/service.ts";
 import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { applyComposedFrontmatter, composeLiteratureNote } from "./compose.ts";
 import type { ComposeFrontmatterInput, ComposeNoteDeps } from "./compose.ts";

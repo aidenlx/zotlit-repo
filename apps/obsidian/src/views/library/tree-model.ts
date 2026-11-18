@@ -8,6 +8,15 @@ import { createContext, useContext } from "react";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import {
+  zoteroRevisionAtom,
+  zoteroTreeUnavailableAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  AvailableLibrary,
+  LibraryScope,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { QueryService } from "@/services/item-query/service.ts";
 import {
@@ -15,17 +24,8 @@ import {
   libraryScopeStateAtom,
   resolvedLibraryScopeAtom,
 } from "@/services/library-scope/atoms.ts";
-import type {
-  AvailableLibrary,
-  LibraryScope,
-} from "@/services/library-scope/scope.ts";
 import type { LibraryScopeState } from "@/services/library-scope/service.ts";
 import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
-import {
-  zoteroRevisionAtom,
-  zoteroTreeUnavailableAtom,
-} from "@/services/zotero-reads/atoms.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import {
   nodeCount,

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup.ts";
+} from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
 const { livePreview, hoverLinks } = vi.hoisted(() => ({
   livePreview: vi.fn(() => false),
@@ -47,12 +47,12 @@ vi.mock("obsidian", async (importOriginal) => {
 import { editorInfoField, Keymap } from "obsidian";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
-
-import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import type {
   CitekeyResolution,
   SnapshotItem,
-} from "@/services/citation-index/service.ts";
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
+import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import {
   occurrences,
   rendered,

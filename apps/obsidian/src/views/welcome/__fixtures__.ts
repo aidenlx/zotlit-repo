@@ -9,6 +9,11 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadsEvent,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { layerQueryClients } from "@/services/query-client/service.ts";
@@ -17,11 +22,6 @@ import { layerPluginSettings } from "@/services/settings/service.ts";
 import { TemplateMigration } from "@/services/template/migration.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type {
-  ZoteroReadsEvent,
-  ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
 
 import { connectionLifecycleAtom } from "./connection.ts";
 import { holdWelcomeModel, makeWelcomeModel } from "./model.ts";

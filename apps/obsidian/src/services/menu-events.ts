@@ -17,9 +17,10 @@
 import type { EditorView } from "@codemirror/view";
 import type { Menu, Workspace } from "obsidian";
 
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 import type { ZoteroOpenableAttachment } from "@/services/citation-index/sources.ts";
 import type { CitedWork } from "@/services/citekey-navigation/intent.ts";
 import type { MarkTool } from "@/services/pdf-annotation-editor/tools.ts";

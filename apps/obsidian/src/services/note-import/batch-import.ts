@@ -12,6 +12,9 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ImportMode } from "@zotlit/protocol";
+import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { batchProfileSummary } from "@/services/batch-profile-summary.ts";
@@ -49,9 +52,6 @@ import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 import { FlatManifest, HierarchyManifest } from "@/views/batch-modal/index.ts";
 import type {

@@ -53,6 +53,7 @@ export async function runInElectron(options: {
           resolve(getPackageRoot(options.entry), "src"),
           packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
           packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
+          packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
         ],
       }),
     ],

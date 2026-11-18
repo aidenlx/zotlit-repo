@@ -20,11 +20,17 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  citedWorkSeed,
+  inProcessReadsService,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
 import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
 import type { Citation } from "@/services/citation-index/service.ts";
 import { readReferenceSources } from "@/services/citation-index/sources.ts";
@@ -50,12 +56,6 @@ import { settingsFeed } from "@/services/settings/__fixtures__.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  citedWorkSeed,
-  inProcessReadsService,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { layerCitekeyReading } from "./service.ts";
 

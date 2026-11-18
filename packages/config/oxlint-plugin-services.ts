@@ -246,7 +246,7 @@ export const workerRpc: Rule = {
     type: "problem",
     docs: { description: "Run workers on effect/rpc." },
     messages: {
-      rpc: "Run the worker on effect/rpc; follow src/services/zotero-reads/{rpc,worker,worker-launch,worker-host,in-process}.ts.",
+      rpc: "Run the worker on effect/rpc; follow packages/zotero-reads/src/{contract/rpc,worker/serve,worker/worker-launch,client/worker-host,worker/in-process}.ts.",
     },
     schema: [],
   },

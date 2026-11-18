@@ -7,13 +7,13 @@ import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import type { BatchImportPorts } from "./batch-import.ts";

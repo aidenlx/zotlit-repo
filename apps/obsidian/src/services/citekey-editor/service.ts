@@ -8,15 +8,16 @@ import {
   logAndContinue,
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type {
+  CitationLookupAnswer,
+  SnapshotItem,
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { describeCandidatesEffect } from "@/services/citation-index/ambiguity.ts";
 import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import { heldResolution } from "@/services/citation-index/lookup.ts";
-import type {
-  CitationLookupAnswer,
-  SnapshotItem,
-} from "@/services/citation-index/service.ts";
 import { hoverPreferences } from "@/services/citekey-navigation/index.ts";
 import type {
   HoverPreferences,
@@ -30,7 +31,6 @@ import { resolveLiteratureNoteWithWarning } from "@/services/note-feature/update
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 export type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 

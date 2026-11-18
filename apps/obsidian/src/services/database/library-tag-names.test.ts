@@ -14,13 +14,12 @@ import { describe, expect } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadsApi,
   ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { libraryTagNames, libraryTagNamesOf } from "./library-tag-names.ts";
 

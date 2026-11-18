@@ -19,6 +19,7 @@ import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
@@ -41,7 +42,6 @@ import type { PluginSettings } from "@/services/settings/service.ts";
 import type { Template } from "@/services/template/service.ts";
 import type { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** Every service a tab Effect may read: the tab layer's whole context. */
 export type SettingTabEnv =

@@ -15,6 +15,7 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -45,7 +46,6 @@ import type { CslStyleRequest } from "@/services/pandoc/styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import type { PandocExportChoices } from "./modal.ts";
 import { openPandocExportModal } from "./modal.ts";

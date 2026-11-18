@@ -14,14 +14,13 @@ import { isDeepStrictEqual } from "node:util";
 import { describe, expect } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
-
-import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import {
   layerLibraryScopeOf,

@@ -6,6 +6,8 @@ import { expect } from "vitest";
 
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { seedWorksSql } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import {
   annotationRows,
@@ -13,8 +15,6 @@ import {
 } from "@/services/citation-index/__fixtures__/annotations.ts";
 import type { CitationIndexHarnessOptions } from "@/services/citation-index/test-harness.ts";
 import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { seedWorksSql } from "@/services/zotero-reads/test-utils.ts";
 
 import { registerCitationsCli } from "./register.ts";
 

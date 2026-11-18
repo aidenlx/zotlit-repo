@@ -1,13 +1,13 @@
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 
 import { Effect, Stream } from "effect";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 
 import type {
   CitationLookupAnswer,
   CitationLookupRequest,
-} from "@/services/citation-index/lookup.ts";
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type {
   CitationLookupObservation,
   CitationLookupStatus,

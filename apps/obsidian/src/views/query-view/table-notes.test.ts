@@ -12,6 +12,7 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
 import {
   buildNoteIndex,
@@ -19,7 +20,6 @@ import {
   createNoteHost,
   startup,
 } from "@/services/note-index/__fixtures__.ts";
-import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
 
 import { makeNotesHost } from "./__fixtures__/notes-host.ts";
 import type { NotesHostDeps as LiteratureNotesDeps } from "./__fixtures__/notes-host.ts";

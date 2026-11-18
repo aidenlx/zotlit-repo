@@ -3,7 +3,7 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
 const { livePreview, tokenClassNodeProp } = vi.hoisted(() => ({
   livePreview: vi.fn(() => false),
@@ -83,8 +83,9 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField } from "obsidian";
 
+import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
 import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
-import { heldCitekeyOf } from "@/services/citation-index/lookup.ts";
 import {
   occurrences,
   rendered,

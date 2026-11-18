@@ -11,16 +11,17 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { layerQueryClients } from "@/services/query-client/service.ts";
-import { layerPluginSettings } from "@/services/settings/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import type { ChangeEvent } from "@/services/zotero-reads/rpc.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { ChangeEvent } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import { layerQueryClients } from "@/services/query-client/service.ts";
+import { layerPluginSettings } from "@/services/settings/service.ts";
 
 import { libraryScopeFixture } from "./__fixtures__.ts";
 import { LibraryScope, layerLibraryScope } from "./service.ts";

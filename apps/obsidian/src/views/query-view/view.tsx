@@ -28,6 +28,11 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
+import {
+  zoteroRevisionAtom,
+  zoteroQueryUnavailableRevisionAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
@@ -42,11 +47,6 @@ import type {
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
-import {
-  zoteroRevisionAtom,
-  zoteroQueryUnavailableRevisionAtom,
-} from "@/services/zotero-reads/atoms.ts";
 import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
 import { CardDisplayContext } from "@/views/annot-view/card-display.ts";
 import type { CardDisplay } from "@/views/annot-view/card-display.ts";

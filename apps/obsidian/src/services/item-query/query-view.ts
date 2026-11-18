@@ -11,8 +11,7 @@ import type {
   QuerySummary,
   SortSpec,
 } from "@zotlit/item-query";
-
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { Diagnostic, LibraryWire } from "./contract.ts";
 import type { QueryDatasetId } from "./worker-protocol.ts";

@@ -5,12 +5,11 @@ import type { App } from "obsidian";
 import { expect } from "vitest";
 
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
-
-import { readsFixture } from "@/services/zotero-reads/__fixtures__.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import { layerSource } from "@/services/zotero-reads/source.ts";
-import { inProcessClient } from "@/services/zotero-reads/test-utils.ts";
+import { inProcessClient } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { readsFixture } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerSource } from "@zotlit/zotero-reads/desktop/source.ts";
 
 import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import type { NotFoundSignal } from "./not-found-notice.ts";

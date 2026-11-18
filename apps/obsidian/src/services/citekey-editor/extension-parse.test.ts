@@ -3,11 +3,12 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import {
   lookupAnswerFor,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup.ts";
+} from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+
+import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 
 const { livePreview, parseState, tokenClassNodeProp, lineClassNodeProp } =
   vi.hoisted(() => ({

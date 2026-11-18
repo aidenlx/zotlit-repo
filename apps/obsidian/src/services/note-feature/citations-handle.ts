@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import type { Context } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import type { NoteIndex } from "@/services/note-index/service.ts";
@@ -11,7 +12,6 @@ import type { PluginSettings } from "@/services/settings/service.ts";
 import { plainTemplateError } from "@/services/template/errors.ts";
 import type { Template } from "@/services/template/service.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { renderAnnotationCitation } from "./annotation-citation.ts";
 import type { AnnotationCitation } from "./annotation-citation.ts";

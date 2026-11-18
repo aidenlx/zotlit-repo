@@ -4,14 +4,27 @@ import workerSource from "virtual:zotero-reads-worker";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import {
+  connectWorker,
+  makeWorkerReads,
+} from "@zotlit/zotero-reads/client/worker-host.ts";
+import type { ReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
+import {
+  reapReadClones,
+  reapWorkerSnapshots,
+} from "@zotlit/zotero-reads/desktop/reap-temps.ts";
 
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
-import { reapReadClones } from "@/services/database/reap-temps.ts";
+import type { Settings, ZoteroReadMode } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import type { ReadsConfig } from "./rpc.ts";
-import { connectWorker, makeWorkerReads } from "./worker-host.ts";
+/** Compile-time assert: `T` must be `true`. */
+type Expect<T extends true> = T;
+type Equals<A, B> = [A, B] extends [B, A] ? true : false;
+/** The settings feed the source settings unchanged. */
+type _ReadMode = Expect<Equals<ReadsConfig["readMode"], ZoteroReadMode>>;
+type _LogLevel = Expect<Equals<ReadsConfig["logLevel"], Settings["log.level"]>>;
 
 const sameConfig = (a: ReadsConfig, b: ReadsConfig) =>
   a.databasePath === b.databasePath &&
@@ -51,9 +64,9 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
   });
   const config = yield* Ref.make(yield* configuration);
   const reads = yield* makeWorkerReads(
-    connectWorker(workerSource, Ref.get(config)).pipe(
-      Effect.provideService(FileSystem.FileSystem, fs),
-    ),
+    connectWorker(workerSource, Ref.get(config), {
+      reapSnapshots: reapWorkerSnapshots,
+    }).pipe(Effect.provideService(FileSystem.FileSystem, fs)),
   );
   const push = Effect.fn("ZoteroReads.configure")(function* () {
     const next = yield* configuration;

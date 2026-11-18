@@ -8,8 +8,7 @@ import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 /**
  * The tag names in use in the Annotation's Library, which the tag editor

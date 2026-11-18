@@ -28,8 +28,9 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects.ts";
@@ -44,7 +45,6 @@ import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { exportWithCitations, registerPandocExport } from "./register.ts";
 import type { PandocExportDeps, PandocExportOutcome } from "./register.ts";

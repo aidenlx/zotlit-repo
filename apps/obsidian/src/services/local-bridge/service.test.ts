@@ -20,6 +20,8 @@ import {
   CONNECT_FRAGMENT_PORT,
   LOCAL_BRIDGE_PATHS,
 } from "@zotlit/workbench/bridge";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { buildLocalServer } from "@/services/local-server/__fixtures__.ts";
 import type { LocalServer } from "@/services/local-server/service.ts";
@@ -29,8 +31,6 @@ import { Profile } from "@/services/profile/service.ts";
 import type { PluginSettings, Settings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { bindLocalBridge } from "./handle.ts";
 import type { LocalBridgeHandle } from "./handle.ts";

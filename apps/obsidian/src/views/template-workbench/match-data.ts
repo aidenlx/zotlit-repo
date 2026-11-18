@@ -8,18 +8,18 @@ import type {
   WorkbenchLibrary,
   WorkbenchMatchResult,
 } from "@zotlit/workbench/ui";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import {
+  resolveLibraryScope,
+  selectorKey,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { QueryService } from "@/services/item-query/service.ts";
 import {
-  resolveLibraryScope,
-  selectorKey,
-} from "@/services/library-scope/scope.ts";
-import {
   matchesRequest,
   readMatches,
 } from "@/services/profile-selection/match-query.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
 

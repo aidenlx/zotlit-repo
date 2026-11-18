@@ -4,12 +4,12 @@ import { describe, expect, it as plainIt, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import {
   libraryScopeInvalidNotice,
   watchLibraryScopeInvalid,
 } from "./notices.ts";
-import { DEFAULT_LIBRARY_SCOPE } from "./scope.ts";
 import type { LibraryScopeState } from "./service.ts";
 
 describe("libraryScopeInvalidNotice", () => {

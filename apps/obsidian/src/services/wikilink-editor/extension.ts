@@ -19,12 +19,10 @@ import {
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
-import type {
-  CitationLookupAnswer,
-  CitationLookupObservation,
-} from "@/services/citation-index/service.ts";
+import type { CitationLookupObservation } from "@/services/citation-index/service.ts";
 import {
   citationContent,
   presentedCitationEqual,

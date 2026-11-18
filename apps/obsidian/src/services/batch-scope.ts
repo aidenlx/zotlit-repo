@@ -15,20 +15,20 @@ import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { libraryLabel } from "@/services/library-scope/label.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import {
   compareSelectors,
   selectorOf,
-} from "@/services/library-scope/scope.ts";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   DbUnavailable,
   SnapshotExpired,
-} from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
+} from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import { libraryLabel } from "@/services/library-scope/label.ts";
+import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { FlatGroupDef } from "@/views/batch-modal/index.ts";
 
 /** Which items a batch action collects from its scope. */

@@ -7,13 +7,14 @@ import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-
-import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
+
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { queryJobRunner } from "@/services/item-query/job.ts";
 
 import { searchAnnotations } from "./annotation-search.ts";
 
@@ -52,7 +53,9 @@ async function setup(uses: Record<string, number> = {}) {
   );
   addOlderPaper(scenario.sqlite);
   const reads = stack.use(
-    inProcessReadsService(sharedClientOpener(scenario.db)),
+    inProcessReadsService(sharedClientOpener(scenario.db), {
+      handlers: { queryJobs: queryJobRunner },
+    }),
   );
   const { handle: service } = await buildQueryService(
     {

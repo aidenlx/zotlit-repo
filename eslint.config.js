@@ -87,6 +87,7 @@ const PLUGIN_SOURCES = [
   "packages/plugin-kernel/src",
   "packages/obsidian-kit/src",
   "packages/obsidian-desktop/src",
+  "packages/zotero-reads/src",
 ];
 
 export default [

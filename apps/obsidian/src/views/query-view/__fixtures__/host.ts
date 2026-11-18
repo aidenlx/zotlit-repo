@@ -1,8 +1,8 @@
 // A Query View test registry over in-memory host services and controlled query reads.
 import { Effect, Layer, Queue, Stream } from "effect";
 import type { QueryHandle } from "@/services/item-query/handle.ts";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
-import type { ZoteroReadsEvents, ZoteroReadLease } from "@/services/zotero-reads/service.ts";
+import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsEvents, ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -13,10 +13,10 @@ import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 import { layerAnnotServices } from "@/views/annot-view/__fixtures__/host.ts";
 import type { AnnotHostOptions } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryViewDeps } from "@/views/query-view/view.tsx";

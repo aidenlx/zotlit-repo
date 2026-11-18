@@ -3,10 +3,10 @@
 import type { SectionRange } from "@zotlit/obsidian-kit/reading-view.ts";
 import type { CitationSource } from "@zotlit/plugin-kernel/citation-source.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { heldResolution } from "@/services/citation-index/lookup.ts";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 import type { CitedWork } from "@/services/citekey-navigation/index.ts";
 import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";

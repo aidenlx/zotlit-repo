@@ -8,7 +8,7 @@ import {
   RequestResolver,
 } from "effect";
 
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { DatabaseAnswer } from "./model.ts";
 import type { CoreState } from "./state.ts";

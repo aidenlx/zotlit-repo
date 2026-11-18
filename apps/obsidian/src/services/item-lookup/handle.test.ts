@@ -2,11 +2,11 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { buildItemLookup } from "./__fixtures__.ts";
 

@@ -5,7 +5,7 @@ import { Effect } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
 
-import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
+import type { SeededWork } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
 /** Everything the clipboard double was handed, newest last. */
 export const clipboardWrites: { html: string; text: string }[] = [];

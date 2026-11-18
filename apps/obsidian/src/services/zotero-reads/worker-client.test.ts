@@ -14,6 +14,12 @@ import { expect, vi } from "vitest";
 
 import { testObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import {
+  WorkerInitSchema,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { ReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { launchWorker } from "@zotlit/zotero-reads/worker/worker-launch.ts";
 
 import {
   ChineseSegmenter,
@@ -28,10 +34,7 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
-import { WorkerInitSchema, ZoteroReads } from "./rpc.ts";
-import type { ReadsConfig } from "./rpc.ts";
 import { workerClient } from "./worker-client.ts";
-import { launchWorker } from "./worker-launch.ts";
 
 vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 

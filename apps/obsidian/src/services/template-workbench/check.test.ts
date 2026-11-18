@@ -16,6 +16,11 @@ import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { TemplateError } from "@zotlit/templates/facade";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
@@ -25,11 +30,6 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import {
   fixtureServices,

@@ -15,12 +15,11 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { connectClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
-
 import {
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
-} from "@/services/library-scope/scope.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { workerQuery } from "./__fixtures__/worker-query.ts";
 import { answer, QueryOutputError } from "./answer.ts";

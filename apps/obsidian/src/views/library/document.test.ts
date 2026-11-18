@@ -11,8 +11,8 @@ import {
   testItemSeed,
 } from "@zotlit/item-query";
 import type { QueryItemSeed } from "@zotlit/item-query";
+import type { LibrarySelector } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { LibrarySelector } from "@/services/library-scope/scope.ts";
 import {
   parseQueryFile,
   serializeQueryFile,

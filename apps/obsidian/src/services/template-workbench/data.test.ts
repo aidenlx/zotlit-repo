@@ -24,6 +24,11 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { TemplateEngine } from "@zotlit/templates";
 import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type {
@@ -38,11 +43,6 @@ import { Template } from "@/services/template/service.ts";
 import type { CompileError } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { workbenchContext, workbenchIdentity } from "./__fixtures__.ts";
 import {

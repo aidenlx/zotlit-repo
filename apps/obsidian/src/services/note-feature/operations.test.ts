@@ -66,6 +66,14 @@ import {
   MARKER_END,
   MARKER_START,
 } from "@zotlit/templates/obsidian";
+import {
+  ATTACHMENT_TYPE_ID,
+  inProcessReadsService,
+  seedWorksSql,
+  sharedClientOpener,
+  worksSql,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
 import type {
@@ -97,14 +105,6 @@ import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/b
 import { defaults as settingsDefaults } from "@/services/settings/schema.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import type { ResolvedLiteratureNoteTemplate } from "@/services/template/service.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import {
-  ATTACHMENT_TYPE_ID,
-  inProcessReadsService,
-  seedWorksSql,
-  sharedClientOpener,
-  worksSql,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { noteFeatureHandle } from "./__fixtures__/note-feature.ts";
 import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";

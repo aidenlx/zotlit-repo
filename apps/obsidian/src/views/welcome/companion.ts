@@ -2,9 +2,9 @@
 import { Effect, Stream } from "effect";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** Zotero may write its add-on list after Obsidian starts: retry briefly. */
 const RETRY_SECONDS = [0, 1, 2, 4, 8];

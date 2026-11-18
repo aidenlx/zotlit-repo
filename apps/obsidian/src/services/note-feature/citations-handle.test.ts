@@ -7,6 +7,14 @@ import type { CiteRef } from "@zotlit/db";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
@@ -20,14 +28,6 @@ import {
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { bindNoteCitations } from "./citations-handle.ts";
 import type { NoteCitationServices } from "./citations-handle.ts";

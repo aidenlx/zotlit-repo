@@ -16,9 +16,9 @@ import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
+import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import type { ZoteroReadsState } from "@zotlit/zotero-reads/client/service.ts";
 
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 import { refreshFailed, unavailable } from "@/views/welcome/connection.ts";
 import type { SetupActions } from "@/views/welcome/setup-actions.ts";
 

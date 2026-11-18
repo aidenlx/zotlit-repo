@@ -14,23 +14,22 @@ import type { Library } from "@zotlit/db";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
-
-import { QueryClients } from "@/services/query-client/service.ts";
-import type { Settings } from "@/services/settings/schema.ts";
-import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import {
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,
   sameResolution,
-} from "./scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   AvailableLibrary,
   LibraryScope as SavedLibraryScope,
   ResolvedLibraryScope,
-} from "./scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+
+import { QueryClients } from "@/services/query-client/service.ts";
+import type { Settings } from "@/services/settings/schema.ts";
+import { PluginSettings } from "@/services/settings/service.ts";
 
 export const LIBRARY_SCOPE_KEY = "zotero.library-scope";
 const LIBRARIES_KEY = ["library-scope", "libraries"] as const;

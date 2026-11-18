@@ -4,12 +4,12 @@ import { Effect, Layer } from "effect";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
 import type {
   AvailableLibrary,
   LibraryScope as SavedLibraryScope,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import {

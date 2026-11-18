@@ -7,8 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_CITATION_STYLE } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  inProcessReadsService,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { TestReads } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { citationOutcome } from "@/services/citation-index/outcome.ts";
 import type {
   CitationKeyResolution,
@@ -18,12 +24,6 @@ import { readReferenceSources } from "@/services/citation-index/sources.ts";
 import type { Inline, Inlines } from "@/services/pandoc/ast.ts";
 import type { BibliographyRenderOutcome } from "@/services/pandoc/render-cache.ts";
 import type { BibliographyRenderResult } from "@/services/pandoc/render-cache.ts";
-import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { makeReferencesHost } from "./__fixtures__.ts";
 import type { ReferencesHost } from "./__fixtures__.ts";

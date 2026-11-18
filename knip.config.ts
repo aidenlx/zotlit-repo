@@ -58,6 +58,9 @@ const config: KnipConfig = {
     "packages/obsidian-desktop": {
       includeEntryExports: true,
     },
+    "packages/zotero-reads": {
+      includeEntryExports: true,
+    },
     "packages/plugin-messages": {
       // Generated: the facade exports every Message, read or not.
       ignore: ["generated/**"],

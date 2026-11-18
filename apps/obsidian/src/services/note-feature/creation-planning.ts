@@ -13,6 +13,8 @@ import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { classifyStream } from "@/services/batch-run.ts";
 import type { QueryService } from "@/services/item-query/service.ts";
@@ -27,8 +29,6 @@ import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { relocatedNotePath } from "@/services/profile/relocation.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { applyComposedFrontmatter } from "./compose.ts";
 import type { ComposeNoteDeps } from "./compose.ts";

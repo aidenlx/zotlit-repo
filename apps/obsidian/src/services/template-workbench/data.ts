@@ -26,6 +26,8 @@ import { TemplateError } from "@zotlit/templates/facade";
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 import { citationExampleData } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { itemFacets } from "@/services/note-feature/context.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
@@ -40,8 +42,6 @@ import {
 } from "@/services/template/inert-resolver-host.ts";
 import type { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { syncTemplate } from "./sync-template.ts";
 

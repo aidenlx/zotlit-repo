@@ -14,6 +14,7 @@ import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { SnapshotVaultTargets } from "@zotlit/workbench/snapshot";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
   excerptAssetIdentities,
@@ -23,7 +24,6 @@ import { referencedExcerptPaths } from "@/services/excerpt-image/references.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 /** The services the vault targets read. */
 export type VaultTargetServices =

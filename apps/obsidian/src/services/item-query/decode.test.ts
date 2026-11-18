@@ -4,9 +4,9 @@ import type { CliData } from "obsidian";
 import { describe, expect } from "vitest";
 
 import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import { DecodedQuery } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
 import * as decode from "./decode.ts";
-import { DecodedQuery } from "./query-codec.ts";
 
 /** The decoded value, or the diagnostic the handler answers with. */
 const answered =

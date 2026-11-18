@@ -3,8 +3,8 @@ import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { DEFAULT_LIBRARY_SCOPE } from "./scope.ts";
 import { LibraryScope } from "./service.ts";
 import type { LibraryScopeState } from "./service.ts";
 

@@ -52,6 +52,8 @@ import {
   updateAllProtocolActionId,
 } from "@zotlit/protocol";
 import type { ImportMode, ProtocolAction } from "@zotlit/protocol";
+import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
   openGesture,
@@ -93,8 +95,6 @@ import type {
 import type { NoteImportView } from "@/services/note-import/view.ts";
 import type { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 import { openTemplateDataExplorer } from "@/views/template-data-explorer/register.ts";

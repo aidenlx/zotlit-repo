@@ -12,6 +12,7 @@ import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { layerVaultFrom, Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
@@ -20,7 +21,6 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { bindTemplateData } from "./data-handle.ts";
 import type { TemplateDataLoader } from "./data.ts";

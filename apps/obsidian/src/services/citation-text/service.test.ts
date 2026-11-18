@@ -18,9 +18,17 @@ import {
 } from "@zotlit/plugin-kernel/constants.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  citedWorkSeed,
+  inProcessReadsService,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 // @vitest-environment happy-dom
 import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
 import { scanNote } from "@/services/citation-index/scan-note.ts";
@@ -56,14 +64,6 @@ import type { QueryClients } from "@/services/query-client/service.ts";
 import type { Held } from "@/services/query-client/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  citedWorkSeed,
-  inProcessReadsService,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import {
   ALPHA_KEY,

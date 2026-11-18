@@ -9,8 +9,14 @@ import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  inProcessReadsService,
+  memoryOpener,
+  seedWorksSql,
+  withState,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { NO_ADDITIONS } from "@/services/graph-citations/adapter.ts";
 import { wrapNodeHover } from "@/services/graph-citations/hover.ts";
 import type { GraphLeafMembers } from "@/services/graph-citations/install.ts";
@@ -21,12 +27,6 @@ import type {
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
-import {
-  inProcessReadsService,
-  memoryOpener,
-  seedWorksSql,
-  withState,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { citationPopoverFixture } from "./__fixtures__.ts";
 import type { WorkHoverRequest } from "./service.tsx";

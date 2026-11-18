@@ -53,18 +53,7 @@ export default defineConfig({
     },
     {
       // These adapters own effect/rpc worker creation, shutdown and log transport.
-      files: [
-        "src/services/citation-parse/worker-host.ts",
-        "src/services/zotero-reads/worker-launch.ts",
-        "src/services/zotero-reads/worker-host.ts",
-        "src/services/zotero-reads/worker.ts",
-      ],
-      rules: { "zotlit-services/worker-rpc": "off" },
-    },
-    {
-      // Worker migration backlog: move snapshot integrity checks to effect/rpc,
-      // then remove this file from the list.
-      files: ["src/services/database/snapshot-integrity.ts"],
+      files: ["src/services/citation-parse/worker-host.ts"],
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     // Capability backlog: files that import Effect and still reach the App,
@@ -164,7 +153,6 @@ export default defineConfig({
     {
       // Clock backlog: read time through Clock (`Clock.currentTimeMillis` or `DateTime.now` in Effect code; `instantClock(yield* Clock.Clock)` from `@/lib/effect-clock` for a non-Effect core), then remove the file from the list.
       files: [
-        "src/services/citation-index/snapshot.ts",
         "src/services/item-query/answer.ts",
         "src/services/item-query/job.ts",
         "src/services/item-query/measure.ts",
@@ -182,12 +170,6 @@ export default defineConfig({
         "effecttsgo/global-date": "off",
         "no-restricted-globals": "off",
       },
-    },
-    {
-      // @zotlit/db rows carry Temporal.Instant, the date type of the template
-      // contract, and instant-codec.ts codes it for the ZoteroReads wire.
-      files: ["src/services/zotero-reads/instant-codec.ts"],
-      rules: { "zotlit-services/temporal-in-effect": "off" },
     },
     {
       // Legacy emitters, written before no-nanoevents. A file moves off this
@@ -294,10 +276,7 @@ export default defineConfig({
       // Effect tests written before the rule, in plain Vitest. A file moves
       // off this list when its cases move to it.effect.
       files: [
-        "src/services/zotero-reads/citation-lookup.test.ts",
-        "src/services/zotero-reads/connection.test.ts",
-        "src/services/zotero-reads/handlers.test.ts",
-        "src/services/zotero-reads/source.test.ts",
+        "src/services/zotero-reads/item-query.test.ts",
         "src/views/template-workbench/view.test.ts",
       ],
       rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },

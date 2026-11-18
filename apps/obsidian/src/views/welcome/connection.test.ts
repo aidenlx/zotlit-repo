@@ -4,13 +4,13 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { describe, expect } from "vitest";
 
-import { readsFixture } from "@/services/zotero-reads/__fixtures__.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { readsFixture } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { makeWelcomeHost, waitFor } from "./__fixtures__.ts";
 import {

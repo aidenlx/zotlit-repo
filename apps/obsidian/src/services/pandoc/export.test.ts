@@ -8,12 +8,12 @@ import type { LinkCache } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
-import type { CitekeyResolution } from "@/services/citation-index/snapshot.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
 import type {
   BibliographyFailure,

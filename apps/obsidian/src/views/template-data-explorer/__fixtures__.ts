@@ -11,6 +11,8 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
@@ -22,8 +24,6 @@ import type {
   TemplateDataLoadResult,
 } from "@/services/template-workbench/data.ts";
 import { Template } from "@/services/template/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
 
 import {
   holdExplorerModel,

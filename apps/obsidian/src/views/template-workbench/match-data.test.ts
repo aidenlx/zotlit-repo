@@ -8,12 +8,13 @@ import { createClient } from "@zotlit/db/client/node";
 import { scopedViewRunner } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
 import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-
-import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+
+import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { queryJobRunner } from "@/services/item-query/job.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
 import { makeWorkbenchHost } from "./__fixtures__.ts";
@@ -36,7 +37,11 @@ async function openMatchData(stack: AsyncDisposableStack) {
     insert into collections (collectionID,collectionName,parentCollectionID,libraryID,key) values (1,'Project',null,1,'PROJ0001'), (2,'Drafts',1,1,'DRFT0001'), (3,'Team only',null,2,'TEAM0001'), (4,'A/B',null,1,'SLASH222');
     insert into collectionItems (collectionID,itemID) values (2,1), (4,1);
   `);
-  const service = stack.use(inProcessReadsService(sharedClientOpener(client)));
+  const service = stack.use(
+    inProcessReadsService(sharedClientOpener(client), {
+      handlers: { queryJobs: queryJobRunner },
+    }),
+  );
   const dispose = vi.fn();
   const db = {
     acquireRead: async () => {

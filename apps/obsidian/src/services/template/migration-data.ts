@@ -2,12 +2,12 @@
 import { Effect, Stream } from "effect";
 
 import type { CiteRef } from "@zotlit/db";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { readTemplateData } from "@/services/template-workbench/data.ts";
 import type { TemplateDataServices } from "@/services/template-workbench/data.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 /** One real Zotero item, in every shape a conversion verifies against. */
 export interface MigrationVerificationData {

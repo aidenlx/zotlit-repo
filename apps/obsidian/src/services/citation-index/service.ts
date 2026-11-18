@@ -30,6 +30,12 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  CitationLookupAnswer,
+  CitationLookupRequest,
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import type {
   ParseFailed,
@@ -43,14 +49,12 @@ import {
 } from "@/services/note-index/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { CitationLookup } from "./lookup-service.ts";
 import type { CitationLookupStatus } from "./lookup-service.ts";
-import type { CitationLookupAnswer, CitationLookupRequest } from "./lookup.ts";
-import { heldResolution } from "./lookup.ts";
-export type { CitationLookupAnswer, CitationLookupRequest } from "./lookup.ts";
 export type { CitationLookupObservation } from "./lookup-service.ts";
+
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { describeJoinedCandidates } from "./ambiguity.ts";
 import { citationOutcome } from "./outcome.ts";
@@ -62,7 +66,6 @@ import type { Citation, ResolvedNote } from "./query.ts";
 import type { AnnotationOccurrence } from "./scan-note.ts";
 import { occurrencesEqual } from "./scan.ts";
 import type { CitationOccurrence, CitationSyntax } from "./scan.ts";
-import type { CitekeyResolution } from "./snapshot.ts";
 import { readReferenceSources } from "./sources.ts";
 import type { ReferenceSourceJoin } from "./sources.ts";
 import { openCitekeyStore, SCANNER_REVISION } from "./store.ts";
@@ -79,7 +82,6 @@ export {
   type CitationSyntax,
   type MalformedWikilinkCitation,
 } from "./scan.ts";
-export type { CitekeyResolution, SnapshotItem } from "./snapshot.ts";
 export {
   readReferenceSources,
   toZoteroOpenableAttachments,

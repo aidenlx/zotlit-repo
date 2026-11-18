@@ -15,6 +15,7 @@ import {
 } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
@@ -24,7 +25,6 @@ import { holdsNote } from "@/services/pandoc/inline-content.tsx";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { PandocEngine } from "@/services/pandoc/service.ts";
 import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 export interface PreviewCitation extends PresentedCitation {
   source: string;

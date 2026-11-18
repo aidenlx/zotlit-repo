@@ -26,6 +26,11 @@ import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
   TemplateFacade,
 } from "@zotlit/templates/facade";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
@@ -47,11 +52,6 @@ import { Template, templateFailure } from "@/services/template/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import type { AnnotationInsertOptions } from "./insert-annotation.ts";
 import { prepareAnnotationInsert } from "./insert-annotation.ts";

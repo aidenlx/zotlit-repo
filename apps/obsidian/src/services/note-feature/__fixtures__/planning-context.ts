@@ -15,7 +15,7 @@ import type { ProfileReader } from "@/services/profile/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { CreationPlanningServices } from "@/services/note-feature/creation-planning.ts";
 

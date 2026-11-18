@@ -31,6 +31,10 @@ import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
   TemplateFacade,
 } from "@zotlit/templates/facade";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 import { bluePng } from "@/services/excerpt-image/__fixtures__/png.ts";
@@ -42,10 +46,6 @@ import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { ExcerptEntry } from "@/services/excerpt-image/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { diskImageHost } from "./__fixtures__/disk-image-host.ts";
 import { noteImporterOver } from "./__fixtures__/importer.ts";

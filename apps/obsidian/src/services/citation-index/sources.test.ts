@@ -4,16 +4,15 @@ import { afterEach, describe, expect } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db-testing";
-
-import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   recordCalls,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils.ts";
-import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { SeededWork } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { TestReads } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { Citation } from "./query.ts";
 import {

@@ -6,6 +6,16 @@ import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import {
   layerQueryClients,
@@ -13,16 +23,6 @@ import {
 } from "@/services/query-client/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import {
-  layerZoteroReads,
-  ZoteroReads,
-} from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { AttachmentResolver, layerAttachmentResolver } from "./service.ts";
 

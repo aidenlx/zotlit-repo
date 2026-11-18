@@ -41,15 +41,19 @@ import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
 import type { DelimitedFormat } from "@zotlit/shared/delimited";
-
 import {
   resolveLibraryScope,
   selectorKey,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type {
+  DecodedQuery,
+  NamedLibraries,
+} from "@zotlit/zotero-reads/contract/query-codec.ts";
+
 import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
 import {
@@ -61,7 +65,6 @@ import {
 } from "./contract.ts";
 import type { Diagnostic, QueryCliCommand, LibraryWire } from "./contract.ts";
 import { CLI_DATASETS } from "./datasets.ts";
-import type { DecodedQuery, NamedLibraries } from "./query-codec.ts";
 import type {
   QueryViewGroup,
   QueryViewResult,

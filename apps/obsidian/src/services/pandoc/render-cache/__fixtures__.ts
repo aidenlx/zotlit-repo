@@ -6,6 +6,7 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { ManagedBinaryHandle } from "@/services/managed-binary/handle.ts";
 import type { CitationEngine } from "@/services/pandoc/engine.ts";
@@ -22,7 +23,6 @@ import {
 } from "@/services/query-client/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**
  * A render read's rejection as the real member fails: an abort and a

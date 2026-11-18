@@ -18,10 +18,10 @@ import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { composing } from "@zotlit/ui";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
 import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 import { useLedgerAtom } from "@/services/use-ledger/atoms.ts";

@@ -11,18 +11,18 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
+import {
+  inProcessClient,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
 import { TemplateRenderError } from "@/services/template/errors.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { renderAnnotationCitation } from "./annotation-citation.ts";
 

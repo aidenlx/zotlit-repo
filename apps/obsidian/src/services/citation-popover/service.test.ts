@@ -15,27 +15,27 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup.ts";
-import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
-import type { AnnotationParent } from "@/services/citation-index/lookup.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
-import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
-import type { DocumentCitations } from "@/services/citation-text/service.ts";
-import type { BibliographyRenderResult } from "@/services/pandoc/render-cache.ts";
-import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
+} from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   CLEAR_WORKS_SQL,
   inProcessReadsService,
   seedWorksSql,
   sharedClientOpener,
   worksSql,
-} from "@/services/zotero-reads/test-utils.ts";
-import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { SeededWork } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { AnnotationParent } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
+import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
+import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
+import type { DocumentCitations } from "@/services/citation-text/service.ts";
+import type { BibliographyRenderResult } from "@/services/pandoc/render-cache.ts";
+import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 
 import { citationPopoverFixture } from "./__fixtures__.ts";
 import type { CitationPopoverFixtureDeps } from "./__fixtures__.ts";
@@ -94,9 +94,9 @@ function reads(works: readonly SeededWork[] = []) {
   const service = inProcessReadsService(sharedClientOpener(client));
   const stub = {
     state:
-      "ready" as import("@/services/zotero-reads/service.ts").ZoteroReadsState["state"],
+      "ready" as import("@zotlit/zotero-reads/client/service.ts").ZoteroReadsState["state"],
     current: Effect.sync(
-      (): import("@/services/zotero-reads/service.ts").ZoteroReadsState => ({
+      (): import("@zotlit/zotero-reads/client/service.ts").ZoteroReadsState => ({
         state: stub.state,
         error: null,
         moved: false,

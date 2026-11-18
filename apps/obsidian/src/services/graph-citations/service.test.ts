@@ -47,17 +47,19 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { WorkLabelSource } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
 import type { CitationOccurrence } from "@/services/citation-index/scan.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
-import type {
-  CitationIndexEvent,
-  CitekeyResolution,
-} from "@/services/citation-index/service.ts";
+import type { CitationIndexEvent } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
 import { CITEKEY_HOVER_SOURCE } from "@/services/citekey-navigation/index.ts";
@@ -71,10 +73,6 @@ import {
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { settingsFeed } from "@/services/settings/__fixtures__.ts";
 import type { Settings } from "@/services/settings/schema.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import type { WorkLabelSource } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 import type { LinkMap } from "./adapter.ts";

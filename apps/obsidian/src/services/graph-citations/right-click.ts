@@ -8,10 +8,10 @@ import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
 import type { NodeClickDeps } from "./click.ts";

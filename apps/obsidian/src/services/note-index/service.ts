@@ -20,9 +20,8 @@ import { NON_VAULT_PROPERTY_KEYS } from "@zotlit/plugin-kernel/constants.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
-
-import { heldCitekeyOf } from "@/services/citation-index/lookup.ts";
-import type { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
+import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { literatureNoteOf } from "./literature-note.ts";
 import {

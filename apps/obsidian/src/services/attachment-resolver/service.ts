@@ -16,12 +16,12 @@ import type { AttachmentPathContext } from "@zotlit/db/path";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { changed } from "@zotlit/zotero-reads/client/events.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { isPdfAttachment } from "@/services/attachment-open/resolve.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { changed } from "@/services/zotero-reads/events.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**
  * What an open PDF resolves to in the Zotero library. Both keys are Indexed

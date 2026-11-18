@@ -73,13 +73,13 @@ import {
 } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 type ProfileFixture = Pick<Settings, "profiles" | "defaultDocument">;
 import { fakeFetchClient } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
-import { seedWorksSql } from "@/services/zotero-reads/test-utils.ts";
+import { seedWorksSql } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { applyCitationPresentation } from "@/views/citation-presentation/presentation.ts";
 import type { CitationPresentationChoice } from "@/views/citation-presentation/presentation.ts";
 import { runPandocExport } from "@/views/pandoc-export/register.ts";

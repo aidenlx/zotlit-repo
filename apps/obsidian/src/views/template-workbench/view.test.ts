@@ -44,15 +44,15 @@ import {
   SAMPLE_ITEMS,
 } from "@zotlit/workbench/render";
 import { fieldForm } from "@zotlit/workbench/ui";
-
-import { bindProfile } from "@/services/profile/bindings.ts";
-import { defaults } from "@/services/settings/schema.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
 import {
   inProcessReadsService,
   memoryOpener,
   seedWorksSql,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import { bindProfile } from "@/services/profile/bindings.ts";
+import { defaults } from "@/services/settings/schema.ts";
 import { createRenderFixture } from "@/views/template-workbench/preview/__fixtures__/render.ts";
 
 import {

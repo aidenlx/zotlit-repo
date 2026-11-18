@@ -9,6 +9,7 @@
 import type { Loc } from "obsidian";
 
 import { createCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import type { SnapshotItem } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import type {
   AnnotationOccurrence,
@@ -20,7 +21,6 @@ import type {
   CitationSyntaxes,
   CitedByGroup,
   DatabaseReadability,
-  SnapshotItem,
 } from "@/services/citation-index/service.ts";
 
 /** The wire format of the `zotlit:` citation commands, versioned on its own. */

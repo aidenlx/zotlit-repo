@@ -27,14 +27,14 @@ import {
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
-
-import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
-import { heldResolution } from "@/services/citation-index/lookup.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import type {
   CitationLookupAnswer,
-  CitationLookupObservation,
   CitekeyResolution,
-} from "@/services/citation-index/service.ts";
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
+import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
+import type { CitationLookupObservation } from "@/services/citation-index/service.ts";
 import {
   citationContent,
   citationElement,

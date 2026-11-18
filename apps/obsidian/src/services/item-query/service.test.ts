@@ -27,26 +27,27 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 import { delimited } from "@zotlit/shared/delimited";
-
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
-import { UseLedger } from "@/services/use-ledger/service.ts";
-import type { Ledger } from "@/services/use-ledger/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import type { ConnectionOpener } from "@/services/zotero-reads/connection.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import {
-  layerZoteroReads,
-  ZoteroReads,
-} from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   inProcessReadsService,
   sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+import type { ConnectionOpener } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import { UseLedger } from "@/services/use-ledger/service.ts";
+import type { Ledger } from "@/services/use-ledger/service.ts";
 
 import { buildQueryService, layerTestQueryService } from "./__fixtures__.ts";
 import { queryCancelledText } from "./contract.ts";
+import { queryJobRunner } from "./job.ts";
 import { QueryService } from "./service.ts";
 import type { QueryJob } from "./worker-protocol.ts";
 
@@ -98,8 +99,9 @@ const harness = Effect.fnUntraced(function* (
   opener: ConnectionOpener = sharedClientOpener(scenario.db),
 ) {
   const { state, wrap } = counter();
-  const client = Effect.map(inProcessClient(layerRcRef(opener)), (client) =>
-    wrap(client),
+  const client = Effect.map(
+    inProcessClient(layerRcRef(opener), { queryJobs: queryJobRunner }),
+    (client) => wrap(client),
   );
   const { reads } = Context.get(
     yield* Layer.build(layerZoteroReads(client)),
@@ -1398,7 +1400,10 @@ describe("QueryHandle", () => {
     await using stack = new AsyncDisposableStack();
     const { state, wrap } = counter();
     const reads = stack.use(
-      inProcessReadsService(sharedClientOpener(scenario.db), { wrap }),
+      inProcessReadsService(sharedClientOpener(scenario.db), {
+        wrap,
+        handlers: { queryJobs: queryJobRunner },
+      }),
     );
     const { handle } = await buildQueryService(
       {

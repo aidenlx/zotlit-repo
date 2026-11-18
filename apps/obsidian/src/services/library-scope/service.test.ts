@@ -5,19 +5,18 @@ import { describe, expect, vi } from "vitest";
 
 import type { Library } from "@zotlit/db";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
-
-import { libraryScopeFixture } from "./__fixtures__.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import type {
   LibraryScope as SavedScope,
   ResolvedLibraryScope,
-} from "./scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import { libraryScopeFixture } from "./__fixtures__.ts";
 import { scopeChanges } from "./service.ts";
 import { LIBRARY_SCOPE_KEY } from "./service.ts";
 

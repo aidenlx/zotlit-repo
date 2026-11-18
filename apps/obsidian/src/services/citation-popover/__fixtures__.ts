@@ -7,18 +7,24 @@ import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.t
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-
-import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import type { CitationLookupStatus } from "@/services/citation-index/lookup-service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadLease,
+  ZoteroReadsApi,
+} from "@zotlit/zotero-reads/client/service.ts";
 import type {
   CitationLookupAnswer,
   CitationLookupRequest,
-} from "@/services/citation-index/lookup.ts";
+} from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
+import type { CitationLookupStatus } from "@/services/citation-index/lookup-service.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type { DocumentCitationSet } from "@/services/citation-index/service.ts";
 import { CitationText } from "@/services/citation-text/service.ts";
 import type { DocumentCitations } from "@/services/citation-text/service.ts";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { EffectivePresentation } from "@/services/pandoc/document-presentation.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
@@ -29,12 +35,6 @@ import type {
 } from "@/services/pandoc/render-cache.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type {
-  ZoteroReadLease,
-  ZoteroReadsApi,
-} from "@/services/zotero-reads/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 import { layerCitationPopover, CitationPopover } from "./service.tsx";

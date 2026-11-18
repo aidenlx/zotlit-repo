@@ -1,3 +1,8 @@
+import type {
+  AvailableLibrary,
+  LibrarySelector,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 // The Library Tree as data: each Library with its nested Collections, and the
 // paper count of each node. A node counts what selecting it lists with no
 // facet and no search: a Collection counts the distinct Items of its subtree,
@@ -7,11 +12,6 @@
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { QueryViewGroup } from "@/services/item-query/query-view.ts";
-import type {
-  AvailableLibrary,
-  LibrarySelector,
-} from "@/services/library-scope/scope.ts";
-import { selectorKey } from "@/services/library-scope/scope.ts";
 
 import { nodeKey } from "./document.ts";
 import type { LibraryNode } from "./document.ts";

@@ -19,11 +19,17 @@ import { until } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import {
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
@@ -39,12 +45,6 @@ import { workbenchContext } from "@/services/template-workbench/__fixtures__.ts"
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { ImportProfileModal } from "./import-profile-modal.ts";
 import type { ImportProfileDeps } from "./import-profile-modal.ts";

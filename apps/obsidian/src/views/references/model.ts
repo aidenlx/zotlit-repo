@@ -7,6 +7,10 @@ import { createContext, useContext } from "react";
 
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import {
+  zoteroReadyAtom,
+  zoteroRevisionAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
 
 import {
   citationLookupStateAtom,
@@ -29,10 +33,6 @@ import {
 } from "@/services/pandoc/document-presentation.ts";
 import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation.ts";
 import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
-import {
-  zoteroReadyAtom,
-  zoteroRevisionAtom,
-} from "@/services/zotero-reads/atoms.ts";
 
 import type { CopyBibliographySnapshot } from "./actions.ts";
 import { metadataRevisionAtom, referencesSelectionAtom } from "./atoms.ts";

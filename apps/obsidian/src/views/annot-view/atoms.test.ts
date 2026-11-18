@@ -2,6 +2,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+
 import {
   scopedStack,
   writable,
@@ -10,7 +12,6 @@ import {
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import type { HistoryOutcome } from "@/services/annotation-repository/service.ts";
 import { annotation } from "@/services/pdf-annotation-editor/__fixtures__.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
 import { makeAnnotHost } from "./__fixtures__/host.ts";

@@ -23,6 +23,8 @@ import type {
   ViewServices,
 } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { ItemQueryError } from "@/services/item-query/service.ts";
 import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
@@ -32,8 +34,6 @@ import { profileRevisionAtom } from "@/services/profile/atoms.ts";
 import type { ProfileOperationError } from "@/services/profile/service.ts";
 import { templateRevisionAtom } from "@/services/template/atoms.ts";
 import type { TemplateFailure } from "@/services/template/service.ts";
-import type { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   assignedWidget,
   onTypesChanged,

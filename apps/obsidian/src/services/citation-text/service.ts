@@ -33,6 +33,7 @@ import {
   scanPandocCitations,
 } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { renderParsedCitation } from "@/services/citation-index/parsed-note.ts";
@@ -56,7 +57,6 @@ import { BibliographyRender } from "@/services/pandoc/render-cache.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 import type { Held } from "@/services/query-client/service.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 
 import { citationKey, presentedCitationEqual } from "./present.ts";
 import type {

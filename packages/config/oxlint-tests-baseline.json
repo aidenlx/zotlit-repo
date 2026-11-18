@@ -108,11 +108,11 @@
   "apps/obsidian/src/services/citekey-reading/service.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/database/read-source-fallback.test.ts": [
+  "packages/zotero-reads/src/desktop/read-source-fallback.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/database/read-source.test.ts": [
+  "packages/zotero-reads/src/desktop/read-source.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],

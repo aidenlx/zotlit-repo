@@ -20,13 +20,26 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswerFor } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+  seedWorksSql,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { SeededWork } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsState } from "@zotlit/zotero-reads/client/service.ts";
+import type { CitationLookupRequest } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
-import type { CitationLookupRequest } from "@/services/citation-index/lookup.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
-import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
-import type { ResolvedLibraryScope } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type {
   PlannedCreation,
@@ -45,19 +58,6 @@ import {
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import {
-  layerZoteroReads,
-  ZoteroReads,
-} from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-  seedWorksSql,
-} from "@/services/zotero-reads/test-utils.ts";
-import type { SeededWork } from "@/services/zotero-reads/test-utils.ts";
 import { openLiteratureNoteProfile } from "@/views/quick-switch/profile-picker.ts";
 import type { LiteratureNoteProfileChoice } from "@/views/quick-switch/profile-picker.ts";
 

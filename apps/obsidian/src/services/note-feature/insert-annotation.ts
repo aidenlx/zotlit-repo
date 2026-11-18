@@ -3,6 +3,7 @@ import { Effect } from "effect";
 
 import { buildAnnotationParents } from "@zotlit/db";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
@@ -29,7 +30,6 @@ import {
   Template,
 } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { annotationInsertData } from "./insert-annotation-data.ts";
 

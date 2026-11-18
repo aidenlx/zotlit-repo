@@ -8,19 +8,19 @@ import type {
 
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { libraryLabel, selectorLabel } from "@/services/library-scope/label.ts";
 import {
   compareSelectors,
   DEFAULT_LIBRARY_SCOPE,
   MY_LIBRARY_SCOPE,
   selectorKey,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   AvailableLibrary,
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+
+import { libraryLabel, selectorLabel } from "@/services/library-scope/label.ts";
 import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 

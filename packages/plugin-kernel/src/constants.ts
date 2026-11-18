@@ -114,6 +114,6 @@ export const ZOTERO_DB_READ_TEMP_PREFIX = "zotlit-db-";
  * in the system temp folder. Dot-prefixed so it stays out of the way, and named
  * so a user who finds it knows who wrote it.
  *
- * @see `planReadParents` in `services/database/read-parent.ts` for when it is used.
+ * @see `planReadParents` in `@zotlit/zotero-reads/desktop/read-parent.ts` for when it is used.
  */
 export const ZOTERO_DB_READ_PARENT_DIRNAME = ".zotlit-db-reads";

@@ -8,11 +8,11 @@ import {
   frontmatterFieldSchema,
 } from "@zotlit/templates/constants";
 import type { AutoTrim } from "@zotlit/templates/constants";
-
 import {
   DEFAULT_LIBRARY_SCOPE,
   libraryScopeSchema,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+
 import {
   annotationToolColorsSchema,
   DEFAULT_INK_WIDTH,

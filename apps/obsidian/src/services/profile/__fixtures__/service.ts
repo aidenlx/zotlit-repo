@@ -6,8 +6,8 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { Template } from "@/services/template/service.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { profileOver } from "@/services/profile/__fixtures__.ts";
 import { Profile } from "@/services/profile/service.ts";

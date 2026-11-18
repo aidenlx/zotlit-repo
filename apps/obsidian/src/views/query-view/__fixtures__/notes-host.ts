@@ -21,7 +21,7 @@ import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { literatureNotes } from "@/views/query-view/table-notes.ts";
 import type {
   LiteratureNotesDeps,

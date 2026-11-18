@@ -20,8 +20,8 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { presented } from "@/services/citation-text/__fixtures__.ts";
 import type { DocumentCitations } from "@/services/citation-text/present.ts";
 import { CitationText } from "@/services/citation-text/service.ts";

@@ -6,6 +6,7 @@ import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import {
   LIBRARY_SCOPE_COMMAND,
@@ -13,7 +14,6 @@ import {
   layerLibraryScopeCli,
   registerLibraryScopeCli,
 } from "./cli.ts";
-import type { ResolvedLibraryScope } from "./scope.ts";
 import { LibraryScope } from "./service.ts";
 
 function setup(current: ResolvedLibraryScope | null) {

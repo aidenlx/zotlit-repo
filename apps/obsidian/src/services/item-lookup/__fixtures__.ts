@@ -4,13 +4,13 @@ import type { Scope } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { LibraryScopeState } from "@/services/library-scope/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { bindItemLookup } from "./handle.ts";
 import type { ItemLookupHandle } from "./handle.ts";

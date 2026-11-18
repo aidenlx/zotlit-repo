@@ -24,9 +24,9 @@ import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
+import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { libraryLabel } from "@/services/library-scope/label.ts";
-import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 
 import { FILTER_CHIP_CLASS } from "./chip.ts";
 import { nodeKey, READING_STATE_FACETS, sortTags } from "./document.ts";

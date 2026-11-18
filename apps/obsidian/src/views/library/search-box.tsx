@@ -16,11 +16,11 @@ import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+
 import type { QueryView } from "@/views/query-view/view.tsx";
 
 import type { LibraryNode } from "./document.ts";

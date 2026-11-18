@@ -37,8 +37,8 @@ import type {
   RunMember,
 } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import type { CitationLookupAnswer } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {
   citationContent,

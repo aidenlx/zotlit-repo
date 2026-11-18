@@ -9,6 +9,7 @@ import type { ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
+import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
 import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 
@@ -19,6 +20,7 @@ import {
   QueryOutputError,
 } from "./answer.ts";
 import type { QueryWriter } from "./answer.ts";
+import { makeAttachmentFileResolver } from "./attachment-files.ts";
 import { diagnostic, failure } from "./contract.ts";
 import { createTrace, finishTrace } from "./trace.ts";
 import type { WorkerMeasurement } from "./trace.ts";
@@ -90,6 +92,36 @@ export function runQueryJob(
     Effect.provideService(Scheduler.Scheduler, new ItemQueryScheduler()),
   );
 }
+
+/**
+ * The Item Query adapter of the ZoteroReads worker: a job on the client it
+ * borrowed, with an Attachment file resolver of its own. The envelope names
+ * the copy the job reads; it keeps the source id only when that copy is the
+ * configured database.
+ */
+export const queryJobRunner: QueryJobRunner = {
+  run: (job, { client, databaseFile }) =>
+    Effect.gen(function* () {
+      const databasePath = databaseFile ?? job.source.databasePath;
+      return yield* runQueryJob(job, {
+        client,
+        attachmentFiles: yield* makeAttachmentFileResolver(job.attachmentPaths),
+        identity: {
+          vault: job.vault,
+          source: {
+            databasePath,
+            id: databasePath === job.source.databasePath ? job.source.id : null,
+          },
+        },
+      });
+    }),
+  cancelled: (job) => ({
+    command: job.command,
+    answer: "",
+    receipt: { kind: "inline" },
+    cancelled: true,
+  }),
+};
 
 /** The close of the staging file, which the release of the writer records. */
 interface StageState {

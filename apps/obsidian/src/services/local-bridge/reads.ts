@@ -30,6 +30,8 @@ import type {
   ItemSnapshot,
   SnapshotSelection,
 } from "@zotlit/workbench/snapshot";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
@@ -37,8 +39,6 @@ import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import { profileDisplayName } from "./profile-name.ts";
 import type { SelectedItemIdentity } from "./sessions.ts";

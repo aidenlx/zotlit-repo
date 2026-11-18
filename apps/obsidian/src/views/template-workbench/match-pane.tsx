@@ -6,8 +6,7 @@ import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
 import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
 import type { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { MatchPane, WorkbenchThemeProvider } from "@zotlit/workbench/ui";
-
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";
 

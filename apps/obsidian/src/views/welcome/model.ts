@@ -10,11 +10,11 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import { releaseVersionAtom } from "@/services/release/atoms.ts";
 import { Release } from "@/services/release/service.ts";
 import { settingsAtom } from "@/services/settings/atoms.ts";
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 
 import { makeConversionCommand } from "./atoms.ts";
 import { companionInstalledAtom } from "./companion.ts";

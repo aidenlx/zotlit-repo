@@ -23,6 +23,7 @@ import {
 } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
@@ -40,7 +41,6 @@ import { UseLedger } from "@/services/use-ledger/service.ts";
 import { writeReadUse } from "@/services/zotero-local-api/last-read.ts";
 import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import { registerAnnotationAnchorCapture } from "./anchor-capture.ts";
 import { PdfViewBinding } from "./binding.ts";

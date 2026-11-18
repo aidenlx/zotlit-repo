@@ -1,7 +1,8 @@
 // Pure: Citation Index facts -> the link-map additions one graph render draws. No Obsidian imports.
 
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
 import type { CitationOccurrence } from "@/services/citation-index/scan.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 
 /** `Record<sourcePath, Record<target, count>>`, the shape of Obsidian's link maps. */
 export type LinkMap = Record<string, Record<string, number>>;

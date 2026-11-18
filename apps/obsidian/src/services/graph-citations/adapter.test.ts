@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+
 import type { CitationOccurrence } from "@/services/citation-index/scan.ts";
-import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 
 import { citedWorkNodeId, graphCitationAdditions } from "./adapter.ts";
 import type {

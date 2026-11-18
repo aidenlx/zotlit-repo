@@ -70,6 +70,7 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/plugin-kernel",
   "packages/obsidian-kit",
   "packages/obsidian-desktop",
+  "packages/zotero-reads",
 ]);
 
 /**

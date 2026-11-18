@@ -9,9 +9,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
-
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { answer } from "./answer.ts";
 import { decodeValues } from "./decode.ts";

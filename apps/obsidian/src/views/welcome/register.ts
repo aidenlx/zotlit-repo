@@ -10,8 +10,8 @@ import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
-import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 import { openLibraryView } from "@/views/library/register.ts";
 import { LIBRARY_VIEW_TYPE } from "@/views/library/view.ts";
 

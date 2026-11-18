@@ -47,13 +47,13 @@ import type {
   WorkbenchPreviewSettings,
   WorkbenchViewState,
 } from "@zotlit/workbench/ui";
-
-import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
-import { templateRevisionAtom } from "@/services/template/atoms.ts";
 import {
   zoteroRevisionAtom,
   zoteroStateAtom,
-} from "@/services/zotero-reads/atoms.ts";
+} from "@zotlit/zotero-reads/client/atoms.ts";
+
+import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
+import { templateRevisionAtom } from "@/services/template/atoms.ts";
 
 import { readChosenItem } from "./atoms.ts";
 import { PartialPreviewFailed, PreviewItemMissing } from "./errors.ts";

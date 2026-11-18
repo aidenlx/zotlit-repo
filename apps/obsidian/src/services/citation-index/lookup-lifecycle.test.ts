@@ -13,18 +13,18 @@ import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+  seedWorksSql,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
 import { layerLibraryScope } from "@/services/library-scope/service.ts";
 import { layerQueryClients } from "@/services/query-client/service.ts";
 import { layerPluginSettings } from "@/services/settings/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-  seedWorksSql,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { lookupFixture } from "./__fixtures__.ts";
 import { CitationLookup, layerCitationLookup } from "./lookup-service.ts";

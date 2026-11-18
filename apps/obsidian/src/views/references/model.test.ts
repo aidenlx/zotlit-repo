@@ -3,7 +3,8 @@ import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { expect, vi } from "vitest";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+
 import type {
   DocumentCitationSet,
   ReferenceSource,

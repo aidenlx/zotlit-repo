@@ -12,6 +12,8 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -29,8 +31,6 @@ import type {
 import { PandocEngine } from "@/services/pandoc/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile } from "@/services/profile/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
 
 import { holdReferencesModel, makeReferencesModel } from "./model.ts";
 

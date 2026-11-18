@@ -11,6 +11,8 @@ import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { acquireReadLease } from "@zotlit/zotero-reads/client/lease.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { libraryTagNamesOf } from "@/services/database/library-tag-names.ts";
 import {
@@ -96,8 +98,6 @@ import { Template } from "./template/service.ts";
 import { UseLedger } from "./use-ledger/service.ts";
 import { ZoteroLocalApi } from "./zotero-local-api/service.ts";
 import { ZoteroPref } from "./zotero-pref/service.ts";
-import { acquireReadLease } from "./zotero-reads/lease.ts";
-import { ZoteroReads } from "./zotero-reads/service.ts";
 
 /** What the protocol handlers open: the note import's modals. */
 type ProtocolViews = Pick<ProtocolDeps, "noteImportView">;

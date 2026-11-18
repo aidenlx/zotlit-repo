@@ -4,12 +4,11 @@ import { Effect } from "effect";
 import { expect, vi } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { libraryScopeFixture } from "./__fixtures__.ts";
 import { scopeChanges } from "./service.ts";

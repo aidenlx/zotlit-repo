@@ -1,8 +1,10 @@
 // UI seam for Library Scope: the display name of one Library or selector.
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { AvailableLibrary, LibrarySelector } from "./scope.ts";
+import type {
+  AvailableLibrary,
+  LibrarySelector,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 /** Zotero's live name for a Library, or its stable selector when unnamed. */
 export function libraryLabel(library: AvailableLibrary): string {

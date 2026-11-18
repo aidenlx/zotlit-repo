@@ -59,6 +59,7 @@ const pluginCode = [
   resolve(import.meta.dirname, "scripts"),
   packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
   packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
+  packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
 ];
 const fullContractIRPath = fileURLToPath(
   import.meta.resolve("@zotlit/db/contract/ir.json"),

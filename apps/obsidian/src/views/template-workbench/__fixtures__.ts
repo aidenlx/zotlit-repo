@@ -23,6 +23,11 @@ import type {
   WorkbenchItemChoice,
   WorkbenchPreviewSettings,
 } from "@zotlit/workbench/ui";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadLease,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
@@ -41,11 +46,6 @@ import type { TemplateOperations } from "@/services/template/service.ts";
 import { Template } from "@/services/template/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type {
-  ZoteroReadLease,
-  ZoteroReadsState,
-} from "@/services/zotero-reads/service.ts";
 import type { ExplorerViewDeps } from "@/views/template-data-explorer/view.tsx";
 import type { NativeRenderDeps } from "@/views/template-workbench/preview/render.ts";
 

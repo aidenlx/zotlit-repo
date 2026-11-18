@@ -29,6 +29,12 @@ import type {
 } from "@zotlit/templates/literature-note-pack";
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
+import {
+  inProcessClient,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { excerptAssetIdentities } from "@/services/excerpt-image/materialize.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
@@ -39,12 +45,6 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessClient,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { createLocalBridgeApp } from "./app.ts";
 import { STABLE_DOCS_ORIGIN } from "./origins.ts";

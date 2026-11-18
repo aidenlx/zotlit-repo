@@ -39,7 +39,6 @@
     "apps/obsidian/src/services/attachment-import/service.ts: SourceBlock",
     "apps/obsidian/src/services/citation-index/cli/commands.ts: CitationsIdentity",
     "apps/obsidian/src/services/citation-index/scan.ts: MalformedWikilinkCitation",
-    "apps/obsidian/src/services/citation-index/service.ts: CitationLookupRequest",
     "apps/obsidian/src/services/citation-index/service.ts: CitationSettleOutcome",
     "apps/obsidian/src/services/citation-index/service.ts: FileScan",
     "apps/obsidian/src/services/citation-index/service.ts: MalformedWikilinkCitation",

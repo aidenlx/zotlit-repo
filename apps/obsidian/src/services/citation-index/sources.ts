@@ -8,8 +8,7 @@ import { parseAttachmentPath } from "@zotlit/db/path";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
-
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { Citation } from "./query.ts";
 

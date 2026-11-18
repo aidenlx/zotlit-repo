@@ -19,7 +19,7 @@ import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "@/services/pdf-annotation-editor/service.ts";
 import type {

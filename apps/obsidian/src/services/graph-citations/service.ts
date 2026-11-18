@@ -23,10 +23,13 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { workLabel } from "@zotlit/plugin-kernel/item-summary.ts";
 import type { WorkLabel } from "@zotlit/plugin-kernel/item-summary.ts";
+import { changed as readsChanged } from "@zotlit/zotero-reads/client/events.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { WorkLabelSource } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupObservation } from "@/services/citation-index/lookup-service.ts";
-import { heldResolution } from "@/services/citation-index/lookup.ts";
 import type { CitationSyntax } from "@/services/citation-index/scan.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
@@ -39,9 +42,6 @@ import {
 } from "@/services/note-index/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
-import { changed as readsChanged } from "@/services/zotero-reads/events.ts";
-import type { WorkLabelSource } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 import { graphCitationAdditions, NO_ADDITIONS } from "./adapter.ts";

@@ -30,16 +30,21 @@ import type {
   CliParamName,
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
-
 import {
   compareSelectors,
   selectorKey,
   selectorKeySchema,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   LibraryScope,
   LibrarySelector,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { QUERY_DATASETS } from "@zotlit/zotero-reads/contract/query-codec.ts";
+import type {
+  DecodedQuery,
+  DecodedValues,
+  NamedLibraries,
+} from "@zotlit/zotero-reads/contract/query-codec.ts";
 
 import {
   DEFAULT_CLI_LIMIT,
@@ -55,12 +60,6 @@ import {
 import type { QueryOutputFormat } from "./contract.ts";
 import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 import type { GuideTopic } from "./guide.ts";
-import { QUERY_DATASETS } from "./query-codec.ts";
-import type {
-  DecodedQuery,
-  DecodedValues,
-  NamedLibraries,
-} from "./query-codec.ts";
 
 export { rejectionDiagnostic } from "./contract.ts";
 

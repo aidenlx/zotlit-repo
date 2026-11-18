@@ -5,21 +5,21 @@ import { expect, vi } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-
-import {
-  MY_LIBRARY_SCOPE,
-  resolveLibraryScope,
-} from "@/services/library-scope/scope.ts";
-import { LibraryScope } from "@/services/library-scope/service.ts";
-import { workbenchContext } from "@/services/template-workbench/__fixtures__.ts";
-import { readTemplateData } from "@/services/template-workbench/data.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import { layerZoteroReads } from "@/services/zotero-reads/service.ts";
 import {
   inProcessClient,
   memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import {
+  MY_LIBRARY_SCOPE,
+  resolveLibraryScope,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+
+import { LibraryScope } from "@/services/library-scope/service.ts";
+import { workbenchContext } from "@/services/template-workbench/__fixtures__.ts";
+import { readTemplateData } from "@/services/template-workbench/data.ts";
 
 import { readMigrationVerificationData } from "./migration-data.ts";
 

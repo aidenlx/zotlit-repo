@@ -38,6 +38,8 @@ import {
   normalizeFilename,
   truncateToByteLimit,
 } from "@zotlit/templates";
+import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import type {
@@ -64,8 +66,6 @@ import type { ProfileOperationError } from "@/services/profile/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
 import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import {
   noteAnnotationKeys,

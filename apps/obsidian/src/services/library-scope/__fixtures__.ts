@@ -5,17 +5,17 @@ import type { Scope } from "effect";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { layerQueryClients } from "@/services/query-client/service.ts";
 import {
   layerPluginSettings,
   PluginSettings,
 } from "@/services/settings/service.ts";
-import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
-import {
-  layerZoteroReads,
-  ZoteroReads,
-} from "@/services/zotero-reads/service.ts";
 
 import { layerLibraryScope, LibraryScope } from "./service.ts";
 

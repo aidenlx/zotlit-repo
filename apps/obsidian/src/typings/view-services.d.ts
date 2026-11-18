@@ -1,5 +1,6 @@
 // The plugin's services that view atoms read, added to the view-atom registry
-// of the Obsidian kit (`ViewServiceRegistry`) by declaration merging.
+// of the Obsidian kit (`ViewServiceRegistry`) by declaration merging. A plugin
+// package registers its own services (`@zotlit/zotero-reads/client/atoms.ts`).
 import type { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -27,7 +28,6 @@ import type { TemplateMigration } from "@/services/template/migration.ts";
 import type { Template } from "@/services/template/service.ts";
 import type { UseLedger } from "@/services/use-ledger/service.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
 declare module "@zotlit/obsidian-kit/view-atoms.ts" {
@@ -60,6 +60,5 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
     TemplateDataReads: TemplateDataReads;
     TemplateMigration: TemplateMigration;
     ZoteroPref: ZoteroPref;
-    ZoteroReads: ZoteroReads;
   }
 }

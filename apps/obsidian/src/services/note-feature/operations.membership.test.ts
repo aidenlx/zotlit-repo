@@ -20,20 +20,21 @@ import {
 } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import type { ZoteroReadsEvents } from "@zotlit/zotero-reads/client/service.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { listCollectionChoices } from "@zotlit/zotero-reads/worker/membership.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
+import { queryJobRunner } from "@/services/item-query/job.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import { Template } from "@/services/template/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { listCollectionChoices } from "@/services/zotero-reads/membership.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import type { ZoteroReadsEvents } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { noteFeatureHandle } from "./__fixtures__/note-feature.ts";
 import type { NoteFeatureSources } from "./__fixtures__/note-feature.ts";
@@ -288,7 +289,7 @@ async function harness(
   };
   app.fileManager.generateMarkdownLink = () => "";
   const zoteroReads = inProcessReadsService(sharedClientOpener(client), {
-    handlers: { sliceSize },
+    handlers: { sliceSize, queryJobs: queryJobRunner },
   });
   // ZotLit Query tests the Profile Matches over the same database.
   const { service: query } = await buildQueryService(

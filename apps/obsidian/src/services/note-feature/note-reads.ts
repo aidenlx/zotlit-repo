@@ -2,13 +2,13 @@
 import { Effect } from "effect";
 
 import type { Item } from "@zotlit/db";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import type {
   NoteProfile,
   ResolvedProfile,
 } from "@/services/profile/bindings.ts";
 import { Template } from "@/services/template/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 /** The Profile a note moves from: none for an unresolved Profile stamp. */
 function relocationSource(current: NoteProfile): ResolvedProfile | undefined {

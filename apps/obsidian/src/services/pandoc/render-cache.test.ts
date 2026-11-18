@@ -12,6 +12,7 @@ import type { CslItemData } from "@zotlit/db";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import { profileRuntimeOf } from "@/services/profile/__fixtures__.ts";
@@ -23,7 +24,6 @@ import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import type { Inlines } from "./ast.ts";
 import type {

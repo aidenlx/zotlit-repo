@@ -20,6 +20,9 @@ import {
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
@@ -34,13 +37,10 @@ import type {
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
 import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
-import { DEFAULT_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { LibraryScopeState } from "@/services/library-scope/service.ts";
 import { activeNoteAtom } from "@/services/note-index/atoms.ts";
 import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
-import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";

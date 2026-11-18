@@ -10,15 +10,15 @@ import { createClient } from "@zotlit/db/client/node";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import {
+  inProcessReadsService,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
-import {
-  inProcessReadsService,
-  sharedClientOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { effectImageResolver } from "./__fixtures__/service.ts";
 import type { ExcerptImageFixture } from "./__fixtures__/service.ts";

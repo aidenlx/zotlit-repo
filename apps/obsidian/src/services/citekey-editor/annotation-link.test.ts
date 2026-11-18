@@ -117,8 +117,9 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField, editorLivePreviewField } from "obsidian";
 
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+
 import type { AnnotationHoverRequest } from "@/services/annotation-popover/service.tsx";
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { presented } from "@/services/citation-text/__fixtures__.ts";
 import type { DocumentCitations } from "@/services/citation-text/present.ts";
 import type { Held } from "@/services/query-client/service.ts";

@@ -4,11 +4,10 @@ import { Effect } from "effect";
 import { describe, expect } from "vitest";
 
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
-
 import {
   lookupAnswer,
   lookupForWorks,
-} from "@/services/citation-index/__fixtures__/lookup.ts";
+} from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
 import { rendered } from "./__fixtures__.ts";
 import {

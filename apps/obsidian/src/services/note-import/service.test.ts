@@ -12,6 +12,10 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  inProcessReadsService,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { attachmentImportFixture } from "@/services/attachment-import/__fixtures__.ts";
@@ -28,10 +32,6 @@ import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/b
 import { defaults } from "@/services/settings/schema.ts";
 import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
-import {
-  inProcessReadsService,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 
 import { noteImporterOver } from "./__fixtures__/importer.ts";
 import { childNoteLink } from "./child-note-link.ts";

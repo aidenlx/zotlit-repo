@@ -16,14 +16,15 @@ import type { Library } from "@zotlit/db";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
+import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { BatchUpdateRefusedError } from "@/services/note-feature/update-batch.ts";
 import { NoteImportProfileError } from "@/services/note-import/service.ts";
-import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 
 import {
   classifyStream,
@@ -38,7 +39,6 @@ import type {
   RunOutcome,
 } from "./batch-run.ts";
 import { planBatchScope, resolveBatchScope } from "./batch-scope.ts";
-import { resolveLibraryScope } from "./library-scope/scope.ts";
 
 /** The failure a test task answers its write with. */
 class WriteFailed extends Schema.TaggedError<

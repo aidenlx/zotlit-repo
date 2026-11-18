@@ -8,6 +8,8 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
   annotationChangeAtom,
@@ -35,8 +37,6 @@ import {
 } from "@/services/template/errors.ts";
 import { zoteroDataDirAtom } from "@/services/zotero-pref/atoms.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
 import type { LoadTarget } from "./resolve-target.ts";

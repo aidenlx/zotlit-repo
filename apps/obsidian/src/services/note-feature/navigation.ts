@@ -7,18 +7,18 @@ import type { PaneType, TFile, WorkspaceLeaf } from "obsidian";
 import type { Item } from "@zotlit/db";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { OpenLinkFailed } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { readActionItem } from "@zotlit/zotero-reads/client/read-item.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  DbUnavailable,
+  SnapshotExpired,
+} from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { ItemQueryError } from "@/services/item-query/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { ProfileOperationError } from "@/services/profile/service.ts";
 import type { TemplateFailure } from "@/services/template/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
-import { readActionItem } from "@/services/zotero-reads/read-item.ts";
-import type {
-  DbUnavailable,
-  SnapshotExpired,
-} from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 
 import type { CompanionLinkOptions } from "./companion-view.ts";

@@ -17,12 +17,18 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {
   CitationKeyResolution,
-  CitekeyResolution,
   DocumentCitationSet,
 } from "@/services/citation-index/service.ts";
 import {
@@ -34,12 +40,6 @@ import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import type { UseKind } from "@/services/use-ledger/service.ts";
-import { layerRcRef } from "@/services/zotero-reads/connection.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import {
-  inProcessClient,
-  memoryOpener,
-} from "@/services/zotero-reads/test-utils.ts";
 import { placeInsertion } from "@/views/annot-view/async-insert.ts";
 
 import { readDocumentCitedKeys } from "./document-citations.ts";

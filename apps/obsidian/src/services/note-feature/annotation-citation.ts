@@ -5,6 +5,7 @@ import {
   buildAnnotationsTemplateData,
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
   annotationCiteRefs,
@@ -12,7 +13,6 @@ import {
 } from "@/services/template/annotation-render.ts";
 import { Template } from "@/services/template/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /** What "Copy citation" puts on the clipboard, or why it has nothing to put. */
 export type AnnotationCitation =

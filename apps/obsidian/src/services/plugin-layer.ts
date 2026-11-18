@@ -26,6 +26,8 @@ import { layerViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import type { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 import type { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
@@ -169,8 +171,6 @@ import {
   layerZoteroPrefFiles,
 } from "./zotero-pref/service.ts";
 import type { ZoteroPref } from "./zotero-pref/service.ts";
-import { layerZoteroReads } from "./zotero-reads/service.ts";
-import type { ZoteroReads } from "./zotero-reads/service.ts";
 import { workerClient } from "./zotero-reads/worker-client.ts";
 
 /**

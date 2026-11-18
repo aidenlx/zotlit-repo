@@ -45,6 +45,21 @@ import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
+import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import {
+  zoteroRevisionAtom,
+  zoteroStateAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  AvailableLibrary,
+  LibraryScope,
+  LibrarySelector,
+  ResolvedLibraryScope,
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type {
   SearchHit,
@@ -58,13 +73,6 @@ import type {
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { resolvedLibraryScopeAtom } from "@/services/library-scope/atoms.ts";
-import type {
-  AvailableLibrary,
-  LibraryScope,
-  LibrarySelector,
-  ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
-import { selectorKey } from "@/services/library-scope/scope.ts";
 import { LibraryScope as LibraryScopeService } from "@/services/library-scope/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { notedItemKeysAtom } from "@/services/note-index/atoms.ts";
@@ -77,14 +85,6 @@ import { UseLedger } from "@/services/use-ledger/service.ts";
 import type { Ledger, UseKind } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import {
-  zoteroRevisionAtom,
-  zoteroStateAtom,
-} from "@/services/zotero-reads/atoms.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
-import type { ZoteroReadsEvent } from "@/services/zotero-reads/service.ts";
-import { stubbedReads } from "@/services/zotero-reads/test-utils.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import {
@@ -651,7 +651,9 @@ async function pluginData(
   }));
   const nativeEvents = testEvent<ZoteroReadsEvent>();
   const nativeStates =
-    testEvent<import("@/services/zotero-reads/service.ts").ZoteroReadsState>();
+    testEvent<
+      import("@zotlit/zotero-reads/client/service.ts").ZoteroReadsState
+    >();
   const events = nativeEvents.stream;
   const publish = (event: ZoteroReadsEvent) => {
     nativeStates.emit({

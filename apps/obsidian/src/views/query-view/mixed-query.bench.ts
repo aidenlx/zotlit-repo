@@ -56,6 +56,7 @@ import {
   planItemFilter,
 } from "@zotlit/item-query";
 import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { answerView } from "@/services/item-query/answer.ts";
 import { QUERY_COMMAND } from "@/services/item-query/contract.ts";
@@ -63,7 +64,6 @@ import type {
   QueryViewResult,
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
-import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
 import { parseQueryFile } from "./query-file.ts";
 import type { QueryFile } from "./query-file.ts";

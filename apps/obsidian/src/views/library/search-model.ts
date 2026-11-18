@@ -6,17 +6,17 @@ import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import {
+  zoteroRevisionAtom,
+  zoteroUnavailableAtom,
+} from "@zotlit/zotero-reads/client/atoms.ts";
+import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import {
   libraryScopeStateAtom,
   resolvedLibraryScopeAtom,
 } from "@/services/library-scope/atoms.ts";
-import type { LibraryScope } from "@/services/library-scope/scope.ts";
-import {
-  zoteroRevisionAtom,
-  zoteroUnavailableAtom,
-} from "@/services/zotero-reads/atoms.ts";
 
 import { librariesOf } from "./document.ts";
 import type { LibraryNode } from "./document.ts";

@@ -33,19 +33,19 @@ import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
-
-import { selectorKey } from "@/services/library-scope/scope.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type {
   AvailableLibrary,
   ResolvedLibraryScope,
-} from "@/services/library-scope/scope.ts";
+} from "@zotlit/zotero-reads/contract/library-scope.ts";
+import type { SearchHit as ReadsSearchHit } from "@zotlit/zotero-reads/contract/rpc.ts";
+
 import {
   LibraryScope,
   scopeChanges,
 } from "@/services/library-scope/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
-import type { SearchHit as ReadsSearchHit } from "@/services/zotero-reads/rpc.ts";
-import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 export const DEFAULT_LIMIT = 50;
 

@@ -9,10 +9,10 @@ import type { Item } from "@zotlit/db";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
-import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import { bindNoteCreation } from "./creation-handle.ts";
