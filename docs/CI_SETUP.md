@@ -22,8 +22,10 @@ tasks even when package source files are unchanged.
 
 ## Release workflow
 
-Pull requests run no workflow. `pnpm verify` gates every push through the
-Lefthook pre-push hook ([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md)).
+The checks of a change run in `pnpm land`: it runs `pnpm verify` on the
+rebased result before it pushes to `next`, and the Lefthook pre-push hook lets
+only `pnpm land` push `next` and `main`
+([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md)).
 
 `.github/workflows/release.yml` runs on every push to `main` and `next`, and on
 manual dispatch. The `plan` job reads both app versions and asks GitHub whether

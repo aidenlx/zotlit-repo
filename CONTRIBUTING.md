@@ -24,6 +24,18 @@ Each app's `apps/{app}/package.json#version` is the sole version source.
 
 See [ADR 0021](docs/adr/0021-next-is-the-primary-branch.md).
 
+### Landing a change
+
+A change reaches `next` through `pnpm land`, run from the task worktree on its
+branch with a clean tree. Lands on one machine run one at a time, in a queue:
+each fetches `origin/next`, rebases the branch onto it, runs `pnpm verify` on
+the rebased tree, and pushes it to `next` as a fast-forward. The gate cannot be
+skipped. The pre-push hook lets only `pnpm land` push `next` and `main`.
+
+A stable graduation fast-forwards `main` to a commit of `next`: check that
+commit out (`git switch --detach origin/next`) and run `pnpm land --to main`,
+which runs `pnpm verify --release` before it pushes.
+
 ### Version policy
 
 Keep the **beta line strictly ahead of stable**: every `next` version must be
@@ -58,8 +70,8 @@ counterpart line before merging a release PR.
    Every confirmation is taken as yes; the PR merges only with `--merge`. A
    branch with commits not yet on origin stops the run: push them first.
 
-3. Pull requests run no checks: the pre-push hook runs `pnpm verify`, and the
-   release gate already passed in step 2. See
+3. The release gate already passed in step 2, so the release PR needs no
+   checks. See
    [ADR 0076](docs/adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md).
 4. On merge, `release.yml` runs the release gate on the merged tree, then
    auto-creates the GitHub release and uploads assets. If its `verify` job
@@ -75,7 +87,7 @@ counterpart line before merging a release PR.
 
 1. **Start the beta.** On `next`, run `pnpm release`, pick
    `preminor`/`prerelease` → `2.1.0-beta.0`. Merge the PR (targets `next`).
-2. **Iterate.** Land feature PRs into `next`. Run `pnpm release` with
+2. **Iterate.** Land changes into `next` with `pnpm land`. Run `pnpm release` with
    `prerelease` → `2.1.0-beta.1`, `.2`, …
 3. **Ship stable.** On `next`, run `pnpm release`, pick `minor` → `2.1.0`.
    The script creates a release branch targeting `main`. Both apps must be
