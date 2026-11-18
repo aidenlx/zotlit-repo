@@ -2,8 +2,7 @@ import type { Profiler } from "node:inspector";
 import type { Editor, MarkdownView, TFile, WorkspaceLeaf } from "obsidian";
 
 import type { ReferencesView } from "@zotlit/citations/desktop/references/view.tsx";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 
 export type { FileScan } from "@zotlit/citations/core/citation-index/store.ts";
 

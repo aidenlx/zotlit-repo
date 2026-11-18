@@ -238,7 +238,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await started.promise;
         let settled = false;
         const reading = (
-          leaf.view as import("../../../apps/obsidian/src/views/annot-view/view.tsx").AnnotationView
+          leaf.view as import("@zotlit/query-views/desktop/annot-view/view.tsx").AnnotationView
         ).read.then(() => {
           settled = true;
         });
@@ -316,7 +316,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             state: { followMode: "pinned", pinnedItemKey: annotationItemKey },
           });
           const view =
-            leaf.view as import("../../../apps/obsidian/src/views/annot-view/view.tsx").AnnotationView;
+            leaf.view as import("@zotlit/query-views/desktop/annot-view/view.tsx").AnnotationView;
           await view.read;
           const button = await until(
             "Annotation card menu missing",

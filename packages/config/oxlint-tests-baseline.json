@@ -35,15 +35,15 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/query-view/obsidian-private/embed-registry.test.ts": [
+  "packages/query-views/src/obsidian/query-view/obsidian-private/embed-registry.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/query-view/obsidian-private/metadata-type-manager.test.ts": [
+  "packages/query-views/src/obsidian/query-view/obsidian-private/metadata-type-manager.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/query-view/obsidian-private/property-values.test.ts": [
+  "packages/query-views/src/obsidian/query-view/obsidian-private/property-values.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
@@ -291,7 +291,7 @@
   "packages/citations/src/obsidian/cited-by/view.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/library/view.test.ts": [
+  "packages/library-view/src/desktop/library/view.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "packages/template-workbench/src/desktop/view/preview/markdown.test.ts": [
@@ -300,17 +300,17 @@
   "apps/obsidian/src/services/citations/pandoc-export-register.test.ts": [
     "zotlit-tests/no-internal-mock"
   ],
-  "apps/obsidian/src/views/query-view/note-host.test.ts": [
+  "packages/query-views/src/desktop/query-view/note-host.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/query-view/table-notes.test.ts": [
+  "packages/query-views/src/desktop/query-view/table-notes.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/query-view/view.test.ts": [
+  "packages/query-views/src/desktop/query-view/view.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/quick-switch/modal.test.ts": [
+  "packages/library-view/src/desktop/quick-switch/modal.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],

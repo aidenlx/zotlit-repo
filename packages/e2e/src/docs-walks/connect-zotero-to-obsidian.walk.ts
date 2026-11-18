@@ -23,9 +23,8 @@ import type {
 } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import type { LibraryView } from "@/views/library/view.ts";
 
 import type { Rect } from "./camera.ts";
 import { clipSettings } from "./clip-settings.ts";

@@ -26,9 +26,9 @@ import {
   ZoteroPref,
 } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { annotationTriggerError } from "@zotlit/query-views/core/annotation-suggest/annotation-trigger.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import { annotationTriggerError } from "@/views/annotation-suggest/annotation-trigger.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { zoteroDataDir } from "./database.ts";

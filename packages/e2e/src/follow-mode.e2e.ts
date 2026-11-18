@@ -2,9 +2,8 @@ import { readFile, rename } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { reachable } from "./e2e-run-fixture.ts";

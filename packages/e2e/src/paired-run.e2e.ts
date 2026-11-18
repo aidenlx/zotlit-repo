@@ -30,10 +30,9 @@ import {
 
 import type { AnnotationDraft } from "@zotlit/annotations/obsidian/annotation-repository/write.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
+import type { QueryFileView } from "@zotlit/query-views/desktop/query-view/file-view.ts";
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
-import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { verifyExternalAnnotationLock } from "./annotation-lock.ts";
 import { prepareRunWindow } from "./background-throttling.ts";

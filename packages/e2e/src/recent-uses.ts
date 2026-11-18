@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { WorkspaceLeaf, MarkdownView } from "obsidian";
 import { expect } from "vitest";
 
-import type { LibraryView } from "@/views/library/view.ts";
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { cli, cliCommand } from "./obsidian-cli.ts";

@@ -4,10 +4,9 @@ import { isDeepStrictEqual } from "node:util";
 import type { WorkspaceLeaf, MarkdownView, WorkspaceSidedock } from "obsidian";
 import { describe, expect, it } from "vitest";
 
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
+import type { AnnotationView as AnnotView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 import { ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
-
-import type { AnnotationView as AnnotView } from "@/views/annot-view/view.tsx";
-import type { LibraryView } from "@/views/library/view.ts";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import {

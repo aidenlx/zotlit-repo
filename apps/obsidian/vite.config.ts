@@ -65,6 +65,8 @@ const pluginCode = [
   packageSource(import.meta.resolve("@zotlit/citations/package.json")),
   packageSource(import.meta.resolve("@zotlit/notes/package.json")),
   packageSource(import.meta.resolve("@zotlit/template-workbench/package.json")),
+  packageSource(import.meta.resolve("@zotlit/query-views/package.json")),
+  packageSource(import.meta.resolve("@zotlit/library-view/package.json")),
 ];
 const fullContractIRPath = fileURLToPath(
   import.meta.resolve("@zotlit/db/contract/ir.json"),

@@ -44,6 +44,7 @@
     "yaml": "catalog:"
   },
   "devDependencies": {
+    "@codemirror/commands": "catalog:",
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
     "@preact/preset-vite": "catalog:",

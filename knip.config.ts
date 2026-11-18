@@ -80,6 +80,12 @@ const config: KnipConfig = {
     "packages/template-workbench": {
       includeEntryExports: true,
     },
+    "packages/query-views": {
+      includeEntryExports: true,
+    },
+    "packages/library-view": {
+      includeEntryExports: true,
+    },
     "packages/plugin-messages": {
       // Generated: the facade exports every Message, read or not.
       ignore: ["generated/**"],

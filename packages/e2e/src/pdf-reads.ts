@@ -118,7 +118,7 @@ export async function verifyPdfReads(
         app.workspace.getLeavesOfType(
           "zotlit-library",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: import("../../../apps/obsidian/src/views/library/view.ts").LibraryView;
+          view: import("@zotlit/library-view/desktop/library/view.ts").LibraryView;
         })[]
       ).forEach((l) => l.detach());
       s.bridge.runSync(s.settings.update({ "library.document": null }));
@@ -131,7 +131,7 @@ export async function verifyPdfReads(
             app.workspace.getLeavesOfType(
               "zotlit-library",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: import("../../../apps/obsidian/src/views/library/view.ts").LibraryView;
+              view: import("@zotlit/library-view/desktop/library/view.ts").LibraryView;
             })[]
           )[0]?.view.query,
       );
@@ -214,7 +214,7 @@ export async function verifyPdfReads(
         app.workspace.getLeavesOfType(
           "zotlit-library",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: import("../../../apps/obsidian/src/views/library/view.ts").LibraryView;
+          view: import("@zotlit/library-view/desktop/library/view.ts").LibraryView;
         })[]
       )[0]!.view;
       await view.query.settled;
@@ -238,7 +238,7 @@ export async function verifyPdfReads(
         app.workspace.getLeavesOfType(
           "zotlit-library",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: import("../../../apps/obsidian/src/views/library/view.ts").LibraryView;
+          view: import("@zotlit/library-view/desktop/library/view.ts").LibraryView;
         })[]
       )[0]!.view.contentEl.querySelector<HTMLElement>(
         '[data-query-papers-row="RUGIER24"]',

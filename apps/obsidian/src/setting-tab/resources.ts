@@ -6,20 +6,19 @@ import type {
   SettingDefinitionGroup,
 } from "obsidian";
 
+import { openWelcomeView } from "@zotlit/library-view/desktop/library/welcome-register.ts";
+import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
+import {
+  BUG_REPORT,
+  docsHomeUrl,
+  migrationGuideUrl,
+} from "@zotlit/library-view/obsidian/welcome/links.ts";
 import { communityUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { toastLanguagePackInstall } from "@zotlit/plugin-services/obsidian/language-pack/notices.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { languagePackSettingCopy } from "@zotlit/plugin-services/obsidian/language-pack/setting-copy.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
-import { Release } from "@/services/release/service.ts";
-import {
-  BUG_REPORT,
-  docsHomeUrl,
-  migrationGuideUrl,
-} from "@/views/welcome/links.ts";
-import { openWelcomeView } from "@/views/welcome/register.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { languagePackDefinition } from "./language-pack.ts";

@@ -17,7 +17,7 @@ import { CitationParse } from "@zotlit/citations/obsidian/citation-parse/service
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-import { QueryService } from "@/services/item-query/service.ts";
+import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
@@ -29,7 +29,7 @@ import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
-import { Release } from "@/services/release/service.ts";
+import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateDataReads } from "@zotlit/notes/desktop/template/data-reads.ts";
 import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";

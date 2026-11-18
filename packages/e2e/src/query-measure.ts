@@ -93,7 +93,7 @@ const CALL_TIMEOUT_MS = 180_000;
 /** Runs to repeat when the window was hidden in a run. */
 const VISIBILITY_RETRIES = 3;
 
-/** The report of `zotlit:query-measure` (apps/obsidian/src/services/item-query/measure.ts). */
+/** The report of `zotlit:query-measure` (packages/query-views/src/desktop/item-query/measure.ts). */
 interface MeasureReport {
   outcome: "answered" | "cancelled" | "failed";
   error?: string;

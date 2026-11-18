@@ -1,0 +1,66 @@
+{
+  "name": "@zotlit/library-view",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Library View of the ZotLit Obsidian plugins: the Library Tree, the Item list, the Reading Card, the Welcome View banner above it and the Release check that opens it, and the quick switcher",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@effect/atom-react": "catalog:",
+    "@zotlit/annotations": "workspace:*",
+    "@zotlit/citations": "workspace:*",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/filter-expression": "workspace:*",
+    "@zotlit/item-query": "workspace:*",
+    "@zotlit/notes": "workspace:*",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/query-views": "workspace:*",
+    "@zotlit/templates": "workspace:*",
+    "@zotlit/ui": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "effect": "catalog:",
+    "nanoid": "catalog:",
+    "preact": "catalog:",
+    "semver": "^7.8.0",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/semver": "^7.7.1",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "@zotlit/shared": "workspace:*",
+    "@zotlit/template-workbench": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

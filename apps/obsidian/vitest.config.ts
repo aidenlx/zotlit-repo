@@ -34,7 +34,11 @@ export default defineConfig({
       // imports to our local mock so tests can `import { ... } from "obsidian"`.
       obsidian: obsidianMock,
       // Pretext measures text with a canvas, which the test DOM lacks.
-      "@chenglou/pretext": resolve(packageRoot, "__mocks__/pretext.ts"),
+      "@chenglou/pretext": fileURLToPath(
+        import.meta
+          .resolve("@zotlit/query-views/package.json")
+          .replace(/package\.json$/, "__mocks__/pretext.ts"),
+      ),
       "virtual:citation-parse-worker": resolve(
         packageRoot,
         "__mocks__/worker-source.ts",
@@ -80,6 +84,8 @@ export default defineConfig({
         packageSource(
           import.meta.resolve("@zotlit/template-workbench/package.json"),
         ),
+        packageSource(import.meta.resolve("@zotlit/query-views/package.json")),
+        packageSource(import.meta.resolve("@zotlit/library-view/package.json")),
       ],
     }),
     preact(),

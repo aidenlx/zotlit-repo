@@ -2,6 +2,7 @@ import { Context, Effect } from "effect";
 import type { Setting as ObsidianSetting, SettingGroup } from "obsidian";
 import { expect, it, vi } from "vitest";
 
+import { openWelcomeView } from "@zotlit/library-view/desktop/library/welcome-register.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
@@ -13,13 +14,12 @@ import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/ser
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import { openWelcomeView } from "@/views/welcome/register.ts";
 
 import { testSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";
 import { resourcesGroup } from "./resources.ts";
 
-vi.mock("@/views/welcome/register.ts", () => ({
+vi.mock("@zotlit/library-view/desktop/library/welcome-register.ts", () => ({
   openWelcomeView: vi.fn(async () => {}),
 }));
 

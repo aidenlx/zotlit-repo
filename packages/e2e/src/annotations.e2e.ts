@@ -1490,7 +1490,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { savedPath }) => {
         const view = app.workspace.getMostRecentLeaf()?.view as
-          | import("../../../apps/obsidian/src/views/query-view/file-view.ts").QueryFileView
+          | import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           | undefined;
         if (
           view?.getViewType() !== "zotlit-query-file" ||

@@ -2,14 +2,13 @@ import { DatabaseSync } from "node:sqlite";
 import type { WorkspaceLeaf, FileSystemAdapter } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { ATTACHMENTS } from "@zotlit/scripts/fixture";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 // Annotation links in a note: a Durable Annotation Link clicked in any
 // Obsidian surface lands on its Annotation in Obsidian's reader, or reaches
 // Zotero when this computer cannot open the PDF; a hovered one shows the
 // Annotation it names. The Annotation Suggester writes the same link from a
 // search at the cursor.
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import { ATTACHMENTS } from "@zotlit/scripts/fixture";
 
 import {
   annotationAttachment,

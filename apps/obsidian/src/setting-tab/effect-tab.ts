@@ -17,6 +17,7 @@ import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotati
 import type { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import type { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import type { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import type { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import type { Template } from "@zotlit/notes/obsidian/template/service.ts";
@@ -41,8 +42,6 @@ import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-loc
 import type { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 import type { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-
-import type { Release } from "@/services/release/service.ts";
 
 /** Every service a tab Effect may read: the tab layer's whole context. */
 export type SettingTabEnv =

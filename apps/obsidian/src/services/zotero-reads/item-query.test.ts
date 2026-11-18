@@ -14,6 +14,10 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
+import { workerQuery } from "@zotlit/query-views/__fixtures__/item-query/worker-query.ts";
+import { makeAttachmentFileResolver } from "@zotlit/query-views/core/item-query/attachment-files.ts";
+import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
+import type { QueryJob } from "@zotlit/query-views/desktop/item-query/worker-protocol.ts";
 import {
   inProcessClient,
   sharedClientOpener,
@@ -23,11 +27,6 @@ import {
   Connection,
   layerRcRef,
 } from "@zotlit/zotero-reads/worker/connection.ts";
-
-import { workerQuery } from "@/services/item-query/__fixtures__/worker-query.ts";
-import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files.ts";
-import { queryJobRunner } from "@/services/item-query/job.ts";
-import type { QueryJob } from "@/services/item-query/worker-protocol.ts";
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },

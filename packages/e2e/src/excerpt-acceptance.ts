@@ -6,6 +6,7 @@ import type { FileSystemAdapter, PDFFileView } from "obsidian";
 import { expect } from "vitest";
 
 import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -23,8 +24,6 @@ import {
 // that paints and releases an image, and the write path is the repository the
 // cards themselves call.
 import type { FixtureAnnotation } from "@zotlit/scripts/fixture";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { ExcerptImportState } from "./page-excerpt-types.ts";

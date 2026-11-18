@@ -20,6 +20,15 @@ import { registerCitationSuggest } from "@zotlit/citations/obsidian/citation-sug
 import { registerCitedByView } from "@zotlit/citations/obsidian/cited-by/register.ts";
 import { addCitekeyEditorActions } from "@zotlit/citations/obsidian/citekey-editor/actions.ts";
 import { addGraphCitationsActions } from "@zotlit/citations/obsidian/graph-citations/actions.ts";
+import { itemActions } from "@zotlit/library-view/desktop/library/item-actions.ts";
+import {
+  registerLibraryView,
+  showInLibrary,
+} from "@zotlit/library-view/desktop/library/register.ts";
+import { registerWelcomeView } from "@zotlit/library-view/desktop/library/welcome-register.ts";
+import { registerQuickSwitch } from "@zotlit/library-view/desktop/quick-switch/register.ts";
+import { createSetupActions } from "@zotlit/library-view/desktop/welcome/setup-actions.ts";
+import { showInLibraryFileMenu } from "@zotlit/library-view/obsidian/library/show-in-library-actions.ts";
 import {
   addNoteFeatureActions,
   noteFeatureFileMenu,
@@ -30,6 +39,10 @@ import {
   importProfileDialog,
 } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
+import {
+  handlerCheckedFlags,
+  printableCliHandler,
+} from "@zotlit/obsidian-kit/cli-rejection.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
@@ -42,6 +55,22 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { addIndexedKeyActions } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
 import { indexedKeyFileMenu } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
+import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
+import { registerAnnotView } from "@zotlit/query-views/desktop/annot-view/register.ts";
+import { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
+import { registerAnnotationSuggest } from "@zotlit/query-views/desktop/annotation-suggest/register.ts";
+import { registerPdfNote } from "@zotlit/query-views/desktop/pdf-note/register.ts";
+import { registerQueryBlock } from "@zotlit/query-views/desktop/query-view/block.ts";
+import { QueryFileView } from "@zotlit/query-views/desktop/query-view/file-view.ts";
+import { whenNear } from "@zotlit/query-views/desktop/query-view/note-host.ts";
+import {
+  queryFileFileMenu,
+  queryFileFolderMenu,
+  registerQueryFileView,
+} from "@zotlit/query-views/desktop/query-view/register.ts";
+import { literatureNotes } from "@zotlit/query-views/desktop/query-view/table-notes.ts";
+import type { QueryViewDeps } from "@zotlit/query-views/desktop/query-view/view.tsx";
+import { QueryCardFocus } from "@zotlit/query-views/obsidian/query-view/card-focus.ts";
 import {
   explorerFileMenu,
   registerTemplateDataExplorer,
@@ -52,36 +81,10 @@ import {
   registerTemplateWorkbenchView,
 } from "@zotlit/template-workbench/desktop/view/register.ts";
 
-import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
 import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
 
-import { startI18n } from "./i18n.ts";
 import { createPluginRuntime } from "./services/plugin-runtime.ts";
 import { ServiceStartupFailed } from "./services/startup-failure.ts";
-import { registerAnnotView } from "./views/annot-view/register.ts";
-import { AnnotationView } from "./views/annot-view/view.tsx";
-import { registerAnnotationSuggest } from "./views/annotation-suggest/register.ts";
-import { itemActions } from "./views/library/item-actions.ts";
-import {
-  registerLibraryView,
-  showInLibrary,
-} from "./views/library/register.ts";
-import { showInLibraryFileMenu } from "./views/library/show-in-library-actions.ts";
-import { registerPdfNote } from "./views/pdf-note/register.ts";
-import { registerQueryBlock } from "./views/query-view/block.ts";
-import { QueryCardFocus } from "./views/query-view/card-focus.ts";
-import { QueryFileView } from "./views/query-view/file-view.ts";
-import { whenNear } from "./views/query-view/note-host.ts";
-import {
-  queryFileFileMenu,
-  queryFileFolderMenu,
-  registerQueryFileView,
-} from "./views/query-view/register.ts";
-import { literatureNotes } from "./views/query-view/table-notes.ts";
-import type { QueryViewDeps } from "./views/query-view/view.tsx";
-import { registerQuickSwitch } from "./views/quick-switch/register.ts";
-import { registerWelcomeView } from "./views/welcome/register.ts";
-import { createSetupActions } from "./views/welcome/setup-actions.ts";
 import "./zt-main.css";
 
 function showInstallerUpdateNotice(): BaseNotice {

@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import type { WorkspaceLeaf } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";

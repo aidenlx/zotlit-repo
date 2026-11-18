@@ -158,7 +158,7 @@ const FACETS = [
 /** The Library View: the tree with Recent first, then the papers you last touched and why. */
 function LibrarySheet({ compact = false }: { compact?: boolean }) {
   // Worded as the plugin words a Last Activity, in the page's locale.
-  // @see apps/obsidian/src/views/library/reason.ts
+  // @see packages/library-view/src/desktop/library/reason.ts
   const ago = new Intl.RelativeTimeFormat(getLocale(), { numeric: "always" });
   const recent = [
     {

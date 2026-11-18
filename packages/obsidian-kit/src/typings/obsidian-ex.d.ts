@@ -68,7 +68,7 @@ declare module "obsidian" {
    * The view of a "New tab", view type `"empty"`. Internal; verified against
    * Obsidian 1.14.4.
    *
-   * @see apps/obsidian/src/views/query-view/empty-view-action.ts — the one
+   * @see packages/query-views/src/obsidian/query-view/empty-view-action.ts — the one
    *   module that reads it, through a structural probe.
    */
   interface EmptyView {
@@ -187,13 +187,13 @@ declare module "obsidian" {
      * Every text value, or text inside a list, the frontmatter property
      * `key` holds across the vault, each once. Internal; verified against
      * Obsidian 1.14.4. Read it only through
-     * `apps/obsidian/src/views/query-view/obsidian-private/property-values.ts`.
+     * `packages/query-views/src/obsidian/query-view/obsidian-private/property-values.ts`.
      */
     getFrontmatterPropertyValuesForKey?(key: string): string[];
     /**
      * The vault's tags, `#`-prefixed, with the count of each. Internal;
      * verified against Obsidian 1.14.4. Read it only through
-     * `apps/obsidian/src/views/query-view/obsidian-private/property-values.ts`.
+     * `packages/query-views/src/obsidian/query-view/obsidian-private/property-values.ts`.
      */
     getTags?(): Record<string, number>;
   }
@@ -208,13 +208,13 @@ declare module "obsidian" {
      * Draws `![[file.ext]]` for each file extension. Internal; verified
      * against Obsidian 1.14.4. Optional, and each member optional, so a build
      * that drops one is a guarded branch: read it only through
-     * `apps/obsidian/src/views/query-view/obsidian-private/embed-registry.ts`.
+     * `packages/query-views/src/obsidian/query-view/obsidian-private/embed-registry.ts`.
      */
     embedRegistry?: Partial<EmbedRegistry>;
     /**
      * Keeps the type each property is assigned. Internal; verified against
      * Obsidian 1.14.4. Optional, and each member optional: read it only
-     * through `apps/obsidian/src/views/query-view/obsidian-private/metadata-type-manager.ts`.
+     * through `packages/query-views/src/obsidian/query-view/obsidian-private/metadata-type-manager.ts`.
      */
     metadataTypeManager?: Partial<MetadataTypeManager>;
   }

@@ -7,6 +7,7 @@ import { join } from "node:path";
 import type { MarkdownView } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
 import {
   buildFixture,
   discardFixture,
@@ -14,8 +15,6 @@ import {
   LIBRARY_SCOPE_SETTING_KEY,
 } from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import type { LibraryView } from "@/views/library/view.ts";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { revealQueryView } from "./note-query-view.ts";
@@ -2132,7 +2131,7 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       vaultId,
       async ({ app }) => {
         const view = app.workspace.getLeavesOfType("zotlit-query-file")[0]
-          ?.view as import("@/views/query-view/file-view.ts").QueryFileView;
+          ?.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView;
         if (!view) return [];
         await view.query.settled;
         const keys =

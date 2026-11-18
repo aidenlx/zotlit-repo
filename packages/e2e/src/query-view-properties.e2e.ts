@@ -76,10 +76,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).save();
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -517,10 +517,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).save();
               const el = (view as import("obsidian").ItemView).contentEl;
               const columns = [
@@ -959,7 +959,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app }) => {
         (
           app.workspace.getMostRecentLeaf()!
-            .view as import("@/views/query-view/file-view.ts").QueryFileView
+            .view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.document.setViewLayout(0, "list");
       },
       undefined,
@@ -973,7 +973,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app }) => {
         (
           app.workspace.getMostRecentLeaf()!
-            .view as import("@/views/query-view/file-view.ts").QueryFileView
+            .view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.document.setViewLayout(0, "table");
       },
       undefined,
@@ -1180,7 +1180,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -1235,10 +1235,10 @@ views:
         async ({ app }, { text }) => {
           const view = app.workspace.getMostRecentLeaf()!.view;
           (
-            view as import("@/views/query-view/file-view.ts").QueryFileView
+            view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).setViewData(text);
           await (
-            view as import("@/views/query-view/file-view.ts").QueryFileView
+            view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).save();
           return String(true);
         },
@@ -1407,7 +1407,7 @@ views:
       async ({ app }) => {
         (
           app.workspace.getMostRecentLeaf()!
-            .view as import("@/views/query-view/file-view.ts").QueryFileView
+            .view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.document.removeFormula("next");
       },
       undefined,
@@ -1522,7 +1522,7 @@ views:
                   state: { ...leaf.getViewState().state, view: name },
                 });
               await (
-                leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+                leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (leaf.view as import("obsidian").ItemView).contentEl;
               return JSON.stringify(
@@ -1758,10 +1758,10 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).save();
               const el = (view as import("obsidian").ItemView).contentEl;
               const header = [
@@ -2112,7 +2112,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2171,7 +2171,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2226,7 +2226,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2293,7 +2293,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2350,7 +2350,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2411,7 +2411,7 @@ views:
                 return { before, live, after: width("title") };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2460,7 +2460,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2495,7 +2495,7 @@ views:
                 return { after: width("date") };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2543,7 +2543,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2617,7 +2617,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2672,7 +2672,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2750,7 +2750,7 @@ views:
                 return { auto, sized, after: width("firstAuthor") };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2817,7 +2817,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2878,7 +2878,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -2929,7 +2929,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -2980,7 +2980,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3031,7 +3031,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -3067,12 +3067,12 @@ views:
                   th("firstAuthor").getBoundingClientRect().left + 5,
                 );
                 (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.document.editView({
                   order: ["date", "title", "firstAuthor"],
                 });
                 await (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.flush();
                 await until(
                   "order changes",
@@ -3103,7 +3103,7 @@ views:
                 return {};
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3174,7 +3174,7 @@ views:
           grabbing: activeDocument.body.classList.contains("is-grabbing"),
         };
         const layout = (
-          view as import("@/views/query-view/file-view.ts").QueryFileView
+          view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.layout;
         const left = () =>
           !activeDocument.querySelector<HTMLElement>(".table-drag-target")! &&
@@ -3270,7 +3270,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -3332,7 +3332,7 @@ views:
                 };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3377,7 +3377,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -3435,7 +3435,7 @@ views:
                 return { before, after: width(note) };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3481,7 +3481,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -3524,7 +3524,7 @@ views:
                 press(row(), "Literature Note Property row");
                 await until("hidden", () => !columns().includes(note));
                 await (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.flush();
                 const hidden = columns();
                 const hiddenText = await app.vault.read(
@@ -3537,7 +3537,7 @@ views:
                 return { label, hidden, hiddenText, kept };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3588,7 +3588,7 @@ views:
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const th = (p: string) =>
@@ -3612,13 +3612,13 @@ views:
 
               const out = await (async () => {
                 (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.document.setViewLayout(0, "cards");
                 await until("cards", () =>
                   el.querySelector<HTMLElement>("[data-query-row]")!,
                 );
                 await (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.settled;
                 const card = !!el.querySelector<HTMLElement>(
                   "[data-query-row] [data-query-note],[data-query-row] [data-query-create-note]",
@@ -3627,13 +3627,13 @@ views:
                   el.querySelector<HTMLElement>("[data-query-unused]")
                     ?.textContent ?? null;
                 (
-                  view as import("@/views/query-view/file-view.ts").QueryFileView
+                  view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
                 ).query.document.setViewLayout(0, "table");
                 await until("table", () => th(note));
                 return { card, unused };
               })();
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.flush();
               return JSON.stringify({
                 ...out,
@@ -3691,7 +3691,7 @@ views:
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         await (
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.settled;
         const el = (leaf.view as import("obsidian").ItemView).contentEl;
         press(

@@ -65,6 +65,8 @@ export default defineConfig({
         packageSource(
           import.meta.resolve("@zotlit/template-workbench/package.json"),
         ),
+        packageSource(import.meta.resolve("@zotlit/query-views/package.json")),
+        packageSource(import.meta.resolve("@zotlit/library-view/package.json")),
       ],
     }),
     preact(),

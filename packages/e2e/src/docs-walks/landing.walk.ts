@@ -26,10 +26,9 @@ import type {
 } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
-import type { LibraryView } from "@/views/library/view.ts";
 
 import {
   captureRequested,

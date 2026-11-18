@@ -116,7 +116,7 @@ interface ItemQueryDiagnostic {
 }
 
 /** The `zotlit:query-schema` reply shape this suite reads (see
- *  apps/obsidian/src/services/item-query/contract.ts and answer.ts). */
+ *  packages/query-views/src/desktop/item-query/contract.ts and answer.ts). */
 interface ItemQuerySchemaReport {
   contractVersion: number;
   command: string;

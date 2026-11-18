@@ -86,7 +86,7 @@ export type MarkdownLeaf = import("obsidian").WorkspaceLeaf & {
   view: import("obsidian").MarkdownView;
 };
 export type AnnotationLeaf = import("obsidian").WorkspaceLeaf & {
-  view: import("../../../apps/obsidian/src/views/annot-view/view.tsx").AnnotationView;
+  view: import("@zotlit/query-views/desktop/annot-view/view.tsx").AnnotationView;
 };
 export interface InsertTrial extends PreparationTrial {
   layout: ReturnType<import("obsidian").Workspace["getLayout"]>;

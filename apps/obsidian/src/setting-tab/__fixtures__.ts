@@ -18,6 +18,7 @@ import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-re
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
@@ -42,8 +43,6 @@ import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/custo
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
-
-import { Release } from "@/services/release/service.ts";
 
 import { makeSettingTab } from "./effect-tab.ts";
 import type { SettingTabShape } from "./effect-tab.ts";

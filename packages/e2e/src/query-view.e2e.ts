@@ -54,10 +54,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const narrow = app.workspace.createLeafBySplit(wide, "vertical");
         await narrow.openFile(file);
         await Promise.all([
-          (wide.view as import("@/views/query-view/file-view.ts").QueryFileView)
-            .query.settled,
           (
-            narrow.view as import("@/views/query-view/file-view.ts").QueryFileView
+            wide.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
+          ).query.settled,
+          (
+            narrow.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled,
         ]);
         (
@@ -264,7 +265,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           app.workspace.setActiveLeaf(leaf, { focus: true });
           await (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           if (isPopout) {
             app.workspace.moveLeafToPopout(leaf);
@@ -377,7 +378,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await leaf.openFile(file);
           app.workspace.setActiveLeaf(leaf, { focus: true });
           await (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           if (isPopout) {
             app.workspace.moveLeafToPopout(leaf);
@@ -737,7 +738,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         const fileView =
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView;
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView;
         await fileView.query.settled;
         const el = fileView.contentEl;
         await until(
@@ -970,7 +971,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await leaf.openFile(file);
           app.workspace.setActiveLeaf(leaf, { focus: true });
           await (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           if (isPopout) {
             app.workspace.moveLeafToPopout(leaf);
@@ -1205,7 +1206,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           app.workspace.setActiveLeaf(leaf, { focus: true });
           await (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           if (isPopout) {
             app.workspace.moveLeafToPopout(leaf);
@@ -1323,7 +1324,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         await (
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.settled;
         const el = (leaf.view as import("obsidian").ItemView).contentEl;
         const popup = await pageHelpers.openToolbarPopover(el, "filter");
@@ -1419,7 +1420,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         await (
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.settled;
         const el = (leaf.view as import("obsidian").ItemView).contentEl;
         const popup = await pageHelpers.openToolbarPopover(el, "filter");
@@ -1947,7 +1948,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -3353,8 +3354,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               ),
           20000,
         );
-        await (view as import("@/views/query-view/file-view.ts").QueryFileView)
-          .query.settled;
+        await (
+          view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
+        ).query.settled;
         const el = (view as import("obsidian").ItemView).contentEl;
         const doc = el.ownerDocument;
         await until(
@@ -3474,10 +3476,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await leaf.openFile(app.vault.getFileByPath(path)!);
           app.workspace.setActiveLeaf(leaf, { focus: true });
           (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.selectView(viewName);
           await (
-            leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+            leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           const el = (leaf.view as import("obsidian").ItemView).contentEl;
           await until(
@@ -4074,7 +4076,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const view = app.workspace.getMostRecentLeaf()!.view;
           if (view.getViewType() !== "zotlit-query-file") return "none";
           await (
-            view as import("@/views/query-view/file-view.ts").QueryFileView
+            view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.settled;
           const el = (view as import("obsidian").ItemView).contentEl;
           const cards =
@@ -4593,7 +4595,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               const view = app.workspace.getMostRecentLeaf()!.view;
               if (view.getViewType() !== "zotlit-query-file") return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -4772,7 +4774,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               const view = app.workspace.getMostRecentLeaf()!.view;
               if (view.getViewType() !== "zotlit-query-file") return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               const layout =
@@ -4984,8 +4986,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           () =>
             !el.querySelector<HTMLTableCellElement>("th[data-query-column]")!,
         );
-        await (view as import("@/views/query-view/file-view.ts").QueryFileView)
-          .query.settled;
+        await (
+          view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
+        ).query.settled;
         return {
           header: [
             ...el.querySelectorAll<HTMLTableCellElement>(
@@ -5078,7 +5081,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const el = (view as import("obsidian").ItemView).contentEl;
               return JSON.stringify({
@@ -5287,7 +5290,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               )
                 return "null";
               await (
-                view as import("@/views/query-view/file-view.ts").QueryFileView
+                view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query.settled;
               const grid = (
                 view as import("obsidian").ItemView
@@ -5335,7 +5338,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         async ({ app }) => {
           const view = app.workspace.getMostRecentLeaf()!.view;
           const sel = (
-            view as import("@/views/query-view/file-view.ts").QueryFileView
+            view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
           ).query.layout.store.getState().cardSelection;
           const el = (view as import("obsidian").ItemView).contentEl;
           const at = [
@@ -5627,7 +5630,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           let tab: Pane | undefined;
           const show = async (
             el: HTMLElement,
-            query: import("@/views/query-view/view.tsx").QueryView,
+            query: import("@zotlit/query-views/desktop/query-view/view.tsx").QueryView,
           ) => {
             await query.settled;
             return {
@@ -5657,7 +5660,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             tab = await show(
               (leaf.view as import("obsidian").ItemView).contentEl,
               (
-                leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+                leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
               ).query,
             );
           return Object.assign(out, { tab });

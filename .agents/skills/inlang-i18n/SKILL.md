@@ -24,7 +24,7 @@ Pair this skill with `/i18n-ui-text` when writing English UI copy.
   (`@zotlit/plugin-messages/messages.ts`).
 - `packages/plugin-messages/generated/en.json` — bundled English pack.
 - `packages/plugin-messages/generated/runtime.ts` — eval-free interpreter.
-- `apps/obsidian/src/i18n.ts` — Obsidian Locale Alias resolution and
+- `packages/plugin-services/src/obsidian/language-pack/start.ts` — Obsidian Locale Alias resolution and
   startup.
 
 Generated files are gitignored. Run:
@@ -142,7 +142,7 @@ rejected by the compiler.
 
 ## Locale behavior
 
-`apps/obsidian/src/i18n.ts` resolves Obsidian language codes through the
+`packages/plugin-services/src/obsidian/language-pack/start.ts` resolves Obsidian language codes through the
 Locale Alias table. Canonical locale names follow Inlang (`zh-CN`); unmatched
 codes resolve to English. Startup always installs bundled English first.
 Downloaded Language Packs are pure JSON data and use the same generated

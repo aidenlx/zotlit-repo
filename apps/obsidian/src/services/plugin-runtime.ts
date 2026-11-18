@@ -25,6 +25,8 @@ import { CitekeyEditor } from "@zotlit/citations/obsidian/citekey-editor/service
 import { GraphCitations } from "@zotlit/citations/obsidian/graph-citations/service.ts";
 import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { openWelcomeView } from "@zotlit/library-view/desktop/library/welcome-register.ts";
+import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import { bindNoteActions } from "@zotlit/notes/desktop/note-feature/actions-handle.ts";
 import type { NoteActionServices } from "@zotlit/notes/desktop/note-feature/actions-view.ts";
 import { bindNoteCitations } from "@zotlit/notes/desktop/note-feature/citations-handle.ts";
@@ -80,6 +82,12 @@ import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.t
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import {
+  annotationCardShown,
+  revealAnnotationInView,
+} from "@zotlit/query-views/desktop/annot-view/register.ts";
+import { bindQuery } from "@zotlit/query-views/desktop/item-query/handle.ts";
+import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import type { WorkbenchActionServices } from "@zotlit/template-workbench/desktop/editor/actions.ts";
 import type { DefaultProfileTarget } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 import { bindLocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/handle.ts";
@@ -93,18 +101,10 @@ import {
 import { acquireReadLease } from "@zotlit/zotero-reads/client/lease.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import {
-  annotationCardShown,
-  revealAnnotationInView,
-} from "@/views/annot-view/register.ts";
-import { openWelcomeView } from "@/views/welcome/register.ts";
 import type ZotLitPlugin from "@/zt-main.ts";
 
-import { bindQuery } from "./item-query/handle.ts";
-import { QueryService } from "./item-query/service.ts";
 import { pluginLayer } from "./plugin-layer.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
-import { Release } from "./release/service.ts";
 
 /** What the protocol handlers open: the note import's modals. */
 type ProtocolViews = Pick<ProtocolDeps, "noteImportView">;

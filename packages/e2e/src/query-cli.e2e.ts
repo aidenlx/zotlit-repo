@@ -1634,8 +1634,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             state: { followMode: "pinned", pinnedItemKey: annotationItemKey },
           });
           const view = leaf!.view;
-          await (view as import("@/views/annot-view/view.tsx").AnnotationView)
-            .read;
+          await (
+            view as import("@zotlit/query-views/desktop/annot-view/view.tsx").AnnotationView
+          ).read;
           const count = () =>
             (
               view as import("obsidian").ItemView

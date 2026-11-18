@@ -3,9 +3,8 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
 import type { Effect as PluginEffect } from "@zotlit/plugin-kernel/effect.ts";
+import type { QueryView } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type { TemplateWorkbenchView } from "@zotlit/template-workbench/desktop/view/view.tsx";
-
-import type { QueryView } from "@/views/query-view/view.tsx";
 
 import type { RenameListener, PageApp } from "./page-host.ts";
 import type {

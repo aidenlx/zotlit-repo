@@ -25,7 +25,7 @@
     "packages/notes/src/core/template/path.ts: isEtaTemplatePath",
     "packages/plugin-services/src/obsidian/use-ledger/__fixtures__.ts: inertUseLedger",
     "packages/plugin-services/src/obsidian/zotero-local-api/__fixtures__.ts: unauthorized",
-    "apps/obsidian/src/views/query-view/vault-cell.tsx: VaultCell",
+    "packages/query-views/src/desktop/query-view/vault-cell.tsx: VaultCell",
     "packages/template-workbench/src/obsidian/data-explorer/item-memory.ts: lastTemplateItem",
     "packages/obsidian-kit/src/components/obsidian/color.tsx: Color",
     "packages/obsidian-kit/src/components/obsidian/dropdown.tsx: DropdownGroup",

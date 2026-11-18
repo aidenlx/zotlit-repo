@@ -25,6 +25,10 @@ import {
   FIELD_ZOTERO_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { buildQueryService } from "@zotlit/query-views/__fixtures__/item-query.ts";
+import { layerItemMatchQuery } from "@zotlit/query-views/desktop/item-query/item-matches.ts";
+import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
+import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 import {
   inProcessReadsService,
@@ -36,11 +40,6 @@ import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { listCollectionChoices } from "@zotlit/zotero-reads/worker/membership.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
-import { layerItemMatchQuery } from "@/services/item-query/item-matches.ts";
-import { queryJobRunner } from "@/services/item-query/job.ts";
-import { QueryService } from "@/services/item-query/service.ts";
 
 vi.mock("@zotlit/db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@zotlit/db")>();

@@ -43,7 +43,7 @@ describe("agentSkillAssets", () => {
       await readFile(
         resolve(
           workspaceRoot,
-          "apps/obsidian/src/services/item-query/contract-version.json",
+          "packages/query-views/src/desktop/item-query/contract-version.json",
         ),
         "utf8",
       ),

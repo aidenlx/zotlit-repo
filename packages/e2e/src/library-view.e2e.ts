@@ -4,6 +4,9 @@ import { DatabaseSync } from "node:sqlite";
 import type { WorkspaceLeaf, MarkdownView, PDFFileView } from "obsidian";
 import { describe, expect, it } from "vitest";
 
+import type { StoredLibraryViewDocument } from "@zotlit/library-view/desktop/library/document.ts";
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
+import type { QueryFileView } from "@zotlit/query-views/desktop/query-view/file-view.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -15,10 +18,6 @@ import {
   NOTES,
 } from "@zotlit/scripts/fixture";
 import type { FixtureItem } from "@zotlit/scripts/fixture";
-
-import type { StoredLibraryViewDocument } from "@/views/library/document.ts";
-import type { LibraryView } from "@/views/library/view.ts";
-import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { annotationOpenKeys } from "./annotation-open-subpath.ts";
 import { prepareRunWindow } from "./background-throttling.ts";

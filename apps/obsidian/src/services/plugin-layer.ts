@@ -62,6 +62,14 @@ import { layerPandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts"
 import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { layerWikilinkEditor } from "@zotlit/citations/obsidian/wikilink-editor/service.ts";
 import { layerWikilinkReading } from "@zotlit/citations/obsidian/wikilink-reading/service.ts";
+import {
+  layerShowInLibrary,
+  openLibraryView,
+} from "@zotlit/library-view/desktop/library/register.ts";
+import { layerShowInLibraryActions } from "@zotlit/library-view/obsidian/library/show-in-library-actions.ts";
+import { layerReleaseActions } from "@zotlit/library-view/obsidian/release/actions.ts";
+import { layerRelease } from "@zotlit/library-view/obsidian/release/service.ts";
+import type { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import type { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { layerCitekeyNoteActions } from "@zotlit/notes/desktop/note-feature/citekey-actions.ts";
 import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
@@ -88,6 +96,7 @@ import { layerTemplate } from "@zotlit/notes/obsidian/template/service.ts";
 import type { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import type { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
+import { layerZoteroHttpNode } from "@zotlit/obsidian-desktop/zotero-http-node.ts";
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { layerRequestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
 import { layerNotifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -153,6 +162,12 @@ import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/serv
 import { layerZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { SecretWriteAuthorizationStore } from "@zotlit/plugin-services/obsidian/zotero-local-api/write-authorization.ts";
+import { pdfReader } from "@zotlit/query-views/desktop/annot-view/pdf-reader.ts";
+import { layerQueryCli } from "@zotlit/query-views/desktop/item-query/cli.ts";
+import { layerItemMatchQuery } from "@zotlit/query-views/desktop/item-query/item-matches.ts";
+import { layerQueryMeasureCli } from "@zotlit/query-views/desktop/item-query/measure.ts";
+import { layerQueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
+import type { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import { layerTemplateWorkbenchCli } from "@zotlit/template-workbench/desktop/cli/register.ts";
 import { layerCustomize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 import type {
@@ -167,24 +182,9 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerSettings } from "@/services/settings/layer.ts";
 import { layerSettingTab } from "@/setting-tab/layer.ts";
-import { pdfReader } from "@/views/annot-view/pdf-reader.ts";
-import {
-  layerShowInLibrary,
-  openLibraryView,
-} from "@/views/library/register.ts";
-import { layerShowInLibraryActions } from "@/views/library/show-in-library-actions.ts";
-import { layerZoteroHttpNode } from "@/zotero-http-node.ts";
 
-import { layerQueryCli } from "./item-query/cli.ts";
-import { layerItemMatchQuery } from "./item-query/item-matches.ts";
-import { layerQueryMeasureCli } from "./item-query/measure.ts";
-import { layerQueryService } from "./item-query/service.ts";
-import type { QueryService } from "./item-query/service.ts";
 import { layerProtocolHandlers } from "./protocol/register.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";
-import { layerReleaseActions } from "./release/actions.ts";
-import { layerRelease } from "./release/service.ts";
-import type { Release } from "./release/service.ts";
 import { startingAs } from "./startup-failure.ts";
 import { workerClient } from "./zotero-reads/worker-client.ts";
 

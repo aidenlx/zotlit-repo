@@ -1,0 +1,153 @@
+// Per-leaf Welcome session state and the service facts its banner renders.
+import { useAtomValue } from "@effect/atom-react";
+import { Effect, Option, Stream } from "effect";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
+import * as Atom from "effect/reactivity/Atom";
+import { normalizePath } from "obsidian";
+import { createContext, useContext } from "react";
+
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+
+import { makeConversionCommand } from "./atoms.ts";
+import {
+  connectionAtom,
+  connectionLoadAtom,
+  unavailable,
+} from "./connection.ts";
+import { bannerSections } from "./presentation.ts";
+import type { WelcomeState } from "./presentation.ts";
+
+import { releaseVersionAtom } from "#obsidian/release/atoms.ts";
+import { Release } from "#obsidian/release/service.ts";
+import { companionInstalledAtom } from "#obsidian/welcome/companion.ts";
+import { welcomeSettingsAtom } from "#obsidian/welcome/settings-atom.ts";
+
+export interface WelcomeSession {
+  readonly requests: number;
+  readonly converted: boolean;
+}
+
+const vaultRevisionAtom = held(
+  Stream.unwrap(
+    Effect.gen(function* () {
+      return Stream.scan(
+        filterTag((yield* Vault).changes, "create", "delete", "rename"),
+        () => 0,
+        (revision) => revision + 1,
+      );
+    }),
+  ),
+  0,
+);
+
+// Only these settings change the vault evidence the banner reads.
+const literatureFolderAtom = Atom.map(
+  welcomeSettingsAtom,
+  (s) => s["note.default-profile"].bindings["note.literature-folder"],
+);
+const templateFolderAtom = Atom.map(
+  welcomeSettingsAtom,
+  (s) => s["template.folder"],
+);
+const evidenceAtom = viewRuntime.atom((get) => {
+  get(vaultRevisionAtom);
+  const folder = get(literatureFolderAtom);
+  const templates = get(templateFolderAtom);
+  return Effect.gen(function* () {
+    return {
+      literatureFolderExists:
+        (yield* (yield* Vault).getFolderByPath(normalizePath(folder))) !== null,
+      v1TemplatesPresent: yield* (yield* Release).hasV1Templates(templates),
+    };
+  });
+});
+export function makeWelcomeModel() {
+  const session = Atom.make<WelcomeSession>({ requests: 0, converted: false });
+  const state = Atom.make((get): WelcomeState => {
+    const s = get(welcomeSettingsAtom);
+    return {
+      ...get(session),
+      migrationPending: s["release.migration-pending"],
+      dismissed: s["welcome.dismissed"],
+      requested: s["welcome.requested"],
+      stepsShown: s["welcome.steps-shown"],
+      literatureFolder: get(literatureFolderAtom),
+      ...Option.getOrElse(AsyncResult.value(get(evidenceAtom)), () => ({
+        literatureFolderExists: false,
+        v1TemplatesPresent: false,
+      })),
+      templateConversionPending: s["note.template-conversion-pending"],
+      templateFolder: get(templateFolderAtom),
+      templateConversionResult: s["note.template-conversion-result"],
+      updatePending: s["release.update-pending"],
+      noticesEnabled: s["release.notices-enabled"],
+      connection: get(connectionAtom),
+      companionInstalled: get(companionInstalledAtom),
+      notFound: unavailable({ reads: get(zoteroStateAtom) }),
+      version: Option.getOrElse(
+        AsyncResult.value(get(releaseVersionAtom)),
+        () => "",
+      ),
+    };
+  });
+  const shown = Atom.map(state, (s) => bannerSections(s) !== null);
+  return {
+    session,
+    state,
+    shown,
+    loaded: connectionLoadAtom,
+    conversion: makeConversionCommand(),
+  };
+}
+
+export type WelcomeModel = ReturnType<typeof makeWelcomeModel>;
+
+export function holdWelcomeModel(
+  registry: ViewRegistryHandle,
+  model: WelcomeModel,
+): () => void {
+  const releases = [registry.mount(model.session), registry.mount(model.state)];
+  return () => {
+    for (const release of releases) release();
+  };
+}
+
+export const requestWelcome = (state: WelcomeSession): WelcomeSession => ({
+  ...state,
+  requests: state.requests + 1,
+});
+export const setConverted =
+  (converted: boolean) =>
+  (state: WelcomeSession): WelcomeSession =>
+    state.converted === converted ? state : { ...state, converted };
+
+/**
+ * What the banner's tree reads: its state and its conversion's last run. The
+ * tree only reads them, so it takes any atom of the model's value types.
+ */
+type WelcomeModelView = {
+  readonly [K in "state" | "conversion"]: Atom.Atom<Atom.Type<WelcomeModel[K]>>;
+};
+
+const WelcomeModelContext = createContext<WelcomeModelView | null>(null);
+export const WelcomeModelProvider = WelcomeModelContext.Provider;
+
+function useWelcomeModel(): WelcomeModelView {
+  const model = useContext(WelcomeModelContext);
+  if (!model)
+    throw new Error("useWelcomeModel must be used within WelcomeModelProvider");
+  return model;
+}
+
+export function useWelcomeState<A>(select: (state: WelcomeState) => A): A {
+  return useAtomValue(useWelcomeModel().state, select);
+}
+
+/** The last run of the banner's template conversion, while it runs and after. */
+export function useConversion() {
+  return useAtomValue(useWelcomeModel().conversion);
+}

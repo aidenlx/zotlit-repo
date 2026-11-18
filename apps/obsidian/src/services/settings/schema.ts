@@ -6,6 +6,9 @@ import * as v from "valibot";
 
 import { readerSettings } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings.ts";
 import { citationSettings } from "@zotlit/citations/core/citation-index/settings.ts";
+import { librarySettings } from "@zotlit/library-view/core/library/settings.ts";
+import { releaseSettings } from "@zotlit/library-view/core/release/settings.ts";
+import { welcomeSettings } from "@zotlit/library-view/core/welcome/settings.ts";
 import { noteImportSettings } from "@zotlit/notes/core/note-import/settings.ts";
 import { templateSettings } from "@zotlit/notes/core/template/settings.ts";
 import { profileSettings } from "@zotlit/notes/obsidian/profile/settings.ts";
@@ -19,10 +22,6 @@ import type {
   Settings,
   SettingsDefinition,
 } from "@zotlit/plugin-services/core/settings/schema.ts";
-
-import { releaseSettings } from "@/services/release/settings.ts";
-import { librarySettings } from "@/views/library/settings.ts";
-import { welcomeSettings } from "@/views/welcome/settings.ts";
 
 export const schema = v.object({
   ...logSettings.entries,

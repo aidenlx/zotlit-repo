@@ -30,7 +30,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         await (
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.settled;
         const el = (leaf.view as import("obsidian").ItemView).contentEl;
         const popover = await pageHelpers.openToolbarPopover(el, "filter");
@@ -139,7 +139,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await leaf.openFile(file);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         await (
-          leaf.view as import("@/views/query-view/file-view.ts").QueryFileView
+          leaf.view as import("@zotlit/query-views/desktop/query-view/file-view.ts").QueryFileView
         ).query.settled;
         const el = (leaf.view as import("obsidian").ItemView).contentEl;
         const popover = await pageHelpers.openToolbarPopover(el, "filter");

@@ -4,6 +4,9 @@ import { isDeepStrictEqual } from "node:util";
 import type { WorkspaceLeaf, MarkdownView, FileView } from "obsidian";
 import { describe, expect, it } from "vitest";
 
+import type { LibraryView } from "@zotlit/library-view/desktop/library/view.ts";
+import type { AnnotationView as AnnotView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
+import type { QueryFileView } from "@zotlit/query-views/desktop/query-view/file-view.ts";
 import {
   ATTACHMENTS,
   COLLECTIONS,
@@ -12,10 +15,6 @@ import {
   LIBRARY_SCOPE_SETTING_KEY,
 } from "@zotlit/scripts/fixture";
 import type { FixtureItem } from "@zotlit/scripts/fixture";
-
-import type { AnnotationView as AnnotView } from "@/views/annot-view/view.tsx";
-import type { LibraryView } from "@/views/library/view.ts";
-import type { QueryFileView } from "@/views/query-view/file-view.ts";
 
 import { reachable } from "./e2e-run-fixture.ts";
 import {

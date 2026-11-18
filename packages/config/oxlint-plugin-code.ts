@@ -1,7 +1,7 @@
 // The lint rules of the ZotLit Obsidian plugin's code: the app
 // (apps/obsidian) and the plugin packages it bundles (plugin-kernel,
 // obsidian-kit, obsidian-desktop, zotero-reads, plugin-services, annotations,
-// citations, notes, template-workbench).
+// citations, notes, template-workbench, query-views, library-view).
 // Each of those lint configs spreads these and adds the overrides that name its
 // own files.
 import { join } from "node:path";

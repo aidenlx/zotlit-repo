@@ -3,8 +3,7 @@ import type { MarkdownView, WorkspaceLeaf } from "obsidian";
 import { describe, expect, it } from "vitest";
 
 import type { ReferencesView } from "@zotlit/citations/desktop/references/view.tsx";
-
-import type { AnnotationView } from "@/views/annot-view/view.tsx";
+import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
 
 import { measureCitationScan } from "./citation-scan-measure.ts";
 import { reachable } from "./e2e-run-fixture.ts";

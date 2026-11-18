@@ -93,6 +93,8 @@ const PLUGIN_SOURCES = [
   "packages/citations/src",
   "packages/notes/src",
   "packages/template-workbench/src",
+  "packages/query-views/src",
+  "packages/library-view/src",
 ];
 
 export default [

@@ -9,6 +9,10 @@ import { createClient } from "@zotlit/db/client/node";
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildQueryService } from "@zotlit/query-views/__fixtures__/item-query.ts";
+import { layerItemMatchQuery } from "@zotlit/query-views/desktop/item-query/item-matches.ts";
+import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
+import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import { makeWorkbenchHost } from "@zotlit/template-workbench/__fixtures__/view.ts";
 import type { WorkbenchHostDeps } from "@zotlit/template-workbench/__fixtures__/view.ts";
 import { createMatchData } from "@zotlit/template-workbench/obsidian/view/match-data.ts";
@@ -18,10 +22,6 @@ import {
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
-import { layerItemMatchQuery } from "@/services/item-query/item-matches.ts";
-import { queryJobRunner } from "@/services/item-query/job.ts";
-import { QueryService } from "@/services/item-query/service.ts";
 
 /** The Item Match port over the host's query service, as the plugin fills it. */
 function itemMatchesOf(
