@@ -5,7 +5,7 @@ description: |
   Use when creating or editing a PluginSettingTab, adding settings controls (toggle, text, number,
   dropdown, slider, file, folder, color), building settings groups/lists/sub-pages, wiring
   conditional visibility or validation, migrating from the imperative display() approach, or
-  touching any file under apps/obsidian/src/services/*/setting-tab/. Also use when opening the
+  touching apps/obsidian/src/setting-tab/ or a feature package's settings page or rows. Also use when opening the
   settings modal from code, deep-linking to a settings sub-page, or revealing/highlighting one
   setting row. Also use when the user mentions "setting tab", "plugin settings",
   "getSettingDefinitions", "SettingControl", "SettingDefinitionItem", "app.setting", or
@@ -540,14 +540,21 @@ this.registerObsidianProtocolHandler("zotlit-settings", ({ page, setting: name }
 
 ## ZotLit-specific patterns
 
-In this codebase, settings tabs use the declarative API with control keys that bridge to
-`SettingsService`. The imperative dual-support UI lives under `setting-tab/compat/` for
-Obsidian < 1.13 (minAppVersion 1.12.7), decoupled for easy removal.
+In this codebase, the setting tab uses the declarative API. Its rows run their Effects through
+the tab service in `@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts` and receive a
+`SettingTabContext` (`context.ts` beside it).
+
+- A page or row with one owner lives with its feature, beside the settings slice it shows (for
+  example `packages/annotations/src/obsidian/pdf-annotation-editor/settings-page.ts`). The file adds
+  the services its rows read to `SettingTabServiceRegistry` by declaration merging.
+- The host keeps the tab shell and the page order (`apps/obsidian/src/setting-tab/index.ts`), the
+  declarative control store (`controls.ts`), and each page that names several features.
 
 When adding a setting:
-1. Add the key to the settings interface in the relevant service.
-2. Add the control definition in `getSettingDefinitions()`.
-3. If dual-support is needed, add the imperative equivalent in `setting-tab/compat/`.
+1. Add the key to the owner's settings slice.
+2. Add the row to the owner's settings page, or to the host page that lists it.
+3. Bind a declarative `control` through the host's control store, or read and write the setting in
+   the row's own handlers.
 
 ## Further reading
 

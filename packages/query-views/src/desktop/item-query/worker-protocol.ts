@@ -99,7 +99,7 @@ export interface QueryAnswer extends QueryReply {
 /** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
-/** The ZoteroReads contract carries these types (`typings/zotero-reads.d.ts`). */
+/** The ZoteroReads contract carries these types (`ItemQueryTypes`, below). */
 type _Job = Expect<Equals<ItemQueryJob, QueryJob>>;
 type _Answer = Expect<Equals<ItemQueryAnswer, QueryAnswer>>;
 

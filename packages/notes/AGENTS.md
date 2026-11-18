@@ -10,7 +10,7 @@ The package imports `@zotlit/annotations` and `@zotlit/citations` for the ports 
 
 A capability of a unit outside the package comes in as a port that the host fills:
 
-- `ItemMatchQuery` (`core/profile-selection/item-matches.ts`) tests Profile Matches through ZotLit Query; `apps/obsidian/src/services/item-query/item-matches.ts` fills it.
+- `ItemMatchQuery` (`core/profile-selection/item-matches.ts`) tests Profile Matches through ZotLit Query; `@zotlit/query-views` fills it (`desktop/item-query/item-matches.ts`).
 - `TemplateWorkbenchLauncher` (`obsidian/template/workbench-launcher.ts`) opens a Template Document in the Template Workbench View; `@zotlit/template-workbench` fills it (`desktop/view/open.ts`).
 - `layerProfile` takes the Profile document revision (`ProfileRevision`, a hash of the source) as a parameter; the desktop host passes `@zotlit/obsidian-desktop/profile-revision.ts`.
 

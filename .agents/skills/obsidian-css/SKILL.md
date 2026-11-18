@@ -11,8 +11,8 @@ Plugin UI should feel like part of Obsidian under whatever theme the user instal
 
 Use `zt:`-prefixed utilities on the styled element. Feature stylesheets sit beside their owning code when a utility cannot reach host-owned DOM or override host CSS.
 
-- **The `zt:` prefix is on every utility** — `zt:flex`, `zt:gap-2`, `zt:bg-background`, `zt:rounded-md` — and variants chain after it: `zt:hover:opacity-100`, `zt:@md:columns-2`. Tailwind v4's `prefix()` scopes the compiled selectors so they never collide with another plugin's output. The `@theme` variables in `src/zt-main.css` keep their authored names (no prefix).
-- **No token for an Obsidian variable** → reference it directly with the arbitrary-variable syntax — `zt:bg-(--modal-background)`, `zt:p-(--size-4-3)` — or extend `zt-main.css` following the existing pattern.
+- **The `zt:` prefix is on every utility** — `zt:flex`, `zt:gap-2`, `zt:bg-background`, `zt:rounded-md` — and variants chain after it: `zt:hover:opacity-100`, `zt:@md:columns-2`. Tailwind v4's `prefix()` scopes the compiled selectors so they never collide with another plugin's output. The `@theme` variables in `packages/obsidian-kit/src/theme.css` keep their authored names (no prefix).
+- **No token for an Obsidian variable** → reference it directly with the arbitrary-variable syntax — `zt:bg-(--modal-background)`, `zt:p-(--size-4-3)` — or extend `packages/obsidian-kit/src/theme.css` following the existing pattern.
 - **Merge with `cn()`** from `@zotlit/obsidian-kit/utils.ts` (prefix-aware `twMerge`), and compose variants with `tv` from `@zotlit/plugin-kernel/tw.ts` rather than `tailwind-variants` directly.
 - **Obsidian's control classes stay in the wrappers.** `clickable-icon`, `mod-cta`, `setting-item*` and the like reach a component only through `packages/obsidian-kit/src/components/obsidian/`; a control or layout of your own is `zt:` utilities over Obsidian's variables (`zt:rounded-(--clickable-icon-radius)`, `zt:text-(--icon-color)`). In a React tree a form row is JSX — a label, the wrapper's control, utilities — rather than `new Setting`. The `zotlit-css` lint rules hold `.tsx` files to both.
 
@@ -43,7 +43,7 @@ Use `zt:`-prefixed utilities on the styled element. Feature stylesheets sit besi
 4. **Spacing / size** → Tailwind's default scale (`zt:gap-2`, `zt:p-3`). Obsidian's `--size-4-N` are fixed 4px multiples no theme overrides, so they map 1:1.
 5. **Radius** → `zt:rounded-sm/md/lg/xl` (`--radius-s/m/l/xl`). **Typography** → `zt:text-xs/sm/base/lg`.
 6. **A modal body can outgrow the window** → `mod-scrollable-content` on `modalEl` plus a `.modal-button-container`; read [`modal-layout.md`](modal-layout.md).
-7. **A component variable exists** (`--modal-background`, `--button-radius`, `--tab-text-color`) → arbitrary-variable syntax, or extend `zt-main.css`.
+7. **A component variable exists** (`--modal-background`, `--button-radius`, `--tab-text-color`) → arbitrary-variable syntax, or extend `packages/obsidian-kit/src/theme.css`.
 
 `references/foundations.md` is where to look first when you don't know which variable to use.
 
@@ -77,7 +77,7 @@ The check: `style` holds `--zt-*` keys only. A CSS property name there means the
 
 ## Scoped preflight (`.zt-root`)
 
-`src/zt-main.css` applies Tailwind's preflight scoped to plugin UI roots, never globally:
+`packages/obsidian-kit/src/theme.css` applies Tailwind's preflight scoped to plugin UI roots, never globally:
 
 ```css
 @layer theme, base, components, utilities;          /* explicit order: utilities > base */

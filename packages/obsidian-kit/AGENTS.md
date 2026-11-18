@@ -18,4 +18,4 @@ The package exports its TypeScript source as `@zotlit/obsidian-kit/<file>.ts`. I
 
 ## Styles
 
-Components draw with `zt:` utilities. The app's `src/zt-main.css` names this package's `src/` in an `@source` line, so Tailwind sees its classes.
+Components draw with `zt:` utilities. `src/theme.css` owns the Tailwind theme: the layer order, the `zt` prefix, the `@theme` tokens, the utilities and the `.zt-root` preflight. A host's stylesheet imports it and names each package's `src/` in an `@source` line, so Tailwind sees its classes; a package stylesheet that needs the theme takes it with `@reference "@zotlit/obsidian-kit/theme.css"`.

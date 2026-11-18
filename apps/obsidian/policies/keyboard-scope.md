@@ -1,10 +1,10 @@
 # Keyboard scope
 
-A key that more than one layer can claim — a completion list, a Signature Hint, a suggester or popup inside a Chooser page, modal, popover or view — is registered on an Obsidian `Scope`: push `new Scope(parent)` with `app.keymap.pushScope` (the editor's own window in a pop-out) when the layer opens, return `false` from the handler that consumes the key, and pop it on close, blur, unmount and window migration. The innermost open layer owns the key; the layers beneath need no knowledge of it. Follow `packages/obsidian-kit/src/components/chooser.tsx` and `src/views/query-view/card-focus.ts`.
+A key that more than one layer can claim — a completion list, a Signature Hint, a suggester or popup inside a Chooser page, modal, popover or view — is registered on an Obsidian `Scope`: push `new Scope(parent)` with `app.keymap.pushScope` (the editor's own window in a pop-out) when the layer opens, return `false` from the handler that consumes the key, and pop it on close, blur, unmount and window migration. The innermost open layer owns the key; the layers beneath need no knowledge of it. Follow `packages/obsidian-kit/src/components/chooser.tsx` and `packages/query-views/src/obsidian/query-view/card-focus.ts`.
 
 A key only the focused element handles — Escape clearing its own search box — stays an element `keydown` handler.
 
-An Obsidian `Menu` pushes its Scope as it loads, a `setTimeout(0)` after it shows, so a Scope pushed over a menu goes on as a child of the menu (`menu.addChild`), which loads after it and unloads as it hides. Follow `holdMenuKeys` in `src/views/query-view/vault-editors.tsx`.
+An Obsidian `Menu` pushes its Scope as it loads, a `setTimeout(0)` after it shows, so a Scope pushed over a menu goes on as a child of the menu (`menu.addChild`), which loads after it and unloads as it hides. Follow `holdMenuKeys` in `packages/query-views/src/desktop/query-view/vault-editors.tsx`.
 
 ## Tests
 

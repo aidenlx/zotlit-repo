@@ -224,7 +224,7 @@ What a popup control owes the keyboard, the screen reader and the pointer. `Sele
 
 ## ZotLit mapping
 
-`packages/obsidian-kit/src/components/chooser.tsx` holds the ZotLit parts. The Query View consumers are in `apps/obsidian/src/views/query-view/` (`properties-menu.tsx`, `view-menu.tsx`, `configure-view.tsx`, `property-page.tsx`).
+`packages/obsidian-kit/src/components/chooser.tsx` holds the ZotLit parts. The Query View consumers are in `packages/query-views/src/*/query-view/` (`properties-menu.tsx`, `view-menu.tsx`, `configure-view.tsx`, `property-page.tsx`).
 
 | Bases part                                                | Chooser part                                                                                                                                                 |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |

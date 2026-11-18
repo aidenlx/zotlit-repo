@@ -1,7 +1,7 @@
 // The settings this plugin keeps: the slices of the platform services and of
 // every feature, composed into the one definition `PluginSettings` loads.
-// `src/typings/settings.d.ts` registers the same feature slices in
-// `SettingsRegistry`; the check below keeps the two lists equal.
+// Each slice registers itself in `SettingsRegistry` beside its owner; the
+// check below keeps this list equal to the registered keys.
 import * as v from "valibot";
 
 import { readerSettings } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings.ts";

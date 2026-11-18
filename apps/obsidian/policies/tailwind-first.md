@@ -17,5 +17,5 @@ tokens, the native wrappers, and the `.zt-root` preflight.
 - Those blocks live beside the code that owns them and are imported from it: a feature's
   `style.css` in `views/<view>/` or `services/<service>/`, and a shared component's own
   stylesheet in `components/` named after it — `components/chooser.css` for
-  `components/chooser.tsx`. `src/zt-main.css` takes the Tailwind entry and the styles that
-  belong to no single owner.
+  `components/chooser.tsx`. `packages/obsidian-kit/src/theme.css` holds the Tailwind theme and the styles that
+  belong to no single owner; the host's `src/zt-main.css` imports it and lists the `@source` folders.

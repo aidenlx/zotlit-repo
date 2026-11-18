@@ -40,7 +40,7 @@ Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests read `@zo
 
 ## Obsidian adapter
 
-The adapter is `apps/obsidian/src/services/item-query/`. `QueryService` is its only Promise edge: it runs each Query Job as a fiber and maps Obsidian's `AbortSignal` to fiber interruption there.
+The adapter is `packages/query-views/src/*/item-query/` (`@zotlit/query-views`). `QueryService` is its only Promise edge: it runs each Query Job as a fiber and maps Obsidian's `AbortSignal` to fiber interruption there.
 
 - Command names, flags, and `DEFAULT_CLI_LIMIT`: `contract.ts`. The CLI Datasets (`datasets.ts`) and the guide (`guide.ts`) read them there; the guide also prints `defaultFields` and `defaultSort` of the `ITEMS` descriptor of this package.
 - The Target Libraries and the query run in one Effect (`answer` in `answer.ts`) inside the ZoteroReads connection scope. The Query Job (`job.ts`) provides the borrowed client as `ItemQueryDatabase` and gives the captured envelope identity to the answer. Every choice of Libraries is a `LibraryScope`: the one in force (`scope` of `AnswerJob`, a value of the `QueryJob`), All Libraries for `library=all`, or Selected Libraries for the selectors in `library`. `answer` resolves it with `resolveLibraryScope` on the rows of `readLibraries`, read on the borrowed client of the query. It is the one Library reader: `LibraryScopeService` gets the same rows through `getLibraries`. A named scope needs each of its Libraries (`requireEach`). A run without its Target Libraries fails with `TargetLibrariesUnavailable`; `answerFailure` in `answer.ts` maps its `reason` to `library-not-found`, `source-unavailable`, or `no-library-available`.

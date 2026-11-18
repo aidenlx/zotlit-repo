@@ -8,7 +8,7 @@ The package imports no other feature except `@zotlit/annotations`, whose Annotat
 - `CitekeyNoteActions` (`obsidian/citekey-editor/note-actions.ts`) picks and creates the literature note a citekey opens; `packages/notes/src/desktop/note-feature/citekey-actions.ts` fills it.
 - `ProfileStyles` (`obsidian/pandoc/profile-styles.ts`) reads the Profile a note selects and the Citation and References Style it binds, and the vault's style; `packages/notes/src/obsidian/profile/profile-styles.ts` fills it.
 
-The host keeps the citation parse Worker entry (`apps/obsidian/src/services/citation-parse/worker.ts`) and passes its bundle to `layerCitationParse`, the Annotation Suggester (`src/views/annotation-suggest/`), the Citations settings tab, and the tests that read the notes feature's Profiles (`src/services/citations/`).
+The host keeps the citation parse Worker entry (`apps/obsidian/src/services/citation-parse/worker.ts`) and passes its bundle to `layerCitationParse`, the Citations settings page, which names the notes feature's Profiles, and the tests that read the notes feature's Profiles (`src/services/citations/`).
 
 ## Layers
 
