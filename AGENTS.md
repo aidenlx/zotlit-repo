@@ -102,12 +102,12 @@ Choose the destination by purpose:
 
 ## Worktrees
 
-Worktrunk (`wt`) creates and removes every worktree. Its hooks place the worktree at the user's path template, bootstrap it through the `pre-start` hook in `.config/wt.toml`, and deinit submodules on removal.
+Worktrunk (`wt`) creates and removes every worktree. Its hooks place the worktree at the user's path template and bootstrap it through the `pre-start` hook in `.config/wt.toml`.
 
 - **Create:** `wt switch --create <branch> --base <base>`; add `--no-cd` when the worktree is for another agent, and name the printed path in that agent's prompt. Name the branch by its change type, such as `feat/<topic>` or `fix/<topic>`.
 - **Remove:** `wt remove <branch>`.
 
-A plain `git worktree add` runs none of these hooks: the worktree has no dependencies or submodules and sits outside the path template.
+A plain `git worktree add` runs none of these hooks: the worktree has no dependencies and sits outside the path template.
 
 ## Agent skills
 

@@ -37,4 +37,4 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 8. If a draft PR exists, mark it ready for review. Otherwise, resolve each ticket the way the issue tracker closes work, and report the integration branch. Notify peer sessions that build on the integration branch once, now that it is done.
 
-9. Clean up all **implementer subagent** worktrees with `wt remove <branch>`; its pre-remove hook deinits submodules. Add `-D` for a branch that `git merge-base --is-ancestor <branch> <integration-branch>` confirms is merged.
+9. Clean up all **implementer subagent** worktrees with `wt remove <branch>`. Add `-D` for a branch that `git merge-base --is-ancestor <branch> <integration-branch>` confirms is merged.

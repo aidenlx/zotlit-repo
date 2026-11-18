@@ -3,7 +3,7 @@
 GitHub Actions uses the toolchain pinned in `mise.toml` and the pnpm version in
 the root `package.json`. Repository workflows call the local
 `.github/actions/setup-workspace` action, which restores both caches and then
-runs `mise run init --no-submodules`. A call that passes `bootstrap: "false"`
+runs `mise run init`. A call that passes `bootstrap: "false"`
 keeps the toolchain and the caches and stops before the initializer.
 
 1. The pnpm store cache is keyed from `pnpm-lock.yaml` by
@@ -29,7 +29,7 @@ Lefthook pre-push hook ([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-o
 manual dispatch. The `plan` job reads both app versions and asks GitHub whether
 each tag has a release; it installs no toolchain. When both versions are
 released, the run stops there. Otherwise the `verify` job checks out
-submodules and Git LFS files, sets up the workspace, and runs
+Git LFS files, sets up the workspace, and runs
 `pnpm verify --release`. The publish jobs start only after it passes, and only
 for the app whose version is new. Workflow permissions are read-only; each
 publish job grants itself the write permissions it needs.
@@ -47,8 +47,7 @@ The gate job checks out the full history, which the base-commit comparison
 needs, and stops before dependency installation. The deploy job runs only when
 the gate reports a deployment, and starts from its own checkout.
 
-The deploy job initializes `packages/zotero-types/zotero-schema` alone. The
-Obsidian API and PDF.js submodules are outside the docs build. The job installs
+The deploy job installs
 `@zotlit/docs` and its dependency closure with a pnpm filter, then lets
 `turbo run build --filter=@zotlit/docs` build dependencies in graph order.
 
