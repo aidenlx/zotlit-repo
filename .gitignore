@@ -49,3 +49,6 @@ project.inlang/*
 .pi
 
 .humanlayer
+
+# Private video workbench, an opt-in nested clone (mise run video:clone).
+/video/

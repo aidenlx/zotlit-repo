@@ -10,15 +10,16 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/config` — consumed via `@zotlit/config` exports map.
 - `packages/db` — Drizzle ORM client for Zotero database.
 - `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
+- `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/templates` — Eta-based template rendering.
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema.
-- `video/` — **private, opt-in git submodule**: the workbench for product videos. Check it out with `git submodule update --init --checkout video`, then follow `video/AGENTS.md`.
+- `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, run `pnpm install`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
 
 ## Bootstrap & toolchain
 
 - `mise` pins to Node 26 version (see `mise.toml`). Its `idiomatic_version_file_enable_tools = ["pnpm"]` setting also activates pnpm at the version declared in root `package.json`'s `packageManager` field.
-- `mise run init` initializes git submodules, including `packages/pdfjs-dist` and `packages/zotero-types/zotero-schema`.
+- A plain `git clone` plus `mise run init` gives a complete workspace: `init` installs dependencies and builds the workspace packages. Upstream copies (`packages/zotero-types/zotero-schema`, `packages/pdfjs-dist`) are committed files; `node packages/scripts/scripts/vendor-upstream.ts <source> [ref]` refreshes one and records the upstream commit in its `provenance.json`.
 - Resolve tool availability from the current workspace environment. Use `pnpm exec` for workspace binaries; use the Mise-managed toolchain defined by `mise.toml`.
 - `agent-browser` (>= 0.31.1) — browser automation via CDP. Run `agent-browser skills get core` once per session for the version-matched usage guide. Session conventions and gotchas: [`docs/agents/agent-browser.md`](docs/agents/agent-browser.md).
 

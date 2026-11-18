@@ -12,5 +12,9 @@ idiomatic_version_file_enable_tools = ["pnpm"]
 _.path = ['{{config_root}}/node_modules/.bin']
 
 [tasks.init]
-description = "Bootstrap a fresh clone: trust mise, init submodules, install deps; pass a primary-worktree path to also copy .env* files; pass --no-submodules to skip submodule checkout"
+description = "Bootstrap a fresh clone: trust mise, install deps; pass a primary-worktree path to also copy .env* files"
 run = "zx packages/scripts/scripts/init.ts"
+
+[tasks."video:clone"]
+description = "Clone the private video workbench into video/; needs read access to aidenlx/zotlit-video"
+run = "git clone --branch main https://github.com/aidenlx/zotlit-video.git video"

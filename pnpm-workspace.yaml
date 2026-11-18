@@ -1,7 +1,8 @@
 packages:
   - apps/*
   - packages/*
-  # Private, opt-in submodule; an empty folder adds no package.
+  # Private, opt-in nested clone (`mise run video:clone`); git ignores it, and
+  # a missing folder adds no package.
   - video
 
 patchedDependencies:
