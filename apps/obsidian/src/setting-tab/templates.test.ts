@@ -18,11 +18,14 @@ import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { openNewPartialPrompt } from "@zotlit/template-workbench/obsidian/view/new-partial.ts";
 
 import { rebuildingSettingTab } from "./__fixtures__.ts";
-import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { citationTextItems, partialItems } from "./templates.ts";
 
 vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({

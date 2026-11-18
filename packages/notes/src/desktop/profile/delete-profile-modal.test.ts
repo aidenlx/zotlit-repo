@@ -1,18 +1,18 @@
+import type { ProfileDeletionPlan } from "#obsidian/profile/service.ts";
 // @vitest-environment happy-dom
 import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
-import type { ProfileDeletionPlan } from "@zotlit/notes/obsidian/profile/service.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { defaults } from "@/services/settings/schema.ts";
-
 import type { ProfileDeletionConsent } from "./delete-profile-modal.ts";
 import { openProfileDeletion } from "./delete-profile-modal.ts";
+
+import { profileReader } from "#__fixtures__/profile/reader.ts";
+import { defaults } from "#__fixtures__/settings.ts";
 
 /** The user's answer to the deletion dialog for `plan`. */
 function confirmProfileDeletion(

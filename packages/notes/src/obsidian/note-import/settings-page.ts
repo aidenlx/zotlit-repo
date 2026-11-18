@@ -1,3 +1,4 @@
+import type { ProfileControlKey } from "#obsidian/profile/setting-controls.ts";
 // The Imported notes page: how imported notes render, and the shared highlight
 // output mappings every Profile uses.
 import { Effect } from "effect";
@@ -12,14 +13,13 @@ import {
 } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import type { HighlightMapping } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-
 import type {
-  SettingsControlKey,
   SettingsKey,
   SettingTabContext,
-} from "./context.ts";
-import { profileControlKey } from "./profiles.ts";
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+
+import { profileControlKey } from "#obsidian/profile/setting-controls.ts";
 
 const colorLabels = {
   red: m.annot_view_color_red,
@@ -39,7 +39,7 @@ const colorLabels = {
  */
 export function noteImportPageItems(
   ctx: SettingTabContext,
-): SettingDefinitionItem<SettingsControlKey>[] {
+): SettingDefinitionItem<SettingsKey | ProfileControlKey>[] {
   return [
     {
       id: "settings_note_import_colored_highlights",

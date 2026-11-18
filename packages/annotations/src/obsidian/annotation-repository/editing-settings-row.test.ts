@@ -3,22 +3,23 @@ import { expect, it } from "@effect/vitest";
 import { Context, DateTime, Deferred, Effect, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 
-import { deadlineAfter } from "@zotlit/annotations/__fixtures__/annotation-repository/capability.ts";
-import type { EditingCapability } from "@zotlit/annotations/obsidian/annotation-repository/capability.ts";
-import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
-import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import {
   ButtonComponent,
   renderRow,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
-import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
-import { editingRowModel } from "./zotero-editing-model.ts";
-import { zoteroEditingRow } from "./zotero-editing.ts";
+import type { EditingCapability } from "./capability.ts";
+import { editingRowModel } from "./editing-settings-model.ts";
+import { zoteroEditingRow } from "./editing-settings-row.ts";
+import { CapabilityNotices } from "./notices.ts";
+import { AnnotationRepository } from "./service.ts";
+
+import { deadlineAfter } from "#__fixtures__/annotation-repository/capability.ts";
+import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 
 const NOW = DateTime.makeUnsafe("2026-09-16T15:52:21Z");
 

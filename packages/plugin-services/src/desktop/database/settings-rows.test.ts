@@ -1,3 +1,8 @@
+import type {
+  ZoteroPrefSnapshot,
+  ZoteroProfileInfo,
+} from "#core/zotero-pref/service.ts";
+import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import {
@@ -21,15 +26,6 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
-  ZoteroPrefSnapshot,
-  ZoteroProfileInfo,
-} from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import {
-  PluginSettings,
-  SettingsMutationError,
-} from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type {
   ZoteroReadsApi,
   ZoteroReadsEvent,
   ZoteroReadsState,
@@ -37,15 +33,20 @@ import type {
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { defaults } from "@/services/settings/schema.ts";
-
-import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
 import {
   databaseFileItem,
   databaseLocationItems,
   refreshReads,
-} from "./database.ts";
+} from "./settings-rows.ts";
+
+import { platformDefaults } from "#__fixtures__/platform-settings.ts";
+import { failureOf, recordingRuns } from "#__fixtures__/setting-tab-harness.ts";
+import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
+import { ZoteroPref } from "#core/zotero-pref/service.ts";
+import {
+  PluginSettings,
+  SettingsMutationError,
+} from "#obsidian/settings/service.ts";
 
 const SNAPSHOT: ZoteroPrefSnapshot = {
   state: "ready",
@@ -80,7 +81,8 @@ const READS: ZoteroReadsState = {
  */
 const setup = Effect.fn("setup")(function* (
   refresh: ZoteroReads["Service"]["refresh"] = Effect.void,
-  update: PluginSettings["Service"]["update"] = () => Effect.succeed(defaults),
+  update: PluginSettings["Service"]["update"] = () =>
+    Effect.succeed(platformDefaults),
 ) {
   const pref = yield* SubscriptionRef.make(SNAPSHOT);
   const reads = yield* SubscriptionRef.make(READS);
@@ -116,7 +118,7 @@ const setup = Effect.fn("setup")(function* (
         events: Stream.fromPubSub(events),
       }),
       Layer.mock(PluginSettings, {
-        current: Effect.succeed(defaults),
+        current: Effect.succeed(platformDefaults),
         changes: Stream.empty,
         update,
       }),

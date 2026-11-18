@@ -2,13 +2,20 @@
 // Zotero's control is granted from, listed with the attachment import settings
 // and marked as device state.
 
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "#obsidian/setting-tab/context.ts";
 import type { SettingDefinitionItem, SettingDefinitionPage } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { appendDeviceOverrideNote, browseForDir } from "./device-override.ts";
+import { AttachmentImport } from "./service.ts";
+
+import {
+  appendDeviceOverrideNote,
+  browseForDir,
+} from "#desktop/setting-tab/device-override.ts";
 
 /**
  * The navigable entry the skip notice points at. Reachable with Attachment
@@ -93,4 +100,11 @@ function pickApprovedFolder(ctx: SettingTabContext): void {
       );
     },
   });
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "#obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    AttachmentImport: AttachmentImport;
+  }
 }

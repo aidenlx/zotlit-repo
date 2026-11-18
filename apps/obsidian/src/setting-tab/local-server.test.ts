@@ -13,6 +13,10 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
@@ -20,7 +24,6 @@ import type { WorkbenchConnection } from "@zotlit/template-workbench/desktop/loc
 import { defaults } from "@/services/settings/schema.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { localServerItems } from "./local-server.ts";
 
 interface Options {

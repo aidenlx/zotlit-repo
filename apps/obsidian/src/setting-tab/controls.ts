@@ -2,63 +2,20 @@
 // the settings store, encoded for the control that shows it.
 import { Effect } from "effect";
 
-import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
+import {
+  isProfileControlKey,
+  profileControlValue,
+  setProfileControlValue,
+} from "@zotlit/notes/obsidian/profile/setting-controls.ts";
+import type { ProfileControlKey } from "@zotlit/notes/obsidian/profile/setting-controls.ts";
+import type { SettingsKey } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { decodeLogLevel, encodeLogLevel, LOG_LEVEL_KEY } from "./advanced.ts";
-import type { ProfileControlKey, SettingsKey } from "./context.ts";
 import { AUTO_TRIM_KEYS, decodeAutoTrim, encodeAutoTrim } from "./templates.ts";
 
-export type ProfileControlField =
-  | "folder"
-  | "citation-style"
-  | "import-folder"
-  | "colored-highlights"
-  | "annotations-as-template";
-const bindingKeys = {
-  folder: "note.literature-folder",
-  "citation-style": "citation.references-style",
-  "import-folder": "note.import-folder",
-  "colored-highlights": "note.import-colored-highlights",
-  "annotations-as-template": "note.import-annotations-as-template",
-} as const;
-
-export function isProfileControlKey(key: string): key is ProfileControlKey {
-  return (
-    key.startsWith("note-profile:default:") &&
-    key.slice("note-profile:default:".length) in bindingKeys
-  );
-}
-
-/** The default Profile binding a profile control shows. */
-export function profileControlValue(key: ProfileControlKey) {
-  const field = key.slice(
-    "note-profile:default:".length,
-  ) as ProfileControlField;
-  return PluginSettings.use((settings) => settings.current).pipe(
-    Effect.map(
-      (current) =>
-        current["note.default-profile"].bindings[bindingKeys[field]] ?? "",
-    ),
-  );
-}
-
-/** Store what a profile control set as the default Profile's binding. */
-export function setProfileControlValue(key: ProfileControlKey, value: unknown) {
-  const field = key.slice(
-    "note-profile:default:".length,
-  ) as ProfileControlField;
-  return PluginSettings.use((settings) =>
-    updateDefaultLiteratureNoteProfileBindings(settings, {
-      [bindingKeys[field]]:
-        field === "colored-highlights" || field === "annotations-as-template"
-          ? Boolean(value)
-          : field === "citation-style" && value === ""
-            ? null
-            : String(value),
-    }),
-  );
-}
+/** The keys a declarative `control` of this tab binds: a settings key or a default Profile binding. */
+export type SettingsControlKey = SettingsKey | ProfileControlKey;
 
 /** A declarative `control`'s value, encoded for the control that shows it. */
 export function controlValue(key: string) {

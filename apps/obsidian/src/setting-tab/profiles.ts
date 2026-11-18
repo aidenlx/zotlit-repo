@@ -8,12 +8,15 @@ import type {
 } from "obsidian";
 
 import { installedStyles } from "@zotlit/notes/desktop/note-feature/creation-view.ts";
+import { openProfileDeletion } from "@zotlit/notes/desktop/profile/delete-profile-modal.ts";
+import type { ProfileDeletionConsent } from "@zotlit/notes/desktop/profile/delete-profile-modal.ts";
 import {
   addProfileDestination,
   importProfileDialog,
   shareProfile,
 } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
+import { profileControlKey } from "@zotlit/notes/obsidian/profile/setting-controls.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
@@ -23,23 +26,17 @@ import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import { SettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
+import type { SettingTabEnv } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { explainWorkbenchOpen } from "@zotlit/template-workbench/desktop/editor/actions.ts";
 import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 
 import { referencesStyleDefinition } from "./citations.ts";
-import type {
-  ProfileControlKey,
-  SettingsControlKey,
-  SettingTabContext,
-} from "./context.ts";
-import type { ProfileControlField } from "./controls.ts";
-import { openProfileDeletion } from "./delete-profile-modal.ts";
-import type { ProfileDeletionConsent } from "./delete-profile-modal.ts";
+import type { SettingsControlKey } from "./controls.ts";
 import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
-import { SettingTab } from "./effect-tab.ts";
-import type { SettingTabEnv } from "./effect-tab.ts";
 import { defaultProfileBindingPlaceholder } from "./placeholder.ts";
 import { partialItems } from "./templates.ts";
 
@@ -465,11 +462,4 @@ function defaultProfileItem(
       );
     },
   };
-}
-
-export function profileControlKey(
-  id: "default",
-  field: ProfileControlField,
-): ProfileControlKey {
-  return `note-profile:${id}:${field}`;
 }

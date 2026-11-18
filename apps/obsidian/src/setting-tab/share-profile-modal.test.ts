@@ -17,9 +17,9 @@ import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
 import { profilesPage } from "./profiles.ts";
 
 const id = "Bk3Qn7XvT2Lp" as ProfileId;

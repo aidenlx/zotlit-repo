@@ -2,11 +2,14 @@
 
 import type { SettingDefinition } from "obsidian";
 
-import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { managedBinaryDefinition } from "@zotlit/plugin-services/obsidian/managed-binary/settings-rows.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { managedBinaryDefinition } from "./managed-binary.ts";
+import { PandocEngine } from "./service.ts";
 
 /** The engine row, in the Pandoc engine's own words. */
 export function pandocEngineDefinition(
@@ -41,4 +44,11 @@ export function pandocEngineDefinition(
       removeFailed: m.notice_pandoc_engine_remove_failed(),
     },
   });
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    PandocEngine: PandocEngine;
+  }
 }

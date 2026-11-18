@@ -14,16 +14,16 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import {
   PluginSettings,
   SettingsMutationError,
 } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
-import { defaults } from "@/services/settings/schema.ts";
+import { highlightMappingItems } from "./settings-page.ts";
 
-import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
-import { highlightMappingItems } from "./note-import.ts";
+import { scopedSettingTab, testSettingTab } from "#__fixtures__/setting-tab.ts";
+import { defaults } from "#__fixtures__/settings.ts";
 
 function setup() {
   let current: Settings = { ...defaults };

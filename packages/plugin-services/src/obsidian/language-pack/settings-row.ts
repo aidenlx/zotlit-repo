@@ -1,10 +1,9 @@
 // Declarative Language Pack status and installation setting for Obsidian 1.13+.
 
+import type { SettingsKey } from "#obsidian/setting-tab/context.ts";
 import type { SettingDefinition } from "obsidian";
 
-import type { LanguagePackSettingCopy } from "@zotlit/plugin-services/obsidian/language-pack/setting-copy.ts";
-
-import type { SettingsKey } from "./context.ts";
+import type { LanguagePackSettingCopy } from "./setting-copy.ts";
 
 export function languagePackDefinition(
   copy: LanguagePackSettingCopy,

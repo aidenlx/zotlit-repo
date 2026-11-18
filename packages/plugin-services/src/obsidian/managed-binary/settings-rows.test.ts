@@ -1,31 +1,23 @@
+import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { Context, Effect, Exit, Layer, Stream } from "effect";
-import { describe, vi } from "vitest";
+import { Context, Effect, Exit, Layer } from "effect";
+import { describe } from "vitest";
 
-import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-import {
-  ButtonComponent,
-  renderRow,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
-import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
-import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
-import type {
-  ManagedBinaryApi,
-  ManagedBinaryStatus,
-} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 
-import { scopedSettingTab, testSettingTab } from "./__fixtures__.ts";
-import { chineseSegmenterDefinition } from "./chinese-segmenter.ts";
-import type { SettingTabContext } from "./context.ts";
-import { installBinary, managedBinaryDefinition } from "./managed-binary.ts";
-import type { ManagedBinaryCopy } from "./managed-binary.ts";
-import { pandocEngineDefinition } from "./pandoc-engine.ts";
+import { ManagedBinaryError } from "./platform.ts";
+import { installBinary, managedBinaryDefinition } from "./settings-rows.ts";
+import type { ManagedBinaryCopy } from "./settings-rows.ts";
+
+import { binary, button } from "#__fixtures__/managed-binary-rows.ts";
+import { scopedSettingTab, testSettingTab } from "#__fixtures__/setting-tab.ts";
+import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
+import { chineseSegmenterDefinition } from "#obsidian/chinese-segmenter/settings-row.ts";
 
 const COPY: ManagedBinaryCopy = {
   id: "settings_segmenter",
@@ -54,42 +46,12 @@ const COPY: ManagedBinaryCopy = {
   },
 };
 
-/** A binary at `status` whose install and uninstall count their runs. */
-function binary(
-  status: ManagedBinaryStatus,
-  outcome: Effect.Effect<void, ManagedBinaryError> = Effect.void,
-) {
-  const install = vi.fn(() => outcome);
-  const uninstall = vi.fn(() => outcome);
-  const members = {
-    getStatus: Effect.succeed(status),
-    changes: Stream.empty,
-    install: Effect.suspend(install),
-    uninstall: Effect.suspend(uninstall),
-  };
-  const api = stubService<ManagedBinaryApi<Disposable | AsyncDisposable>>(
-    "ManagedBinary",
-    members,
-  );
-  return { api, members, install, uninstall };
-}
-
 /** The tab over a recording Notifier whose tracked notices run on the test's Scope. */
 const notifiedTab = Effect.gen(function* () {
   const services = yield* Layer.build(testNotifier().layer);
   const { tab } = yield* scopedSettingTab(services);
   return { tab };
 });
-
-function button(setting: Setting): ButtonComponent {
-  const found = setting.components.find(
-    (control) => control instanceof ButtonComponent,
-  );
-  if (!(found instanceof ButtonComponent)) throw new Error("No button");
-  // The mock's shared stub element has no focus to drop.
-  found.buttonEl = document.createElement("button");
-  return found;
-}
 
 describe("managedBinaryDefinition", () => {
   it.effect("offers the install while nothing is cached", () =>
@@ -186,36 +148,6 @@ describe("managedBinaryDefinition", () => {
       desc: "Cuts words. Download failed: offline.",
     });
     expect(button(renderRow(row)).text).toBe("Retry");
-  });
-});
-
-describe("pandocEngineDefinition", () => {
-  it("renders the Pandoc engine row from its own messages", () => {
-    const ctx = stubService<SettingTabContext>("SettingTabContext", {
-      tab: testSettingTab(
-        Context.make(
-          PandocEngine,
-          stubService<PandocEngine["Service"]>(
-            "PandocEngine",
-            binary({
-              kind: "installed",
-              version: "3.10",
-              binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-            }).members,
-          ),
-        ),
-      ).tab,
-    });
-    const row = pandocEngineDefinition(ctx);
-
-    expect(row).toMatchObject({
-      id: "settings_citation_engine",
-      name: m.settings_citation_engine_name(),
-      desc: `${m.settings_citation_engine_desc()} ${m.settings_citation_engine_status_installed({ version: "3.10" })}`,
-    });
-    expect(button(renderRow(row)).text).toBe(
-      m.settings_citation_engine_uninstall(),
-    );
   });
 });
 

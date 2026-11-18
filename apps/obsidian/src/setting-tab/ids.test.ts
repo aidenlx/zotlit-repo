@@ -8,15 +8,19 @@ import type {
 } from "obsidian";
 import { expect, it, vi } from "vitest";
 
+import { readerPageItems } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings-page.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
+import { noteImportPageItems } from "@zotlit/notes/obsidian/note-import/settings-page.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { attachmentPageItems } from "@zotlit/plugin-services/desktop/attachment-import/settings-page.ts";
 import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
@@ -24,12 +28,8 @@ import { defaults } from "@/services/settings/schema.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
 import { advancedPageItems } from "./advanced.ts";
-import { attachmentPageItems } from "./attachments.ts";
 import { citationsPageItems } from "./citations.ts";
-import type { SettingTabContext } from "./context.ts";
-import { noteImportPageItems } from "./note-import.ts";
 import { literatureNoteItems, profilesPage } from "./profiles.ts";
-import { readerPageItems } from "./reader.ts";
 import { resourcesGroup } from "./resources.ts";
 import { zoteroPageItems } from "./zotero.ts";
 

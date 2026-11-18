@@ -2,19 +2,22 @@ import { Effect } from "effect";
 // Tutorial, integration-pair save action, and local CLI Guide for native Pandoc settings.
 import type { Setting, SettingDefinitionGroup } from "obsidian";
 
-import {
-  pandocIntegrationFiles,
-  renderPandocGuide,
-  savePandocIntegrationFiles,
-} from "@zotlit/citations/desktop/pandoc/integration.ts";
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
+import {
+  pandocIntegrationFiles,
+  renderPandocGuide,
+  savePandocIntegrationFiles,
+} from "./integration.ts";
 
 export function pandocIntegrationDefinition(
   ctx: SettingTabContext,

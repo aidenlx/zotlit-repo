@@ -144,6 +144,12 @@ export default defineConfig({
       files: ["src/obsidian/log/vault-sink.ts"],
       rules: { "zotlit-obsidian/no-global-timer": "off" },
     },
+    {
+      // The setting tab's runner forks each fiber into the tab layer's Scope
+      // through `onFiberStart`, so closing the layer ends its runs.
+      files: ["src/obsidian/setting-tab/effect-tab.ts"],
+      rules: { "zotlit-services/scoped-runner": "off" },
+    },
     ...testBaselineOverrides("packages/plugin-services"),
   ],
 });

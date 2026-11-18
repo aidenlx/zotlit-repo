@@ -1,16 +1,17 @@
 import { PluginSettingTab } from "obsidian";
 import type { Plugin, SettingDefinitionItem } from "obsidian";
 
+import { readerPageItems } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings-page.ts";
+import { noteImportPageItems } from "@zotlit/notes/obsidian/note-import/settings-page.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { attachmentPageItems } from "@zotlit/plugin-services/desktop/attachment-import/settings-page.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
 import { advancedPageItems } from "./advanced.ts";
-import { attachmentPageItems } from "./attachments.ts";
 import { citationsPageItems } from "./citations.ts";
-import type { SettingsControlKey, SettingTabContext } from "./context.ts";
 import { controlValue, writeControlValue } from "./controls.ts";
-import { noteImportPageItems } from "./note-import.ts";
+import type { SettingsControlKey } from "./controls.ts";
 import { literatureNoteItems, profilesPage } from "./profiles.ts";
-import { readerPageItems } from "./reader.ts";
 import { resourcesGroup } from "./resources.ts";
 import { zoteroPageItems } from "./zotero.ts";
 

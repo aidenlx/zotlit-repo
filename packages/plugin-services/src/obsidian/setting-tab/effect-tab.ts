@@ -1,3 +1,4 @@
+import type { PluginSettings } from "#obsidian/settings/service.ts";
 // The setting tab's seam to Effect: one service that runs the tab's Effects on
 // the tab layer's own context and Scope.
 //
@@ -11,17 +12,6 @@
 import { Cause, Context, Effect, Fiber, Scope, Stream } from "effect";
 import type { FileSystem } from "effect";
 
-import type { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
-import type { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
-import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
-import type { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
-import type { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
-import type { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
-import type { Release } from "@zotlit/library-view/obsidian/release/service.ts";
-import type { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
-import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
-import type { Template } from "@zotlit/notes/obsidian/template/service.ts";
-import type { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -30,51 +20,28 @@ import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
-import type { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
-import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
-import type { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
-import type { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
-import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
-import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
-import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
-import type { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
-import type { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
-import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+
+/**
+ * The services a tab Effect may read beside the Obsidian capability tags. The
+ * owner of a row adds the services it reads by declaration merging
+ * (`declare module` on this file), keyed by the service's name; the host
+ * registers the whole context its tab layer provides.
+ */
+// oxlint-disable-next-line typescript/no-empty-object-type -- each row's owner fills it by declaration merging
+export interface SettingTabServiceRegistry {}
 
 /** Every service a tab Effect may read: the tab layer's whole context. */
 export type SettingTabEnv =
   | SettingTab
   | Notifier
   | PluginSettings
-  | Profile
-  | Template
-  | ZoteroPref
-  | ZoteroReads
-  | LibraryScope
-  | LocalServer
-  | Release
-  | AnnotationRepository
-  | CapabilityNotices
-  | ZoteroLocalApi
-  | CitationIndex
-  | PandocEngine
-  | ChineseSegmenter
-  | AttachmentImport
-  | LocalBridge
-  | Customize
-  | TemplateWorkbenchLauncher
-  | LanguagePack
-  | ExcerptImageService
-  | ExcerptDisplays
-  | NoteFeature
-  | NoteIndex
+  | PluginHost
   | Vault
   | Workspace
   | FileManager
   | FileSystem.FileSystem
-  | PluginHost;
+  // oxlint-disable-next-line typescript/no-redundant-type-constituents -- empty until the owners merge their services in
+  | SettingTabServiceRegistry[keyof SettingTabServiceRegistry];
 
 export interface SettingTabShape {
   /**

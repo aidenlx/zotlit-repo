@@ -15,12 +15,15 @@ import {
   startOn,
 } from "@zotlit/plugin-services/obsidian/language-pack/__fixtures__.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { resourcesGroup } from "./resources.ts";
 
 /** The Language Pack row of the resources group, when it stands. */

@@ -29,9 +29,14 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  failureOf,
+  recordingRuns,
+} from "@zotlit/plugin-services/__fixtures__/setting-tab-harness.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import {
   PluginSettings,
   RESET_SETTING,
@@ -41,9 +46,7 @@ import {
 import { defaults } from "@/services/settings/schema.ts";
 
 import {
-  failureOf,
   profileRowServices,
-  recordingRuns,
   scopedSettingTab,
   testSettingTab,
 } from "./__fixtures__.ts";
@@ -52,7 +55,6 @@ import {
   referencesStyleDefinition,
   referencesStyleDescription,
 } from "./citations.ts";
-import type { SettingTabContext } from "./context.ts";
 
 /**
  * Style folder reads a case holds in flight, the folders it refuses to list,

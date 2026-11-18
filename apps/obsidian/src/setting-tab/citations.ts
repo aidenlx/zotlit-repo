@@ -15,7 +15,9 @@ import {
 } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@zotlit/citations/core/pandoc/csl-style.ts";
 import { listInstalledStyles } from "@zotlit/citations/desktop/pandoc/installed-styles.ts";
+import { pandocIntegrationDefinition } from "@zotlit/citations/desktop/pandoc/integration-settings-row.ts";
 import { GRAPH_CORE_PLUGIN_ID } from "@zotlit/citations/obsidian/graph-citations/install.ts";
+import { pandocEngineDefinition } from "@zotlit/citations/obsidian/pandoc/engine-settings-row.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
@@ -25,16 +27,17 @@ import {
   resolvedChanged,
   ZoteroPref,
 } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { zoteroDataDir } from "@zotlit/plugin-services/desktop/database/settings-rows.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import { paintEach } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { annotationTriggerError } from "@zotlit/query-views/core/annotation-suggest/annotation-trigger.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { zoteroDataDir } from "./database.ts";
-import { paintEach } from "./effect-tab.ts";
-import { pandocEngineDefinition } from "./pandoc-engine.ts";
-import { pandocIntegrationDefinition } from "./pandoc-integration.ts";
 import { citationTextItems } from "./templates.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);

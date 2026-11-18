@@ -1,3 +1,11 @@
+import type {
+  ZoteroPrefSnapshot,
+  ZoteroProfileInfo,
+} from "#core/zotero-pref/service.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "#obsidian/setting-tab/context.ts";
 import { Effect, Stream } from "effect";
 import { join } from "node:path";
 import type {
@@ -10,13 +18,6 @@ import type {
 import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type {
-  ZoteroPrefSnapshot,
-  ZoteroProfileInfo,
-} from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { PREFS_FILENAME } from "@zotlit/plugin-services/desktop/zotero-pref/prefs-file.ts";
-import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   changed,
   degraded,
@@ -30,9 +31,14 @@ import type {
   EffectiveReadMode,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { appendDeviceOverrideNote, browseForDir } from "./device-override.ts";
-import { paintEach } from "./effect-tab.ts";
+import { ZoteroPref } from "#core/zotero-pref/service.ts";
+import {
+  appendDeviceOverrideNote,
+  browseForDir,
+} from "#desktop/setting-tab/device-override.ts";
+import { PREFS_FILENAME } from "#desktop/zotero-pref/prefs-file.ts";
+import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
+import { PluginSettings } from "#obsidian/settings/service.ts";
 
 /** Folder-picker dropdown sentinel for auto-detect — a real dir is never empty. */
 const PICKER_AUTO = "";
@@ -660,4 +666,12 @@ function appendLabeledCode(frag: DocumentFragment, label: string): HTMLElement {
   const code = createEl("code");
   frag.append(" ", code);
   return code;
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "#obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    ZoteroPref: ZoteroPref;
+    ZoteroReads: ZoteroReads;
+  }
 }

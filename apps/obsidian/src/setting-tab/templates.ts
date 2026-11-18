@@ -16,13 +16,16 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import { SettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { createSharedPartial } from "@zotlit/template-workbench/desktop/view/partial-command.ts";
 import type { AutoTrim } from "@zotlit/templates/constants";
 
 import { appendCompileError } from "./compile-error.ts";
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { SettingTab } from "./effect-tab.ts";
 import { defaultPlaceholder } from "./placeholder.ts";
 
 /** Auto-trim dropdown sentinel for "keep whitespace" (`false` isn't a string). */

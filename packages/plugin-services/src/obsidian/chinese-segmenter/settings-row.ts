@@ -1,12 +1,16 @@
 // Install and uninstall controls for the device-wide Chinese Segmenter binary.
 
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "#obsidian/setting-tab/context.ts";
 import type { SettingDefinition } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { managedBinaryDefinition } from "./managed-binary.ts";
+import { ChineseSegmenter } from "./service.ts";
+
+import { managedBinaryDefinition } from "#obsidian/managed-binary/settings-rows.ts";
 
 /** The segmenter row, in the Chinese Segmenter's own words. */
 export function chineseSegmenterDefinition(
@@ -41,4 +45,11 @@ export function chineseSegmenterDefinition(
       removeFailed: m.notice_chinese_segmenter_remove_failed(),
     },
   });
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "#obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    ChineseSegmenter: ChineseSegmenter;
+  }
 }

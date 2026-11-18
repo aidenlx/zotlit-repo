@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { defaults } from "@/services/settings/schema.ts";
+import { readerPageItems } from "./settings-page.ts";
 
-import { readerPageItems } from "./reader.ts";
+import { defaults } from "#__fixtures__/settings.ts";
 
 describe("reader settings", () => {
   it("opens annotation links in the ZotLit reader by default", () => {

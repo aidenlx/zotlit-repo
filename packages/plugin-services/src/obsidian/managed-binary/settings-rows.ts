@@ -1,17 +1,20 @@
 // Install and uninstall controls for one device-wide Managed Binary.
 
+import type { SettingsKey } from "#obsidian/setting-tab/context.ts";
+import type {
+  SettingTabEnv,
+  SettingTabShape,
+} from "#obsidian/setting-tab/effect-tab.ts";
 import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
 import { reportOutcome, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+
 import type {
   ManagedBinaryApi,
   ManagedBinaryFailure,
   ManagedBinaryStatus,
-} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
-
-import type { SettingsKey } from "./context.ts";
-import type { SettingTabEnv, SettingTabShape } from "./effect-tab.ts";
+} from "./service.ts";
 
 /** The binary's service as the row reads it: its tag, or a fake in a test. */
 export type ManagedBinaryTag = Effect.Effect<

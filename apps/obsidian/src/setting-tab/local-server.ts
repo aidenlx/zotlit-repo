@@ -8,11 +8,14 @@ import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import { paintEach } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { paintEach } from "./effect-tab.ts";
 import { defaultPlaceholder } from "./placeholder.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);

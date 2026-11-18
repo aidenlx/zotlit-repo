@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Data, Deferred, Effect } from "effect";
 
-import { scopedSettingTab } from "./__fixtures__.ts";
+import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 
 class DiskFull extends Data.TaggedError("DiskFull")<{ message: string }> {}
 

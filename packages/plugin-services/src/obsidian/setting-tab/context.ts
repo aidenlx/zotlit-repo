@@ -1,14 +1,10 @@
+import type { Settings } from "#core/settings/schema.ts";
 import type { App, PluginManifest } from "obsidian";
-
-import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { SettingTabShape } from "./effect-tab.ts";
 
 /** Settings keys, used to type declarative `control` bindings against the schema. */
 export type SettingsKey = keyof Settings;
-export type ProfileControlKey =
-  `note-profile:default:${"folder" | "citation-style" | "import-folder" | "colored-highlights" | "annotations-as-template"}`;
-export type SettingsControlKey = SettingsKey | ProfileControlKey;
 
 /**
  * Shared dependencies every definition builder receives. Builders read services

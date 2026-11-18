@@ -3,16 +3,19 @@
 import { DateTime, Effect, FiberHandle, Queue, Stream } from "effect";
 import type { ButtonComponent, Setting, SettingGroupItem } from "obsidian";
 
-import { editingCapabilityCopy } from "@zotlit/annotations/obsidian/annotation-repository/capability-copy.ts";
-import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
-import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
-import { applyAction, editingRowModel } from "./zotero-editing-model.ts";
+import { editingCapabilityCopy } from "./capability-copy.ts";
+import { applyAction, editingRowModel } from "./editing-settings-model.ts";
+import { CapabilityNotices } from "./notices.ts";
+import { AnnotationRepository } from "./service.ts";
 
 /**
  * The lifecycle surface for Write Authorization: the status of the session, the
@@ -188,4 +191,13 @@ function renderEditingRow(
       );
     }),
   );
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    AnnotationRepository: AnnotationRepository;
+    CapabilityNotices: CapabilityNotices;
+    ZoteroLocalApi: ZoteroLocalApi;
+  }
 }

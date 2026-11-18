@@ -16,13 +16,16 @@ import {
 } from "@zotlit/plugin-services/core/log/settings.ts";
 import type { LogLevel } from "@zotlit/plugin-services/core/log/settings.ts";
 import { LOG_FILENAME } from "@zotlit/plugin-services/obsidian/log/service.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   profileCustomization,
   saveProfileCustomization,
 } from "@zotlit/template-workbench/obsidian/local-bridge/preferences.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { localServerItems } from "./local-server.ts";
 import {
   reportClearExcerptCache,

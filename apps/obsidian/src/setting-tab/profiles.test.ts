@@ -17,6 +17,10 @@ import type {
   LiteratureNoteProfile,
   ProfileCreation,
 } from "@zotlit/notes/obsidian/profile/service.ts";
+import {
+  profileControlValue,
+  setProfileControlValue,
+} from "@zotlit/notes/obsidian/profile/setting-controls.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
 import {
@@ -36,6 +40,7 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
 import type { CustomizeRequest } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
@@ -44,8 +49,6 @@ import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/o
 import { defaults } from "@/services/settings/schema.ts";
 
 import { rebuildingSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
-import { profileControlValue, setProfileControlValue } from "./controls.ts";
 import { literatureNoteItems, profilesPage } from "./profiles.ts";
 
 vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({

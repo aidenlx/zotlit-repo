@@ -5,12 +5,12 @@ import type { Plugin } from "obsidian";
 import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { settingsRuntimeOf } from "@/services/settings/__fixtures__.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
 import { ZotLitSettingTab } from "./index.ts";
 
 it.effect(

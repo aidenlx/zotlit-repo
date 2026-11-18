@@ -4,8 +4,7 @@
 import type { SettingDefinitionItem } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { SettingsKey } from "./context.ts";
+import type { SettingsKey } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
 export function readerPageItems(): SettingDefinitionItem<SettingsKey>[] {
   return [

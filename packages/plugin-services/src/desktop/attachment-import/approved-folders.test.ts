@@ -1,3 +1,7 @@
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Context, Deferred, Effect, Ref } from "effect";
@@ -7,11 +11,12 @@ import { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
-import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";
 import { approvedFoldersPage } from "./approved-folders.ts";
-import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { AttachmentImport } from "./service.ts";
+
+import { failureOf, recordingRuns } from "#__fixtures__/setting-tab-harness.ts";
+import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 
 /** The approved-folder list of the page over `service`, with the runs it started. */
 const folderList = Effect.fnUntraced(function* (

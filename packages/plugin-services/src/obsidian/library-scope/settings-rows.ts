@@ -1,3 +1,7 @@
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "#obsidian/setting-tab/context.ts";
 import { Effect } from "effect";
 import { Menu } from "obsidian";
 import type {
@@ -8,12 +12,6 @@ import type {
 
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import {
-  libraryLabel,
-  selectorLabel,
-} from "@zotlit/plugin-services/core/library-scope/label.ts";
-import { LibraryScope as LibraryScopeService } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
-import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   compareSelectors,
   DEFAULT_LIBRARY_SCOPE,
@@ -26,7 +24,10 @@ import type {
   LibrarySelector,
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { SettingsKey, SettingTabContext } from "./context.ts";
+import { LibraryScope as LibraryScopeService } from "./service.ts";
+
+import { libraryLabel, selectorLabel } from "#core/library-scope/label.ts";
+import { PluginSettings } from "#obsidian/settings/service.ts";
 
 // The Library Scope reads the rows take. Each one is synchronous, so a
 // definition build runs it through `ctx.tab.sync`.
@@ -241,4 +242,11 @@ function saveScope(ctx: SettingTabContext, scope: LibraryScope): void {
     ).pipe(Effect.andThen(ctx.tab.update)),
     m.settings_failed_save(),
   );
+}
+
+// The services this file's rows read, in the setting tab's context.
+declare module "#obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    LibraryScope: LibraryScopeService;
+  }
 }

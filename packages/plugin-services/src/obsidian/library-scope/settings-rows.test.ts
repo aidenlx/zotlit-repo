@@ -1,25 +1,25 @@
+import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
-import {
-  PluginSettings,
-  SettingsMutationError,
-} from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type {
   AvailableLibrary,
   LibraryScope as SavedLibraryScope,
   ResolvedLibraryScope,
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { defaults } from "@/services/settings/schema.ts";
+import { LibraryScope } from "./service.ts";
+import { libraryScopeRow, selectedLibrariesList } from "./settings-rows.ts";
 
-import { scopedSettingTab } from "./__fixtures__.ts";
-import type { SettingTabContext } from "./context.ts";
-import { libraryScopeRow, selectedLibrariesList } from "./library-scope.ts";
+import { platformDefaults } from "#__fixtures__/platform-settings.ts";
+import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
+import {
+  PluginSettings,
+  SettingsMutationError,
+} from "#obsidian/settings/service.ts";
 
 const MY_LIBRARY: AvailableLibrary = {
   selector: { type: "personal" },
@@ -63,7 +63,7 @@ const setup = Effect.fn("setup")(function* (
               )
             : Effect.sync(() => {
                 saved.push(patch);
-                return defaults;
+                return platformDefaults;
               }),
       }),
     ),
