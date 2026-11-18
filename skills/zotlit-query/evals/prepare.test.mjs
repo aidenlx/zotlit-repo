@@ -11,8 +11,12 @@ import { setTimeout as delay } from "node:timers/promises";
 import { buildFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
 
 const repo = resolve(import.meta.dirname, "../../..");
-const requireDb = createRequire(join(repo, "packages/db/package.json"));
-const { isItemKey } = await import(requireDb.resolve("@zotlit/db"));
+const requireKeys = createRequire(
+  join(repo, "packages/zotero-types/package.json"),
+);
+const { isItemKey } = await import(
+  requireKeys.resolve("@zotlit/zotero-types/keys")
+);
 const prepare = join(import.meta.dirname, "prepare.mjs");
 const oracle = JSON.parse(
   await readFile(new URL("./oracle.json", import.meta.url), "utf8"),
