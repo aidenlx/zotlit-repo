@@ -6,6 +6,7 @@ The Obsidian plugin. Its shared base lives in packages, which the app imports by
 - `@zotlit/obsidian-kit` — code over the `obsidian` API that loads on Obsidian Mobile: the capability tags (`obsidian-*.ts`), shared components (`components/`), view atoms and runners, notices, the Obsidian test mock.
 - `@zotlit/obsidian-desktop` — code that needs `node:*` or `electron`.
 - `@zotlit/plugin-messages` — the generated Message facade.
+- `@zotlit/zotero-reads` — ZoteroReads: its contract, the Worker's handlers, the renderer's client, and the desktop database source. The app keeps the host side: the Worker entry (`src/services/zotero-reads/worker.ts`) and the client's wiring to settings (`worker-client.ts`).
 
 Code that only one unit of the app uses lives in that unit. A base package imports no service or view of the app; the app fills open registries such as `ViewServiceRegistry` by declaration merging (`src/typings/view-services.d.ts`).
 
@@ -73,7 +74,7 @@ A view reads Effect services through view atoms (`packages/obsidian-kit/src/view
 
 ## Workers
 
-A new worker runs on `effect/rpc`; follow `src/services/zotero-reads/{rpc,worker,worker-launch,worker-host,in-process}.ts`.
+A new worker runs on `effect/rpc`; follow `packages/zotero-reads/src/{contract/rpc,worker/serve,worker/worker-launch,client/worker-host,worker/in-process}.ts` and the entry `src/services/zotero-reads/worker.ts`.
 
 ## Debugging
 

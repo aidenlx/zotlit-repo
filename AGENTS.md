@@ -16,6 +16,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/templates` — Eta-based template rendering.
+- `packages/zotero-reads` — ZoteroReads, the RPC between the Obsidian plugin and the Web Worker that owns the Zotero database: its contract, the Worker's handlers, the renderer's client, and the desktop database source, each a layer with its own lint boundary (see its `AGENTS.md`).
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema, plus the Zotero key grammar (`./keys`) and key-only `zotero://` links (`./uri`).
 - `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
 
