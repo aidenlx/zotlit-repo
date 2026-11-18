@@ -1078,7 +1078,7 @@ type SentTag = Required<WireTag>;
 /**
  * A Zotero holding one Annotation's tags and comment. It keeps the whole list a
  * tag `PATCH` names and answers `412` to a body version it does not hold, as the paired
- * probe recorded (aidenlx/zotlit#1231): what Zotero received and holds is the
+ * probe recorded: what Zotero received and holds is the
  * oracle, never the draft.
  */
 function zoteroTagging(

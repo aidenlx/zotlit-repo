@@ -231,7 +231,7 @@ describe("insertAnnotation", () => {
   );
 });
 
-it.effect("#1835 records a Use only after the selected annotation lands", () =>
+it.effect("records a Use only after the selected annotation lands", () =>
   Effect.promise(async () => {
     await using stack = new AsyncDisposableStack();
     const h = await harness(stack, "[>message]");

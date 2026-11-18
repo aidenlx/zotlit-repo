@@ -15,7 +15,7 @@ Proposed on 2026-10-17 with [#1549](https://github.com/aidenlx/zotlit/issues/154
 
 - Each key acts on the selected row; arrow keys move the selection, and single click only selects.
 - The quick switcher gains "Show in Library", which opens the Library View on the Item's first Collection.
-- The row menu is the one place that lists every action; the Reading Card (#1552) reuses its operations.
+- The row menu is the one place that lists every action; the Reading Card ([#1552](https://github.com/aidenlx/zotlit/issues/1552)) reuses its operations.
 - The quick switcher's "Show in Library" is Alt+Enter (⌥↵). It opens the Item's first Collection, or its Library when the Item is in none, clears the search, and selects the row; the item details show it while they are on, and stay off while the researcher keeps them off (amended after the details review).
 - One module opens notes and PDFs for both the quick switcher and the rows, so the two keep the same keys and Profile selection.
 - The row menu raises `zotlit:item-menu` (`{source: "library-view", indexedKey}`, sections `open`, `insert`, `clipboard`, `zotero`) after its own entries, so other plugins can add theirs.

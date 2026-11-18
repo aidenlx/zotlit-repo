@@ -97,7 +97,7 @@ export function sectionCitationRuns(
  *
  * A run of several works collapses into its first anchor, so the whole run
  * navigates to the first work it names — the same narrowing the Live Preview
- * run widget makes, and the one place a run departs from #663's per-link
+ * run widget makes, and the one place a run departs from the per-link
  * interaction. A lone Citation keeps its anchor and every gesture on it.
  *
  * The formatted text goes into Obsidian's own anchor, so a link the style wrote

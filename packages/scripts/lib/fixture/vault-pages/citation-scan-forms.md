@@ -3,7 +3,7 @@ title: Citation scan — forms and links
 ---
 # Citation scan — forms and links
 
-Walk the Pandoc and wikilink cases from #1683. Use the `all` Scope Case. Turn on
+Walk the Pandoc and wikilink cases. Use the `all` Scope Case. Turn on
 Pandoc Citations, Wikilink Citations, Annotation Citations, and Show Formatted
 Citations. Install the Pandoc Engine. Compare Live Preview with Reading view.
 

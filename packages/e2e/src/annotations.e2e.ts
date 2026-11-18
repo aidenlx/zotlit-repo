@@ -356,8 +356,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       // the popup carries four transparent stops in front of the three
       // `--menu-shadow` supplies.
       //
-      // #1191 asks for one assertion, and this scenario carries three. The
-      // chrome read is kept here rather than left to the development loop
+      // The chrome read is kept here rather than left to the development loop
       // because it is the one place ADR 0044's variable contract is held: the
       // popup wears no `.menu` class, so nothing else would notice a theme
       // hook that stopped reading those variables. The closed state below is
@@ -916,7 +915,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     // list's option and keeps focus in the field; the method it writes
     // brings its Signature Hint, which Escape closes, the dialog still open.
     // A key typed straight after Enter or Tab takes an option lands in the
-    // field, which keeps focus (#1651). The condition goes again before the
+    // field, which keeps focus. The condition goes again before the
     // eval answers.
     const escapes = await obRun(
       run.vaultId,

@@ -165,7 +165,7 @@ async function obEval(code: string, target?: string): Promise<string> {
  * front can drop to macOS background priority under load and run about ten
  * times slower; the vault's startup, Restricted Mode exit, and reload then
  * pass the 30-second CLI bound, and the call reports a live window as
- * unreachable (#1868). With throttling off, the renderer stays at normal
+ * unreachable. With throttling off, the renderer stays at normal
  * priority. The setting lasts through the window's reloads.
  */
 function vaultOpenCode(abs: string): string {

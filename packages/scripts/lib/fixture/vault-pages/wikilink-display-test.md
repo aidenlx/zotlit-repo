@@ -3,8 +3,8 @@ title: Wikilink Citation Test
 ---
 # Wikilink Citation Test
 
-This note exercises the Wikilink Editor Treatment (#663, Live Preview) and the Wikilink
-Reading Rendering (#675, reading mode). With **Show formatted citations** on, both surfaces
+This note exercises the Wikilink Editor Treatment (Live Preview) and the Wikilink
+Reading Rendering (reading mode). With **Show formatted citations** on, both surfaces
 show the selected citation and references style after one complete document render. With the
 control off or formatting unavailable, each case keeps its native Markdown source.
 
@@ -163,7 +163,7 @@ move it away and confirm the display text comes back. Source mode always shows r
 
 ## Reveal grouping next to emphasis
 
-A #663 runtime check: reveal follows Obsidian's conceal group, not the link span. Emphasis
+A runtime check: reveal follows Obsidian's conceal group, not the link span. Emphasis
 directly against a link puts both in one conceal group, so the caret inside the emphasis may
 reveal the link too. Record the observed behavior on the ticket.
 
@@ -218,7 +218,7 @@ Use `[[literatures/Hensher2011#cite:locator=16]]` as a literal example, not a ci
 
 ## Wikilinks inside a `%%` comment
 
-A #663 runtime check: record whether the metadata cache lists these links, and confirm the
+A runtime check: record whether the metadata cache lists these links, and confirm the
 editor decoration and the References Sidebar agree with each other either way.
 
 %%[[literatures/Hensher2011#cite:locator=18]]%%
@@ -230,7 +230,7 @@ fragment-less [[literatures/wangMutationalClinicalSpectrum2020a]].
 
 ## Interaction parity
 
-A #663 runtime check on every decorated link above. Each gesture must behave exactly as it
+A runtime check on every decorated link above. Each gesture must behave exactly as it
 does on an undecorated wikilink, because the plugin registers no handlers:
 
 1. Plain click opens the Literature Note in the active tab.
@@ -241,7 +241,7 @@ does on an undecorated wikilink, because the plugin registers no handlers:
 5. Drag the link into another note and confirm the dropped text.
 6. The right-click context menu offers the native link entries.
 
-Reading mode carries two deliberate differences, documented in the user docs (#666): drag out
+Reading mode carries two deliberate differences, documented in the user docs: drag out
 of reading mode and the context menu's **Copy** both carry the formatted citation text.
 
 ## Index refresh

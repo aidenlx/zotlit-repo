@@ -8,7 +8,7 @@ import { ParseFailed } from "./client";
 vi.mock("virtual:citation-parse-worker", () => ({ default: "" }));
 
 it.effect(
-  "rejects a parse with the domain error after the whole runtime is disposed (#1705)",
+  "rejects a parse with the domain error after the whole runtime is disposed",
   () =>
     Effect.gen(function* () {
       const { runtime, parser } = yield* makeParseHarness();
@@ -22,7 +22,7 @@ it.effect(
 );
 
 it.effect(
-  "aborts an in-flight parse through the native service without terminating the worker (#1705)",
+  "aborts an in-flight parse through the native service without terminating the worker",
   () =>
     Effect.gen(function* () {
       const spawned = yield* Queue.make<

@@ -123,7 +123,7 @@ type QueryViewReader<A, T> = (
   args: A,
 ) => (T & JsonCompatible<T>) | Promise<T & JsonCompatible<T>>;
 
-// oxlint-disable-next-line max-params -- Keep the typed callback API aligned with obRun (#1848).
+// oxlint-disable-next-line max-params -- Keep the typed callback API aligned with obRun.
 export async function readQueryViewUntil<A, T>(
   vaultId: string,
   callback: QueryViewReader<A, T>,

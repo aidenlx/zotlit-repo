@@ -4,7 +4,7 @@ import { expect } from "vitest";
 
 import { zoteroPrefFixture } from "./__fixtures__";
 
-// #1705: unload can leave consumers holding the native service after runtime disposal.
+// Unload can leave consumers holding the native service after runtime disposal.
 it.effect(
   "keeps released reads and no-op writes after the whole runtime closes",
   () =>

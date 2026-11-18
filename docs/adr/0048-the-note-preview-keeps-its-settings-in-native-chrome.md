@@ -40,7 +40,7 @@ switching to On demand. The Obsidian pane shows an inline notice with Run only
 while the result is behind the edits ("Preview is behind your edits.") or
 nothing has rendered yet ("No preview yet."); a live render in progress shows
 the busy indicator and no sentence; a problem hold keeps "Showing the last
-preview". This amends issue #1022's story 4, which had Stop say "Live preview
+preview". This amends issue [#1022](https://github.com/aidenlx/zotlit/issues/1022)'s story 4, which had Stop say "Live preview
 paused" on both hosts: no Stop control shipped, so the line restated the
 select. The web Workbench keeps its own Run and paused line in its controls
 and gains only the corrected stale wording.

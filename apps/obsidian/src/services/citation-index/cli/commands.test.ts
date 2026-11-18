@@ -268,23 +268,21 @@ it.effect(
     }),
 );
 
-it.effect(
-  "keeps a failed source read distinct from a missing Item (#1704)",
-  () =>
-    Effect.gen(function* () {
-      const h = yield* setup();
-      h.db.snapshotError = new DbUnavailable({
-        message: "test database unreadable",
-      });
-      const result = JSON.parse(
-        yield* h.command("zotlit:references").handler({ file: "draft.md" }),
-      );
-      expect(result).toMatchObject({
-        ok: true,
-        database: "unreadable",
-        entries: [{ kind: "unreadable" }],
-      });
-    }),
+it.effect("keeps a failed source read distinct from a missing Item", () =>
+  Effect.gen(function* () {
+    const h = yield* setup();
+    h.db.snapshotError = new DbUnavailable({
+      message: "test database unreadable",
+    });
+    const result = JSON.parse(
+      yield* h.command("zotlit:references").handler({ file: "draft.md" }),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      database: "unreadable",
+      entries: [{ kind: "unreadable" }],
+    });
+  }),
 );
 
 it.effect("reports selector misses and empty Annotation uses", () =>
@@ -329,7 +327,7 @@ it.effect("prints the guide as prose with all four commands", () =>
 );
 
 it.effect(
-  "#1704 presents one Ambiguous Citation Key outcome in References and selector diagnostics",
+  "presents one Ambiguous Citation Key outcome in References and selector diagnostics",
   () =>
     Effect.gen(function* () {
       const h = yield* setup("[@same] [[Doe 2024]]", {
@@ -373,33 +371,31 @@ it.effect(
     }),
 );
 
-it.effect(
-  "#1704 reports a missing Item separately from an unresolved key",
-  () =>
-    Effect.gen(function* () {
-      const h = yield* setup("[[Doe 2024]]", {
-        citekeys: [],
-        settings: { "citation.wikilink-citations": true },
-      });
-      const set = yield* Effect.promise(() =>
-        h.index.bridge.runPromise(h.index.getDocumentCitationSet(h.draft)),
-      );
-      expect(set.citations[0]?.outcome).toEqual({
-        kind: "missing-item",
-        key: "ABCD2345",
-      });
-      const result = JSON.parse(
-        yield* h.command("zotlit:references").handler({ file: "draft.md" }),
-      );
-      expect(result.entries[0]).toMatchObject({
-        kind: "missing",
-        key: "ABCD2345",
-      });
-    }),
+it.effect("reports a missing Item separately from an unresolved key", () =>
+  Effect.gen(function* () {
+    const h = yield* setup("[[Doe 2024]]", {
+      citekeys: [],
+      settings: { "citation.wikilink-citations": true },
+    });
+    const set = yield* Effect.promise(() =>
+      h.index.bridge.runPromise(h.index.getDocumentCitationSet(h.draft)),
+    );
+    expect(set.citations[0]?.outcome).toEqual({
+      kind: "missing-item",
+      key: "ABCD2345",
+    });
+    const result = JSON.parse(
+      yield* h.command("zotlit:references").handler({ file: "draft.md" }),
+    );
+    expect(result.entries[0]).toMatchObject({
+      kind: "missing",
+      key: "ABCD2345",
+    });
+  }),
 );
 
 it.effect.each(["PDF23456", "NTEE2345"])(
-  "#1683 keeps existing child Item %s present with a null summary",
+  "keeps existing child Item %s present with a null summary",
   (key) =>
     Effect.gen(function* () {
       const h = yield* setup("[[Doe 2024]]", {

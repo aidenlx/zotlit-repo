@@ -8,7 +8,7 @@ ZotLit's users are researchers, many of them not technical. Text that turns into
 
 ## Considered Options
 
-- **Click on the text to edit** (the #1145 comment): one click, but no visible affordance and it conflicts with selecting and copying.
+- **Click on the text to edit** (the [#1145](https://github.com/aidenlx/zotlit/issues/1145) comment): one click, but no visible affordance and it conflicts with selecting and copying.
 - **Select, then click the text** (Zotero's reader): safe for reading, but still invisible to a user who does not know it.
 - **One card-level Edit mode for both fields**: explicit, but it opens two editors at once, which breaks one-editor-at-a-time and one History Step per session.
 - **Labelled action row on the selected card**: the most explicit, at the cost of a row of text buttons on every selected card.

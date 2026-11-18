@@ -58,7 +58,7 @@ import { clearVault, e2eVaultDir } from "./vault-script.ts";
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
-  it("sets Citation Presentation and dismisses pending changes on cancel and unload (#1858)", async () => {
+  it("sets Citation Presentation and dismisses pending changes on cancel and unload", async () => {
     const result = await obRun(
       run.vaultId,
       async ({ app, page }, { title, confirmLabel, cancelLabel }) => {
@@ -1498,7 +1498,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(await underlines("==")).toEqual([[], ["=="]]);
     // Mod+Z in the expression field is its own history's, and the Match
     // follows the text it undoes; in a select's search field it undoes the
-    // typed text and leaves the Match alone (#1667).
+    // typed text and leaves the Match alone.
     expect(
       await obRun(
         run.vaultId,

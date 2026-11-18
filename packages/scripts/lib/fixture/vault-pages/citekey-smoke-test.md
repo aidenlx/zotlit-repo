@@ -3,7 +3,7 @@ title: Citekey Smoke Test
 ---
 # Citekey Smoke Test
 
-This note exercises literal Pandoc `@citekey` citations described in spec #642. Use it to
+This note exercises literal Pandoc `@citekey` citations. Use it to
 smoke-test the References Sidebar, Live Preview widgets, and reading-mode rendering against
 `src/lib/citation-grammar.test.ts`. A citekey resolves when the configured citation library
 holds a Zotero item carrying that native citation key; a key matching no live Zotero item is

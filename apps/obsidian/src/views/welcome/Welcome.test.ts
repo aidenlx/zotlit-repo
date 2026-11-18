@@ -417,7 +417,7 @@ it("replaces the pending prompt with the persisted result after conversion", asy
   expect(container.textContent).not.toContain(m.welcome_migration_title());
 });
 
-it("#1904: shows a failed conversion in the banner with its cause", async () => {
+it("shows a failed conversion in the banner with its cause", async () => {
   const { actions, container, converted } = await render("upgraded", {
     templateConversionPending: true,
     templateFolder: "templates",

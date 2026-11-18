@@ -1,5 +1,5 @@
 // The dedicated workbench window: "Open template workbench" and Customize show
-// the one editor with both side panels in a window of its own (#1945).
+// the one editor with both side panels in a window of its own.
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";

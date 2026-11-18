@@ -54,7 +54,7 @@ describe("fieldForm", () => {
     );
   });
 
-  // #1969: a creator with no family name, as Zotero keeps a one-field name:
+  // A creator with no family name, as Zotero keeps a one-field name:
   // the template context gives it an empty family name. A missing value and
   // a value that is false read as no value too.
   describe.each(["liquid", "eta"] as const)(

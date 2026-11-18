@@ -15,7 +15,7 @@ import {
 import { lookupFixture } from "./__fixtures__";
 
 it.effect(
-  "attaches before two immediate revisions and retains throwing listeners (#1705)",
+  "attaches before two immediate revisions and retains throwing listeners",
   () =>
     Effect.gen(function* () {
       let revision = 0;

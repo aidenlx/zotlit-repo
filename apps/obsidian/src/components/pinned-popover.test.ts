@@ -193,7 +193,7 @@ async function pressOutside(target: HTMLElement) {
   await new Promise((resolve) => target.win.setTimeout(resolve, 0));
 }
 
-// #1964: a press outside returns focus to the action, unless it gave focus
+// A press outside returns focus to the action, unless it gave focus
 // to the place it pressed.
 it("closes on a press outside, and hands focus to its anchor when the press focused nothing", async () => {
   const { anchor, handle, shell } = mount();

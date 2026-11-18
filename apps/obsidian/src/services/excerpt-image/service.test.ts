@@ -1709,7 +1709,7 @@ describe("Excerpt latest references", () => {
   );
 });
 
-// #1790: deadlines and finalizers run on the layer's Effect clock.
+// Deadlines and finalizers run on the layer's Effect clock.
 it.effect(
   "stops new renders after a timed-out host cannot finish cleanup",
   () =>
@@ -1814,7 +1814,7 @@ const assertRejected = Effect.fnUntraced(function* <A, E>(
   }
 });
 
-// #1790: a started cache mutation holds its barrier through interruption.
+// A started cache mutation holds its barrier through interruption.
 it.effect(
   "an interrupted clear holds later resolutions until the store finishes",
   () =>

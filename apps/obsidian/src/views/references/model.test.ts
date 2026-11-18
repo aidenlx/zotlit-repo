@@ -368,7 +368,7 @@ it.effect(
     }),
 );
 
-// #1710: opening a Literature Note belongs to the gesture, not its source pane.
+// Opening a Literature Note belongs to the gesture, not its source pane.
 it.effect(
   "opens notes from two References panes without cancelling either creation",
   () =>

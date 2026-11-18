@@ -103,8 +103,6 @@ export function followModeMenu(state: FollowMenuState): FollowMenuEntry[] {
  * The pin gesture the state allows: release the pin in force, or take the Item
  * on screen. Pinned is an Item plus a remembered attachment choice, so with no
  * Item to pin the menu offers the item picker alone.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1141
  */
 function pinEntry(state: FollowMenuState): FollowMenuEntry[] {
   if (state.followMode === "pinned") {

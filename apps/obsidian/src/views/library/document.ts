@@ -548,8 +548,7 @@ export interface LibraryViewLabels {
 
 /**
  * A condition on a row that the vault answers, not the query: the view
- * applies it to the rows the query returns (#1531 decides whether the
- * engine takes it over).
+ * applies it to the rows the query returns.
  */
 export type VaultCondition = "has-literature-note" | "no-literature-note";
 

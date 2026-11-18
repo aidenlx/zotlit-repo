@@ -46,9 +46,9 @@ Expected: References shows a malformed Annotation Citation because the URL
 has no Annotation key. `zotlit:references` returns `kind: malformed`, with no
 `refNumber`. Cited By gains no occurrence; Annotation uses gains none.
 There is no resolved Annotation popover or formatted CitationText. Export
-preserves the link; Annotation Citation export is deferred to #1684.
+preserves the link; Annotation Citation export has no output form yet.
 
-The three cases above check #1704: References and the CLI must agree on the
+The three cases above check the resolution outcome: References and the CLI must agree on the
 reason, with a readable database. They must keep a failed database read distinct
 from a missing Item. Compare these outcomes after the final review round merges.
 

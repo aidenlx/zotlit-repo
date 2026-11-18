@@ -1,6 +1,6 @@
 # Workbench guidance lives in the CLI; the Agent Skill stays thin
 
-The first Template Workbench skill (#563) was a 294-line document carrying flag
+The first Template Workbench skill ([#563](https://github.com/aidenlx/zotlit/issues/563)) was a 294-line document carrying flag
 tables, value lists, and a nine-row diagnostics table — tooling facts that
 drift from the code, held honest only by a generated digest and a CI staleness
 check. We decided the plugin itself is the home of every tooling fact: command

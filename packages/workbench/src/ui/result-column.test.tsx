@@ -488,7 +488,7 @@ it("renders ResultBody with no heading", () => {
   expect(screen.getByText("Papers/Reading.md")).toBeDefined();
 });
 
-// #1965: a host that names the file in its own sticky header row leaves the
+// A host that names the file in its own sticky header row leaves the
 // region's file name out and reads the name the region would show.
 it("leaves the file name to the host's header row", () => {
   using mounted = mount(

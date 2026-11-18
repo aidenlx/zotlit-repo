@@ -59,8 +59,6 @@ export function noticeDuration({
  * the notices a blocked gesture or a refused write earns. Every "once per …"
  * rule lives in the ledger, so this holds no state of its own beyond the
  * ledger it renders.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1147
  */
 export class CapabilityNotices extends Context.Service<
   CapabilityNotices,

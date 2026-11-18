@@ -1887,7 +1887,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect(timings[query]!.hits).toBeGreaterThan(0);
 
     // A large classification bounds renderer request encoding as well as
-    // worker replies, while every request uses the same Snapshot (#1351).
+    // worker replies, while every request uses the same Snapshot.
     await obRun(
       run.vaultId,
       async ({ page: pageHelpers }) => {

@@ -212,7 +212,7 @@ it("answers a mounted route group beside the Live Update routes", async () => {
     },
     stack,
   );
-  // The seam #1002 mounts the Local Bridge on: the same listener, its own
+  // The seam the Local Bridge mounts on: the same listener, its own
   // base path, and gates of its own — the Live Update gates stay off it.
   service.runtime.runSync(
     service.server.mount(

@@ -25,7 +25,7 @@ const unreadable = (path: string) =>
     pathOrDescriptor: path,
   });
 
-// #1705: stalled external I/O releases startup and still publishes a late read.
+// Stalled external I/O releases startup and still publishes a late read.
 it.effect(
   "bounds the first preference read and publishes its late result",
   () =>
@@ -70,7 +70,7 @@ it.effect(
     }),
 );
 
-// #1705: cancellation at the storage boundary must leave the published override
+// Cancellation at the storage boundary must leave the published override
 // equal to the saved one, and a profile change must still start its reload.
 for (const kind of ["data", "profile"] as const) {
   it.effect(
@@ -117,7 +117,7 @@ for (const kind of ["data", "profile"] as const) {
   );
 }
 
-// #1705: every consumer's first read needs the settled profile, including
+// Every consumer's first read needs the settled profile, including
 // the worker database, the CLI source identity, and Template Workbench styles.
 it.effect("builds with settled preferences before the first read", () =>
   Effect.gen(function* () {

@@ -1,6 +1,6 @@
 # The SEO sitemap is keyed off the typed `AppRoutes` union
 
-> **Superseded by the TanStack Start migration (spec #846).**
+> **Superseded by the TanStack Start migration (spec [#846](https://github.com/aidenlx/zotlit/issues/846)).**
 > `app/sitemap.ts`, `typedRoutes` in `next.config.ts`, the generated
 > `@next/routes` union, and `next typegen` are all gone. The sitemap now keys
 > its table off `FileRouteTypes["to"]` in `src/lib/sitemap.ts`; see

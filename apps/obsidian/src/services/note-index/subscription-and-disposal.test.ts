@@ -7,8 +7,8 @@ import { subscribe } from "@/lib/effect-stream";
 import { cache, makeHarness } from "./__fixtures__";
 import type { NoteIndexChange } from "./service";
 
-// #1705: attaching late must not lose the first invalidations.
-it.effect("a throwing subscriber receives both immediate edits (#1705)", () =>
+// Attaching late must not lose the first invalidations.
+it.effect("a throwing subscriber receives both immediate edits", () =>
   Effect.gen(function* () {
     const { metadataCache, vault, service } = yield* makeHarness(
       { "first.md": cache({}), "second.md": cache({}) },
@@ -37,7 +37,7 @@ it.effect("a throwing subscriber receives both immediate edits (#1705)", () =>
   }),
 );
 
-// #1705: the owning stack disposes the whole ManagedRuntime, not just its layer.
+// The owning stack disposes the whole ManagedRuntime, not just its layer.
 it.effect("every adapter method remains usable after runtime disposal", () =>
   Effect.gen(function* () {
     const { service, close, metadataCache, vault } = yield* makeHarness(

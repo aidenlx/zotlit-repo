@@ -41,7 +41,7 @@ it.effect("filterTag keeps the events of several tags in their order", () =>
   }),
 );
 
-// #1705: a callback defect belongs to one delivery, not the subscription.
+// A callback defect belongs to one delivery, not the subscription.
 it.effect(
   "logs a throwing listener's cause and still delivers the next value",
   () =>
@@ -85,7 +85,7 @@ it.effect(
     }),
 );
 
-// #1705: interruptWhen starts an upstream fiber; latest-value replay loses earlier edits.
+// `interruptWhen` starts an upstream fiber; latest-value replay loses earlier edits.
 it.effect(
   "attaches before two immediate changes and stops on unsubscribe",
   () =>
@@ -180,7 +180,7 @@ it.effect("runtime interruption closes an active subscription", () =>
   }),
 );
 
-// #1705: a layer's consumer attaches before acquisition returns, so changes
+// A layer's consumer attaches before acquisition returns, so changes
 // published right after it are all delivered.
 it.effect("forkEach attaches before returning and isolates failures", () =>
   Effect.gen(function* () {

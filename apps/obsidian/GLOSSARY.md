@@ -301,7 +301,7 @@ _Avoid_: attempt (bare), run, preview retention (the editor's, not the CLI's)
 ### Annotation view
 
 **Annotation View** _(Obsidian)_:
-The sidebar pane that shows one Attachment's live Annotations as Annotation Cards, chosen by its Follow Mode and narrowed by its Annotation Filter. It reads whether or not Zotero is running; the Editing Capability decides only whether a card's verbs can act. Under [#1459](https://github.com/aidenlx/zotlit/issues/1459) it becomes the sidebar Query View: the Annotations Layout with the followed Item and Attachment as its Query Context, showing only the controls that have a meaning for one Attachment.
+The sidebar pane that shows one Attachment's live Annotations as Annotation Cards, chosen by its Follow Mode and narrowed by its Annotation Filter. It reads whether or not Zotero is running; the Editing Capability decides only whether a card's verbs can act. It is to become the sidebar Query View: the Annotations Layout with the followed Item and Attachment as its Query Context, showing only the controls that have a meaning for one Attachment.
 _Avoid_: annotation sidebar, annotation panel, annotation list (that is the cards alone)
 
 **Annotation Filter**:

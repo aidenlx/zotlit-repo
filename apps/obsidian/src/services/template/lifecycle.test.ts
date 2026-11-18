@@ -13,7 +13,7 @@ import { createTemplateHost, templateOf, templateOver } from "./__fixtures__";
 import { layerTemplateMigration, TemplateMigration } from "./migration";
 import { Template } from "./service";
 
-it.effect("#1705: a built Template exposes its first loaded template", () =>
+it.effect("a built Template exposes its first loaded template", () =>
   Effect.gen(function* () {
     const host = createTemplateHost({
       "templates/zotlit-note.liquid.md": "Loaded {{ zt.title }}",
@@ -73,7 +73,7 @@ it.effect("keeps a template folder that the vault does not hold", () =>
 );
 
 it.effect(
-  "#1705: throwing listeners receive later reconciliations and stop on disposal",
+  "throwing listeners receive later reconciliations and stop on disposal",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost({
@@ -141,7 +141,7 @@ it.effect(
     }),
 );
 
-it.effect("#1705: published vault edits reconcile on the Effect Clock", () =>
+it.effect("published vault edits reconcile on the Effect Clock", () =>
   Effect.gen(function* () {
     const host = createTemplateHost({
       "templates/zotlit-note.liquid.md": "Before",
@@ -157,7 +157,7 @@ it.effect("#1705: published vault edits reconcile on the Effect Clock", () =>
   }),
 );
 
-it.effect("#1705: startup failure settles into the init-failed state", () =>
+it.effect("startup failure settles into the init-failed state", () =>
   Effect.gen(function* () {
     const host = createTemplateHost();
     // The first folder read of startup's template scan throws.
@@ -170,56 +170,52 @@ it.effect("#1705: startup failure settles into the init-failed state", () =>
   }),
 );
 
-it.effect(
-  "#1705: runtime disposal waits for a document write that has started",
-  () =>
-    Effect.gen(function* () {
-      const host = createTemplateHost();
-      const context = yield* Effect.context<never>();
-      const stack = yield* Effect.acquireDisposable(
-        Effect.tryPromise(async () => new AsyncDisposableStack()),
-      );
-      const runtime = buildRuntime(
-        templateOver(host).pipe(
-          Layer.provideMerge(Layer.succeedContext(context)),
-        ),
-        stack,
-      );
-      yield* Effect.promise(() => runtime.context());
-      const template = Object.assign(runtime.runSync(Template), {
-        bridge: effectBridge(runtime),
-      });
-      const started = yield* Queue.unbounded<void>();
-      const writing = Promise.withResolvers<void>();
-      const create = host.vault.create.bind(host.vault);
-      vi.spyOn(host.vault, "create").mockImplementation(
-        async (path, source) => {
-          Queue.offerUnsafe(started, undefined);
-          await writing.promise;
-          return create(path, source);
-        },
-      );
-      // Unload stops the waiting caller; the write itself finishes.
-      const created = expect(
-        template.bridge.runPromise(
-          template.createPartial("authors", { source: "Authors" }),
-        ),
-      ).rejects.toMatchObject({ name: "AbortError" });
-      yield* Queue.take(started);
-      let disposed = false;
-      const closing = runtime.dispose().then(() => {
-        disposed = true;
-      });
-      yield* TestClock.adjust(0);
-      expect(disposed).toBe(false);
-      writing.resolve();
-      yield* Effect.promise(() => created);
-      yield* Effect.promise(() => closing);
-      expect(disposed).toBe(true);
-      expect(
-        host.vault.contents.get("templates/zotlit-partial.authors.md"),
-      ).toBe("Authors");
-    }),
+it.effect("runtime disposal waits for a document write that has started", () =>
+  Effect.gen(function* () {
+    const host = createTemplateHost();
+    const context = yield* Effect.context<never>();
+    const stack = yield* Effect.acquireDisposable(
+      Effect.tryPromise(async () => new AsyncDisposableStack()),
+    );
+    const runtime = buildRuntime(
+      templateOver(host).pipe(
+        Layer.provideMerge(Layer.succeedContext(context)),
+      ),
+      stack,
+    );
+    yield* Effect.promise(() => runtime.context());
+    const template = Object.assign(runtime.runSync(Template), {
+      bridge: effectBridge(runtime),
+    });
+    const started = yield* Queue.unbounded<void>();
+    const writing = Promise.withResolvers<void>();
+    const create = host.vault.create.bind(host.vault);
+    vi.spyOn(host.vault, "create").mockImplementation(async (path, source) => {
+      Queue.offerUnsafe(started, undefined);
+      await writing.promise;
+      return create(path, source);
+    });
+    // Unload stops the waiting caller; the write itself finishes.
+    const created = expect(
+      template.bridge.runPromise(
+        template.createPartial("authors", { source: "Authors" }),
+      ),
+    ).rejects.toMatchObject({ name: "AbortError" });
+    yield* Queue.take(started);
+    let disposed = false;
+    const closing = runtime.dispose().then(() => {
+      disposed = true;
+    });
+    yield* TestClock.adjust(0);
+    expect(disposed).toBe(false);
+    writing.resolve();
+    yield* Effect.promise(() => created);
+    yield* Effect.promise(() => closing);
+    expect(disposed).toBe(true);
+    expect(host.vault.contents.get("templates/zotlit-partial.authors.md")).toBe(
+      "Authors",
+    );
+  }),
 );
 
 // The unpack writes through the engine's own runner, which must stay open
@@ -274,7 +270,7 @@ it.effect("runtime disposal waits for a partial unpack that has started", () =>
 );
 
 it.effect(
-  "#1705: migration ignores late layout callbacks and stops its calls after disposal",
+  "migration ignores late layout callbacks and stops its calls after disposal",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost();
@@ -326,7 +322,7 @@ it.effect(
     }),
 );
 
-it.effect("#1705: a later folder change supersedes a pending folder read", () =>
+it.effect("a later folder change supersedes a pending folder read", () =>
   Effect.gen(function* () {
     const host = createTemplateHost({
       "templates/zotlit-note.liquid.md": "Initial",
@@ -359,7 +355,7 @@ it.effect("#1705: a later folder change supersedes a pending folder read", () =>
   }),
 );
 
-it.effect("#1705: settlement includes an edit queued during a slow flush", () =>
+it.effect("settlement includes an edit queued during a slow flush", () =>
   Effect.gen(function* () {
     const path = "templates/zotlit-note.liquid.md";
     const host = createTemplateHost({ [path]: "Initial" });
@@ -395,7 +391,7 @@ it.effect("#1705: settlement includes an edit queued during a slow flush", () =>
 );
 
 it.effect.each(["loaded", "init-failed"] as const)(
-  "#1705: late status subscribers receive the initial %s state",
+  "late status subscribers receive the initial %s state",
   (state) =>
     Effect.gen(function* () {
       const host = createTemplateHost({
@@ -425,7 +421,7 @@ it.effect.each(["loaded", "init-failed"] as const)(
     }),
 );
 
-it.effect("#1705: a stalled source read does not block runtime disposal", () =>
+it.effect("a stalled source read does not block runtime disposal", () =>
   Effect.gen(function* () {
     const host = createTemplateHost({
       "templates/zotlit-note.liquid.md": "Loaded",
@@ -467,46 +463,44 @@ it.effect("#1705: a stalled source read does not block runtime disposal", () =>
   }),
 );
 
-it.effect(
-  "#1705: Template keeps tagged render, conversion, and vault failures",
-  () =>
-    Effect.gen(function* () {
-      const host = createTemplateHost({
-        "templates/zotlit-note.eta.md": "Inert",
-        "templates/zotlit-filename.liquid.md": "Title",
-      });
-      const template = yield* templateOf(host);
-      expectTypeOf<
-        Effect.Error<ReturnType<typeof template.render>>
-      >().toExtend<{ readonly _tag: string }>();
-      expect(yield* Effect.flip(template.render("missing", {}))).toMatchObject({
-        _tag: "TemplateError",
-        templateName: "missing",
-      });
-      expect(
-        yield* Effect.flip(
-          template.convertLegacyLiteratureNoteTemplates({
-            note: {},
-            filename: {},
-          }),
-        ),
-      ).toMatchObject({
-        _tag: "LegacyTemplateConversionError",
-        code: "unsupported-legacy-template",
-      });
-      const cause = new Error("vault read failed");
-      host.vault.cachedRead.mockRejectedValueOnce(cause);
-      expect(
-        yield* Effect.flip(template.getTemplateSource("filename")),
-      ).toMatchObject({
-        _tag: "VaultError",
-        cause,
-      });
-    }),
+it.effect("Template keeps tagged render, conversion, and vault failures", () =>
+  Effect.gen(function* () {
+    const host = createTemplateHost({
+      "templates/zotlit-note.eta.md": "Inert",
+      "templates/zotlit-filename.liquid.md": "Title",
+    });
+    const template = yield* templateOf(host);
+    expectTypeOf<Effect.Error<ReturnType<typeof template.render>>>().toExtend<{
+      readonly _tag: string;
+    }>();
+    expect(yield* Effect.flip(template.render("missing", {}))).toMatchObject({
+      _tag: "TemplateError",
+      templateName: "missing",
+    });
+    expect(
+      yield* Effect.flip(
+        template.convertLegacyLiteratureNoteTemplates({
+          note: {},
+          filename: {},
+        }),
+      ),
+    ).toMatchObject({
+      _tag: "LegacyTemplateConversionError",
+      code: "unsupported-legacy-template",
+    });
+    const cause = new Error("vault read failed");
+    host.vault.cachedRead.mockRejectedValueOnce(cause);
+    expect(
+      yield* Effect.flip(template.getTemplateSource("filename")),
+    ).toMatchObject({
+      _tag: "VaultError",
+      cause,
+    });
+  }),
 );
 
 it.effect(
-  "#1904: TemplateMigration refuses on an external failure and names its cause",
+  "TemplateMigration refuses on an external failure and names its cause",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost({
@@ -536,7 +530,7 @@ it.effect(
     }),
 );
 
-it.effect("#1791: unload interrupts a reconcile in flight", () =>
+it.effect("unload interrupts a reconcile in flight", () =>
   Effect.gen(function* () {
     const path = "templates/zotlit-note.liquid.md";
     const host = createTemplateHost({ [path]: "Loaded" });
@@ -571,7 +565,7 @@ it.effect("#1791: unload interrupts a reconcile in flight", () =>
 );
 
 it.effect.each(["citation", "partial"] as const)(
-  "#1791: a %s write keeps its VaultError",
+  "a %s write keeps its VaultError",
   (kind) =>
     Effect.gen(function* () {
       const host = createTemplateHost();

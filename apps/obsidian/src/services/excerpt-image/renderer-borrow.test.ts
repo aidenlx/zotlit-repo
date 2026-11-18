@@ -534,7 +534,7 @@ it("cancels a borrowed crop when its caller aborts, and publishes nothing", asyn
   expect(f.detached.load).not.toHaveBeenCalled();
 });
 
-// #1790: unload interrupts the layer's in-flight crop and releases its resources.
+// Unload interrupts the layer's in-flight crop and releases its resources.
 it("unload cancels a borrowed crop and releases the reader page without publishing", async () => {
   const held = cropPage({
     task: () => ({

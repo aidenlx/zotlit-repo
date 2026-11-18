@@ -13,12 +13,6 @@
 // armed image tool takes a rectangle instead of a selection,
 // and stands down once it has created one. The armed ink tool takes a freehand stroke,
 // creates it in the background, and stays armed for the next one.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1150
-// @see https://github.com/aidenlx/zotlit/issues/1206
-// @see https://github.com/aidenlx/zotlit/issues/1209
-// @see https://github.com/aidenlx/zotlit/issues/1214
-// @see https://github.com/aidenlx/zotlit/issues/1215
 import { Platform } from "obsidian";
 import type { App } from "obsidian";
 import { createElement } from "react";

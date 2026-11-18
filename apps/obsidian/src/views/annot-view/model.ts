@@ -274,8 +274,7 @@ export function useClearFilters(): () => void {
 
 /**
  * The colour filter after one colour is toggled. Unchanged by the Chooser
- * migration: aidenlx/zotlit#1194 asks for this action to be reused as it
- * stands, so the filter bar names the one colour that moved rather than the
+ * migration: this action is reused as it stands, so the filter bar names the one colour that moved rather than the
  * store taking a whole selection.
  */
 export function useToggleSelectedColor(): (color: string) => void {

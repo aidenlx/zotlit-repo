@@ -4,7 +4,6 @@
 // Editing Capability and by what a write left.
 //
 // @see apps/obsidian/policies/ui-seams.md
-// @see https://github.com/aidenlx/zotlit/issues/1145
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
@@ -281,7 +280,7 @@ export function groupControl(
  * The creation popup and the Creation Toolbar read the same rule. The Mark
  * Popup's selected row reads it through {@link cardControls}, because its
  * colour, tags, delete and comment field are the card's writes reached from
- * the PDF reader (aidenlx/zotlit#1148).
+ * the PDF reader.
  */
 export function editingBlockedReason(
   capability: EditingCapability,
@@ -510,7 +509,7 @@ export function textFieldWording(field: TextField): TextFieldWording {
  * Three states stay quiet, because none of them asks the user for anything.
  * A draft matching Zotero holds nothing. A write in flight settles by itself,
  * and the card already draws its text as the write's Pending Proposal. A conflict has its own panel with its own two
- * verbs (aidenlx/zotlit#1151).
+ * verbs.
  *
  * @see apps/obsidian/policies/ui-seams.md
  */

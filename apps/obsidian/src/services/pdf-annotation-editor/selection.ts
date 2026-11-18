@@ -10,7 +10,6 @@
 //
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
 // @see apps/obsidian/docs/adr/0065-the-mark-popup-is-one-preact-root-on-obsidians-popover.md
-// @see https://github.com/aidenlx/zotlit/issues/1148
 import type { App } from "obsidian";
 import { Keymap, setIcon } from "obsidian";
 import { createElement } from "react";
@@ -288,8 +287,6 @@ export interface MarkSelectionDeps {
   /**
    * The creation surfaces, which hear the same pointer and key gestures this
    * class already owns. One listener set serves both.
-   *
-   * @see https://github.com/aidenlx/zotlit/issues/1150
    */
   creation: CreationGestures | null;
   /**

@@ -15,7 +15,7 @@ import { expect } from "vitest";
 import { LogCategory } from "@/lib/effect-log";
 import { obsidianEvents } from "@/lib/effect-obsidian-events";
 
-// #1705: each host event owns its failure; the next event still reaches the handler.
+// Each host event owns its failure; the next event still reaches the handler.
 it.effect.each(["failure", "defect", "throw"] as const)(
   "logs a handler %s and consumes the next event",
   (mode) =>
@@ -54,7 +54,7 @@ it.effect.each(["failure", "defect", "throw"] as const)(
     }),
 );
 
-it.effect("interruption stops the consumer before the next event (#1705)", () =>
+it.effect("interruption stops the consumer before the next event", () =>
   Effect.gen(function* () {
     const events = yield* obsidianEvents<{ changed: [number] }>();
     const received: number[] = [];

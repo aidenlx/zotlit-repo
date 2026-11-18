@@ -66,7 +66,7 @@ async function readNotes(
   return notes;
 }
 
-it("meets the host scanner and worker budgets (#1695)", async () => {
+it("meets the host scanner and worker budgets", async () => {
   const loadAtStart = loadavg();
   const root = await getWorkspaceRoot(import.meta.dirname);
   const output = join(root, ".scratch/scan-pipeline-bench");

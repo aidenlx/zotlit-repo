@@ -853,7 +853,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     );
     this.#surfaces.use(
       onPageChanged(controller, () => {
-        // #1870: PDF.js 5.3.34 sets the initial view from the `.catch` of
+        // PDF.js 5.3.34 sets the initial view from the `.catch` of
         // `load` when its open handler throws, and `documentinit` never
         // follows. A page change after PDF.js set its flag is that move or a
         // later one, so the binding takes the view as set and counts from the
@@ -969,9 +969,6 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * surfaces that share that popup, for the Attachment this view holds. Runs
    * once: a file switch builds a new binding, and the gestures are heard on the
    * view's own container, which outlives every page.
-   *
-   * @see https://github.com/aidenlx/zotlit/issues/1148
-   * @see https://github.com/aidenlx/zotlit/issues/1150
    */
   #mountSelection(attachmentKey: string): void {
     if (this.#selection) return;

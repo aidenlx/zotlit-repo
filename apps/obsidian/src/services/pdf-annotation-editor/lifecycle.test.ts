@@ -63,7 +63,7 @@ const host = () => {
 };
 
 it.effect(
-  "#1796 ends the session Stream and withdraws bindings when its layer closes",
+  "ends the session Stream and withdraws bindings when its layer closes",
   () =>
     Effect.gen(function* () {
       const h = host();
@@ -102,35 +102,33 @@ it.effect(
     }),
 );
 
-it.effect(
-  "#1796 leaves a delayed layout callback inert after scope close",
-  () =>
-    Effect.gen(function* () {
-      const h = host();
-      const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
-        Scope.close(scope, Exit.void),
-      );
-      const context = yield* Layer.build(
-        editorFixtureLayer({
-          app: h.app,
-          workspace: h.workspace,
-          attachments: attachmentReads(),
-          annotations: annotationReads(),
-          capabilityGestures: capabilityGestures(),
-          markGestures: markGestures(),
-          noteIndex: { getNotesByItemKey: () => Effect.succeed([]) },
-          settings: readerSettings(),
-        }),
-      ).pipe(Effect.provideService(Scope.Scope, scope));
-      const editor = Context.get(context, PdfAnnotationEditor);
-      yield* Scope.close(scope, Exit.succeed(undefined));
-      h.workspace.layoutReady();
-      expect(yield* editor.bindings).toEqual([]);
-    }),
+it.effect("leaves a delayed layout callback inert after scope close", () =>
+  Effect.gen(function* () {
+    const h = host();
+    const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
+      Scope.close(scope, Exit.void),
+    );
+    const context = yield* Layer.build(
+      editorFixtureLayer({
+        app: h.app,
+        workspace: h.workspace,
+        attachments: attachmentReads(),
+        annotations: annotationReads(),
+        capabilityGestures: capabilityGestures(),
+        markGestures: markGestures(),
+        noteIndex: { getNotesByItemKey: () => Effect.succeed([]) },
+        settings: readerSettings(),
+      }),
+    ).pipe(Effect.provideService(Scope.Scope, scope));
+    const editor = Context.get(context, PdfAnnotationEditor);
+    yield* Scope.close(scope, Exit.succeed(undefined));
+    h.workspace.layoutReady();
+    expect(yield* editor.bindings).toEqual([]);
+  }),
 );
 
 it.effect(
-  "#1796 interrupts a pending annotation read when the editor scope closes",
+  "interrupts a pending annotation read when the editor scope closes",
   () =>
     Effect.gen(function* () {
       const h = host();

@@ -34,7 +34,7 @@ on its own before the note, so a failure inside the format is reported as
 the format's part and can be shown where the format is edited.
 
 This replaces the result-column swap to a single-annotation view, and the
-Source-mode detour for a note without a call, both from the #863 Workbench
+Source-mode detour for a note without a call, both from the [#863](https://github.com/aidenlx/zotlit/issues/863) Workbench
 work under ADR 0035. The single-annotation view duplicated what the box now
 shows in place, and the swap hid the one-to-many relationship the column
 now points at. The box's editable face remains a source editor; a chip

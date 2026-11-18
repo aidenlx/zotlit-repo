@@ -8,7 +8,7 @@ import { queryClientsFixture, queryClientsOf } from "./__fixtures__";
 import type { HeldReadChange } from "./service";
 
 it.effect(
-  "keeps a throwing listener subscribed for both immediate settlements (#1705)",
+  "keeps a throwing listener subscribed for both immediate settlements",
   () =>
     Effect.gen(function* () {
       const queries = yield* queryClientsOf();
@@ -76,40 +76,38 @@ it.effect("interrupts pending native reads when the runtime closes", () =>
   }),
 );
 
-it.effect(
-  "keeps released results for calls after runtime disposal (#1705)",
-  () =>
-    Effect.gen(function* () {
-      const queries = yield* Effect.acquireDisposable(
-        Effect.tryPromise(async () => queryClientsFixture()),
+it.effect("keeps released results for calls after runtime disposal", () =>
+  Effect.gen(function* () {
+    const queries = yield* Effect.acquireDisposable(
+      Effect.tryPromise(async () => queryClientsFixture()),
+    );
+    yield* Effect.promise(async () => {
+      await queries.bridge.runPromise(
+        queries.read(["held"], () => Promise.resolve("old")),
       );
-      yield* Effect.promise(async () => {
-        await queries.bridge.runPromise(
-          queries.read(["held"], () => Promise.resolve("old")),
-        );
-        await queries[Symbol.asyncDispose]();
-        const read = () => {
-          throw new Error("A released read must not run");
-        };
-        await expect(
-          queries.bridge.runPromise(queries.ask(["held"], read)),
-        ).resolves.toBeNull();
-        await expect(
-          queries.bridge.runPromise(queries.read(["held"], read)),
-        ).resolves.toBeNull();
-        expect(queries.bridge.runSync(queries.peek(["held"]))).toBeNull();
-        await expect(
-          queries.bridge.runPromise(queries.readFresh(["held"], read)),
-        ).rejects.toMatchObject({
-          name: "AbortError",
-        });
-        queries.bridge.runSync(queries.invalidate(["held"]));
-        queries.bridge.runSync(queries.update(["held"], read));
-        expect(queries.bridge.runSync(queries.keysUnder([]))).toEqual([]);
-        queries.bridge.runSync(queries.watch([], { settled: read }))();
-        subscribe(queries.runtime, queries.changes, read)();
+      await queries[Symbol.asyncDispose]();
+      const read = () => {
+        throw new Error("A released read must not run");
+      };
+      await expect(
+        queries.bridge.runPromise(queries.ask(["held"], read)),
+      ).resolves.toBeNull();
+      await expect(
+        queries.bridge.runPromise(queries.read(["held"], read)),
+      ).resolves.toBeNull();
+      expect(queries.bridge.runSync(queries.peek(["held"]))).toBeNull();
+      await expect(
+        queries.bridge.runPromise(queries.readFresh(["held"], read)),
+      ).rejects.toMatchObject({
+        name: "AbortError",
       });
-    }),
+      queries.bridge.runSync(queries.invalidate(["held"]));
+      queries.bridge.runSync(queries.update(["held"], read));
+      expect(queries.bridge.runSync(queries.keysUnder([]))).toEqual([]);
+      queries.bridge.runSync(queries.watch([], { settled: read }))();
+      subscribe(queries.runtime, queries.changes, read)();
+    });
+  }),
 );
 
 it.effect(

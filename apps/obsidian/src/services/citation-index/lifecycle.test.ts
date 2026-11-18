@@ -12,119 +12,113 @@ import type { CitationIndexState } from "./service";
 import { CitationIndex } from "./service";
 import { createCitationIndexHarness, KEY_A, MemoryStore } from "./test-harness";
 
-it.effect(
-  "disposes a store opened during runtime disposal exactly once (#1705)",
-  () =>
-    Effect.promise(async () => {
-      const entered = Promise.withResolvers<void>();
-      const release = Promise.withResolvers<void>();
-      let disposals = 0;
-      const store = new MemoryStore();
-      store[Symbol.dispose] = () => {
-        disposals += 1;
-      };
-      await using h = await createCitationIndexHarness(
-        {},
-        {
-          awaitReady: false,
-          openStore: async () => {
-            entered.resolve();
-            await release.promise;
-            return store;
-          },
+it.effect("disposes a store opened during runtime disposal exactly once", () =>
+  Effect.promise(async () => {
+    const entered = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    let disposals = 0;
+    const store = new MemoryStore();
+    store[Symbol.dispose] = () => {
+      disposals += 1;
+    };
+    await using h = await createCitationIndexHarness(
+      {},
+      {
+        awaitReady: false,
+        openStore: async () => {
+          entered.resolve();
+          await release.promise;
+          return store;
         },
-      );
-      const ready = h.ready.catch(() => {});
-      await entered.promise;
-      const closing = h.runtime.dispose();
-      release.resolve();
-      await closing;
-      await ready;
-      expect(disposals).toBe(1);
-    }),
+      },
+    );
+    const ready = h.ready.catch(() => {});
+    await entered.promise;
+    const closing = h.runtime.dispose();
+    release.resolve();
+    await closing;
+    await ready;
+    expect(disposals).toBe(1);
+  }),
 );
 
-it.effect(
-  "aborts a scan before closing its store during restoration (#1705)",
-  () =>
-    Effect.promise(async () => {
-      const loading = Promise.withResolvers<void>();
-      const restore = Promise.withResolvers<[]>();
-      const parsing = Promise.withResolvers<void>();
-      const reply = Promise.withResolvers<void>();
-      const replied = Promise.withResolvers<void>();
-      let parseSignal: AbortSignal | undefined;
-      let abortedAtDisposal: boolean | undefined;
-      let disposals = 0;
-      const store = new MemoryStore();
-      store.load = () => {
-        loading.resolve();
-        return restore.promise;
-      };
-      store[Symbol.dispose] = () => {
-        disposals += 1;
-        abortedAtDisposal = parseSignal?.aborted;
-      };
-      await using h = await createCitationIndexHarness(
-        { "draft.md": "@doe2024" },
-        {
-          store,
-          notes: false,
-          awaitReady: false,
-          parseClient: {
-            parse: effectTestParse(async (request, signal) => {
-              parseSignal = signal;
-              const result = await Effect.runPromise(
-                inProcessParseClient.parse(request),
-                { signal },
-              );
-              parsing.resolve();
-              await reply.promise;
-              replied.resolve();
-              return result;
-            }),
-          },
+it.effect("aborts a scan before closing its store during restoration", () =>
+  Effect.promise(async () => {
+    const loading = Promise.withResolvers<void>();
+    const restore = Promise.withResolvers<[]>();
+    const parsing = Promise.withResolvers<void>();
+    const reply = Promise.withResolvers<void>();
+    const replied = Promise.withResolvers<void>();
+    let parseSignal: AbortSignal | undefined;
+    let abortedAtDisposal: boolean | undefined;
+    let disposals = 0;
+    const store = new MemoryStore();
+    store.load = () => {
+      loading.resolve();
+      return restore.promise;
+    };
+    store[Symbol.dispose] = () => {
+      disposals += 1;
+      abortedAtDisposal = parseSignal?.aborted;
+    };
+    await using h = await createCitationIndexHarness(
+      { "draft.md": "@doe2024" },
+      {
+        store,
+        notes: false,
+        awaitReady: false,
+        parseClient: {
+          parse: effectTestParse(async (request, signal) => {
+            parseSignal = signal;
+            const result = await Effect.runPromise(
+              inProcessParseClient.parse(request),
+              { signal },
+            );
+            parsing.resolve();
+            await reply.promise;
+            replied.resolve();
+            return result;
+          }),
         },
-      );
-      const ready = h.ready.catch(() => {});
-      await loading.promise;
-      h.metadataCache.change(h.draft, "@roe2025");
-      await parsing.promise;
-      await h.runtime.dispose();
-      reply.resolve();
-      restore.resolve([]);
-      await replied.promise;
-      await ready;
-      expect(disposals).toBe(1);
-      expect(abortedAtDisposal).toBe(true);
-      expect(store.writes).toEqual([]);
-    }),
+      },
+    );
+    const ready = h.ready.catch(() => {});
+    await loading.promise;
+    h.metadataCache.change(h.draft, "@roe2025");
+    await parsing.promise;
+    await h.runtime.dispose();
+    reply.resolve();
+    restore.resolve([]);
+    await replied.promise;
+    await ready;
+    expect(disposals).toBe(1);
+    expect(abortedAtDisposal).toBe(true);
+    expect(store.writes).toEqual([]);
+  }),
+);
+
+it.effect("replays a completed failed backfill to a late subscriber", () =>
+  Effect.promise(async () => {
+    await using h = await createCitationIndexHarness({
+      "draft.md": "@doe2024",
+    });
+    h.vault.fail("draft.md");
+    h.workspace.layoutReady();
+    await h.index.bridge.runPromise(h.index.whenIndexed);
+    const delivered = Promise.withResolvers<CitationIndexState>();
+    const off = subscribe(h.index.runtime, h.index.changes, (state) =>
+      delivered.resolve(state),
+    );
+    expect(await delivered.promise).toMatchObject({
+      backfilled: true,
+      coverage: "degraded",
+    });
+    off();
+  }),
 );
 
 it.effect(
-  "replays a completed failed backfill to a late subscriber (#1705)",
-  () =>
-    Effect.promise(async () => {
-      await using h = await createCitationIndexHarness({
-        "draft.md": "@doe2024",
-      });
-      h.vault.fail("draft.md");
-      h.workspace.layoutReady();
-      await h.index.bridge.runPromise(h.index.whenIndexed);
-      const delivered = Promise.withResolvers<CitationIndexState>();
-      const off = subscribe(h.index.runtime, h.index.changes, (state) =>
-        delivered.resolve(state),
-      );
-      expect(await delivered.promise).toMatchObject({
-        backfilled: true,
-        coverage: "degraded",
-      });
-      off();
-    }),
-);
-
-it.effect(
-  "restores scans and settings before acquisition, with backfill still pending (#1705)",
+  "restores scans and settings before acquisition, with backfill still pending",
   () =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -173,7 +167,7 @@ it.effect(
 );
 
 it.effect(
-  "attaches immediately and keeps throwing state and event subscribers through consecutive changes (#1705)",
+  "attaches immediately and keeps throwing state and event subscribers through consecutive changes",
   () =>
     Effect.promise(async () => {
       await using h = await createCitationIndexHarness({
@@ -227,7 +221,7 @@ it.effect(
     }),
 );
 
-it.effect("continues host event intake after a failed handler (#1705)", () =>
+it.effect("continues host event intake after a failed handler", () =>
   Effect.promise(async () => {
     await using h = await createCitationIndexHarness({
       "draft.md": "@doe2024",
@@ -313,30 +307,28 @@ it.effect(
     ),
 );
 
-it.effect(
-  "preserves AbortError when a document lookup is cancelled (#1705)",
-  () =>
-    Effect.promise(async () => {
-      await using h = await createCitationIndexHarness({
-        "draft.md": "@doe2024",
-      });
-      const held = h.db.holdLookup();
-      const controller = new AbortController();
-      const pending = h.index.bridge.runPromise(
-        h.index.getDocumentCitationSet(h.draft),
-        { signal: controller.signal },
-      );
-      const rejected = expect(pending).rejects.toMatchObject({
-        name: "AbortError",
-      });
-      await held.entered;
-      controller.abort();
-      held.release();
-      await rejected;
-    }),
+it.effect("preserves AbortError when a document lookup is cancelled", () =>
+  Effect.promise(async () => {
+    await using h = await createCitationIndexHarness({
+      "draft.md": "@doe2024",
+    });
+    const held = h.db.holdLookup();
+    const controller = new AbortController();
+    const pending = h.index.bridge.runPromise(
+      h.index.getDocumentCitationSet(h.draft),
+      { signal: controller.signal },
+    );
+    const rejected = expect(pending).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    await held.entered;
+    controller.abort();
+    held.release();
+    await rejected;
+  }),
 );
 
-it.effect("preserves the base AbortError after lookup disposal (#1705)", () =>
+it.effect("preserves the base AbortError after lookup disposal", () =>
   Effect.promise(async () => {
     await using h = await createCitationIndexHarness({
       "draft.md": "@doe2024",
@@ -353,7 +345,7 @@ it.effect("preserves the base AbortError after lookup disposal (#1705)", () =>
 );
 
 it.effect(
-  "does not repeat reset or file reads while another fiber delays shutdown (#1705)",
+  "does not repeat reset or file reads while another fiber delays shutdown",
   () =>
     Effect.promise(async () => {
       const clearing = Promise.withResolvers<void>();
@@ -424,7 +416,7 @@ it.effect(
 );
 
 it.effect(
-  "starts within the bound while the store stalls, then writes earlier scans and drops through (#1705)",
+  "starts within the bound while the store stalls, then writes earlier scans and drops through",
   () =>
     Effect.gen(function* () {
       const context = yield* Effect.context<never>();

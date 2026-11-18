@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-// The release-time measurement of ZotLit Query (spec #1314, "Performance
-// acceptance criteria"). Run it before a release and after a planner change:
+// The release-time measurement of ZotLit Query against its performance
+// acceptance criteria. Run it before a release and after a planner change:
 //
 //   pnpm exec turbo run build:dev --filter=@zotlit/obsidian
 //   pnpm --filter @zotlit/e2e measure:query

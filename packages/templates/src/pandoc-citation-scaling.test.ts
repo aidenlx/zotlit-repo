@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 
 import { scanPandocCitations } from "./pandoc-citation";
 
-it("scans dense Pandoc Citations in linear time (#1688)", () => {
+it("scans dense Pandoc Citations in linear time", () => {
   const counts = [1_000, 2_000, 4_000, 8_000];
   const sources = counts.map((count) =>
     "[@normal] @author [p. 3; -@other] `@code` [^@note] [@link](url)\n".repeat(

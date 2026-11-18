@@ -176,7 +176,7 @@ const PIN = {
   sha256: createHash("sha256").update(BYTES).digest("hex"),
 };
 
-// #1705: platform operations run in the caller's Effect context and Clock.
+// Platform operations run in the caller's Effect context and Clock.
 it.effect("drives download, store, and consent Effects with TestClock", () =>
   Effect.scoped(
     Effect.gen(function* () {

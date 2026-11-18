@@ -105,4 +105,4 @@ restored blue.
 
 This verifies standalone database startup in a fresh plugin service session
 and one committed update through both consumers. It does not establish a full
-Obsidian process cold start; issue #1166 owns that independent check.
+Obsidian process cold start; issue [#1166](https://github.com/aidenlx/zotlit/issues/1166) owns that independent check.

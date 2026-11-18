@@ -1779,7 +1779,7 @@ const QUERY_BLOCK = [
 ];
 
 /**
- * The Mark Landing walkthrough (#1156). Generated rather than committed,
+ * The Mark Landing walkthrough. Generated rather than committed,
  * because a `file://` link names an absolute path and the Fixture learns its
  * own paths only at build time. The Anchors come from the shipped codec, so
  * the page cannot spell one differently from the reader that reads it.
@@ -1808,7 +1808,7 @@ title: Mark Landing Test
 
 # Mark Landing Test
 
-This note exercises Mark Landing (#1156): an Attachment File Link carrying an
+This note exercises Mark Landing: an Attachment File Link carrying an
 Annotation Anchor opens the PDF in Obsidian's reader, selects the Annotation's
 own Mark, and scrolls it into view.
 

@@ -51,7 +51,7 @@ describe("UnloadAwarePlugin", () => {
 
   // An onload that a disable interrupts registers after the unload; Obsidian
   // never runs those cleanups, and the next enable finds the names taken.
-  it("runs the cleanup of a registration after the unload at once (#1786)", () => {
+  it("runs the cleanup of a registration after the unload at once", () => {
     const plugin = loadedPlugin();
     plugin.unload();
     const cleanup = vi.fn();
@@ -62,7 +62,7 @@ describe("UnloadAwarePlugin", () => {
 
 // A user who turns ZotLit off and on again while the old instance still
 // builds or closes its runtime: the new instance's commands, zotlit:* names
-// and Live Updates port must not meet the old instance's (#1786).
+// and Live Updates port must not meet the old instance's.
 describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
   it("starts at once when no instance came before", async () => {
     const stack = new AsyncDisposableStack();
@@ -72,7 +72,7 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
     await stack.disposeAsync();
   });
 
-  it("lets a start-up go on once the unloaded instance has released all it held (#1786)", async () => {
+  it("lets a start-up go on once the unloaded instance has released all it held", async () => {
     const app = stubService<App>("App", {});
     const steps: string[] = [];
     const oldInstance = instanceOn(app);

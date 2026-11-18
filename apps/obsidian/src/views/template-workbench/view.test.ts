@@ -88,9 +88,10 @@ vi.mock("./layout", () => ({
   openWorkbenchLayout: vi.fn(() => Effect.void),
 }));
 
-// The create flow is #1046's own, driven end to end by new-partial.test.ts.
-// Here it stands in, so a right-click reports the source and the language it
-// was handed and the extraction's own edit is what the assertions read.
+// The create flow belongs to the partial command, driven end to end by
+// new-partial.test.ts. Here it stands in, so a right-click reports the source
+// and the language it was handed and the extraction's own edit is what the
+// assertions read.
 vi.mock("./partial-command", () => ({
   createSharedPartialEffect: vi.fn(() => Effect.succeed(null)),
 }));
@@ -450,7 +451,7 @@ describe("TemplateWorkbenchView", () => {
     });
   });
 
-  // #1819: closing the leaf stops a waiting update quietly, before the write.
+  // Closing the leaf stops a waiting update quietly, before the write.
   it("stops quietly when the leaf closes before the note's write", async () => {
     const h = await originHarness();
     const waiting = Promise.withResolvers<"settled">();
@@ -3396,7 +3397,7 @@ describe("Template Workbench Item choice", () => {
   });
 });
 
-// #1945: the Preview is a side panel of the one view, which the reader shows,
+// The Preview is a side panel of the one view, which the reader shows,
 // hides and widens, and which the workspace saves with the view.
 describe("the side panels of the Template Workbench View", () => {
   const actionOf = (view: TemplateWorkbenchView, title: string) =>
@@ -3499,7 +3500,7 @@ describe("the side panels of the Template Workbench View", () => {
   });
 
   // A ResizeObserver hears only the window it was made in, so a tab moved to
-  // another window watches its size from there (#1952).
+  // another window watches its size from there.
   it("measures the leaf from the window its tab moves to", async () => {
     using migration = windowMigration();
     const { view } = setup();
@@ -3541,7 +3542,7 @@ describe("the side panels of the Template Workbench View", () => {
     await act(async () => view.close());
   });
 
-  // #1954: the leaf's size places the Preview; it never changes what shows.
+  // The leaf's size places the Preview; it never changes what shows.
   it("puts the Preview under a narrow leaf and beside a wide one, keeping the saved panels", async () => {
     const { view } = setup();
     await act(async () => view.open());
@@ -3609,7 +3610,7 @@ describe("the side panels of the Template Workbench View", () => {
   const entry = (view: TemplateWorkbenchView, title: string) =>
     menuEntries(paneMenuOf(view)).find((item) => item.title === title);
 
-  // #1962: the most-used entries lead, the rare ones wait in a submenu, and
+  // The most-used entries lead, the rare ones wait in a submenu, and
   // every view action is in the menu for a reader who hides the header.
   it("leads the pane menu with the view's own actions, and folds the rare ones away", async () => {
     await using cleanup = new AsyncDisposableStack();
@@ -3736,7 +3737,7 @@ describe("the side panels of the Template Workbench View", () => {
     expect(panel.textContent).toContain("A rendered paper note");
   });
 
-  // #1962: the Preview pane has its own actions, as a view header has.
+  // The Preview pane has its own actions, as a view header has.
   it("switches the Preview between reading view and Markdown from its header, and opens its settings there", async () => {
     await using cleanup = new AsyncDisposableStack();
     const { view } = setup({
@@ -3929,7 +3930,7 @@ describe("the side panels of the Template Workbench View", () => {
   });
 });
 
-// #1943: Fields is the left side panel of the one view. It reads the view's
+// Fields is the left side panel of the one view. It reads the view's
 // own Item and root, and inserts a field straight into the editor.
 describe("the Fields panel of the Template Workbench View", () => {
   // The panel's key hint names Mod+Enter as the platform does.
@@ -4248,7 +4249,7 @@ describe("the Fields panel of the Template Workbench View", () => {
     await act(async () => view.close());
   });
 
-  // #1962: the Fields pane has its own More options, beside its pin.
+  // The Fields pane has its own More options, beside its pin.
   it("opens the Fields pane's own More options from its header", async () => {
     await using zoteroReads = inProcessReadsService(
       memoryOpener(() =>

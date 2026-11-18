@@ -123,7 +123,7 @@ describe("onOpenNote", () => {
     expect(openLinkText).not.toHaveBeenCalled();
   });
 
-  it("#1693 opens an annotation-only parent's note by Indexed Key without a Citation Key", () => {
+  it("opens an annotation-only parent's note by Indexed Key without a Citation Key", () => {
     const { openIndexedKey } = openNote({
       id: "NCKEY234",
       refNumber: 1,

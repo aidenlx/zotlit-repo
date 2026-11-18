@@ -143,7 +143,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     });
   });
 
-  it("materializes the CSL style selected by a note through the CLI (#1793)", async () => {
+  it("materializes the CSL style selected by a note through the CLI", async () => {
     const styleId = "http://www.zotero.org/styles/chinese-gb7714-1987-numeric";
     const note = "CSL CLI regression.md";
     await using cleanup = new AsyncDisposableStack();
@@ -213,7 +213,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     expect(missing).toMatchObject({ errors: [{ code: "style-missing" }] });
   });
 
-  it("exports a draft as HTML after the destination follows the chosen format (#1830)", async () => {
+  it("exports a draft as HTML after the destination follows the chosen format", async () => {
     const m = await import("@obsidian-messages");
     const vault = basename(path);
     const source = await readFile(
@@ -1573,7 +1573,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     );
   });
 
-  // #1859: a live Explorer offers snippets for the permitted engines.
+  // A live Explorer offers snippets for the permitted engines.
   it("updates Explorer template actions when JavaScript permission changes", async () => {
     const result = await obRun(vaultId, async ({ app: host, zotlit, page }) => {
       const app = host as WalkthroughApp;

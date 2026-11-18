@@ -60,7 +60,7 @@ const commonImports = {
 };
 
 // LogTape's own configure and reset leave a host-process listener and a
-// window-wide root logger that hold a disabled plugin in memory (#1882);
+// window-wide root logger that hold a disabled plugin in memory;
 // src/lib/log.ts releases both.
 const logTapeConfigurePath = {
   name: "@logtape/logtape",

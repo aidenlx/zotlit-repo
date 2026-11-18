@@ -127,8 +127,6 @@ interface CardOffer extends Omit<CardControls, "comment" | "text"> {
  * Each control state is a fresh object, and the store is read through
  * `useSyncExternalStore`, which compares snapshots by identity — so it is built
  * from the slices it depends on and held while those are unchanged.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1146
  */
 function useCardControls(annot: AnnotationRecord, alone: boolean): CardOffer {
   const capability = useAnnotStore((s) => capabilityOf(s, annot.parentKey));
@@ -363,8 +361,6 @@ function LockMark({ lock }: { lock: AnnotationLock }) {
  * a delete, a Geometry Edit, or a text write sent without a draft. A text
  * field's draft in conflict stands in its own field's slot instead; see
  * {@link FieldDraftPanel}.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1151
  */
 function ConflictSlot({ annot }: { annot: AnnotationRecord }) {
   const actions = useContext(AnnotActionsContext);
@@ -748,9 +744,6 @@ function useFieldDraftPanel(
  * user — and it carries its verbs for the same reason: a card that only says
  * "unsaved" leaves nowhere to go. Its verbs keep their own clicks; a click on
  * its text is the card's, and the field's own control opens the editor again.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1145
- * @see https://github.com/aidenlx/zotlit/issues/1151
  */
 function FieldDraftPanel({
   annot,

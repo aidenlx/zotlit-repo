@@ -596,7 +596,7 @@ describe("Excerpt PDF queue rendering", () => {
 });
 
 it.effect(
-  "#1861: closing the queue interrupts waiting and running work and returns admission",
+  "closing the queue interrupts waiting and running work and returns admission",
   () =>
     Effect.gen(function* () {
       const scope = yield* Scope.fork(yield* Scope.Scope);
@@ -637,35 +637,33 @@ it.effect(
     }),
 );
 
-it.effect(
-  "#1861: bounds preflight readers and serves waiting checks in order",
-  () =>
-    Effect.gen(function* () {
-      const queue = yield* makeExcerptPdfQueue();
-      const release = yield* Deferred.make<void>();
-      const order: number[] = [];
-      const jobs = yield* Effect.forEach([1, 2, 3, 4, 5, 6], (index) =>
-        queue
-          .preflight(
-            Effect.gen(function* () {
-              order.push(index);
-              yield* Deferred.await(release);
-            }),
-          )
-          .pipe(Effect.forkChild({ startImmediately: true })),
-      );
-      expect(order).toEqual([1, 2, 3, 4]);
-      expect(queue.diagnostics.checking).toBe(4);
-      yield* Deferred.succeed(release, undefined);
-      const last = yield* queue
+it.effect("bounds preflight readers and serves waiting checks in order", () =>
+  Effect.gen(function* () {
+    const queue = yield* makeExcerptPdfQueue();
+    const release = yield* Deferred.make<void>();
+    const order: number[] = [];
+    const jobs = yield* Effect.forEach([1, 2, 3, 4, 5, 6], (index) =>
+      queue
         .preflight(
-          Effect.sync(() => {
-            order.push(7);
+          Effect.gen(function* () {
+            order.push(index);
+            yield* Deferred.await(release);
           }),
         )
-        .pipe(Effect.forkChild({ startImmediately: true }));
-      yield* Fiber.joinAll([...jobs, last]);
-      expect(order).toEqual([1, 2, 3, 4, 5, 6, 7]);
-      expect(queue.busy).toBe(false);
-    }),
+        .pipe(Effect.forkChild({ startImmediately: true })),
+    );
+    expect(order).toEqual([1, 2, 3, 4]);
+    expect(queue.diagnostics.checking).toBe(4);
+    yield* Deferred.succeed(release, undefined);
+    const last = yield* queue
+      .preflight(
+        Effect.sync(() => {
+          order.push(7);
+        }),
+      )
+      .pipe(Effect.forkChild({ startImmediately: true }));
+    yield* Fiber.joinAll([...jobs, last]);
+    expect(order).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(queue.busy).toBe(false);
+  }),
 );

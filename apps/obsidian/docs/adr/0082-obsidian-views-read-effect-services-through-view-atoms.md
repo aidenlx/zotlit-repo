@@ -1,6 +1,6 @@
 # Obsidian views read Effect services through view atoms
 
-An Obsidian view reads the plugin's Effect services through Effect Atom (`effect/reactivity`): atoms in one view registry, seeded with the service context, which the view and its React tree read and write. A view keeps its own state in a per-leaf model of writable atoms changed by pure transitions, runs its gestures as commands, and saves the workspace layout from a registry subscription. The Plain adapters, the zustand stores over them, and `bridge.subscribe` leave each view as it converts (#1710).
+An Obsidian view reads the plugin's Effect services through Effect Atom (`effect/reactivity`): atoms in one view registry, seeded with the service context, which the view and its React tree read and write. A view keeps its own state in a per-leaf model of writable atoms changed by pure transitions, runs its gestures as commands, and saves the workspace layout from a registry subscription. The Plain adapters, the zustand stores over them, and `bridge.subscribe` leave each view as it converts ([#1710](https://github.com/aidenlx/zotlit/issues/1710)).
 
 Proposed on 2026-10-27 with [#1812](https://github.com/aidenlx/zotlit/pull/1812), after the prototype on `proto/view-reactivity` compared Effect Atom, zustand and jotai as the bridge.
 

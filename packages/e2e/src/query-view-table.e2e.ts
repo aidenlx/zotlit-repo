@@ -653,7 +653,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   // Vault properties of Items edit in place in the Table, with trusted
   // input: a click anywhere in a cell, an empty one too, enters edit; focus
   // that leaves a list editor from an item commits it; the first edit of a
-  // row with no note creates it; a vault sort and filter run (#1531).
+  // row with no note creates it; a vault sort and filter run.
   it("edits vault properties in the Table with real input, creates a note on a first edit, and sorts and filters by them", async () => {
     const path = "query-files/Vault properties.zotquery";
     // Two My Library Items that tie on their date, each with its seeded
@@ -993,7 +993,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
 
     // A cell edits its value in place, its first line where it was at rest,
-    // for each type of property (#1531).
+    // for each type of property.
     /**
      * The top of the first line of a vault cell, from the top of its row: of
      * its first item for a list, of the field's content box for a field
@@ -1186,7 +1186,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     }
     await sameLine("zt-status");
     // The vault's values for the property show as the edit starts, before
-    // a key is typed, as in a Bases cell (#1531): those that match the text.
+    // a key is typed, as in a Bases cell: those that match the text.
     await obRunUntil(
       run.vaultId,
       async (_context) => {
@@ -1264,7 +1264,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     // While the pill's menu stands it holds the keys: Delete removes no
     // item, and Escape hides the menu alone, its Scope above the menu's own
-    // (#1668). The next Escape is the pill's, which gives focus to the field.
+    // The next Escape is the pill's, which gives focus to the field.
     await key("F10", ["shift"]);
 
     await obRunUntil(
@@ -1727,7 +1727,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   }, 120_000);
 
   // A List or Cards view of Items gathers its rows by a grouping whose
-  // fields it does not show, as the Table does (#1495).
+  // fields it does not show, as the Table does.
   it("groups a List and Cards view of Items by item type, Collection and tag, as the Table does", async () => {
     const layout = await obRun(
       run.vaultId,

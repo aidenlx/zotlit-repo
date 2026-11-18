@@ -33,7 +33,7 @@
 // A vault window that `vaultScript` opens starts with throttling already off:
 // the `--inactive` open hook in `obsidian-vault.ts` turns it off before the page
 // loads, so the renderer keeps normal priority through startup and the
-// Restricted Mode reload (#1868). This module keeps it off from then on.
+// Restricted Mode reload. This module keeps it off from then on.
 //
 // Both settings belong to a window's `webContents` and last until Obsidian
 // restarts. A popout is its own window that inherits nothing, so the vault's

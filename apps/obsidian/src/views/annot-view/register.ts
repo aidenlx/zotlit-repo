@@ -46,8 +46,6 @@ export function registerAnnotView(
 /**
  * Opens the Annotation View and brings one Annotation's card forward — the Mark
  * Popup's reveal verb, and a notice's reveal.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1148
  */
 export async function revealAnnotationInView(
   plugin: AnnotViewPlugin,

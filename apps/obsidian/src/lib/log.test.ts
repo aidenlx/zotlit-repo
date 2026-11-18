@@ -6,7 +6,7 @@ import { configureLogTape, enableStartupLogging } from "./log";
 afterEach(() => resetSync());
 
 // An `exit` listener on the host process outlives the plugin and holds its
-// whole bundle in memory after a disable (#1882).
+// whole bundle in memory after a disable.
 describe("configuring LogTape for the plugin", () => {
   it("leaves no exit listener on the host process at startup", () => {
     const before = process.listenerCount("exit");

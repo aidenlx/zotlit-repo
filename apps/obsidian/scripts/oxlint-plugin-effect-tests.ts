@@ -331,7 +331,7 @@ function hasServiceIndex(node: unknown): boolean {
 /**
  * A test fake built as `{ … } as never`, `{ … } as unknown as App` or
  * `reads as never` given to `Layer.succeed` compiles whatever the real API
- * becomes: when a member turns from a method into an `Effect` value (#1737),
+ * becomes: when a member turns from a method into an `Effect` value,
  * the fake still compiles and the test runs against a shape no code has. A
  * typed fake keeps typecheck on it (policies/testing-strategy.md → Effect
  * code): `Layer.mock(Tag, { … })` or `Layer.succeed(Tag, Tag.of({ … }))` for

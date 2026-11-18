@@ -1684,7 +1684,7 @@ it("creates a Text Draft the view closes on before the Page Label pass ends, wit
   ]);
 });
 
-it("stops an image create waiting for PDF geometry when the runtime closes (#1860)", async () => {
+it("stops an image create waiting for PDF geometry when the runtime closes", async () => {
   await using open = await imageReader();
   const read = Promise.withResolvers<string>();
   const started = Promise.withResolvers<void>();

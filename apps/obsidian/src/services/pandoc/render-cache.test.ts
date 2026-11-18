@@ -52,7 +52,7 @@ const APA = "http://www.zotero.org/styles/apa";
 const IEEE = "http://www.zotero.org/styles/ieee";
 
 it.effect.each(["Profile", "preference override"] as const)(
-  "#1705: two immediate %s changes each invalidate through the native stream",
+  "two immediate %s changes each invalidate through the native stream",
   (dependency) =>
     Effect.gen(function* () {
       const profile = yield* profileRuntimeOf(createTemplateHost());
@@ -113,7 +113,7 @@ it.effect.each(["Profile", "preference override"] as const)(
 );
 
 it.effect(
-  "#1705: built cache exposes loaded settings and every immediate state change",
+  "built cache exposes loaded settings and every immediate state change",
   () =>
     Effect.gen(function* () {
       const harness = yield* harnessOf({ "citation.locale": "en-US" });
@@ -140,7 +140,7 @@ it.effect(
 );
 
 it.effect.each(["share", "import"] as const)(
-  "#1705: preparing a Profile %s with unchanged templates keeps held renders",
+  "preparing a Profile %s with unchanged templates keeps held renders",
   (operation) =>
     Effect.gen(function* () {
       const { profile, profileService } =
@@ -181,28 +181,26 @@ it.effect.each(["share", "import"] as const)(
     }),
 );
 
-it.effect(
-  "#1705: a late native subscriber sees the unavailable selected style",
-  () =>
-    Effect.gen(function* () {
-      const h = yield* harnessOf({ "citation.references-style": APA });
-      yield* Effect.promise(() =>
-        h.cache.bridge.runPromise(h.cache.render([item("alpha")])),
-      );
-      const service = yield* Effect.promise(() =>
-        h.cache.runtime.runPromise(BibliographyRender),
-      );
-      const values = yield* Stream.runCollect(Stream.take(service.changes, 1));
-      expect(values).toEqual([
-        {
-          vaultPresentation: { styleId: APA, locale: null },
-          missingStyle: APA,
-        },
-      ]);
-    }),
+it.effect("a late native subscriber sees the unavailable selected style", () =>
+  Effect.gen(function* () {
+    const h = yield* harnessOf({ "citation.references-style": APA });
+    yield* Effect.promise(() =>
+      h.cache.bridge.runPromise(h.cache.render([item("alpha")])),
+    );
+    const service = yield* Effect.promise(() =>
+      h.cache.runtime.runPromise(BibliographyRender),
+    );
+    const values = yield* Stream.runCollect(Stream.take(service.changes, 1));
+    expect(values).toEqual([
+      {
+        vaultPresentation: { styleId: APA, locale: null },
+        missingStyle: APA,
+      },
+    ]);
+  }),
 );
 
-it.effect("#1705: released reads retain the engine-absent outcome", () =>
+it.effect("released reads retain the engine-absent outcome", () =>
   Effect.gen(function* () {
     const h = yield* harnessOf();
     h.pandocEngine.setStatus({ kind: "absent" });
@@ -241,7 +239,7 @@ it.effect("a read that waits after unload ends at once", () =>
 );
 
 it.effect(
-  "#1705: runtime disposal ends state delivery and releases composing reads",
+  "runtime disposal ends state delivery and releases composing reads",
   () =>
     Effect.gen(function* () {
       const h = yield* harnessOf();
@@ -303,7 +301,7 @@ it.effect(
 );
 
 it.effect(
-  "#1705: Profile preparation observes changed partials and invalidates held renders",
+  "Profile preparation observes changed partials and invalidates held renders",
   () =>
     Effect.gen(function* () {
       const path = "templates/zotlit-partial.summary.md";
@@ -339,7 +337,7 @@ it.effect(
 );
 
 it.effect(
-  "releases a pending bibliography render when the runtime closes (#1705)",
+  "releases a pending bibliography render when the runtime closes",
   () =>
     Effect.gen(function* () {
       const harness = yield* harnessOf();

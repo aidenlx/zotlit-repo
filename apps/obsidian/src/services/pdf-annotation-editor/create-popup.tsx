@@ -3,8 +3,6 @@
 //
 // The popup itself is the same one a selected mark hangs under — this module
 // supplies its content and nothing else.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1150
 import type { App, IconName } from "obsidian";
 
 import {

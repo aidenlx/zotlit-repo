@@ -273,7 +273,7 @@ describe("when the Explorer reads its data again", () => {
   });
 });
 
-// #1859: permissions change while each Explorer keeps its own navigation.
+// Permissions change while each Explorer keeps its own navigation.
 it("updates permitted snippet actions in open Explorers and stops watching after the last leaf closes", async () => {
   const first = host.openSession();
   const second = host.openSession();

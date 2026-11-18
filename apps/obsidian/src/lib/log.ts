@@ -13,7 +13,7 @@ import type { Config } from "@logtape/logtape";
  * Configure LogTape for the plugin. LogTape ties its disposal to the host
  * process with an `exit` (or `pagehide`) listener on every configure; in
  * Obsidian that process outlives the plugin, so the listener holds each
- * disabled plugin's bundle in memory (#1882). The plugin owns LogTape's
+ * disabled plugin's bundle in memory. The plugin owns LogTape's
  * lifetime instead: `layerLogging` resets it on unload with
  * {@link resetLogTape}. Configure LogTape through these two functions only.
  */
@@ -42,7 +42,7 @@ const LOGTAPE_ROOT = Symbol.for("logtape.rootLogger");
  * Reset LogTape as the plugin unloads. LogTape keeps its root logger on
  * `globalThis` for every copy of it in the window, and that root is an
  * instance of the first bundle's class, so it holds that bundle in memory
- * after its unload (#1882). Releasing it lets the next load make its own.
+ * after its unload. Releasing it lets the next load make its own.
  */
 export async function resetLogTape(): Promise<void> {
   await reset();

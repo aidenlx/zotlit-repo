@@ -1,5 +1,5 @@
 // The pure half of the ZotLit Query measurement script: the thresholds of the
-// performance acceptance criteria (spec #1314), their evaluation, and the
+// performance acceptance criteria, their evaluation, and the
 // summary for the release pull request. `query-measure.ts` produces the measurements.
 
 /** The thresholds of the reference machine: macOS arm64, a visible window. */

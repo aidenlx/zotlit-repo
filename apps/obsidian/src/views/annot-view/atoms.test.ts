@@ -303,7 +303,7 @@ it.effect("finishes a submitted card write after the last leaf closes", () =>
   }),
 );
 
-// #1710: another history key must leave the repository's pending step intact.
+// Another history key must leave the repository's pending step intact.
 it.effect(
   "ignores a second history press without losing the first undo's redo",
   () =>

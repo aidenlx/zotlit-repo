@@ -122,21 +122,19 @@ describe("zotlit:csl", () => {
       }),
   );
 
-  effectIt.effect(
-    "restamps a materialized style with TestClock time (#1793)",
-    () =>
-      Effect.gen(function* () {
-        const fs = yield* FileSystem.FileSystem;
-        const directory = yield* fs.makeTempDirectoryScoped();
-        const path = yield* materializeCslStyle("<style/>", directory);
-        yield* fs.utimes(path, 0, 0);
-        yield* TestClock.setTime(1_800_000_000_000);
-        expect(yield* materializeCslStyle("<style/>", directory)).toBe(path);
-        expect(Option.getOrThrow((yield* fs.stat(path)).mtime).getTime()).toBe(
-          1_800_000_000_000,
-        );
-        expect(yield* fs.readDirectory(directory)).toEqual([basename(path)]);
-      }).pipe(Effect.scoped, Effect.provide(NodeFileSystem.layer)),
+  effectIt.effect("restamps a materialized style with TestClock time", () =>
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem;
+      const directory = yield* fs.makeTempDirectoryScoped();
+      const path = yield* materializeCslStyle("<style/>", directory);
+      yield* fs.utimes(path, 0, 0);
+      yield* TestClock.setTime(1_800_000_000_000);
+      expect(yield* materializeCslStyle("<style/>", directory)).toBe(path);
+      expect(Option.getOrThrow((yield* fs.stat(path)).mtime).getTime()).toBe(
+        1_800_000_000_000,
+      );
+      expect(yield* fs.readDirectory(directory)).toEqual([basename(path)]);
+    }).pipe(Effect.scoped, Effect.provide(NodeFileSystem.layer)),
   );
 
   effectIt.live("never exposes a partial file to a concurrent run", () =>

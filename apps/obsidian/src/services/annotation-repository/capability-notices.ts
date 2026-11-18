@@ -4,7 +4,6 @@
 // of watching for a notice.
 //
 // @see apps/obsidian/policies/ui-seams.md
-// @see https://github.com/aidenlx/zotlit/issues/1147
 
 import type { DateTime } from "effect";
 

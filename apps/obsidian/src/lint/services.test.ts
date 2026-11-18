@@ -510,7 +510,7 @@ tester.run("temporal-in-effect", temporalInEffect, {
   ],
 });
 
-// #1863: every consumer, including fixtures, reads the retained service contract.
+// Every consumer, including fixtures, reads the retained service contract.
 tester.run("no-plain-service-adapters", noPlainServiceAdapters, {
   valid: [
     {

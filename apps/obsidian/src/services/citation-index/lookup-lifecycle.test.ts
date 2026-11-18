@@ -28,58 +28,56 @@ import {
 import { lookupFixture } from "./__fixtures__";
 import { CitationLookup, layerCitationLookup } from "./lookup-service";
 
-it.effect(
-  "builds without waiting for the initial Citation Lookup read (#1705)",
-  () =>
-    Effect.gen(function* () {
-      const client = Effect.flatMap(
-        inProcessClient(
-          layerRcRef(
-            memoryOpener(() =>
-              seedWorksSql([
-                { itemID: 1, key: "ITEMKEY1", citationKey: "first" },
-              ]),
-            ).open,
-          ),
+it.effect("builds without waiting for the initial Citation Lookup read", () =>
+  Effect.gen(function* () {
+    const client = Effect.flatMap(
+      inProcessClient(
+        layerRcRef(
+          memoryOpener(() =>
+            seedWorksSql([
+              { itemID: 1, key: "ITEMKEY1", citationKey: "first" },
+            ]),
+          ).open,
         ),
-        (client) =>
-          client.Libraries({}).pipe(
-            Effect.orDie,
-            Effect.as({
-              ...client,
-              CitationLookup: () => Effect.never,
-            }),
-          ),
-      );
-      const context = yield* Layer.build(
-        layerCitationLookup.pipe(
-          Layer.provide(
-            layerLibraryScope.pipe(
-              Layer.provideMerge(layerQueryClients),
-              Layer.provideMerge(layerZoteroReads(client)),
-              Layer.provide(
-                layerPluginSettings({
-                  loadData: async () => ({ __VERSION__: 10 }),
-                  saveData: async () => {},
-                }),
-              ),
+      ),
+      (client) =>
+        client.Libraries({}).pipe(
+          Effect.orDie,
+          Effect.as({
+            ...client,
+            CitationLookup: () => Effect.never,
+          }),
+        ),
+    );
+    const context = yield* Layer.build(
+      layerCitationLookup.pipe(
+        Layer.provide(
+          layerLibraryScope.pipe(
+            Layer.provideMerge(layerQueryClients),
+            Layer.provideMerge(layerZoteroReads(client)),
+            Layer.provide(
+              layerPluginSettings({
+                loadData: async () => ({ __VERSION__: 10 }),
+                saveData: async () => {},
+              }),
             ),
           ),
         ),
-      );
-      const service = Context.get(context, CitationLookup);
-      expect(yield* service.current).toMatchObject({
-        status: "pending",
-        stopped: false,
-      });
-      expect(yield* Stream.runHead(service.changes)).toMatchObject({
-        value: { status: "pending", stopped: false },
-      });
-    }),
+      ),
+    );
+    const service = Context.get(context, CitationLookup);
+    expect(yield* service.current).toMatchObject({
+      status: "pending",
+      stopped: false,
+    });
+    expect(yield* Stream.runHead(service.changes)).toMatchObject({
+      value: { status: "pending", stopped: false },
+    });
+  }),
 );
 
 it.effect(
-  "late subscribers see stopped state and held reads close with the runtime (#1705)",
+  "late subscribers see stopped state and held reads close with the runtime",
   () =>
     Effect.gen(function* () {
       const f = yield* lookupFixture(
@@ -140,50 +138,48 @@ it.effect(
     }),
 );
 
-it.effect(
-  "publishes a first answer after startup on the test Clock (#1705)",
-  () =>
-    Effect.gen(function* () {
-      const started = yield* Deferred.make<void>();
-      const f = yield* lookupFixture(
-        Effect.map(
-          inProcessClient(
-            layerRcRef(
-              memoryOpener(() =>
-                seedWorksSql([
-                  { itemID: 1, key: "ITEMKEY1", citationKey: "first" },
-                ]),
-              ).open,
-            ),
+it.effect("publishes a first answer after startup on the test Clock", () =>
+  Effect.gen(function* () {
+    const started = yield* Deferred.make<void>();
+    const f = yield* lookupFixture(
+      Effect.map(
+        inProcessClient(
+          layerRcRef(
+            memoryOpener(() =>
+              seedWorksSql([
+                { itemID: 1, key: "ITEMKEY1", citationKey: "first" },
+              ]),
+            ).open,
           ),
-          (client) => ({
-            ...client,
-            CitationLookup: ((
-              ...args: Parameters<typeof client.CitationLookup>
-            ) =>
-              Effect.gen(function* () {
-                yield* Deferred.succeed(started, undefined);
-                yield* Effect.sleep("1 second");
-                return yield* client.CitationLookup(...args);
-              })) as typeof client.CitationLookup,
-          }),
         ),
-      );
-      yield* Deferred.await(started);
-      expect(yield* f.service.current).toMatchObject({
-        status: "pending",
-        revision: null,
-      });
-      yield* TestClock.adjust("1 second");
-      yield* f.service.whenResolved;
-      expect(yield* Stream.runHead(f.service.changes)).toMatchObject({
-        value: { status: "fresh", revision: expect.any(String) },
-      });
-    }),
+        (client) => ({
+          ...client,
+          CitationLookup: ((
+            ...args: Parameters<typeof client.CitationLookup>
+          ) =>
+            Effect.gen(function* () {
+              yield* Deferred.succeed(started, undefined);
+              yield* Effect.sleep("1 second");
+              return yield* client.CitationLookup(...args);
+            })) as typeof client.CitationLookup,
+        }),
+      ),
+    );
+    yield* Deferred.await(started);
+    expect(yield* f.service.current).toMatchObject({
+      status: "pending",
+      revision: null,
+    });
+    yield* TestClock.adjust("1 second");
+    yield* f.service.whenResolved;
+    expect(yield* Stream.runHead(f.service.changes)).toMatchObject({
+      value: { status: "fresh", revision: expect.any(String) },
+    });
+  }),
 );
 
 it.effect(
-  "runtime disposal cancels active reads and settles pending adapter calls (#1705)",
+  "runtime disposal cancels active reads and settles pending adapter calls",
   () =>
     Effect.gen(function* () {
       const initial = yield* Deferred.make<void>();

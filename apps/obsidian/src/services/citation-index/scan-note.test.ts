@@ -37,7 +37,7 @@ const afterLink = (line: number, col: number, offset: number) => ({
   },
 });
 
-// Every row below is a #1689 case. Wrong forms, lost group identity, and shifted
+// Every row below is a parity case. Wrong forms, lost group identity, and shifted
 // source positions are the failure modes at this text-in / record-out seam.
 // A row whose hidden region has an end carries a visible [[After]] tail, so it
 // proves the region ends as well as that it hides.
@@ -403,7 +403,7 @@ const conformance: {
     },
   },
   // remark-obsidian/test/parity/corpus.ts: frontmatter/closing-line-trailing-text.
-  // #1689 requires an exact closing delimiter; this block stays unclosed.
+  // Obsidian requires an exact closing delimiter; this block stays unclosed.
   {
     name: "frontmatter delimiter with trailing text stays prose",
     text: "---\nx: y\n--- [@k]",
@@ -914,7 +914,7 @@ it.each([
   },
 );
 
-// Intentional #1689 / ADR 0080 changes from the previous scanner (scan.ts).
+// Intentional ADR 0080 changes from the previous scanner (scan.ts).
 // Each row names what that scanner did; only the new scanner is asserted.
 it.each([
   {
@@ -941,7 +941,7 @@ it.each([
   expect(scanNote(text).citekeys.map(({ raw }) => raw)).toEqual(citekeys);
 });
 
-// #1695: export needs ranges even in notes that contain no citation opener.
+// Export needs ranges even in notes that contain no citation opener.
 it.each([
   ["`code`", []],
   [">      ", []],

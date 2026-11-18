@@ -103,8 +103,7 @@ export class ZoteroLocalApi extends Context.Service<
     readonly forgetAuthorization: Effect.Effect<void>;
     /**
      * One request that spends a Write Authorization — the seam every write goes
-     * through, with the method, body and preconditions its caller builds
-     * (aidenlx/zotlit#1145).
+     * through, with the method, body and preconditions its caller builds.
      *
      * The key is read here and never held: a Remembered Authorization comes fresh
      * from the store at every call, so one the user deleted in Obsidian's Keychain
@@ -163,7 +162,7 @@ export class ZoteroLocalApi extends Context.Service<
     /**
      * Zotero refused a write, for the surface that rolls the change back and says
      * why. Every refusal is announced; what one means for the change itself is
-     * the caller's (aidenlx/zotlit#1145).
+     * the caller's.
      *
      * @param library the library the write targeted, as the route spells it.
      */

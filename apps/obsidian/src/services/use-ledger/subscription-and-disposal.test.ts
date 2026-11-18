@@ -8,7 +8,7 @@ import { subscribe } from "@/lib/effect-stream";
 import { buildUseLedger, ledgerHost } from "./__fixtures__";
 import type { Ledger } from "./service";
 
-// #1705: a throwing subscriber stays registered and sees both immediate Uses.
+// A throwing subscriber stays registered and sees both immediate Uses.
 it.effect("keeps a throwing listener subscribed for later Uses", () =>
   Effect.gen(function* () {
     const stack = yield* Effect.acquireDisposable(

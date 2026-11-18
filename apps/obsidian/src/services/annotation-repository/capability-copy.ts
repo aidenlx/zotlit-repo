@@ -52,7 +52,6 @@ export interface CapabilityCopy {
  *
  * @param capability the state to render.
  * @param now the instant a cooldown's remaining seconds are measured from.
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  */
 export function editingCapabilityCopy(
   capability: EditingCapability,

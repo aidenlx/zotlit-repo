@@ -4146,7 +4146,7 @@ describe("Tag Selector", () => {
   });
 });
 
-// #1710: a shared item gesture finishes after the last Library tab closes.
+// A shared item gesture finishes after the last Library tab closes.
 effectIt.live(
   "opens the created note after the last Library tab closes during creation planning",
   () =>

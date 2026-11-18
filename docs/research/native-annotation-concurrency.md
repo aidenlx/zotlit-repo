@@ -1,6 +1,6 @@
 # Native annotation concurrency boundary
 
-Runtime evidence for issue #1165, recorded on 2026-09-19 against the disposable
+Runtime evidence for issue [#1165](https://github.com/aidenlx/zotlit/issues/1165), recorded on 2026-09-19 against the disposable
 Paired Run fixture.
 
 ## Versions and boundary
@@ -88,7 +88,7 @@ warns about comment loss and deletion of a recently updated Annotation. It
 recommends editing in one application at a time and letting changes save before
 switching. This reduces overlap without guaranteeing conflict protection.
 The reproductions remain evidence of unresolved defects; upstream repair is
-separate follow-up work. Other #1166 acceptance criteria still apply.
+separate follow-up work. Other [#1166](https://github.com/aidenlx/zotlit/issues/1166) acceptance criteria still apply.
 
 The test controls one in-process item instance and the actual Reader callback.
 It proves these exact Zotero 10.0 interleavings. It does not measure the natural

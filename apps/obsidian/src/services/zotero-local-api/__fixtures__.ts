@@ -21,7 +21,6 @@
 // checks name the builders to promote.
 //
 // @see docs/fixture.md — "Trial the Zotero Local API"
-// @see https://github.com/aidenlx/zotlit/issues/1143
 import { DateTime, Effect, Layer, PubSub, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { vi } from "vitest";
@@ -670,7 +669,7 @@ export function incompatibleZotero(): Response {
 /**
  * CONTRACT-DERIVED — `403 Write access denied`, which a library that is not
  * editable answers a write with. Reads never produce it; the client classifies
- * it so the write path (aidenlx/zotlit#1145) reads one union.
+ * it so the write path reads one union.
  *
  * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L315-L318
  */

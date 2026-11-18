@@ -72,7 +72,7 @@ const fakeWorkers = Effect.gen(function* () {
 });
 
 it.effect(
-  "accepts readiness from a worker that starts before the next task (#1705)",
+  "accepts readiness from a worker that starts before the next task",
   () =>
     Effect.gen(function* () {
       const sent = yield* Queue.make<RpcMessage.FromClientEncoded>();
@@ -109,7 +109,7 @@ it.effect(
 );
 
 it.effect(
-  "cancels one RPC request and rejects its stale reply while another request completes (#1705)",
+  "cancels one RPC request and rejects its stale reply while another request completes",
   () =>
     Effect.gen(function* () {
       const { spawned } = yield* fakeWorkers;
@@ -144,7 +144,7 @@ it.effect(
 );
 
 it.effect(
-  "rejects an in-flight parse on a single connection when its worker dies (#1705)",
+  "rejects an in-flight parse on a single connection when its worker dies",
   () =>
     Effect.gen(function* () {
       const { spawned } = yield* fakeWorkers;
@@ -170,7 +170,7 @@ it.effect(
 );
 
 it.effect(
-  "restarts after a worker death, drops the dead worker's reply, and terminates on scope close (#1705)",
+  "restarts after a worker death, drops the dead worker's reply, and terminates on scope close",
   () =>
     Effect.gen(function* () {
       const { spawned } = yield* fakeWorkers;
@@ -211,7 +211,7 @@ it.effect(
 );
 
 it.effect.each([false, true])(
-  "starts parsing from layout readiness (%s) and closes with its runtime (#1705)",
+  "starts parsing from layout readiness (%s) and closes with its runtime",
   (ready) =>
     Effect.gen(function* () {
       const { spawned } = yield* fakeWorkers;
@@ -242,7 +242,7 @@ it.effect.each([false, true])(
 );
 
 it.effect(
-  "retries a failed worker construction before the request deadline (#1705)",
+  "retries a failed worker construction before the request deadline",
   () =>
     Effect.gen(function* () {
       const failed = yield* Queue.make<void>();

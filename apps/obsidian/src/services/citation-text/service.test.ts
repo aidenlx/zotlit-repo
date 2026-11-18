@@ -443,7 +443,7 @@ async function readText(service: CitationText): Promise<DocumentCitations> {
 
 describe("CitationText", () => {
   it.effect(
-    "exposes settled startup state to a subscriber after acquisition (#1705)",
+    "exposes settled startup state to a subscriber after acquisition",
     () =>
       Effect.promise(async () => {
         const h = await makeHarness({ body: "[@alpha]" });
@@ -465,7 +465,7 @@ describe("CitationText", () => {
         }
       }),
   );
-  it.effect("renders a citation after a currency opener (#1694)", () =>
+  it.effect("renders a citation after a currency opener", () =>
     Effect.promise(async () => {
       const occurrence: CitationOccurrence = {
         kind: "citekey",
@@ -1535,36 +1535,33 @@ describe("CitationText staleness", () => {
   // The citekey resolution snapshot decides what a literal `@citekey` reaches
   // and whether a wikilink's Item carries a native citation key, so a rebuild
   // makes every document's text stale.
-  it.effect(
-    "#1705 invalidates held text on lookup changes until disposed",
-    () =>
-      Effect.promise(async () => {
-        await using cleanup = new AsyncDisposableStack();
-        const { service, citekeyResolutionChanged, dispose } =
-          await makeHarness({
-            body: "Blah [@alpha].",
-          });
-        cleanup.defer(dispose);
-        await readText(service);
-        let invalidated = 0;
-        subscribe(
-          service.runtime,
-          service.events.pipe(
-            Stream.filter((event) => event.type === "invalidated"),
-            Stream.map(() => undefined),
-          ),
-          () => (invalidated += 1),
-        );
+  it.effect("invalidates held text on lookup changes until disposed", () =>
+    Effect.promise(async () => {
+      await using cleanup = new AsyncDisposableStack();
+      const { service, citekeyResolutionChanged, dispose } = await makeHarness({
+        body: "Blah [@alpha].",
+      });
+      cleanup.defer(dispose);
+      await readText(service);
+      let invalidated = 0;
+      subscribe(
+        service.runtime,
+        service.events.pipe(
+          Stream.filter((event) => event.type === "invalidated"),
+          Stream.map(() => undefined),
+        ),
+        () => (invalidated += 1),
+      );
 
-        citekeyResolutionChanged();
+      citekeyResolutionChanged();
 
-        expect(service.bridge.runSync(service.peek(NOTE.path))).not.toBeNull();
-        expect(invalidated).toBe(1);
-        await service[Symbol.asyncDispose]();
+      expect(service.bridge.runSync(service.peek(NOTE.path))).not.toBeNull();
+      expect(invalidated).toBe(1);
+      await service[Symbol.asyncDispose]();
 
-        citekeyResolutionChanged();
-        expect(invalidated).toBe(1);
-      }),
+      citekeyResolutionChanged();
+      expect(invalidated).toBe(1);
+    }),
   );
 
   it.effect(
@@ -1914,7 +1911,7 @@ describe("CitationText Entry Serials", () => {
   );
 });
 
-it.effect("#1683 renders a document with one source read", () =>
+it.effect("renders a document with one source read", () =>
   Effect.promise(async () => {
     await using h = await createCitationIndexHarness(
       { "draft.md": "[@doe2024]" },
@@ -1953,7 +1950,7 @@ it.effect("#1683 renders a document with one source read", () =>
 );
 
 it.effect(
-  "attaches streams before acquisition returns and keeps a throwing subscriber (#1705)",
+  "attaches streams before acquisition returns and keeps a throwing subscriber",
   () =>
     Effect.promise(async () => {
       const h = await makeHarness({ body: "[@alpha]" });
@@ -1985,67 +1982,65 @@ it.effect(
     }),
 );
 
-it.effect(
-  "replays a failed startup and recovers the next host event (#1705)",
-  () =>
-    Effect.promise(async () => {
-      const documents = new OpenDocumentsStub();
-      let failed = true;
-      const paths = documents.paths.bind(documents);
-      documents.paths = () => {
-        if (failed) throw new Error("workspace unavailable");
-        return paths();
-      };
-      const h = await makeHarness({
-        body: "[@alpha]",
-        openDocuments: documents,
+it.effect("replays a failed startup and recovers the next host event", () =>
+  Effect.promise(async () => {
+    const documents = new OpenDocumentsStub();
+    let failed = true;
+    const paths = documents.paths.bind(documents);
+    documents.paths = () => {
+      if (failed) throw new Error("workspace unavailable");
+      return paths();
+    };
+    const h = await makeHarness({
+      body: "[@alpha]",
+      openDocuments: documents,
+    });
+    try {
+      const delivered = Promise.withResolvers<unknown>();
+      const off = subscribe(
+        h.service.runtime,
+        h.service.changes,
+        delivered.resolve,
+      );
+      expect(await delivered.promise).toEqual({
+        startup: "failed",
+        stopped: false,
       });
-      try {
-        const delivered = Promise.withResolvers<unknown>();
-        const off = subscribe(
-          h.service.runtime,
-          h.service.changes,
-          delivered.resolve,
-        );
-        expect(await delivered.promise).toEqual({
-          startup: "failed",
-          stopped: false,
-        });
-        off();
-        let invalidations = 0;
-        subscribe(
-          h.service.runtime,
-          h.service.events.pipe(
-            Stream.filter((event) => event.type === "invalidated"),
-            Stream.map(() => undefined),
-          ),
-          () => invalidations++,
-        );
-        h.rendersInvalidated();
-        expect(invalidations).toBe(1);
-        // A failed host delivery must leave intake attached for the next event.
-        documents.open("other.md");
-        failed = false;
-        documents.open(NOTE.path);
-        await vi.waitFor(() =>
-          expect(
-            h.queryClient.client.getQueryState(["citation-text", NOTE.path])
-              ?.fetchStatus,
-          ).toBe("idle"),
-        );
-        expect(h.citationRequests).toEqual([]);
+      off();
+      let invalidations = 0;
+      subscribe(
+        h.service.runtime,
+        h.service.events.pipe(
+          Stream.filter((event) => event.type === "invalidated"),
+          Stream.map(() => undefined),
+        ),
+        () => invalidations++,
+      );
+      h.rendersInvalidated();
+      expect(invalidations).toBe(1);
+      // A failed host delivery must leave intake attached for the next event.
+      documents.open("other.md");
+      failed = false;
+      documents.open(NOTE.path);
+      await vi.waitFor(() =>
         expect(
-          (await h.service.bridge.runPromise(h.service.read(NOTE.path)))
-            ?.formatted.size,
-        ).toBe(1);
-      } finally {
-        await h.dispose();
-      }
-    }),
+          h.queryClient.client.getQueryState(["citation-text", NOTE.path])
+            ?.fetchStatus,
+        ).toBe("idle"),
+      );
+      expect(h.citationRequests).toEqual([]);
+      expect(
+        (await h.service.bridge.runPromise(h.service.read(NOTE.path)))
+          ?.formatted.size,
+      ).toBe(1);
+    } finally {
+      await h.dispose();
+    }
+  }),
 );
 
 it.effect(
-  "aborts in-flight text on whole-runtime disposal and keeps released reads inert (#1705)",
+  "aborts in-flight text on whole-runtime disposal and keeps released reads inert",
   () =>
     Effect.promise(async () => {
       const entered = Promise.withResolvers<AbortSignal>();
@@ -2093,89 +2088,85 @@ it.effect(
     }),
 );
 
-it.effect(
-  "retries a failed document render after the TestClock cooldown (#1705)",
-  () =>
-    Effect.gen(function* () {
-      const queryClient = yield* queryClientsOf();
-      const context = yield* Effect.context<never>();
-      let reads = 0;
-      const h = yield* Effect.acquireRelease(
-        Effect.promise(() =>
-          makeHarness({
-            body: "[@alpha]",
-            queryClient,
-            context,
-            formatCitations: async () => {
-              if (++reads === 1) throw new Error("render failed");
-              return [rendered("recovered")];
-            },
-          }),
-        ),
-        (h) => Effect.promise(() => h.dispose()),
-      );
-      expect(
-        yield* Effect.promise(() =>
-          h.service.bridge.runPromise(h.service.read(NOTE.path)),
-        ),
-      ).toBeNull();
-      expect(
-        yield* Effect.promise(() =>
-          h.service.bridge.runPromise(h.service.read(NOTE.path)),
-        ),
-      ).toBeNull();
-      expect(reads).toBe(1);
-      yield* TestClock.adjust(5001);
-      const text = yield* Effect.promise(() =>
+it.effect("retries a failed document render after the TestClock cooldown", () =>
+  Effect.gen(function* () {
+    const queryClient = yield* queryClientsOf();
+    const context = yield* Effect.context<never>();
+    let reads = 0;
+    const h = yield* Effect.acquireRelease(
+      Effect.promise(() =>
+        makeHarness({
+          body: "[@alpha]",
+          queryClient,
+          context,
+          formatCitations: async () => {
+            if (++reads === 1) throw new Error("render failed");
+            return [rendered("recovered")];
+          },
+        }),
+      ),
+      (h) => Effect.promise(() => h.dispose()),
+    );
+    expect(
+      yield* Effect.promise(() =>
         h.service.bridge.runPromise(h.service.read(NOTE.path)),
+      ),
+    ).toBeNull();
+    expect(
+      yield* Effect.promise(() =>
+        h.service.bridge.runPromise(h.service.read(NOTE.path)),
+      ),
+    ).toBeNull();
+    expect(reads).toBe(1);
+    yield* TestClock.adjust(5001);
+    const text = yield* Effect.promise(() =>
+      h.service.bridge.runPromise(h.service.read(NOTE.path)),
+    );
+    expect(firstText(text?.formatted.get("[@alpha]"))).toBe("recovered");
+    expect(reads).toBe(2);
+  }),
+);
+
+it.effect("interrupts the caller while another surface shares the render", () =>
+  Effect.promise(async () => {
+    const entered = Promise.withResolvers<AbortSignal>();
+    const render = Promise.withResolvers<readonly RenderedCitation[]>();
+    const h = await makeHarness({
+      body: "[@alpha]",
+      formatCitations: (_sources, signal) => {
+        entered.resolve(signal!);
+        return render.promise;
+      },
+    });
+    try {
+      const caller = new AbortController();
+      const cancelled = h.service.bridge.runPromiseExit(
+        h.service.read(NOTE.path),
+        { signal: caller.signal },
       );
-      expect(firstText(text?.formatted.get("[@alpha]"))).toBe("recovered");
-      expect(reads).toBe(2);
-    }),
+      const sharedSignal = await entered.promise;
+      const other = h.service.bridge.runPromise(h.service.read(NOTE.path));
+      caller.abort();
+      const interrupted = await cancelled;
+      expect(
+        Exit.isFailure(interrupted) &&
+          Cause.hasInterruptsOnly(interrupted.cause),
+      ).toBe(true);
+      expect(sharedSignal.aborted).toBe(false);
+      render.resolve([rendered("shared")]);
+      expect(firstText((await other)?.formatted.get("[@alpha]"))).toBe(
+        "shared",
+      );
+      expect(h.citationRequests).toHaveLength(1);
+    } finally {
+      render.resolve([]);
+      await h.dispose();
+    }
+  }),
 );
 
 it.effect(
-  "interrupts the caller while another surface shares the render (#1705)",
-  () =>
-    Effect.promise(async () => {
-      const entered = Promise.withResolvers<AbortSignal>();
-      const render = Promise.withResolvers<readonly RenderedCitation[]>();
-      const h = await makeHarness({
-        body: "[@alpha]",
-        formatCitations: (_sources, signal) => {
-          entered.resolve(signal!);
-          return render.promise;
-        },
-      });
-      try {
-        const caller = new AbortController();
-        const cancelled = h.service.bridge.runPromiseExit(
-          h.service.read(NOTE.path),
-          { signal: caller.signal },
-        );
-        const sharedSignal = await entered.promise;
-        const other = h.service.bridge.runPromise(h.service.read(NOTE.path));
-        caller.abort();
-        const interrupted = await cancelled;
-        expect(
-          Exit.isFailure(interrupted) &&
-            Cause.hasInterruptsOnly(interrupted.cause),
-        ).toBe(true);
-        expect(sharedSignal.aborted).toBe(false);
-        render.resolve([rendered("shared")]);
-        expect(firstText((await other)?.formatted.get("[@alpha]"))).toBe(
-          "shared",
-        );
-        expect(h.citationRequests).toHaveLength(1);
-      } finally {
-        render.resolve([]);
-        await h.dispose();
-      }
-    }),
-);
-
-it.effect(
-  "replays stopped state to a subscription made after runtime disposal (#1705)",
+  "replays stopped state to a subscription made after runtime disposal",
   () =>
     Effect.gen(function* () {
       const h = yield* Effect.acquireRelease(

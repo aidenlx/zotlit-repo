@@ -35,7 +35,7 @@ import { clearVault, e2eVaultDir } from "./vault-script.ts";
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
-  // #1795: the real Refresh gesture re-arms the converted display layer.
+  // The real Refresh gesture re-arms the converted display layer.
   it("refreshes a displayed excerpt after an unavailable read", async () => {
     await verifyExcerptRefresh(run.vaultId);
   }, 120000);
@@ -113,7 +113,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toEqual([annotationAttachment.key]);
   }, 120000);
 
-  // #1184's multi-PDF batch: several of the Fixture's own PDFs, each asked for
+  // A multi-PDF batch: several of the Fixture's own PDFs, each asked for
   // its own excerpts, cold and then warm. The Node harness behind the
   // measurements record models PDF work; this case is the app's own answer.
   it("measures a multi-PDF excerpt batch cold and warm", async () => {

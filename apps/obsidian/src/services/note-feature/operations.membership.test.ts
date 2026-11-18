@@ -509,7 +509,7 @@ describe("Profile document matches at creation preparation", () => {
       }),
   );
 
-  // #1642: a batch reads its Items, facets, and Matches together, not per Item.
+  // A batch reads its Items, facets, and Matches together, not per Item.
   describe("plans a batch of creations", () => {
     /** Twelve My Library books titled "Shared"; every third is tagged "Read". */
     const shared = Array.from({ length: 12 }, (_, index) =>

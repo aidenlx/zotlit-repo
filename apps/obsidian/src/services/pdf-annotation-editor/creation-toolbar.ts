@@ -6,7 +6,6 @@
 // vanilla DOM and every decision about it is data this module returns.
 //
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
-// @see https://github.com/aidenlx/zotlit/issues/1150
 import type { IconName } from "obsidian";
 
 import * as m from "@/lib/i18n/generated/messages";

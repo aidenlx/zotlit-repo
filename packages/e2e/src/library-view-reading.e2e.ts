@@ -1391,7 +1391,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot },
       );
     });
-    // A first run (aidenlx/zotlit#1984): the setup steps show above a new
+    // A first run: the setup steps show above a new
     // Library View, in the window the /learn course is recorded in.
     await obRun(
       run.vaultId,

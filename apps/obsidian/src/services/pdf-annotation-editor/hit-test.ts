@@ -86,8 +86,6 @@ export type MarkClick =
  *
  * A click that reaches no mark is the click-away, so it deselects; a repeat
  * click at the same point steps through the stack under it and wraps.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1148
  */
 export function resolveMarkClick({
   page,

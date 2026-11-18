@@ -175,7 +175,7 @@ export async function readUntil<T>(
  * The JSON callback boundary; all imports used by its code must be type-only.
  * Service reads follow the current plugin when a callback restarts it.
  */
-// oxlint-disable-next-line max-params -- The approved callback API keeps options fourth (#1848).
+// oxlint-disable-next-line max-params -- The approved callback API keeps options fourth.
 export async function obRun<A = undefined, R = void>(
   vaultId: string,
   callback: (
@@ -205,7 +205,7 @@ export async function obRun<A = undefined, R = void>(
  * per-call stall: a traced navigateToSearchResult never answered while the next
  * identical call answered in 12 ms. Its deadline ends that call; polling goes on.
  */
-// oxlint-disable-next-line max-params -- The approved callback API keeps options fourth (#1848).
+// oxlint-disable-next-line max-params -- The approved callback API keeps options fourth.
 export async function obRunUntil<A = undefined, R = boolean>(
   vaultId: string,
   callback: (

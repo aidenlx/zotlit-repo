@@ -28,7 +28,7 @@ it.effect("runs its fibers on the browser scheduler", () =>
   }),
 );
 
-// #1705: plugin startup must read settled state after async layer acquisition.
+// Plugin startup must read settled state after async layer acquisition.
 it.effect("reads the loaded value synchronously after the graph builds", () =>
   Effect.gen(function* () {
     const context = yield* Effect.context<never>();
@@ -61,7 +61,7 @@ it.effect("reads the loaded value synchronously after the graph builds", () =>
   }),
 );
 
-// #1705: onload's await-using boundary must roll back a failed graph and
+// `onload`'s await-using boundary must roll back a failed graph and
 // propagate its error to Obsidian before startup can commit.
 it.effect("unwinds the startup stack before rejecting a failed graph", () =>
   Effect.gen(function* () {

@@ -1,7 +1,5 @@
 // The write path's pure parts: what one command sends, what a write leaves on
 // the Annotation it touched, and what a failed one says to the user.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1145
 
 import type {
   AnnotationPosition,
@@ -41,8 +39,6 @@ export type WriteFailure =
   /**
    * The stored position would be longer than Zotero accepts, so the create or
    * Geometry Edit is refused before the write rather than answered `413`.
-   *
-   * @see https://github.com/aidenlx/zotlit/issues/1139 — "Zotero Local API contract"
    */
   | { kind: "position-too-large" }
   /**
@@ -89,8 +85,6 @@ export type ConflictedWrite = "color" | "delete" | "geometry" | TextField;
  *
  * A Geometry Edit carries its whole attempt, so "Apply again" re-sends the
  * position, Sort Index, and quoted text it computed.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  */
 export type WriteConflict =
   | {

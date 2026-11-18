@@ -52,7 +52,7 @@ const request: ExcerptRequest = {
   zoteroPngPath: null,
 };
 
-// #1795: the public display boundary owns pending resolutions and stored reads.
+// The public display boundary owns pending resolutions and stored reads.
 it.effect.each(["visible", "stored"] as const)(
   "interrupts the pending %s read when the display layer closes",
   (kind) =>
@@ -100,7 +100,7 @@ it.effect.each(["visible", "stored"] as const)(
     }),
 );
 
-// #1795: a failed fresh read must still paint a slower stored fallback.
+// A failed fresh read must still paint a slower stored fallback.
 it.live(
   "retains a stored fallback that arrives after the fresh read fails",
   () =>

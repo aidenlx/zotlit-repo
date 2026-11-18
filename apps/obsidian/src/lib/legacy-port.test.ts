@@ -5,7 +5,7 @@ import { expect } from "vitest";
 import { AbortError } from "./abort-error";
 import { LegacyPortError, portCall } from "./legacy-port";
 
-// #1824: a port whose run unload stopped rejects with an AbortError at its
+// A port whose run unload stopped rejects with an AbortError at its
 // Promise edge; in Effect, that stop is an interrupt again.
 it.effect("ends as an interrupt when the port rejects with an abort", () =>
   Effect.gen(function* () {

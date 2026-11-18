@@ -1825,7 +1825,7 @@ it("keeps the tag editor closed for a press on a Locked Annotation's tag verb", 
   expect(h.writes()).toEqual([]);
 });
 
-it("stops a geometry edit waiting for its PDF sort index when the runtime closes (#1860)", async () => {
+it("stops a geometry edit waiting for its PDF sort index when the runtime closes", async () => {
   await using h = await figureSelected();
   const read = Promise.withResolvers<string>();
   const started = Promise.withResolvers<void>();
@@ -1853,7 +1853,7 @@ it("stops a geometry edit waiting for its PDF sort index when the runtime closes
   expect(h.writes()).toEqual([]);
 });
 
-it("ends a geometry edit whose PDF read fails without sending a patch (#1860)", async () => {
+it("ends a geometry edit whose PDF read fails without sending a patch", async () => {
   await using h = await figureSelected();
   h.sortIndex.mockRejectedValueOnce(new Error("Worker was destroyed"));
   pointer(h.page.div, "pointerdown", ON_FIGURE);

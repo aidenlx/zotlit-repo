@@ -6,7 +6,7 @@ import { CitationIndex } from "./service";
 import { openCitekeyStore } from "./store";
 import { createCitationIndexHarness, makeFile } from "./test-harness";
 
-it("discards schema v1 once, then restores current records without a read (#1691)", async () => {
+it("discards schema v1 once, then restores current records without a read", async () => {
   const appId = crypto.randomUUID();
   const name = `${appId}-zotlit-citation-index`;
   const body = "@doe2024";

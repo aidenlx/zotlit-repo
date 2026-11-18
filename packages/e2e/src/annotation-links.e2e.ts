@@ -1707,7 +1707,7 @@ describe.skipIf(!reachable)("Annotation links", () => {
   }, 120000);
 
   // The chip shows its Durable Annotation Link, so the Reader settings that
-  // send a note's annotation links to Zotero send the chip's there too (#1980).
+  // send a note's annotation links to Zotero send the chip's there too.
   it("hands a card's page chip to Zotero while the reader's open-file-links setting is off", async () => {
     const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 
@@ -1741,7 +1741,7 @@ describe.skipIf(!reachable)("Annotation links", () => {
   }, 120000);
 
   // A literature note's ` ```zotquery ` annotations block draws the same
-  // cards, so its page chip follows the same settings (#1980).
+  // cards, so its page chip follows the same settings.
   it("hands a query block card's page chip to Zotero while annotation links are set to open in Zotero", async () => {
     const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 

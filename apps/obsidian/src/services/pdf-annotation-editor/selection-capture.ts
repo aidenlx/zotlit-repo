@@ -5,8 +5,6 @@
 //
 // The reader's own text layer is read exactly as the browser laid it out —
 // ZotLit never re-renders it.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1150
 import type { Rect, TextLayerSelection } from "@zotlit/pdf-structure";
 
 import { getLogger } from "@/lib/log";

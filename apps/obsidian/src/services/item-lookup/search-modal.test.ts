@@ -1,4 +1,4 @@
-// Regression tests for #1650: Enter in an Item picker chose a row of an
+// Regression tests: Enter in an Item picker chose a row of an
 // earlier query's answer while the typed query's answer was pending.
 import { Effect } from "effect";
 import { SuggestModal } from "obsidian";

@@ -5471,7 +5471,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { timeoutMs: 90000 },
     );
-    // A new tab opens on Recent (aidenlx/zotlit#1986), whose file holds every
+    // A new tab opens on Recent, whose file holds every
     // paper of the Library Scope; the dialog asks for a name of the
     // researcher's own.
     expect(offered).toEqual({

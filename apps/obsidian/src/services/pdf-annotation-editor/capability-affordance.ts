@@ -16,7 +16,7 @@ const LAYOUT_CLASSES = ["zt:flex", "zt:items-center", "zt:gap-1"];
 /**
  * The reader's edit keymap, and the one place it is written down: the two mark
  * tools, the comment sheet, and the eight colours. The creation surfaces
- * (aidenlx/zotlit#1150) take this set rather than declaring a second one, so
+ * take this set rather than declaring a second one, so
  * the keys that create a mark and the keys that explain why one cannot be
  * created can never diverge.
  */

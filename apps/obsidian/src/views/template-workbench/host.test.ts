@@ -188,7 +188,7 @@ describe("Template Workbench host", () => {
     modal.close();
   });
 
-  // #1665: the chooser kept an earlier query's rows on screen until the typed
+  // The chooser kept an earlier query's rows on screen until the typed
   // query's answer arrived, and Enter or a click chose from them.
   it("chooses the first item of the typed query's answer when Enter comes before it", async () => {
     const { host } = setup();

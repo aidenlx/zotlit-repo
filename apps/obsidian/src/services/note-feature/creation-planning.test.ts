@@ -267,7 +267,7 @@ describe("creation Profile", () => {
   );
 });
 
-it("#1904: a refused profile note names the properties to fix", () => {
+it("a refused profile note names the properties to fix", () => {
   const refusal = new ManagedFrontmatterRefused({
     fields: ["Date Added", "Authors"],
   });

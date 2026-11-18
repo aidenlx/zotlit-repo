@@ -3,7 +3,7 @@ title: Literature Note Citation Test
 ---
 # Literature Note Citation Test
 
-This note exercises the Literature Note Citation workflow described in spec #612.
+This note exercises the Literature Note Citation workflow.
 
 ## Simple citations
 

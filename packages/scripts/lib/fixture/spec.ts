@@ -723,7 +723,7 @@ export const ITEMS: readonly FixtureItem[] = [
     dateModified: "2025-05-22 03:30:30",
     collectionIDs: [],
   },
-  // ── Publisher by item type (discussion #1197) ─────────────────────
+  // ── Publisher by item type ───────────────────────────────────
   // One `publisher` property formatted per item type: a journal article with
   // every locator and one with only a volume, a book with a place, a chapter
   // in an edited collection, and a thesis whose university is its publisher.

@@ -3,7 +3,7 @@ title: Wikilink Parity Test
 ---
 # Wikilink Parity Test
 
-This note exercises wikilink citation parity rendering (#673): a Literature Note wikilink
+This note exercises wikilink citation parity rendering: a Literature Note wikilink
 carrying a Citation Fragment — and a whole Citation Run — renders exactly like the equivalent
 literal Citation Cluster.
 
@@ -124,7 +124,7 @@ Uninstall or disable the Pandoc Engine and reload. Both syntaxes stay as Markdow
 - Wikilink: [[literatures/wittNebulinRegulatesThin2006#cite:locator=4]]
 - Citekey: [@wittNebulinRegulatesThin2006, p. 4]
 
-## Interaction carries over from #663
+## Interaction carries over from the editor treatment
 
 Reveal on conceal-group contact, plain click, Mod-click, hover page preview, and drag behave
 on a parity-rendered wikilink exactly as they do on an undecorated wikilink. Walk the caret

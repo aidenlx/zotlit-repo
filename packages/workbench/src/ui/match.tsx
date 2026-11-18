@@ -332,7 +332,7 @@ export function MatchEditor<Row extends LabelledRow>({
   // Read as the caller's render commits, before the next key: an effect
   // waits for paint, and the author may type again before it runs, so the
   // caller's echo of the editor's own edit would read as an older filter
-  // than the tree on screen and rebuild the rows under the caret (#1651).
+  // than the tree on screen and rebuild the rows under the caret.
   useLayoutEffect(() => {
     if (
       fitsVocabulary(shown.current, latest.current) &&
