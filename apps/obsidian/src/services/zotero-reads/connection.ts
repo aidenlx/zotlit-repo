@@ -13,6 +13,7 @@ import type { Stream } from "effect";
 import type { Scope } from "effect";
 
 import { getZoteroDatabaseIdentity } from "@zotlit/db";
+import type { ZoteroDatabase } from "@zotlit/db";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import {
   checkDatabaseLayout,
@@ -32,11 +33,7 @@ export class Connection extends Context.Service<
   Connection,
   {
     /** Borrow the current client until the caller's scope closes. */
-    readonly borrow: Effect.Effect<
-      NodeDatabaseClient,
-      DbUnavailable,
-      Scope.Scope
-    >;
+    readonly borrow: Effect.Effect<ZoteroDatabase, DbUnavailable, Scope.Scope>;
     /** Lifecycle events, starting with the current state for each subscriber. */
     readonly changes: Stream.Stream<ChangeEvent>;
     /**
@@ -59,13 +56,13 @@ export class Connection extends Context.Service<
      * validates, so the call is synchronous and answers for every client this
      * connection hands out.
      */
-    readonly databaseGeneration: (client: NodeDatabaseClient) => number;
+    readonly databaseGeneration: (client: ZoteroDatabase) => number;
     /**
      * The database file a client of this connection opened from, or null
      * when it opened from no file. Recorded with the generation, so it
      * answers for every client this connection hands out.
      */
-    readonly databaseFile: (client: NodeDatabaseClient) => string | null;
+    readonly databaseFile: (client: ZoteroDatabase) => string | null;
   }
 >()("zotlit/zotero-reads/Connection") {}
 
@@ -73,8 +70,8 @@ export class Connection extends Context.Service<
 export function makeDatabaseGenerations() {
   /** The generation of each database seen so far. */
   const generations = new Map<string, number>();
-  const clientGenerations = new WeakMap<NodeDatabaseClient, number>();
-  const clientFiles = new WeakMap<NodeDatabaseClient, string | null>();
+  const clientGenerations = new WeakMap<ZoteroDatabase, number>();
+  const clientFiles = new WeakMap<ZoteroDatabase, string | null>();
   const record = Effect.fnUntraced(function* (
     client: NodeDatabaseClient,
     file: string | null,
@@ -106,7 +103,7 @@ export function makeDatabaseGenerations() {
      * @see {@link validateClient}, which closes a client the same way.
      */
     record,
-    databaseGeneration: (client: NodeDatabaseClient): number => {
+    databaseGeneration: (client: ZoteroDatabase): number => {
       const generation = clientGenerations.get(client);
       if (generation === undefined)
         throw new DbUnavailable({
@@ -114,7 +111,7 @@ export function makeDatabaseGenerations() {
         });
       return generation;
     },
-    databaseFile: (client: NodeDatabaseClient): string | null =>
+    databaseFile: (client: ZoteroDatabase): string | null =>
       clientFiles.get(client) ?? null,
   };
 }
@@ -143,8 +140,8 @@ export function toDbUnavailable(cause: unknown): DbUnavailable {
 
 /** Run a synchronous read; a SQLite throw becomes a {@link DbUnavailable}. */
 export function read<A>(
-  client: NodeDatabaseClient,
-  f: (client: NodeDatabaseClient) => A,
+  client: ZoteroDatabase,
+  f: (client: ZoteroDatabase) => A,
 ): Effect.Effect<A, DbUnavailable> {
   return Effect.try({ try: () => f(client), catch: toDbUnavailable });
 }
@@ -214,7 +211,7 @@ export function closeClient(client: NodeDatabaseClient): Effect.Effect<void> {
 
 /** A client with the resources it holds open; `close` releases them all. */
 export interface OpenClient {
-  readonly client: NodeDatabaseClient;
+  readonly client: ZoteroDatabase;
   readonly close: Effect.Effect<void>;
 }
 

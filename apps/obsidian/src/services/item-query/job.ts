@@ -5,7 +5,7 @@ import { Cause, Effect, Exit, FileSystem, PlatformError, Scope } from "effect";
 // oxlint-disable-next-line no-restricted-imports -- ItemQueryScheduler uses MessageChannel and adds a per-query time budget.
 import { Scheduler } from "effect";
 
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
@@ -26,7 +26,7 @@ import type { QueryAnswer, QueryJob } from "./worker-protocol.ts";
 
 /** The connection of one Query Job and the identity its envelope reports. */
 export interface QueryJobEnv {
-  client: NodeDatabaseClient;
+  client: ZoteroDatabase;
   identity: WorkbenchIdentity;
   attachmentFiles: ResolveAttachmentFile;
 }

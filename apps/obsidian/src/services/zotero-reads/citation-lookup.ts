@@ -8,7 +8,7 @@ import {
   getAnnotationParentKeys,
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { ZoteroDatabase } from "@zotlit/db";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { withLogCategory } from "@/lib/effect-log-category.ts";
@@ -28,7 +28,7 @@ import type { DbUnavailable } from "./rpc.ts";
 export const CITEKEY_WINDOW = 1000;
 
 interface Published {
-  client: NodeDatabaseClient;
+  client: ZoteroDatabase;
   database: number;
   scope: string;
   snapshot: CitekeySnapshot;
@@ -37,7 +37,7 @@ interface Published {
 
 interface Candidate {
   fiber: Fiber.Fiber<void, DbUnavailable>;
-  client?: NodeDatabaseClient;
+  client?: ZoteroDatabase;
 }
 
 export const makeCitationLookup = Effect.fnUntraced(function* (

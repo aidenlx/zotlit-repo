@@ -17,8 +17,7 @@ import {
   USER_LIBRARY_ID,
   withAnnotationCitation,
 } from "@zotlit/db";
-import type { Item } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { Item, ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { readQueryItemSeed } from "@zotlit/item-query";
 
@@ -50,7 +49,7 @@ export { SnapshotSelectionError } from "./types.ts";
  * or when provenance or a vault target contains a disallowed path.
  */
 export function exportItemSnapshot(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   selection: SnapshotSelection,
   options: ExportItemSnapshotOptions,
 ): ItemSnapshot {
@@ -154,7 +153,7 @@ export function exportItemSnapshot(
 }
 
 function resolveLibraryID(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   selector: SnapshotLibrarySelector,
 ): number {
   if (selector.type === "personal") return USER_LIBRARY_ID;
@@ -173,7 +172,7 @@ function resolveLibraryID(
  * an annotation's parent Item is the selected Item itself.
  */
 function collectCustomFieldNames(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   item: Item,
   libraryID: number,
 ): ReadonlySet<string> {

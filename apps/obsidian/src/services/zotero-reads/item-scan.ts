@@ -4,8 +4,7 @@ import { Effect, Stream } from "effect";
 import { Scheduler } from "effect";
 
 import { getIndexedItemRowsRange, getItemIDBounds } from "@zotlit/db";
-import type { IndexedItemScanRow } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { IndexedItemScanRow, ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import { makeSortedRuns } from "@zotlit/shared/sorted-runs";
 
@@ -18,10 +17,7 @@ const SCAN_ID_SPAN = 500;
 const MERGE_STEP_ROWS = 500;
 
 /** The caller keeps `client` borrowed until the stream finishes or is interrupted. */
-export const scanIndexedItems = (
-  client: NodeDatabaseClient,
-  libraryID: number,
-) =>
+export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
   Stream.unwrap(
     Effect.map(
       read(client, (c) => getItemIDBounds(c, libraryID)),
@@ -46,7 +42,7 @@ export const scanIndexedItems = (
 
 /** Preserve newest-first batch order while the scan and merge share the worker. */
 export const readIndexedItemIDs = Effect.fn("readIndexedItemIDs")(
-  function* (client: NodeDatabaseClient, libraryID: number) {
+  function* (client: ZoteroDatabase, libraryID: number) {
     const sorted = makeSortedRuns<IndexedItemScanRow>(
       (a, b) =>
         (a.dateModified < b.dateModified

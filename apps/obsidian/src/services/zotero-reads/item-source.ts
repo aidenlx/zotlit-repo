@@ -7,8 +7,7 @@ import {
   getItemIDBounds,
   sumSignatureRanges,
 } from "@zotlit/db";
-import type { GroupIDMemo } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { GroupIDMemo, ZoteroDatabase } from "@zotlit/db";
 import { ItemSource, SourceUnavailable } from "@zotlit/item-lookup";
 import type { PinnedItemSource } from "@zotlit/item-lookup";
 
@@ -18,8 +17,8 @@ import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
 
 /** Run a synchronous read; a throw becomes a {@link SourceUnavailable}. */
 function read<A>(
-  client: NodeDatabaseClient,
-  f: (client: NodeDatabaseClient) => A,
+  client: ZoteroDatabase,
+  f: (client: ZoteroDatabase) => A,
 ): Effect.Effect<A, SourceUnavailable> {
   return Effect.try({
     try: () => f(client),
@@ -41,7 +40,7 @@ const SIGNATURE_RANGE = 10_000;
  * {@link sumSignatureRanges} with a yield before each range read, so a search
  * waits for one range at most.
  */
-const signatureOf = (client: NodeDatabaseClient, libraryID: number) =>
+const signatureOf = (client: ZoteroDatabase, libraryID: number) =>
   Effect.gen(function* () {
     const ranges = sumSignatureRanges(
       yield* read(client, (c) => getItemIDBounds(c, libraryID)),
@@ -62,7 +61,7 @@ const signatureOf = (client: NodeDatabaseClient, libraryID: number) =>
   });
 
 const itemsOf = (
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   libraryID: number,
   memo: GroupIDMemo,
 ) =>

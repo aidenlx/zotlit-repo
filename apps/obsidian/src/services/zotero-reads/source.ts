@@ -17,7 +17,7 @@ import {
 import { dirname, join } from "node:path";
 
 import { getSchemaVersions, SUPPORTED_SCHEMA_VERSIONS } from "@zotlit/db";
-import type { ZoteroSchemaVersions } from "@zotlit/db";
+import type { ZoteroDatabase, ZoteroSchemaVersions } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
@@ -287,7 +287,7 @@ export function layerSource(
        * so no statement runs here. A failed check never fails the refresh.
        */
       const reportSchemaVersions = Effect.fnUntraced(function* (
-        client: NodeDatabaseClient,
+        client: ZoteroDatabase,
       ) {
         const versions = yield* Effect.try(
           // boundary: @zotlit/db reads node:sqlite synchronously.

@@ -1,7 +1,6 @@
 // The Collection paths the Match editor offers.
 import { getCollectionNodesByLibrary } from "@zotlit/db";
-import type { CollectionNode } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { CollectionNode, ZoteroDatabase } from "@zotlit/db";
 
 /** One Collection the editor offers, with the words it is shown by. */
 export interface CollectionChoice {
@@ -13,7 +12,7 @@ export interface CollectionChoice {
  * Every distinct live Collection path across the given Libraries, sorted.
  */
 export function listCollectionChoices(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   libraries: readonly { readonly libraryID: number }[],
 ): CollectionChoice[] {
   const byPath = new Map<string, CollectionChoice>();

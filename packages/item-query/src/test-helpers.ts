@@ -10,9 +10,9 @@ import {
 import type { Scheduler } from "effect";
 import { expect } from "vitest";
 
-import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 // The test helper of the package.
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { ZoteroDatabase } from "@zotlit/db";
+import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
@@ -47,7 +47,7 @@ const captureLog = (logs: CapturedLog[]): Logger.Logger<unknown, void> =>
 
 export interface RunOptions {
   /** The leased client the readers use. Omit it for an Effect that reads no database. */
-  client?: NodeDatabaseClient;
+  client?: ZoteroDatabase;
   /**
    * The instant of the Query Clock, as an ISO string.
    *
@@ -125,7 +125,7 @@ export async function runEffect<A, E>(
     )
     .pipe(
       Context.add(ItemQueryDatabase, {
-        get client(): NodeDatabaseClient {
+        get client(): ZoteroDatabase {
           if (options.client) return options.client;
           throw new Error("the test passed no database client to runEffect.");
         },
@@ -202,7 +202,7 @@ function fixedClock(now: string): Clock.Clock {
  */
 export async function faultCode(
   dataset: QueryDataset<any>,
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   request: Omit<ItemQueryRequest, "libraries">,
 ): Promise<string | null> {
   const { exit } = await runEffect(

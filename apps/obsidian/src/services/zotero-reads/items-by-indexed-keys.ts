@@ -1,7 +1,6 @@
 // Live Items for Indexed Keys: the read `ItemsByIndexedKeys`, `WorkLabels`, and Item Index hydration share.
 import { getItemsByKey, resolveIndexedKeyLibrary } from "@zotlit/db";
-import type { GroupIDMemo, Item } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { GroupIDMemo, Item, ZoteroDatabase } from "@zotlit/db";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 /**
@@ -10,7 +9,7 @@ import { parseIndexedKey } from "@zotlit/zotero-types/keys";
  * `getItemsByKey`: one cached keyed read per Library.
  */
 export function itemsByIndexedKeys(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   indexedKeys: readonly string[],
 ): Map<string, Item> {
   const libraryByGroupID = new Map<number | null, number | null>();

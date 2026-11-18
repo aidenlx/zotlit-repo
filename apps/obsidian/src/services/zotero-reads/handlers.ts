@@ -52,8 +52,13 @@ import {
   isChildItemFields,
   resolveIndexedKeyLibrary,
 } from "@zotlit/db";
-import type { Attachment, GroupIDMemo, Item, TagMemo } from "@zotlit/db";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type {
+  Attachment,
+  GroupIDMemo,
+  Item,
+  TagMemo,
+  ZoteroDatabase,
+} from "@zotlit/db";
 import { ItemIndex, layerItemIndex } from "@zotlit/item-lookup";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 
@@ -129,9 +134,9 @@ export interface HandlersOptions {
  * stream.
  */
 function sliced<I, O>(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   slices: readonly I[][],
-  query: (client: NodeDatabaseClient, slice: I[]) => O,
+  query: (client: ZoteroDatabase, slice: I[]) => O,
 ): Stream.Stream<O, DbUnavailable> {
   return Stream.fromIterable(slices, { chunkSize: 1 }).pipe(
     Stream.mapEffect((slice) => read(client, (c) => query(c, slice))),
@@ -140,7 +145,7 @@ function sliced<I, O>(
 
 /** Live attachments for Indexed Keys, in request order; misses drop out. */
 function attachmentsByIndexedKeys(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   indexedKeys: readonly string[],
 ): Attachment[] {
   const selectors = indexedKeys.map((indexedKey) =>
@@ -206,7 +211,7 @@ function noteMemos(): NoteMemos {
 
 /** A connection a Snapshot pinned, with the reads using it right now. */
 interface Pinned {
-  readonly client: NodeDatabaseClient;
+  readonly client: ZoteroDatabase;
   /** Shared by the Snapshot's reads: a batch resolves each tag and collection once. */
   readonly memos: NoteMemos;
   /** Holds the borrow; closes after the Snapshot ends and its last read finishes. */
@@ -229,14 +234,14 @@ export function handlersLayer(options?: HandlersOptions) {
    * database. The stream's lookups share one group-id memo.
    */
   const idEntries = <L, E>(
-    client: NodeDatabaseClient,
+    client: ZoteroDatabase,
     itemIDs: readonly number[],
     {
       lookup,
       entry,
     }: {
       lookup: (
-        client: NodeDatabaseClient,
+        client: ZoteroDatabase,
         ids: readonly number[],
         opts: { memo: GroupIDMemo },
       ) => L;
@@ -314,7 +319,7 @@ export function handlersLayer(options?: HandlersOptions) {
       const borrow = (
         snapshot: SnapshotId | undefined,
       ): Effect.Effect<
-        NodeDatabaseClient,
+        ZoteroDatabase,
         DbUnavailable | SnapshotExpired,
         Scope.Scope
       > => {
@@ -336,7 +341,7 @@ export function handlersLayer(options?: HandlersOptions) {
       /** Borrow for one request and run `f` on the client. */
       const withClient = <A>(
         snapshot: SnapshotId | undefined,
-        f: (client: NodeDatabaseClient) => A,
+        f: (client: ZoteroDatabase) => A,
       ) =>
         Effect.scoped(
           Effect.flatMap(borrow(snapshot), (client) => read(client, f)),
@@ -352,7 +357,7 @@ export function handlersLayer(options?: HandlersOptions) {
       /** Borrow for a stream's whole life and build the stream on the client. */
       const withClientStream = <A>(
         snapshot: SnapshotId | undefined,
-        f: (client: NodeDatabaseClient) => Stream.Stream<A, DbUnavailable>,
+        f: (client: ZoteroDatabase) => Stream.Stream<A, DbUnavailable>,
       ) => Stream.unwrap(Effect.map(borrow(snapshot), (client) => f(client)));
 
       return ZoteroReads.of({
