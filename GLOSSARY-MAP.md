@@ -21,6 +21,7 @@
 - **item-query → obsidian**: the query core supplies one result set; the plugin exposes it through the Obsidian CLI
 - **protocol ↔ obsidian**: `@zotlit/protocol` defines the URL/HTTP actions (`open`, `update`, `import-note`, `update-many`) that the Companion sends and the Obsidian plugin handles
 - **templates ↔ obsidian**: `@zotlit/templates` provides the Eta rendering engine and managed-region helpers; the plugin owns template discovery, compilation caching, and the `zt.*` data contract
+- **plugin packages → obsidian**: `@zotlit/plugin-kernel`, `@zotlit/obsidian-kit` and `@zotlit/obsidian-desktop` hold the plugin's shared base and use the Obsidian Plugin context's vocabulary; they have no glossary of their own and name no domain concept of their own
 - **obsidian-i18n → obsidian**: `@zotlit/obsidian-i18n` owns Message and Language Pack semantics; ZotLit supplies its English base locale, release locations, Locale Aliases, ports, logging, consent copy, notices, and settings UI
 - **obsidian → docs**: the docs site documents the plugin's user-facing surface using the Obsidian Plugin context's vocabulary verbatim; docs-only naming follows the global ZotLit Companion rule in `policies/vocabulary.md`
 - **db → fixture**: the Fixture instantiates the Zotero Data Model's concepts (Libraries, Collections, Items, Citation Keys, Child Notes, Standalone Notes) as concrete generated data; the Obsidian Plugin reads that data in End-to-end Runs

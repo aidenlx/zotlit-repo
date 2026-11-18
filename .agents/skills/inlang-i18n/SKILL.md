@@ -16,21 +16,26 @@ Pair this skill with `/i18n-ui-text` when writing English UI copy.
 - `project.inlang/settings.json` — Inlang project configuration, base locale,
   and locale list.
 - `messages/{locale}.json` — shared message sources.
-- `apps/obsidian/scripts/generate-language-packs.ts` — compiler entry point.
-- `apps/obsidian/src/lib/i18n/generated/messages.ts` — generated typed facade.
-- `apps/obsidian/src/lib/i18n/generated/en.json` — bundled English pack.
-- `apps/obsidian/src/lib/i18n/runtime.ts` — eval-free interpreter.
-- `apps/obsidian/src/lib/i18n.ts` — Obsidian Locale Alias resolution and
+- `packages/plugin-messages/` (`@zotlit/plugin-messages`) — the package of the
+  generated Message facade; every plugin package and the app import it by
+  name.
+- `packages/plugin-messages/scripts/generate-language-packs.ts` — compiler entry point.
+- `packages/plugin-messages/generated/messages.ts` — generated typed facade
+  (`@zotlit/plugin-messages/messages.ts`).
+- `packages/plugin-messages/generated/en.json` — bundled English pack.
+- `packages/plugin-messages/generated/runtime.ts` — eval-free interpreter.
+- `apps/obsidian/src/i18n.ts` — Obsidian Locale Alias resolution and
   startup.
 
 Generated files are gitignored. Run:
 
 ```sh
-pnpm --filter @zotlit/obsidian generate:language-packs
+pnpm --filter @zotlit/plugin-messages generate:language-packs
 ```
 
-Turbo runs generation before typecheck and tests. Vite regenerates at build
-start and watches the message sources, project settings, and generator.
+Turbo runs generation (`@zotlit/plugin-messages#generate:language-packs`,
+with declared inputs and outputs) before typecheck and tests. The app's Vite
+build regenerates into the same folder at build start and watches the message sources, project settings, and generator.
 
 ## Adding or changing a message
 
@@ -45,7 +50,7 @@ start and watches the message sources, project settings, and generator.
 3. Import the facade and keep named-input call shapes:
 
 ```ts
-import * as m from "@/lib/i18n/generated/messages";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 m.welcome_view_name();
 m.annot_view_filter_count({ shown: 3, total: 8 });
@@ -137,7 +142,7 @@ rejected by the compiler.
 
 ## Locale behavior
 
-`apps/obsidian/src/lib/i18n.ts` resolves Obsidian language codes through the
+`apps/obsidian/src/i18n.ts` resolves Obsidian language codes through the
 Locale Alias table. Canonical locale names follow Inlang (`zh-CN`); unmatched
 codes resolve to English. Startup always installs bundled English first.
 Downloaded Language Packs are pure JSON data and use the same generated

@@ -97,6 +97,6 @@ A menu ZotLit creates with `new Menu()` around a research object — an annotati
 
 ## Testing
 
-- The mock `Menu` (`__mocks__/obsidian.ts`) keeps insertion order and records each item's `section` and the menu's `sections`: assert sections, not positions.
+- The mock `Menu` (`packages/obsidian-kit/src/__mocks__/obsidian.ts`) keeps insertion order and records each item's `section` and the menu's `sections`: assert sections, not positions.
 - `services/__fixtures__/file-menu.ts` `fileMenuHandler(segments, frontmatter)` drives the real `registerFileMenu` listener.
 - In the running app (`/obsidian-debug`), open the menu and read `body > .menu`: each `.menu-group` is a section group. Obsidian's CSS hides a separator that follows another.

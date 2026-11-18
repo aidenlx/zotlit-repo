@@ -13,8 +13,8 @@ Use `zt:`-prefixed utilities on the styled element. Feature stylesheets sit besi
 
 - **The `zt:` prefix is on every utility** — `zt:flex`, `zt:gap-2`, `zt:bg-background`, `zt:rounded-md` — and variants chain after it: `zt:hover:opacity-100`, `zt:@md:columns-2`. Tailwind v4's `prefix()` scopes the compiled selectors so they never collide with another plugin's output. The `@theme` variables in `src/zt-main.css` keep their authored names (no prefix).
 - **No token for an Obsidian variable** → reference it directly with the arbitrary-variable syntax — `zt:bg-(--modal-background)`, `zt:p-(--size-4-3)` — or extend `zt-main.css` following the existing pattern.
-- **Merge with `cn()`** from `@/lib/utils` (prefix-aware `twMerge`), and compose variants with `tv` from `@/lib/tw` rather than `tailwind-variants` directly.
-- **Obsidian's control classes stay in the wrappers.** `clickable-icon`, `mod-cta`, `setting-item*` and the like reach a component only through `src/components/obsidian/`; a control or layout of your own is `zt:` utilities over Obsidian's variables (`zt:rounded-(--clickable-icon-radius)`, `zt:text-(--icon-color)`). In a React tree a form row is JSX — a label, the wrapper's control, utilities — rather than `new Setting`. The `zotlit-css` lint rules hold `.tsx` files to both.
+- **Merge with `cn()`** from `@zotlit/obsidian-kit/utils.ts` (prefix-aware `twMerge`), and compose variants with `tv` from `@zotlit/plugin-kernel/tw.ts` rather than `tailwind-variants` directly.
+- **Obsidian's control classes stay in the wrappers.** `clickable-icon`, `mod-cta`, `setting-item*` and the like reach a component only through `packages/obsidian-kit/src/components/obsidian/`; a control or layout of your own is `zt:` utilities over Obsidian's variables (`zt:rounded-(--clickable-icon-radius)`, `zt:text-(--icon-color)`). In a React tree a form row is JSX — a label, the wrapper's control, utilities — rather than `new Setting`. The `zotlit-css` lint rules hold `.tsx` files to both.
 
 ## The three rules
 
@@ -37,7 +37,7 @@ Use `zt:`-prefixed utilities on the styled element. Feature stylesheets sit besi
 
 ## Quick decision tree
 
-1. **A native component exists** → the React wrapper from `src/components/obsidian/`, or the imperative `obsidian` class in DOM-built UI (see **Native components**). **A control that draws its own appearance is the exception** — a chip whose whole look is the caller's utilities, where the wrapper's supply, Obsidian's button box and its `mod-*` variants, is exactly what the chip takes back off. Build the bare element and record there why the wrapper would add nothing; `src/components/chooser.tsx`'s `Trigger` is the recorded case.
+1. **A native component exists** → the React wrapper from `packages/obsidian-kit/src/components/obsidian/`, or the imperative `obsidian` class in DOM-built UI (see **Native components**). **A control that draws its own appearance is the exception** — a chip whose whole look is the caller's utilities, where the wrapper's supply, Obsidian's button box and its `mod-*` variants, is exactly what the chip takes back off. Build the bare element and record there why the wrapper would add nothing; `packages/obsidian-kit/src/components/chooser.tsx`'s `Trigger` is the recorded case.
 2. **The value is only known at runtime** → the declaration stays in the class list and `style` carries the datum alone (see **Runtime values**).
 3. **Color** → a semantic token (`zt:text-muted`, `zt:bg-background`, `zt:text-accent-foreground`), never a raw palette one. For an RGB overlay, pair the `-rgb` variant: `rgba(var(--color-red-rgb), 0.2)`.
 4. **Spacing / size** → Tailwind's default scale (`zt:gap-2`, `zt:p-3`). Obsidian's `--size-4-N` are fixed 4px multiples no theme overrides, so they map 1:1.
@@ -108,10 +108,10 @@ That same cascade means Obsidian's own unlayered bare-element rules survive insi
 
 ## Native components
 
-- **React** — wrappers in `src/components/obsidian/` for anything needing modifier-class logic: `Button`, `IconButton`, `Toggle`, `Dropdown` (+ `DropdownItem`, `DropdownGroup`), `Slider`, `Color`, `Icon`, `SearchInput`. Read the source for each API.
+- **React** — wrappers in `packages/obsidian-kit/src/components/obsidian/` for anything needing modifier-class logic: `Button`, `IconButton`, `Toggle`, `Dropdown` (+ `DropdownItem`, `DropdownGroup`), `Slider`, `Color`, `Icon`, `SearchInput`. Read the source for each API.
 - **Bare in JSX** — `<input type="text/search/email/password/number/date/datetime-local">`, `<input type="checkbox">`, `<input type="radio">`, `<textarea>`. Obsidian's preflight styles these fully, so they take no wrapper. Reach for `AutosizeTextarea` from `react-textarea-autosize` when a textarea should grow with its content.
 - **Imperative DOM** (setting tabs, API-built modals) — `ButtonComponent`, `ToggleComponent`, `TextComponent`, `TextAreaComponent`, `DropdownComponent`, `ColorComponent`, `SliderComponent` from the `obsidian` module.
-- **Tooltips** are `aria-label`, spread through `tooltipAttrs`; `apps/obsidian/src/lib/utils.ts` owns the helper.
+- **Tooltips** are `aria-label`, spread through `tooltipAttrs`; `packages/obsidian-kit/src/utils.ts` owns the helper.
 
 ## Verifying
 

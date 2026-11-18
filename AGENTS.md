@@ -11,6 +11,8 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/db` — Drizzle ORM client for Zotero database.
 - `packages/db-testing` — test fixtures for `@zotlit/db` and its consumers: the Node fixture schema, statement counters, and scenario database, and the driver conformance suite (`./conformance`) that each client adapter runs. Tests depend on it as a dev dependency.
 - `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
+- `packages/plugin-kernel`, `packages/obsidian-kit`, `packages/obsidian-desktop` — the shared base of the Obsidian plugin, in three layers by what the host provides: host-free code (no `obsidian`, `electron` or `node:*`), code over the Obsidian API that loads on Obsidian Mobile, and desktop-only code over Node and Electron. A layer imports only the layers below it. See each package's `AGENTS.md`.
+- `packages/plugin-messages` — the generated Message facade and Language Packs of the Obsidian plugin (`@zotlit/plugin-messages/messages.ts`).
 - `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/templates` — Eta-based template rendering.

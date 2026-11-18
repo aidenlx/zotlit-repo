@@ -3,8 +3,8 @@
 Functional core, imperative shell — logic returns data and publishes events;
 the seam owns rendering. Effect code shows notices through the `Notifier`
 service (`lib/notifier.ts`: `show`, `reportOutcome`, `reportProgress`).
-A Promise edge with no Notifier uses `BaseNotice` (`@/lib/notice`) or
-`toast.promise` (`@/lib/toast`). Unload silence follows `unload.md`.
+A Promise edge with no Notifier uses `BaseNotice` (`@zotlit/obsidian-kit/notice.ts`) or
+`toast.promise` (`@zotlit/obsidian-kit/toast.ts`). Unload silence follows `unload.md`.
 
 Conditional flows decide when to show UI; a dedicated function at the seam
 owns what to render and stays callable independently of the trigger. This also
@@ -28,5 +28,5 @@ notice behavior itself checks Notifier calls through `testNotifier()` /
 `layerSignalling` (`lib/__fixtures__/notifier.ts`): the Notifier, a notices
 layer, a function that renders an outcome. A test that needs a notice to see
 what its module did marks a module to reshape onto a rung above. A test that
-would mock `@/lib/notice` or `@/lib/toast` marks a module to move behind the
+would mock `@zotlit/obsidian-kit/notice.ts` or `@zotlit/obsidian-kit/toast.ts` marks a module to move behind the
 Notifier; lint rule `zotlit-effect-tests/no-notice-mock` enforces this.

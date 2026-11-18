@@ -208,7 +208,7 @@ Bases replaces a native `<select>` with one internal combobox class: a `PopoverS
 - **Property variant.** The same class, with items for the query's properties. Every row has the property type's icon, and a muted raw id (`file.name`) at the end where the id is not the display name. The trigger shows the type icon before the display name. There are no group headings.
 - **Which selects use it.** The filter property and operator, the sort and group-by property and direction, and the Configure page's layout and property options. The filter group's conjunction and a layout's `"dropdown"` options stay native selects.
 
-ZotLit draws the same control with `Select` (`apps/obsidian/src/components/select.tsx`) on the Chooser, wearing no Obsidian class. An option's `icon` and `detail` give the property variant. ZotLit keeps a native select wherever the choices are a few fixed ones: the conjunction, a sort or group direction, the rows, the layout and the list markers. In the Match editor, a select is a `Select` only where `MatchSelect` is `searchable` and the theme supplies `matchSelect`.
+ZotLit draws the same control with `Select` (`packages/obsidian-kit/src/components/select.tsx`) on the Chooser, wearing no Obsidian class. An option's `icon` and `detail` give the property variant. ZotLit keeps a native select wherever the choices are a few fixed ones: the conjunction, a sort or group direction, the rows, the layout and the list markers. In the Match editor, a select is a `Select` only where `MatchSelect` is `searchable` and the theme supplies `matchSelect`.
 
 ### Keyboard and focus
 
@@ -224,7 +224,7 @@ What a popup control owes the keyboard, the screen reader and the pointer. `Sele
 
 ## ZotLit mapping
 
-`apps/obsidian/src/components/chooser.tsx` holds the ZotLit parts. The Query View consumers are in `apps/obsidian/src/views/query-view/` (`properties-menu.tsx`, `view-menu.tsx`, `configure-view.tsx`, `property-page.tsx`).
+`packages/obsidian-kit/src/components/chooser.tsx` holds the ZotLit parts. The Query View consumers are in `apps/obsidian/src/views/query-view/` (`properties-menu.tsx`, `view-menu.tsx`, `configure-view.tsx`, `property-page.tsx`).
 
 | Bases part                                                | Chooser part                                                                                                                                                 |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |

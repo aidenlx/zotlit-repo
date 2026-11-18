@@ -228,11 +228,11 @@ color). A `<span>` styled with `zt:` utilities stays in the utilities layer, so
 accent state utilities override the resting look cleanly. When more than one surface
 renders the same chip (or the states get complex — resting / selected / disabled,
 density, truncation), centralize the variants in one `tailwind-variants` recipe with
-the repo's prefix-aware `tv` from `@/lib/tw`, rather than duplicating the token
+the repo's prefix-aware `tv` from `@zotlit/plugin-kernel/tw.ts`, rather than duplicating the token
 string per call site:
 
 ```ts
-import { tv } from "@/lib/tw";
+import { tv } from "@zotlit/plugin-kernel/tw.ts";
 
 export const tagChipVariants = tv({
   base: "zt:rounded-(--tag-radius) zt:border-(length:--tag-border-width) zt:font-(--tag-weight) zt:leading-none",
