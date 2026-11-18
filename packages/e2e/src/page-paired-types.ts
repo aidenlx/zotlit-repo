@@ -1,8 +1,7 @@
 import type { Scope, MarkdownView } from "obsidian";
 
+import type { MutationState } from "@zotlit/annotations/obsidian/annotation-repository/write.ts";
 import type { E2eServices } from "@zotlit/obsidian/e2e";
-
-import type { MutationState } from "@/services/annotation-repository/write.ts";
 
 export interface PairedWriteProbe {
   api: E2eServices["zoteroLocalApi"];

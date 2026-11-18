@@ -16,6 +16,10 @@ const config: KnipConfig = {
     // The effectEntry Vite plugin resolves `@effect/vitest` to this wrapper,
     // which mirrors that package's exports for every test that imports it.
     "packages/plugin-kernel/src/effect-vitest.ts": ["exports"],
+    // The browser trials alias the host modules of the excerpt tree to these
+    // stubs (runInElectron's `alias`), so each export stands for a module.
+    "packages/annotations/src/__fixtures__/excerpt-image/renderer-{hash,host}.ts":
+      ["exports"],
   },
   workspaces: {
     ".": {
@@ -62,6 +66,9 @@ const config: KnipConfig = {
       includeEntryExports: true,
     },
     "packages/plugin-services": {
+      includeEntryExports: true,
+    },
+    "packages/annotations": {
       includeEntryExports: true,
     },
     "packages/plugin-messages": {

@@ -2,19 +2,19 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
+import type { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { AnnotationCitation } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import type { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import type { Profile } from "@/services/profile/service.ts";
 import { plainTemplateError } from "@/services/template/errors.ts";
 import type { Template } from "@/services/template/service.ts";
 
 import { renderAnnotationCitation } from "./annotation-citation.ts";
-import type { AnnotationCitation } from "./annotation-citation.ts";
 import { renderCitation } from "./citation.ts";
 
 /** The services the citations and the annotation insert read. */

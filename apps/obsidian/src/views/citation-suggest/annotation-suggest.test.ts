@@ -10,6 +10,7 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
+import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
@@ -18,7 +19,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
-import { stateEditor } from "@/views/annot-view/__fixtures__/editor.ts";
 
 import type { AnnotationHit } from "./annotation-search.ts";
 import { AnnotationEditorSuggest } from "./annotation-suggest.ts";

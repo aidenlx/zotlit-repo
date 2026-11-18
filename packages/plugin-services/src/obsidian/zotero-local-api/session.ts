@@ -93,7 +93,7 @@ export interface LocalApiSource {
  * say about a session. The Editing Capability is computed from it by the
  * annotation repository, where one Attachment's other facts are.
  *
- * @see apps/obsidian/src/services/annotation-repository/capability.ts
+ * @see packages/annotations/src/obsidian/annotation-repository/capability.ts
  */
 export type LocalApiState =
   /** No probe has answered yet — none has run, or one is running now. */

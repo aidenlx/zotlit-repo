@@ -3,26 +3,26 @@
 
 import type { Component, HoverParent } from "obsidian";
 
+import type {
+  ExcerptDisplayDemand,
+  ExcerptDisplays,
+} from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import type { CommentRenderer } from "@zotlit/annotations/obsidian/annot-view/comment-render.ts";
+import type {
+  AnnotationList,
+  AnnotationRecord,
+  AnnotationRepository,
+  AnnotationSource,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
-import type {
-  AnnotationList,
-  AnnotationRecord,
-  AnnotationRepository,
-  AnnotationSource,
-} from "@/services/annotation-repository/service.ts";
 import type { PopoverPart } from "@/services/citation-popover/visits.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
-import type {
-  ExcerptDisplayDemand,
-  ExcerptDisplays,
-} from "@/services/excerpt-image/display.ts";
-import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
-import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 
 import { AnnotationPopoverContent } from "./content.tsx";
 

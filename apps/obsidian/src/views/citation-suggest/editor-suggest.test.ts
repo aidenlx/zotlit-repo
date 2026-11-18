@@ -11,6 +11,7 @@ import type {
 } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { placeInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -40,7 +41,6 @@ import {
 } from "@/services/citation-index/test-harness.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
-import { placeInsertion } from "@/views/annot-view/async-insert.ts";
 
 import { readDocumentCitedKeys } from "./document-citations.ts";
 import {

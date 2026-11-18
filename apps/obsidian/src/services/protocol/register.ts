@@ -12,6 +12,18 @@ import {
 } from "effect";
 import type { ObsidianProtocolData, PaneType, Plugin } from "obsidian";
 
+import { toObsidianOpenable } from "@zotlit/annotations/core/attachment-open/openable.ts";
+import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attachment-open/resolve.ts";
+import {
+  openGesture,
+  pdfPickerReader,
+} from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import {
+  openAttachments,
+  withFixedPane,
+} from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
+import type { AttachmentReader } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
+import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import type { ItemRef } from "@zotlit/db";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
@@ -62,18 +74,6 @@ import type { ImportMode, ProtocolAction } from "@zotlit/protocol";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import {
-  openGesture,
-  pdfPickerReader,
-} from "@/services/attachment-open/actions.ts";
-import {
-  openAttachments,
-  withFixedPane,
-} from "@/services/attachment-open/open-attachments.ts";
-import type { AttachmentReader } from "@/services/attachment-open/open-attachments.ts";
-import { TargetOpener } from "@/services/attachment-open/open-target.ts";
-import { toObsidianOpenable } from "@/services/attachment-open/openable.ts";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
 import { openCompanionNote } from "@/services/note-feature/index.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/index.ts";
 import {

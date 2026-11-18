@@ -10,6 +10,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { TFile } from "obsidian";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 
+import { excerptAssetIdentities } from "@zotlit/annotations/desktop/excerpt-image/materialize.ts";
 import { getZoteroDatabaseIdentity } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
@@ -40,7 +41,6 @@ import {
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { excerptAssetIdentities } from "@/services/excerpt-image/materialize.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";

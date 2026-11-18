@@ -10,6 +10,8 @@
 import { Fragment, useMemo, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
+import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import type { OpenTarget } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import { resolveVenue } from "@zotlit/db";
 import {
   FirstLine,
@@ -20,8 +22,6 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
-import type { OpenTarget } from "@/services/attachment-open/open-target.ts";
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 
 import { ExpanderSpace } from "./expander-space.tsx";

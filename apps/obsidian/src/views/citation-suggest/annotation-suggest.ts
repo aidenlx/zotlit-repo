@@ -9,6 +9,11 @@ import type {
   TFile,
 } from "obsidian";
 
+import {
+  appendExcerptText,
+  pageLocator,
+} from "@zotlit/annotations/desktop/annot-view/excerpt-parts.tsx";
+import type { CommentRenderer } from "@zotlit/annotations/obsidian/annot-view/comment-render.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { CurrentAnswer } from "@zotlit/plugin-services/obsidian/item-lookup/current-answer.ts";
@@ -16,11 +21,6 @@ import { DEFAULT_LIMIT } from "@zotlit/plugin-services/obsidian/item-lookup/serv
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import type { QueryHandle } from "@/services/item-query/handle.ts";
-import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
-import {
-  appendExcerptText,
-  pageLocator,
-} from "@/views/annot-view/excerpt-parts.tsx";
 
 import { insertAnnotation } from "./annotation-insert.ts";
 import type { AnnotationInsertDeps } from "./annotation-insert.ts";

@@ -395,7 +395,7 @@ export async function recomputedSortIndex(
     {
       attachmentPath,
       position: JSON.parse(position) as Parameters<
-        import("@/services/pdf-annotation-editor/service.ts").PdfViewBinding["sortIndex"]
+        import("@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts").PdfViewBinding["sortIndex"]
       >[0],
     },
   );

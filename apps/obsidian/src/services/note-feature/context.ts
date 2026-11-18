@@ -2,6 +2,7 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
+import type { PreparedExcerpts } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import { toTemplateCollection } from "@zotlit/db";
 import type {
   ItemFacets,
@@ -22,7 +23,6 @@ import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/atta
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { joinNotePath } from "@zotlit/templates";
 
-import type { PreparedExcerpts } from "@/services/excerpt-image/prepare.ts";
 import { childNoteLink } from "@/services/note-import/child-note-link.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";

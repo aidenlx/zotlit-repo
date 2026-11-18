@@ -3,6 +3,7 @@ import { it } from "@effect/vitest";
 import { Effect, Layer, Stream } from "effect";
 import { expect, vi } from "vitest";
 
+import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type { CiteRef } from "@zotlit/db";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -20,7 +21,6 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import {

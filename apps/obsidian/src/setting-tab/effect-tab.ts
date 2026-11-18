@@ -11,6 +11,10 @@
 import { Cause, Context, Effect, Fiber, Scope, Stream } from "effect";
 import type { FileSystem } from "effect";
 
+import type { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import type { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -30,11 +34,7 @@ import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/s
 import type { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import type { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
-import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type { CitationIndex } from "@/services/citation-index/service.ts";
-import type { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
-import type { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import type { Customize } from "@/services/local-bridge/customize.ts";
 import type { LocalBridge } from "@/services/local-bridge/service.ts";
 import type { NoteFeature } from "@/services/note-feature/service.ts";

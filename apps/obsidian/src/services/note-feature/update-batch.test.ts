@@ -16,6 +16,8 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 
+import { excerptReuseProbe } from "@zotlit/annotations/__fixtures__/excerpt-image/reuse.ts";
+import type { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Item, Library } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
@@ -60,8 +62,6 @@ import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import type { BatchRunControls } from "@/services/batch-run.ts";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import { batchUpdateNotices } from "@/services/note-feature/update-single.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";

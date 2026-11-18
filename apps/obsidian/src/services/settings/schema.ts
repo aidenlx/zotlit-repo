@@ -4,6 +4,7 @@
 // `SettingsRegistry`; the check below keeps the two lists equal.
 import * as v from "valibot";
 
+import { readerSettings } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings.ts";
 import { attachmentSettings } from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import { databaseSettings } from "@zotlit/plugin-services/core/database/settings.ts";
 import { itemLookupSettings } from "@zotlit/plugin-services/core/item-lookup/settings.ts";
@@ -17,7 +18,6 @@ import type {
 
 import { citationSettings } from "@/services/citation-index/settings.ts";
 import { noteImportSettings } from "@/services/note-import/settings.ts";
-import { readerSettings } from "@/services/pdf-annotation-editor/settings.ts";
 import { profileSettings } from "@/services/profile/settings.ts";
 import { releaseSettings } from "@/services/release/settings.ts";
 import { templateSettings } from "@/services/template/settings.ts";

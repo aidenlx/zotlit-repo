@@ -1,13 +1,13 @@
-import "./style.css";
+import "@zotlit/annotations/desktop/annot-view/style.css";
 import type { App, Plugin } from "obsidian";
 
+import type { AnnotActions } from "@zotlit/annotations/desktop/annot-view/actions.tsx";
+import type { AnnotViewModel } from "@zotlit/annotations/obsidian/annot-view/model.ts";
+import type { AnnotState } from "@zotlit/annotations/obsidian/annot-view/state.ts";
+import type { AnnotViewState } from "@zotlit/annotations/obsidian/annot-view/view-state.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { AnnotActions } from "./actions.tsx";
-import type { AnnotViewModel } from "./model.ts";
-import type { AnnotState } from "./state.ts";
-import type { AnnotViewState } from "./view-state.ts";
 import { ANNOT_VIEW_TYPE, AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";
 

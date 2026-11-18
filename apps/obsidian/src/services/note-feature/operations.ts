@@ -1,10 +1,9 @@
 import type { TFile } from "obsidian";
 
+import type { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import type { Item } from "@zotlit/db";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { UpdateScope } from "@zotlit/protocol";
-
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 
 import type { NoteCitations } from "./citations-handle.ts";
 import type { NoteCreation } from "./creation-handle.ts";

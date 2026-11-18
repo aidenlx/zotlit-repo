@@ -4,6 +4,10 @@
 // heading act on them as they do on the Annotations layout's cards.
 import { Fragment, useLayoutEffect, useMemo } from "react";
 
+import {
+  useAnnotStore,
+  useToggleGroupCollapsed,
+} from "@zotlit/annotations/obsidian/annot-view/store.ts";
 import { errorCell, valueText } from "@zotlit/item-query";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
@@ -12,10 +16,6 @@ import type {
   QueryViewRow,
   QueryViewValue,
 } from "@/services/item-query/query-view.ts";
-import {
-  useAnnotStore,
-  useToggleGroupCollapsed,
-} from "@/views/annot-view/store.ts";
 
 import { useQueryViewState } from "./model.ts";
 import { vaultName } from "./query-file.ts";

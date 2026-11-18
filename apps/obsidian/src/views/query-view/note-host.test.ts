@@ -10,6 +10,7 @@ import type {
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { testAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 // A note holds a Query View in two ways: the Query File embed and the Query
 // Block. Both bind `this` to the note's Item, take the card keys, keep a click
@@ -23,11 +24,11 @@ import {
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
 } from "@/services/item-query/query-view.ts";
-import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
 
@@ -156,7 +157,7 @@ async function setup(kind: HostKind, file = FILE) {
   };
   const deps = stubService<QueryViewDeps & QueryHostDeps>("QueryViewDeps", {
     runtime,
-    registry: testAnnotHost().registry,
+    registry: testAnnotHost(layerUnreadViewServices).registry,
     app,
     reads: stubService<QueryHostDeps["reads"]>("ZoteroReads", {
       changed: Stream.empty,

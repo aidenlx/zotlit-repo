@@ -3,14 +3,13 @@
 import { DateTime, Effect, FiberHandle, Queue, Stream } from "effect";
 import type { ButtonComponent, Setting, SettingGroupItem } from "obsidian";
 
+import { editingCapabilityCopy } from "@zotlit/annotations/obsidian/annotation-repository/capability-copy.ts";
+import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
-
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
-import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";
 import { applyAction, editingRowModel } from "./zotero-editing-model.ts";

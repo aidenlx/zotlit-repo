@@ -4,6 +4,10 @@ import type { App } from "obsidian";
 import { createContext, useContext } from "react";
 import type { MouseEvent } from "react";
 
+import {
+  openAttachments,
+  zoteroAttachmentReader,
+} from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import type { ClipboardRepresentation } from "@zotlit/plugin-kernel/clipboard.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
@@ -11,10 +15,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import {
-  openAttachments,
-  zoteroAttachmentReader,
-} from "@/services/attachment-open/open-attachments.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,

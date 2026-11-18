@@ -12,6 +12,20 @@ import type { Scope } from "obsidian";
 import { useLayoutEffect, useMemo } from "react";
 import type { ComponentType } from "react";
 
+import { CardDisplayContext } from "@zotlit/annotations/core/annot-view/card-display.ts";
+import type { CardDisplay } from "@zotlit/annotations/core/annot-view/card-display.ts";
+import { AnnotList } from "@zotlit/annotations/desktop/annot-view/AnnotView.tsx";
+import { AnnotationsLayout } from "@zotlit/annotations/desktop/annot-view/layout.tsx";
+import type {
+  AnnotationsLayoutDeps,
+  AnnotationsLayoutHost,
+} from "@zotlit/annotations/desktop/annot-view/layout.tsx";
+import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import { viewTargetOpener } from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
+import { useAnnotStore } from "@zotlit/annotations/obsidian/annot-view/store.ts";
+import type { AnnotState } from "@zotlit/annotations/obsidian/annot-view/store.ts";
+import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import type { HistoryDirection } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary, QueryContext } from "@zotlit/item-query";
 import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
@@ -35,9 +49,6 @@ import {
 } from "@zotlit/zotero-reads/client/atoms.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
-import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
-import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import { queryRevisionAtom } from "@/services/item-query/atoms.ts";
 import type { Diagnostic } from "@/services/item-query/contract.ts";
 import type { QueryHandle } from "@/services/item-query/handle.ts";
@@ -47,17 +58,6 @@ import type {
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
-import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
-import { CardDisplayContext } from "@/views/annot-view/card-display.ts";
-import type { CardDisplay } from "@/views/annot-view/card-display.ts";
-import { AnnotationsLayout } from "@/views/annot-view/layout.tsx";
-import type {
-  AnnotationsLayoutDeps,
-  AnnotationsLayoutHost,
-} from "@/views/annot-view/layout.tsx";
-import { useAnnotStore } from "@/views/annot-view/store.ts";
-import type { AnnotState } from "@/views/annot-view/store.ts";
-import { viewTargetOpener } from "@/views/open-target.ts";
 
 import { makeRunQueryCommand } from "./atoms.ts";
 import type { QueryCardFocus } from "./card-focus.ts";

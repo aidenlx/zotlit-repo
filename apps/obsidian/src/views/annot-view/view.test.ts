@@ -4,6 +4,15 @@ import type { App, Menu as ObsidianMenu, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
+import type { AnnotHostOptions } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
+import { annotationReads } from "@zotlit/annotations/__fixtures__/pdf-annotation-editor.ts";
+import type { EditingCapability } from "@zotlit/annotations/obsidian/annotation-repository/capability.ts";
+import type {
+  AnnotationRepository,
+  AnnotationList,
+  AnnotationRecord,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { IDLE } from "@zotlit/annotations/obsidian/annotation-repository/write.ts";
 import type { AnnotViewAttachment } from "@zotlit/db";
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
 import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
@@ -28,19 +37,11 @@ import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
-import type {
-  AnnotationRepository,
-  AnnotationList,
-  AnnotationRecord,
-} from "@/services/annotation-repository/service.ts";
-import { IDLE } from "@/services/annotation-repository/write.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
@@ -48,7 +49,6 @@ import { requested } from "@/views/query-view/__fixtures__/query-run.ts";
 import { serializeQueryFile } from "@/views/query-view/query-file.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
-import type { AnnotHostOptions } from "./__fixtures__/host.ts";
 import { AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";
 

@@ -1,6 +1,6 @@
 // The text an annotation search matches, as a ZotLit Query expression.
 
-import { COMMENT_TAG_SOURCE } from "@/views/annot-view/comment-format.ts";
+import { COMMENT_TAG_SOURCE } from "@zotlit/annotations/core/annot-view/comment-format.ts";
 
 /**
  * A ZotLit Query expression for the visible text of `field`, an annotation's

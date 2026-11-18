@@ -1,27 +1,14 @@
-// The parts of Obsidian's API that carry ZotLit's own types: the PDF.js the
-// host loads, and the workspace events ZotLit raises. The private API that
-// needs no ZotLit type is declared in the Obsidian kit's typings.
+// The workspace events ZotLit raises that carry the plugin's own types, and the
+// menus the plugin raises itself (`ZotLitMenuEvents`). The private API that
+// needs no plugin type is declared in the Obsidian kit's typings; the
+// annotation feature declares its own menus.
 import "obsidian";
 
 declare module "obsidian" {
-  /** Cold-loads the host PDF.js module and configures its worker. Internal. */
-  export function loadPdfJs(): Promise<
-    import("../services/excerpt-image/renderer.ts").ExcerptPdfJs
-  >;
   interface Workspace {
     on(
       name: "zotlit:switch-profile",
       callback: (request: { path: string }) => void,
-      ctx?: any,
-    ): EventRef;
-
-    /** A menu ZotLit built, raised before it shows so listeners add entries. */
-    on<E extends import("@/services/menu-events.ts").ZotLitMenuEvent>(
-      name: E,
-      callback: (
-        menu: Menu,
-        info: import("@/services/menu-events.ts").ZotLitMenuEvents[E],
-      ) => any,
       ctx?: any,
     ): EventRef;
 
@@ -35,5 +22,28 @@ declare module "obsidian" {
       ) => void,
       ctx?: any,
     ): EventRef;
+  }
+}
+
+declare module "@zotlit/obsidian-kit/menu-events.ts" {
+  interface ZotLitMenuEvents {
+    /** The picker over the works one Rendered Citation names, when it names several. */
+    "zotlit:cited-works-menu": {
+      works: readonly import("@/services/citekey-navigation/intent.ts").CitedWork[];
+    };
+    /** A Cited Work Node's menu in the graph: the citekey the node stands for. */
+    "zotlit:graph-cited-work-menu": {
+      citekey: string;
+      /** What the citekey names; `null` while the resolution snapshot is cold. */
+      resolution:
+        | import("@zotlit/zotero-reads/contract/citation-lookup.ts").CitekeyResolution
+        | null;
+    };
+    /** A row's menu in the Library View: the Item the row lists. */
+    "zotlit:item-menu": {
+      source: "library-view";
+      /** The Item's Indexed Key. */
+      indexedKey: string;
+    };
   }
 }

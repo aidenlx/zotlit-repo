@@ -21,12 +21,12 @@ export const formatVersions: readonly FormatVersion[] = [
   },
   {
     name: "Excerpt store",
-    file: "apps/obsidian/src/services/excerpt-image/store.ts",
+    file: "packages/annotations/src/obsidian/excerpt-image/store.ts",
     constant: "SCHEMA_VERSION",
   },
   {
     name: "Excerpt cache identity",
-    file: "apps/obsidian/src/services/excerpt-image/contract.ts",
+    file: "packages/annotations/src/obsidian/excerpt-image/contract.ts",
     constant: "EXCERPT_RENDERER_VERSION",
   },
   {

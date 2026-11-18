@@ -5,6 +5,11 @@
 
 import { Effect } from "effect";
 
+import {
+  excerptAssetIdentities,
+  isOwnedExcerptAssetPath,
+} from "@zotlit/annotations/desktop/excerpt-image/materialize.ts";
+import { referencedExcerptPaths } from "@zotlit/annotations/obsidian/excerpt-image/references.ts";
 import { annotationHasCacheImage } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
 import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
@@ -18,12 +23,6 @@ import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.t
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { SnapshotVaultTargets } from "@zotlit/workbench/snapshot";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
-
-import {
-  excerptAssetIdentities,
-  isOwnedExcerptAssetPath,
-} from "@/services/excerpt-image/materialize.ts";
-import { referencedExcerptPaths } from "@/services/excerpt-image/references.ts";
 
 /** The services the vault targets read. */
 export type VaultTargetServices =

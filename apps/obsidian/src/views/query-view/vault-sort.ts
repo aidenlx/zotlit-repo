@@ -6,6 +6,8 @@
 // a grouped view, so `limit` still counts the rows the researcher sees.
 //
 // @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
+
+import type { LayoutRow } from "@zotlit/annotations/desktop/annot-view/layout.tsx";
 import {
   compareScalars,
   projectedSortKey,
@@ -17,7 +19,6 @@ import type {
   QueryViewRequest,
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
-import type { LayoutRow } from "@/views/annot-view/layout.tsx";
 
 import { sortOptions } from "./properties.ts";
 import type { PropertyOption } from "./properties.ts";

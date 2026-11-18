@@ -4,6 +4,10 @@ import { Effect, Layer, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
+import {
+  openTargetCommand,
+  viewTargetOpener,
+} from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
@@ -15,7 +19,6 @@ import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import type { QueryViewRequest } from "@/services/item-query/query-view.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
-import { openTargetCommand, viewTargetOpener } from "@/views/open-target.ts";
 import { waitFor } from "@/views/welcome/__fixtures__.ts";
 
 import { makeLibraryHost } from "./__fixtures__.ts";

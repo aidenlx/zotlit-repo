@@ -2,6 +2,14 @@ import { View } from "obsidian";
 import type { Plugin } from "obsidian";
 import semverGte from "semver/functions/gte";
 
+import { addAttachmentOpenActions } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import { registerFileLinkCapture } from "@zotlit/annotations/desktop/attachment-open/capture.ts";
+import { attachmentOpenFileMenu } from "@zotlit/annotations/desktop/attachment-open/menu.ts";
+import { openTargetCommand } from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
+import { createCommentRenderer } from "@zotlit/annotations/obsidian/annot-view/comment-render.ts";
+import { addAnnotationHistoryActions } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import { annotationHistoryFileMenu } from "@zotlit/annotations/obsidian/annotation-repository/menu.ts";
 import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -20,12 +28,6 @@ import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
 import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
 
 import { startI18n } from "./i18n.ts";
-import { addAnnotationHistoryActions } from "./services/annotation-repository/actions.ts";
-import type { HistorySurface } from "./services/annotation-repository/actions.ts";
-import { annotationHistoryFileMenu } from "./services/annotation-repository/menu.ts";
-import { addAttachmentOpenActions } from "./services/attachment-open/actions.ts";
-import { registerFileLinkCapture } from "./services/attachment-open/capture.ts";
-import { attachmentOpenFileMenu } from "./services/attachment-open/menu.ts";
 import { addCitekeyEditorActions } from "./services/citekey-editor/actions.ts";
 import { addGraphCitationsActions } from "./services/graph-citations/actions.ts";
 import { registerWorkbenchSavedNotice } from "./services/local-bridge/notices.ts";
@@ -39,7 +41,6 @@ import {
   createProfileDialog,
   importProfileDialog,
 } from "./setting-tab/profile-dialogs.ts";
-import { createCommentRenderer } from "./views/annot-view/comment-render.ts";
 import { registerAnnotView } from "./views/annot-view/register.ts";
 import { AnnotationView } from "./views/annot-view/view.tsx";
 import {
@@ -57,7 +58,6 @@ import {
   showInLibrary,
 } from "./views/library/register.ts";
 import { showInLibraryFileMenu } from "./views/library/show-in-library-actions.ts";
-import { openTargetCommand } from "./views/open-target.ts";
 import { registerPandocExport } from "./views/pandoc-export/register.ts";
 import { registerPdfNote } from "./views/pdf-note/register.ts";
 import { registerQueryBlock } from "./views/query-view/block.ts";

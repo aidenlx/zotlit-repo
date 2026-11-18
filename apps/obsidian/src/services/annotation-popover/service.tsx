@@ -1,6 +1,15 @@
 // The Annotation Popover as an Effect service.
 import { Context, Effect, Layer } from "effect";
 
+import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import { createCommentRenderer } from "@zotlit/annotations/obsidian/annot-view/comment-render.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type {
+  AnnotationLibraryUnresolved,
+  AnnotationList,
+  DatabaseRowsError,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { savedExcerptRequestOver } from "@zotlit/annotations/obsidian/excerpt-image/request.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -8,16 +17,7 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type {
-  AnnotationLibraryUnresolved,
-  AnnotationList,
-  DatabaseRowsError,
-} from "@/services/annotation-repository/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
-import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
-import { savedExcerptRequestOver } from "@/services/excerpt-image/request.ts";
-import { createCommentRenderer } from "@/views/annot-view/comment-render.ts";
 
 import { AnnotationPopoverCore } from "./popover.tsx";
 import type { AnnotationHoverRequest } from "./popover.tsx";

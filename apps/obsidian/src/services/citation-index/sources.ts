@@ -8,19 +8,10 @@ import { parseAttachmentPath } from "@zotlit/db/path";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import type { ZoteroOpenableAttachment } from "@zotlit/plugin-services/core/attachment-resolver/zotero-openable.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { Citation } from "./query.ts";
-
-/** One Attachment the Item offers to open in Zotero's reader. */
-export interface ZoteroOpenableAttachment {
-  /** Bare Zotero key of the Attachment itself, for `zotero://open`. */
-  key: string;
-  /** Group library ID, or `null` for the personal library. */
-  groupID: number | null;
-  /** Filename, which names the row when an Item carries several. */
-  label: string;
-}
 
 /** Whether the Zotero database answered the source-join read. */
 export type DatabaseReadability = "ready" | "unreadable";

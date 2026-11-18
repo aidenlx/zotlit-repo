@@ -1,6 +1,20 @@
 // Composes the plugin's Effect runtime and binds the services the plugin shell and debug surface read.
 import { Effect, FiberSet, FileSystem, Scope } from "effect";
 
+import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import { blockedNotice } from "@zotlit/annotations/obsidian/annot-view/card-verbs.ts";
+import type { InsertRunner } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
+import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import { bindCapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices-handle.ts";
+import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { bindLiteratureNoteAttachments } from "@zotlit/annotations/obsidian/attachment-open/handle.ts";
+import type { LiteratureNoteServices } from "@zotlit/annotations/obsidian/attachment-open/literature-note.ts";
+import type { ExcerptReaderDocuments } from "@zotlit/annotations/obsidian/excerpt-image/reader-borrow.ts";
+import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import { openExcerptStore } from "@zotlit/annotations/obsidian/excerpt-image/store.ts";
+import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
 import { cliRunner } from "@zotlit/obsidian-kit/cli-command.ts";
 import { DisposableAbortController } from "@zotlit/obsidian-kit/disposables.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -33,8 +47,6 @@ import {
   createProfileDialog,
   importProfileDialog,
 } from "@/setting-tab/profile-dialogs.ts";
-import { blockedNotice } from "@/views/annot-view/card-verbs.ts";
-import type { InsertRunner } from "@/views/annot-view/insert-run.ts";
 import {
   annotationCardShown,
   revealAnnotationInView,
@@ -51,21 +63,11 @@ import { openWelcomeView } from "@/views/welcome/register.ts";
 import type ZotLitPlugin from "@/zt-main.ts";
 
 import { AnnotationPopover } from "./annotation-popover/service.tsx";
-import { bindCapabilityNotices } from "./annotation-repository/notices-handle.ts";
-import { CapabilityNotices } from "./annotation-repository/notices.ts";
-import { AnnotationRepository } from "./annotation-repository/service.ts";
-import { bindLiteratureNoteAttachments } from "./attachment-open/handle.ts";
-import type { LiteratureNoteServices } from "./attachment-open/literature-note.ts";
-import { TargetOpener } from "./attachment-open/open-target.ts";
 import { CitationLookup } from "./citation-index/lookup-service.ts";
 import { CitationIndex } from "./citation-index/service.ts";
 import { CitationPopover } from "./citation-popover/service.tsx";
 import { CitationText } from "./citation-text/service.ts";
 import { CitekeyEditor } from "./citekey-editor/service.ts";
-import { ExcerptDisplays } from "./excerpt-image/display.ts";
-import type { ExcerptReaderDocuments } from "./excerpt-image/reader-borrow.ts";
-import { ExcerptImageService } from "./excerpt-image/service.ts";
-import { openExcerptStore } from "./excerpt-image/store.ts";
 import { GraphCitations } from "./graph-citations/service.ts";
 import { bindQuery } from "./item-query/handle.ts";
 import { QueryService } from "./item-query/service.ts";
@@ -83,13 +85,11 @@ import type { InteractiveCreationPorts } from "./note-feature/creation-view.ts";
 import { bindNoteFeature, NoteFeature } from "./note-feature/index.ts";
 import type { NoteFeatureHandle } from "./note-feature/index.ts";
 import { batchUpdateNotices } from "./note-feature/update-single.ts";
-import { AnnotationNoteActions } from "./note-feature/view-actions.ts";
 import { bindBatchImport } from "./note-import/batch-import-handle.ts";
 import type { BatchImportServices } from "./note-import/batch-import.ts";
 import { importChildNotes, importStarter } from "./note-import/commands.ts";
 import { createNoteImportView } from "./note-import/view.ts";
 import { PandocEngine } from "./pandoc/service.ts";
-import { PdfAnnotationEditor } from "./pdf-annotation-editor/service.ts";
 import { pluginLayer } from "./plugin-layer.ts";
 import { Profile } from "./profile/service.ts";
 import type { ProtocolDeps } from "./protocol/register.ts";

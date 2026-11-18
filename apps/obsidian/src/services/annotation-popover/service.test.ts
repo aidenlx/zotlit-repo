@@ -9,6 +9,20 @@ import { Context, Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { App, HoverParent } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
+import { setup } from "@zotlit/annotations/__fixtures__/annotation-repository.ts";
+import { ExcerptDisplayFixture } from "@zotlit/annotations/__fixtures__/excerpt-image/display.ts";
+import { NodeExcerptImageFixture as ExcerptImageService } from "@zotlit/annotations/__fixtures__/excerpt-image/node-service.ts";
+import { redPng } from "@zotlit/annotations/__fixtures__/excerpt-image/png.ts";
+import {
+  EXCERPT_DISPLAY,
+  ExcerptDisplays,
+} from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type {
+  AnnotationRecord,
+  AnnotationSource,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { savedExcerptRequestOver } from "@zotlit/annotations/obsidian/excerpt-image/request.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -19,23 +33,9 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-import { setup } from "@/services/annotation-repository/__fixtures__.ts";
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type {
-  AnnotationRecord,
-  AnnotationSource,
-} from "@/services/annotation-repository/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import type { WorkHoverRequest } from "@/services/citation-popover/service.tsx";
 import { HoverVisits } from "@/services/citation-popover/visits.ts";
-import { ExcerptDisplayFixture } from "@/services/excerpt-image/__fixtures__/display.ts";
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
-import { redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
-import {
-  EXCERPT_DISPLAY,
-  ExcerptDisplays,
-} from "@/services/excerpt-image/display.ts";
-import { savedExcerptRequestOver } from "@/services/excerpt-image/request.ts";
 
 import { AnnotationPopoverCore } from "./popover.tsx";
 import { AnnotationPopover, layerAnnotationPopover } from "./service.tsx";

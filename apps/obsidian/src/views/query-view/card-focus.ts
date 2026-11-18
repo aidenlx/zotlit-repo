@@ -6,10 +6,9 @@
 // dragged out of it carries the card, not the link that embeds the view.
 import type { App, Scope } from "obsidian";
 
+import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import { inTextEntry } from "@zotlit/annotations/obsidian/pdf-annotation-editor/capability-affordance.ts";
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
-
-import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 
 /**
  * Where focus goes while the researcher still works in the view: a modal,

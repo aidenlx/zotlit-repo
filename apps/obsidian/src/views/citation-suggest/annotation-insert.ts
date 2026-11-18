@@ -1,15 +1,14 @@
 // The editor captures the suggestion destination before entering the shared Effect flow.
 import type { App, MarkdownFileInfo } from "obsidian";
 
-import { observeExit } from "@zotlit/workbench/ui";
-
-import { captureInsertion } from "@/views/annot-view/async-insert.ts";
-import { insertOutcomeMessage } from "@/views/annot-view/drag-insert.ts";
-import { startInsert } from "@/views/annot-view/insert-run.ts";
+import { captureInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
+import { insertOutcomeMessage } from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
+import { startInsert } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
 import type {
   InsertFiber,
   InsertRunner,
-} from "@/views/annot-view/insert-run.ts";
+} from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
+import { observeExit } from "@zotlit/workbench/ui";
 
 import type { AnnotationHit } from "./annotation-search.ts";
 

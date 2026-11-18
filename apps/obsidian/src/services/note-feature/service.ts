@@ -13,6 +13,8 @@ import {
 } from "effect";
 import type { TFile } from "obsidian";
 
+import { collectExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type { Item } from "@zotlit/db";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -21,9 +23,6 @@ import {
   itemKeyFromFrontmatter,
   NoteIndex,
 } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
-
-import { collectExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 
 import {
   getImportedNotesForItem,

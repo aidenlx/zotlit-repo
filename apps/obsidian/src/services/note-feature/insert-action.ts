@@ -1,6 +1,13 @@
 // One annotation insertion: render, commit, and return its operation outcome.
 import { Effect } from "effect";
 
+import type {
+  AnnotationInsertOutcome,
+  AnnotationInsertRequest,
+  AnnotationSnapshot,
+} from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -8,43 +15,10 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type {
-  AnnotationRecord,
-  AnnotationSource,
-} from "@/services/annotation-repository/service.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import { plainTemplateError } from "@/services/template/errors.ts";
 import { ProfileAnnotationError } from "@/services/template/service.ts";
-import type { Placement } from "@/views/annot-view/async-insert.ts";
 
 import { prepareAnnotationInsert } from "./insert-annotation.ts";
-
-export interface AnnotationSnapshot {
-  source: AnnotationSource | null;
-  sourceScope: string | null;
-}
-interface AnnotationInsertTarget {
-  valid: () => boolean;
-  commit(text: string, placement?: Placement): boolean;
-}
-/**
- * The annotation an insert takes: a record the caller holds with its source,
- * or a search hit that the insert reads from the repository.
- */
-export type AnnotationInsertSubject =
-  | {
-      annotation: AnnotationRecord;
-      snapshot: AnnotationSnapshot;
-    }
-  | {
-      hit: { key: string; attachmentKey: string; itemKey: string };
-    };
-export type AnnotationInsertRequest = AnnotationInsertSubject & {
-  target: AnnotationInsertTarget;
-  notePath: string;
-  placement?: Placement;
-};
 
 function fallbackText(annotation: AnnotationRecord): string {
   const key = parseIndexedKey(annotation.key);
@@ -54,24 +28,6 @@ function fallbackText(annotation: AnnotationRecord): string {
     `${m.excerpt_image_unavailable()}${key && parent ? ` [Zotero](${annotationOpenUri({ annotationKey: key.key, attachmentKey: parent.key, groupID: key.groupID, pageLabel: annotation.pageLabel })})` : ""}`
   );
 }
-
-/** How one asynchronous annotation insert ended. */
-export type AnnotationInsertOutcome =
-  /** No note in Source mode or Live Preview takes the insert. */
-  | { kind: "no-note" }
-  /** The selected search hit is no longer in the repository. */
-  | { kind: "unavailable" }
-  /** The annotation's source is gone, so nothing is inserted. */
-  | { kind: "source-unavailable" }
-  /** The template could not render, and the fallback text took its place. */
-  | { kind: "fallback"; landed: boolean }
-  | { kind: "inserted"; summary: ExcerptSummary }
-  /** A Profile error: the annotation's own text took the template's place. */
-  | { kind: "profile-error"; error: ProfileAnnotationError; landed: boolean }
-  /** The insert failed; the log keeps the error. */
-  | { kind: "failed" }
-  /** The target went away, or a newer insert took its place. */
-  | { kind: "cancelled" };
 
 /** The captured destination cancels the read and render before any text is committed. */
 export const commitAnnotation = Effect.fn("AnnotationNoteActions.insert")(

@@ -1,6 +1,16 @@
 // Renders the captured card once, after its final image outcome is durable.
 import { Effect } from "effect";
 
+import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type {
+  AnnotationRecord,
+  AnnotationSource,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import {
+  excerptInputs,
+  excerptRequestFrom,
+} from "@zotlit/annotations/obsidian/excerpt-image/request.ts";
 import { buildAnnotationParents } from "@zotlit/db";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -10,16 +20,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import type {
-  AnnotationRecord,
-  AnnotationSource,
-} from "@/services/annotation-repository/service.ts";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import {
-  excerptInputs,
-  excerptRequestFrom,
-} from "@/services/excerpt-image/request.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
 import {

@@ -2,13 +2,13 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { Command } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
+import { makeAnnotViewModel } from "@zotlit/annotations/obsidian/annot-view/model.ts";
+import type { FollowMode } from "@zotlit/annotations/obsidian/annot-view/store.ts";
+import { DEFAULT_FOLLOW_MODE } from "@zotlit/annotations/obsidian/annot-view/view-state.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { makeAnnotViewModel } from "./model.ts";
 import { addFollowModeCommands } from "./register.ts";
 import type { FollowModeCommandTarget } from "./register.ts";
-import type { FollowMode } from "./store.ts";
-import { DEFAULT_FOLLOW_MODE } from "./view-state.ts";
 
 function view(
   state: { followMode?: FollowMode; pinnable?: string | null } = {},

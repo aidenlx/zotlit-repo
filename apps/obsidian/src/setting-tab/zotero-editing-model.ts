@@ -2,12 +2,12 @@
 // before any element is touched.
 import type { ButtonComponent } from "obsidian";
 
-import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
+import { editingCapabilityCopy } from "@zotlit/annotations/obsidian/annotation-repository/capability-copy.ts";
 import type {
   CapabilityCopy,
   CopyInstant,
-} from "@/services/annotation-repository/capability-copy.ts";
-import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
+} from "@zotlit/annotations/obsidian/annotation-repository/capability-copy.ts";
+import type { EditingCapability } from "@zotlit/annotations/obsidian/annotation-repository/capability.ts";
 
 /** Whether one action is offered at all, and whether it can be selected now. */
 export interface ActionState {

@@ -1,5 +1,5 @@
-import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service.ts";
-import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service.ts";
+import { effectImageResolver } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
+import type { ExcerptImageFixture } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
 // The real note importer layer over a test's Profile, Note Index, Template,
 // Zotero paths, Obsidian host and excerpt preparation.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
@@ -14,15 +14,15 @@ import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { layerAttachmentImportOver } from "@zotlit/plugin-services/desktop/attachment-import/__fixtures__.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
-import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
   layerExcerptPreparation,
-} from "@/services/excerpt-image/prepare.ts";
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type {
   NoteExcerptOptions,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare.ts";
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import { layerNoteImporter, NoteImporter } from "@/services/note-import/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";

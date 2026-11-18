@@ -694,9 +694,10 @@ const CAPTURED_RUNNERS = new Set(["runPromiseWith", "runPromiseExitWith"]);
  * Scope instead — `scopedBridge`, `forkedBridge` for a write runner, the
  * layer's `FiberSet.runtime`, or `effectBridge(runtime)` in `plugin-runtime.ts` —
  * so unload stops what is pending (`policies/unload.md`). oxlint.config.ts
- * turns the rule on for `src/services/**` and the source of
- * `@zotlit/plugin-services`, which leaves out the helpers that build those
- * runners (`@zotlit/plugin-kernel/effect-bridge.ts`, `effect-scope.ts`).
+ * turns the rule on for `src/services/**`, the source of
+ * `@zotlit/plugin-services` and the services of `@zotlit/annotations`, which
+ * leaves out the helpers that build those runners
+ * (`@zotlit/plugin-kernel/effect-bridge.ts`, `effect-scope.ts`).
  */
 export const scopedRunner: Rule = {
   meta: {
@@ -790,14 +791,18 @@ function isNowMember(member: TypeNode): boolean {
   );
 }
 
+/** The folders of `@zotlit/annotations` that hold Effect services. */
+const ANNOTATION_SERVICES =
+  /\/annotations\/src\/(core|obsidian|desktop)\/(annotation-repository|attachment-open|excerpt-image|pdf-annotation-editor|reader-session)\//;
+
 /**
  * In an Effect-native file time comes from `Clock`, so `TestClock` drives it
  * (CODING_STANDARDS.md → Effect → Time). A direct read of the system clock
  * (`Date.now()`, `new Date()`, `performance.now()`) skips the Clock service;
- * `temporal-in-effect` reports `Temporal.Now`. Under `src/services/**` and in
- * `@zotlit/plugin-services`, a layer constructor that
- * takes a `now` function in its options asks its caller for a second clock;
- * the layer reads `Clock.Clock` instead. The file that converts the Clock for
+ * `temporal-in-effect` reports `Temporal.Now`. Under `src/services/**`, in
+ * `@zotlit/plugin-services` and in the services of `@zotlit/annotations`, a
+ * layer constructor that takes a `now` function in its options asks its
+ * caller for a second clock; the layer reads `Clock.Clock` instead. The file that converts the Clock for
  * a non-Effect core, and the backlog, are listed in oxlint.config.ts.
  */
 export const clockTime: Rule = {
@@ -820,7 +825,8 @@ export const clockTime: Rule = {
     const filename = context.filename.replaceAll(sep, "/");
     const inServices =
       filename.includes("/src/services/") ||
-      filename.includes("/plugin-services/src/");
+      filename.includes("/plugin-services/src/") ||
+      ANNOTATION_SERVICES.test(filename);
 
     /** Members of a parameter type: a literal, or an interface or alias of this file. */
     const membersOf = (
@@ -979,8 +985,8 @@ export const temporalInEffect: Rule = {
 
 /**
  * Rejects an import or re-export of a `<service>/plain` module under
- * `src/services/` or `@zotlit/plugin-services`, in source, tests and fixtures
- * alike. A caller reads the
+ * `src/services/`, `@zotlit/plugin-services` or `@zotlit/annotations`, in
+ * source, tests and fixtures alike. A caller reads the
  * service's Effect tag: Effect code `yield*`s it, and code outside Effect holds
  * the service that `plugin-runtime.ts` reads once and runs each call through
  * the runtime's `bridge`. Every run then lives in a Scope, so unload stops it and
@@ -1012,8 +1018,10 @@ export const noPlainServiceAdapters: Rule = {
       if (
         (path.startsWith("@/services/") ||
           path.startsWith("@zotlit/plugin-services/") ||
+          path.startsWith("@zotlit/annotations/") ||
           path.includes("/src/services/") ||
-          path.includes("/plugin-services/src/")) &&
+          path.includes("/plugin-services/src/") ||
+          path.includes("/annotations/src/")) &&
         ["plain", "plain.ts", "plain.js"].includes(path.split("/").at(-1)!)
       )
         context.report({ node: node as never, messageId: "adapter" });

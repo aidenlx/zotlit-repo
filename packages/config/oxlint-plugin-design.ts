@@ -4,6 +4,7 @@
 // scale and accessible tooltips. Rule tests: oxlint-plugin-design.test.ts.
 import { regex } from "arkregex";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import type { RuleTester } from "oxlint/plugins-dev";
 import postcss from "postcss";
@@ -288,7 +289,11 @@ export const annotationDesign: Rule = {
       },
       ImportDeclaration(node) {
         if (!node.source.value.endsWith(".css")) return;
-        const file = resolve(dirname(context.filename), node.source.value);
+        // A stylesheet that moved into a package is imported by its package
+        // path, so the import resolves as Node resolves it from the file.
+        const file = node.source.value.startsWith(".")
+          ? resolve(dirname(context.filename), node.source.value)
+          : createRequire(context.filename).resolve(node.source.value);
         for (const problem of annotationCssProblems(readFileSync(file, "utf8")))
           report(
             node,

@@ -6,6 +6,15 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
+import { annotationReads } from "@zotlit/annotations/__fixtures__/pdf-annotation-editor.ts";
+import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import type { EditingCapability } from "@zotlit/annotations/obsidian/annotation-repository/capability.ts";
+import type {
+  AnnotationRepository,
+  AnnotationList,
+  AnnotationRecord,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { IDLE } from "@zotlit/annotations/obsidian/annotation-repository/write.ts";
 import { nameDictionary } from "@zotlit/item-query";
 import type {
   FormulaDiagnostics,
@@ -33,21 +42,12 @@ import { libraryAvailabilityRevisionAtom } from "@zotlit/plugin-services/obsidia
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
-import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
-import type {
-  AnnotationRepository,
-  AnnotationList,
-  AnnotationRecord,
-} from "@/services/annotation-repository/service.ts";
-import { IDLE } from "@/services/annotation-repository/write.ts";
 import { queryRevisionAtom } from "@/services/item-query/atoms.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
 } from "@/services/item-query/query-view.ts";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 

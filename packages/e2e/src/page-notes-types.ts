@@ -69,7 +69,7 @@ export interface CodeMirrorElement extends HTMLElement {
 
 export type PreparationService =
   import("@zotlit/plugin-kernel/effect.ts").Context.Service.Shape<
-    typeof import("../../../apps/obsidian/src/services/excerpt-image/prepare.ts").ExcerptPreparation
+    typeof import("@zotlit/annotations/desktop/excerpt-image/prepare.ts").ExcerptPreparation
   >;
 export interface PreparationTrial {
   preparation: PreparationService;

@@ -1,0 +1,68 @@
+{
+  "name": "@zotlit/annotations",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The reading and annotating feature of the ZotLit Obsidian plugins: the Annotation Repository, the surfaces in Obsidian's PDF reader, Excerpt Images, the Annotation View's cards, Reader Sessions and Open Targets",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@codemirror/commands": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@effect/atom-react": "catalog:",
+    "@lezer/markdown": "catalog:",
+    "@tanstack/query-core": "catalog:",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/item-query": "workspace:*",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/pdf-structure": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/shared": "workspace:*",
+    "@zotlit/ui": "workspace:*",
+    "@zotlit/workbench": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "arkregex": "catalog:",
+    "effect": "catalog:",
+    "idb": "catalog:",
+    "monkey-around": "catalog:",
+    "nanoid": "catalog:",
+    "preact": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

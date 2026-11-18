@@ -14,6 +14,18 @@ import { FileSystemAdapter } from "obsidian";
 import type { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
+import { availableOutcome } from "@zotlit/annotations/__fixtures__/excerpt-image/outcome.ts";
+import { redPng } from "@zotlit/annotations/__fixtures__/excerpt-image/png.ts";
+import { PNG_FORMAT } from "@zotlit/annotations/core/excerpt-image/format.ts";
+import { layerExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import type {
+  ExcerptOutcome,
+  ExcerptRequest,
+} from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import type { Annotation } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
@@ -37,17 +49,6 @@ import {
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
-import { redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
-import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
-import { layerExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
-import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
-import type {
-  ExcerptOutcome,
-  ExcerptRequest,
-} from "@/services/excerpt-image/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
@@ -55,10 +56,7 @@ import { Template, templateFailure } from "@/services/template/service.ts";
 
 import type { AnnotationInsertOptions } from "./insert-annotation.ts";
 import { prepareAnnotationInsert } from "./insert-annotation.ts";
-import {
-  AnnotationNoteActions,
-  layerAnnotationNoteActions,
-} from "./view-actions.ts";
+import { layerAnnotationNoteActions } from "./view-actions.ts";
 
 const card: AnnotationRecord = {
   key: "FDRFQ7C2",

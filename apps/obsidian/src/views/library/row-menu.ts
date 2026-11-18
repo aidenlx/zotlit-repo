@@ -5,14 +5,27 @@
 import { Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
+import {
+  menuEvent,
+  menuSections,
+  raiseMenu,
+} from "@zotlit/obsidian-kit/menu-events.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";
 
 import type { ItemActions } from "./item-actions.ts";
 
-const SECTION = menuSections("zotlit:item-menu");
+/** A row's menu in the Library View. */
+const itemMenu = menuEvent("zotlit:item-menu", [
+  "open",
+  "insert",
+  "clipboard",
+  "zotero",
+  "",
+]);
+
+const SECTION = menuSections(itemMenu);
 
 export interface RowMenuDeps {
   actions: ItemActions;
@@ -85,7 +98,7 @@ export function rowMenu(
   );
   raiseMenu(menu, {
     workspace: deps.workspace,
-    name: "zotlit:item-menu",
+    event: itemMenu,
     info: { source: "library-view", indexedKey },
   });
   return menu;

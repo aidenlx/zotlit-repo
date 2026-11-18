@@ -75,6 +75,7 @@ export default defineConfig({
         packageSource(
           import.meta.resolve("@zotlit/plugin-services/package.json"),
         ),
+        packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
       ],
     }),
     preact(),

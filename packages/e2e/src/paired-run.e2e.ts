@@ -28,10 +28,10 @@ import {
   inject,
 } from "vitest";
 
+import type { AnnotationDraft } from "@zotlit/annotations/obsidian/annotation-repository/write.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/scripts/fixture";
 
-import type { AnnotationDraft } from "@/services/annotation-repository/write.ts";
 import type { AnnotationView } from "@/views/annot-view/view.tsx";
 import type { QueryFileView } from "@/views/query-view/file-view.ts";
 

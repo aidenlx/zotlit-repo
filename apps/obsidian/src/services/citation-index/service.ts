@@ -86,7 +86,6 @@ export {
   readReferenceSources,
   toZoteroOpenableAttachments,
   type DatabaseReadability,
-  type ZoteroOpenableAttachment,
   type ReferenceSource,
   type ReferenceSourceJoin,
 } from "./sources.ts";

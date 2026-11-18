@@ -15,12 +15,12 @@ export function useAt(kind: UseKind, iso: string): Use {
 // The Library embeds the Welcome banner, so its test host supplies the same sources.
 import { Effect, Layer, Stream } from "effect";
 
+import { ANNOT_PATHS } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
+import { annotationReads } from "@zotlit/annotations/__fixtures__/pdf-annotation-editor.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
-import { ANNOT_PATHS } from "@/views/annot-view/__fixtures__/host.ts";
 import { makeWelcomeHost } from "@/views/welcome/__fixtures__.ts";
 import type { WelcomeHostOptions } from "@/views/welcome/__fixtures__.ts";
 

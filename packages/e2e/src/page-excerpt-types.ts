@@ -1,13 +1,13 @@
 // Page state retained between excerpt acceptance callbacks.
-import type { E2eServices } from "@zotlit/obsidian/e2e";
-import type { FixtureExcerptCase } from "@zotlit/scripts/fixture";
 
-import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
+import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
 import type {
   ExcerptRendererDiagnostics,
   ExcerptRendererDiagnosticSnapshot,
-} from "@/services/excerpt-image/renderer.ts";
-import type { ExcerptOutcome } from "@/services/excerpt-image/service.ts";
+} from "@zotlit/annotations/obsidian/excerpt-image/renderer.ts";
+import type { ExcerptOutcome } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import type { E2eServices } from "@zotlit/obsidian/e2e";
+import type { FixtureExcerptCase } from "@zotlit/scripts/fixture";
 
 import type { RenderingResult } from "./excerpt-rendering.ts";
 

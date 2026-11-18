@@ -14,26 +14,25 @@ import type {
 } from "obsidian";
 import { expect, vi } from "vitest";
 
+import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
+import {
+  createDragInsertHandler,
+  createInsertHandler,
+  insertOutcomeMessage,
+} from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
+import type { AnnotationInsertOutcome } from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
+import type { AnnotationInsertRequest } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
-import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";
 import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
 import {
   templateFailure,
   ProfileAnnotationError,
 } from "@/services/template/service.ts";
-
-import { stateEditor } from "./__fixtures__/editor.ts";
-import {
-  createDragInsertHandler,
-  createInsertHandler,
-  insertOutcomeMessage,
-} from "./drag-insert.ts";
-import type { AnnotationInsertOutcome } from "./drag-insert.ts";
 
 const card: AnnotationRecord = {
   key: "PUPR5FG5",

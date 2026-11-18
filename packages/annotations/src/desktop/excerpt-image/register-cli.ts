@@ -1,0 +1,81 @@
+// The local image command reads one database Snapshot and renders in the renderer.
+import { Effect, FileSystem, Layer } from "effect";
+
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+
+import { publishExcerptPng } from "./temp-store.ts";
+
+import {
+  ANNOTATION_IMAGE_COMMAND,
+  answerAnnotationImage,
+} from "#obsidian/excerpt-image/cli-image.ts";
+import {
+  ExcerptSourceUnavailable,
+  excerptRequestForKey,
+} from "#obsidian/excerpt-image/request.ts";
+import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
+
+/** The `zotlit:annotation-image` command. */
+export const layerAnnotationImageCli: Layer.Layer<
+  never,
+  never,
+  | PluginHost
+  | ZoteroReads
+  | ZoteroPref
+  | ExcerptImageService
+  | FileSystem.FileSystem
+> = Layer.effectDiscard(
+  Effect.gen(function* () {
+    const host = yield* PluginHost;
+    const reads = yield* ZoteroReads;
+    const pref = yield* ZoteroPref;
+    const excerptImage = yield* ExcerptImageService;
+    const fs = yield* FileSystem.FileSystem;
+    /**
+     * The excerpt request of the Annotation `key` names, read from one
+     * Snapshot under the paths of the active source.
+     */
+    const read = (key: string) =>
+      Effect.gen(function* () {
+        const { dataDir, baseAttachmentPath } = yield* pref.current;
+        const snapshot = yield* reads.snapshot.pipe(
+          Effect.mapError(
+            (error) => new ExcerptSourceUnavailable({ message: error.message }),
+          ),
+        );
+        return yield* excerptRequestForKey({
+          reads: snapshot,
+          key,
+          paths: { dataDir, baseAttachmentPath },
+        });
+      }).pipe(Effect.scoped);
+    host.registerCliCommand(ANNOTATION_IMAGE_COMMAND, {
+      description:
+        "Get a PNG file path for one image or ink Annotation as JSON",
+      flags: {
+        key: {
+          value: "<indexed-key>",
+          description: "The image or ink Annotation's Indexed Key",
+          required: true,
+        },
+      },
+      handler: (params) =>
+        answerAnnotationImage(params, {
+          read,
+          resolve: (request) => excerptImage.resolve(request),
+          publish: (fingerprint, bytes) =>
+            publishExcerptPng(fingerprint, bytes).pipe(
+              Effect.provideService(FileSystem.FileSystem, fs),
+            ),
+          // A path that cannot be read counts as no file, as an absent one does.
+          exists: (path) =>
+            fs.stat(path).pipe(
+              Effect.map(({ type }) => type === "File"),
+              Effect.orElseSucceed(() => false),
+            ),
+        }),
+    });
+  }),
+);

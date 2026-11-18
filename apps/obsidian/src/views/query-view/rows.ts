@@ -2,10 +2,11 @@
 // order, and, for a grouped view, gathered under one heading per group. A row
 // with several values of a list path, such as two tags, stands in each of
 // their groups.
+
+import type { LayoutRow } from "@zotlit/annotations/desktop/annot-view/layout.tsx";
 import { compareStrings } from "@zotlit/item-query";
 
 import type { QueryViewRow } from "@/services/item-query/query-view.ts";
-import type { LayoutRow } from "@/views/annot-view/layout.tsx";
 
 import { datasetSpec, grouping } from "./datasets.ts";
 import type {

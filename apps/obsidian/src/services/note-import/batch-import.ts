@@ -3,6 +3,7 @@ import { distinct } from "@std/collections";
 import { Cause, Effect, Stream } from "effect";
 import type { TFile } from "obsidian";
 
+import { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Note } from "@zotlit/db";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -42,7 +43,6 @@ import {
   withUnavailableLibraries,
 } from "@/services/batch-scope.ts";
 import type { BatchLibrary, BatchTarget } from "@/services/batch-scope.ts";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type {
   CreationProfileSelection,
   ProfilePreview,

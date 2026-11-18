@@ -3,6 +3,16 @@ import { Cause, DateTime, Effect, Fiber, Option, Result, Stream } from "effect";
 import { getFrontMatterInfo } from "obsidian";
 import type { TFile } from "obsidian";
 
+import {
+  nonEmptySummary,
+  ExcerptPreparation,
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type {
+  ExcerptSummary,
+  PreparedExcerpts,
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { outcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
+import type { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import { buildNoteContextFromSource } from "@zotlit/db";
 import type { Item, NoteSource, NoteTemplateContext } from "@zotlit/db";
 import { processLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
@@ -51,16 +61,6 @@ import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import {
-  nonEmptySummary,
-  ExcerptPreparation,
-} from "@/services/excerpt-image/prepare.ts";
-import type {
-  ExcerptSummary,
-  PreparedExcerpts,
-} from "@/services/excerpt-image/prepare.ts";
 import { noteProfileSelector } from "@/services/profile/bindings.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { relocatedNotePath } from "@/services/profile/relocation.ts";

@@ -17,8 +17,8 @@ import { DEFAULT_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-sco
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
-import { layerAnnotServices } from "@/views/annot-view/__fixtures__/host.ts";
-import type { AnnotHostOptions } from "@/views/annot-view/__fixtures__/host.ts";
+import { layerAnnotServices } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
+import type { AnnotHostOptions } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import type { QueryViewDeps } from "@/views/query-view/view.tsx";
 
 export interface QueryHostDeps extends Pick<QueryViewDeps, "app"> {

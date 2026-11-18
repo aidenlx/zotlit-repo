@@ -1,6 +1,8 @@
 import { Effect, Option, Predicate, Schema } from "effect";
 import type { TFile } from "obsidian";
 
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import type { ItemRef } from "@zotlit/db";
 import { Notifier, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -46,8 +48,6 @@ import {
   withUnavailableLibraries,
 } from "@/services/batch-scope.ts";
 import type { BatchTarget } from "@/services/batch-scope.ts";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { NoteImportView } from "@/services/note-import/view.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";

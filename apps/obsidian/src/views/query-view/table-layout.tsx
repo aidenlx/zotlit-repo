@@ -15,6 +15,10 @@ import {
 } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
+import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import { zoteroUri } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import type { OpenTarget } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import { useAnnotStore } from "@zotlit/annotations/obsidian/annot-view/store.ts";
 import { isPageNumber } from "@zotlit/db";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
@@ -23,9 +27,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
-import { zoteroUri } from "@/services/attachment-open/open-target.ts";
-import type { OpenTarget } from "@/services/attachment-open/open-target.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
@@ -33,7 +34,6 @@ import type {
   QueryViewValue,
 } from "@/services/item-query/query-view.ts";
 import type { ItemQueryError } from "@/services/item-query/service.ts";
-import { useAnnotStore } from "@/views/annot-view/store.ts";
 
 import { ExpanderSpace } from "./expander-space.tsx";
 import { useItemRow } from "./item-rows.ts";

@@ -1,8 +1,8 @@
 // Real insertion flow over an in-memory Zotero database and a controllable Template.
 import { Effect, Layer } from "effect";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { Profile } from "@/services/profile/service.ts";
@@ -15,9 +15,10 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { inProcessClient, memoryOpener } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
-import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";
+import type { AnnotationInsertRequest } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";
-import { AnnotationNoteActions, layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
+import { layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 
 const SEED = `
 insert into version (schema, version) values ('userdata', 129);

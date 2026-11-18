@@ -15,6 +15,10 @@ import { TFile } from "obsidian";
 import type { App, ObsidianProtocolData } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 
+import { toObsidianOpenableAttachments } from "@zotlit/annotations/core/attachment-open/resolve.ts";
+import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attachment-open/resolve.ts";
+import { openAttachments } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
+import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import type { Attachment, getItemDisplayRefByID, Library } from "@zotlit/db";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
@@ -45,10 +49,6 @@ import type {
   ZoteroReadsState,
 } from "@zotlit/zotero-reads/client/service.ts";
 
-import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
-import { TargetOpener } from "@/services/attachment-open/open-target.ts";
-import { toObsidianOpenableAttachments } from "@/services/attachment-open/resolve.ts";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
 import { openCompanionNote } from "@/services/note-feature/index.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
@@ -95,21 +95,24 @@ vi.mock("@/services/note-feature/index.ts", async (importOriginal) => {
 });
 
 vi.mock(
-  "@/services/attachment-open/open-attachments.ts",
+  "@zotlit/annotations/desktop/attachment-open/open-attachments.ts",
   async (importOriginal) => ({
     ...(await importOriginal<
-      typeof import("@/services/attachment-open/open-attachments.ts")
+      typeof import("@zotlit/annotations/desktop/attachment-open/open-attachments.ts")
     >()),
     openAttachments: vi.fn(),
   }),
 );
 
-vi.mock("@/services/attachment-open/resolve.ts", async (importOriginal) => ({
-  ...(await importOriginal<
-    typeof import("@/services/attachment-open/resolve.ts")
-  >()),
-  toObsidianOpenableAttachments: vi.fn(),
-}));
+vi.mock(
+  "@zotlit/annotations/core/attachment-open/resolve.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/annotations/core/attachment-open/resolve.ts")
+    >()),
+    toObsidianOpenableAttachments: vi.fn(),
+  }),
+);
 
 vi.mock("@/views/template-workbench/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),

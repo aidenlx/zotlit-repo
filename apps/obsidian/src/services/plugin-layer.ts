@@ -4,6 +4,32 @@ import { Layer } from "effect";
 import type { FileSystem } from "effect";
 import type { Plugin } from "obsidian";
 
+import { openWithSystem } from "@zotlit/annotations/desktop/attachment-open/capture.ts";
+import { layerTargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import type { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import { layerExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import type { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import { layerExcerptImages } from "@zotlit/annotations/desktop/excerpt-image/layer.ts";
+import { layerExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { layerAnnotationImageCli } from "@zotlit/annotations/desktop/excerpt-image/register-cli.ts";
+import { layerExcerptRevalidation } from "@zotlit/annotations/desktop/excerpt-image/revalidation.ts";
+import type { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import { layerCapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import type {
+  CapabilityNoticePorts,
+  CapabilityNotices,
+} from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import { layerAnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import type { ExcerptReaderDocuments } from "@zotlit/annotations/obsidian/excerpt-image/reader-borrow.ts";
+import type { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import type { ExcerptStore } from "@zotlit/annotations/obsidian/excerpt-image/store.ts";
+import { layerPdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
+import type {
+  PdfAnnotationEditor,
+  PdfAnnotationEditorPorts,
+} from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { layerRequestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
 import { layerNotifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -72,10 +98,10 @@ import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { layerAnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
-import type { AnnotationNoteActions } from "@/services/note-feature/view-actions.ts";
 import { layerSettings } from "@/services/settings/layer.ts";
 import { layerTemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import { layerSettingTab } from "@/setting-tab/layer.ts";
+import { pdfReader } from "@/views/annot-view/pdf-reader.ts";
 import {
   layerShowInLibrary,
   openLibraryView,
@@ -87,17 +113,6 @@ import { layerZoteroHttpNode } from "@/zotero-http-node.ts";
 import { layerAnnotationLinkReading } from "./annotation-popover/reading.ts";
 import { layerAnnotationPopover } from "./annotation-popover/service.tsx";
 import type { AnnotationPopover } from "./annotation-popover/service.tsx";
-import { layerCapabilityNotices } from "./annotation-repository/notices.ts";
-import type {
-  CapabilityNoticePorts,
-  CapabilityNotices,
-} from "./annotation-repository/notices.ts";
-import { layerAnnotationRepository } from "./annotation-repository/service.ts";
-import type { AnnotationRepository } from "./annotation-repository/service.ts";
-import { openWithSystem } from "./attachment-open/capture.ts";
-import { layerTargetOpener } from "./attachment-open/open-target.ts";
-import type { TargetOpener } from "./attachment-open/open-target.ts";
-import { pdfReader } from "./attachment-open/pdf-reader.ts";
 import { layerCitationsCli } from "./citation-index/cli/register.ts";
 import { layerCitationLookup } from "./citation-index/lookup-service.ts";
 import type { CitationLookup } from "./citation-index/lookup-service.ts";
@@ -115,16 +130,6 @@ import { layerCitekeyEditorExtension } from "./citekey-editor/register.ts";
 import { layerCitekeyEditor } from "./citekey-editor/service.ts";
 import type { CitekeyEditor } from "./citekey-editor/service.ts";
 import { layerCitekeyReading } from "./citekey-reading/service.ts";
-import { layerExcerptDisplays } from "./excerpt-image/display.ts";
-import type { ExcerptDisplays } from "./excerpt-image/display.ts";
-import { layerExcerptImages } from "./excerpt-image/layer.ts";
-import { layerExcerptPreparation } from "./excerpt-image/prepare.ts";
-import type { ExcerptPreparation } from "./excerpt-image/prepare.ts";
-import type { ExcerptReaderDocuments } from "./excerpt-image/reader-borrow.ts";
-import { layerAnnotationImageCli } from "./excerpt-image/register-cli.ts";
-import { layerExcerptRevalidation } from "./excerpt-image/revalidation.ts";
-import type { ExcerptImageService } from "./excerpt-image/service.ts";
-import type { ExcerptStore } from "./excerpt-image/store.ts";
 import { layerGraphCitations } from "./graph-citations/service.ts";
 import type { GraphCitations } from "./graph-citations/service.ts";
 import { layerQueryCli } from "./item-query/cli.ts";
@@ -148,11 +153,6 @@ import { layerBibliographyRender } from "./pandoc/render-cache.ts";
 import type { BibliographyRender } from "./pandoc/render-cache.ts";
 import { layerPandocEngine } from "./pandoc/service.ts";
 import type { PandocEngine } from "./pandoc/service.ts";
-import { layerPdfAnnotationEditor } from "./pdf-annotation-editor/service.ts";
-import type {
-  PdfAnnotationEditor,
-  PdfAnnotationEditorPorts,
-} from "./pdf-annotation-editor/service.ts";
 import { layerProfileActions } from "./profile/actions.ts";
 import { layerProfile } from "./profile/service.ts";
 import type { Profile } from "./profile/service.ts";

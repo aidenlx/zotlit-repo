@@ -22,6 +22,17 @@ import type {
 import Turndown from "turndown";
 import { expect, vi } from "vitest";
 
+import { availableOutcome } from "@zotlit/annotations/__fixtures__/excerpt-image/outcome.ts";
+import {
+  bluePng,
+  redPng,
+} from "@zotlit/annotations/__fixtures__/excerpt-image/png.ts";
+import { PNG_FORMAT } from "@zotlit/annotations/core/excerpt-image/format.ts";
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type {
+  ExcerptOutcome,
+  ExcerptRequest,
+} from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { getNoteByKey } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
@@ -37,14 +48,6 @@ import {
   sharedClientOpener,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
-import { bluePng, redPng } from "@/services/excerpt-image/__fixtures__/png.ts";
-import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type {
-  ExcerptOutcome,
-  ExcerptRequest,
-} from "@/services/excerpt-image/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";
 

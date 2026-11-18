@@ -58,11 +58,11 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/attachment-open/actions.test.ts": [
+  "packages/annotations/src/desktop/attachment-open/actions.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/attachment-open/menu.test.ts": [
+  "packages/annotations/src/desktop/attachment-open/menu.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
@@ -200,24 +200,24 @@
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/creation-toolbar.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/creation-toolbar.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/creation.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/creation.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/mark-popup-host.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/mark-popup-host.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/render.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/render.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/selection.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/selection.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/services/pdf-annotation-editor/service.test.ts": [
+  "packages/annotations/src/obsidian/pdf-annotation-editor/service.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/services/protocol/register.test.ts": [
@@ -269,16 +269,16 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/views/annot-view/AnnotView.test.ts": [
+  "packages/annotations/src/desktop/annot-view/AnnotView.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/annot-view/Annotation.test.ts": [
+  "packages/annotations/src/desktop/annot-view/Annotation.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/annot-view/editor-sheet.test.ts": [
+  "packages/annotations/src/obsidian/annot-view/editor-sheet.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/views/annot-view/layout.test.ts": [
+  "packages/annotations/src/desktop/annot-view/layout.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/views/citation-presentation/modal.test.ts": [

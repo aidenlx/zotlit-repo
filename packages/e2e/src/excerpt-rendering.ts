@@ -2,15 +2,14 @@ import { randomUUID } from "node:crypto";
 import type { FileSystemAdapter } from "obsidian";
 import { expect } from "vitest";
 
+import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
+import type { ExcerptOutcome } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import type { FixtureExcerptCase } from "@zotlit/scripts/fixture";
 import {
   EXCERPT_RENDERING_CASES,
   EXCERPT_RENDERING_PDFS,
   EXCERPT_RENDERING_VAULT_DIR,
 } from "@zotlit/scripts/fixture";
-
-import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
-import type { ExcerptOutcome } from "@/services/excerpt-image/service.ts";
 // Real Obsidian acceptance for generated excerpt-rendering PDFs.
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";

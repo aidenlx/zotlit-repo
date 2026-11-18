@@ -1,6 +1,7 @@
 // Renders an Annotation's page-pinned citation for the annotation view's "Copy citation".
 import { Effect } from "effect";
 
+import type { AnnotationCitation } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
 import {
   buildAnnotationsTemplateData,
   resolveIndexedKeyLibraryIn,
@@ -13,14 +14,6 @@ import {
   buildAnnotationResolvers,
 } from "@/services/template/annotation-render.ts";
 import { Template } from "@/services/template/service.ts";
-
-/** What "Copy citation" puts on the clipboard, or why it has nothing to put. */
-export type AnnotationCitation =
-  | { kind: "citation"; text: string }
-  /** The parent item carries no citation key, or the Annotation has no parent item. */
-  | { kind: "no-citation-key" }
-  /** The Zotero database holds no Annotation under the key. */
-  | { kind: "not-in-database" };
 
 /**
  * Render an Annotation's page-pinned citation: the same Citation Template path

@@ -26,6 +26,9 @@ import type {
   ReactNode,
 } from "react";
 
+import { AnnotList } from "@zotlit/annotations/desktop/annot-view/AnnotView.tsx";
+import type { TargetOpenGesture } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
+import { viewTargetOpener } from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import {
@@ -41,9 +44,6 @@ import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
-import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
-import { viewTargetOpener } from "@/views/open-target.ts";
 import { serializeQueryFile } from "@/views/query-view/query-file.ts";
 import {
   LOADING_TEXT,

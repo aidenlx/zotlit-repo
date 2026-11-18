@@ -21,6 +21,25 @@ import {
 import type { App } from "obsidian";
 import { afterAll, afterEach, describe, expect, vi } from "vitest";
 
+import { NodeExcerptImageFixture as ExcerptImageService } from "@zotlit/annotations/__fixtures__/excerpt-image/node-service.ts";
+import { availableOutcome } from "@zotlit/annotations/__fixtures__/excerpt-image/outcome.ts";
+import {
+  redPng,
+  bluePng,
+  corruptPng,
+} from "@zotlit/annotations/__fixtures__/excerpt-image/png.ts";
+import { excerptReuseProbe } from "@zotlit/annotations/__fixtures__/excerpt-image/reuse.ts";
+import { PNG_FORMAT } from "@zotlit/annotations/core/excerpt-image/format.ts";
+import {
+  makePublicationGate,
+  materializeExcerpt,
+} from "@zotlit/annotations/desktop/excerpt-image/materialize.ts";
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
+import type {
+  ExcerptOutcome,
+  ExcerptRequest,
+} from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import {
   buildNoteContextFromSource,
   itemBaseFields,
@@ -80,25 +99,6 @@ import {
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
-import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";
-import {
-  redPng,
-  bluePng,
-  corruptPng,
-} from "@/services/excerpt-image/__fixtures__/png.ts";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
-import { PNG_FORMAT } from "@/services/excerpt-image/format.ts";
-import {
-  makePublicationGate,
-  materializeExcerpt,
-} from "@/services/excerpt-image/materialize.ts";
-import { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
-import type {
-  ExcerptOutcome,
-  ExcerptRequest,
-} from "@/services/excerpt-image/service.ts";
 import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";

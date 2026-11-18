@@ -7,16 +7,17 @@ import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 
+import { makeAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
 import { QueryView } from "@/views/query-view/view.tsx";
 import type { QueryViewDeps } from "@/views/query-view/view.tsx";
 
-import { makeAnnotHost } from "./__fixtures__/host.ts";
 import { SidebarFilterModal } from "./filter-modal.tsx";
 
 it.effect(
@@ -28,7 +29,7 @@ it.effect(
       let released = false;
       const host = yield* Effect.acquireDisposable(
         Effect.sync(() =>
-          makeAnnotHost({
+          makeAnnotHost(layerUnreadViewServices, {
             reads: {
               snapshot: Effect.acquireRelease(
                 Effect.succeed(

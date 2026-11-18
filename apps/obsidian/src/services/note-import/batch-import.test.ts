@@ -6,6 +6,9 @@ import type { App, CachedMetadata } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 
+import { excerptReuseProbe } from "@zotlit/annotations/__fixtures__/excerpt-image/reuse.ts";
+import type { ExcerptSummary } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Library, Note } from "@zotlit/db";
 import { createFixtureSchema, rowInstant } from "@zotlit/db-testing";
@@ -43,9 +46,6 @@ import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { BatchTarget } from "@/services/batch-scope.ts";
-import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { CreationProfileSelection } from "@/services/note-feature/index.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";

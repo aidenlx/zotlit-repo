@@ -3,6 +3,14 @@ import { Context, Effect, Layer, Schema, Semaphore } from "effect";
 import { normalizePath, stringifyYaml } from "obsidian";
 import type { TFile } from "obsidian";
 
+import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import type {
+  ExcerptPrepareError,
+  ExcerptSummary,
+  PreparedExcerpts,
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
+import { outcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
+import type { ExcerptOutcomeScope } from "@zotlit/annotations/obsidian/excerpt-image/outcome-scope.ts";
 import type {
   AnnotationSources,
   Attachment,
@@ -48,14 +56,6 @@ import {
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
-import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
-import type {
-  ExcerptPrepareError,
-  ExcerptSummary,
-  PreparedExcerpts,
-} from "@/services/excerpt-image/prepare.ts";
 import { randomFilenameId } from "@/services/note-feature/filename.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type {

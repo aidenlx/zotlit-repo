@@ -1,10 +1,11 @@
 // The blocks one hovered citation shows: its works' bibliography entries, in the order the citation names them.
 
+import type { ZoteroOpenableAttachment } from "@zotlit/plugin-services/core/attachment-resolver/zotero-openable.ts";
+
 import type {
   AmbiguousCandidate,
   AmbiguousCandidatesOf,
 } from "@/services/citation-index/ambiguity.ts";
-import type { ZoteroOpenableAttachment } from "@/services/citation-index/service.ts";
 import type { HoveredWork } from "@/services/citekey-navigation/index.ts";
 import type { Inlines } from "@/services/pandoc/ast.ts";
 import type { ReferenceEntry } from "@/views/references/entries.ts";

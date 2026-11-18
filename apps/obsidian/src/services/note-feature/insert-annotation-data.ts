@@ -1,4 +1,6 @@
 // The annotation template's data for one captured card, read lazily by the render.
+
+import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { annotationColorToName } from "@zotlit/db";
 import type {
   AnnotationParent,
@@ -7,8 +9,6 @@ import type {
   TemplateLink,
 } from "@zotlit/db";
 import { TemplateError } from "@zotlit/templates/facade";
-
-import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 /**
  * The template data of `annotation`, the captured card. Each date and fact

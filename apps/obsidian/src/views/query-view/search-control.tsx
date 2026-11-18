@@ -5,12 +5,14 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
+import {
+  useAnnotStore,
+  useSetFilterQuery,
+} from "@zotlit/annotations/obsidian/annot-view/store.ts";
 import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-input.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
-import { useAnnotStore, useSetFilterQuery } from "@/views/annot-view/store.ts";
 
 import { datasetSpec } from "./datasets.ts";
 import { useQueryViewState } from "./model.ts";

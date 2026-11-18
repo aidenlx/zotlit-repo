@@ -4,18 +4,17 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
-import { cn } from "@zotlit/obsidian-kit/utils.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display.ts";
-import type { CommentRenderer } from "@/views/annot-view/comment-render.ts";
 import {
   ExcerptPicture,
   ExcerptText,
   excerptImageAlt,
   pageLocator,
-} from "@/views/annot-view/excerpt-parts.tsx";
+} from "@zotlit/annotations/desktop/annot-view/excerpt-parts.tsx";
+import type { ExcerptDisplayDemand } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
+import type { CommentRenderer } from "@zotlit/annotations/obsidian/annot-view/comment-render.ts";
+import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 export type AnnotationPopoverContentProps =
   | { kind: "unavailable" }

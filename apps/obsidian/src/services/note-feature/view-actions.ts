@@ -1,31 +1,20 @@
-// Annotation note gestures as one tag for the view registry.
-import { Context, Effect, Layer } from "effect";
+// The notes side of the annotation surfaces' note gestures: the layer of the
+// annotation feature's `AnnotationNoteActions` port.
+import { Effect, Layer } from "effect";
 
+import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import type { InertCitationTemplate } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import type { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 
-import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
+import {
+  InertTemplateError,
+  plainTemplateError,
+} from "@/services/template/errors.ts";
 
 import { renderAnnotationCitation } from "./annotation-citation.ts";
-import type { AnnotationCitation } from "./annotation-citation.ts";
 import type { NoteCitationServices } from "./citations-handle.ts";
 import { commitAnnotation } from "./insert-action.ts";
-import type {
-  AnnotationInsertRequest,
-  AnnotationInsertOutcome,
-} from "./insert-action.ts";
-
-export class AnnotationNoteActions extends Context.Service<
-  AnnotationNoteActions,
-  {
-    citation(key: string): Effect.Effect<AnnotationCitation, unknown>;
-    insert(
-      options: AnnotationInsertRequest,
-    ): Effect.Effect<
-      AnnotationInsertOutcome,
-      Effect.Error<ReturnType<typeof commitAnnotation>>
-    >;
-  }
->()("zotlit/note-feature/AnnotationNoteActions") {}
 
 export const layerAnnotationNoteActions: Layer.Layer<
   AnnotationNoteActions,
@@ -39,7 +28,20 @@ export const layerAnnotationNoteActions: Layer.Layer<
     >();
     return AnnotationNoteActions.of({
       citation: Effect.fn("AnnotationNoteActions.citation")((key) =>
-        renderAnnotationCitation(key).pipe(Effect.provideContext(context)),
+        renderAnnotationCitation(key).pipe(
+          // A Citation Template the JavaScript Templates gate keeps inert is
+          // an answer the researcher acts on by its message.
+          Effect.catch((cause) => {
+            const error = plainTemplateError(cause);
+            return error instanceof InertTemplateError
+              ? Effect.succeed<InertCitationTemplate>({
+                  kind: "inert-template",
+                  message: error.message,
+                })
+              : Effect.fail(error);
+          }),
+          Effect.provideContext(context),
+        ),
       ),
       insert: Effect.fn("AnnotationNoteActions.insert")((options) =>
         commitAnnotation(options).pipe(Effect.provideContext(context)),

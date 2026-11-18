@@ -3,15 +3,15 @@
 import { Keymap } from "obsidian";
 import type { MouseEvent } from "react";
 
+import {
+  openAttachments,
+  zoteroAttachmentReader,
+} from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import type { MenuAnchor } from "@zotlit/obsidian-kit/menu.ts";
 import type { WorkspaceEventHost } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import {
-  openAttachments,
-  zoteroAttachmentReader,
-} from "@/services/attachment-open/open-attachments.ts";
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
 import type { CitationEntryBlock } from "./blocks.ts";

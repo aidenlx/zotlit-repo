@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from "node:util";
 import type { FileSystemAdapter, PDFFileView } from "obsidian";
 import { expect } from "vitest";
 
+import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -23,7 +24,6 @@ import {
 // cards themselves call.
 import type { FixtureAnnotation } from "@zotlit/scripts/fixture";
 
-import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
 import type { AnnotationView } from "@/views/annot-view/view.tsx";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";

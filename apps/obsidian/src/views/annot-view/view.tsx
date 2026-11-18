@@ -5,6 +5,62 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
+import type { ReaderSession } from "@zotlit/annotations/core/reader-session/session.ts";
+import { ReaderSessionHost } from "@zotlit/annotations/core/reader-session/session.ts";
+import type { AnnotActions } from "@zotlit/annotations/desktop/annot-view/actions.tsx";
+import { AnnotView } from "@zotlit/annotations/desktop/annot-view/AnnotView.tsx";
+import {
+  makeTargetRead,
+  readerResolutionAtom,
+  resultValue,
+  enableLiveUpdatesCommand,
+} from "@zotlit/annotations/desktop/annot-view/atoms.ts";
+import type { AnnotationsLayout } from "@zotlit/annotations/desktop/annot-view/layout.tsx";
+import { buildPaneMenu } from "@zotlit/annotations/desktop/annot-view/pane-menu.ts";
+import { viewTargetOpener } from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
+import { sanitizeSavedFilter } from "@zotlit/annotations/obsidian/annot-view/filter.ts";
+import type { SavedFilter } from "@zotlit/annotations/obsidian/annot-view/filter.ts";
+import {
+  holdAnnotViewModel,
+  observeRead,
+  pinCurrentItem,
+  pinItem,
+  sameAnnotViewState,
+  setFollowMode,
+  unpin,
+} from "@zotlit/annotations/obsidian/annot-view/model.ts";
+import type { AnnotViewModel } from "@zotlit/annotations/obsidian/annot-view/model.ts";
+import type { AnnotStore } from "@zotlit/annotations/obsidian/annot-view/model.ts";
+import { resolveLoadTarget } from "@zotlit/annotations/obsidian/annot-view/resolve-target.ts";
+import type {
+  ActiveLeafTarget,
+  LoadTarget,
+} from "@zotlit/annotations/obsidian/annot-view/resolve-target.ts";
+import {
+  INITIAL_FILTER_STATE,
+  selectActiveAttachment,
+} from "@zotlit/annotations/obsidian/annot-view/state.ts";
+import type {
+  AnnotState,
+  FollowMode,
+} from "@zotlit/annotations/obsidian/annot-view/state.ts";
+import {
+  parseAnnotViewState,
+  readSidebarQuery,
+  serializeAnnotViewState,
+} from "@zotlit/annotations/obsidian/annot-view/view-state.ts";
+import type { AnnotViewState } from "@zotlit/annotations/obsidian/annot-view/view-state.ts";
+import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
+import {
+  annotationCapabilityAtom,
+  attachmentCapabilityAtom,
+} from "@zotlit/annotations/obsidian/annotation-repository/atoms.ts";
+import type {
+  AnnotationRecord,
+  AnnotationSource,
+  HistoryDirection,
+} from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
+import { pdfSessionsAtom } from "@zotlit/annotations/obsidian/pdf-annotation-editor/atoms.ts";
 import type { AnnotViewAttachment } from "@zotlit/db";
 import { registerMigratingWindowEvent } from "@zotlit/obsidian-kit/disposables.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -32,20 +88,6 @@ import {
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
-import {
-  annotationCapabilityAtom,
-  attachmentCapabilityAtom,
-} from "@/services/annotation-repository/atoms.ts";
-import type {
-  AnnotationRecord,
-  AnnotationSource,
-  HistoryDirection,
-} from "@/services/annotation-repository/service.ts";
-import { pdfSessionsAtom } from "@/services/pdf-annotation-editor/atoms.ts";
-import type { ReaderSession } from "@/services/reader-session/session.ts";
-import { ReaderSessionHost } from "@/services/reader-session/session.ts";
-import { viewTargetOpener } from "@/views/open-target.ts";
 import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 import { QueryView } from "@/views/query-view/view.tsx";
 import type { QueryViewDeps, QueryViewHost } from "@/views/query-view/view.tsx";
@@ -53,42 +95,9 @@ import { openTemplateDataExplorer } from "@/views/template-data-explorer/registe
 import { startTemplateWorkbenchAction } from "@/views/template-workbench/actions.ts";
 import type { WorkbenchActionDeps } from "@/views/template-workbench/actions.ts";
 
-import type { AnnotActions } from "./actions.tsx";
-import { AnnotView } from "./AnnotView.tsx";
-import {
-  makeTargetRead,
-  readerResolutionAtom,
-  resultValue,
-  enableLiveUpdatesCommand,
-} from "./atoms.ts";
 import { SidebarFilterModal } from "./filter-modal.tsx";
-import { sanitizeSavedFilter } from "./filter.ts";
-import type { SavedFilter } from "./filter.ts";
-import type { AnnotationsLayout } from "./layout.tsx";
-import {
-  holdAnnotViewModel,
-  observeRead,
-  pinCurrentItem,
-  pinItem,
-  sameAnnotViewState,
-  setFollowMode,
-  unpin,
-} from "./model.ts";
-import type { AnnotViewModel } from "./model.ts";
-import type { AnnotStore } from "./model.ts";
-import { buildPaneMenu } from "./pane-menu.ts";
-import { resolveLoadTarget } from "./resolve-target.ts";
-import type { ActiveLeafTarget, LoadTarget } from "./resolve-target.ts";
 import { saveSidebarAsQueryFile } from "./save-query-file.ts";
 import { addSidebarQueryMenu, sidebarQueryText } from "./sidebar-query.ts";
-import { INITIAL_FILTER_STATE, selectActiveAttachment } from "./state.ts";
-import type { AnnotState, FollowMode } from "./state.ts";
-import {
-  parseAnnotViewState,
-  readSidebarQuery,
-  serializeAnnotViewState,
-} from "./view-state.ts";
-import type { AnnotViewState } from "./view-state.ts";
 
 export const ANNOT_VIEW_TYPE = "zotero-annotation-view";
 

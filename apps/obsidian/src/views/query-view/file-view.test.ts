@@ -4,6 +4,7 @@ import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { testAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 // The Query File tab writes a toolbar change to its file at once, through
 // its own save, and the toolbar says when the write failed.
@@ -14,8 +15,8 @@ import {
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
-import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { fakeQuery } from "@/views/query-view/__fixtures__/query-run.ts";
 
@@ -71,7 +72,7 @@ async function openTab() {
   });
   const deps = stubService<QueryViewDeps & QueryHostDeps>("QueryViewDeps", {
     runtime,
-    registry: testAnnotHost().registry,
+    registry: testAnnotHost(layerUnreadViewServices).registry,
     app,
     reads: stubService<QueryHostDeps["reads"]>("ZoteroReads", {
       changed: Stream.empty,

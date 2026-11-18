@@ -3,6 +3,10 @@ import { expect, it } from "@effect/vitest";
 import { Context, DateTime, Deferred, Effect, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 
+import { deadlineAfter } from "@zotlit/annotations/__fixtures__/annotation-repository/capability.ts";
+import type { EditingCapability } from "@zotlit/annotations/obsidian/annotation-repository/capability.ts";
+import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
+import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import {
   ButtonComponent,
   renderRow,
@@ -10,11 +14,6 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
-
-import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
-import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
-import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
-import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
 import type { SettingTabContext } from "./context.ts";

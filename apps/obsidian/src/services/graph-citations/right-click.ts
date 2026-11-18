@@ -5,6 +5,11 @@ import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import {
+  menuEvent,
+  menuSections,
+  raiseMenu,
+} from "@zotlit/obsidian-kit/menu-events.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -12,13 +17,18 @@ import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-l
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { menuSections, raiseMenu } from "@/services/menu-events.ts";
-
 import type { NodeClickDeps } from "./click.ts";
 import type { GraphLeafMembers } from "./install.ts";
 
 const logger = getLogger("graph-citations");
-const SECTION = menuSections("zotlit:graph-cited-work-menu");
+/** A Cited Work Node's menu in the graph. */
+const citedWorkNodeMenu = menuEvent("zotlit:graph-cited-work-menu", [
+  "open",
+  "clipboard",
+  "",
+]);
+
+const SECTION = menuSections(citedWorkNodeMenu);
 
 export interface NodeRightClickDeps extends NodeClickDeps {
   /** What the citekey names in the current Library Scope; `null` while the resolution snapshot is cold. */
@@ -128,7 +138,7 @@ function citedWorkMenu(ctx: CitedWorkMenuContext): Menu {
   );
   raiseMenu(menu, {
     workspace: ctx.workspace,
-    name: "zotlit:graph-cited-work-menu",
+    event: citedWorkNodeMenu,
     info: { citekey: ctx.citekey, resolution: ctx.resolution },
   });
   return menu;

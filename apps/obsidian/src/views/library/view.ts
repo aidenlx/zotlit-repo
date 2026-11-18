@@ -10,6 +10,7 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { debounce, ItemView, Keymap, Scope } from "obsidian";
 import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
 
+import { inTextEntry } from "@zotlit/annotations/obsidian/pdf-annotation-editor/capability-affordance.ts";
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -24,7 +25,6 @@ import { composing } from "@zotlit/ui";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
-import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 import { showItemInAnnotView } from "@/views/annot-view/register.ts";
 import { saveAsQueryFile } from "@/views/annot-view/save-query-file.ts";
 import {

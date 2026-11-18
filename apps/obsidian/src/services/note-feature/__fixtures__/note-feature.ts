@@ -1,5 +1,5 @@
-import { effectImageResolver } from "@/services/excerpt-image/__fixtures__/service.ts";
-import type { ExcerptImageFixture } from "@/services/excerpt-image/__fixtures__/service.ts";
+import { effectImageResolver } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
+import type { ExcerptImageFixture } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
 // The Note Feature's layer over a test's plain deps, and the edge handle a test drives.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer } from "effect";
@@ -23,15 +23,15 @@ import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { Workspace, WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
-import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
+import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import {
   ExcerptPreparation,
   layerExcerptPreparation,
-} from "@/services/excerpt-image/prepare.ts";
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type {
   NoteExcerptOptions,
   PreparedExcerpts,
-} from "@/services/excerpt-image/prepare.ts";
+} from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import type { QueryService } from "@/services/item-query/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { snapshotAt } from "@zotlit/plugin-services/desktop/attachment-import/__fixtures__.ts";

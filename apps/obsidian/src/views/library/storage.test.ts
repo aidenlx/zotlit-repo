@@ -5,6 +5,7 @@ import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { makeAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { PluginStub } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 // @vitest-environment happy-dom
 // The Library View keeps its document in plugin data: a toolbar change in its
@@ -18,9 +19,9 @@ import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
-import { makeAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { makeQueryHost } from "@/views/query-view/__fixtures__/host.ts";
 import { noLiteratureNotes } from "@/views/query-view/__fixtures__/literature-notes.ts";
@@ -114,7 +115,7 @@ async function openLibrary() {
   await settings.bridge.runPromise(settings.loaded);
   const saveData = vi.spyOn(plugin, "saveData");
   const runtime = testRuntime();
-  const cardsHost = cleanup.use(makeAnnotHost());
+  const cardsHost = cleanup.use(makeAnnotHost(layerUnreadViewServices));
   const deps = stubService<QueryViewDeps & QueryHostDeps>("QueryViewDeps", {
     registry: cardsHost.registry,
     runtime,

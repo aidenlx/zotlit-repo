@@ -153,6 +153,16 @@ declare module "obsidian" {
      */
     readWorkspaceFile?(): Promise<unknown>;
 
+    /** A menu ZotLit built, raised before it shows so listeners add entries. */
+    on<E extends import("../menu-events.ts").ZotLitMenuEvent>(
+      name: E,
+      callback: (
+        menu: Menu,
+        info: import("../menu-events.ts").ZotLitMenuEvents[E],
+      ) => any,
+      ctx?: any,
+    ): EventRef;
+
     on(
       name: "quick-preview",
       callback: (file: TFile, source: string) => void,
@@ -535,7 +545,7 @@ declare module "obsidian" {
    * file and an external file alike. Internal; shape verified against Obsidian
    * 1.14.2.
    *
-   * @see apps/obsidian/src/services/pdf-annotation-editor/seam.ts — the one
+   * @see packages/annotations/src/obsidian/pdf-annotation-editor/seam.ts — the one
    *   adapter that reads these members, each behind a structural probe.
    */
   interface PDFFileView extends FileView {

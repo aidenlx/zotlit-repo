@@ -110,7 +110,9 @@
         "packages/zotero-reads/src/**",
         "packages/zotero-reads/tsconfig*.json",
         "packages/plugin-services/src/**",
-        "packages/plugin-services/tsconfig*.json"
+        "packages/plugin-services/tsconfig*.json",
+        "packages/annotations/src/**",
+        "packages/annotations/tsconfig*.json"
       ]
     },
     "//#review:manifest": {

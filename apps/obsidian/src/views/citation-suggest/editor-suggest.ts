@@ -10,6 +10,10 @@ import type {
   TFile,
 } from "obsidian";
 
+import {
+  isCitationCloser,
+  placeInsertion,
+} from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import type { CitationVariant } from "@zotlit/db";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -24,10 +28,6 @@ import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/ser
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 
 import { InertTemplateError } from "@/services/template/errors.ts";
-import {
-  isCitationCloser,
-  placeInsertion,
-} from "@/views/annot-view/async-insert.ts";
 
 import { readDocumentCitedKeys } from "./document-citations.ts";
 import type { CitationSuggestDeps } from "./register.ts";

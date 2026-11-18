@@ -19,7 +19,7 @@ export const noLiteralMenuSection: Rule = {
     },
     messages: {
       literal:
-        'Take the section from MENU_SECTION (@zotlit/plugin-kernel/menu-section.ts) or menuSections(…) (@/services/menu-events); a section the menu never registered sorts below "Delete".',
+        'Take the section from MENU_SECTION (@zotlit/plugin-kernel/menu-section.ts) or menuSections(…) (@zotlit/obsidian-kit/menu-events.ts); a section the menu never registered sorts below "Delete".',
     },
     schema: [],
   },

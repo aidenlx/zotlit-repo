@@ -1,0 +1,26 @@
+// A view's gesture that opens an Attachment or an Annotation: a page chip, a
+// reader link, a picker row. The open runs as a command on the plugin's view
+// registry, so it outlives the tab that started it, as the reader may replace
+// that tab, and ends when the plugin unloads.
+import type { Effect } from "effect";
+
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+
+import { openGesture } from "./actions.ts";
+import type { TargetOpenGesture } from "./actions.ts";
+import type { OpenOutcome, TargetOpener } from "./open-target.ts";
+
+/** Runs one open; the plugin mounts it once for every view. */
+export const openTargetCommand = viewRuntime.fn(
+  (open: Effect.Effect<OpenOutcome>) => open,
+  { concurrent: true },
+);
+
+/** {@link TargetOpenGesture} that runs each open on {@link openTargetCommand}. */
+export function viewTargetOpener(
+  registry: ViewRegistryHandle,
+  opener: Pick<TargetOpener["Service"], "open">,
+): TargetOpenGesture {
+  return openGesture(opener, (open) => registry.set(openTargetCommand, open));
+}

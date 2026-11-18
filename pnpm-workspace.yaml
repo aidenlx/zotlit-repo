@@ -26,6 +26,7 @@ catalog:
   "@base-ui/react": ^1.9.0
   "@inlang/plugin-message-format": 4.4.1
   nanoid: ^5.1.16
+  idb: ^8.0.3
   "@hono/node-server": ^2.0.10
   "@codemirror/autocomplete": 6.20.3
   "@codemirror/commands": 6.11.0

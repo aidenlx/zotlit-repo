@@ -89,11 +89,11 @@ export function indexedKeyFileMenu(): FileMenuSegment {
 
 ## Menus ZotLit builds itself
 
-A menu ZotLit creates with `new Menu()` around a research object — an annotation card, a colour, a comment editor, a picker of Attachments or cited works — is a **raised menu**: it registers sections and raises a `zotlit:*-menu` workspace event, the way Obsidian raises `file-menu`, so a listener adds entries to the right group. `services/menu-events.ts` holds each event's info type and section order.
+A menu ZotLit creates with `new Menu()` around a research object — an annotation card, a colour, a comment editor, a picker of Attachments or cited works — is a **raised menu**: it registers sections and raises a `zotlit:*-menu` workspace event, the way Obsidian raises `file-menu`, so a listener adds entries to the right group. `packages/obsidian-kit/src/menu-events.ts` holds the mechanism; the feature that raises a menu holds its event, info type and section order (`packages/annotations/src/obsidian/pdf-annotation-editor/color-menu.ts` is the reference).
 
-1. Add the event to `ZotLitMenuEvents` and its sections to `MENU_EVENT_SECTIONS`; listeners' `workspace.on` typing follows.
-2. Give ZotLit's own entries sections from `const SECTION = menuSections("zotlit:…")`. Group with sections rather than `addSeparator()`.
-3. After ZotLit's entries and before the menu shows: `raiseMenu(menu, { workspace: app.workspace, name, info })`.
+1. In the file that raises the menu, add the event to `ZotLitMenuEvents` by declaration merging (`declare module "@zotlit/obsidian-kit/menu-events.ts"`) and name its sections with `const fooMenu = menuEvent("zotlit:…", [...])`; listeners' `workspace.on` typing follows.
+2. Give ZotLit's own entries sections from `const SECTION = menuSections(fooMenu)`. Group with sections rather than `addSeparator()`.
+3. After ZotLit's entries and before the menu shows: `raiseMenu(menu, { workspace: app.workspace, event: fooMenu, info })`.
 
 ## Testing
 

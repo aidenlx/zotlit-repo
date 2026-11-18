@@ -16,6 +16,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/yargs": "catalog:",
+    "@zotlit/annotations": "workspace:*",
     "@zotlit/config": "workspace:*",
     "@zotlit/obsidian": "workspace:*",
     "@zotlit/obsidian-kit": "workspace:*",

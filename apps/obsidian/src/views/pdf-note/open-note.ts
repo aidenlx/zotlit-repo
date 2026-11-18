@@ -3,6 +3,7 @@ import type { Scope, Stream } from "effect";
 import { Effect } from "effect";
 import type { View, WorkspaceLeaf } from "obsidian";
 
+import type { ReaderSession } from "@zotlit/annotations/core/reader-session/session.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewServices } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
@@ -10,7 +11,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
-import type { ReaderSession } from "@/services/reader-session/session.ts";
 
 /** The Reader Session of each bound PDF view. */
 export type PdfSessions = Stream.Stream<ReadonlyMap<View, ReaderSession>>;

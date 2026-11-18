@@ -3,10 +3,14 @@
 import { Menu } from "obsidian";
 import type { HoverParent, Workspace } from "obsidian";
 
+import {
+  menuEvent,
+  menuSections,
+  raiseMenu,
+} from "@zotlit/obsidian-kit/menu-events.ts";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type { ShownCitation } from "@/services/citation-text/present.ts";
-import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
 import { citationHoverIntent } from "./hover.ts";
 import type { CitationHoverIntent, HoverPreferences } from "./hover.ts";
@@ -26,7 +30,10 @@ import type { GestureSurface } from "./shell.ts";
 
 const logger = getLogger("citekey-navigation");
 
-const SECTION = menuSections("zotlit:cited-works-menu");
+/** The picker over the works one Rendered Citation names. */
+const citedWorksMenu = menuEvent("zotlit:cited-works-menu", ["open", ""]);
+
+const SECTION = menuSections(citedWorksMenu);
 
 /** Where the hover of a rendered citation hangs, and what it is written in. */
 export interface CitationHoverTarget {
@@ -295,7 +302,7 @@ function navigate(event: MouseEvent, navigation: CitationNavigation): void {
   }
   raiseMenu(menu, {
     workspace: navigation.workspace,
-    name: "zotlit:cited-works-menu",
+    event: citedWorksMenu,
     info: { works },
   });
   menu.showAtMouseEvent(event);

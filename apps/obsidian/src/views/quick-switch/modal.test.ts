@@ -4,6 +4,9 @@ import type { App, Instruction, Modifier, WorkspaceLeaf } from "obsidian";
 import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attachment-open/resolve.ts";
+import { openAttachments } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
+import type { LiteratureNoteAttachmentsHandle } from "@zotlit/annotations/obsidian/attachment-open/handle.ts";
 import { makeItem } from "@zotlit/db/item-fixture";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
@@ -15,9 +18,6 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
-import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
-import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { DEFAULT_LITERATURE_NOTE_PROFILE } from "@/services/profile/settings.ts";
 import { defaults } from "@/services/settings/schema.ts";
@@ -32,10 +32,10 @@ const literatureNoteAttachments =
   vi.fn<LiteratureNoteAttachmentsHandle["literatureNoteAttachments"]>();
 
 vi.mock(
-  "@/services/attachment-open/open-attachments.ts",
+  "@zotlit/annotations/desktop/attachment-open/open-attachments.ts",
   async (importOriginal) => ({
     ...(await importOriginal<
-      typeof import("@/services/attachment-open/open-attachments.ts")
+      typeof import("@zotlit/annotations/desktop/attachment-open/open-attachments.ts")
     >()),
     openAttachments: vi.fn(),
   }),

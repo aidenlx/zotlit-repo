@@ -9,6 +9,7 @@ import type { App } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { resultValue } from "@zotlit/annotations/desktop/annot-view/atoms.ts";
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import {
   viewRuntime,
@@ -23,8 +24,6 @@ import type { FilterValues } from "@/views/query-view/filter-popover.tsx";
 import { allViewsDataset } from "@/views/query-view/query-file.ts";
 import { useViewProperties } from "@/views/query-view/view-properties.ts";
 import type { QueryView } from "@/views/query-view/view.tsx";
-
-import { resultValue } from "./atoms.ts";
 
 const NO_VALUES: FilterValues = { tags: [], collections: [], libraries: [] };
 
