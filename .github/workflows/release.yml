@@ -35,6 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Every `gh release` call and resource URL acts on the publish
+      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
+      - name: Name the publish repository
+        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
+
       - name: Find unreleased versions
         id: plan
         run: |
@@ -74,6 +79,11 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
+
+      # Every `gh release` call and resource URL acts on the publish
+      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
+      - name: Name the publish repository
+        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
 
       - name: Resolve version
         id: meta
@@ -144,7 +154,7 @@ jobs:
           download_dir="$(mktemp -d)"
           for resource in apps/obsidian/dist/resources/*; do
             file_name="${resource##*/}"
-            url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.meta.outputs.res_tag }}/$file_name"
+            url="https://github.com/${GH_REPO}/releases/download/${{ steps.meta.outputs.res_tag }}/$file_name"
             for attempt in 1 2 3 4 5; do
               if curl --fail --silent --show-error --location \
                 --header "Cache-Control: no-cache" \
@@ -197,6 +207,11 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
+
+      # Every `gh release` call and resource URL acts on the publish
+      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
+      - name: Name the publish repository
+        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
 
       - name: Resolve version
         id: meta

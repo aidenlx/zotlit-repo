@@ -4,11 +4,8 @@ import { appendFile, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { gt, prerelease } from "semver";
 
-import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
 import {
   HOST_NOTES,
-  parseRepository,
   UPDATE_BETA_JSON,
   UPDATE_JSON,
   xpiDownloadUrl,
@@ -63,7 +60,6 @@ interface UpdateManifest {
 
 const packageRoot = resolve(import.meta.dirname, "..");
 const packageJsonPath = join(packageRoot, "package.json");
-const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 const distDir = join(packageRoot, "dist");
 
 const pkg = JSON.parse(await readFile(packageJsonPath, "utf-8")) as {
@@ -74,12 +70,8 @@ const pkg = JSON.parse(await readFile(packageJsonPath, "utf-8")) as {
     strict_max_version?: string;
   };
 };
-const rootPkg = JSON.parse(
-  await readFile(join(workspaceRoot, "package.json"), "utf-8"),
-) as { repository?: unknown };
 
 const { version, zotero } = pkg;
-const repo = parseRepository(rootPkg.repository);
 
 const xpiPath = join(distDir, xpiName(version));
 const hash = createHash("sha512")
@@ -92,7 +84,7 @@ const manifest: UpdateManifest = {
       updates: [
         {
           version,
-          update_link: xpiDownloadUrl(repo, version),
+          update_link: xpiDownloadUrl(version),
           update_hash: `sha512:${hash}`,
           applications: {
             zotero: {

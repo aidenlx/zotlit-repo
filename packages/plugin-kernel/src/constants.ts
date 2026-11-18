@@ -1,4 +1,6 @@
 /// <reference path="./typings/build-env.d.ts" />
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+
 /**
  * The documentation site this build belongs to, fixed at build time: Stable
  * Docs (https://zotlit.aidenlx.site) for a stable release, Pre-release Docs
@@ -22,7 +24,7 @@ export const ANNOTATION_SUGGESTER_ENABLED = __ANNOTATION_SUGGESTER_ENABLED__;
  * Host and repository ZotLit's releases are served from, as shown to the user
  * when a download is attributed to its source.
  */
-export const RELEASE_ORIGIN = "github.com/aidenlx/zotlit";
+export const RELEASE_ORIGIN = `github.com/${RELEASE_REPOSITORY}`;
 
 /**
  * Base URL of the Resource Release serving a plugin version — the `res-<version>`

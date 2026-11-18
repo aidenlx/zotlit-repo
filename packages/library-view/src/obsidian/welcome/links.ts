@@ -1,6 +1,7 @@
 // External URLs surfaced by the Welcome View — docs, community, and news links.
 // The docs-site links follow the reader's language, so each is read when used.
 
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 
 export const docsHomeUrl = (): string => docsUrl("/docs");
@@ -13,6 +14,6 @@ export const migrationGuideUrl = (): string =>
   docsUrl("/docs/how-to/migrate-from-v1");
 export const blogUrl = (): string => docsUrl("/blog");
 export const changelogUrl = (): string => docsUrl("/changelog");
-export const GITHUB = "https://github.com/aidenlx/zotlit";
-export const BUG_REPORT = `https://github.com/aidenlx/zotlit/discussions/new?category=bug-reports`;
+export const GITHUB = `https://github.com/${RELEASE_REPOSITORY}`;
+export const BUG_REPORT = `${GITHUB}/discussions/new?category=bug-reports`;
 export const SPONSOR = "https://github.com/sponsors/aidenlx";

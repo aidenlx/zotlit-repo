@@ -4,9 +4,14 @@
 > added here as the project matures.
 >
 > Bug reports and feature requests via
-> [GitHub Issues](https://github.com/aidenlx/zotlit/issues) are welcome.
+> [GitHub Issues](https://github.com/aidenlx/zotlit-repo/issues) are welcome.
 
 ## Releasing
+
+The source lives in `aidenlx/zotlit-repo`. Releases publish to the publish
+repository `aidenlx/zotlit`: the plugin releases, the Resource Releases, the
+Companion releases and its `zotero-release` update channel. Code reads the two
+names from `packages/config/repositories.ts`.
 
 Each app's `apps/{app}/package.json#version` is the sole version source.
 

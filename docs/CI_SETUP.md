@@ -72,7 +72,9 @@ environment with `wrangler secret put GITHUB_TOKEN`.
 
 ## Zotero release host
 
-The release workflow expects a permanent prerelease named `zotero-release`.
+The release workflow expects a permanent prerelease named `zotero-release` in
+the publish repository (`RELEASE_REPOSITORY` in
+`packages/config/repositories.ts`).
 Create it once with `update.json` and `update-beta.json` assets. The workflow
 downloads those files before it updates a release channel, and a missing host
 fails the release before it publishes a new Zotero add-on.

@@ -5,12 +5,8 @@ import { glob } from "tinyglobby";
 import { build } from "vite";
 import type { InlineConfig, LibraryFormats, Plugin } from "vite";
 
-import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
 import { iconEntryPath, parseManifest } from "./manifest.ts";
-import { parseRepository, updateUrl } from "./release-constants.ts";
-
-const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
+import { updateUrl } from "./release-constants.ts";
 
 type ZoteroPkg = typeof import("../package.json");
 
@@ -120,7 +116,6 @@ export function zoteroBuildPlugin({
 }: ZoteroBuildPluginOpts): Plugin {
   const { addonStaging, xpiOutDir, isProd } = env;
   const pkgPath = join(root, "package.json");
-  const rootPkgPath = join(workspaceRoot, "package.json");
   const addonSrcDir = join(root, "addon");
   const addonDistDir = join(root, addonStaging);
   const bootstrapEntryPath = resolve(root, bootstrapBundle.entry);
@@ -159,12 +154,7 @@ export function zoteroBuildPlugin({
     async writeBundle() {
       const pkg = await readPkg(pkgPath);
 
-      const rootPkg = JSON.parse(await readFile(rootPkgPath, "utf-8")) as {
-        repository?: unknown;
-      };
-
-      const repo = parseRepository(rootPkg.repository);
-      const manifest = parseManifest(pkg, updateUrl(repo, pkg.version));
+      const manifest = parseManifest(pkg, updateUrl(pkg.version));
 
       // bootstrap.js (from the inner build) and main.js (just written) are
       // both in `outDir`. Overlay the static addon assets on top.

@@ -14,6 +14,7 @@
     "./oxfmt": "./oxfmt.base.ts",
     "./vitest": "./vitest.base.ts",
     "./memory-gate": "./memory-gate.ts",
+    "./repositories": "./repositories.ts",
     "./oxlint-plugin-code": "./oxlint-plugin-code.ts"
   },
   "scripts": {

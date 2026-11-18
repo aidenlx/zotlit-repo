@@ -123,7 +123,7 @@ ZotLit Query 只读取 Zotero 数据库，绝不读取你的笔记，因此 ZotL
 - 排序会先读取最多 5,000 篇匹配的文献，对其排序，然后保留其中的 `limit` 条。
 - 筛选会根据笔记中的属性值转换为一份文献列表，ZotLit Query 将这份列表连同其余筛选条件一起读取。
 
-在这两种情况下，`limit` 统计的都是你所看到的行数。这也是为什么仓库属性条件必须作为独立条目置于筛选器的顶层 `and` 之下。[ADR 0070](https://github.com/aidenlx/zotlit/blob/next/apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md) 记录了这一设计。
+在这两种情况下，`limit` 统计的都是你所看到的行数。这也是为什么仓库属性条件必须作为独立条目置于筛选器的顶层 `and` 之下。[ADR 0070](https://github.com/aidenlx/zotlit-repo/blob/next/apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md) 记录了这一设计。
 
 [在查询视图中跟踪阅读状态](/docs/how-to/track-reading-status)介绍了具体步骤。[仓库属性](/docs/reference/query-file-format#vault)列出了相关规则。
 

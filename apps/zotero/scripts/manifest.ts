@@ -54,7 +54,7 @@ export function iconEntryPath(iconSource: string): string {
  * auto-update between prereleases. The schema still rejects non-semver garbage.
  *
  * @param updateUrl build-time `update_url` for `applications.zotero`, resolved
- *   from `package.json#repository` + prerelease status.
+ *   from the publish repository (`RELEASE_REPOSITORY`) + prerelease status.
  * @see apps/obsidian/scripts/manifest.js — sibling manifest synthesizer.
  * @see release-constants.ts#updateUrl — derives the `updateUrl` argument.
  */

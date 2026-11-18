@@ -39,8 +39,8 @@ import {
   docsPageTitle,
   docsRoute,
   docsSourceBranch,
-  gitConfig,
   ogImageUrl,
+  sourceRepoUrl,
 } from "@/lib/shared.ts";
 import { source } from "@/lib/source.ts";
 import type { Crumb } from "@/lib/structured-data.ts";
@@ -83,7 +83,7 @@ export const resolveDocsPage = createServerFn({ method: "GET" })
         contentRouteUrl({ section: "docs", slugs: page.slugs }),
         { locale },
       ),
-      githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${docsSourceBranch(env.DOCS_LINE)}/apps/docs/content/docs/${page.path}`,
+      githubUrl: `${sourceRepoUrl}/blob/${docsSourceBranch(env.DOCS_LINE)}/apps/docs/content/docs/${page.path}`,
       // Only the install pages carry release facts. The snapshot is the one
       // this render saw — the build's own in a prerendered page, where the
       // provider then refreshes it from `/api/release-snapshot`.

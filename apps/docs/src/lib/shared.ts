@@ -3,6 +3,11 @@
 
 import * as v from "valibot";
 
+import {
+  RELEASE_REPOSITORY,
+  SOURCE_REPOSITORY,
+} from "@zotlit/config/repositories";
+
 import type { SiteLocale } from "./i18n.ts";
 
 export const appName = "ZotLit";
@@ -16,9 +21,18 @@ export const changelogFeedRoute = `${changelogRoute}/rss.xml`;
 export const blogRoute = "/blog";
 export const learnRoute = "/learn";
 
+const [releaseOwner, releaseName] = RELEASE_REPOSITORY.split("/") as [
+  string,
+  string,
+];
+
+/**
+ * The publish repository: the releases, the stars, the discussions, and the
+ * default-branch `manifest.json` the community directory reads.
+ */
 export const gitConfig = {
-  user: "aidenlx",
-  repo: "zotlit",
+  user: releaseOwner,
+  repo: releaseName,
   branch: "main",
 };
 
@@ -54,9 +68,12 @@ export function markdownEditionHeaders(pagePath: string) {
 }
 
 /** `owner/name`, the form GitHub's API and giscus both name the repository by. */
-export const repoSlug = `${gitConfig.user}/${gitConfig.repo}` as const;
+export const repoSlug = RELEASE_REPOSITORY;
 
 export const repoUrl = `https://github.com/${repoSlug}`;
+
+/** The source repository, where each docs page and the license live. */
+export const sourceRepoUrl = `https://github.com/${SOURCE_REPOSITORY}`;
 
 /** The frozen v1 site; every v1-only permalink still resolves there. */
 export const zotlitLegacyUrl = "https://zotlit-v1.aidenlx.site";

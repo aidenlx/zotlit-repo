@@ -4,7 +4,7 @@
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aidenlx/zotlit"
+    "url": "https://github.com/aidenlx/zotlit-repo"
   },
   "type": "module",
   "scripts": {
