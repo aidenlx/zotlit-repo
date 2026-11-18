@@ -4,9 +4,9 @@ Citations in Obsidian: citation parsing and the Citation Index, the Citation Sug
 
 The package imports no other feature except `@zotlit/annotations`, whose Annotations the Annotation Popover draws. A capability of the notes feature comes in as a port that the host fills:
 
-- `CitationTemplate` (`obsidian/citation-suggest/register.ts`) renders the citation text the Citation Suggester inserts; `apps/obsidian/src/services/note-feature/citation-template.ts` fills it.
-- `CitekeyNoteActions` (`obsidian/citekey-editor/note-actions.ts`) picks and creates the literature note a citekey opens; `apps/obsidian/src/services/note-feature/citekey-actions.ts` fills it.
-- `ProfileStyles` (`obsidian/pandoc/profile-styles.ts`) reads the Profile a note selects and the Citation and References Style it binds, and the vault's style; `apps/obsidian/src/services/profile/profile-styles.ts` fills it.
+- `CitationTemplate` (`obsidian/citation-suggest/register.ts`) renders the citation text the Citation Suggester inserts; `packages/notes/src/desktop/note-feature/citation-template.ts` fills it.
+- `CitekeyNoteActions` (`obsidian/citekey-editor/note-actions.ts`) picks and creates the literature note a citekey opens; `packages/notes/src/desktop/note-feature/citekey-actions.ts` fills it.
+- `ProfileStyles` (`obsidian/pandoc/profile-styles.ts`) reads the Profile a note selects and the Citation and References Style it binds, and the vault's style; `packages/notes/src/obsidian/profile/profile-styles.ts` fills it.
 
 The host keeps the citation parse Worker entry (`apps/obsidian/src/services/citation-parse/worker.ts`) and passes its bundle to `layerCitationParse`, the Annotation Suggester (`src/views/annotation-suggest/`), the Citations settings tab, and the tests that read the notes feature's Profiles (`src/services/citations/`).
 

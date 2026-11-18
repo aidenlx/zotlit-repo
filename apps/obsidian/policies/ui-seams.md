@@ -15,12 +15,12 @@ Reach for the lowest rung that fits:
 1. A function returns the outcome; the caller renders it
    (`services/note-import/batch-import-notices.ts`).
 2. A service publishes on its `changes` Stream; a notices layer shows each
-   event (`services/note-feature/notices.ts`).
+   event (`@zotlit/notes/desktop/note-feature/notices.ts`).
 3. A decision tag, only when the user's answer feeds back mid-flow: it
    answers a typed value, a dismissal included (`awaitConfirm`,
    `lib/confirm.ts`). Work that a dialog's callbacks started stops with
    `UserCancelled` (`lib/user-cancel.ts`) when the user closes the dialog
-   (`runDialog`, `setting-tab/profile-dialogs.ts`); unload stops it as an
+   (`runDialog`, `@zotlit/notes/desktop/profile/dialogs.ts`); unload stops it as an
    interrupt (`unload.md`).
 
 Tests observe the core: returns, events, and decision answers. Only a test of

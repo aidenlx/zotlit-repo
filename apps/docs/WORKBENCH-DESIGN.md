@@ -283,7 +283,7 @@ Use runtime inspection for wrapping, alignment, focus, contrast, and editing
 space. The design check catches supported control sizes, logical direction,
 and chrome type rules. Theme classes belong in
 [the web theme](src/lib/workbench/theme.tsx) and
-[the Obsidian theme](../obsidian/src/views/template-workbench/theme.tsx);
+[the Obsidian theme](../../packages/template-workbench/src/obsidian/editor/theme.tsx);
 shared structure and behavior belong in `@zotlit/workbench/ui`.
 
 Record accepted corrections as observable sentences. Put a judgment in this
