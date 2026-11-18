@@ -9,14 +9,25 @@ import {
 } from "node:fs";
 import { basename, resolve } from "node:path";
 import { DefaultReporter } from "vitest/node";
-import type { TestCase, TestModuleState } from "vitest/node";
+import type {
+  ReportedHookContext,
+  TestCase,
+  TestModule,
+  TestModuleState,
+} from "vitest/node";
+
+import { reportDesktopProgress } from "@zotlit/scripts/desktop-slot";
 
 import { E2E_RESULTS_ROOT, e2eResultsDir } from "./results-dir.ts";
 
 /** Run folders kept under the results root, this run's included. */
 const KEPT_RUNS = 10;
 
-/** Keep console evidence on disk while terminal output follows suite progress. */
+/**
+ * Keep console evidence on disk while terminal output follows suite progress.
+ * Each test file, test case, and hook that starts or ends renews the Lease of
+ * the run's Desktop Slot.
+ */
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
   readonly #log = resolve(this.#directory, "console.log");
@@ -63,7 +74,38 @@ export default class E2eReporter extends DefaultReporter {
   onTestModuleStart(
     module: Parameters<DefaultReporter["onTestModuleEnd"]>[0],
   ): void {
+    reportDesktopProgress(`started ${this.relative(module.moduleId)}`);
     this.log(`Running ${this.relative(module.moduleId)}`);
+  }
+
+  override onTestModuleCollected(module: TestModule): void {
+    super.onTestModuleCollected(module);
+    reportDesktopProgress(`collected ${this.relative(module.moduleId)}`);
+  }
+
+  override onTestModuleEnd(module: TestModule): void {
+    super.onTestModuleEnd(module);
+    reportDesktopProgress(`finished ${this.relative(module.moduleId)}`);
+  }
+
+  override onTestCaseReady(test: TestCase): void {
+    super.onTestCaseReady(test);
+    reportDesktopProgress(`started test "${test.fullName}"`);
+  }
+
+  override onTestCaseResult(test: TestCase): void {
+    super.onTestCaseResult(test);
+    reportDesktopProgress(`finished test "${test.fullName}"`);
+  }
+
+  override onHookStart(hook: ReportedHookContext): void {
+    super.onHookStart(hook);
+    reportDesktopProgress(`started ${hook.name} of ${describeEntity(hook)}`);
+  }
+
+  override onHookEnd(hook: ReportedHookContext): void {
+    super.onHookEnd(hook);
+    reportDesktopProgress(`finished ${hook.name} of ${describeEntity(hook)}`);
   }
 
   protected override printTestCase(
@@ -72,4 +114,9 @@ export default class E2eReporter extends DefaultReporter {
   ): void {
     if (test.result().state === "failed") super.printTestCase(state, test);
   }
+}
+
+function describeEntity(hook: ReportedHookContext): string {
+  const { entity } = hook;
+  return entity.type === "module" ? entity.moduleId : `"${entity.fullName}"`;
 }

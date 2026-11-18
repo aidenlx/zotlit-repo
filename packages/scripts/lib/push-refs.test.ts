@@ -124,7 +124,7 @@ describe("the pre-push hook", () => {
     async () => {
       const turn = await acquireDesktopSlot({
         admission: landAdmission("next"),
-        leaseMs: 600_000,
+        silenceMs: 600_000,
         pollMs: 10,
         signals: false,
         log: () => {},

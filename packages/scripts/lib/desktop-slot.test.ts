@@ -22,13 +22,16 @@ import {
 
 import {
   acquireDesktopSlot,
+  ADMISSION_DEADLINE_MS,
   DESKTOP_SLOT_ENV,
   DESKTOP_SLOTS_ENV,
   DesktopSlotBlockedError,
+  EVICTION_GRACE_MS,
   EXIT_ADMISSION_BLOCKED,
   EXIT_LEASE_ENDED,
-  extendDesktopSlot,
   holdDesktopMutex,
+  KILL_AFTER_MS,
+  NOTICE_MS,
   readDesktopSlotStatus,
 } from "./desktop-slot.ts";
 
@@ -119,7 +122,7 @@ afterEach(async () => {
 
 /** Options for an in-process holder that must not end the test run. */
 const IN_TEST = {
-  leaseMs: 30 * MINUTE,
+  silenceMs: 30 * MINUTE,
   pollMs: 10,
   onLeaseEnd: () => {},
   log: () => {},
@@ -166,6 +169,13 @@ async function printed(
   });
 }
 
+/** Everything the child prints from now on. */
+function collect(process: ChildProcess): () => string {
+  let output = "";
+  process.stdout!.on("data", (chunk: Buffer) => (output += String(chunk)));
+  return () => output;
+}
+
 async function exists(file: string): Promise<boolean> {
   return await stat(file).then(
     () => true,
@@ -201,7 +211,7 @@ async function deadPid(): Promise<number> {
 }
 
 /** A child that holds the slot until a signal ends it. */
-const HOLD = `await slot.acquireDesktopSlot({ command: "holder", leaseMs: 30 * 60_000, pollMs: 10 });
+const HOLD = `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10 });
 console.log("held");
 setInterval(() => {}, 1000);`;
 
@@ -218,7 +228,9 @@ function holderIn(
   }: {
     command?: string;
     exclusive?: boolean;
-    leaseMs?: number;
+    silenceMs?: number;
+    /** A manual hold, instead of an automated holder. */
+    manual?: boolean;
     /** Lead its own process group. */
     detached?: boolean;
     /** The number of slots this holder sees. */
@@ -226,7 +238,7 @@ function holderIn(
   } = {},
 ): ChildProcess {
   return child(
-    `await slot.acquireDesktopSlot({ command: "holder", leaseMs: 30 * 60_000, pollMs: 10, worktree: ${JSON.stringify(worktree)}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
+    `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10, worktree: ${JSON.stringify(worktree)}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
 console.log("held");
 setInterval(() => {}, 1000);`,
     // Not a child of an in-process holder: it takes its own slot.
@@ -242,6 +254,7 @@ setInterval(() => {}, 1000);`,
 async function blocked(options: {
   worktree: string;
   exclusive?: boolean;
+  now?: () => number;
 }): Promise<DesktopSlotBlockedError> {
   const error = await acquireDesktopSlot({
     ...IN_TEST,
@@ -266,7 +279,7 @@ function waiter(
 ): ChildProcess {
   return child(
     `const { appendFileSync } = await import("node:fs");
-const held = await slot.acquireDesktopSlot({ command: ${JSON.stringify(name)}, leaseMs: 60_000, pollMs: ${pollMs}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
+const held = await slot.acquireDesktopSlot({ command: ${JSON.stringify(name)}, silenceMs: 60_000, pollMs: ${pollMs}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
 appendFileSync(${JSON.stringify(trace)}, ${JSON.stringify(name)} + "\\n");
 held.release();`,
     // Not a child of an in-process holder: it waits in the queue.
@@ -302,10 +315,12 @@ desktopOnly("a free slot", () => {
       pid: process.pid,
       command: "pnpm e2e",
       worktree: "/work/tree",
-      lease: 30 * MINUTE,
+      kind: "automated",
+      silenceMs: 30 * MINUTE,
+      progress: { what: "admitted" },
     });
     expect(
-      Temporal.Instant.from(holder!.leaseEndsAt)
+      Temporal.Instant.from(holder!.leaseEndsAt!)
         .since(Temporal.Instant.from(holder!.admittedAt))
         .total("minutes"),
     ).toBe(30);
@@ -502,7 +517,7 @@ desktopOnly("a pool of two Desktop Slots", () => {
     const evicted = once(overdue, "exit");
     await printed(overdue, "held");
     const current = holderIn("/b", {
-      leaseMs: 2 * 60 * MINUTE,
+      silenceMs: 2 * 60 * MINUTE,
       detached: true,
     });
     await printed(current, "held");
@@ -510,7 +525,7 @@ desktopOnly("a pool of two Desktop Slots", () => {
     using slot = await acquireDesktopSlot({
       ...IN_TEST,
       worktree: "/c",
-      // Past the first holder's 30 min Lease and grace, inside the other's 2 h.
+      // Past the first holder's 30 min silence and grace, inside the other's 2 h.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     });
@@ -646,8 +661,6 @@ desktopOnly("a dead holder", () => {
       const pidFile = join(dir, "sleep");
       const wrapper = start(
         "run",
-        "--for",
-        "1m",
         "--",
         "sh",
         "-c",
@@ -711,7 +724,7 @@ desktopOnly("a dead holder", () => {
         command: "crashed",
         worktree: "/w",
         admittedAt: ended,
-        lease: MINUTE,
+        silenceMs: MINUTE,
         leaseEndsAt: ended,
       }),
     );
@@ -735,16 +748,97 @@ desktopOnly("a dead holder", () => {
   });
 });
 
-desktopOnly("the Lease", () => {
-  it("ends an in-process holder with exit 76 and frees the slot", async () => {
+desktopOnly("the Lease of an automated holder", () => {
+  it("moves its end to the time of the last progress plus the silence limit", async () => {
+    let clock = Temporal.Now.instant().epochMilliseconds;
+    using slot = await acquireDesktopSlot({
+      ...IN_TEST,
+      silenceMs: 10 * MINUTE,
+      now: () => clock,
+    });
+    clock += 7 * MINUTE;
+    slot.progress("first step");
+    let [holder] = (await readDesktopSlotStatus()).holders;
+    expect(holder?.progress?.what).toBe("first step");
+    expect(Temporal.Instant.from(holder!.leaseEndsAt!).epochMilliseconds).toBe(
+      clock + 10 * MINUTE,
+    );
+
+    // A tool started under the hold renews it through the environment.
+    const nested = child(`slot.reportDesktopProgress("a nested step");`);
+    expect((await once(nested, "exit"))[0]).toBe(0);
+    [holder] = (await readDesktopSlotStatus()).holders;
+    expect(holder?.progress?.what).toBe("a nested step");
+  });
+
+  it("ends a silent holder with exit 76, naming the silence and the last progress", async () => {
     const holder = child(
-      `await slot.acquireDesktopSlot({ leaseMs: 200, log: (message) => console.log(message) });
+      `const held = await slot.acquireDesktopSlot({ silenceMs: 300, pollMs: 10, log: (message) => console.log(message) });
+held.progress("the first step");
 setInterval(() => {}, 1000);`,
     );
-    await printed(holder, /Lease .* ended/);
+    await printed(
+      holder,
+      /made no progress for .*silence limit of 300 ms.*"the first step"/,
+    );
     const [code] = await once(holder, "exit");
     expect(code).toBe(EXIT_LEASE_ENDED);
     expect(await exists(OWNER())).toBe(false);
+  });
+
+  it("keeps a healthy run that lasts longer than the old fixed Lease of 20 min", async () => {
+    // Each step moves the holder's clock 5 min on, and reports progress.
+    const holder = child(
+      `let shift = 0;
+const held = await slot.acquireDesktopSlot({ silenceMs: slot.SILENCE_LIMIT_MS.e2e, pollMs: 10, now: () => Temporal.Now.instant().epochMilliseconds + shift, log: (message) => console.log(message) });
+for (let step = 1; step <= 12; step++) {
+  shift += 5 * 60_000;
+  held.progress("step " + step);
+  await new Promise((resolve) => setTimeout(resolve, 30));
+}
+console.log("finished after " + shift / 60_000 + " min");
+held.release();`,
+    );
+    const said = collect(holder);
+    const [code] = await once(holder, "exit");
+    expect(code).toBe(0);
+    expect(said()).toContain("finished after 60 min");
+    expect(said()).not.toContain("Lease");
+  });
+
+  it("does not yield to a waiter, which names its last progress and silence limit", async () => {
+    const holder = holderIn("/a", { command: "automated" });
+    await printed(holder, "held");
+    const error = await blocked({ worktree: "/b" });
+    expect(error.message).toMatch(
+      new RegExp(
+        `pid ${holder.pid} \\(automated\\).*automated, last progress .* \\(admitted\\), silence limit 30 min, Lease ends`,
+      ),
+    );
+    const [status] = (await readDesktopSlotStatus()).holders;
+    expect(status?.notice).toBeUndefined();
+    expect(isAlive(holder.pid!)).toBe(true);
+  });
+
+  it("is a backstop: the head waiter evicts a silent holder that ignores its Lease end", async () => {
+    const holder = child(
+      `await slot.acquireDesktopSlot({ command: "ignores", silenceMs: 200, pollMs: 10, onLeaseEnd: () => console.log("ignored"), log: () => {} });
+console.log("held");
+setInterval(() => {}, 1000);`,
+      {},
+      true,
+    );
+    const exited = once(holder, "exit");
+    await printed(holder, "ignored");
+    const messages: string[] = [];
+    using _slot = await acquireDesktopSlot({
+      ...IN_TEST,
+      // Past the holder's silence of 200 ms and the 2 min grace.
+      now: () => Temporal.Now.instant().add({ minutes: 3 }).epochMilliseconds,
+      log: (message) => messages.push(message),
+    });
+    expect((await exited)[1]).toBe("SIGTERM");
+    expect(messages.join("\n")).toContain(`evicting pid ${holder.pid}`);
   });
 
   it("is overdue past its grace, so the head waiter evicts the holder and takes the slot", async () => {
@@ -754,7 +848,7 @@ setInterval(() => {}, 1000);`,
     const messages: string[] = [];
     using _slot = await acquireDesktopSlot({
       ...IN_TEST,
-      // The holder's 30 min Lease and its 2 min grace have passed.
+      // The holder's 30 min silence and its 2 min grace have passed.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     });
@@ -767,7 +861,7 @@ setInterval(() => {}, 1000);`,
     // A run currently checking memory holds the start lock.
     await mkdir(join(dir, "last-start.lock"));
     const holder = child(
-      `await slot.acquireDesktopSlot({ command: "holder", leaseMs: 30 * 60_000, pollMs: 10, log: (message) => console.log(message) });
+      `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10, log: (message) => console.log(message) });
 console.log("held");`,
       { [MEMORY_GATE_ENV]: "" },
     );
@@ -776,7 +870,7 @@ console.log("held");`,
     const error = await acquireDesktopSlot({
       ...IN_TEST,
       waitMs: 300,
-      // Past the claim plus the 30 min Lease and its 2 min grace.
+      // Past the claim plus the 30 min silence and its 2 min grace.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     }).then(
@@ -788,26 +882,139 @@ console.log("held");`,
     expect(isAlive(holder.pid!)).toBe(true);
     expect(await holderPids()).toEqual([holder.pid]);
   });
+});
 
-  it("extends while no one waits, and is refused while someone does", async () => {
-    const slot = await acquireDesktopSlot(IN_TEST);
-    const extended = await extendDesktopSlot({
-      token: slot.owner.token,
-      byMs: 45 * MINUTE,
+/**
+ * A waiter whose clock runs NOTICE_MS less `leftMs` behind: the notice it
+ * gives ends `leftMs` from now on the holder's clock.
+ */
+function behindByNotice(leftMs: number): () => number {
+  return () => Temporal.Now.instant().epochMilliseconds - NOTICE_MS + leftMs;
+}
+
+desktopOnly("the Lease of a manual hold", () => {
+  it("has no end while no run waits, past any old cap", async () => {
+    // The holder's clock is 3 h ahead: past the old manual cap of 60 min and
+    // the 2 h cap of an automated holder.
+    const holder = child(
+      `await slot.acquireDesktopSlot({ manual: true, command: "manual", pollMs: 10, now: () => Temporal.Now.instant().add({ hours: 3 }).epochMilliseconds, log: (message) => console.log(message) });
+console.log("held");
+setInterval(() => {}, 1000);`,
+    );
+    await printed(holder, "held");
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(isAlive(holder.pid!)).toBe(true);
+    const [status] = (
+      await readDesktopSlotStatus({
+        now: () => Temporal.Now.instant().add({ hours: 3 }).epochMilliseconds,
+      })
+    ).holders;
+    expect(status).toMatchObject({
+      pid: holder.pid,
+      kind: "manual",
+      overdue: false,
     });
-    const left = Temporal.Instant.from(extended.leaseEndsAt)
-      .since(Temporal.Now.instant())
-      .total("minutes");
-    expect(left).toBeGreaterThan(44);
-    expect(left).toBeLessThanOrEqual(45);
+    expect(status?.leaseEndsAt).toBeUndefined();
+  });
 
-    const queued = waiter("queued", join(dir, "trace"));
-    await printed(queued, /position 1 of/);
-    await expect(
-      extendDesktopSlot({ token: slot.owner.token, byMs: MINUTE }),
-    ).rejects.toThrow(`pid ${queued.pid} (queued)`);
-    slot.release();
-    expect((await once(queued, "exit"))[0]).toBe(0);
+  it("fits a notice and the eviction grace inside the default Admission Deadline", () => {
+    expect(NOTICE_MS + EVICTION_GRACE_MS + KILL_AFTER_MS).toBeLessThan(
+      ADMISSION_DEADLINE_MS,
+    );
+  });
+
+  describe("with a pool of two slots", () => {
+    beforeEach(() => {
+      process.env[DESKTOP_SLOTS_ENV] = "2";
+    });
+
+    it("gives the longest-held one notice, which ends it, so a waiter with the default deadline is admitted", async () => {
+      const older = holderIn("/a", { command: "older", manual: true });
+      await printed(older, "held");
+      const said = collect(older);
+      const olderExited = once(older, "exit");
+      const newer = holderIn("/b", { command: "newer", manual: true });
+      await printed(newer, "held");
+      const messages: string[] = [];
+      using slot = await acquireDesktopSlot({
+        ...IN_TEST,
+        worktree: "/c",
+        now: behindByNotice(500),
+        log: (message) => messages.push(message),
+      });
+      expect(slot.owner.pid).toBe(process.pid);
+      expect(messages.join("\n")).toContain(
+        `gave the manual hold of pid ${older.pid} (older) 5 min of notice`,
+      );
+      expect((await olderExited)[0]).toBe(EXIT_LEASE_ENDED);
+      expect(said()).toMatch(
+        new RegExp(
+          `pid ${process.pid} \\(.*\\) in /c waits for a slot\\. This manual hold ends at`,
+        ),
+      );
+      expect(said()).toContain("the notice for");
+      expect(isAlive(newer.pid!)).toBe(true);
+    });
+
+    it("ends an Exclusive Hold on notice, for all its slots", async () => {
+      const exclusive = holderIn("/x", {
+        command: "exclusive",
+        exclusive: true,
+        manual: true,
+      });
+      await printed(exclusive, "held");
+      const exited = once(exclusive, "exit");
+      const waiting = acquireDesktopSlot({
+        ...IN_TEST,
+        worktree: "/c",
+        now: behindByNotice(1000),
+      });
+      await printed(exclusive, /waits for a slot/);
+      const notices = await Promise.all(
+        [0, 1].map(async (index) => {
+          const owner = JSON.parse(
+            await readFile(join(dir, `slot-${index}`, "owner.json"), "utf8"),
+          ) as { notice?: { endsAt: string } };
+          return owner.notice?.endsAt;
+        }),
+      );
+      expect(notices[0]).toBeDefined();
+      expect(notices[1]).toBe(notices[0]);
+      using slot = await waiting;
+      expect(slot.owner.pid).toBe(process.pid);
+      expect((await exited)[0]).toBe(EXIT_LEASE_ENDED);
+    });
+
+    it("renews an automated Exclusive Hold on all its slots", async () => {
+      using slot = await acquireDesktopSlot({ ...IN_TEST, exclusive: true });
+      slot.progress("a timed query");
+      const owners = await Promise.all(
+        [0, 1].map(
+          async (index) =>
+            JSON.parse(
+              await readFile(join(dir, `slot-${index}`, "owner.json"), "utf8"),
+            ) as { progress?: { what: string }; leaseEndsAt?: string },
+        ),
+      );
+      expect(owners.map((owner) => owner.progress?.what)).toEqual([
+        "a timed query",
+        "a timed query",
+      ]);
+      expect(owners[1]?.leaseEndsAt).toBe(owners[0]?.leaseEndsAt);
+    });
+  });
+
+  it("goes on when no run waits at the end of its notice", async () => {
+    const holder = holderIn("/a", { command: "manual", manual: true });
+    await printed(holder, "held");
+    // The waiter's clock gives a notice that ends in 1 s, and its own
+    // deadline passes first.
+    await blocked({ worktree: "/b", now: behindByNotice(1000) });
+    await printed(holder, /no run waits any more, so this manual hold goes on/);
+    expect(isAlive(holder.pid!)).toBe(true);
+    const [status] = (await readDesktopSlotStatus()).holders;
+    expect(status?.notice).toBeUndefined();
+    expect(status?.leaseEndsAt).toBeUndefined();
   });
 });
 
@@ -860,8 +1067,6 @@ desktopOnly("the desktop-slot command", () => {
   it("holds the slot while the command runs and passes its exit code through", async () => {
     const { code, stdout } = await cli(
       "run",
-      "--for",
-      "1m",
       "--",
       process.execPath,
       "-e",
@@ -878,8 +1083,6 @@ process.exit(7);`,
   it("exits with 128 plus the signal number when a signal ends the command", async () => {
     const { code } = await cli(
       "run",
-      "--for",
-      "1m",
       "--",
       process.execPath,
       "-e",
@@ -888,27 +1091,36 @@ process.exit(7);`,
     expect(code).toBe(143);
   });
 
-  it.each([[[]], [["--for", "61m"]]])(
-    "rejects a manual hold without a Lease up to 60 min (%j)",
-    async (lease) => {
-      const { code, stderr } = await cli("run", ...lease, "--", "true");
+  it.each([[["run", "--for", "20m", "--", "true"]], [["extend", "20m"]]])(
+    "rejects a Lease duration, which no hold takes now, and says what to do (%j)",
+    async (args) => {
+      const { code, stderr } = await cli(...args);
       expect(code).toBe(2);
-      expect(stderr).toContain("--for");
+      expect(stderr).toMatch(
+        /is gone: .*(Run the command again|end the command)/,
+      );
     },
   );
+
+  it("passes --for after -- on to the command", async () => {
+    const { code, stdout } = await cli(
+      "run",
+      "--",
+      "sh",
+      "-c",
+      'echo "$@"',
+      "sh",
+      "--for",
+      "1m",
+    );
+    expect(code).toBe(0);
+    expect(stdout.trim()).toBe("--for 1m");
+  });
 
   it("exits 75 at the Admission Deadline and names the holder", async () => {
     const holder = child(HOLD);
     await printed(holder, "held");
-    const { code, stderr } = await cli(
-      "run",
-      "--for",
-      "1m",
-      "--wait",
-      "200ms",
-      "--",
-      "true",
-    );
+    const { code, stderr } = await cli("run", "--wait", "200ms", "--", "true");
     expect(code).toBe(EXIT_ADMISSION_BLOCKED);
     expect(stderr).toContain(`pid ${holder.pid} (holder)`);
     expect((await readDesktopSlotStatus()).waiters).toEqual([]);
@@ -921,7 +1133,11 @@ process.exit(7);`,
     process.env[DESKTOP_SLOTS_ENV] = "zero";
     const { code, stdout, stderr } = await cli("status");
     expect(code).toBe(0);
-    expect(stdout).toContain(`Slot 1: pid ${process.pid}`);
+    expect(stdout).toMatch(
+      new RegExp(
+        `Slot 1: pid ${process.pid} .*automated, last progress .* \\(admitted\\), silence limit 30 min, Lease ends`,
+      ),
+    );
     expect(stderr).toContain(`${DESKTOP_SLOTS_ENV}=zero`);
   });
 
@@ -929,21 +1145,11 @@ process.exit(7);`,
     process.env[DESKTOP_SLOTS_ENV] = "2";
     const holder = holderIn("/a");
     await printed(holder, "held");
-    const single = await cli(
-      "run",
-      "--for",
-      "1m",
-      "--wait",
-      "300ms",
-      "--",
-      "true",
-    );
+    const single = await cli("run", "--wait", "300ms", "--", "true");
     expect(single.code).toBe(0);
     const exclusive = await cli(
       "run",
       "--exclusive",
-      "--for",
-      "1m",
       "--wait",
       "300ms",
       "--",
@@ -953,20 +1159,31 @@ process.exit(7);`,
     expect(exclusive.stderr).toContain(`pid ${holder.pid} (holder)`);
   });
 
-  it("ends the command's whole process group at the Lease and exits 76", async () => {
+  it("ends the command's whole process group at the end of a notice, exits 76, and admits the waiter", async () => {
     const pidFile = join(dir, "grandchild");
-    const { code } = await cli(
+    const running = cli(
       "run",
-      "--for",
-      "1s",
       "--",
       "sh",
       "-c",
       `sleep 60 & echo $! > ${pidFile}; wait`,
     );
-    expect(code).toBe(EXIT_LEASE_ENDED);
+    for (let attempt = 0; !(await exists(pidFile)); attempt++) {
+      if (attempt === 200) throw new Error("the command never started");
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
     const grandchild = Number(await readFile(pidFile, "utf8"));
+    strays.add(grandchild);
+    using slot = await acquireDesktopSlot({
+      ...IN_TEST,
+      worktree: "/w",
+      now: behindByNotice(500),
+    });
+    const { code, stderr } = await running;
+    expect(code).toBe(EXIT_LEASE_ENDED);
+    expect(stderr).toContain("waits for a slot. This manual hold ends at");
+    expect(stderr).toContain("ending the command's process group");
     await gone(grandchild);
-    expect(await exists(OWNER())).toBe(false);
+    expect(slot.owner.pid).toBe(process.pid);
   });
 });

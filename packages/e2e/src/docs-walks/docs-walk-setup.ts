@@ -5,8 +5,7 @@ import { isObsidianReachable } from "@e2e/vault-script.ts";
 
 import {
   acquireDesktopSlotOrExit,
-  automatedLease,
-  DEFAULT_LEASE_MS,
+  SILENCE_LIMIT_MS,
 } from "@zotlit/scripts/desktop-slot";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
@@ -30,7 +29,7 @@ export default async function setup() {
     cwd,
     command: "pnpm docs-walk",
     exclusive,
-    leaseMs: automatedLease(DEFAULT_LEASE_MS.e2e),
+    silenceMs: SILENCE_LIMIT_MS.docsWalk,
   });
   if (exclusive && slot.reused && !slot.owner.exclusive) {
     slot.release();

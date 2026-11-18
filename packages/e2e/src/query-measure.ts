@@ -39,9 +39,10 @@ import { hideBin } from "yargs/helpers";
 
 import {
   acquireDesktopSlotOrExit,
-  automatedLease,
-  DEFAULT_LEASE_MS,
+  reportDesktopProgress,
+  SILENCE_LIMIT_MS,
   formatDuration,
+  MAX_LEASE_MS,
 } from "@zotlit/scripts/desktop-slot";
 import {
   buildFixture,
@@ -417,7 +418,11 @@ const outDir = join(
 
 await mkdir(outDir, { recursive: true });
 
-const log = (message: string): void => console.error(message);
+/** Each step logs, and each logged step renews the Lease of the hold. */
+const log = (message: string): void => {
+  console.error(message);
+  reportDesktopProgress(message.trim().split("\n")[0]!);
+};
 
 if (!(await isObsidianReachable(workspaceRoot))) {
   log(
@@ -428,7 +433,7 @@ if (!(await isObsidianReachable(workspaceRoot))) {
 using _desktopSlot = await acquireDesktopSlotOrExit({
   cwd: workspaceRoot,
   command: "measure:query",
-  leaseMs: automatedLease(DEFAULT_LEASE_MS.measureQuery),
+  silenceMs: SILENCE_LIMIT_MS.measureQuery,
   // Its timings mean nothing while another run competes for the CPU.
   exclusive: true,
 });
@@ -481,6 +486,7 @@ const STRESS_LIBRARY = { library: "personal" };
 
 /** One measured run. A run with a hidden window is repeated. */
 async function measure(args: Record<string, string>): Promise<MeasureReport> {
+  reportDesktopProgress("a measured run");
   for (let attempt = 0; ; attempt++) {
     const output =
       args.limit === "all"
@@ -1071,9 +1077,9 @@ const notes: string[] = [
   "Queries run in Electron utility processes. The measurement vault uses the E2E window setup: background throttling is disabled and focus is emulated without moving OS focus. Execution slices and encoding steps retain the spec's 16 ms p99 / 32 ms maximum limits. Renderer timer gaps (4 ms sampling) are an additional check against those limits. All limit=all runs write complete JSON files and return small receipts. These measurements include worker transfer and export publication. Fixture startup and initial search indexing finish before timing begins.",
 ];
 const measured = rawTiers.map((raw) => toTier(raw, notes));
-// The wall-clock time calibrates the measurement's Desktop Slot Lease.
+// The wall-clock time calibrates the cap on a Desktop Slot Lease.
 notes.push(
-  `Wall-clock duration: ${Temporal.Now.instant().since(startedAt).total("minutes").toFixed(1)} min, within a Desktop Slot Lease of ${formatDuration(_desktopSlot.owner.lease)}.`,
+  `Wall-clock duration: ${Temporal.Now.instant().since(startedAt).total("minutes").toFixed(1)} min, within the cap of ${formatDuration(MAX_LEASE_MS)} on a Desktop Slot Lease (silence limit ${formatDuration(_desktopSlot.owner.silenceMs ?? 0)}).`,
 );
 if (failure) {
   notes.push(

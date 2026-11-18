@@ -15,8 +15,20 @@
 // no holder from its own worktree has one; an Exclusive Hold claims when every
 // slot is free. No waiter overtakes the head. The holder then passes the Memory
 // Gate, and only then starts its Lease. One Admission Deadline covers all three
-// waits. The holder ends its own work when its Lease ends; the head waiter
-// evicts a holder that outlives its Lease by the grace period.
+// waits.
+//
+// The Lease keeps a hung or forgotten holder from blocking other runs forever:
+//
+//   automated holder   each sign of progress moves the Lease end to now plus
+//                      the silence limit of its kind, up to MAX_LEASE_MS
+//                      from admission; at the end it exits EXIT_LEASE_ENDED
+//   manual hold        no end while no run waits; when the head waiter
+//                      cannot claim because manual holds have the slots, the
+//                      one that has held longest gets NOTICE_MS of notice,
+//                      and at its end the hold ends with EXIT_LEASE_ENDED
+//
+// The head waiter evicts a holder that outlives its Lease end by the grace
+// period.
 //
 // The same machinery admits other machine-wide serial work through an
 // `Admission` of its own: its state directory, slot count, token variable and
@@ -27,7 +39,13 @@ import { regex } from "arkregex";
 import { Effect } from "effect";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import {
   mkdir,
   readdir,
@@ -48,7 +66,6 @@ import {
   lastGateStart,
   MEMORY_GATE_ADMITTED_ENV,
   MemoryGateClosedError,
-  parseDuration,
   passMemoryGate,
 } from "@zotlit/config/memory-gate";
 
@@ -64,8 +81,6 @@ export const DESKTOP_SLOT_ENV = "ZOTLIT_DESKTOP_SLOT";
 /** How many Desktop Slots the pool has, as a positive integer. */
 export const DESKTOP_SLOTS_ENV = "ZOTLIT_DESKTOP_SLOTS";
 export const DEFAULT_DESKTOP_SLOTS = 2;
-/** Overrides the default Lease of an automated holder, as a duration. */
-export const DESKTOP_LEASE_ENV = "ZOTLIT_DESKTOP_LEASE";
 
 /**
  * One kind of admission: where its queue and slots live, how many slots it
@@ -94,11 +109,33 @@ const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 
-/** The default Lease of each automated holder. */
-export const DEFAULT_LEASE_MS = {
-  e2e: 20 * MINUTE,
-  e2eWorker: 10 * MINUTE,
-  measureQuery: 2 * HOUR,
+/**
+ * The silence limit of each kind of automated holder: how long it may go
+ * without a sign of progress before its Lease ends. Each limit is longer than
+ * the longest quiet step of a healthy run of that kind.
+ */
+export const SILENCE_LIMIT_MS = {
+  /**
+   * `pnpm e2e`, `e2e:worker`, and the desktop runs of `pnpm verify --release`.
+   * Each test case and hook that starts or ends is progress. The longest
+   * timeout of a test or hook in the suite is 10 min, so Vitest reports a hung
+   * test as a failure before the Lease ends; the limit ends a hung harness.
+   */
+  e2e: 12 * MINUTE,
+  /** A docs walk: its longest test timeout is 20 min. */
+  docsWalk: 22 * MINUTE,
+  /**
+   * `measure:query`: its longest single step is one wait of up to 10 min for
+   * the search index or the Citation Index of a Stress Build.
+   */
+  measureQuery: 12 * MINUTE,
+  /**
+   * A holder that wraps child processes, such as the gate of a Land Turn or
+   * the End-to-end Run after a land: each output of the child is progress.
+   * A waiter in the Desktop Queue repeats its message every 5 min, and the
+   * longest test file of the End-to-end Run prints nothing for about 2 min.
+   */
+  childOutput: 15 * MINUTE,
 } as const;
 /** The Desktop Slots that drive the desktop Obsidian app (ADR 0077, ADR 0078). */
 export const DESKTOP_ADMISSION: Admission = {
@@ -110,9 +147,13 @@ export const DESKTOP_ADMISSION: Admission = {
   queueName: "Desktop Queue",
 };
 
-/** The cap of a manual hold, which must state its Lease. */
-export const MANUAL_LEASE_CAP_MS = HOUR;
-/** No Lease exceeds this. */
+/**
+ * How long a manual hold keeps its slot after a waiter gives it notice. With
+ * EVICTION_GRACE_MS and KILL_AFTER_MS it fits inside the default Admission
+ * Deadline, so a waiter with that deadline is admitted.
+ */
+export const NOTICE_MS = 5 * MINUTE;
+/** No automated holder keeps its slot longer than this after admission. */
 export const MAX_LEASE_MS = 2 * HOUR;
 /** How long past its Lease a live holder keeps the slot before eviction. */
 export const EVICTION_GRACE_MS = 2 * MINUTE;
@@ -151,32 +192,16 @@ export function formatDuration(ms: number): string {
   return `${ms} ms`;
 }
 
-/** The Lease of an automated holder: `defaultMs`, or DESKTOP_LEASE_ENV. */
-export function automatedLease(defaultMs: number): number {
-  const override = process.env[DESKTOP_LEASE_ENV];
-  return Math.min(override ? parseDuration(override) : defaultMs, MAX_LEASE_MS);
-}
-
-/** A manual hold's `--for` is missing, malformed, or over the cap. */
-export class LeaseUsageError extends Error {}
-
 /**
- * @param text the `--for` value of a manual hold.
- * @throws {LeaseUsageError} when it is missing or over MANUAL_LEASE_CAP_MS.
+ * The message for a manual hold that states `--for`, which a manual hold no
+ * longer takes; undefined when the arguments before `--` have none.
  */
-export function parseManualLease(text: string | undefined): number {
-  const hint = `Pass --for <duration>, the Lease of this hold, up to ${formatDuration(MANUAL_LEASE_CAP_MS)} (for example --for 20m).`;
-  if (!text) throw new LeaseUsageError(`A manual hold needs a Lease. ${hint}`);
-  let ms: number;
-  try {
-    ms = parseDuration(text);
-  } catch (error) {
-    throw new LeaseUsageError(`${(error as Error).message} ${hint}`);
+export function removedLeaseFlag(args: readonly string[]): string | undefined {
+  const own = args.includes("--") ? args.slice(0, args.indexOf("--")) : args;
+  if (!own.some((arg) => arg === "--for" || arg.startsWith("--for="))) {
+    return undefined;
   }
-  if (ms <= 0 || ms > MANUAL_LEASE_CAP_MS) {
-    throw new LeaseUsageError(`--for ${text} is out of range. ${hint}`);
-  }
-  return ms;
+  return `--for is gone: a manual hold states no duration. It keeps its Desktop Slot until its command exits. When a run waits for the slot, the hold gets ${formatDuration(NOTICE_MS)} of notice and then ends with exit ${EXIT_LEASE_ENDED}. Run the command again without --for.`;
 }
 
 /** A waiter in the Desktop Queue. */
@@ -201,9 +226,18 @@ export interface SlotOwner extends Omit<QueueTicket, "seq"> {
   /** The indices of the slots this hold has. */
   slots: number[];
   admittedAt: string;
-  /** The Lease granted at admission, in milliseconds. */
-  lease: number;
-  leaseEndsAt: string;
+  /**
+   * The Lease end: the last progress plus the silence limit (capped at
+   * MAX_LEASE_MS from admission), or the end of a manual hold's notice.
+   * Absent for a manual hold that has no notice: it has no end.
+   */
+  leaseEndsAt?: string;
+  /** The silence limit of an automated holder; absent for a manual hold. */
+  silenceMs?: number;
+  /** The last sign of progress. */
+  progress?: { at: string; what: string };
+  /** The notice a waiter gave this manual hold. */
+  notice?: HoldNotice;
   /**
    * The process group eviction signals. Absent when the holder shares its
    * group with its caller; eviction then signals the pid alone.
@@ -214,8 +248,16 @@ export interface SlotOwner extends Omit<QueueTicket, "seq"> {
    * dead holder is ended only while its leader still has this start.
    */
   pgidStart?: string;
-  /** A manual hold; its extensions stay within MANUAL_LEASE_CAP_MS. */
+  /** A manual hold: it yields on notice when a run waits. */
   manual?: boolean;
+}
+
+/** The notice of a manual hold: who waits, and when the hold ends. */
+interface HoldNotice {
+  startedAt: string;
+  endsAt: string;
+  /** The waiter, as `pid <pid> (<command>) in <worktree>`. */
+  waiter: string;
 }
 
 /** The Admission Deadline passed; the message names the holder and the queue. */
@@ -223,7 +265,20 @@ export class DesktopSlotBlockedError extends Error {
   readonly exitCode = EXIT_ADMISSION_BLOCKED;
 }
 
-export interface DesktopSlotOptions {
+/** An automated holder states its silence limit; a manual hold states none. */
+type HoldKind =
+  | {
+      /** The silence limit, from SILENCE_LIMIT_MS. */
+      silenceMs: number;
+      manual?: false;
+    }
+  | {
+      /** A manual hold: no end until a waiter gives it notice. */
+      manual: true;
+      silenceMs?: never;
+    };
+
+export type DesktopSlotOptions = HoldKind & {
   /** The admission this hold joins. @default DESKTOP_ADMISSION */
   admission?: Admission;
   /** @default the admission's own directory */
@@ -236,13 +291,9 @@ export interface DesktopSlotOptions {
   worktree?: string;
   /** Hold every slot: an Exclusive Hold, for work that needs the whole app. */
   exclusive?: boolean;
-  /** The Lease, counted from admission; capped at MAX_LEASE_MS. */
-  leaseMs: number;
-  /** A manual hold: extensions stay within MANUAL_LEASE_CAP_MS. */
-  manual?: boolean;
   /** The Admission Deadline, from now. @default DESKTOP_WAIT_ENV, else 9 min */
   waitMs?: number;
-  /** @default 2000 */
+  /** How often a waiter polls the queue, and a holder its record. @default 2000 */
   pollMs?: number;
   /** How often a waiter repeats who holds the slot. @default 5 min */
   remindMs?: number;
@@ -260,7 +311,7 @@ export interface DesktopSlotOptions {
    * slot. The default logs the reason and exits with EXIT_LEASE_ENDED.
    */
   onLeaseEnd?: (owner: SlotOwner) => void;
-}
+};
 
 export interface DesktopSlot extends Disposable {
   readonly dir: string;
@@ -269,6 +320,8 @@ export interface DesktopSlot extends Disposable {
   readonly reused: boolean;
   /** Idempotent. A reused hold stays with its holder. */
   release(): void;
+  /** Record a sign of progress; it renews the Lease of an automated holder. */
+  progress(what: string): void;
 }
 
 /** Wait in the Desktop Queue until this process holds a Desktop Slot. */
@@ -284,14 +337,19 @@ export async function acquireDesktopSlot(
   const remindMs = options.remindMs ?? 5 * MINUTE;
   const graceMs = options.graceMs ?? EVICTION_GRACE_MS;
   const killAfterMs = options.killAfterMs ?? KILL_AFTER_MS;
-  const leaseMs = Math.min(options.leaseMs, MAX_LEASE_MS);
+  const silenceMs = options.manual
+    ? undefined
+    : Math.min(options.silenceMs, MAX_LEASE_MS);
   const waitMs = options.waitMs ?? admissionWaitMs();
   const cwd = options.cwd ?? process.cwd();
   const count = admission.slots();
   const watch: LeaseWatch = {
     dir,
     now,
-    onEnd: options.onLeaseEnd ?? leaseEnded(log, slotName),
+    pollMs,
+    log,
+    slotName,
+    onEnd: options.onLeaseEnd ?? leaseEnded(log, slotName, now),
   };
 
   const inherited = process.env[admission.tokenEnv];
@@ -344,12 +402,12 @@ export async function acquireDesktopSlot(
           {
             ...record,
             admittedAt: isoOf(now()),
-            lease: leaseMs,
-            leaseEndsAt: isoOf(deadline + leaseMs),
+            ...(silenceMs === undefined
+              ? { manual: true }
+              : { silenceMs, leaseEndsAt: isoOf(deadline + silenceMs) }),
             ...(self.pgid === process.pid
               ? { pgid: self.pgid, pgidStart: self.start }
               : {}),
-            ...(options.manual ? { manual: true } : {}),
           },
           { slots, count },
         );
@@ -358,6 +416,7 @@ export async function acquireDesktopSlot(
           break;
         }
         let cleared = false;
+        const alive: SlotOwner[] = [];
         for (const holder of holders) {
           if (!(await isHolderAlive(holder))) {
             log(
@@ -370,11 +429,14 @@ export async function acquireDesktopSlot(
             });
             await takeOver(dir, holder);
             cleared = true;
-          } else if (now() > epochOf(holder.leaseEndsAt) + graceMs) {
+            continue;
+          }
+          alive.push(holder);
+          if (now() > epochOf(holder.leaseEndsAt) + graceMs) {
             const signalled = evicting.get(holder.token);
             if (!signalled) {
               log(
-                `${slotName}: the Lease of pid ${holder.pid} (${holder.command}) ended at ${holder.leaseEndsAt}; evicting pid ${holder.pid}.`,
+                `${slotName}: the Lease of pid ${holder.pid} (${holder.command}) ended at ${holder.leaseEndsAt}, and the holder is still running ${formatDuration(graceMs)} later; evicting pid ${holder.pid}.`,
               );
               await signalHolder(holder, "SIGTERM", self.pgid);
               evicting.set(holder.token, { at: now(), killed: false });
@@ -394,6 +456,27 @@ export async function acquireDesktopSlot(
           }
         }
         if (cleared) continue;
+        let noticed = false;
+        for (const holder of noticeTargets(record, alive)) {
+          const notice: HoldNotice = {
+            startedAt: isoOf(now()),
+            endsAt: isoOf(now() + NOTICE_MS),
+            waiter: `pid ${record.pid} (${record.command}) in ${record.worktree}`,
+          };
+          const given = updateOwnerSync(dir, holder.token, (current) =>
+            current.notice
+              ? undefined
+              : { ...current, notice, leaseEndsAt: notice.endsAt },
+          );
+          if (given) {
+            noticed = true;
+            log(
+              `${slotName}: gave the manual hold of pid ${holder.pid} (${holder.command}) ${formatDuration(NOTICE_MS)} of notice; it ends at ${notice.endsAt}, and then this run can take its slot.`,
+            );
+          }
+        }
+        // Read the holders again, so the next message names the notice.
+        if (noticed) continue;
       }
       if (now() >= deadline) {
         throw new DesktopSlotBlockedError(
@@ -447,12 +530,16 @@ export async function acquireDesktopSlot(
   }
   // The Lease starts once the run is admitted.
   const admittedAt = now();
-  owner = {
-    ...owner,
-    admittedAt: isoOf(admittedAt),
-    leaseEndsAt: isoOf(admittedAt + leaseMs),
-  };
-  await writeOwner(dir, owner);
+  const claimed = owner;
+  owner =
+    updateOwnerSync(dir, claimed.token, (current) => ({
+      ...current,
+      admittedAt: isoOf(admittedAt),
+      progress: { at: isoOf(admittedAt), what: "admitted" },
+      ...(silenceMs === undefined
+        ? {}
+        : { leaseEndsAt: isoOf(admittedAt + silenceMs) }),
+    })) ?? claimed;
   return heldSlot(watch, owner, {
     signals: options.signals ?? true,
     gateAdmitted,
@@ -493,7 +580,12 @@ export async function acquireDesktopSlotOrExit(
   }
 }
 
-export type HolderStatus = SlotOwner & { alive: boolean; overdue: boolean };
+export type HolderStatus = SlotOwner & {
+  /** An automated holder renews its Lease on progress; a manual hold yields on notice. */
+  kind: "automated" | "manual";
+  alive: boolean;
+  overdue: boolean;
+};
 
 export interface DesktopSlotStatus {
   /** Every Desktop Slot in order; a free slot has no holder. */
@@ -519,6 +611,7 @@ export async function readDesktopSlotStatus(
   for (const owner of owners) {
     holders.push({
       ...owner,
+      kind: owner.manual ? "manual" : "automated",
       alive: await isHolderAlive(owner),
       overdue: now() > epochOf(owner.leaseEndsAt),
     });
@@ -541,41 +634,6 @@ export async function readDesktopSlotStatus(
     lastGateStart: lastGateStart(dir)?.toString(),
     ...(slotCountError ? { slotCountError } : {}),
   };
-}
-
-/**
- * Move the end of the holder's Lease to now plus `byMs`, capped at
- * MANUAL_LEASE_CAP_MS for a manual hold and MAX_LEASE_MS for any hold.
- *
- * @throws {Error} when `token` does not hold the slot, or while anyone waits.
- */
-export async function extendDesktopSlot(options: {
-  token: string;
-  byMs: number;
-  dir?: string;
-  now?: () => number;
-}): Promise<SlotOwner> {
-  const dir = options.dir ?? desktopStateDir();
-  const now = options.now ?? epochMs;
-  const owner = await findHolder(dir, options.token);
-  if (!owner) {
-    throw new Error(
-      "Desktop Slot: this token holds no slot, so there is no Lease to extend.",
-    );
-  }
-  const waiters = await liveTickets(dir);
-  if (waiters.length > 0) {
-    throw new Error(
-      `Desktop Slot: the Lease stays as it is while others wait:\n${describeWaiters(waiters)}\nRelease the slot when done, or join the Desktop Queue again.`,
-    );
-  }
-  const cap = owner.manual ? MANUAL_LEASE_CAP_MS : MAX_LEASE_MS;
-  const extended = {
-    ...owner,
-    leaseEndsAt: isoOf(now() + Math.min(options.byMs, cap)),
-  };
-  await writeOwner(dir, extended);
-  return extended;
 }
 
 /**
@@ -632,14 +690,124 @@ export async function recordDesktopSlotGroup(
   dir: string = desktopStateDir(),
 ): Promise<void> {
   const { start } = await processInfo(pgid);
-  const owner = await findHolder(dir, token);
-  if (owner) await writeOwner(dir, { ...owner, pgid, pgidStart: start });
+  updateOwnerSync(dir, token, (owner) => ({
+    ...owner,
+    pgid,
+    ...(start === undefined ? {} : { pgidStart: start }),
+  }));
 }
 
 export function describeHolder(owner: SlotOwner, now: number): string {
   const overdue = now > epochOf(owner.leaseEndsAt) ? " (overdue)" : "";
   const exclusive = owner.exclusive ? ", an Exclusive Hold of every slot" : "";
-  return `pid ${owner.pid} (${owner.command}) in ${owner.worktree}${exclusive}, admitted ${owner.admittedAt}, Lease ends ${owner.leaseEndsAt}${overdue}`;
+  const progress = owner.progress
+    ? `last progress ${owner.progress.at} (${owner.progress.what})`
+    : "no progress yet";
+  const lease = owner.manual
+    ? owner.notice
+      ? `manual hold, ${progress}, on notice for ${owner.notice.waiter}: ends ${owner.notice.endsAt}${overdue}`
+      : `manual hold, ${progress}, yields when a run waits`
+    : `automated, ${progress}, silence limit ${formatDuration(owner.silenceMs ?? 0)}, Lease ends ${owner.leaseEndsAt ?? "after admission"}${overdue}`;
+  return `pid ${owner.pid} (${owner.command}) in ${owner.worktree}${exclusive}, admitted ${owner.admittedAt}, ${lease}`;
+}
+
+/** Why the Lease of `owner` has ended, for the holder's own message. */
+export function describeLeaseEnd(owner: SlotOwner, now: number): string {
+  if (owner.manual) {
+    return `the notice for ${owner.notice?.waiter ?? "a waiter"} ended at ${owner.leaseEndsAt}`;
+  }
+  const admittedAt = epochOf(owner.admittedAt);
+  if (now >= admittedAt + MAX_LEASE_MS) {
+    return `the run reached the cap of ${formatDuration(MAX_LEASE_MS)} on total time, counted from admission at ${owner.admittedAt}`;
+  }
+  const last = owner.progress ? epochOf(owner.progress.at) : admittedAt;
+  return `the run made no progress for ${formatDuration(roundToSecond(now - last))}, longer than its silence limit of ${formatDuration(owner.silenceMs ?? 0)}; the last progress was ${owner.progress ? `"${owner.progress.what}" at ${owner.progress.at}` : `admission at ${owner.admittedAt}`}`;
+}
+
+function roundToSecond(ms: number): number {
+  return Math.max(0, Math.round(ms / SECOND) * SECOND);
+}
+
+/**
+ * Record `what` as the last progress of the hold that `token` names. For an
+ * automated holder it moves the Lease end to now plus its silence limit,
+ * capped at MAX_LEASE_MS from admission. It is synchronous, so it fits an
+ * output handler or an exit path.
+ * @returns the updated record, or undefined when `token` holds no slot.
+ */
+function renewDesktopSlot(
+  token: string,
+  what: string,
+  options: { dir?: string; now?: () => number } = {},
+): SlotOwner | undefined {
+  const dir = options.dir ?? desktopStateDir();
+  const at = (options.now ?? epochMs)();
+  return updateOwnerSync(dir, token, (owner) => ({
+    ...owner,
+    progress: { at: isoOf(at), what },
+    ...(owner.manual || owner.silenceMs === undefined
+      ? {}
+      : {
+          leaseEndsAt: isoOf(
+            Math.min(
+              at + owner.silenceMs,
+              epochOf(owner.admittedAt) + MAX_LEASE_MS,
+            ),
+          ),
+        }),
+  }));
+}
+
+/**
+ * Record progress for the Desktop Slot that this process holds or reuses,
+ * named by DESKTOP_SLOT_ENV; nothing when it holds none.
+ */
+export function reportDesktopProgress(what: string): void {
+  const token = process.env[DESKTOP_SLOT_ENV];
+  if (token) renewDesktopSlot(token, what);
+}
+
+/**
+ * Wrap `progress` so that a stream of output records it at most once per
+ * `intervalMs`: each chunk of a child's output is a sign of progress.
+ */
+export function throttledProgress(
+  progress: (what: string) => void,
+  intervalMs = 5 * SECOND,
+): (what: string) => void {
+  let last = Number.NEGATIVE_INFINITY;
+  return (what) => {
+    const at = epochMs();
+    if (at - last < intervalMs) return;
+    last = at;
+    progress(what);
+  };
+}
+
+/**
+ * The manual holds the head waiter gives notice, so that it can claim: each
+ * manual hold that blocks it, or for a waiter that one free slot admits, the
+ * manual hold that has held longest. None while one of them is on notice
+ * already, and none while an automated holder alone blocks.
+ */
+function noticeTargets(
+  waiter: Omit<QueueTicket, "seq">,
+  holders: readonly SlotOwner[],
+): SlotOwner[] {
+  const blockers = waiter.exclusive
+    ? holders
+    : holders.filter(
+        (holder) => holder.exclusive || holder.worktree === waiter.worktree,
+      );
+  if (waiter.exclusive || blockers.length > 0) {
+    return blockers.filter((holder) => holder.manual && !holder.notice);
+  }
+  // Every slot is taken: one release admits the waiter.
+  if (holders.some((holder) => holder.notice)) return [];
+  const longest = holders
+    .filter((holder) => holder.manual)
+    .toSorted((a, b) => epochOf(a.admittedAt) - epochOf(b.admittedAt))[0];
+  return longest ? [longest] : [];
 }
 
 function describeHolders(holders: readonly SlotOwner[], now: number): string {
@@ -926,6 +1094,49 @@ async function writeOwner(dir: string, owner: SlotOwner): Promise<void> {
   }
 }
 
+/**
+ * Replace the record of the hold that `token` names by `update(record)`, in
+ * each of its slots, while that slot still names `token`. An update that
+ * returns undefined writes nothing.
+ * @returns the written record, or undefined when nothing was written.
+ */
+function updateOwnerSync(
+  dir: string,
+  token: string,
+  update: (owner: SlotOwner) => SlotOwner | undefined,
+): SlotOwner | undefined {
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return undefined;
+  }
+  const slots = slotIndices(names).filter(
+    (index) => readOwnerSync(dir, index)?.token === token,
+  );
+  const current =
+    slots[0] === undefined ? undefined : readOwnerSync(dir, slots[0]);
+  if (!current) return undefined;
+  const next = update({ ...current, slots });
+  if (!next) return undefined;
+  let written = false;
+  for (const index of slots) {
+    // The slot may have been released since it was read.
+    if (readOwnerSync(dir, index)?.token !== token) continue;
+    const path = ownerPath(dir, index);
+    const draft = `${path}.${randomUUID()}.draft`;
+    try {
+      writeFileSync(draft, JSON.stringify(next));
+      renameSync(draft, path);
+      written = true;
+    } catch (error) {
+      rmSync(draft, { force: true });
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  }
+  return written ? next : undefined;
+}
+
 function parseRecord<T extends { token: string; pid: number }>(
   text: string,
 ): T | undefined {
@@ -1172,38 +1383,73 @@ function releaseIfHeld(dir: string, token: string): void {
 interface LeaseWatch {
   dir: string;
   now: () => number;
+  pollMs: number;
+  log: (message: string) => void;
+  slotName: string;
   onEnd: (owner: SlotOwner) => void;
 }
 
 /**
- * Call `onEnd` when the Lease of `owner` ends, re-reading the record so an
- * extension moves the end. The timer never keeps the process alive.
+ * Poll the record of `owner` until the hold is gone. Print a notice when a
+ * waiter gives one, and call `onEnd` once when the Lease ends. A notice ends
+ * the hold only while a run still waits; with none left the hold goes on with
+ * no end. The timer never keeps the process alive.
+ *
+ * A reused hold follows only an automated holder's Lease: the holder of a
+ * manual hold prints its notice and ends its command's process group itself.
  */
 function watchLease(
-  { dir, now, onEnd }: LeaseWatch,
+  { dir, now, pollMs, log, slotName, onEnd }: LeaseWatch,
   owner: SlotOwner,
+  { reused }: { reused: boolean },
 ): () => void {
-  let timer: NodeJS.Timeout | undefined;
-  const arm = (endsAt: number) => {
-    if (!Number.isFinite(endsAt)) return;
-    timer = setTimeout(check, Math.max(0, endsAt - now()));
-    timer.unref();
-  };
-  const check = () => {
+  let announced: string | undefined;
+  let busy = false;
+  const stop = () => clearInterval(timer);
+  const check = async () => {
     const current = readOwnerSync(dir, owner.slots[0]!);
-    if (current?.token !== owner.token) return;
-    const endsAt = epochOf(current.leaseEndsAt);
-    if (endsAt > now()) arm(endsAt);
-    else onEnd(current);
+    if (current?.token !== owner.token) return stop();
+    if (current.manual && reused) return;
+    const { notice } = current;
+    if (notice && announced !== notice.endsAt) {
+      announced = notice.endsAt;
+      log(
+        `${slotName}: ${notice.waiter} waits for a slot. This manual hold ends at ${notice.endsAt}, in ${formatDuration(roundToSecond(epochOf(notice.endsAt) - now()))}; save your work. It then ends its command's process group with exit ${EXIT_LEASE_ENDED}.`,
+      );
+    }
+    if (now() < epochOf(current.leaseEndsAt)) return;
+    if (notice && (await liveTickets(dir, undefined, false)).length === 0) {
+      const { notice: _gone, leaseEndsAt: _end, ...rest } = current;
+      if (updateOwnerSync(dir, owner.token, () => ({ ...rest }))) {
+        announced = undefined;
+        log(
+          `${slotName}: no run waits any more, so this manual hold goes on; it yields again when a run waits.`,
+        );
+      }
+      return;
+    }
+    stop();
+    onEnd(current);
   };
-  arm(epochOf(owner.leaseEndsAt));
-  return () => clearTimeout(timer);
+  const timer = setInterval(() => {
+    if (busy) return;
+    busy = true;
+    void check().finally(() => {
+      busy = false;
+    });
+  }, pollMs);
+  timer.unref();
+  return stop;
 }
 
-function leaseEnded(log: (message: string) => void, slotName: string) {
+function leaseEnded(
+  log: (message: string) => void,
+  slotName: string,
+  now: () => number,
+) {
   return (owner: SlotOwner) => {
     log(
-      `${slotName}: the Lease of ${formatDuration(owner.lease)} for pid ${owner.pid} (${owner.command}) ended at ${owner.leaseEndsAt}; ending this run with exit ${EXIT_LEASE_ENDED}.`,
+      `${slotName}: the Lease of pid ${owner.pid} (${owner.command}) ended: ${describeLeaseEnd(owner, now())}. Ending this run with exit ${EXIT_LEASE_ENDED}.`,
     );
     process.exit(EXIT_LEASE_ENDED);
   };
@@ -1211,12 +1457,15 @@ function leaseEnded(log: (message: string) => void, slotName: string) {
 
 /** A child reuses its holder's slot, inside the holder's Lease. */
 function reusedSlot(watch: LeaseWatch, owner: SlotOwner): DesktopSlot {
-  const stop = watchLease(watch, owner);
+  const stop = watchLease(watch, owner, { reused: true });
   return {
     dir: watch.dir,
     owner,
     reused: true,
     release: stop,
+    progress: (what) => {
+      renewDesktopSlot(owner.token, what, watch);
+    },
     [Symbol.dispose]: stop,
   };
 }
@@ -1232,7 +1481,7 @@ function heldSlot(
 ): DesktopSlot {
   const { dir } = watch;
   let released = false;
-  const stopLease = watchLease(watch, owner);
+  const stopLease = watchLease(watch, owner, { reused: false });
   const onSignal = (signal: NodeJS.Signals) => {
     release();
     // Keep the default exit for a signal no one else handles.
@@ -1260,6 +1509,9 @@ function heldSlot(
     owner,
     reused: false,
     release,
+    progress: (what) => {
+      if (!released) renewDesktopSlot(owner.token, what, watch);
+    },
     [Symbol.dispose]: release,
   };
 }

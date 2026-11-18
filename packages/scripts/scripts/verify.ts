@@ -24,9 +24,8 @@ import { affectedBase } from "#affected-base";
 import { isAgentDocsOnly } from "#agent-docs";
 import {
   acquireDesktopSlotOrExit,
-  automatedLease,
-  DEFAULT_LEASE_MS,
   EXIT_LEASE_ENDED,
+  SILENCE_LIMIT_MS,
 } from "#desktop-slot";
 import { getWorkspaceRoot } from "#package-roots";
 
@@ -114,17 +113,16 @@ if (release) {
 /**
  * One Desktop Slot hold covers both desktop runs: one wait in the Desktop
  * Queue and one Memory Gate pass, which the nested runs reuse through the
- * environment. At the Admission Deadline this exits 75, outside `step`.
+ * environment. Their test cases renew its Lease. At the Admission Deadline
+ * this exits 75, outside `step`.
  */
 async function desktopChecks(): Promise<void> {
-  using _slot = ci
+  using slot = ci
     ? undefined
     : await acquireDesktopSlotOrExit({
         cwd: root,
         command: "pnpm verify --release",
-        leaseMs: automatedLease(
-          DEFAULT_LEASE_MS.e2e + DEFAULT_LEASE_MS.e2eWorker,
-        ),
+        silenceMs: SILENCE_LIMIT_MS.e2e,
       });
   await step("End-to-end Run", async () => {
     if (ci) {
@@ -132,7 +130,9 @@ async function desktopChecks(): Promise<void> {
       return;
     }
     // The hold put its token and the Memory Gate mark in process.env.
+    slot?.progress("pnpm e2e starts");
     await sh({ env: { ...process.env, ZOTLIT_E2E_REQUIRED: "1" } })`pnpm e2e`;
+    slot?.progress("pnpm e2e:worker starts");
     await sh({ env: { ...process.env } })`pnpm e2e:worker`;
   });
 }

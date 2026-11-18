@@ -23,10 +23,12 @@ import {
   describeWaiters,
   EXIT_ADMISSION_BLOCKED,
   formatDuration,
+  MAX_LEASE_MS,
   parseDuration,
   readDesktopSlotStatus,
+  SILENCE_LIMIT_MS,
 } from "#desktop-slot";
-import { land, LAND_ATTEMPTS, LAND_LEASE_MS, LAND_WAIT_MS } from "#land";
+import { land, LAND_ATTEMPTS, LAND_WAIT_MS } from "#land";
 import { githubRepository, landE2eDir, requestLandE2e } from "#land-e2e";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
@@ -53,7 +55,7 @@ Exit codes:
   ${EXIT_USAGE}    usage error
   ${EXIT_ADMISSION_BLOCKED}   the turn did not come within --wait; blocked, not a failure
 
-Leases: next ${formatDuration(LAND_LEASE_MS.next)}, main ${formatDuration(LAND_LEASE_MS.main)}. Default wait: ${formatDuration(LAND_WAIT_MS)}.
+Lease: each output of a step renews the Land Turn. A turn whose commands print nothing for ${formatDuration(SILENCE_LIMIT_MS.childOutput)} ends, and so does one past ${formatDuration(MAX_LEASE_MS)} in total. Default wait: ${formatDuration(LAND_WAIT_MS)}.
 State and logs: ${landStateDir()} (wait log ${landWaitLog()}, End-to-end Runs ${join(landE2eDir(), "runs.jsonl")}).`;
 
 function usage(message: string): never {

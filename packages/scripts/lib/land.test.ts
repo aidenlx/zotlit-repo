@@ -191,6 +191,46 @@ describe("land into next", () => {
     SLOW,
   );
 
+  it(
+    "keeps the Land Turn of a gate that runs longer than its silence limit while it prints",
+    async () => {
+      const cwd = await taskClone("a");
+      const result = await land({
+        ...quiet,
+        cwd,
+        to: "next",
+        silenceMs: 600,
+        gate: [
+          "sh",
+          "-c",
+          "for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo $i; sleep 0.1; done",
+        ],
+      });
+      expect(result).toMatchObject({ ok: true });
+    },
+    SLOW,
+  );
+
+  it(
+    "ends the Land Turn of a gate that prints nothing for its silence limit",
+    async () => {
+      const cwd = await taskClone("a");
+      const result = await land({
+        ...quiet,
+        cwd,
+        to: "next",
+        silenceMs: 500,
+        gate: ["sh", "-c", "echo starting; sleep 30"],
+      });
+      expect(result).toMatchObject({ ok: false, step: "lease" });
+      expect(result.ok || result.message).toMatch(
+        /made no progress for .*silence limit of 500 ms.*"output of sh -c"/,
+      );
+      expect(await subjects("next")).toEqual(["seed"]);
+    },
+    SLOW,
+  );
+
   it("refuses a worktree with changes that are not committed", async () => {
     const cwd = await taskClone("a");
     await writeFile(join(cwd, "loose.txt"), "loose\n");
@@ -238,7 +278,7 @@ console.log(JSON.stringify(result));`,
       const holder = child(
         `const slot = await import(${JSON.stringify(SLOT)});
 const { landAdmission } = await import(${JSON.stringify(QUEUE)});
-const held = await slot.acquireDesktopSlot({ admission: landAdmission("next"), leaseMs: 600000, pollMs: 20, log: () => {} });
+const held = await slot.acquireDesktopSlot({ admission: landAdmission("next"), silenceMs: 600000, pollMs: 20, log: () => {} });
 console.log("held");
 process.stdin.resume();
 process.stdin.on("end", () => { held.release(); process.exit(0); });`,

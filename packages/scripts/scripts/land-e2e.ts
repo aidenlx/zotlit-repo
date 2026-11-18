@@ -18,43 +18,71 @@ import { runLandE2e } from "#land-e2e";
 
 /** How long `pnpm e2e` waits for its Desktop Slot. */
 const DESKTOP_WAIT = "1h";
-/**
- * The Lease of the run. The full suite takes about 20 min, the default Lease
- * of `pnpm e2e`, so a run after a land needs room above it.
- */
-const DESKTOP_LEASE = "45m";
 const EXCERPT_LINES = 80;
 
+/**
+ * Run one command with its output in the log. Each output is a sign of
+ * progress of the End-to-end Turn. The command leads its own process group,
+ * which the end of the turn's Lease ends.
+ */
 function command(
   log: NodeJS.WritableStream,
   {
     cwd,
     argv: [name, ...args],
     env = {},
+    progress,
+    leaseEnded,
   }: {
     cwd: string;
     argv: readonly [string, ...string[]];
     env?: NodeJS.ProcessEnv;
+    progress?: (what: string) => void;
+    leaseEnded?: AbortSignal;
   },
 ): Promise<{ code: number; stdout: string }> {
   log.write(`\n$ ${[name, ...args].join(" ")}\n`);
+  const what = `output of ${[name, ...args].slice(0, 2).join(" ")}`;
   return new Promise((resolve) => {
+    if (leaseEnded?.aborted) {
+      resolve({ code: EXIT_LEASE_ENDED, stdout: "" });
+      return;
+    }
+    const posix = process.platform !== "win32";
     const child = spawn(name, args, {
       cwd,
       env: { ...process.env, ...env },
       stdio: ["ignore", "pipe", "pipe"],
+      detached: posix,
     });
+    const stop = () => {
+      try {
+        if (posix && child.pid !== undefined)
+          process.kill(-child.pid, "SIGTERM");
+        else child.kill("SIGTERM");
+      } catch {
+        // The group is gone.
+      }
+    };
+    leaseEnded?.addEventListener("abort", stop, { once: true });
     let stdout = "";
     child.stdout.on("data", (chunk: Buffer) => {
       stdout += chunk;
       log.write(chunk);
+      progress?.(what);
     });
-    child.stderr.on("data", (chunk: Buffer) => log.write(chunk));
+    child.stderr.on("data", (chunk: Buffer) => {
+      log.write(chunk);
+      progress?.(what);
+    });
     child.on("error", (error) => {
       log.write(`${error.message}\n`);
       resolve({ code: 127, stdout });
     });
-    child.on("close", (code) => resolve({ code: code ?? 128, stdout }));
+    child.on("close", (code) => {
+      leaseEnded?.removeEventListener("abort", stop);
+      resolve({ code: code ?? 128, stdout });
+    });
   });
 }
 
@@ -62,11 +90,17 @@ async function run({
   request,
   logPath,
   checkout,
+  progress,
+  leaseEnded,
 }: LandE2eRun): Promise<LandE2eOutcome> {
   const log = createWriteStream(logPath, { flags: "a" });
   try {
     const at = (cwd: string, ...argv: [string, ...string[]]) =>
-      command(log, { cwd, argv });
+      command(log, { cwd, argv, progress, leaseEnded });
+    const stopped = (stage: string): LandE2eOutcome => ({
+      outcome: "failed",
+      stage: `${stage} (the End-to-end Turn ended: ${String(leaseEnded.reason)})`,
+    });
     const checkedOut = existsSync(join(checkout, ".git"))
       ? (
           await at(
@@ -91,6 +125,7 @@ async function run({
             request.commit,
           )
         ).code === 0;
+    if (leaseEnded.aborted) return stopped("checkout");
     if (!checkedOut) return { outcome: "failed", stage: "checkout" };
 
     // The same bootstrap as a new worktree (.config/wt.toml pre-start).
@@ -98,7 +133,9 @@ async function run({
       (await at(checkout, "mise", "trust")).code !== 0 ||
       (await at(checkout, "mise", "run", "init", request.repository)).code !== 0
     ) {
-      return { outcome: "failed", stage: "bootstrap" };
+      return leaseEnded.aborted
+        ? stopped("bootstrap")
+        : { outcome: "failed", stage: "bootstrap" };
     }
 
     const status = await at(
@@ -120,9 +157,11 @@ async function run({
       env: {
         ZOTLIT_E2E_REQUIRED: "1",
         ZOTLIT_DESKTOP_WAIT: DESKTOP_WAIT,
-        ZOTLIT_DESKTOP_LEASE: DESKTOP_LEASE,
       },
+      progress,
+      leaseEnded,
     });
+    if (leaseEnded.aborted) return stopped("End-to-end Run");
     if (e2e.code === 0) return { outcome: "passed" };
     if (e2e.code === EXIT_ADMISSION_BLOCKED) {
       return {
@@ -133,7 +172,8 @@ async function run({
     if (e2e.code === EXIT_LEASE_ENDED) {
       return {
         outcome: "failed",
-        stage: `End-to-end Run (not finished within its Lease of ${DESKTOP_LEASE})`,
+        stage:
+          "End-to-end Run (its Desktop Slot Lease ended; the log names how long the run was silent and its last progress)",
       };
     }
     return { outcome: "failed", stage: "End-to-end Run" };

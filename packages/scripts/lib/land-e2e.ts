@@ -38,8 +38,10 @@ import { join } from "node:path";
 
 import {
   acquireDesktopSlot,
+  describeLeaseEnd,
   DesktopSlotBlockedError,
-  MAX_LEASE_MS,
+  SILENCE_LIMIT_MS,
+  throttledProgress,
 } from "#desktop-slot";
 import { landStateDir } from "#land-queue";
 
@@ -90,6 +92,13 @@ export interface LandE2eRun {
   logPath: string;
   /** The runner's own checkout. */
   checkout: string;
+  /** Record a sign of progress, such as output of a command; it renews the turn. */
+  progress: (what: string) => void;
+  /**
+   * Aborts when the Lease of the End-to-end Turn ends; its reason says why.
+   * The run then stops its command.
+   */
+  leaseEnded: AbortSignal;
 }
 
 export interface LandE2eDeps {
@@ -153,20 +162,28 @@ export async function runLandE2e(
   const dir = options.dir ?? landE2eDir();
   const log = options.log ?? ((line: string) => console.error(line));
   let slot;
+  const lease = new AbortController();
   try {
     slot = await acquireDesktopSlot({
       admission: landE2eAdmission(dir),
       cwd: dir,
       command: "End-to-end Run after a land",
       worktree: dir,
-      leaseMs: MAX_LEASE_MS,
+      silenceMs: SILENCE_LIMIT_MS.childOutput,
       waitMs: options.waitMs ?? LAND_E2E_WAIT_MS,
       ...(options.pollMs ? { pollMs: options.pollMs } : {}),
       log,
-      // The End-to-end Run inside keeps its own Desktop Slot Lease. A runner
-      // still here past this Lease is hung, and the next runner evicts it as
-      // a Desktop Queue waiter evicts an overdue holder.
-      onLeaseEnd: () => {},
+      // The run stops its command and records the failure. A runner still
+      // here past the grace is hung, and the next runner evicts it as a
+      // Desktop Queue waiter evicts an overdue holder.
+      onLeaseEnd: (owner) => {
+        const reason = describeLeaseEnd(
+          owner,
+          Temporal.Now.instant().epochMilliseconds,
+        );
+        log(`End-to-end Turn: the Lease ended: ${reason}.`);
+        lease.abort(reason);
+      },
     });
   } catch (error) {
     if (!(error instanceof DesktopSlotBlockedError)) throw error;
@@ -185,10 +202,13 @@ export async function runLandE2e(
       `${startedAt.replaceAll(":", "-")}-${request.commit.slice(0, 12)}.log`,
     );
     await mkdir(join(dir, "logs"), { recursive: true });
+    const turn = slot;
     const run: LandE2eRun = {
       request,
       logPath,
       checkout: join(dir, "checkout"),
+      progress: throttledProgress((what) => turn.progress(what)),
+      leaseEnded: lease.signal,
     };
     const base = state.lastPassed ?? request.previous;
     const range = base ? `${base}..${request.commit}` : request.commit;

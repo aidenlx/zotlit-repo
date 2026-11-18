@@ -5,8 +5,7 @@ import { $ } from "zx";
 
 import {
   acquireDesktopSlotOrExit,
-  automatedLease,
-  DEFAULT_LEASE_MS,
+  SILENCE_LIMIT_MS,
 } from "@zotlit/scripts/desktop-slot";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
@@ -19,16 +18,17 @@ if (!(await isObsidianReachable(root))) {
     "Worker responsiveness requires a running desktop Obsidian with its CLI enabled. Open a host vault, then run pnpm e2e:worker again.",
   );
 }
-// The nested `pnpm e2e` reuses this hold through the environment, inside its
-// Lease.
-using _slot = await acquireDesktopSlotOrExit({
+// The nested `pnpm e2e` reuses this hold through the environment, and its
+// test cases renew the Lease.
+using slot = await acquireDesktopSlotOrExit({
   cwd: root,
   command: "pnpm e2e:worker",
-  leaseMs: automatedLease(DEFAULT_LEASE_MS.e2eWorker),
+  silenceMs: SILENCE_LIMIT_MS.e2e,
 });
 // The nested run writes its results to the folder chosen here.
 const results = newE2eResultsDir();
 const report = join(results, "results.json");
+slot.progress("pnpm e2e citation-index starts");
 await $({
   cwd: root,
   stdio: "inherit",

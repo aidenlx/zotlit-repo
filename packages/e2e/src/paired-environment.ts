@@ -5,6 +5,7 @@
 
 import { join } from "node:path";
 
+import { reportDesktopProgress } from "@zotlit/scripts/desktop-slot";
 import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
 import type { FixtureLayout } from "@zotlit/scripts/fixture";
 import { createNodePairedRunPorts } from "@zotlit/scripts/fixture/paired-run-node";
@@ -58,6 +59,7 @@ export async function openPairedEnvironment(
   const ports = createNodePairedRunPorts({ workspaceRoot, layout });
   const removeVault = () => clearVault(run, vaultPath);
 
+  reportDesktopProgress("Paired Run: clearing the last run");
   await ports.stopLivePairedZotero();
   await removeVault();
 
@@ -68,6 +70,9 @@ export async function openPairedEnvironment(
   stack.defer(removeVault);
   // An unregistered path takes `create`: it rebuilds the Fixture on the ports
   // above, copies its vault here, and links ZotLit to its profile and database.
+  reportDesktopProgress(
+    "Paired Run: building the Fixture and opening the vault",
+  );
   const opened = await run([
     "open",
     vaultPath,
@@ -83,6 +88,7 @@ export async function openPairedEnvironment(
   stack.defer(async () => {
     await ports.stopLivePairedZotero();
   });
+  reportDesktopProgress("Paired Run: starting Paired Zotero");
   const { debuggerPort } = await ports.openPairedZotero();
   if (debuggerPort === undefined)
     throw new Error("Paired Zotero reported no debugging port");
@@ -91,7 +97,9 @@ export async function openPairedEnvironment(
   const reply = await zoteroFetch(baseUrl, "");
   if (reply.status !== 200)
     throw new Error(`Paired Zotero answered ${reply.status} at ${baseUrl}`);
+  reportDesktopProgress("Paired Run: waiting for Better BibTeX");
   await waitForBetterBibtex(baseUrl);
+  reportDesktopProgress("Paired Run: ready");
 
   const owned = stack.move();
   return {

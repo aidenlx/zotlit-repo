@@ -30,9 +30,11 @@ import { join } from "node:path";
 
 import {
   acquireDesktopSlot,
+  describeLeaseEnd,
   DesktopSlotBlockedError,
   EXIT_ADMISSION_BLOCKED,
-  formatDuration,
+  SILENCE_LIMIT_MS,
+  throttledProgress,
 } from "#desktop-slot";
 import {
   landAdmission,
@@ -46,11 +48,6 @@ const HOUR = 60 * MINUTE;
 
 /** How long a land waits for its turn by default. */
 export const LAND_WAIT_MS = HOUR;
-/** The default Lease of a Land Turn, by target: the release gate is longer. */
-export const LAND_LEASE_MS: Record<LandTarget, number> = {
-  next: HOUR,
-  main: 2 * HOUR,
-};
 /** How many times one turn fetches and gates again after `next` moved. */
 export const LAND_ATTEMPTS = 3;
 
@@ -81,8 +78,11 @@ export interface LandOptions {
   waitLog?: string;
   /** The Admission Deadline. @default LAND_WAIT_MS */
   waitMs?: number;
-  /** @default LAND_LEASE_MS[to] */
-  leaseMs?: number;
+  /**
+   * How long the commands of the turn may print nothing before the Lease of
+   * the turn ends. @default SILENCE_LIMIT_MS.childOutput
+   */
+  silenceMs?: number;
   pollMs?: number;
   /** @default LAND_ATTEMPTS */
   attempts?: number;
@@ -130,12 +130,15 @@ interface RunResult {
 /**
  * Runs commands in the worktree, with their output in the land log. Each
  * command leads its own process group, so the end of a Lease or a signal stops
- * the whole command, such as the gate and every Vitest worker under it.
+ * the whole command, such as the gate and every Vitest worker under it. Each
+ * output of a command is a sign of progress of the Land Turn.
  */
 class Shell {
   #current: ChildProcess | undefined;
   readonly #cwd: string;
   readonly #log: WriteStream;
+  /** Set once the Land Turn is taken. */
+  progress: ((what: string) => void) | undefined;
 
   constructor(cwd: string, log: WriteStream) {
     this.#cwd = cwd;
@@ -153,13 +156,16 @@ class Shell {
       this.#current = child;
       let stdout = "";
       let stderr = "";
+      const what = `output of ${command} ${args[0] ?? ""}`.trim();
       child.stdout.on("data", (chunk: Buffer) => {
         stdout += chunk;
         this.#log.write(chunk);
+        this.progress?.(what);
       });
       child.stderr.on("data", (chunk: Buffer) => {
         stderr += chunk;
         this.#log.write(chunk);
+        this.progress?.(what);
       });
       child.on("error", reject);
       child.on("close", (code, signal) => {
@@ -207,6 +213,7 @@ const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 export async function land(options: LandOptions): Promise<LandResult> {
   const { cwd, to } = options;
   const remote = options.remote ?? "origin";
+  const silenceMs = options.silenceMs ?? SILENCE_LIMIT_MS.childOutput;
   const say = options.say ?? ((line: string) => console.error(line));
   const logDir = options.logDir ?? join(landStateDir(), "logs");
   await mkdir(logDir, { recursive: true });
@@ -217,7 +224,8 @@ export async function land(options: LandOptions): Promise<LandResult> {
   say(`Land log: ${logPath}`);
 
   let slot: DesktopSlot | undefined;
-  let leaseOver = false;
+  /** Why the Lease of the turn ended, once it has. */
+  let leaseOver: string | undefined;
   let source = "";
   let attempts = 0;
   let current: LandStep = "preflight";
@@ -243,7 +251,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
         ...(options.queueDir ? { dir: options.queueDir } : {}),
         cwd,
         command: `land ${source} into ${to}`,
-        leaseMs: options.leaseMs ?? LAND_LEASE_MS[to],
+        silenceMs,
         waitMs: options.waitMs ?? LAND_WAIT_MS,
         ...(options.pollMs ? { pollMs: options.pollMs } : {}),
         signals: false,
@@ -252,8 +260,11 @@ export async function land(options: LandOptions): Promise<LandResult> {
           log.write(`${line}\n`);
         },
         onLeaseEnd: (owner) => {
-          leaseOver = true;
-          log.write(`\nThe Lease of ${formatDuration(owner.lease)} ended.\n`);
+          leaseOver = describeLeaseEnd(
+            owner,
+            Temporal.Now.instant().epochMilliseconds,
+          );
+          log.write(`\nThe Lease of the Land Turn ended: ${leaseOver}.\n`);
           sh.stop("SIGTERM");
         },
       });
@@ -261,16 +272,30 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (!(error instanceof DesktopSlotBlockedError)) throw error;
       throw new LandFailure("queue", error.message, EXIT_ADMISSION_BLOCKED);
     }
+    const turn = slot;
+    // A write at most every 5 s, and at least ten in each silence limit.
+    sh.progress = throttledProgress(
+      (what) => turn.progress(what),
+      Math.min(5_000, silenceMs / 10),
+    );
     const waitMs = sinceEnqueue(Temporal.Instant.from(slot.owner.admittedAt));
     say(`Land Turn taken after ${(waitMs / 1000).toFixed(1)} s.`);
 
     const step = async <T>(name: LandStep, run: () => Promise<T>) => {
-      if (leaseOver) throw leaseEnded();
+      if (leaseOver) throw leaseEnded(leaseOver);
       current = name;
+      turn.progress(name);
       say(`▸ ${name}`);
       log.write(`\n▸ ${name}\n`);
-      const value = await run();
-      if (leaseOver) throw leaseEnded();
+      let value: T;
+      try {
+        value = await run();
+      } catch (error) {
+        // The end of the Lease stopped the command, which then failed.
+        if (leaseOver) throw leaseEnded(leaseOver);
+        throw error;
+      }
+      if (leaseOver) throw leaseEnded(leaseOver);
       return value;
     };
     const maxAttempts = to === "next" ? (options.attempts ?? LAND_ATTEMPTS) : 1;
@@ -361,10 +386,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
   }
 }
 
-function leaseEnded(): LandFailure {
+function leaseEnded(reason: string): LandFailure {
   return new LandFailure(
     "lease",
-    "The Lease of the Land Turn ended before the land did.",
+    `The Lease of the Land Turn ended before the land did: ${reason}.`,
   );
 }
 

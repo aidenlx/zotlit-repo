@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 // The Desktop Slots from the command line: hold one (or all) around a manual
-// session on the desktop Obsidian, show who holds them, extend a Lease, or
-// evict a holder.
+// session on the desktop Obsidian, show who holds them, or evict a holder.
 // `--help` prints the contract.
 
 import { spawn } from "node:child_process";
@@ -20,28 +19,26 @@ import {
 import {
   acquireDesktopSlotOrExit,
   ADMISSION_DEADLINE_MS,
-  DEFAULT_LEASE_MS,
-  DESKTOP_LEASE_ENV,
   DESKTOP_SLOT_ENV,
   DESKTOP_SLOTS_ENV,
   DEFAULT_DESKTOP_SLOTS,
   DESKTOP_WAIT_ENV,
   describeHolder,
+  describeLeaseEnd,
   describeWaiters,
   EVICTION_GRACE_MS,
   evictDesktopSlot,
   EXIT_ADMISSION_BLOCKED,
   EXIT_LEASE_ENDED,
-  extendDesktopSlot,
   formatDuration,
   KILL_AFTER_MS,
-  LeaseUsageError,
-  MANUAL_LEASE_CAP_MS,
   MAX_LEASE_MS,
+  NOTICE_MS,
   parseDuration,
-  parseManualLease,
   readDesktopSlotStatus,
   recordDesktopSlotGroup,
+  removedLeaseFlag,
+  SILENCE_LIMIT_MS,
 } from "#desktop-slot";
 
 const EXIT_USAGE = 2;
@@ -52,19 +49,19 @@ Exit codes:
   ${EXIT_ADMISSION_BLOCKED}   the Admission Deadline passed; blocked at admission, not a failure.
        The message names every holder and the waiters ahead.
   ${EXIT_LEASE_ENDED}   the Lease ended; run ended the command's process group.
-  ${EXIT_USAGE}    usage error, such as a missing --for or one over ${formatDuration(MANUAL_LEASE_CAP_MS)}.
+  ${EXIT_USAGE}    usage error.
   run otherwise exits with the command's code, or 128 plus the signal number.
 
 Admission Deadline: ${formatDuration(ADMISSION_DEADLINE_MS)} by default, for the queue, a slot, and the Memory Gate together.
-Leases: a manual hold states --for, up to ${formatDuration(MANUAL_LEASE_CAP_MS)}. Automated holders default to pnpm e2e ${formatDuration(DEFAULT_LEASE_MS.e2e)}, e2e:worker ${formatDuration(DEFAULT_LEASE_MS.e2eWorker)}, measure:query ${formatDuration(DEFAULT_LEASE_MS.measureQuery)}. No Lease exceeds ${formatDuration(MAX_LEASE_MS)}.
-A holder that outlives its Lease by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}. An Exclusive Hold's Lease, extension, and eviction cover all its slots.
+Lease of an automated holder: each sign of progress (a test case or hook of pnpm e2e, a step of measure:query, output of a Land Turn's gate) moves its end to now plus a silence limit: pnpm e2e, e2e:worker, and the desktop runs of pnpm verify --release ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn and the End-to-end Run after a land ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
+Lease of a manual hold (run, pnpm fixture open|dev): no end while no run waits. When the head waiter cannot get a slot because manual holds have them, the manual hold that has held longest gets ${formatDuration(NOTICE_MS)} of notice: it prints who waits and when it ends, then ends its command's process group with exit ${EXIT_LEASE_ENDED}. If no run waits at the end of the notice, the hold goes on. An automated holder never yields.
+A holder that outlives its Lease end by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}. An Exclusive Hold's Lease, notice, and eviction cover all its slots.
 Durations: 300ms, 90s, 20m, 2h.
 
 Environment:
   ${DESKTOP_SLOT_ENV}     the holder's token; a ZotLit tool the command starts reuses the hold, inside its Lease
   ${DESKTOP_SLOTS_ENV}    the number of Desktop Slots, a positive integer (default ${DEFAULT_DESKTOP_SLOTS})
   ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (pnpm e2e, e2e:worker, measure:query)
-  ${DESKTOP_LEASE_ENV}    the Lease of an automated holder, instead of its default
   ${DESKTOP_DIR_ENV}      the state directory (now ${desktopStateDir()})
   ${MEMORY_GATE_ENV}=off  skip the Memory Gate`;
 
@@ -83,21 +80,12 @@ function duration(text: string): number {
 
 async function run(
   command: string[],
-  lease: string | undefined,
   { wait, exclusive }: { wait?: string; exclusive: boolean },
 ) {
-  let leaseMs: number;
-  try {
-    leaseMs = parseManualLease(lease);
-  } catch (error) {
-    if (error instanceof LeaseUsageError) usage(error.message);
-    throw error;
-  }
   if (command.length === 0) usage("name the command after --.");
   let leaseOver = false;
   const slot = await acquireDesktopSlotOrExit({
     command: command.join(" "),
-    leaseMs,
     manual: true,
     exclusive,
     waitMs: wait === undefined ? undefined : duration(wait),
@@ -106,7 +94,7 @@ async function run(
     onLeaseEnd: (owner) => {
       leaseOver = true;
       console.error(
-        `Desktop Slot: the Lease of ${formatDuration(owner.lease)} ended at ${owner.leaseEndsAt}; ending the command's process group (exit ${EXIT_LEASE_ENDED}).`,
+        `Desktop Slot: ${describeLeaseEnd(owner, Temporal.Now.instant().epochMilliseconds)}; ending the command's process group (exit ${EXIT_LEASE_ENDED}).`,
       );
       signalGroup("SIGTERM");
       setTimeout(() => signalGroup("SIGKILL"), KILL_AFTER_MS).unref();
@@ -202,18 +190,22 @@ async function status(json: boolean) {
   );
 }
 
+const removed = removedLeaseFlag(hideBin(process.argv));
+if (removed) usage(removed);
+if (hideBin(process.argv)[0] === "extend") {
+  usage(
+    `extend is gone: no Lease needs it. An automated holder renews its Lease on each sign of progress, and a manual hold has no end until a run waits for the slot. To give the slot back sooner, end the command, or run pnpm desktop-slot evict <token|pid>.`,
+  );
+}
+
 await yargs(hideBin(process.argv))
   .scriptName("desktop-slot")
   .usage("pnpm desktop-slot <command>")
   .command(
     "run",
-    "hold a Desktop Slot around a command: run --for <dur> [--wait <dur>] [--exclusive] -- <command...>",
+    `hold a Desktop Slot around a command, as a manual hold that yields with ${formatDuration(NOTICE_MS)} of notice when a run waits: run [--wait <dur>] [--exclusive] -- <command...>`,
     (y) =>
       y
-        .option("for", {
-          type: "string",
-          describe: `the Lease of this hold, up to ${formatDuration(MANUAL_LEASE_CAP_MS)} (required)`,
-        })
         .option("wait", {
           type: "string",
           describe: `the Admission Deadline (default ${formatDuration(ADMISSION_DEADLINE_MS)})`,
@@ -226,7 +218,7 @@ await yargs(hideBin(process.argv))
         }),
     async (argv) => {
       const command = (argv["--"] as unknown[] | undefined) ?? [];
-      await run(command.map(String), argv.for, {
+      await run(command.map(String), {
         wait: argv.wait,
         exclusive: argv.exclusive,
       });
@@ -234,7 +226,7 @@ await yargs(hideBin(process.argv))
   )
   .command(
     "status",
-    "show each slot with its holder, worktree, Lease end, and whether it is an Exclusive Hold; then the Desktop Queue and the Memory Gate's last start",
+    "show each slot with its holder, worktree, and whether it is an Exclusive Hold; for an automated holder its last progress, silence limit, and Lease end; for a manual hold whether it is on notice; then the Desktop Queue and the Memory Gate's last start",
     (y) =>
       y.option("json", {
         type: "boolean",
@@ -243,36 +235,6 @@ await yargs(hideBin(process.argv))
       }),
     async (argv) => {
       await status(argv.json);
-    },
-  )
-  .command(
-    "extend <duration>",
-    `move the end of the hold's Lease to now plus <duration>; refused while anyone waits (cap ${formatDuration(MANUAL_LEASE_CAP_MS)} for a manual hold, ${formatDuration(MAX_LEASE_MS)} for any hold)`,
-    (y) =>
-      y
-        .positional("duration", { type: "string", demandOption: true })
-        .option("token", {
-          type: "string",
-          describe: `the holder's token (default: $${DESKTOP_SLOT_ENV})`,
-        }),
-    async (argv) => {
-      const token = argv.token ?? process.env[DESKTOP_SLOT_ENV];
-      if (!token)
-        usage(
-          `pass --token, or run under the hold that sets ${DESKTOP_SLOT_ENV}.`,
-        );
-      try {
-        const owner = await extendDesktopSlot({
-          token,
-          byMs: duration(argv.duration),
-        });
-        console.log(
-          `Desktop Slot: the Lease now ends at ${owner.leaseEndsAt}.`,
-        );
-      } catch (error) {
-        console.error((error as Error).message);
-        process.exit(1);
-      }
     },
   )
   .command(
