@@ -44,6 +44,11 @@ import {
   LibraryScope,
   scopeChanges,
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import {
+  decodeLogLevel,
+  encodeLogLevel,
+  LOG_LEVEL_KEY,
+} from "@zotlit/plugin-services/obsidian/log/settings-rows.ts";
 import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
 import { layerManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import {
@@ -63,6 +68,9 @@ import { acquireReadLease } from "@zotlit/zotero-reads/client/lease.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { defineFeature, registration, serviceGroup } from "./feature.ts";
+import { advancedPage } from "./setting-pages/advanced.ts";
+import { zoteroPage } from "./setting-pages/zotero.ts";
+import { settingCodec } from "./setting-tab/controls.ts";
 
 export const platform = defineFeature({
   name: "platform",
@@ -135,6 +143,18 @@ export const platform = defineFeature({
     registration("LibraryScopeNotices", layerLibraryScopeNotices),
   ],
   settingTab: {
+    entries: {
+      zotero: (ctx) => [zoteroPage(ctx)],
+      advanced: (ctx) => [advancedPage(ctx)],
+    },
+    controls: [
+      // Log level stores `LogLevel | null`; its dropdown reads a string.
+      settingCodec(
+        (key) => key === LOG_LEVEL_KEY,
+        encodeLogLevel,
+        decodeLogLevel,
+      ),
+    ],
     rebuild: [
       // The Language Pack row stands only while a pack is offered.
       Effect.map(LanguagePack, (pack) => Stream.drop(pack.changes, 1)),

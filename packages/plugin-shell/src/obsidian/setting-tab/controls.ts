@@ -42,3 +42,25 @@ export function writeControlValue(
   // `value` matches that key's control type, so the patch always validates.
   return PluginSettings.use((settings) => settings.update({ [key]: value }));
 }
+
+/**
+ * A codec for the settings keys `claims` names, whose stored value a
+ * dropdown shows through `encode` and stores back through `decode`.
+ */
+export function settingCodec(
+  claims: (key: string) => boolean,
+  encode: (value: unknown) => string,
+  decode: (value: unknown) => unknown,
+): ControlCodec {
+  return {
+    claims,
+    read: (key) =>
+      PluginSettings.use((settings) => settings.current).pipe(
+        Effect.map((current) => encode(current[key as SettingsKey])),
+      ),
+    write: (key, value) =>
+      PluginSettings.use((settings) =>
+        settings.update({ [key]: decode(value) }),
+      ),
+  };
+}

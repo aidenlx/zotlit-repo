@@ -39,6 +39,7 @@
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "effect": "catalog:",
+    "fflate": "catalog:",
     "hono": "catalog:",
     "valibot": "catalog:"
   },

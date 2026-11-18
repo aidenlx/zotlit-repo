@@ -10,7 +10,6 @@ import { queryViews } from "@zotlit/query-views/desktop/feature.ts";
 import { templateWorkbench } from "@zotlit/template-workbench/desktop/feature.ts";
 
 import { desktopCapabilities } from "./capabilities.ts";
-import { hostPages } from "./setting-tab/pages.ts";
 
 export const features = [
   platform,
@@ -22,5 +21,4 @@ export const features = [
   templateWorkbench,
   queryViews,
   libraryView,
-  hostPages,
 ] as const;

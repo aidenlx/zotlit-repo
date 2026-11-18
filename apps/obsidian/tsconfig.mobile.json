@@ -1,0 +1,18 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  // The Node-free host (src/__fixtures__/mobile-host/): its program names
+  // no Node types itself. A dependency's typings (liquidjs, undici-types)
+  // still bring in @types/node, so scripts/check-mobile-host.ts reads the
+  // program's file list for a desktop file instead.
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": [
+    "./src/__fixtures__/mobile-host/host.check.ts",
+    // The build constants and asset modules the features read.
+    "./src/env.d.ts",
+    "../../packages/obsidian-kit/src/typings/*.d.ts"
+  ],
+  "exclude": ["./node_modules"]
+}

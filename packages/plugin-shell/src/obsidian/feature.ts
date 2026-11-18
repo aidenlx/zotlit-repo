@@ -3,7 +3,14 @@
 // slices, its setting rows, its `obsidian://` actions, its menu entries and
 // its start-up hook. The shell derives the plugin graph, the settings
 // definition, the setting tab and the registrations from a list of them.
-import type { Context, Effect, Layer, ManagedRuntime, Stream } from "effect";
+import type {
+  Context,
+  Effect,
+  Layer,
+  ManagedRuntime,
+  Scope,
+  Stream,
+} from "effect";
 import type {
   App,
   ObsidianProtocolData,
@@ -105,7 +112,12 @@ export function registration<R>(
   return { name, layer };
 }
 
-/** An `obsidian://zotlit/<action>` handler: the shell registers it and runs it on the plugin's Scope. */
+/**
+ * An `obsidian://zotlit/<action>` handler: the shell registers it and runs it
+ * on the plugin's Scope. A handler may read that Scope (`Scope.Scope`) to run
+ * work that outlives its own run, such as a modal's callbacks; unload closes
+ * it.
+ */
 export interface ProtocolHandler<out R = unknown> {
   readonly action: string;
   readonly handle: (
@@ -117,7 +129,7 @@ export interface ProtocolHandler<out R = unknown> {
 export function protocolHandler<R>(
   action: string,
   handle: (data: ObsidianProtocolData) => Effect.Effect<unknown, unknown, R>,
-): ProtocolHandler<Exclude<R, ShellBase>> {
+): ProtocolHandler<Exclude<R, ShellBase | Scope.Scope>> {
   return { action, handle };
 }
 
@@ -213,6 +225,11 @@ export interface Feature<
    * built and every feature's handles were made.
    */
   readonly onload: (ctx: FeatureContext) => FeatureMenus | void;
+  /**
+   * The feature this one extends (`extendFeature`). Another feature that
+   * reads `handlesOf(base)` gets this feature's handles.
+   */
+  readonly base?: Feature<any, any, any, any>;
   readonly "~ports"?: () => { readonly provides: P; readonly requires: R };
   /** Type-level only: the settings each slice keeps, one union member per slice. */
   readonly "~settings"?: () => S;
@@ -273,6 +290,85 @@ export function defineFeature<
     protocol: parts.protocol ?? [],
     handles: parts.handles ?? (() => ({}) as H),
     onload: parts.onload ?? (() => undefined),
+  };
+}
+
+/**
+ * `base` with the parts only one kind of host composes, such as the desktop
+ * groups that read Node: one feature, so a host lists it once and its
+ * services, registrations, handlers and hooks run in one place of the host's
+ * order. The base's parts come first: its groups, registrations, slices,
+ * handlers, rebuild streams and codecs, then the extension's. A slot both
+ * fill takes the base's rows, then the extension's. The handles merge, and
+ * `handlesOf(base)` reads them. The menus of both hooks merge.
+ *
+ * @throws when the extension gives a setting entry the base gives.
+ */
+export function extendFeature<
+  B extends Feature<any, any, any, any>,
+  const S extends readonly ServiceGroup<any, any>[] = readonly [],
+  const G extends readonly Registration<any>[] = readonly [],
+  const A extends readonly ProtocolHandler<any>[] = readonly [],
+  H = Record<never, never>,
+  const K extends readonly SettingsSlice<any>[] = readonly [],
+>(
+  base: B,
+  parts: Omit<FeatureParts<S, G, A, H, K>, "name">,
+): Feature<
+  FeatureProvides<B> | GroupProvides<S[number]>,
+  FeatureRequires<B> | GroupRequires<S[number] | G[number] | A[number]>,
+  FeatureHandles<B> & H,
+  FeatureSettings<B> | SlicesSettings<K[number]>
+> {
+  const extension = defineFeature({ name: base.name, ...parts });
+  return {
+    name: base.name,
+    base,
+    services: [...base.services, ...extension.services],
+    registrations: [...base.registrations, ...extension.registrations],
+    settings: [...base.settings, ...extension.settings],
+    settingTab: mergeSettingTab(base, extension.settingTab),
+    protocol: [...base.protocol, ...extension.protocol],
+    handles: (ctx) => ({ ...base.handles(ctx), ...extension.handles(ctx) }),
+    onload: (ctx) => {
+      const before = base.onload(ctx) ?? {};
+      const after = extension.onload(ctx) ?? {};
+      return {
+        fileMenu: { ...before.fileMenu, ...after.fileMenu },
+        folderMenu: { ...before.folderMenu, ...after.folderMenu },
+      };
+    },
+  };
+}
+
+/** The setting tab parts of `base`, then of `extension`. */
+function mergeSettingTab(
+  base: Feature<any, any, any, any>,
+  extension: SettingTabContribution,
+): SettingTabContribution {
+  const entries = { ...base.settingTab.entries };
+  for (const [id, rows] of Object.entries(extension.entries ?? {})) {
+    if (id in entries)
+      throw new Error(`${base.name} gives the setting entry ${id} twice`);
+    entries[id] = rows;
+  }
+  const slots: Partial<Record<string, SettingRows>> = {
+    ...base.settingTab.slots,
+  };
+  const added: Partial<Record<string, SettingRows>> = extension.slots ?? {};
+  for (const [id, rows] of Object.entries(added)) {
+    const before = slots[id];
+    if (!rows) continue;
+    slots[id] = before ? (ctx) => [...before(ctx), ...rows(ctx)] : rows;
+  }
+  return {
+    entries,
+    slots,
+    rebuild: [...(base.settingTab.rebuild ?? []), ...(extension.rebuild ?? [])],
+    controls: [
+      ...(base.settingTab.controls ?? []),
+      ...(extension.controls ?? []),
+    ],
   };
 }
 

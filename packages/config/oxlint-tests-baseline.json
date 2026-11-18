@@ -220,9 +220,7 @@
   "packages/annotations/src/obsidian/pdf-annotation-editor/service.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/services/protocol/register.test.ts": [
-    "zotlit-tests/no-internal-mock"
-  ],
+  "apps/obsidian/src/protocol-links.test.ts": ["zotlit-tests/no-internal-mock"],
   "packages/template-workbench/src/desktop/cli/check.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
@@ -256,18 +254,12 @@
   "packages/notes/src/obsidian/profile/profile-destination-modal.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/setting-tab/profiles.test.ts": [
+  "packages/template-workbench/src/desktop/profile-settings/profiles-page.test.ts": [
     "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-markup-assertion",
-    "zotlit-tests/no-source-text"
+    "zotlit-tests/no-markup-assertion"
   ],
-  "apps/obsidian/src/setting-tab/resources.test.ts": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-source-text"
-  ],
-  "apps/obsidian/src/setting-tab/templates.test.ts": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-source-text"
+  "packages/library-view/src/desktop/welcome/settings-resources.test.ts": [
+    "zotlit-tests/no-internal-mock"
   ],
   "packages/annotations/src/desktop/annot-view/AnnotView.test.ts": [
     "zotlit-tests/no-markup-assertion"

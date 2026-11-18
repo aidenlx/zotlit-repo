@@ -982,6 +982,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1575,6 +1578,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       '@zotlit/query-views':
         specifier: workspace:*
         version: link:../query-views
@@ -2183,6 +2189,9 @@ importers:
       effect:
         specifier: 'catalog:'
         version: 4.1.2
+      fflate:
+        specifier: 'catalog:'
+        version: 0.8.3
       hono:
         specifier: 'catalog:'
         version: 4.13.0
@@ -2626,6 +2635,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates

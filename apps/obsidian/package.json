@@ -17,7 +17,7 @@
     "dev:vault": "npm run build:dev && ../../packages/scripts/scripts/obsidian-vault.ts open && npm run dev",
     "dev:i18n": "I18N_DEV_SERVER=true vite build --watch --mode development",
     "analyze": "ANALYZE=true vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.mobile.json && node scripts/check-mobile-host.ts",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "lint": "oxlint",

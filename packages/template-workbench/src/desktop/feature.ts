@@ -1,6 +1,7 @@
 import { Effect, FileSystem, Layer, Stream } from "effect";
 
 import { notes } from "@zotlit/notes/desktop/feature.ts";
+import { literatureNoteSlots } from "@zotlit/notes/obsidian/profile/main-page-rows.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
@@ -8,9 +9,10 @@ import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
-// The Template Workbench as one feature a host composes: the Local Bridge and
-// Customize, the notes' launch port it fills, the Template Workbench View and
-// the Template Data Explorer.
+// The Template Workbench on the desktop: the Obsidian feature
+// (`#obsidian/feature.ts`) with the Local Bridge and Customize, the notes'
+// launch port it fills, the Template Workbench View, the Template Data
+// Explorer, the Profiles page and the workbench links.
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
@@ -18,7 +20,7 @@ import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
-  defineFeature,
+  extendFeature,
   registration,
   serviceGroup,
 } from "@zotlit/plugin-shell/obsidian/feature.ts";
@@ -36,6 +38,12 @@ import { bindLocalBridge } from "./local-bridge/handle.ts";
 import { createLaunchSheet } from "./local-bridge/launch-sheet.ts";
 import { registerWorkbenchSavedNotice } from "./local-bridge/notices.ts";
 import { layerLocalBridge, LocalBridge } from "./local-bridge/service.ts";
+import { workbenchServerItems } from "./local-bridge/settings-rows.ts";
+import {
+  defaultDocumentItem,
+  profilesPage,
+} from "./profile-settings/profiles-page.ts";
+import { workbenchLinks } from "./protocol/handlers.ts";
 import {
   layerTemplateWorkbenchLauncher,
   openTemplateWorkbench,
@@ -45,6 +53,7 @@ import {
   templateWorkbenchFileMenu,
 } from "./view/register.ts";
 
+import { templateWorkbench as obsidianTemplateWorkbench } from "#obsidian/feature.ts";
 import {
   profileCustomization,
   saveProfileCustomization,
@@ -59,8 +68,7 @@ export const workbenchActionsOf = ({
   context: read(Effect.context<WorkbenchActionServices>()),
 });
 
-export const templateWorkbench = defineFeature({
-  name: "template workbench",
+export const templateWorkbench = extendFeature(obsidianTemplateWorkbench, {
   services: [
     serviceGroup(
       "LocalBridge",
@@ -124,7 +132,13 @@ export const templateWorkbench = defineFeature({
   registrations: [
     registration("TemplateWorkbenchCli", layerTemplateWorkbenchCli),
   ],
+  protocol: workbenchLinks({ webWorkbenchEnabled: WEB_WORKBENCH_ENABLED }),
   settingTab: {
+    entries: { profiles: (ctx) => [profilesPage(ctx)] },
+    slots: {
+      [literatureNoteSlots.document]: (ctx) => [defaultDocumentItem(ctx)],
+      "local-server.services": (ctx) => workbenchServerItems(ctx),
+    },
     rebuild: [
       // The Workbench Connection row stands only while a connection does.
       Effect.map(LocalBridge, (bridge) => Stream.drop(bridge.changes, 1)),

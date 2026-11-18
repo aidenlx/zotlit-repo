@@ -8,30 +8,27 @@ import type {
 } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { readerPageItems } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings-page.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
-import { noteImportPageItems } from "@zotlit/notes/obsidian/note-import/settings-page.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
-import { attachmentPageItems } from "@zotlit/plugin-services/desktop/attachment-import/settings-page.ts";
 import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
+  settingDefinitions,
+  settingTabContext,
+} from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
+import { features } from "@/features.ts";
+import { host } from "@/host.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { profileRowServices, testSettingTab } from "./__fixtures__.ts";
-import { advancedPageItems } from "./advanced.ts";
-import { citationsPageItems } from "./citations.ts";
-import { literatureNoteItems, profilesPage } from "./profiles.ts";
-import { resourcesGroup } from "./resources.ts";
-import { zoteroPageItems } from "./zotero.ts";
 
 vi.mock(
   "@zotlit/template-workbench/desktop/view/open.ts",
@@ -158,53 +155,11 @@ function check(label: string, items: readonly SettingDefinitionItem[]): void {
 
 /** The tab's definitions, as `getSettingDefinitions()` hands them out. */
 function realTree(c: SettingTabContext): SettingDefinitionItem[] {
-  return [
-    resourcesGroup(c),
-    ...literatureNoteItems(c),
-    {
-      type: "group",
-      id: "settings_pages",
-      items: [
-        profilesPage(c),
-        {
-          type: "page",
-          id: "settings_page_note_import",
-          name: m.settings_page_note_import(),
-          items: noteImportPageItems(c),
-        },
-        {
-          type: "page",
-          id: "settings_page_citations",
-          name: m.settings_page_citations(),
-          items: citationsPageItems(c),
-        },
-        {
-          type: "page",
-          id: "settings_page_zotero",
-          name: m.settings_page_zotero(),
-          items: zoteroPageItems(c),
-        },
-        {
-          type: "page",
-          id: "settings_page_attachments",
-          name: m.settings_page_attachments(),
-          items: attachmentPageItems(c),
-        },
-        {
-          type: "page",
-          id: "settings_page_reader",
-          name: m.settings_page_reader(),
-          items: readerPageItems(),
-        },
-        {
-          type: "page",
-          id: "settings_page_advanced",
-          name: m.settings_page_advanced(),
-          items: advancedPageItems(c),
-        },
-      ],
-    },
-  ];
+  return settingDefinitions(
+    settingTabContext(c, c, features),
+    features,
+    host.settingTab,
+  );
 }
 
 let visited = 0;
@@ -213,6 +168,20 @@ it("every setting definition carries an id unique among its siblings", () => {
   check("root", realTree(ctx()));
   // Guard against a vacuous pass: the walk must reach the real tree.
   expect(visited).toBeGreaterThan(100);
+});
+
+/** Each item's id, indented under the page or group that holds it. */
+function outline(items: readonly SettingDefinitionItem[], depth = 0): string[] {
+  return items.flatMap((item) => [
+    `${"  ".repeat(depth)}${(item as { id?: string }).id}`,
+    ...("type" in item && item.items ? outline(item.items, depth + 1) : []),
+  ]);
+}
+
+// The slots of each page take rows from several features: the outline holds
+// the order the tab shows them in, page by page.
+it("places every page and row of the composed tab in its order", () => {
+  expect(outline(realTree(ctx())).join("\n")).toMatchSnapshot();
 });
 
 const TAB_ID = "zotlit";

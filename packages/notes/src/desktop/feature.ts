@@ -1,4 +1,4 @@
-import { Effect, FileSystem, Layer, Stream } from "effect";
+import { Effect, FileSystem, Layer } from "effect";
 
 import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
@@ -7,16 +7,14 @@ import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { registerCitationSuggest } from "@zotlit/citations/obsidian/citation-suggest/register.ts";
 import { CitekeyNoteActions } from "@zotlit/citations/obsidian/citekey-editor/note-actions.ts";
-import { ProfileStyles } from "@zotlit/citations/obsidian/pandoc/profile-styles.ts";
 import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-// The notes as one feature a host composes: Literature Notes and the Note
-// Feature, the note import, the Profiles, the Templates and the template
-// conversion, the ports of the annotations and the citations they fill, and
-// what they register.
+// The notes on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
+// with the Profiles, Literature Notes and the Note Feature, the note import,
+// the template conversion, the ports of the annotations and the citations
+// they fill, the note links, and what they register.
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
@@ -25,7 +23,7 @@ import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.t
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
-  defineFeature,
+  extendFeature,
   registration,
   serviceGroup,
 } from "@zotlit/plugin-shell/obsidian/feature.ts";
@@ -61,6 +59,8 @@ import { layerNoteImporter, NoteImporter } from "./note-import/service.ts";
 import { createNoteImportView } from "./note-import/view.ts";
 import { layerProfileActions } from "./profile/actions.ts";
 import { interactiveCreation } from "./profile/dialogs.ts";
+import { referencesStyleDefinition } from "./profile/references-style-row.ts";
+import { layerNoteLinkRequests, noteLinks } from "./protocol/handlers.ts";
 import { bindTemplateData } from "./template/data-handle.ts";
 import {
   layerTemplateDataReads,
@@ -74,20 +74,11 @@ import {
   TemplateMigrationPrompt,
 } from "./template/migration.ts";
 
-import { noteImportSettings } from "#core/note-import/settings.ts";
 import { ItemMatchQuery } from "#core/profile-selection/item-matches.ts";
-import { templateSettings } from "#core/template/settings.ts";
-import { noteImportPageItems } from "#obsidian/note-import/settings-page.ts";
-import { layerProfileStyles } from "#obsidian/profile/profile-styles.ts";
+import { notes as obsidianNotes } from "#obsidian/feature.ts";
+import { literatureNoteSlots } from "#obsidian/profile/main-page-rows.ts";
 import { layerProfile, Profile } from "#obsidian/profile/service.ts";
-import {
-  isProfileControlKey,
-  profileControlValue,
-  setProfileControlValue,
-} from "#obsidian/profile/setting-controls.ts";
-import { profileSettings } from "#obsidian/profile/settings.ts";
-import { layerCitationTemplateActions } from "#obsidian/template/actions.ts";
-import { layerTemplate, Template } from "#obsidian/template/service.ts";
+import { Template } from "#obsidian/template/service.ts";
 
 /**
  * The Note Feature's handle over the built graph, which the protocol
@@ -135,25 +126,12 @@ function noteActionDeps(ctx: FeatureContext) {
   };
 }
 
-export const notes = defineFeature({
-  name: "notes",
-  settings: [profileSettings, templateSettings, noteImportSettings],
+export const notes = extendFeature(obsidianNotes, {
   services: [
-    serviceGroup(
-      "Template",
-      { provides: [Template], requires: [] },
-      layerTemplate,
-    ),
     serviceGroup(
       "Profile",
       { provides: [Profile], requires: [NoteIndex, Template] },
       layerProfile(profileRevision),
-    ),
-    // The citations read the Profiles through their port.
-    serviceGroup(
-      "ProfileStyles",
-      { provides: [ProfileStyles], requires: [Profile] },
-      layerProfileStyles,
     ),
     // The migration verifies a conversion against a real in-scope item.
     serviceGroup(
@@ -264,7 +242,6 @@ export const notes = defineFeature({
     ),
   ],
   registrations: [
-    registration("CitationTemplateActions", layerCitationTemplateActions),
     registration("NoteFeatureNotices", layerNoteFeatureNotices),
     registration(
       "NoteImportCommands",
@@ -278,52 +255,21 @@ export const notes = defineFeature({
       ),
     ),
     registration("ProfileActions", layerProfileActions),
+    registration("NoteLinkRequests", layerNoteLinkRequests),
   ],
+  protocol: noteLinks(),
   settingTab: {
-    entries: {
-      "note-import": (ctx) => [
-        {
-          type: "page",
-          id: "settings_page_note_import",
-          name: m.settings_page_note_import(),
-          desc: m.settings_page_note_import_desc(),
-          items: noteImportPageItems(ctx),
-        },
+    slots: {
+      [literatureNoteSlots.citationStyle]: (ctx) => [
+        referencesStyleDefinition(ctx),
       ],
     },
-    controls: [
-      {
-        claims: isProfileControlKey,
-        read: (key) => profileControlValue(key as never),
-        write: (key, value) => setProfileControlValue(key as never, value),
-      },
-    ],
-    rebuild: [
-      Effect.map(Profile, (profile) => Stream.drop(profile.changes, 1)),
-      Effect.map(Template, (template) => template.compileEvents),
-      Effect.map(PluginSettings, (settings) =>
-        settings.changes.pipe(
-          Stream.map((current) => current["note.template-conversion-pending"]),
-          Stream.changes,
-          Stream.drop(1),
-        ),
-      ),
-    ],
   },
   handles: (ctx) => {
     const { bridge, read } = ctx;
-    const profile = read(Profile);
     const { noteActions, importChildNotes, noteImportView } =
       noteActionDeps(ctx);
     return {
-      template: read(Template),
-      profile,
-      // The Default Profile, as the Template Workbench opens it from a note.
-      defaultProfile: {
-        get defaultDocumentPath() {
-          return bridge.runSync(profile.defaultDocumentPath);
-        },
-      },
       templateData: bindTemplateData(
         bridge,
         read(Effect.context<TemplateDataServices>()),

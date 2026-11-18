@@ -1,7 +1,8 @@
-// The Library View as one feature a host composes: the Library View and the
-// Welcome View, the Release check, the quick switcher, and the ports of the
-// Obsidian kit and the notes they fill.
-import { Effect, Layer, Stream } from "effect";
+// The Library View on the desktop: the Obsidian feature
+// (`#obsidian/feature.ts`) with the Library View and the Welcome View, the
+// Release check, the quick switcher, the settings' resources strip, and the
+// ports of the Obsidian kit and the notes they fill.
+import { Effect, Layer } from "effect";
 
 import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import { literatureNoteAttachmentsOf } from "@zotlit/annotations/desktop/feature.ts";
@@ -15,8 +16,7 @@ import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/han
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
-  defineFeature,
-  registration,
+  extendFeature,
   serviceGroup,
 } from "@zotlit/plugin-shell/obsidian/feature.ts";
 import { GraphBuilt } from "@zotlit/plugin-shell/obsidian/graph-built.ts";
@@ -34,21 +34,14 @@ import {
   registerWelcomeView,
 } from "./library/welcome-register.ts";
 import { registerQuickSwitch } from "./quick-switch/register.ts";
+import { resourcesGroup } from "./welcome/settings-resources.ts";
 import { createSetupActions } from "./welcome/setup-actions.ts";
 
-import { librarySettings } from "#core/library/settings.ts";
-import { releaseSettings } from "#core/release/settings.ts";
-import { welcomeSettings } from "#core/welcome/settings.ts";
-import {
-  layerShowInLibraryActions,
-  showInLibraryFileMenu,
-} from "#obsidian/library/show-in-library-actions.ts";
-import { layerReleaseActions } from "#obsidian/release/actions.ts";
+import { libraryView as obsidianLibraryView } from "#obsidian/feature.ts";
+import { showInLibraryFileMenu } from "#obsidian/library/show-in-library-actions.ts";
 import { layerRelease, Release } from "#obsidian/release/service.ts";
 
-export const libraryView = defineFeature({
-  name: "library view",
-  settings: [librarySettings, welcomeSettings, releaseSettings],
+export const libraryView = extendFeature(obsidianLibraryView, {
   services: [
     // Views, the popovers and commands open the Library View on an Item.
     serviceGroup(
@@ -91,20 +84,13 @@ export const libraryView = defineFeature({
       ),
     ),
   ],
-  registrations: [
-    registration("ReleaseActions", layerReleaseActions),
-    registration("ShowInLibraryActions", layerShowInLibraryActions),
-  ],
   settingTab: {
-    rebuild: [
-      Effect.map(PluginSettings, (settings) =>
-        settings.changes.pipe(
-          Stream.map((current) => current["release.migration-pending"]),
-          Stream.changes,
-          Stream.drop(1),
-        ),
-      ),
-    ],
+    entries: {
+      // Migration reminder (while pending) and the resources strip, one
+      // headerless group — see resourcesGroup for why the reminder is
+      // included structurally rather than via `visible`.
+      resources: (ctx) => [resourcesGroup(ctx)],
+    },
   },
   handles: ({ read }) => ({
     showInLibrary: read(ShowInLibrary),

@@ -46,5 +46,11 @@
     // The private Obsidian API the kit declares, which app code reads too.
     "../../packages/obsidian-kit/src/typings/*.d.ts"
   ],
-  "exclude": ["./node_modules", "./dist", "./dist-dev"]
+  "exclude": [
+    "./node_modules",
+    "./dist",
+    "./dist-dev",
+    // Type-checked alone by tsconfig.mobile.json, without the desktop files.
+    "./src/__fixtures__/mobile-host/host.check.ts"
+  ]
 }

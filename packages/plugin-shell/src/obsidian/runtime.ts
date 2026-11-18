@@ -120,13 +120,19 @@ export async function createShellRuntime<
     metadataCache: runtime.runSync(MetadataCache),
     viewRegistry: runtime.runSync(ViewRegistry),
   };
-  for (const feature of host.features)
-    handles.set(feature, feature.handles(context));
-  const services = Object.assign(
-    {},
-    shell,
-    ...handles.values(),
-  ) as ShellServices<F>;
+  const made: unknown[] = [];
+  for (const feature of host.features) {
+    const value = feature.handles(context);
+    made.push(value);
+    // A feature an extension builds on answers with the extension's handles.
+    for (
+      let named: Feature<any, any, any> | undefined = feature;
+      named;
+      named = named.base
+    )
+      handles.set(named, value);
+  }
+  const services = Object.assign({}, shell, ...made) as ShellServices<F>;
   return { services, context };
 }
 

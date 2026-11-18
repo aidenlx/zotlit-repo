@@ -41,6 +41,8 @@
     "../../packages/obsidian-kit/src/typings/*.d.ts"
   ],
   "exclude": [
+    // Type-checked alone by tsconfig.mobile.json, without the desktop files.
+    "./src/__fixtures__/mobile-host/host.check.ts",
     "./node_modules",
     "./dist",
     "./dist-dev",

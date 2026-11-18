@@ -17,11 +17,18 @@ import {
   layerAttachmentImport,
 } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { attachmentPageItems } from "@zotlit/plugin-services/desktop/attachment-import/settings-page.ts";
+import {
+  databaseFileItem,
+  databaseLocationItems,
+  databaseSyncItems,
+} from "@zotlit/plugin-services/desktop/database/settings-rows.ts";
 import { layerLocalServer } from "@zotlit/plugin-services/desktop/local-server/layer.ts";
+import { openLogFileItem } from "@zotlit/plugin-services/desktop/log/open-file.ts";
 import {
   layerZoteroPref,
   layerZoteroPrefFiles,
 } from "@zotlit/plugin-services/desktop/zotero-pref/layer.ts";
+import { liveUpdatesItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -30,6 +37,7 @@ import {
   registration,
   serviceGroup,
 } from "#obsidian/feature.ts";
+import { zoteroPageSlots } from "#obsidian/setting-pages/zotero.ts";
 
 export const desktopPlatform = defineFeature({
   name: "desktop platform",
@@ -90,6 +98,33 @@ export const desktopPlatform = defineFeature({
           items: attachmentPageItems(ctx),
         },
       ],
+    },
+    slots: {
+      [zoteroPageSlots.database]: (ctx) => [
+        {
+          type: "group",
+          id: "settings_zotero_database",
+          items: [
+            databaseFileItem(ctx),
+            {
+              type: "page",
+              id: "settings_page_zotero_location",
+              name: m.settings_page_zotero_location(),
+              desc: m.settings_page_zotero_location_desc(),
+              items: databaseLocationItems(ctx),
+            },
+          ],
+        },
+      ],
+      [zoteroPageSlots.sync]: (ctx) => [
+        {
+          type: "group",
+          id: "settings_zotero_sync",
+          heading: m.settings_zotero_sync_heading(),
+          items: databaseSyncItems(liveUpdatesItems(ctx)),
+        },
+      ],
+      "advanced.log-file": (ctx) => [openLogFileItem(ctx)],
     },
     rebuild: [
       // The Local server rows name the port the listener bound.

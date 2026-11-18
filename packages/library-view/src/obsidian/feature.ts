@@ -1,0 +1,44 @@
+// The Library View, as far as it loads on every Obsidian: its settings, the
+// Release and Show in Library actions, the `show-in-library` link and the
+// Advanced page's Update notices row. The Library View, the Welcome View,
+// the Release check and the quick switcher read Node, so the desktop feature
+// (`#desktop/feature.ts`) extends this one with them.
+import { Effect, Stream } from "effect";
+
+import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import {
+  defineFeature,
+  registration,
+} from "@zotlit/plugin-shell/obsidian/feature.ts";
+import { advancedPageSlots } from "@zotlit/plugin-shell/obsidian/setting-pages/advanced.ts";
+
+import { layerShowInLibraryActions } from "./library/show-in-library-actions.ts";
+import { showInLibraryLink } from "./library/show-in-library-link.ts";
+import { layerReleaseActions } from "./release/actions.ts";
+import { updateNoticesItem } from "./release/settings-row.ts";
+
+import { librarySettings } from "#core/library/settings.ts";
+import { releaseSettings } from "#core/release/settings.ts";
+import { welcomeSettings } from "#core/welcome/settings.ts";
+
+export const libraryView = defineFeature({
+  name: "library view",
+  settings: [librarySettings, welcomeSettings, releaseSettings],
+  registrations: [
+    registration("ReleaseActions", layerReleaseActions),
+    registration("ShowInLibraryActions", layerShowInLibraryActions),
+  ],
+  protocol: [showInLibraryLink],
+  settingTab: {
+    slots: { [advancedPageSlots.general]: () => [updateNoticesItem()] },
+    rebuild: [
+      Effect.map(PluginSettings, (settings) =>
+        settings.changes.pipe(
+          Stream.map((current) => current["release.migration-pending"]),
+          Stream.changes,
+          Stream.drop(1),
+        ),
+      ),
+    ],
+  },
+});

@@ -13,10 +13,10 @@ import { addAnnotationHistoryActions } from "@zotlit/annotations/obsidian/annota
 import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
-// ZotLit Query in Obsidian as one feature a host composes: the Item Query
-// adapter, the Query View and the sidebar Annotation View, the Annotation
-// Suggester and the PDF view's note button, and the ports of the annotations
-// and the notes they fill.
+// ZotLit Query on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
+// with the Item Query adapter, the Query View and the sidebar Annotation
+// View, the Annotation Suggester and the PDF view's note button, and the
+// ports of the annotations and the notes they fill.
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -30,7 +30,7 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
-  defineFeature,
+  extendFeature,
   registration,
   serviceGroup,
 } from "@zotlit/plugin-shell/obsidian/feature.ts";
@@ -63,6 +63,7 @@ import {
 import { literatureNotes } from "./query-view/table-notes.ts";
 import type { QueryViewDeps } from "./query-view/view.tsx";
 
+import { queryViews as obsidianQueryViews } from "#obsidian/feature.ts";
 import { QueryCardFocus } from "#obsidian/query-view/card-focus.ts";
 
 /**
@@ -87,8 +88,7 @@ function queryViewDeps(
   };
 }
 
-export const queryViews = defineFeature({
-  name: "query views",
+export const queryViews = extendFeature(obsidianQueryViews, {
   services: [
     // Profile selection and the Template Workbench test Profile Matches
     // through ZotLit Query.
