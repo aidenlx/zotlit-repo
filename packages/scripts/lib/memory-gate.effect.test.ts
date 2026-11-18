@@ -13,6 +13,7 @@ import {
   MEMORY_GATE_ENV,
   MemoryGateClosedError,
   passMemoryGate,
+  recordAdmittedRun,
 } from "@zotlit/config/memory-gate";
 
 const probe = vi.hoisted(() =>
@@ -38,6 +39,8 @@ beforeEach(() => {
   vi.stubEnv(MEMORY_GATE_ADMITTED_ENV, "");
   Object.defineProperty(process, "platform", { value: "darwin" });
   pressure(2);
+  // Another admitted run is still running, so pressure makes a run wait.
+  recordAdmittedRun(dir, process.ppid);
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -64,11 +67,33 @@ it.effect("expires at the Admission Deadline on the Effect clock", () =>
     );
     yield* TestClock.adjust(1000);
     expect(yield* Fiber.join(fiber)).toEqual(
-      Exit.fail(new MemoryGateClosedError("macOS memory pressure is warning")),
+      Exit.fail(
+        new MemoryGateClosedError(
+          "macOS memory pressure is warning, and 1 admitted run is still running",
+        ),
+      ),
     );
     pressure(1);
     expect(yield* passMemoryGate({ dir })).toBe(true);
   }),
+);
+
+it.effect(
+  "starts under pressure, with a warning, when no other admitted run is running",
+  () =>
+    Effect.gen(function* () {
+      rmSync(join(dir, "memory-running"), { recursive: true });
+      const logs: string[] = [];
+      const admitted = yield* passMemoryGate({
+        dir,
+        deadline: 1000,
+        log: (message) => logs.push(message),
+      });
+      expect(admitted).toBe(true);
+      expect(logs).toEqual([
+        "Memory Gate: warning: macOS memory pressure is warning, with no other admitted run to wait for; this run starts.",
+      ]);
+    }),
 );
 
 it.effect(

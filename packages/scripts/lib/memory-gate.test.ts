@@ -22,6 +22,7 @@ import {
   macosVerdict,
   MEMORY_GATE_ADMITTED_ENV,
   MEMORY_GATE_ENV,
+  recordAdmittedRun,
   windowsVerdict,
 } from "@zotlit/config/memory-gate";
 
@@ -105,6 +106,9 @@ async function ran(): Promise<string> {
 
 const now = () => Temporal.Now.instant().toString();
 
+/** Another admitted run, this test process, is still running. */
+const anotherRunIsRunning = () => recordAdmittedRun(dir, process.pid);
+
 it("starts consecutive runs while pressure is normal, even after a recent start", async () => {
   await writeFile(lastStart, now());
   const first = gated({ [DESKTOP_WAIT_ENV]: "1s" });
@@ -123,11 +127,41 @@ it("expires a lock left by a killed run", async () => {
   expect(await ran()).toBe("ran\n");
 });
 
+it("starts under memory pressure, with a warning, when no admitted run is running", async () => {
+  await writeFile(pressure, "2");
+  const alone = gated({ [DESKTOP_WAIT_ENV]: "1s" });
+  expect(await alone.until(regex("this run starts"))).toContain(
+    "Memory Gate: warning: macOS memory pressure is warning, with no other admitted run to wait for",
+  );
+  expect(await alone.exit).toBe(0);
+  expect(await ran()).toBe("ran\n");
+});
+
+it("under memory pressure, a second run waits until the first one ends", async () => {
+  await writeFile(pressure, "2");
+  const release = join(dir, "..", "release");
+  const first = gated(
+    {},
+    `const fs = require("node:fs"); fs.appendFileSync(${JSON.stringify(journal)}, "first\\n"); const wait = () => fs.existsSync(${JSON.stringify(release)}) ? 0 : setTimeout(wait, 20); wait();`,
+  );
+  await first.until(regex("this run starts"));
+  const second = gated();
+  expect(await second.until(regex("still running"))).toContain(
+    "1 admitted run is still running",
+  );
+  expect(await ran()).toBe("first\n");
+  await writeFile(release, "");
+  expect(await first.exit).toBe(0);
+  expect(await second.exit).toBe(0);
+  expect(await ran()).toBe("first\nran\n");
+});
+
 it("gives up under memory pressure with exit 75 and runs nothing", async () => {
+  anotherRunIsRunning();
   await writeFile(pressure, "2");
   const blocked = gated({ [DESKTOP_WAIT_ENV]: "1s" });
   expect(await blocked.until(regex("blocked by the Memory Gate"))).toContain(
-    "still closed at the Admission Deadline: macOS memory pressure is warning",
+    "still closed at the Admission Deadline: macOS memory pressure is warning, and 1 admitted run is still running",
   );
   expect(await blocked.exit).toBe(EXIT_ADMISSION_BLOCKED);
   expect(await ran()).toBe("");
@@ -136,6 +170,7 @@ it("gives up under memory pressure with exit 75 and runs nothing", async () => {
 });
 
 it("admits the oldest waiter before a newer run", async () => {
+  anotherRunIsRunning();
   await writeFile(pressure, "2");
   const older = gated(
     {},
@@ -156,6 +191,7 @@ it("admits the oldest waiter before a newer run", async () => {
 });
 
 it("removes a killed waiter so the next run can start", async () => {
+  anotherRunIsRunning();
   await writeFile(pressure, "2");
   const killed = gated();
   await killed.until(regex("macOS memory pressure"));

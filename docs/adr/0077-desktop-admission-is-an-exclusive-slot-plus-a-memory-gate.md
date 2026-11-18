@@ -54,6 +54,18 @@ the OS reports their full memory use; the gate blocks later starts when the
 pressure reading rises. Desktop Slot limits and Leases keep their existing
 behavior.
 
+## Memory Gate update (2026-11-18)
+
+Memory pressure limits how many admitted runs go in parallel. Under pressure a
+run waits only while another admitted run is still running. When none is, the
+pressure comes from other applications, and no wait of ours relieves it, so
+the run starts and the gate prints a warning. Before this change such a run
+waited until its Admission Deadline each time, and no run could start while
+the developer's other applications kept the machine under pressure.
+
+An admitted run now leaves a marker that counts until its process exits; a
+reader removes the marker of a process that is gone.
+
 ## Docs walk update (2026-11-13)
 
 A docs-walk run that captures or records takes an Exclusive Hold of every

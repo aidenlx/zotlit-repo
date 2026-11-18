@@ -1,8 +1,11 @@
 // The Memory Gate: admit a heavy run only while the machine has memory to spare.
 //
 // The gate admits runs in arrival order while the OS says memory may grow.
-// Runs may take the machine a little past physical memory, as far as
-// compression and paging keep up:
+// Memory pressure limits how many admitted runs go in parallel: under pressure
+// a run waits while another admitted run is still running, and starts with a
+// warning when none is, since the pressure then comes from other applications
+// and no wait of ours relieves it. Runs may take the machine a little past
+// physical memory, as far as compression and paging keep up:
 //
 // - macOS: the kernel's pressure level is normal. Swap and compressed idle
 //   pages linger long after memory frees up, so their size is no guide.
@@ -11,7 +14,8 @@
 //
 // It admits once per top-level invocation: the caller marks what it starts
 // with MEMORY_GATE_ADMITTED_ENV, and a nested run that sees the mark skips the
-// gate. The gate holds nothing after it admits. Ported from vattention/vatt-repo
+// gate. After it admits, the gate keeps one marker per admitted process, which
+// counts as running until that process exits. Ported from vattention/vatt-repo
 // `scripts/memory-gate.ts`.
 
 import { regex } from "arkregex";
@@ -49,6 +53,7 @@ const MAX_COMMIT = 1.25;
 const STALE_LOCK_MS = 10_000;
 const LAST_START = "last-start";
 const MEMORY_QUEUE = "memory-queue";
+const MEMORY_RUNNING = "memory-running";
 
 interface MemoryWaiter {
   token: string;
@@ -204,6 +209,42 @@ export function lastGateStart(
   }
 }
 
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+}
+
+/**
+ * Mark a process as an admitted run. The marker counts until the process
+ * exits; this process removes its own at exit, and a reader removes the marker
+ * of a process that is gone.
+ */
+export function recordAdmittedRun(dir: string, pid: number = process.pid) {
+  const running = join(dir, MEMORY_RUNNING);
+  mkdirSync(running, { recursive: true });
+  const marker = join(running, String(pid));
+  writeFileSync(marker, "");
+  if (pid === process.pid)
+    process.once("exit", () => rmSync(marker, { force: true }));
+}
+
+/** How many admitted runs of other processes are still running. */
+function otherAdmittedRuns(dir: string): number {
+  const running = join(dir, MEMORY_RUNNING);
+  let count = 0;
+  for (const name of readdirSync(running, { encoding: "utf8" })) {
+    const pid = Number(name);
+    if (pid === process.pid) continue;
+    if (isAlive(pid)) count++;
+    else rmSync(join(running, name), { force: true });
+  }
+  return count;
+}
+
 /** Runs under the start lock, so ticket allocation and ordering are atomic. */
 function queueVerdict(dir: string, waiter: MemoryWaiter, now: number) {
   const queue = join(dir, MEMORY_QUEUE);
@@ -235,19 +276,19 @@ function queueVerdict(dir: string, waiter: MemoryWaiter, now: number) {
     }
     const ticket = JSON.parse(text) as MemoryWaiter;
     if (ticket.token === waiter.token) break;
-    let alive = true;
-    try {
-      process.kill(ticket.pid, 0);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ESRCH") alive = false;
-    }
-    if (!alive || now >= ticket.deadline) {
+    if (!isAlive(ticket.pid) || now >= ticket.deadline) {
       rmSync(path, { force: true });
       continue;
     }
     return `waiting behind pid ${ticket.pid} at the Memory Gate`;
   }
   return undefined;
+}
+
+/** Why a run waits, or the warning it starts with; empty when memory is free. */
+interface StartVerdict {
+  wait?: string;
+  warning?: string;
 }
 
 /** Record this start if the gate is open; one caller at a time. */
@@ -270,23 +311,40 @@ const tryStart = Effect.fnUntraced(function* (
         return false;
       }
     }),
-    Effect.fnUntraced(function* (claimed) {
-      if (!claimed) return "another run is starting";
+    Effect.fnUntraced(function* (claimed): Effect.fn.Return<
+      StartVerdict,
+      MemoryGateIoError
+    > {
+      if (!claimed) return { wait: "another run is starting" };
       const queued = yield* io("read memory queue", () =>
         queueVerdict(dir, waiter, now),
       );
-      if (queued) return queued;
-      const verdict = yield* memoryVerdict();
-      if (verdict) return verdict;
+      if (queued) return { wait: queued };
+      const pressure = yield* memoryVerdict();
+      if (pressure) {
+        const running = yield* io("read admitted runs", () => {
+          mkdirSync(join(dir, MEMORY_RUNNING), { recursive: true });
+          return otherAdmittedRuns(dir);
+        });
+        if (running > 0)
+          return {
+            wait: `${pressure}, and ${running === 1 ? "1 admitted run is" : `${running} admitted runs are`} still running`,
+          };
+      }
       const started = yield* Clock.currentTimeMillis;
       yield* io("record admitted start", () => {
         writeFileSync(
           join(dir, LAST_START),
           Temporal.Instant.fromEpochMilliseconds(started).toString(),
         );
+        recordAdmittedRun(dir);
         rmSync(waiter.path!, { force: true });
       });
-      return undefined;
+      return pressure
+        ? {
+            warning: `${pressure}, with no other admitted run to wait for; this run starts`,
+          }
+        : {};
     }),
     (claimed) =>
       Effect.sync(() => {
@@ -364,10 +422,14 @@ export const passMemoryGate = Effect.fnUntraced(function* (
           return yield* Effect.fail(
             new MemoryGateClosedError(wait ?? "Admission Deadline passed"),
           );
-        wait = yield* tryStart(dir, waiter);
-        if (!wait) return true;
+        const verdict = yield* tryStart(dir, waiter);
+        wait = verdict.wait;
+        if (!wait) {
+          if (verdict.warning) log(`Memory Gate: warning: ${verdict.warning}.`);
+          return true;
+        }
         // Report each kind of wait once, not every poll.
-        const kind = wait.replace(/[\d.]+x physical/, "");
+        const kind = wait.replace(/[\d.]+x physical|\d+ admitted runs?/, "");
         if (kind !== reported) log(`Memory Gate: waiting: ${wait}`);
         reported = kind;
         yield* Effect.sleep(options.pollMs ?? 100);
