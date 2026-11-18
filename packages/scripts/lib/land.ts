@@ -432,9 +432,13 @@ async function rebaseOnto(
     ).stdout.trim();
     await sh.run("git", ["rebase", "--abort"]);
     await sh.git("rebase", "reset", "--hard", original);
+    // With no conflicted file, Git refused before it replayed a commit, for
+    // example over an untracked file that the new base would overwrite.
     throw new LandFailure(
       "rebase",
-      `The branch does not rebase onto ${base} without conflicts${conflicts ? ` in:\n${conflicts}` : "."}\nThe branch is as it was. Merge or rebase onto ${base} yourself, resolve the conflicts, and land again.`,
+      conflicts
+        ? `The branch does not rebase onto ${base} without conflicts in:\n${conflicts}\nThe branch is as it was. Merge or rebase onto ${base} yourself, resolve the conflicts, and land again.`
+        : `Git refused to rebase the branch onto ${base}:\n${(rebased.stderr || rebased.stdout).trim()}\nThe branch is as it was. Clear what Git names, and land again.`,
     );
   }
   if (
