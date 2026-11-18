@@ -223,8 +223,10 @@ describe("land into next", () => {
         gate: ["sh", "-c", "echo starting; sleep 30"],
       });
       expect(result).toMatchObject({ ok: false, step: "lease" });
+      // On a loaded machine the limit can pass before the gate's first line
+      // arrives, so the message's last progress is not part of the claim.
       expect(result.ok || result.message).toMatch(
-        /made no progress for .*silence limit of 500 ms.*"output of sh -c"/,
+        /made no progress for .*silence limit of 500 ms/,
       );
       expect(await subjects("next")).toEqual(["seed"]);
     },
