@@ -15,7 +15,9 @@ const repo = resolve(import.meta.dirname, "../../..");
 const requireQuery = createRequire(
   join(repo, "packages/item-query/package.json"),
 );
-const requirePlugin = createRequire(join(repo, "apps/obsidian/package.json"));
+const requirePlugin = createRequire(
+  join(repo, "packages/query-views/package.json"),
+);
 const { Effect } = await import(requireQuery.resolve("effect"));
 const { createClient } = await import(
   requireQuery.resolve("@zotlit/db/client/node")
