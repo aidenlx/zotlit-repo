@@ -7,6 +7,7 @@ The Obsidian plugin. Its shared base lives in packages, which the app imports by
 - `@zotlit/obsidian-desktop` — code that needs `node:*` or `electron`.
 - `@zotlit/plugin-messages` — the generated Message facade.
 - `@zotlit/plugin-services` — the platform services the features stand on: settings, logging, the Language Pack, the Zotero preferences, the Local Server and Zotero Local API, the Held Read client, Library Scope, item search, the Note Index, the Use Ledger, Managed Binaries, attachments. The app keeps the host composition: the settings it keeps and the migrations of its `data.json` (`src/services/settings/`), the Release check, the `obsidian://` handlers (`src/services/protocol/`), the menu events, and the plugin graph.
+- `@zotlit/annotations` — reading and annotating: the Annotation Repository and the annotation model, the surfaces in Obsidian's PDF reader (Annotation Marks, the Mark Popup, the Creation Toolbar), Excerpt Images, the Annotation View's cards and Annotations Layout, Reader Sessions and Open Targets. The app keeps the sidebar Annotation View that hosts those cards in a Query View (`src/views/annot-view/`), the Annotation Popover of the citations, and the layer of the package's `AnnotationNoteActions` port in the notes feature (`src/services/note-feature/view-actions.ts`).
 - `@zotlit/zotero-reads` — ZoteroReads: its contract, the Worker's handlers, the renderer's client, and the desktop database source. The app keeps the host side: the Worker entry (`src/services/zotero-reads/worker.ts`) and the client's wiring to settings (`worker-client.ts`).
 
 Code that only one unit of the app uses lives in that unit. A base package imports no service or view of the app; the app fills open registries such as `ViewServiceRegistry` by declaration merging (`src/typings/view-services.d.ts`).
@@ -25,7 +26,7 @@ Run `build` / `test` / `lint` via turbo (see root AGENTS.md → Commands). Packa
 
 Preact provides the UI runtime through `@preact/preset-vite` and its React compatibility aliases. Keep React imports and `@types/react`/`@types/react-dom` for the wider ecosystem.
 
-Read `src/views/annot-view/store.ts` for view state, `menus.ts` and `actions.tsx` for menus, and `packages/obsidian-kit/src/menu.ts` for anchoring.
+Read `packages/annotations/src/obsidian/annot-view/store.ts` for view state, `packages/annotations/src/desktop/annot-view/menus.ts` and `actions.tsx` for menus, and `packages/obsidian-kit/src/menu.ts` for anchoring.
 
 Drag to reorder: a flat list uses `src/views/query-view/reorder.tsx`; a Match tree or a Template Workbench list uses `packages/workbench/src/ui/reorder.ts`.
 
