@@ -11,7 +11,7 @@ Amends [ADR 0076](0076-checks-run-before-push-and-ci-runs-only-to-release.md): t
 ```text
 task worktree, clean tree
   └─ pnpm land
-       wait in the Land Queue of next (FIFO, one turn, Lease 1 h, wait 1 h → exit 75)
+       wait in the Land Queue of next (FIFO, one turn, silence limit 15 min, wait 1 h → exit 75)
        └─ the Land Turn
             fetch origin/next
             rebase the branch onto it ── conflict? abort, branch as it was, fail
@@ -22,6 +22,7 @@ task worktree, clean tree
 ```
 
 - **One admission mechanism.** The Land Queue is an `Admission` of the Desktop Slot machinery (ADR 0077, ADR 0078): one slot, no Memory Gate, its own state directory beside the desktop state. The FIFO tickets, the takeover of a dead holder, the Lease and the Admission Deadline are the same code. Each target branch has its own queue, so a release gate of `main` does not hold up lands into `next`.
+- **The turn follows progress.** Each line that the gate prints renews the Lease of the turn; a turn whose gate prints nothing for 15 min ends with the step `lease` (ADR 0077, Lease update of 2026-11-18).
 - **The gate runs once, on what is pushed.** It runs in the turn, on the rebased tree, so it catches a change that merges cleanly but fails with the newest `next`. Lands no longer run the gate in parallel, so one gate has the machine.
 - **The wait is recorded.** Each land appends its wait, outcome, failed step and attempt count to `waits.jsonl` in the shared state directory.
 - **The hook enforces the path.** The pre-push hook refuses a push to `next` or `main` unless it carries the token of a live Land Turn; in an agent session (`AI_AGENT`, `CLAUDE_CODE`, `CLAUDECODE`, `CODEX_SANDBOX`, `CODEX_THREAD_ID`) it refuses every other push. A person's push of a task branch runs no gate. The AI-attribution check stays in the same hook command.
