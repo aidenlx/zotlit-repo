@@ -284,7 +284,7 @@ describe("the pinned Fields Panel", () => {
     expect(page.isOpen()).toBe(true);
   });
 
-  // Final review of spec #1962 (B12): a replay of the docked panel's effects,
+  // Final review: a replay of the docked panel's effects,
   // as React's development mode makes, keeps the focus the pin gave it.
   it("keeps focus in its search when its effects replay", () => {
     using page = open({ size: { width: 1200, height: 800 }, strict: true });
@@ -737,7 +737,7 @@ describe("a list field", () => {
   const toggle = (key: string) =>
     within(line(key)).queryByRole("button", { name: "Toggle node" });
 
-  // Final review of spec #1962 (B3), story 19: a search finds a field by its
+  // Final review: a search finds a field by its
   // template path as well as by its name and its value.
   it.each([
     ["zt.title", "title"],
@@ -785,7 +785,7 @@ describe("a list field", () => {
     expect(keys.filter((key) => /\[\d+\]/.test(key))).toEqual([]);
   });
 
-  // Final review of spec #1962 (S3): a property of a list's items goes by the
+  // Final review: a property of a list's items goes by the
   // name the reader sees for that field, where one exists.
   it("names its item properties as the fields they are", () => {
     using page = open({
@@ -890,7 +890,7 @@ describe("a list field", () => {
     ]);
   });
 
-  // Walkthrough of spec #1962 (F3): a creator with a one-field name has no
+  // Walkthrough: a creator with a one-field name has no
   // family name. The details list every item and mark that one; the result
   // passes over it, as the snippet does.
   it("lists every item of a list property in its details, an item without a value marked", () => {
@@ -1088,7 +1088,7 @@ describe("a Fields Panel row", () => {
   });
 });
 
-// Final review of spec #1962 (A1): the details, Copy, Insert and Mod+Enter
+// Final review: the details, Copy, Insert and Mod+Enter
 // write one text, in the syntax of the place the insert writes to.
 describe("a field's text follows the place an insert writes to", () => {
   it.each([
@@ -1126,7 +1126,7 @@ describe("a field's text follows the place an insert writes to", () => {
   );
 });
 
-// Final review of spec #1962 (B4): a keyboard reader reaches the form
+// Final review: a keyboard reader reaches the form
 // choice, Copy, Insert and Close details of the details Enter opened.
 describe.each(PRESENTATIONS)(
   "the details Enter opens as a $presentation",
@@ -1197,7 +1197,7 @@ const announced = () =>
     .map((region) => region.textContent)
     .join("|");
 
-// Final review of spec #1962 (B5): what the panel did reaches a live region.
+// Final review: what the panel did reaches a live region.
 describe("the Fields Panel's announcements", () => {
   it("say an insert and a copy in a live region that outlasts the popover", () => {
     using page = open();
@@ -1218,7 +1218,7 @@ describe("the Fields Panel's announcements", () => {
     expect(announced()).toContain("No matching fields.");
   });
 
-  // Walkthrough of spec #1962 (N2): the sentence goes once the search
+  // Walkthrough: the sentence goes once the search
   // matches again, or is cleared.
   it.each([
     ["matches again", "title"],
@@ -1232,7 +1232,7 @@ describe("the Fields Panel's announcements", () => {
   });
 });
 
-// Final review of spec #1962 (B6): a row reads as its visible label, with its
+// Final review: a row reads as its visible label, with its
 // value as its description.
 describe("a field row's name", () => {
   it("is its label, described by its value", () => {
@@ -1252,7 +1252,7 @@ describe("a field row's name", () => {
   });
 });
 
-// Final review of spec #1962 (B9): with no place to insert, the panel says
+// Final review: with no place to insert, the panel says
 // why, and Mod+Enter answers.
 describe("a Fields Panel with no place to insert", () => {
   const reason = "Select a place in the template to insert a field.";

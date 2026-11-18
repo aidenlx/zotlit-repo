@@ -147,7 +147,7 @@ const scopedCslVault = (options: Parameters<typeof cslVault>[0]) =>
 
 describe("zotlit:csl for one note", () => {
   it.effect(
-    "reports a typed materialization failure through the CLI handler (#1793)",
+    "reports a typed materialization failure through the CLI handler",
     () =>
       Effect.gen(function* () {
         const vault = yield* scopedCslVault({

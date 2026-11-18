@@ -16,8 +16,6 @@ export interface ReaderSessionTarget {
   /**
    * The parent Item's Indexed Key; `null` for a standalone Attachment, which
    * Zotero allows and which holds Annotations like any other.
-   *
-   * @see https://github.com/aidenlx/zotlit/issues/1141
    */
   itemKey: string | null;
 }
@@ -37,7 +35,7 @@ export interface ReaderSession {
   /**
    * Which reader this is. The Annotation View follows one session at a time and
    * says which in its own surfaces; the Mark Popup reads it to decide whether a
-   * gesture can reach the reader at all (aidenlx/zotlit#1148).
+   * gesture can reach the reader at all.
    */
   readonly source: ReaderSource;
   readonly target: ReaderSessionTarget | null;

@@ -647,11 +647,11 @@ export interface ChooserTriggerProps extends Omit<
  * It carries `data-open`, so the caller's own content reads the open state
  * through `zt:group-data-open:` rather than a prop.
  *
- * Spec aidenlx/zotlit#1190 names a `Chooser.Value` part inside it. There is
- * none: a part that renders the selection has to decide what a selection
- * reads as, and the two callers disagree — the colour filter draws its
- * selection as swatches and the tag filter as a count beside a glyph. The
- * trigger takes children instead, so each caller writes its own.
+ * A `Chooser.Value` part inside it is not offered: a part that renders the
+ * selection has to decide what a selection reads as, and the two callers
+ * disagree — the colour filter draws its selection as swatches and the tag
+ * filter as a count beside a glyph. The trigger takes children instead, so
+ * each caller writes its own.
  *
  * The element stays bare rather than wearing the `Button` wrapper from
  * `src/components/obsidian/`, which the decision tree asks for wherever a
@@ -881,9 +881,9 @@ export interface ChooserListProps<Row extends ChooserRow> extends Omit<
    * the groups it wants them drawn in. A group is a heading and a separator,
    * never a second highlight: the rows below run on as one sequence.
    *
-   * Spec aidenlx/zotlit#1190 names `Chooser.Group`, `Chooser.GroupLabel` and
-   * `Chooser.Separator` as parts. They stay data on this prop, as the sibling
-   * `Chooser.Empty` deviation does and for the same reason: the query filter
+   * `Chooser.Group`, `Chooser.GroupLabel` and `Chooser.Separator` are not
+   * parts. They stay data on this prop, as the sibling `Chooser.Empty` does
+   * and for the same reason: the query filter
    * runs here, so this part is the only one that knows which groups a query
    * left standing. Parts would have each group filter itself, and neither a
    * heading nor a rule could then be dropped with the rows it belongs to —
@@ -894,8 +894,7 @@ export interface ChooserListProps<Row extends ChooserRow> extends Omit<
   /**
    * Shown beside the rows when the query matches none of them.
    *
-   * Spec aidenlx/zotlit#1190 names this a `Chooser.Empty` part. It stays a
-   * prop: the query filter runs here, so only this part knows the rows came
+   * This is not a `Chooser.Empty` part. It stays a prop: the query filter runs here, so only this part knows the rows came
    * out empty, and a sibling part would mean hoisting the row list into the
    * root and making the root generic over the row type.
    *
@@ -1226,10 +1225,10 @@ export interface ChooserItemProps
  * The tick is a styled indicator rather than a checkbox, because a list box
  * option may hold no focusable control; `aria-selected` is what reports it.
  *
- * Spec aidenlx/zotlit#1190 names `Chooser.ItemText` and `Chooser.ItemIndicator`
- * as parts inside it. There are none: a row is a leading glyph, one line of
- * label and optional trailing content in that order, always, and the two parts
- * exist to let a caller reorder or restyle a pair this one draws itself. The
+ * `Chooser.ItemText` and `Chooser.ItemIndicator` are not offered as parts
+ * inside it: a row is a leading glyph, one line of label and optional
+ * trailing content in that order, always, and the two parts exist to let a
+ * caller reorder or restyle a pair this one draws itself. The
  * caller's children are the label; the glyph is the tick unless the caller
  * names an `icon`.
  *
@@ -1261,10 +1260,9 @@ export interface ChooserActionProps
    * The glyph in the tick's place. Without one the row keeps the tick's width
    * anyway, so its label lines up with the entries above it.
    *
-   * It goes beyond what #1193 asked for and is kept because the gap it fills
-   * misreads: an action row standing among entries with an empty tick column
-   * reads as an entry nobody has ticked yet. A glyph is what says the row does
-   * something instead.
+   * It is kept because the gap it fills misreads: an action row standing among
+   * entries with an empty tick column reads as an entry nobody has ticked yet.
+   * A glyph is what says the row does something instead.
    */
   icon?: IconName;
 }

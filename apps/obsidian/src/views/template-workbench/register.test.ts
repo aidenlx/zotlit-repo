@@ -767,7 +767,7 @@ Annotation`);
     expect(openPopoutLeaf).toHaveBeenCalledOnce();
     expect(deps.customize).not.toHaveBeenCalled();
   });
-  // #1945: inside the view, the command reveals the view's own window.
+  // Inside the view, the command reveals the view's own window.
   it("reveals the active editor's Workbench window from Open template workbench", async () => {
     setMockPlatform({ isDesktopApp: true });
     const { app, file, leaf, deps, plugin, commands, openPopoutLeaf } = setup();

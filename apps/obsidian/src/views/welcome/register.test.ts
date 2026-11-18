@@ -15,7 +15,7 @@ import { makeWelcomeHost, waitFor } from "./__fixtures__";
 import type { NotFoundSignal } from "./not-found-notice";
 import { watchNotFound } from "./register";
 
-// #1705: the missing-file condition must survive layer acquisition.
+// The missing-file condition must survive layer acquisition.
 it.effect(
   "signals the missing database to a welcome view that subscribes late",
   () =>

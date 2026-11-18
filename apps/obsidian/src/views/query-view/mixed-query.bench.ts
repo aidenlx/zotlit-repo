@@ -1,4 +1,4 @@
-// The cost of a "mixed" Query View query (spec #1531): one that sorts or
+// The cost of a "mixed" Query View query: one that sorts or
 // filters by a vault property, `vault.<name>`, beside a Zotero filter, sort
 // and `limit`. It drives the path the view takes, end to end:
 //

@@ -97,48 +97,46 @@ function save(
 }
 
 describe("savePandocIntegrationFiles", () => {
-  it.effect(
-    "finishes the pair before its scope closes during an install (#1793)",
-    () =>
-      Effect.gen(function* () {
-        const fileSystem = new MemoryFileSystem();
-        fileSystem.files.set(FILTER_PATH, "old filter");
-        fileSystem.files.set(DEFAULTS_PATH, "old defaults");
-        const started = yield* Deferred.make<void>();
-        const release = yield* Deferred.make<void>();
-        const service = FileSystem.makeNoop({
-          ...fileSystem.service,
-          rename: (from, to) =>
-            to === FILTER_PATH
-              ? Effect.gen(function* () {
-                  yield* Deferred.succeed(started, undefined);
-                  yield* Deferred.await(release);
-                  yield* fileSystem.rename(from, to);
-                })
-              : fileSystem.rename(from, to),
-        });
-        const scope = yield* Scope.fork(yield* Scope.Scope);
-        yield* savePandocIntegrationFiles({
-          folder: FOLDER,
-          files: pandocIntegrationFiles(),
-          confirmReplacement: () => Effect.succeed(true),
-        }).pipe(
-          Effect.provideService(FileSystem.FileSystem, service),
-          Effect.forkIn(scope, { startImmediately: true }),
-        );
-        yield* Deferred.await(started);
-        const closing = yield* Scope.close(scope, Exit.void).pipe(
-          Effect.forkChild({ startImmediately: true }),
-        );
-        expect(closing.pollUnsafe()).toBeUndefined();
-        yield* Deferred.succeed(release, undefined);
-        yield* Fiber.join(closing);
-        expect(fileSystem.files.get(FILTER_PATH)).toBe(pandocCliFilter);
-        expect(fileSystem.files.get(DEFAULTS_PATH)).toBe(pandocDefaults);
-        expect([...fileSystem.files.keys()].sort()).toEqual(
-          [DEFAULTS_PATH, FILTER_PATH].sort(),
-        );
-      }),
+  it.effect("finishes the pair before its scope closes during an install", () =>
+    Effect.gen(function* () {
+      const fileSystem = new MemoryFileSystem();
+      fileSystem.files.set(FILTER_PATH, "old filter");
+      fileSystem.files.set(DEFAULTS_PATH, "old defaults");
+      const started = yield* Deferred.make<void>();
+      const release = yield* Deferred.make<void>();
+      const service = FileSystem.makeNoop({
+        ...fileSystem.service,
+        rename: (from, to) =>
+          to === FILTER_PATH
+            ? Effect.gen(function* () {
+                yield* Deferred.succeed(started, undefined);
+                yield* Deferred.await(release);
+                yield* fileSystem.rename(from, to);
+              })
+            : fileSystem.rename(from, to),
+      });
+      const scope = yield* Scope.fork(yield* Scope.Scope);
+      yield* savePandocIntegrationFiles({
+        folder: FOLDER,
+        files: pandocIntegrationFiles(),
+        confirmReplacement: () => Effect.succeed(true),
+      }).pipe(
+        Effect.provideService(FileSystem.FileSystem, service),
+        Effect.forkIn(scope, { startImmediately: true }),
+      );
+      yield* Deferred.await(started);
+      const closing = yield* Scope.close(scope, Exit.void).pipe(
+        Effect.forkChild({ startImmediately: true }),
+      );
+      expect(closing.pollUnsafe()).toBeUndefined();
+      yield* Deferred.succeed(release, undefined);
+      yield* Fiber.join(closing);
+      expect(fileSystem.files.get(FILTER_PATH)).toBe(pandocCliFilter);
+      expect(fileSystem.files.get(DEFAULTS_PATH)).toBe(pandocDefaults);
+      expect([...fileSystem.files.keys()].sort()).toEqual(
+        [DEFAULTS_PATH, FILTER_PATH].sort(),
+      );
+    }),
   );
 
   it.effect("cancels before writing when replacement is declined", () =>

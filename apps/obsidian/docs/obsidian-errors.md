@@ -4,7 +4,6 @@ This reference catalogues what the Obsidian methods ZotLit wraps throw or reject
 
 - **Obsidian version read:** 1.15.0 (`~/Library/Application Support/obsidian/obsidian-1.15.0.asar`, the auto-updated runtime that is installed). Extracted to `node_modules/.ob-rev-1.15.0/`. Line numbers below are in `node_modules/.ob-rev-1.15.0/app.js` unless the file is named (`main.js` is the Electron main process in the same folder).
 - The plugin compiles against `obsidian` 1.14.4 (the version the app bundle at `/Applications/Obsidian.app` ships). Verified on both: line numbers cite 1.15.0 (the running build); the load-bearing literals and structures were re-checked in `node_modules/.ob-rev-1.14.4/app.js` (down-leveled to generators, so different lines): the three "exists" messages (74591, 74610, 74629, 30571), the timeout (31200), `Request failed, status ` (65382), the three `Fk` messages (69770–69779), `readJson` `ENOENT` → `null` else log → `undefined` (74416–74420), `writeJson` swallowing (74425–74443), `rmdir` `recursive: t` (30246–30257), the `renameFile` early return (93159–93165), `processFrontMatter` md-only + scalar → `{}` (93982–93999, 94088–94091), `H2` `throw r.errors[0]` (41186). Minified names below belong to 1.15.0 only. Node behavior (`ERR_FS_EISDIR` from `fs.rm` on a folder, `ENOENT` from `writeFile` into a missing folder, `code` dropped by structured clone) was confirmed with a local `node -e` probe.
-- Spec: aidenlx/zotlit#1723; the cache decision: aidenlx/zotlit#1735.
 
 ## How ZotLit decides an expected outcome
 

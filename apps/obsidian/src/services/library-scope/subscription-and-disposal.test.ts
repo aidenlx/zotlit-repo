@@ -25,7 +25,7 @@ const client = () =>
     ),
   );
 
-it.effect("a throwing subscriber receives both immediate changes (#1705)", () =>
+it.effect("a throwing subscriber receives both immediate changes", () =>
   Effect.gen(function* () {
     const f = yield* libraryScopeFixture(client());
     const changes: LibraryScopeState[] = [];

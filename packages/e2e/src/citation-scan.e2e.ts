@@ -1,5 +1,5 @@
 import type { MarkdownView, WorkspaceLeaf } from "obsidian";
-// Citation scan smoke and renderer budget on the shared run Fixture (#1695).
+// Citation scan smoke and renderer budget on the shared run Fixture.
 import { describe, expect, it } from "vitest";
 
 import type { AnnotationView } from "@/views/annot-view/view";
@@ -19,7 +19,7 @@ import type {
 describe.skipIf(!reachable)("Citation scan pipeline", () => {
   registerEndToEndRunHooks();
 
-  it("keeps all citation syntaxes and annotation embeds across a parse worker restart (#1695)", async () => {
+  it("keeps all citation syntaxes and annotation embeds across a parse worker restart", async () => {
     const { vaultId } = run;
     const note = "Scan pipeline smoke.md";
     const literature = "Scan pipeline source.md";
@@ -106,7 +106,7 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
           }
           await services.bridge.runPromise(services.template.refresh);
           // Pin before any tab cites the Item: a pin that follows an active-tab load
-          // of the same Item stays "Loading…" (#1701).
+          // of the same Item stays "Loading…".
           s.annotations = cleanup.adopt(
             app.workspace.getRightLeaf(false)!,
             (leaf) => leaf.detach(),
@@ -414,9 +414,9 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
       ).toEqual(
         before.uses.map((occurrence) => occurrence.position.start.offset + 16),
       );
-      // Agreed budget for PR #1696: ADR 0080 aimed for 2 ms; the desktop renderer
+      // Agreed budget: ADR 0080 aimed for 2 ms; the desktop renderer
       // measured 4.9 ms dense and 2.2 ms sparse at max, harness IPC included.
-      // #1702 brings both back to 2 ms. Until then the median of the 15 samples
+      // The aim is to bring both back to 2 ms. Until then the median of the 15 samples
       // stays under 7 ms dense and 3.5 ms sparse. Release gates that shared the
       // Obsidian main process with other vaults' runs measured a dense median of
       // up to 6.06 ms. The 90th percentile is the second-slowest sample, and two

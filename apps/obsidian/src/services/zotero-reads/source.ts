@@ -190,7 +190,7 @@ export function layerSource(
       const mainWatcherScope = yield* Ref.make<Scope.Closeable | null>(null);
       const walWatcherScope = yield* Ref.make<Scope.Closeable | null>(null);
       /**
-       * #1798: one WAL sync or rebind at a time. Each reads the stored scope
+       * One WAL sync or rebind at a time. Each reads the stored scope
        * before it binds a new one, so two at once both bound a WAL watch, and
        * the second stored scope dropped the first.
        */
@@ -717,7 +717,7 @@ export function layerSource(
        * Start `watches` on a new scope and store the scope in `holder`, or log
        * `failure` and close it when a watch cannot start.
        *
-       * #1798: nothing else holds the scope until `holder` does, so only the
+       * Nothing else holds the scope until `holder` does, so only the
        * wait for the watches can be interrupted, and an interrupt there
        * closes the scope.
        */

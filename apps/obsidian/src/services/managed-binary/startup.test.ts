@@ -17,7 +17,7 @@ import {
 import { ManagedBinaryPlatform } from "./service";
 import { memoryDevice } from "./test-utils";
 
-// #1705: each binary releases startup while cache discovery remains pending.
+// Each binary releases startup while cache discovery remains pending.
 for (const declined of [false, true]) {
   it.effect(
     `bounds cache discovery and publishes late binaries (declined: ${declined})`,
@@ -106,7 +106,7 @@ for (const declined of [false, true]) {
   );
 }
 
-// #1705: a built layer must include cache discovery in its startup barrier.
+// A built layer must include cache discovery in its startup barrier.
 it.effect(
   "reports both cached binaries on the first read after layer build",
   () =>

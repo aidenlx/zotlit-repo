@@ -7,7 +7,7 @@ import { stubService } from "@/lib/__fixtures__/service-stub";
 
 import { openExcerptFile } from "./file";
 
-// #1790: the platform keeps late file handles, while crop teardown stays bounded.
+// The platform keeps late file handles, while crop teardown stays bounded.
 it.effect(
   "bounds a cancelled open and closes the handle when it arrives later",
   () =>

@@ -3393,7 +3393,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   }, 120000);
 
-  // #1641: a crowded condition row once squeezed its property select to its
+  // A crowded condition row once squeezed its property select to its
   // icon, and broke its chips mid-word. The select keeps its whole name at
   // any depth, and each chip keeps its value on one line.
   it("keeps each condition's property name and chips whole in the Filter popover, in a nested group and with a chip list", async () => {

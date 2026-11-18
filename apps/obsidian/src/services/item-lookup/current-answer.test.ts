@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-// Regression tests for #1665: the editor suggesters chose a row of an earlier
+// Regression tests: the editor suggesters chose a row of an earlier
 // query's answer while the typed query's answer was pending. The Item pickers'
-// cases (#1650) run through `ItemSearchModal` in `search-modal.test.ts`.
+// cases run through `ItemSearchModal` in `search-modal.test.ts`.
 import { describe, expect, it, vi } from "vitest";
 
 import { CurrentAnswer } from "./current-answer";

@@ -21,7 +21,7 @@ The workflow for building and testing a Template Document — a Literature Note 
 
 **Web Workbench** _(web)_:
 The human-facing surface at `/workbench` for editing a Literature Note Profile's template document in the browser, including its note content, Annotation format, properties, and file destination. Its beginner face prints "template" and the Profile's name, never Profile, manifest, or frontmatter.
-_Avoid_: note layout (the #938 draft's placeholder, retired by #945), web template editor
+_Avoid_: note layout (an early draft's placeholder, since retired), web template editor
 
 **UI Label**:
 A stable, untranslated name that identifies a product control or choice in the English base catalog, such as a command, setting, menu item, button, or tooltip. Documentation quotes it from its Message instead of restating its text. A notice text that documentation quotes verbatim is treated the same way.

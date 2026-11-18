@@ -240,7 +240,7 @@ async function addKeylessNote(
 
 describe("Document Citation Set integration", { timeout: 60_000 }, () => {
   it.effect(
-    "#1693 counts an earlier Annotation Citation in the shared numeric context",
+    "counts an earlier Annotation Citation in the shared numeric context",
     () =>
       Effect.promise(async () => {
         await using harness = await makeHarness(
@@ -291,37 +291,35 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
       }),
   );
 
-  it.effect(
-    "#1678 holds an Annotation Citation's text under its link source",
-    () =>
-      Effect.promise(async () => {
-        const source = `[](${annotationUri})`;
-        await using harness = await makeHarness(
-          { "draft.md": `@roe2025 then ${source}.` },
-          {
-            zoteroRows: annotationRows,
-            settings: { "citation.annotation-citations": true },
-          },
-        );
-        await using engine = await openEngine();
-        await using text = openText(harness, engine, NUMERIC_STYLE);
-        await harness.index.bridge.runPromise(
-          harness.index.getDocumentCitationSet(harness.draft),
-        );
+  it.effect("holds an Annotation Citation's text under its link source", () =>
+    Effect.promise(async () => {
+      const source = `[](${annotationUri})`;
+      await using harness = await makeHarness(
+        { "draft.md": `@roe2025 then ${source}.` },
+        {
+          zoteroRows: annotationRows,
+          settings: { "citation.annotation-citations": true },
+        },
+      );
+      await using engine = await openEngine();
+      await using text = openText(harness, engine, NUMERIC_STYLE);
+      await harness.index.bridge.runPromise(
+        harness.index.getDocumentCitationSet(harness.draft),
+      );
 
-        const occurrences = (await readText(text, harness.draft)).formatted.get(
-          source,
-        );
-        expect(firstText(occurrences)).toBe("[2]");
-        expect(occurrences?.[0]?.start).toBe("@roe2025 then ".length);
-        expect(occurrences?.[0]?.text.citations.map(({ id }) => id)).toEqual([
-          KEY_A,
-        ]);
-      }),
+      const occurrences = (await readText(text, harness.draft)).formatted.get(
+        source,
+      );
+      expect(firstText(occurrences)).toBe("[2]");
+      expect(occurrences?.[0]?.start).toBe("@roe2025 then ".length);
+      expect(occurrences?.[0]?.text.citations.map(({ id }) => id)).toEqual([
+        KEY_A,
+      ]);
+    }),
   );
 
   it.effect(
-    "#1693 preserves the Annotation Citation locator for a following ibid",
+    "preserves the Annotation Citation locator for a following ibid",
     () =>
       Effect.promise(async () => {
         await using harness = await makeHarness(
@@ -344,52 +342,48 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
       }),
   );
 
-  it.effect(
-    "#1693 keeps a trimmed wikilink in inline and References numbering",
-    () =>
-      Effect.promise(async () => {
-        await using harness = await makeHarness(
-          { "draft.md": "[[ Doe 2024 ]] then @roe2025" },
-          { settings: { "citation.wikilink-citations": true } },
-        );
-        await using engine = await openEngine();
-        await using text = openText(harness, engine, NUMERIC_STYLE);
+  it.effect("keeps a trimmed wikilink in inline and References numbering", () =>
+    Effect.promise(async () => {
+      await using harness = await makeHarness(
+        { "draft.md": "[[ Doe 2024 ]] then @roe2025" },
+        { settings: { "citation.wikilink-citations": true } },
+      );
+      await using engine = await openEngine();
+      await using text = openText(harness, engine, NUMERIC_STYLE);
 
-        const set = await harness.index.bridge.runPromise(
-          harness.index.getDocumentCitationSet(harness.draft),
-        );
-        const rendered = await readText(text, harness.draft);
-        expect(firstText(rendered.formatted.get("@roe2025"))).toBe("[2]");
-        expect(markers(await sidebarEntries(engine, set.citations))).toEqual([
-          "[1]",
-          "[2]",
-        ]);
-      }),
+      const set = await harness.index.bridge.runPromise(
+        harness.index.getDocumentCitationSet(harness.draft),
+      );
+      const rendered = await readText(text, harness.draft);
+      expect(firstText(rendered.formatted.get("@roe2025"))).toBe("[2]");
+      expect(markers(await sidebarEntries(engine, set.citations))).toEqual([
+        "[1]",
+        "[2]",
+      ]);
+    }),
   );
 
-  it.effect(
-    "#1693 renders indexed wikilinks without metadata-cache links",
-    () =>
-      Effect.promise(async () => {
-        await using harness = await makeHarness(
-          { "draft.md": "[[Doe 2024]] then @roe2025." },
-          { settings: { "citation.wikilink-citations": true } },
-        );
-        await using engine = await openEngine();
-        await using text = openText(harness, engine, NUMERIC_STYLE);
-        await harness.index.bridge.runPromise(
-          harness.index.getDocumentCitationSet(harness.draft),
-        );
-        const rendered = await readText(text, harness.draft);
-        expect(firstText(rendered.formatted.get("@roe2025"))).toBe("[2]");
-        expect(
-          firstText(
-            rendered.formatted.get(
-              citationKey({ source: "[@doe2024]", works: [KEY_A] }),
-            ),
+  it.effect("renders indexed wikilinks without metadata-cache links", () =>
+    Effect.promise(async () => {
+      await using harness = await makeHarness(
+        { "draft.md": "[[Doe 2024]] then @roe2025." },
+        { settings: { "citation.wikilink-citations": true } },
+      );
+      await using engine = await openEngine();
+      await using text = openText(harness, engine, NUMERIC_STYLE);
+      await harness.index.bridge.runPromise(
+        harness.index.getDocumentCitationSet(harness.draft),
+      );
+      const rendered = await readText(text, harness.draft);
+      expect(firstText(rendered.formatted.get("@roe2025"))).toBe("[2]");
+      expect(
+        firstText(
+          rendered.formatted.get(
+            citationKey({ source: "[@doe2024]", works: [KEY_A] }),
           ),
-        ).toBe("[1]");
-      }),
+        ),
+      ).toBe("[1]");
+    }),
   );
 
   it.effect(
@@ -518,47 +512,45 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
       }),
   );
 
-  it.effect(
-    "#1683 omits masked comments from the CitationText render input",
-    () =>
-      Effect.promise(async () => {
-        const body = "[@a and %% @hidden %%]";
-        const inputs: string[] = [];
-        await using harness = await makeHarness(
-          { "draft.md": body },
-          {
-            citekeys: [
-              {
-                itemID: 1,
-                libraryID: 1,
-                key: "ABCD2345",
-                indexedKey: KEY_A,
-                citekey: "a",
-              },
-            ],
-          },
-        );
-        await using engine = await openEngine();
-        await using text = openText(harness, engine, {
-          xml: AUTHOR_STYLE,
-          observeInput: (citations) => inputs.push(...citations),
-        });
-        await harness.index.bridge.runPromise(
-          harness.index.getDocumentCitationSet(harness.draft),
-        );
-        const rendered = await readText(text, harness.draft);
-        const output = firstText(rendered.formatted.get(body));
-        expect(output).toContain("Zeta");
-        expect(output).not.toContain("hidden");
-        expect(output).not.toContain("%%");
-        expect(inputs).toHaveLength(1);
-        expect(inputs[0]).not.toContain("hidden");
-        expect(inputs[0]).not.toContain("%%");
-      }),
+  it.effect("omits masked comments from the CitationText render input", () =>
+    Effect.promise(async () => {
+      const body = "[@a and %% @hidden %%]";
+      const inputs: string[] = [];
+      await using harness = await makeHarness(
+        { "draft.md": body },
+        {
+          citekeys: [
+            {
+              itemID: 1,
+              libraryID: 1,
+              key: "ABCD2345",
+              indexedKey: KEY_A,
+              citekey: "a",
+            },
+          ],
+        },
+      );
+      await using engine = await openEngine();
+      await using text = openText(harness, engine, {
+        xml: AUTHOR_STYLE,
+        observeInput: (citations) => inputs.push(...citations),
+      });
+      await harness.index.bridge.runPromise(
+        harness.index.getDocumentCitationSet(harness.draft),
+      );
+      const rendered = await readText(text, harness.draft);
+      const output = firstText(rendered.formatted.get(body));
+      expect(output).toContain("Zeta");
+      expect(output).not.toContain("hidden");
+      expect(output).not.toContain("%%");
+      expect(inputs).toHaveLength(1);
+      expect(inputs[0]).not.toContain("hidden");
+      expect(inputs[0]).not.toContain("%%");
+    }),
   );
 
   it.effect(
-    "#1683 keeps resolved Items of a partial Author-in-text Citation in numeric context",
+    "keeps resolved Items of a partial Author-in-text Citation in numeric context",
     () =>
       Effect.promise(async () => {
         const body = "@doe2024 [p. 3; @ghost], then @roe2025.";

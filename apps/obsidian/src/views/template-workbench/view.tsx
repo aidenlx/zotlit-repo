@@ -1785,7 +1785,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   }
 
   /**
-   * The view's More options (#1962). The entries a template author reaches
+   * The view's More options. The entries a template author reaches
    * for most lead it, the view actions among them, as a reader who hides the
    * view header finds them here alone; the rare ones wait in More workbench
    * options.

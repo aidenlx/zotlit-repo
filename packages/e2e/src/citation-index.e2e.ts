@@ -37,7 +37,7 @@ const runVaultScript = vaultScript(workspaceRoot, fixture.root);
 const reachable = await isObsidianReachable(workspaceRoot);
 const item = ITEMS.find(({ itemID }) => itemID === 1)!;
 // Renderer limits from origin/feat/zotlit-query:packages/e2e/src/query-record.ts
-// (spec #1314, THRESHOLDS.slice).
+// (THRESHOLDS.slice).
 const RENDERER_BUDGET = { p99Ms: 16, maxMs: 32 };
 // Native edits measured 39–57 ms searches and 113–128 ms worker timer gaps.
 const INTERACTIVE_MAX_MS = 100;

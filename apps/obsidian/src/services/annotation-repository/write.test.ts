@@ -314,7 +314,7 @@ it("sends a tag change as the whole list, each tag with its type, beside the ver
     "/api/users/0/items/FDRFQ7C2",
   ]);
   // The body the paired probe sent, which Zotero answered `204` and stored as
-  // this list exactly (aidenlx/zotlit#1231).
+  // this list exactly.
   expect(JSON.parse(request.body!)).toEqual({
     version: 12,
     tags: [

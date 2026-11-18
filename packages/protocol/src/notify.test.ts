@@ -7,8 +7,6 @@ import { notifyEventSchema } from "./notify";
  * The reader events the Obsidian listener validates bodies against. The
  * variant discriminates on `event`, so a body is accepted only when its own
  * option accepts it.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1146
  */
 describe("reader/inactive", () => {
   it("accepts a body carrying only the event name", () => {

@@ -591,7 +591,7 @@ function noteAt(path: string): TFile {
   return file;
 }
 
-// #1829: interactive entry points report the same operation outcome as links.
+// Interactive entry points report the same operation outcome as links.
 it.effect("opens an indexed Literature Note without planning a creation", () =>
   Effect.gen(function* () {
     const harness = creationHarness({
@@ -621,7 +621,7 @@ it.effect("opens an indexed Literature Note without planning a creation", () =>
   }),
 );
 
-// #1829: callers observe the file created through the selected Profile.
+// Callers observe the file created through the selected Profile.
 it.effect(
   "creates and opens an interactive Literature Note through its matched Profile",
   () =>
@@ -653,7 +653,7 @@ it.effect(
     }),
 );
 
-// #1829: Library navigation keeps the existing unavailable-database fallback.
+// Library navigation keeps the existing unavailable-database fallback.
 it.effect("opens nothing when the interactive Item read is unavailable", () =>
   Effect.gen(function* () {
     const harness = creationHarness({

@@ -3,7 +3,6 @@
 // component, so a test reads the verbs instead of clicking them.
 //
 // @see apps/obsidian/policies/ui-seams.md
-// @see https://github.com/aidenlx/zotlit/issues/1151
 import { annotationColorLabel } from "@/lib/annotation-colors";
 import * as m from "@/lib/i18n/generated/messages";
 import type {
@@ -78,7 +77,6 @@ const TEXT_FIELD_VERBS: Record<
  * land.
  *
  * @param block what stands in the way of the conflict's verb.
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  */
 export function conflictPanel(
   conflict: WriteConflict,

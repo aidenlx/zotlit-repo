@@ -133,7 +133,7 @@ const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
   return { spawned, configured, initial, settings, chineseSegmenter };
 });
 
-// #1705: a delayed prefs.js must settle before the worker receives its first configuration.
+// A delayed prefs.js must settle before the worker receives its first configuration.
 it.effect("starts the worker with the loaded profile data directory", () =>
   Effect.gen(function* () {
     const worker = yield* workerFixture();
@@ -171,7 +171,7 @@ it.effect("starts the worker with the loaded profile data directory", () =>
   }),
 );
 
-// #1705: an override written during the connection wait must reach the worker.
+// An override written during the connection wait must reach the worker.
 it.effect(
   "reconciles preferences changed during the worker connection wait",
   () =>
@@ -196,7 +196,7 @@ it.effect(
     }),
 );
 
-// #1705: the installed binary reaches the first worker configuration.
+// The installed binary reaches the first worker configuration.
 it.effect(
   "sends the cached segmenter in the worker's first configuration",
   () =>

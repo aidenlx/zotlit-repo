@@ -260,7 +260,7 @@ describe("Set citation presentation", () => {
     }),
   );
 
-  it.effect("reports a note write failure through the Notifier (#1858)", () =>
+  it.effect("reports a note write failure through the Notifier", () =>
     Effect.gen(function* () {
       const vault = yield* setup();
       vault.app.vault.process = async () => {
@@ -278,7 +278,7 @@ describe("Set citation presentation", () => {
   );
 
   it.effect.each([false, true])(
-    "waits for a confirmed save on unload and keeps its outcome (failed: %s, #1858)",
+    "waits for a confirmed save on unload and keeps its outcome (failed: %s)",
     (failed) =>
       Effect.gen(function* () {
         const vault = yield* setup();
@@ -316,21 +316,19 @@ describe("Set citation presentation", () => {
       }),
   );
 
-  it.effect(
-    "closes a pending dialog on unload without changing the note (#1858)",
-    () =>
-      Effect.gen(function* () {
-        const vault = yield* setup();
-        const pending = vault.open();
-        const opened = dialog();
-        opened.language.setValue("de-DE");
-        expect(opened.modal.isOpen).toBe(true);
-        yield* Scope.close(vault.scope, Exit.void);
-        expect(opened.modal.isOpen).toBe(false);
-        yield* Effect.promise(() => pending);
-        expect(yield* vault.read).toBe("A draft.\n");
-        expect(vault.notifier.notices).toEqual([]);
-      }),
+  it.effect("closes a pending dialog on unload without changing the note", () =>
+    Effect.gen(function* () {
+      const vault = yield* setup();
+      const pending = vault.open();
+      const opened = dialog();
+      opened.language.setValue("de-DE");
+      expect(opened.modal.isOpen).toBe(true);
+      yield* Scope.close(vault.scope, Exit.void);
+      expect(opened.modal.isOpen).toBe(false);
+      yield* Effect.promise(() => pending);
+      expect(yield* vault.read).toBe("A draft.\n");
+      expect(vault.notifier.notices).toEqual([]);
+    }),
   );
 
   it.effect("confirms from the note's More options menu", () =>

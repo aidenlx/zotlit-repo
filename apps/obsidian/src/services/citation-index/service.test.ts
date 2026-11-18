@@ -67,7 +67,7 @@ describe("CitationIndex", () => {
     ["[[Doe 2024\\]]", undefined],
     ["[[Doe\u00a02024#cite:locator=4\\]]", "locator=4"],
   ] as const)(
-    "#1683 resolves normalized Wikilink Citations in References and Cited By: %s",
+    "resolves normalized Wikilink Citations in References and Cited By: %s",
     ([body, fragment]) =>
       Effect.promise(async () => {
         await using harness = await createCitationIndexHarness(
@@ -1789,36 +1789,32 @@ describe("CitationIndex resolution", () => {
       }),
   );
 
-  it.effect(
-    "#1705 follows lookup status until the observation is disposed",
-    () =>
-      Effect.promise(async () => {
-        await using h = await createCitationIndexHarness({});
-        const snapshots: CitedBySnapshot[] = [];
-        const stop = h.index.bridge.runSync(
-          h.index.observeCitedBy(KEY_A, (snapshot) => snapshots.push(snapshot)),
-        );
-        try {
-          await expect.poll(() => snapshots.at(-1)?.resolution).toBe("fresh");
+  it.effect("follows lookup status until the observation is disposed", () =>
+    Effect.promise(async () => {
+      await using h = await createCitationIndexHarness({});
+      const snapshots: CitedBySnapshot[] = [];
+      const stop = h.index.bridge.runSync(
+        h.index.observeCitedBy(KEY_A, (snapshot) => snapshots.push(snapshot)),
+      );
+      try {
+        await expect.poll(() => snapshots.at(-1)?.resolution).toBe("fresh");
 
-          h.citekeys.error = new Error("database read failed");
-          h.db.notifyChanged();
-          await h.lookup.bridge.runPromise(h.lookup.whenResolved);
-          await expect.poll(() => snapshots.at(-1)?.resolution).toBe("failed");
+        h.citekeys.error = new Error("database read failed");
+        h.db.notifyChanged();
+        await h.lookup.bridge.runPromise(h.lookup.whenResolved);
+        await expect.poll(() => snapshots.at(-1)?.resolution).toBe("failed");
 
-          stop();
-          const before = snapshots.length;
-          h.citekeys.error = null;
-          h.db.notifyChanged();
-          await h.lookup.bridge.runPromise(h.lookup.whenResolved);
-          expect(h.lookup.bridge.runSync(h.lookup.current).status).toBe(
-            "fresh",
-          );
-          expect(snapshots).toHaveLength(before);
-        } finally {
-          stop();
-        }
-      }),
+        stop();
+        const before = snapshots.length;
+        h.citekeys.error = null;
+        h.db.notifyChanged();
+        await h.lookup.bridge.runPromise(h.lookup.whenResolved);
+        expect(h.lookup.bridge.runSync(h.lookup.current).status).toBe("fresh");
+        expect(snapshots).toHaveLength(before);
+      } finally {
+        stop();
+      }
+    }),
   );
 
   it.effect("does not publish an observation after its disposer runs", () =>
@@ -2213,7 +2209,7 @@ describe("CitationIndex one-shot reads", () => {
 });
 
 describe("CitationIndex parsed notes", () => {
-  it.effect("#1789 keeps the VaultError of a parsed-document read", () =>
+  it.effect("keeps the VaultError of a parsed-document read", () =>
     Effect.gen(function* () {
       const { runtime, draft, vault } = yield* Effect.promise(() =>
         makeHarness({ "draft.md": "See @doe2024." }),
@@ -2229,7 +2225,7 @@ describe("CitationIndex parsed notes", () => {
     }),
   );
 
-  it.effect("#1789 keeps the parser failure of a parsed-document read", () =>
+  it.effect("keeps the parser failure of a parsed-document read", () =>
     Effect.gen(function* () {
       const refused = new ParseFailed({
         message: "The scanner rejected this note",
@@ -2247,40 +2243,38 @@ describe("CitationIndex parsed notes", () => {
     }),
   );
 
-  it.effect(
-    "#1789 unload interrupts a scan read in flight before parsing",
-    () =>
-      Effect.promise(async () => {
-        const parsed: string[] = [];
-        const h = await makeHarness(
-          { "draft.md": "See @doe2024." },
-          {
-            parseClient: {
-              parse: (request) =>
-                Effect.gen(function* () {
-                  parsed.push(request.path);
-                  return yield* inProcessParseClient.parse(request);
-                }),
-            },
+  it.effect("unload interrupts a scan read in flight before parsing", () =>
+    Effect.promise(async () => {
+      const parsed: string[] = [];
+      const h = await makeHarness(
+        { "draft.md": "See @doe2024." },
+        {
+          parseClient: {
+            parse: (request) =>
+              Effect.gen(function* () {
+                parsed.push(request.path);
+                return yield* inProcessParseClient.parse(request);
+              }),
           },
-        );
-        const entered = Promise.withResolvers<void>();
-        const release = h.vault.hold(h.draft.path);
-        const cachedRead = h.vault.cachedRead.bind(h.vault);
-        h.vault.cachedRead = (file) => {
-          const reading = cachedRead(file);
-          if (file.path === h.draft.path) entered.resolve();
-          return reading;
-        };
-        const reading = h.index.bridge
-          .runPromise(h.index.getFileScan(h.draft))
-          .catch((error: unknown) => error);
-        await entered.promise;
-        await h.closeIndex();
-        release();
-        expect(await reading).toMatchObject({ name: "AbortError" });
-        expect(parsed).not.toContain(h.draft.path);
-      }),
+        },
+      );
+      const entered = Promise.withResolvers<void>();
+      const release = h.vault.hold(h.draft.path);
+      const cachedRead = h.vault.cachedRead.bind(h.vault);
+      h.vault.cachedRead = (file) => {
+        const reading = cachedRead(file);
+        if (file.path === h.draft.path) entered.resolve();
+        return reading;
+      };
+      const reading = h.index.bridge
+        .runPromise(h.index.getFileScan(h.draft))
+        .catch((error: unknown) => error);
+      await entered.promise;
+      await h.closeIndex();
+      release();
+      expect(await reading).toMatchObject({ name: "AbortError" });
+      expect(parsed).not.toContain(h.draft.path);
+    }),
   );
 
   it.effect("parses a note's current source", () =>

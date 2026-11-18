@@ -161,7 +161,7 @@ it.effect(
     }),
 );
 
-// #1819: concurrent reads stop when the view closes, before the registry's idle expiry.
+// Concurrent reads stop when the view closes, before the registry's idle expiry.
 it.effect("stops every concurrent read when its view closes", () =>
   Effect.gen(function* () {
     const signals: AbortSignal[] = [];

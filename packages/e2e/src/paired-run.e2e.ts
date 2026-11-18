@@ -390,7 +390,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       // Attachments. So a malformed key silently serves the wrong document's
       // Annotations, which is why `parseIndexedKey` has to reject one before
       // ZotLit ever sends the request.
-      // @see https://github.com/aidenlx/zotlit/issues/1139
       const stray = await annotationParents(api, serverID, "RGRPDF10");
       const own = await annotationParents(api, serverID, attachment.key);
       expect(new Set(stray).size).toBeGreaterThan(1);
@@ -557,7 +556,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
 
     it("replaces an Annotation's whole tag list, types kept, under the version precondition", async () => {
-      // The probe ADR 0063's tag write stands on (#1231): Zotero replaces the
+      // The probe ADR 0063's tag write stands on: Zotero replaces the
       // list it receives, so ZotLit sends every tag with its type. A disposable
       // Annotation carries the tags, so the seeded ones stay as the Fixture
       // declares them.
@@ -750,12 +749,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       await dismissAuthorizationDialog(rdp);
 
       const reply = await pending;
-      // Deliberate, and it contradicts the spec, ADR 0038 and issue #1144,
-      // which all read a dismissed dialog as a refusal. Gecko's common dialog
+      // Deliberate, and it contradicts the spec and ADR 0038,
+      // which both read a dismissed dialog as a refusal. Gecko's common dialog
       // sets `buttonNumClicked = 1` as the dismissal result and slot 1 is
       // Always Allow, so dismissing grants a persistent authorization. This
       // asserts what Zotero does, not what the spec assumed.
-      // @see https://github.com/aidenlx/zotlit/issues/1139
       expect(reply.status).toBe(200);
       expect(reply.body).toEqual({ key: KEY_SHAPE, remember: true });
       await expect(authorizationCount(rdp)).resolves.toBe(1);
@@ -15295,7 +15293,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       );
 
       // The embed stands below the note's Query Block, past the part of the
-      // note Live Preview first draws (#1646).
+      // note Live Preview first draws.
       const embed = await revealQueryView(vaultId!, notePath, {
         embed: "Lab annotations.zotquery#This item",
       });
@@ -16072,7 +16070,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         // A note ZotLit wrote before Mark Landing, with a static listing of
         // one callout per Annotation under a plain page label in a Managed
         // Region, gets the block on its next full update. The Fixture no longer seeds that note
-        // (#1647), so write the one it held.
+        // so write the one it held.
         const item = ITEMS.find(({ key: candidate }) => candidate === itemKey)!;
         const attachments = ATTACHMENTS.filter(
           ({ parentItemID }) => parentItemID === item.itemID,

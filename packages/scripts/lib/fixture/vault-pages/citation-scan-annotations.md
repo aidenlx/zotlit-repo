@@ -24,7 +24,7 @@ Expected: References and `zotlit:references` cite Rougier at page “1”. Cited
 and `zotlit:cited-by` add one `annotation` occurrence. Annotation uses adds one
 `citation` form, with empty `text`. Hover shows the Annotation's text and page.
 CitationText includes the parent citation with locator “1”; direct link
-rendering belongs to #1678. Export preserves this link unchanged (#1684).
+rendering belongs to the Annotation citation work. Export preserves this link unchanged.
 
 ## Angle-bracket destination
 
@@ -61,7 +61,7 @@ Expected: the same outcomes as the labelled case. Annotation uses reports
 
 Expected: Annotation uses adds one `embed` form, with empty `text`. References,
 Cited By, both citation CLI commands, and CitationText gain no citation. Export
-keeps the embed. Its visual rendering and interaction belong to #1678.
+keeps the embed. Its visual rendering and interaction belong to the Annotation citation work.
 
 ## Whole-page check and source choice
 

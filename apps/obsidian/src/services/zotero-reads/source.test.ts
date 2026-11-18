@@ -841,7 +841,7 @@ describe("ZoteroReads source", () => {
   });
 
   describe("watch start interrupted", () => {
-    // #1798: the source made the watch's scope and stored it only after the
+    // The source made the watch's scope and stored it only after the
     // watch was ready, so a close while it waited left the watch open.
     it.each(["zotero.sqlite", "zotero.sqlite-wal"])(
       "closes a %s watch still starting when the source closes",
@@ -865,7 +865,7 @@ describe("ZoteroReads source", () => {
   });
 
   describe("WAL watch start overlapping", () => {
-    // #1798: the refresh lane and a WAL event each found no WAL watch, both
+    // The refresh lane and a WAL event each found no WAL watch, both
     // started one, and the second stored scope dropped the first, which
     // nothing closed.
     it("keeps one WAL watch when a WAL event arrives while the lane starts it", async () => {

@@ -52,8 +52,8 @@ it.effect("logs a failed action under its operation and shows a notice", () =>
   }),
 );
 
-// #1819: an unpack or restore that unload stops is released quietly. #1824:
-// a port that unload stopped rejects with an abort, which passes on as an
+// An unpack or restore that unload stops is released quietly. A port
+// that unload stopped rejects with an abort, which passes on as an
 // interrupt.
 it.effect.each(["interrupt", "abort"] as const)(
   "releases an action stopped by %s without a notice or an error log",

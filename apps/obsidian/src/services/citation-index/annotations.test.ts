@@ -8,7 +8,7 @@ import { annotationRows, annotationUri } from "./__fixtures__/annotations";
 import type { CitedBySnapshot } from "./service";
 import { createCitationIndexHarness, KEY_A, KEY_B } from "./test-harness";
 
-it("#1693 numbers Annotation Citations with other sources and lists their notes in Cited By", async () => {
+it("numbers Annotation Citations with other sources and lists their notes in Cited By", async () => {
   await using harness = await createCitationIndexHarness(
     {
       "draft.md": `[](${annotationUri})\n@roe2025\n[[Doe 2024]]\n[p. 42](${annotationUri})\n![](${annotationUri})`,
@@ -71,7 +71,7 @@ it("#1693 numbers Annotation Citations with other sources and lists their notes 
   }
 });
 
-it("#1693 keeps a deleted Annotation as an unresolved reference distinct from a literal citation key", async () => {
+it("keeps a deleted Annotation as an unresolved reference distinct from a literal citation key", async () => {
   await using harness = await createCitationIndexHarness(
     {
       "draft.md":
@@ -121,7 +121,7 @@ it.each([
     citekey: "roe2025",
   },
 ])(
-  "#1693 resolves $label by Item identity",
+  "resolves $label by Item identity",
   async ({ library, annotation, attachment, key, citekey }) => {
     await using harness = await createCitationIndexHarness(
       {
@@ -142,7 +142,7 @@ it.each([
   },
 );
 
-it("#1693 reports an attachment-only empty link as a Reference Error", async () => {
+it("reports an attachment-only empty link as a Reference Error", async () => {
   await using harness = await createCitationIndexHarness(
     {
       "draft.md":
@@ -179,7 +179,7 @@ it("#1693 reports an attachment-only empty link as a Reference Error", async () 
   ).toEqual(["annotation"]);
 });
 
-it("#1693 omits and restores Annotation Citations without another parse", async () => {
+it("omits and restores Annotation Citations without another parse", async () => {
   let parses = 0;
   await using harness = await createCitationIndexHarness(
     {

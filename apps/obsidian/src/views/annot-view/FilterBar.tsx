@@ -290,7 +290,7 @@ function ColorChooser({
   }, [colors, selectedColors.length, onClear]);
 
   return (
-    // The store keeps the colour action #1194 asks to reuse unchanged — it
+    // The store keeps the colour action unchanged — it
     // takes the one colour that moved — so the selection the Chooser reports
     // is read back down to that colour here. The recovery is exact rather
     // than a guess: a tick on a row is the only thing that calls
@@ -397,9 +397,9 @@ function TagChooser({
   //
   // The action row sits in a second group, separated from the tags and
   // reached by the same arrow keys. It appears only while something is
-  // selected, which is beyond what #1193 asked for and kept because a row
-  // offering to clear an empty selection is a row that does nothing: the
-  // vocabulary the user came to read is what the list should hold. Its label
+  // selected, because a row offering to clear an empty selection is a row
+  // that does nothing: the vocabulary the user came to read is what the list
+  // should hold. Its label
   // is fixed — nothing here reads what the user typed, and the query leaves
   // the row standing either way.
   const groups = useMemo<ChooserGroup<TagRow>[]>(() => {

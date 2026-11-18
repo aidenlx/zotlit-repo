@@ -24,7 +24,6 @@ interface Seat {
  * is where its own text begins.
  *
  * @returns the Indexed Keys, in the order the keys walk them.
- * @see https://github.com/aidenlx/zotlit/issues/1148
  */
 export function readingOrder(
   annotations: readonly AnnotationRecord[],

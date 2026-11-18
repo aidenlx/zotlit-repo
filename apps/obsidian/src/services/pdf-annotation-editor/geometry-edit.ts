@@ -1,8 +1,6 @@
 // The arithmetic of a Geometry Edit: where a selected mark's Mark Handles sit,
 // which grip a press takes, and the position a drag proposes. Ported from
 // Zotero's reader so a mark adjusted in either application lands the same.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1200
 import type {
   AnnotationPosition,
   PdfInkPosition,

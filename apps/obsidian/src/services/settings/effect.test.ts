@@ -211,7 +211,7 @@ it.effect("flush preserves a synchronous storage failure", () =>
   }),
 );
 
-it.effect("#1705 a failed read blocks the release check's save", () =>
+it.effect("a failed read blocks the release check's save", () =>
   Effect.gen(function* () {
     const original = { __VERSION__: 11, "server.hostname": "/saved" };
     let data: unknown = original;
@@ -233,7 +233,7 @@ it.effect("#1705 a failed read blocks the release check's save", () =>
   }),
 );
 
-it.effect("#1705 reload drains an edit queued after it starts waiting", () =>
+it.effect("reload drains an edit queued after it starts waiting", () =>
   Effect.gen(function* () {
     const handoff = {};
     let data: unknown = null;
@@ -267,24 +267,22 @@ it.effect("#1705 reload drains an edit queued after it starts waiting", () =>
   }),
 );
 
-it.effect(
-  "#1705 a built settings layer exposes the stored value immediately",
-  () =>
-    Effect.gen(function* () {
-      const settings = yield* settingsOf({
-        plugin: {
-          loadData: async () => ({
-            __VERSION__: 11,
-            "server.hostname": "/stored",
-          }),
-          saveData: async () => {},
-        },
-      });
-      expect((yield* settings.current)?.["server.hostname"]).toBe("/stored");
-    }),
+it.effect("a built settings layer exposes the stored value immediately", () =>
+  Effect.gen(function* () {
+    const settings = yield* settingsOf({
+      plugin: {
+        loadData: async () => ({
+          __VERSION__: 11,
+          "server.hostname": "/stored",
+        }),
+        saveData: async () => {},
+      },
+    });
+    expect((yield* settings.current)?.["server.hostname"]).toBe("/stored");
+  }),
 );
 
-it.effect("#1705 mutation failures retain their tag and original cause", () =>
+it.effect("mutation failures retain their tag and original cause", () =>
   Effect.gen(function* () {
     const settings = yield* settingsOf({
       plugin: { loadData: async () => null, saveData: async () => {} },
@@ -302,7 +300,7 @@ it.effect("#1705 mutation failures retain their tag and original cause", () =>
   }),
 );
 
-it.effect("#1705 migration failures log the original error and stage", () =>
+it.effect("migration failures log the original error and stage", () =>
   Effect.gen(function* () {
     const failure = new Error("migration failed");
     const records: Record<string, unknown>[] = [];
@@ -329,7 +327,7 @@ it.effect("#1705 migration failures log the original error and stage", () =>
   }),
 );
 
-it.effect("#1705 a throwing subscriber receives both immediate edits", () =>
+it.effect("a throwing subscriber receives both immediate edits", () =>
   Effect.gen(function* () {
     const { settings, bridge } = yield* settingsRuntimeOf({
       plugin: { loadData: async () => null, saveData: async () => {} },
@@ -349,7 +347,7 @@ it.effect("#1705 a throwing subscriber receives both immediate edits", () =>
   }),
 );
 
-it.effect("#1705 bridge calls are safe after whole-runtime disposal", () =>
+it.effect("bridge calls are safe after whole-runtime disposal", () =>
   Effect.gen(function* () {
     const writes: unknown[] = [];
     const { settings, bridge, close } = yield* settingsRuntimeOf({
@@ -391,7 +389,7 @@ it.effect("#1705 bridge calls are safe after whole-runtime disposal", () =>
   }),
 );
 
-it.effect("#1705 a failed write leaves flush safe after runtime disposal", () =>
+it.effect("a failed write leaves flush safe after runtime disposal", () =>
   Effect.gen(function* () {
     const { settings, bridge, close } = yield* settingsRuntimeOf({
       plugin: {

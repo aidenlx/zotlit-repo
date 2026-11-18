@@ -114,7 +114,7 @@ it("reads every Annotation of one Attachment in Zotero's reading order", async (
     parentKey: ATTACHMENT_KEY,
     pageLabel: "1",
     // Never moves after the create, which is what makes it the window an
-    // Uncertain Create is reconciled inside (aidenlx/zotlit#1151).
+    // Uncertain Create is reconciled inside.
     dateAdded: "2026-08-23T16:18:18Z",
     dateModified: null,
     authorName: null,
@@ -682,7 +682,7 @@ it("announces a Freshness Signal that arrived while a probe was running", async 
   await expect(announced).resolves.toBeUndefined();
 });
 
-// #1645: linking a vault to a Zotero profile moves the port while a probe that
+// Linking a vault to a Zotero profile moves the port while a probe that
 // started on the old one is still out. Its answer is about a Zotero this
 // session no longer talks to, so no surface may see it.
 it("probes the new port when the resolved paths move while a probe is running, and shows no surface the old port's answer", async () => {
@@ -722,7 +722,7 @@ it("probes the new port when the resolved paths move while a probe is running, a
   expect(requests.map(({ url }) => Number(url.port))).toEqual([PORT, PORT + 1]);
 });
 
-// #1645: a move that lands after a probe committed its answer, from a surface
+// A move that lands after a probe committed its answer, from a surface
 // redrawing on that answer, still reaches the new port before the probe
 // settles for its waiters.
 it("probes the new port when the resolved paths move after a probe commits its answer", async () => {

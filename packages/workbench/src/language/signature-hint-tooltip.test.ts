@@ -122,7 +122,7 @@ it("hides when the editor loses focus", async () => {
   expect(field.hint()).toBeNull();
 });
 
-// Regression (#1637): the hint once read focus from the update that told of
+// Regression: the hint once read focus from the update that told of
 // it, so a dispatch from the focus event, before CodeMirror tells of the
 // focus, kept it hidden.
 it("shows while another extension reconfigures the editor as it takes focus", () => {

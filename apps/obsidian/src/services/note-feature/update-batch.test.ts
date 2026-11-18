@@ -1872,7 +1872,7 @@ describe("mixed batch", () => {
         const { modal, tasks, choices, choice, run, onItemSettled } =
           yield* classifyMixedBatch(deps);
 
-        // One call resolves every new row (#1642).
+        // One call resolves every new row.
         expect(planCreations).toHaveBeenCalledExactlyOnceWith(
           [1, 2, 3, 4, 5].map((itemID) => `ITEM${itemID}`),
           { headless: undefined },

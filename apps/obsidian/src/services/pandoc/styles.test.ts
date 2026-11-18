@@ -165,7 +165,7 @@ function installedXml(style: ResolvedCslStyle): string {
 
 describe("listInstalledStyles", () => {
   effectIt.effect(
-    "keeps readable picker choices when the hidden directory refuses a read (#1793)",
+    "keeps readable picker choices when the hidden directory refuses a read",
     () =>
       Effect.gen(function* () {
         const APA = "http://www.zotero.org/styles/apa";

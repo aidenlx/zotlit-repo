@@ -4,7 +4,7 @@ import { expect, it, vi } from "vitest";
 
 import { scanBenchmarkWorker } from "./scan-benchmark-worker.ts";
 
-it("runs the production parse worker without Obsidian (#1691)", async () => {
+it("runs the production parse worker without Obsidian", async () => {
   await using worker = await scanBenchmarkWorker<{
     path: string;
     generation: number;
@@ -55,7 +55,7 @@ it("runs the production parse worker without Obsidian (#1691)", async () => {
   ]);
 });
 
-it("includes codec and postMessage time in the measured posting cost (#1705)", async () => {
+it("includes codec and postMessage time in the measured posting cost", async () => {
   await using worker = await scanBenchmarkWorker();
   // Warm the worker so this call does not include readiness buffering.
   const request = { path: "draft.md", generation: 1, text: "" };

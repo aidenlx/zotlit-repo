@@ -37,8 +37,6 @@ it("says it is checking while no probe has answered", () => {
 /**
  * The reasons the spec's degraded-states section names, against the failure
  * each one is reached by.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  */
 it.each<[LocalApiFailure, string]>([
   [{ kind: "unreachable" }, "zotero-unavailable"],

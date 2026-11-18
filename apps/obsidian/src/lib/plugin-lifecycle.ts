@@ -39,7 +39,7 @@ const releaseKey = (id: string) => Symbol.for(releaseKeyDescription(id));
  * Obsidian runs a plugin's registered cleanups once, as it unloads. An async
  * `onload` that a disable interrupts goes on to register commands, views and
  * handlers; on a plain `Plugin` their cleanups never run, and the next
- * instance finds the names taken (#1786). Here a registration after the
+ * instance finds the names taken. Here a registration after the
  * unload runs its cleanup at once, and {@link unloaded} tells `onload` to
  * stop. Obsidian makes a new instance for each load, so the flag stays set.
  * {@link waitForPreviousAndHoldRelease} starts the next instance only once the old
@@ -63,7 +63,7 @@ export class UnloadAwarePlugin extends Plugin {
    * Obsidian makes the next instance as soon as it unloads one, while the
    * old onload may still build and its runtime still close. Without the
    * wait, the old runtime removes the new instance's commands by id, takes
-   * zotlit:* names before it, and holds the Live Updates port (#1786). Call it
+   * zotlit:* names before it, and holds the Live Updates port. Call it
    * first on the onload stack: the stack disposes its own entries last.
    *
    * The wait ends after {@link PREVIOUS_RELEASE_WAIT_MS} at most.

@@ -31,7 +31,7 @@ const e2eFixture = getFixtureLayout(
 /**
  * The Zotero HTTP endpoint the shared Fixture's profile names: it accepts and
  * drops every connection, so ZotLit sees Zotero closed. The shipped port 23119
- * belongs to whatever Zotero the developer runs (#1645).
+ * belongs to whatever Zotero the developer runs.
  */
 const offlineZotero = createServer((socket) => socket.destroy());
 await new Promise<void>((resolve, reject) => {

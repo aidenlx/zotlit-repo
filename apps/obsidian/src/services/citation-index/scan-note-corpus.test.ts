@@ -1,4 +1,4 @@
-// #1689: extracted facts from every recorded Obsidian 1.14.4 parity case.
+// Extracted facts from every recorded Obsidian 1.14.4 parity case.
 // Source: quartz-community/remark-obsidian at a80395a3d80f351e67a0afdb63b51a604e010c8e,
 // test/parity/corpus.ts and test/parity/goldens/obsidian.json (compute.links).
 //
@@ -35,11 +35,11 @@ const labelPrecedence =
 const comments =
   "ADR 0080 excludes every reference in a %% comment; Obsidian's cache indexes these hidden references.";
 const bareUrls =
-  "#1689 keeps GFM bare-URL recognition off, so it does not consume following wikilinks.";
+  "keeps GFM bare-URL recognition off, so it does not consume following wikilinks.";
 const emphasis =
   "The trimmed parser omits emphasis; Obsidian's legacy emphasis can consume a link delimiter.";
 const tables =
-  "#1689 keeps GFM tables off; Obsidian splits the unescaped alias pipe into table cells.";
+  "keeps GFM tables off; Obsidian splits the unescaped alias pipe into table cells.";
 
 type LinkFact = readonly [
   kind: "wikilink" | "link",
@@ -323,7 +323,7 @@ it.each(cases)("$id", ({ id, text, record, links }) => {
   });
 });
 
-it("compares every corpus case and accounts for deliberate differences (#1689)", () => {
+it("compares every corpus case and accounts for deliberate differences", () => {
   const ids = new Set(cases.map(({ id }) => id));
   expect(ids.size).toBe(2612);
   for (const id of Object.keys(deliberateDifferences))
@@ -358,7 +358,7 @@ const hiddenPayloads = [
 ] as const;
 
 it.each(hiddenPayloads)(
-  "%s: hides every reference in the payload (#1689)",
+  "%s: hides every reference in the payload",
   (_id, text) => {
     const { ranges: _ranges, ...occurrences } = scanNote(text);
     expect(occurrences).toEqual(empty);
@@ -371,7 +371,7 @@ const at = (line: number, col: number, offset: number) => ({
   offset,
 });
 
-it("token/display-math/newline-escaped-close: an escaped $$ leaves the payload visible (#1689)", () => {
+it("token/display-math/newline-escaped-close: an escaped $$ leaves the payload visible", () => {
   // The payload starts on line 2 at offset 8, after "$$\n" and "x\$$\n".
   const text = `$$\nx\\$$\n${payload}`;
   const annotation = {
@@ -436,7 +436,7 @@ it("token/display-math/newline-escaped-close: an escaped $$ leaves the payload v
   });
 });
 
-it("an inline footnote in a link label keeps the Annotation link labelled (#1689)", () => {
+it("an inline footnote in a link label keeps the Annotation link labelled", () => {
   const { ranges: _ranges, ...occurrences } = scanNote(`[^[note]](${uri})`);
   expect({
     ...occurrences,
@@ -460,7 +460,7 @@ it("an inline footnote in a link label keeps the Annotation link labelled (#1689
   });
 });
 
-it("a footnote definition ends at its first closing bracket, so a following Wikilink stays visible (#1689)", () => {
+it("a footnote definition ends at its first closing bracket, so a following Wikilink stays visible", () => {
   const { ranges: _ranges, ...occurrences } = scanNote("[^a] [[Note]]: body");
   expect({
     ...occurrences,

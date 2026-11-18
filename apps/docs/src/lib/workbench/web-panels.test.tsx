@@ -59,7 +59,7 @@ const press = (element: HTMLElement, key: string) =>
     element.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
   });
 
-// #1954: the web Workbench lays out the shared panels as Obsidian does.
+// The web Workbench lays out the shared panels as Obsidian does.
 it("starts with the Preview shown and the Fields popover closed, and shows and hides the Preview from its header action", async () => {
   await using page = await open({ frame: { width: 1200, height: 700 } });
   await page.settle();
@@ -179,7 +179,7 @@ const placeCaret = (host: HTMLElement) => {
   return note;
 };
 
-// #1964: Fields opens the Fields popover at every width.
+// Fields opens the Fields popover at every width.
 it.each([320, 560, 760, 960, 1200])(
   "opens the Fields popover from its header action in a %i px frame, and a second press closes it",
   async (width) => {
@@ -278,7 +278,7 @@ const details = (label: string) =>
       element.querySelector('[data-part="title"]')?.textContent === label,
   ) ?? null;
 
-// #1967: a click on a row shows its details, beside the popover in a wide
+// A click on a row shows its details, beside the popover in a wide
 // frame and in a bar at the panel's foot in a narrow one.
 it.each([
   { width: 1200, inside: false, state: "popover" },
@@ -329,7 +329,7 @@ it("closes a field's details on a press on another row, and keeps the popover", 
   expect(popover()).not.toBeNull();
 });
 
-// Walkthrough of spec #1962 (F4): the row ↓ selects wears the web theme's
+// Walkthrough: the row ↓ selects wears the web theme's
 // selected look and shows its Insert field button. The page's `data-selected`
 // variant (shadcn) reads the value "true", so the row carries that value.
 it("marks the row the keyboard selects for the web theme's selected look", async () => {
@@ -353,7 +353,7 @@ it("never opens the Fields popover as the frame narrows", async () => {
   expect(popover()).toBeNull();
 });
 
-// #1966: pinned, the Fields Panel docks at the leading edge of a wide frame,
+// Pinned, the Fields Panel docks at the leading edge of a wide frame,
 // and the page keeps the pin and the width for its life.
 it("docks the pinned Fields Panel in a wide frame, hides and shows it from its action, and opens the popover in a narrow one", async () => {
   await using page = await open({ frame: { width: 1400, height: 700 } });
@@ -425,7 +425,7 @@ it("hands focus to the Fields action when a narrower frame takes the docked pane
   expect(document.activeElement).toBe(fields);
 });
 
-// #1956: the View menu sizes every handle without a drag, as the Obsidian
+// The View menu sizes every handle without a drag, as the Obsidian
 // view's pane menu does.
 it("shows, sizes and resets each panel from the View menu", async () => {
   await using page = await open({ frame: { width: 1200, height: 700 } });
@@ -541,7 +541,7 @@ const selectedInNote = (host: HTMLElement) => {
   return note.state.sliceDoc(from, to);
 };
 
-// #1957: the preview's Show problem is the shared repair command, so the
+// The preview's Show problem is the shared repair command, so the
 // round trip is the same in a narrow and a wide frame.
 it.each([
   { frame: { width: 560, height: 700 }, split: "horizontal" },

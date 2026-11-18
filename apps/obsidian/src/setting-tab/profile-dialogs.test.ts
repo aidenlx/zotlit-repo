@@ -202,7 +202,7 @@ const savingDestination = Effect.gen(function* () {
   };
 });
 
-// #1824: the user's close stops the work it started with a typed reason.
+// The user's close stops the work it started with a typed reason.
 it.effect(
   "stops the save with UserCancelled when the user closes Add profile",
   () =>

@@ -8,7 +8,7 @@ import { subscribe } from "@/lib/effect-stream";
 import { openCitekeyStore, SCANNER_REVISION } from "./store";
 import { createCitationIndexHarness, makeFile } from "./test-harness";
 
-it("reads all Annotation Occurrence forms in document order (#1692)", async () => {
+it("reads all Annotation Occurrence forms in document order", async () => {
   await using harness = await createCitationIndexHarness({
     "draft.md": [
       "[](zotero://open/library/items/ABCD2345?annotation=EFGH6789)",
@@ -70,7 +70,7 @@ it("reads all Annotation Occurrence forms in document order (#1692)", async () =
   ).toEqual([]);
 });
 
-it("restores schema v2 Annotation Occurrences with link text without a read (#1692)", async () => {
+it("restores schema v2 Annotation Occurrences with link text without a read", async () => {
   const appId = crypto.randomUUID();
   const name = `${appId}-zotlit-citation-index`;
   const body =
@@ -124,7 +124,7 @@ it("restores schema v2 Annotation Occurrences with link text without a read (#16
   }
 });
 
-it("keeps uses current through edits, identical touches, renames and deletion (#1692)", async () => {
+it("keeps uses current through edits, identical touches, renames and deletion", async () => {
   const body = "[](zotero://open/library/items/ABCD2345?annotation=EFGH6789)";
   await using harness = await createCitationIndexHarness(
     {
@@ -230,7 +230,7 @@ it.each([
     "frontmatter",
     "---\nlink: '[](zotero://open/library/items/ABCD2345?annotation=EFGH6789)'\n---",
   ],
-])("excludes Annotation links inside %s (#1692)", async (_name, hidden) => {
+])("excludes Annotation links inside %s", async (_name, hidden) => {
   await using harness = await createCitationIndexHarness(
     {
       "draft.md": `${hidden}\n\n[visible](zotero://open/library/items/ABCD2345?annotation=NEXT2345)`,
@@ -249,7 +249,7 @@ it.each([
   ]);
 });
 
-it("separates personal and group Annotation keys and restores their uses before backfill (#1692)", async () => {
+it("separates personal and group Annotation keys and restores their uses before backfill", async () => {
   const documents = {
     "z.md": "[](zotero://open/library/items/ABCD2345?annotation=EFGH6789)",
     "a.md": "[](zotero://open/groups/42/items/ABCD2345?annotation=EFGH6789)",

@@ -235,7 +235,7 @@ tester.run("no-eval-capture", noEvalCapture, {
   ],
 });
 
-// Readable page callbacks (#1873): role names, direct polls, typed values.
+// Readable page callbacks: role names, direct polls, typed values.
 tester.run("no-typed-arg-name", noTypedArgName, {
   valid: [
     "obRun(id, ({app}, {attachmentPath}) => app.vault.getFileByPath(attachmentPath), {attachmentPath})",

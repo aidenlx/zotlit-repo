@@ -173,7 +173,7 @@ export function createPageHelpers(app: PageApp) {
     await until(`${what} shuts`, () => !popup.isConnected);
     return el;
   }
-  // oxlint-disable-next-line max-params -- Preserve the page gesture API during the migration (#1848).
+  // oxlint-disable-next-line max-params -- Preserve the page gesture API during the migration.
   function fire(
     type: string,
     x: number,

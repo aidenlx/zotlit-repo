@@ -121,7 +121,7 @@ it("defaults to true and names the last rejected value on exhaustion", async () 
   await rejected;
 });
 
-// #1855: preserve wrapper behavior through the public typed transport.
+// Preserve wrapper behavior through the public typed transport.
 it("awaits a callback promise", async () => {
   expect(await obRun("vault", () => Promise.resolve(7))).toBe(7);
 });

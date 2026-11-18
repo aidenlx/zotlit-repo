@@ -535,7 +535,7 @@ it.effect(
 );
 
 it.effect(
-  "#1835 commits the rendered annotation and returns the shared insertion outcome",
+  "commits the rendered annotation and returns the shared insertion outcome",
   () =>
     Effect.gen(function* () {
       const f = yield* fixture("disabled");
@@ -557,30 +557,28 @@ it.effect(
     }).pipe(Effect.scoped),
 );
 
-it.effect(
-  "#1835 interrupted insertion commits no text and produces no outcome",
-  () =>
-    Effect.gen(function* () {
-      const f = yield* fixture("success");
-      const started = Promise.withResolvers<void>();
-      f.pauseTemporaryWrite(
-        Effect.sync(() => started.resolve()).pipe(Effect.andThen(Effect.never)),
-      );
-      const commit = vi.fn(() => true);
-      const report = vi.fn();
-      const pending = yield* f.action(commit).pipe(
-        Effect.tap((outcome) => Effect.sync(() => report(outcome))),
-        Effect.forkChild({ startImmediately: true }),
-      );
-      yield* Effect.promise(() => started.promise);
-      yield* Fiber.interrupt(pending);
-      expect(commit).not.toHaveBeenCalled();
-      expect(report).not.toHaveBeenCalled();
-    }).pipe(Effect.scoped),
+it.effect("interrupted insertion commits no text and produces no outcome", () =>
+  Effect.gen(function* () {
+    const f = yield* fixture("success");
+    const started = Promise.withResolvers<void>();
+    f.pauseTemporaryWrite(
+      Effect.sync(() => started.resolve()).pipe(Effect.andThen(Effect.never)),
+    );
+    const commit = vi.fn(() => true);
+    const report = vi.fn();
+    const pending = yield* f.action(commit).pipe(
+      Effect.tap((outcome) => Effect.sync(() => report(outcome))),
+      Effect.forkChild({ startImmediately: true }),
+    );
+    yield* Effect.promise(() => started.promise);
+    yield* Fiber.interrupt(pending);
+    expect(commit).not.toHaveBeenCalled();
+    expect(report).not.toHaveBeenCalled();
+  }).pipe(Effect.scoped),
 );
 
 it.effect(
-  "#1835 uses the source-link fallback when the captured source cannot render",
+  "uses the source-link fallback when the captured source cannot render",
   () =>
     Effect.gen(function* () {
       const f = yield* fixture("disabled");

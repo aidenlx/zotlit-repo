@@ -124,7 +124,7 @@ const UNIQUE_ITEM = {
 };
 
 describe("resolveCitationInsert", async () => {
-  effectIt.effect("#1857 interruption reports no insertion outcome", () =>
+  effectIt.effect("interruption reports no insertion outcome", () =>
     Effect.promise(async () => {
       await using bridge = openTestBridge();
       const deps = insertDeps(() => "[@abc2024]");
@@ -567,7 +567,7 @@ describe("Citation Suggester document citations", () => {
   }
 
   effectIt.effect(
-    "uses the Document Citation Set through comments, math and nested code (#1694)",
+    "uses the Document Citation Set through comments, math and nested code",
     () =>
       Effect.promise(async () => {
         await using index = await createCitationIndexHarness({
@@ -700,37 +700,32 @@ describe("Citation Suggester document citations", () => {
       }),
   );
 
-  effectIt.effect(
-    "#1789 unload leaves the document citation fallback silent",
-    () =>
-      Effect.promise(async () => {
-        await using bridge = openTestBridge();
-        using debug = vi.spyOn(
-          getLogger(["views", "citation-suggest"]),
-          "debug",
-        );
-        const started = Promise.withResolvers<void>();
-        const pending = readDocumentCitedKeys(
-          {
-            bridge,
-            citationIndex: {
-              getDocumentCitationSet: () => {
-                started.resolve();
-                return Effect.never;
-              },
+  effectIt.effect("unload leaves the document citation fallback silent", () =>
+    Effect.promise(async () => {
+      await using bridge = openTestBridge();
+      using debug = vi.spyOn(getLogger(["views", "citation-suggest"]), "debug");
+      const started = Promise.withResolvers<void>();
+      const pending = readDocumentCitedKeys(
+        {
+          bridge,
+          citationIndex: {
+            getDocumentCitationSet: () => {
+              started.resolve();
+              return Effect.never;
             },
           },
-          file,
-          new AbortController().signal,
-        ).then(
-          (value) => ({ value }),
-          (error: unknown) => ({ error }),
-        );
-        await started.promise;
-        await bridge[Symbol.asyncDispose]();
-        expect(await pending).toEqual({ value: [] });
-        expect(debug).not.toHaveBeenCalled();
-      }),
+        },
+        file,
+        new AbortController().signal,
+      ).then(
+        (value) => ({ value }),
+        (error: unknown) => ({ error }),
+      );
+      await started.promise;
+      await bridge[Symbol.asyncDispose]();
+      expect(await pending).toEqual({ value: [] });
+      expect(debug).not.toHaveBeenCalled();
+    }),
   );
 
   effectIt.effect("keeps searching when document citations fail", () =>
@@ -785,7 +780,7 @@ describe("Citation Suggester document citations", () => {
   );
 });
 
-// Regression tests for #1665: the dropdown kept an earlier query's rows on
+// Regression tests: the dropdown kept an earlier query's rows on
 // screen until the typed query's answer arrived, and Enter or a click chose
 // from them.
 describe("Citation Suggester choices while the typed query's answer is pending", () => {

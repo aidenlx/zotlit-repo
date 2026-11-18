@@ -241,9 +241,11 @@ group in vault-wide answers because other Fixture pages cite the same Items.
 | `pandoc-export-unclosed-math.md` | Check that unclosed display math runs to the end of the note. Expect zero citations and successful built-in export without a failure on either key (final review round).                             |
 
 Cases marked `(final review round)` state the intended outcomes for S1, S3, S4,
-and #1704. Check them again after that round merges. Annotation Citation links
-remain unchanged in export pending #1684; direct Annotation link rendering is
-covered by #1678. The pages add no Zotero data.
+and the resolution outcome kept in the Document Citation Set. Check them again
+after that round merges. Annotation Citation links remain unchanged in export
+until Pandoc export has an output form for them; direct Annotation link
+rendering is covered by the Annotation citation work. The pages add no Zotero
+data.
 
 ### Trial the Pandoc export cases
 

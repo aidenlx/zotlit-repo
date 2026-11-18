@@ -137,8 +137,6 @@ export interface MarkPopupRowInput {
  * Card's controls do, because they are the same writes reached from another
  * surface. A row verb carries the reason in its tooltip. The creation row has
  * no tag verb: the popup reopens on the new mark, where tags can be added.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1148
  */
 export function markPopupRow({
   annotation,
@@ -461,8 +459,7 @@ export interface MarkPopupDeps {
 
 /**
  * One popup, retargeted from mark to mark rather than rebuilt per mark. The
- * creation surfaces open the same popup with their own row
- * (aidenlx/zotlit#1150).
+ * creation surfaces open the same popup with their own row.
  *
  * The root mounts as the popup opens and unmounts as it hides. A refresh that
  * a render itself sets off — an editor ending its session as it unmounts —
@@ -505,7 +502,7 @@ export class MarkPopup extends HoverPopover {
    * content's width. The popover joins the document before the first render,
    * so an editor that render opens can take focus; its owner holds the popup
    * before it opens, so a store change the first render makes refreshes this
-   * popup rather than opening another (aidenlx/zotlit#1272).
+   * popup rather than opening another.
    */
   open(): void {
     this.showNow();

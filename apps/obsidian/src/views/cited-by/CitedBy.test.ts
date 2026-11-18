@@ -909,7 +909,7 @@ describe("CitedBy", () => {
     });
   });
 
-  it("#1693 previews, searches, and reveals an Annotation Citation", async () => {
+  it("previews, searches, and reveals an Annotation Citation", async () => {
     const source = `Evidence from estuaries [](${annotationUri}).`;
     await using harness = await createCitationIndexHarness(
       { "draft.md": source },
@@ -951,7 +951,7 @@ describe("CitedBy", () => {
     );
   });
 
-  it("#1693 waits for the stored parse when a preview follows a note edit", async () => {
+  it("waits for the stored parse when a preview follows a note edit", async () => {
     const source = `Evidence [](${annotationUri}).`;
     const gate = Promise.withResolvers<void>();
     let editing = false;

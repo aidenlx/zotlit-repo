@@ -88,8 +88,6 @@ const ANNOTATION_TYPES = [
 /**
  * Every outcome a call can have that is not the answer asked for. The client
  * returns one of these as a value; nothing here is thrown.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Zotero Local API contract"
  */
 export type LocalApiFailure =
   /** Nothing answered on Zotero's HTTP port. */
@@ -123,8 +121,6 @@ export type LocalApiFailure =
    * it means the Annotation was deleted in Zotero. The Capability Probe reads a
    * `404` as `unreachable`: there it comes from another server on Zotero's
    * port.
-   *
-   * @see https://github.com/aidenlx/zotlit/issues/1151
    */
   | { kind: "not-found" }
   /** Another Zotero database answers on this port than the session holds. */
@@ -373,8 +369,6 @@ export function libraryPath({ groupID }: { groupID: number | null }): string {
  * key; it is not a refusal and ZotLit must not read it as one. Only the Deny
  * button, which is also the default button that Return activates, answers
  * `403 {"denied":true}`.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1144
  */
 export interface AuthorizationGrant {
   /** Zotero's 32-character local API key. */

@@ -307,7 +307,7 @@ describe("open", () => {
 
   // The page chip and the Query View's annotation rows open an Annotation
   // through `open`, so they follow the Reader settings as a link in a note
-  // does (#1980).
+  // does.
   it.effect.each([
     "reader.open-annotation-links",
     "reader.open-file-links",

@@ -219,7 +219,7 @@ it.effect("reports a change it cannot apply and applies it again later", () =>
 );
 
 // Failure mode: LogTape's exit hook on the host process, or its root logger on
-// the window, holds the disabled plugin in memory (#1882).
+// the window, holds the disabled plugin in memory.
 it.effect("leaves nothing of LogTape on the host once it resets", () =>
   Effect.gen(function* () {
     const plugin = stubService<Plugin>("Plugin", {

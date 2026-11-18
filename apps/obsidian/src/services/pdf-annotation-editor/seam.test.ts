@@ -23,7 +23,7 @@ import {
 } from "./seam";
 import type { PdfSeamProbeId } from "./seam";
 
-/** The eleven probes of the seam re-verification, as issue #1140 numbers them. */
+/** The eleven probes of the seam re-verification numbered P1 to P11. */
 const ALL_PROBES: PdfSeamProbeId[] = [
   "P1",
   "P2",

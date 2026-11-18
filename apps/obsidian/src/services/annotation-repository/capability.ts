@@ -13,8 +13,6 @@ import type {
  * One Editing Capability per Attachment drives every control in the reader and
  * in the Annotation View. API version 3 is the only compatibility gate; the
  * schema version is logged at debug and gates nothing.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  */
 export type EditingCapability =
   | { kind: "writable" }
@@ -130,8 +128,8 @@ export function capabilityOfFailure(
       };
     // A read sends no version and no write token, and the list route answers an
     // empty list rather than a `404`, so all three answer a question this client
-    // never asked. The write path owns them as per-annotation mutation state
-    // (aidenlx/zotlit#1145), never as capability.
+    // never asked. The write path owns them as per-annotation mutation state,
+    // never as capability.
     case "invalid-response":
     case "conflict":
     case "write-token-used":

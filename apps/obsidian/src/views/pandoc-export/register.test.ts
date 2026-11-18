@@ -357,7 +357,7 @@ beforeEach(() => {
 });
 
 describe("the Export note with citations command", () => {
-  effectIt.live("closes a pending export dialog on unload (#1830)", () =>
+  effectIt.live("closes a pending export dialog on unload", () =>
     Effect.gen(function* () {
       const vault = openVault({ note: {} });
       const dialog = yield* Effect.promise(() => vault.openDialog());
@@ -371,42 +371,40 @@ describe("the Export note with citations command", () => {
     }),
   );
 
-  effectIt.live(
-    "finishes a started destination write before unload ends (#1830)",
-    () =>
-      Effect.gen(function* () {
-        const basePath = yield* Effect.acquireRelease(
-          Effect.promise(() => mkdtemp(join(tmpdir(), "zotlit-export-"))),
-          (dir) =>
-            Effect.promise(() => rm(dir, { recursive: true, force: true })),
-        );
-        const started = Promise.withResolvers<void>();
-        const writing = Promise.withResolvers<void>();
-        const fileSystem: FileSystem.FileSystem = {
-          ...nodeFileSystem,
-          writeFile: (...args) =>
-            Effect.gen(function* () {
-              started.resolve();
-              yield* Effect.promise(() => writing.promise);
-              yield* nodeFileSystem.writeFile(...args);
-            }),
-        };
-        const vault = openVault({ note: {}, basePath, fileSystem });
-        const dialog = yield* Effect.promise(() => vault.openDialog());
-        dialog.confirm();
-        yield* Effect.promise(() => started.promise);
-        let closed = false;
-        const closing = vault.close().then(() => {
-          closed = true;
-        });
-        yield* Effect.yieldNow;
-        expect(closed).toBe(false);
-        writing.resolve();
-        yield* Effect.promise(() => closing);
-        expect(
-          yield* Effect.promise(() => readFile(join(basePath, "draft.docx"))),
-        ).toHaveLength(0);
-      }),
+  effectIt.live("finishes a started destination write before unload ends", () =>
+    Effect.gen(function* () {
+      const basePath = yield* Effect.acquireRelease(
+        Effect.promise(() => mkdtemp(join(tmpdir(), "zotlit-export-"))),
+        (dir) =>
+          Effect.promise(() => rm(dir, { recursive: true, force: true })),
+      );
+      const started = Promise.withResolvers<void>();
+      const writing = Promise.withResolvers<void>();
+      const fileSystem: FileSystem.FileSystem = {
+        ...nodeFileSystem,
+        writeFile: (...args) =>
+          Effect.gen(function* () {
+            started.resolve();
+            yield* Effect.promise(() => writing.promise);
+            yield* nodeFileSystem.writeFile(...args);
+          }),
+      };
+      const vault = openVault({ note: {}, basePath, fileSystem });
+      const dialog = yield* Effect.promise(() => vault.openDialog());
+      dialog.confirm();
+      yield* Effect.promise(() => started.promise);
+      let closed = false;
+      const closing = vault.close().then(() => {
+        closed = true;
+      });
+      yield* Effect.yieldNow;
+      expect(closed).toBe(false);
+      writing.resolve();
+      yield* Effect.promise(() => closing);
+      expect(
+        yield* Effect.promise(() => readFile(join(basePath, "draft.docx"))),
+      ).toHaveLength(0);
+    }),
   );
 
   it("reports a typed filesystem refusal as an unwritable destination", async () => {

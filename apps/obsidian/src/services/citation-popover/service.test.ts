@@ -970,7 +970,7 @@ describe("source-less empty bibliography entries", () => {
 });
 
 it.each([false, true])(
-  "#1683 fills a document popover with one source read (ambiguous: %s)",
+  "fills a document popover with one source read (ambiguous: %s)",
   async (ambiguous) => {
     await using h = await createCitationIndexHarness(
       { "draft.md": "[@doe2024]" },

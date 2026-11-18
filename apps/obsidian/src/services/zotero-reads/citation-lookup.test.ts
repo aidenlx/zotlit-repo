@@ -65,7 +65,7 @@ function withClient<A, E>(
   );
 }
 
-it("resolves Annotations to their parent Item and Citation Key across Libraries, distinguishing missing from unkeyed parents (#1690)", async () => {
+it("resolves Annotations to their parent Item and Citation Key across Libraries, distinguishing missing from unkeyed parents", async () => {
   await withClient(
     (client) =>
       Effect.gen(function* () {
@@ -107,7 +107,7 @@ it("resolves Annotations to their parent Item and Citation Key across Libraries,
   );
 });
 
-it("rejects an unrequested Annotation key even when it exists (#1690)", async () => {
+it("rejects an unrequested Annotation key even when it exists", async () => {
   await withClient(
     (client) =>
       Effect.gen(function* () {
@@ -127,7 +127,7 @@ it("rejects an unrequested Annotation key even when it exists (#1690)", async ()
   );
 });
 
-it("keeps DbUnavailable distinct from a missing Annotation (#1690)", async () => {
+it("keeps DbUnavailable distinct from a missing Annotation", async () => {
   let available = false;
   await withClient(
     (client) =>
@@ -150,7 +150,7 @@ it("keeps DbUnavailable distinct from a missing Annotation (#1690)", async () =>
   );
 });
 
-it("reads moved Annotations and reparented Attachments from the refreshed copy, keeping the revision because no Citation Key changed (#1690)", async () => {
+it("reads moved Annotations and reparented Attachments from the refreshed copy, keeping the revision because no Citation Key changed", async () => {
   let changes = "";
   await withClient(
     (client) =>

@@ -203,7 +203,7 @@ it.effect(
     }),
 );
 
-// #1710: the shared connection read belongs to its remaining Library leaves.
+// The shared connection read belongs to its remaining Library leaves.
 it.effect("cancels the real cached read only after its last leaf closes", () =>
   Effect.gen(function* () {
     const pending: Array<{

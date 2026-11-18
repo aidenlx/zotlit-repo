@@ -213,7 +213,7 @@ const CITED: Fixture = {
 };
 
 describe("exportCitedDocument", () => {
-  it.effect("interrupts a pending citation read before rendering (#1830)", () =>
+  it.effect("interrupts a pending citation read before rendering", () =>
     Effect.gen(function* () {
       const started = yield* Deferred.make<void>();
       const wired = ports({ citedIds: ["zeta2020"] });
@@ -240,7 +240,7 @@ describe("exportCitedDocument", () => {
   it.effect.each([
     "[](zotero://open/library/items/ABCD2345?page=12&annotation=EFGH6789)",
     "[](<zotero://open/groups/7/items/ABCD2345?page=12&annotation=EFGH6789>)",
-  ])("keeps Annotation Citation source byte for byte: %s (#1694)", (markdown) =>
+  ])("keeps Annotation Citation source byte for byte: %s", (markdown) =>
     Effect.gen(function* () {
       const running = yield* run({}, { markdown });
       expect(running.result).toHaveProperty("output");
@@ -716,19 +716,19 @@ describe(
         absent: ["data-cites=", 'id="ref-'],
       },
       {
-        name: "#1683 preserves explicit identifiers that resemble internal citation markers",
+        name: "preserves explicit identifiers that resemble internal citation markers",
         markdown: "# Title {#zotlitparsedcitation0}\n\n[@a]",
         contains: ['id="zotlitparsedcitation0"', 'id="ref-a"'],
         absent: ['id="title"'],
       },
       {
-        name: "#1683 inline comment preserves the worker citation key boundary",
+        name: "inline comment preserves the worker citation key boundary",
         markdown: "[@a%% hidden %%b]",
         contains: ['data-cites="a"', 'id="ref-a"'],
         absent: ['data-cites="ab"', 'id="ref-ab"', "hidden", "%%"],
       },
       {
-        name: "#1683 worker-excluded math citation stays source text in Pandoc",
+        name: "worker-excluded math citation stays source text in Pandoc",
         markdown: "$$\n[@hidden]\n\n[@a]",
         contains: ["[@hidden]"],
         absent: ['data-cites="hidden"', 'id="ref-hidden"'],
@@ -774,7 +774,7 @@ describe(
         name: "a selected vault link inside a citation suffix",
         markdown: "[@a with [[Note]]]",
         // The nested link reads as its text, and both works take an entry
-        // (ADR-0081, #1699).
+        // (ADR-0081).
         contains: [
           '<p><span class="citation" data-cites="a">(Zeta 2020 with Note)</span></p>',
           'id="ref-a"',
@@ -799,13 +799,13 @@ describe(
         absent: [],
       },
       {
-        name: "#1683 duplicate citation headings and links",
+        name: "duplicate citation headings and links",
         markdown: "# @a\n\n# @a\n\n[First](#a) [Second](#a-1)",
         contains: ['id="a"', 'id="a-1"', 'href="#a"', 'href="#a-1"'],
         absent: [],
       },
       {
-        name: "#1683 citation headings colliding with ordinary and explicit IDs",
+        name: "citation headings colliding with ordinary and explicit IDs",
         markdown:
           "# @a\n\n# A\n\n# @a {#explicit}\n\n# @a\n\n[First](#a) [Ordinary](#a-1) [Explicit](#explicit) [Last](#a-2)",
         contains: [
@@ -830,7 +830,7 @@ describe(
         absent: ["Zeta (2020)"],
       },
     ])(
-      "preserves $name (#1694 review)",
+      "preserves $name",
       ({ markdown, styleXml, contains, absent, ibids = 0 }) =>
         Effect.gen(function* () {
           const engine = yield* realEngine;
@@ -863,7 +863,7 @@ describe(
     );
 
     it.effect(
-      "leaves a commented wikilink uncited beside the same visible link (#1694)",
+      "leaves a commented wikilink uncited beside the same visible link",
       () =>
         Effect.gen(function* () {
           const engine = yield* realEngine;
@@ -885,7 +885,7 @@ describe(
         }),
     );
 
-    it.effect("exports a citation after a currency opener (#1694)", () =>
+    it.effect("exports a citation after a currency opener", () =>
       Effect.gen(function* () {
         const engine = yield* realEngine;
         const result = yield* exportParsed(
@@ -947,34 +947,32 @@ describe(
         name: "math with an escaped closing dollar",
         markdown: "$x\\$ [@hidden]$\n\n[@zeta2020]",
       },
-    ])(
-      "excludes $name from exported citations (#1694)",
-      ({ markdown, contains }) =>
-        Effect.gen(function* () {
-          const engine = yield* realEngine;
-          const result = yield* exportParsed(
-            {
-              document: { sourcePath: SOURCE, links: [] },
-              markdown,
-              format: "html",
-            },
-            {
-              ...ports({
-                citekeys: { zeta2020: "ZETA1234" },
-                placed: { ZETA1234: ref("ZETA1234") },
-                items: { ZETA1234: ZETA },
-              }),
-              engine,
-            },
-          );
-          expect(result).toHaveProperty("output");
-          const html = new TextDecoder().decode(
-            (result as { output: Uint8Array }).output,
-          );
-          expect(html.split('data-cites="zeta2020"').length - 1).toBe(1);
-          expect(html).not.toContain('id="ref-hidden"');
-          for (const text of contains ?? []) expect(html).toContain(text);
-        }),
+    ])("excludes $name from exported citations", ({ markdown, contains }) =>
+      Effect.gen(function* () {
+        const engine = yield* realEngine;
+        const result = yield* exportParsed(
+          {
+            document: { sourcePath: SOURCE, links: [] },
+            markdown,
+            format: "html",
+          },
+          {
+            ...ports({
+              citekeys: { zeta2020: "ZETA1234" },
+              placed: { ZETA1234: ref("ZETA1234") },
+              items: { ZETA1234: ZETA },
+            }),
+            engine,
+          },
+        );
+        expect(result).toHaveProperty("output");
+        const html = new TextDecoder().decode(
+          (result as { output: Uint8Array }).output,
+        );
+        expect(html.split('data-cites="zeta2020"').length - 1).toBe(1);
+        expect(html).not.toContain('id="ref-hidden"');
+        for (const text of contains ?? []) expect(html).toContain(text);
+      }),
     );
 
     it.effect("cites the demo note through the bundled sandbox filter", () =>
@@ -1007,7 +1005,7 @@ describe(
       }),
     );
 
-    it.effect("keeps export's explicit nocite membership (#1694)", () =>
+    it.effect("keeps export's explicit nocite membership", () =>
       Effect.gen(function* () {
         const engine = yield* realEngine;
         const result = yield* exportParsed(
@@ -1034,7 +1032,7 @@ describe(
     );
 
     it.effect(
-      "keeps the outer citation of a Literature Note link in its suffix (#1699)",
+      "keeps the outer citation of a Literature Note link in its suffix",
       () =>
         Effect.gen(function* () {
           const engine = yield* realEngine;
@@ -1061,7 +1059,7 @@ describe(
     );
 
     it.effect(
-      "keeps the outer citation of a literal citation key in its suffix (#1699)",
+      "keeps the outer citation of a literal citation key in its suffix",
       () =>
         Effect.gen(function* () {
           const engine = yield* realEngine;

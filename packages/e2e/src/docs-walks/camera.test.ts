@@ -240,7 +240,7 @@ describe("planCamera", () => {
   });
 });
 
-// PR #2012: a drag's view stands from `lead` before the press to the release.
+// A drag's view stands from `lead` before the press to the release.
 describe("planCamera, a drag at the clip defaults", () => {
   /** The defaults of clip-settings.ts, written out so these cases hold. */
   const calm: Required<CameraPlanOptions> = {

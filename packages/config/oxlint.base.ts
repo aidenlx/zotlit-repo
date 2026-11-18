@@ -146,9 +146,13 @@ export default defineConfig({
     "promise",
     "vitest",
   ],
-  jsPlugins: [join(import.meta.dirname, "oxlint-plugin-build.ts")],
+  jsPlugins: [
+    join(import.meta.dirname, "oxlint-plugin-build.ts"),
+    join(import.meta.dirname, "oxlint-plugin-comments.ts"),
+  ],
   rules: {
     "zotlit-build/no-undeclared-env": "error",
+    "zotlit-comments/no-tracker-reference": "error",
     "no-restricted-globals": ["error", dateGlobals],
     "typescript/no-restricted-types": ["error", dateTypes],
     ...Object.fromEntries(effectOptInRules),

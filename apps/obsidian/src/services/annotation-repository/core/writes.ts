@@ -1130,7 +1130,6 @@ const writeBlocked = Effect.fnUntraced(function* (
  * answers `re-apply`, and the same names are applied to the fresh tags.
  *
  * @param refusal.source the Local API source the write was sent through.
- * @see https://github.com/aidenlx/zotlit/issues/1139 — "Editing Capability and degraded states"
  * @see apps/obsidian/docs/adr/0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md
  */
 const writeRefused = Effect.fnUntraced(function* (

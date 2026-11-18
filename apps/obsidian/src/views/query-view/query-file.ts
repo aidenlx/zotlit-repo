@@ -624,7 +624,7 @@ export function newQueryFileText(names: NewQueryFileNames): string {
         name: names.items,
         from: "items",
         // The Library View's Recent sort, which falls back to dateModified
-        // until last activity is an Item field (#1532).
+        // until last activity is an Item field.
         sort: [{ property: "dateModified", direction: "DESC" }],
         order: ["title", "creators", "date.year", LITERATURE_NOTE],
         limit: NEW_QUERY_FILE_LIMIT,

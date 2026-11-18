@@ -400,7 +400,7 @@ function resultShape(): { authors: DisplayNode; family: DisplayNode } {
   return { authors, family: authors.children[0]! };
 }
 
-// Final review of spec #1962 (A2): the row preview, the details values and
+// Final review: the row preview, the details values and
 // the snippet result read a list by one rule.
 describe("a list reads the same in its row and in its result", () => {
   const shape = (data: Record<string, unknown>) => {

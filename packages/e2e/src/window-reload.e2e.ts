@@ -86,7 +86,7 @@ describe.skipIf(!reachable)("Window reload", () => {
     await runVaultScript(["remove", vaultPath, "--purge"]);
   }, 120000);
 
-  it("reads the current services after a plugin restart in one callback (#1848)", async () => {
+  it("reads the current services after a plugin restart in one callback", async () => {
     expect(
       await obRun(vaultId, async ({ app, zotlit }) => {
         const before = zotlit.services;
@@ -97,7 +97,7 @@ describe.skipIf(!reachable)("Window reload", () => {
     ).toBe(true);
   });
 
-  it("releases each old plugin instance after a restart (#1882)", async () => {
+  it("releases each old plugin instance after a restart", async () => {
     const proof = await obRun(
       vaultId,
       async ({ app, page }, { restarts }) => {
@@ -135,7 +135,7 @@ describe.skipIf(!reachable)("Window reload", () => {
     expect(proof).toEqual({ reachable: 0, addedExitListeners: 0 });
   }, 90000);
 
-  it("reloads when ZotLit is disabled only in memory (#1848)", async () => {
+  it("reloads when ZotLit is disabled only in memory", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
       await obRun(vaultId, async ({ app }) => {
@@ -172,7 +172,7 @@ describe.skipIf(!reachable)("Window reload", () => {
     expect(startup.cached).toContain(false);
   }, 120000);
 
-  it("uses page helpers after reload and on popout elements without helper setup (#1849)", async () => {
+  it("uses page helpers after reload and on popout elements without helper setup", async () => {
     await reloadWindow(vaultId);
     const proof = await obRun(vaultId, async ({ app, page }) => {
       await using cleanup = new AsyncDisposableStack();
@@ -240,7 +240,7 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
     await runVaultScript(["remove", vaultPath, "--purge"]);
   }, 120000);
 
-  it("releases a start-up that a disable interrupts, so the next enable starts (#1786)", async () => {
+  it("releases a start-up that a disable interrupts, so the next enable starts", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
       await obRun(vaultId, async ({ app }) => {
@@ -345,7 +345,7 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
   // Off and on again while the old instance still builds: the old start-up is
   // held at its settings read until the new instance exists, so the two
   // runtimes overlap as far as the new instance lets them.
-  it("starts a new instance only after the old one has released its commands, zotlit:* names and port (#1786)", async () => {
+  it("starts a new instance only after the old one has released its commands, zotlit:* names and port", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
       await obRun(vaultId, async ({ app }) => {

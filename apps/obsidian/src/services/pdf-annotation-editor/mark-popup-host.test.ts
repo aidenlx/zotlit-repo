@@ -250,7 +250,7 @@ it("keeps the content's nodes through the editor and a draft, and mounts it anew
 });
 
 // A comment editor takes its draft as it mounts, which changes the state from
-// inside the popup's first render (aidenlx/zotlit#1272).
+// inside the popup's first render.
 it("draws a state change its first render makes in the popup it opens", () => {
   using h = host();
   const connected: boolean[] = [];

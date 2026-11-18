@@ -255,7 +255,7 @@ describe("AnnotationEditorSuggest", () => {
 
     await expect(typed).resolves.toEqual(["fig-1", "fig-2"]);
     // A dropped search answers `null`, which Obsidian skips; `[]` would close
-    // the popup while the typed query's answer is pending (#1665).
+    // the popup while the typed query's answer is pending.
     await expect(before).resolves.toBeNull();
 
     const closing = keys(

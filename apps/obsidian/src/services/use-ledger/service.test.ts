@@ -230,7 +230,7 @@ it.effect(
     }),
 );
 
-// #1705: a state subscriber sees the current value, then each update, and its
+// A state subscriber sees the current value, then each update, and its
 // stream ends when the service stops.
 it.effect(
   "changes replays the current Uses, delivers updates and ends when the scope closes",

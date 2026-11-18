@@ -26,7 +26,7 @@ import {
 } from "./test-harness";
 
 it.effect(
-  "aborts a document wait while another consumer keeps the shared parse (#1691)",
+  "aborts a document wait while another consumer keeps the shared parse",
   () =>
     Effect.promise(async () => {
       const entered = Promise.withResolvers<void>();
@@ -74,7 +74,7 @@ it.effect(
 );
 
 it.effect.each(["changed event", "document read"])(
-  "serves the retained record to readers awaiting a failed replacement from a %s (#1691)",
+  "serves the retained record to readers awaiting a failed replacement from a %s",
   (source) =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -130,7 +130,7 @@ it.effect.each(["changed event", "document read"])(
 );
 
 it.effect.each(["before", "during"])(
-  "reports degraded coverage when an edit fails %s backfill, while saved citations remain available (#1691)",
+  "reports degraded coverage when an edit fails %s backfill, while saved citations remain available",
   (timing) =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -184,7 +184,7 @@ it.effect.each(["before", "during"])(
 );
 
 it.effect.each(["edited", "new"])(
-  "notifies Cited By when an incremental %s note fails and later recovers (#1691)",
+  "notifies Cited By when an incremental %s note fails and later recovers",
   (source) =>
     Effect.promise(async () => {
       const failRelease = Promise.withResolvers<void>();
@@ -270,7 +270,7 @@ it.effect.each(["edited", "new"])(
 );
 
 it.effect(
-  "excludes wikilinks inside comments even when Obsidian lists them (#1691)",
+  "excludes wikilinks inside comments even when Obsidian lists them",
   () =>
     Effect.promise(async () => {
       await using harness = await createCitationIndexHarness(
@@ -287,138 +287,134 @@ it.effect(
     }),
 );
 
-it.effect(
-  "drops a superseded parse after a newer edit has been applied (#1691)",
-  () =>
-    Effect.promise(async () => {
-      const release = Promise.withResolvers<void>();
-      const started = Promise.withResolvers<void>();
-      await using harness = await createCitationIndexHarness(
-        { "draft.md": "@doe2024" },
-        {
-          notes: false,
-          parseClient: {
-            parse: effectTestParse(async (request, signal) => {
-              if (request.text === "@doe2024") {
-                started.resolve();
-                await release.promise;
-              }
-              return Effect.runPromise(inProcessParseClient.parse(request), {
-                signal,
-              });
-            }),
-          },
+it.effect("drops a superseded parse after a newer edit has been applied", () =>
+  Effect.promise(async () => {
+    const release = Promise.withResolvers<void>();
+    const started = Promise.withResolvers<void>();
+    await using harness = await createCitationIndexHarness(
+      { "draft.md": "@doe2024" },
+      {
+        notes: false,
+        parseClient: {
+          parse: effectTestParse(async (request, signal) => {
+            if (request.text === "@doe2024") {
+              started.resolve();
+              await release.promise;
+            }
+            return Effect.runPromise(inProcessParseClient.parse(request), {
+              signal,
+            });
+          }),
         },
-      );
-      const publications: string[][] = [];
+      },
+    );
+    const publications: string[][] = [];
+    subscribe(
+      harness.index.runtime,
+      harness.index.events.pipe(
+        Stream.filter(
+          (event): event is Extract<typeof event, { type: "changed" }> =>
+            event.type === "changed",
+        ),
+        Stream.map((event) => event.path),
+      ),
+      () =>
+        publications.push(
+          harness.index.bridge.runSync(harness.index.citationKeys()),
+        ),
+    );
+    harness.workspace.layoutReady();
+    await started.promise;
+    const changed = new Promise<void>((resolve) =>
       subscribe(
         harness.index.runtime,
-        harness.index.events.pipe(
-          Stream.filter(
-            (event): event is Extract<typeof event, { type: "changed" }> =>
-              event.type === "changed",
-          ),
-          Stream.map((event) => event.path),
-        ),
-        () =>
-          publications.push(
-            harness.index.bridge.runSync(harness.index.citationKeys()),
-          ),
-      );
-      harness.workspace.layoutReady();
-      await started.promise;
-      const changed = new Promise<void>((resolve) =>
-        subscribe(
-          harness.index.runtime,
-          Stream.take(
-            harness.index.events.pipe(
-              Stream.filter(
-                (event): event is Extract<typeof event, { type: "changed" }> =>
-                  event.type === "changed",
-              ),
-              Stream.map((event) => event.path),
+        Stream.take(
+          harness.index.events.pipe(
+            Stream.filter(
+              (event): event is Extract<typeof event, { type: "changed" }> =>
+                event.type === "changed",
             ),
-            1,
+            Stream.map((event) => event.path),
           ),
-          () => resolve(),
+          1,
         ),
-      );
-      harness.metadataCache.change(harness.draft, "@roe2025");
-      await changed;
-      release.resolve();
-      await harness.index.bridge.runPromise(harness.index.whenIndexed);
-      expect(publications).toEqual([["roe2025"]]);
-      expect(
-        harness.index.bridge.runSync(harness.index.citationKeys()),
-      ).toEqual(["roe2025"]);
-      expect(
-        harness.store.records.get("draft.md")?.citekeys.map(({ raw }) => raw),
-      ).toEqual(["roe2025"]);
-    }),
+        () => resolve(),
+      ),
+    );
+    harness.metadataCache.change(harness.draft, "@roe2025");
+    await changed;
+    release.resolve();
+    await harness.index.bridge.runPromise(harness.index.whenIndexed);
+    expect(publications).toEqual([["roe2025"]]);
+    expect(harness.index.bridge.runSync(harness.index.citationKeys())).toEqual([
+      "roe2025",
+    ]);
+    expect(
+      harness.store.records.get("draft.md")?.citekeys.map(({ raw }) => raw),
+    ).toEqual(["roe2025"]);
+  }),
 );
 
-it.effect(
-  "serves an older scanner revision until backfill replaces it (#1691)",
-  () =>
-    Effect.promise(async () => {
-      const store = new MemoryStore();
-      await using seed = await createCitationIndexHarness(
-        { "draft.md": "@doe2024" },
-        { store, notes: false },
-      );
-      await seed.index.bridge.runPromise(
-        seed.index.getDocumentCitationSet(seed.draft),
-      );
-      const record = store.records.get("draft.md")!;
-      record.scannerRevision = 0;
-      record.citekeys[0]!.raw = "roe2025";
-      const entered = Promise.withResolvers<void>();
-      const release = Promise.withResolvers<void>();
-      await using harness = await createCitationIndexHarness(
-        { "draft.md": "@doe2024" },
-        {
-          store,
-          notes: false,
-          parseClient: {
-            parse: effectTestParse(async (request, signal) => {
-              entered.resolve();
-              await release.promise;
-              return Effect.runPromise(inProcessParseClient.parse(request), {
-                signal,
-              });
-            }),
-          },
+it.effect("serves an older scanner revision until backfill replaces it", () =>
+  Effect.promise(async () => {
+    const store = new MemoryStore();
+    await using seed = await createCitationIndexHarness(
+      { "draft.md": "@doe2024" },
+      { store, notes: false },
+    );
+    await seed.index.bridge.runPromise(
+      seed.index.getDocumentCitationSet(seed.draft),
+    );
+    const record = store.records.get("draft.md")!;
+    record.scannerRevision = 0;
+    record.citekeys[0]!.raw = "roe2025";
+    const entered = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    await using harness = await createCitationIndexHarness(
+      { "draft.md": "@doe2024" },
+      {
+        store,
+        notes: false,
+        parseClient: {
+          parse: effectTestParse(async (request, signal) => {
+            entered.resolve();
+            await release.promise;
+            return Effect.runPromise(inProcessParseClient.parse(request), {
+              signal,
+            });
+          }),
         },
-      );
-      expect(
-        (
-          await harness.index.bridge.runPromise(
-            harness.index.getDocumentCitationSet(harness.draft),
-          )
-        ).occurrences.map(({ raw }) => raw),
-      ).toEqual(["roe2025"]);
-      harness.workspace.layoutReady();
-      // A completed pass also releases the wait, so a skipped stale record fails below.
-      await Promise.race([
-        entered.promise,
-        harness.index.bridge.runPromise(harness.index.whenIndexed),
-      ]);
-      expect(
-        harness.index.bridge.runSync(harness.index.citationKeys()),
-      ).toEqual(["roe2025"]);
-      release.resolve();
-      await harness.index.bridge.runPromise(harness.index.whenIndexed);
-      expect(
-        harness.index.bridge.runSync(harness.index.citationKeys()),
-      ).toEqual(["doe2024"]);
-      expect(store.records.get("draft.md")?.scannerRevision).toBe(
-        SCANNER_REVISION,
-      );
-    }),
+      },
+    );
+    expect(
+      (
+        await harness.index.bridge.runPromise(
+          harness.index.getDocumentCitationSet(harness.draft),
+        )
+      ).occurrences.map(({ raw }) => raw),
+    ).toEqual(["roe2025"]);
+    harness.workspace.layoutReady();
+    // A completed pass also releases the wait, so a skipped stale record fails below.
+    await Promise.race([
+      entered.promise,
+      harness.index.bridge.runPromise(harness.index.whenIndexed),
+    ]);
+    expect(harness.index.bridge.runSync(harness.index.citationKeys())).toEqual([
+      "roe2025",
+    ]);
+    release.resolve();
+    await harness.index.bridge.runPromise(harness.index.whenIndexed);
+    expect(harness.index.bridge.runSync(harness.index.citationKeys())).toEqual([
+      "doe2024",
+    ]);
+    expect(store.records.get("draft.md")?.scannerRevision).toBe(
+      SCANNER_REVISION,
+    );
+  }),
 );
 
 it.effect(
-  "requeues failed parses and keeps persisted citations during worker recovery (#1691)",
+  "requeues failed parses and keeps persisted citations during worker recovery",
   () =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -486,7 +482,7 @@ it.effect(
 );
 
 it.effect(
-  "bounds backfill at four in-flight notes and prunes absent paths (#1691)",
+  "bounds backfill at four in-flight notes and prunes absent paths",
   () =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -541,7 +537,7 @@ it.effect(
 );
 
 it.effect(
-  "moves an in-flight scan on rename and deletes it without parsing again (#1691)",
+  "moves an in-flight scan on rename and deletes it without parsing again",
   () =>
     Effect.promise(async () => {
       const entered = Promise.withResolvers<void>();
@@ -593,7 +589,7 @@ it.effect(
 );
 
 it.effect(
-  "restores saved citations while a startup edit is still parsing (#1691)",
+  "restores saved citations while a startup edit is still parsing",
   () =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -662,7 +658,7 @@ it.effect(
 );
 
 it.effect(
-  "gives up a throwing note and indexes its neighbours without restarting (#1691)",
+  "gives up a throwing note and indexes its neighbours without restarting",
   () =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -770,7 +766,7 @@ async function recoveringClient(connect: () => PromiseParseConnection) {
 }
 
 it.effect(
-  "keeps the connection when an edit supersedes a parse that replies before its deadline (#1691)",
+  "keeps the connection when an edit supersedes a parse that replies before its deadline",
   () =>
     Effect.promise(async () => {
       const entered = Promise.withResolvers<void>();
@@ -846,7 +842,7 @@ it.effect(
 );
 
 it.effect.each([0, 10_000])(
-  "replaces a stalled connection and replays neighbours queued %i ms later while retaining the failed note (#1691)",
+  "replaces a stalled connection and replays neighbours queued %i ms later while retaining the failed note",
   (arrival) =>
     Effect.promise(async () => {
       const store = new MemoryStore();
@@ -929,75 +925,73 @@ it.effect.each([0, 10_000])(
     }),
 );
 
-it.effect(
-  "replaces a blocked connection after its only note is deleted (#1691)",
-  () =>
-    Effect.promise(async () => {
-      const entered = Promise.withResolvers<void>();
-      let connections = 0;
-      let terminations = 0;
-      await using recovery = await recoveringClient(() => {
-        connections++;
-        const died = Promise.withResolvers<void>();
-        let blocked = false;
-        let stopped = false;
-        return {
-          died: died.promise,
-          async parse(request, signal) {
-            if (request.text === "@poison") {
-              blocked = true;
-              entered.resolve();
-            }
-            if (blocked) {
-              await died.promise;
-              throw new ParseWorkerDied({
-                message: "Blocked worker terminated",
-              });
-            }
-            return Effect.runPromise(inProcessParseClient.parse(request), {
-              signal,
+it.effect("replaces a blocked connection after its only note is deleted", () =>
+  Effect.promise(async () => {
+    const entered = Promise.withResolvers<void>();
+    let connections = 0;
+    let terminations = 0;
+    await using recovery = await recoveringClient(() => {
+      connections++;
+      const died = Promise.withResolvers<void>();
+      let blocked = false;
+      let stopped = false;
+      return {
+        died: died.promise,
+        async parse(request, signal) {
+          if (request.text === "@poison") {
+            blocked = true;
+            entered.resolve();
+          }
+          if (blocked) {
+            await died.promise;
+            throw new ParseWorkerDied({
+              message: "Blocked worker terminated",
             });
-          },
-          [Symbol.dispose]() {
-            if (stopped) return;
-            stopped = true;
-            terminations++;
-            died.resolve();
-          },
-        };
-      });
-      await using harness = await createCitationIndexHarness(
-        { "draft.md": "@poison" },
-        { notes: false, parseClient: recovery.client },
-      );
-      harness.workspace.layoutReady();
-      await entered.promise;
-      await recovery.advance(5_000);
-      harness.vault.deleteFile(harness.draft);
-      await harness.index.bridge.runPromise(harness.index.whenIndexed);
-      await recovery.advance(9_999);
-      expect(terminations).toBe(0);
-      expect(connections).toBe(1);
-      await recovery.advance(1);
-      expect(terminations).toBe(1);
-      await recovery.advance(100);
-      expect(connections).toBe(2);
-      expect(
-        harness.index.bridge.runSync(harness.index.citationKeys()),
-      ).toEqual([]);
-      expect(
-        await Effect.runPromise(
-          recovery.client.parse({
-            path: "new.md",
-            generation: 1,
-            text: "@roe2025",
-          }),
-        ),
-      ).toMatchObject({ record: { citekeys: [{ raw: "roe2025" }] } });
-    }),
+          }
+          return Effect.runPromise(inProcessParseClient.parse(request), {
+            signal,
+          });
+        },
+        [Symbol.dispose]() {
+          if (stopped) return;
+          stopped = true;
+          terminations++;
+          died.resolve();
+        },
+      };
+    });
+    await using harness = await createCitationIndexHarness(
+      { "draft.md": "@poison" },
+      { notes: false, parseClient: recovery.client },
+    );
+    harness.workspace.layoutReady();
+    await entered.promise;
+    await recovery.advance(5_000);
+    harness.vault.deleteFile(harness.draft);
+    await harness.index.bridge.runPromise(harness.index.whenIndexed);
+    await recovery.advance(9_999);
+    expect(terminations).toBe(0);
+    expect(connections).toBe(1);
+    await recovery.advance(1);
+    expect(terminations).toBe(1);
+    await recovery.advance(100);
+    expect(connections).toBe(2);
+    expect(harness.index.bridge.runSync(harness.index.citationKeys())).toEqual(
+      [],
+    );
+    expect(
+      await Effect.runPromise(
+        recovery.client.parse({
+          path: "new.md",
+          generation: 1,
+          text: "@roe2025",
+        }),
+      ),
+    ).toMatchObject({ record: { citekeys: [{ raw: "roe2025" }] } });
+  }),
 );
 
-it.effect("settles backfill when the parse worker cannot start (#1691)", () =>
+it.effect("settles backfill when the parse worker cannot start", () =>
   Effect.promise(async () => {
     const entered = Promise.withResolvers<void>();
     await using recovery = await recoveringClient(() => {
@@ -1029,7 +1023,7 @@ it.effect("settles backfill when the parse worker cannot start (#1691)", () =>
 );
 
 it.effect.each([SCANNER_REVISION, 0])(
-  "abandons a note with scanner revision %i after three worker deaths so backfill can settle (#1691)",
+  "abandons a note with scanner revision %i after three worker deaths so backfill can settle",
   (revision) =>
     Effect.promise(async () => {
       const store = new MemoryStore();

@@ -255,7 +255,7 @@ const CASES: Case[] = [
     plain: "(Doe 2020); Some Note; (Smith 2021)",
   },
   // A Citation inside another one's prefix or suffix exports as text, and its
-  // work reaches the bibliography through nocite (ADR-0081, #1699).
+  // work reaches the bibliography through nocite (ADR-0081).
   {
     name: "a Literature Note link in a citation suffix keeps the outer citation",
     markdown: "[@doe2020 with [[Smith 2021]]]",

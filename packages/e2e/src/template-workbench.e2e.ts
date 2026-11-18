@@ -20,7 +20,7 @@ import { withWorkbenchSurfaces } from "./workbench-surfaces.ts";
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
-  // #1962: every route that opens the Workbench lands in its dedicated
+  // Every route that opens the Workbench lands in its dedicated
   // window, with the Preview shown, and a second open reveals that window.
   it("opens the Workbench in its own window from a Profile, a note, and a link, and reveals it again", async () => {
     const path = `templates/${booksProfile.document}`;
@@ -376,9 +376,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(await rowsShown()).toEqual([second, title, ...rest]);
   });
 
-  // #1945, #1943: Fields and Preview are panels of the one view, so the Item
+  // Fields and Preview are panels of the one view, so the Item
   // the editor's tabs read, the Item the Fields panel lists and the Item the
-  // Preview renders are one choice. #1952: the view names that Item once, in
+  // Preview renders are one choice. The view names that Item once, in
   // the item row above the panels, beside its one chooser.
   it("names one Item in every surface after each choice from the item row", async () => {
     const path = `templates/${booksProfile.document}`;
@@ -449,7 +449,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(strip?.above).toBeGreaterThan(0);
     expect(strip?.above).toBe(strip?.below);
 
-    // #1962: Obsidian draws an element's `aria-label` as its hover tooltip.
+    // Obsidian draws an element's `aria-label` as its hover tooltip.
     // The Preview and the view's other containers name themselves through
     // `aria-labelledby`, so the pointer passes over them with no tooltip.
     const quiet = await obRun(
@@ -595,7 +595,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await names("Preview", `Book profile: ${item.title}`);
     }
 
-    // #1962: in the wide view, Choose item follows the Item's name rather
+    // In the wide view, Choose item follows the Item's name rather
     // than the far edge of the row, and a name too long for a narrow row
     // ends in an ellipsis while Choose item stays beside it on its line.
     const layout = await obRun(
@@ -640,7 +640,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(layout.narrow.room).toBeGreaterThanOrEqual(0);
   });
 
-  // #1937: Obsidian opens a modal in the window that last took focus, and a
+  // Obsidian opens a modal in the window that last took focus, and a
   // pop-out the reader works in can leave that on the main window. A chooser
   // opens in the window of the view that asked for it.
   it("opens Choose item in the pop-out window of its workbench", async () => {
@@ -702,7 +702,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(opened).toBe("its own window");
   });
 
-  // #1943: the standalone Template Data Explorer keeps its own Item. The
+  // The standalone Template Data Explorer keeps its own Item. The
   // `explore` action opens it beside an editor on another Item, and a choice
   // in either one leaves the other where it was.
   it("opens the standalone explorer from the explore action, independent of an open editor", async () => {
@@ -816,9 +816,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(JSON.parse((await explorer())!)).toEqual(opened);
   });
 
-  // #1945: the Preview is part of the view's saved state, and its edge
+  // The Preview is part of the view's saved state, and its edge
   // reports the width the view draws: the Preview column grows until the
-  // editor keeps its 360 px. The Fields popover is never saved (#1964).
+  // editor keeps its 360 px. The Fields popover is never saved.
   it("restores the Preview and its width with the workspace, and the Fields popover closed", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -853,7 +853,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             active: true,
           });
           // The leaf takes most of the window beside the tab group already
-          // there, so the Preview stands as a column (#1955).
+          // there, so the Preview stands as a column.
           type Sized = { setDimension(share: number): void };
           for (const child of (
             app.workspace.rootSplit as unknown as { children: unknown[] }
@@ -927,7 +927,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(preview.drawn).toBe(700);
     expect(preview.drawn).toBeGreaterThan(preview.container * 0.4);
     // The Preview grows until the editor keeps only its 360 px beside the
-    // column and its handle's 1 px line (#1952).
+    // column and its handle's 1 px line.
     expect(preview.max).toBe(String(preview.container - 360 - 1));
     expect(first.popover).toBe(false);
     // The reader opens the Fields popover; the saved state leaves it out.
@@ -1050,7 +1050,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(fields + 1 + editor + 1 + preview).toBeCloseTo(container, 1);
   });
 
-  // #1954: the leaf's width places the Preview: under the editor in a narrow
+  // The leaf's width places the Preview: under the editor in a narrow
   // leaf, at the right in a wide one. A resize never changes what the reader
   // chose to show, and the Preview's height under the editor is saved state.
   it("puts the Preview under the editor in a narrow leaf, back at the right in a wide one, and restores its height", async () => {
@@ -1229,7 +1229,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(restored.saved).toEqual(chosen);
   });
 
-  // #1952: 56rem (896 px) of view width is where the Preview moves between
+  // 56rem (896 px) of view width is where the Preview moves between
   // the editor's side and under it, whatever room the editor would keep.
   it("puts the Preview under the editor below a 56rem view and beside it from 56rem", async () => {
     const path = `templates/${booksProfile.document}`;
@@ -1360,7 +1360,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(wide.preview).toBe("right");
   });
 
-  // #1952: Help is a view action of its own, and opens the docs menu at the
+  // Help is a view action of its own, and opens the docs menu at the
   // button.
   it("opens the docs from the Help view action", async () => {
     const path = `templates/${booksProfile.document}`;
@@ -1442,7 +1442,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ]);
   });
 
-  // #1964: the Fields action opens the Fields popover at every width.
+  // The Fields action opens the Fields popover at every width.
   it("inserts a field from the Fields popover of a narrow leaf with the keyboard, and closes it on Escape, a press outside and the action", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -1620,7 +1620,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         // Focus stays on the row's Insert button for the next field.
         await new Promise((resolve) => el.win.setTimeout(resolve, 300));
         const keptFocus = el.doc.activeElement === doiInsert();
-        // Escape clears the search first (#1967), then closes the popover
+        // Escape clears the search first, then closes the popover
         // and hands focus to the action.
         await input.key("Escape");
         await until(
@@ -1726,7 +1726,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
   });
 
-  // #1967: a click on a row, or Enter on the row ↑/↓ selected, shows its
+  // A click on a row, or Enter on the row ↑/↓ selected, shows its
   // details; never a hover. A wide leaf shows them beside the Fields
   // popover, a narrow one in a bar at its foot.
   it("shows a field's details beside the Fields popover in a wide leaf and in a bar in a narrow one, and closes them on Copy, Insert, a press outside and Escape", async () => {
@@ -1991,7 +1991,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(JSON.parse(await walk(false))).toEqual(expected(false));
 
-    // Walkthrough of spec #1962 (F5): at 200% zoom the narrow leaf is short.
+    // Walkthrough F5: at 200% zoom the narrow leaf is short.
     // The bar gives way, so the list keeps the field's whole row under its
     // sticky section header, and the bar opens on its snippet.
     const zoomed = await obRun(
@@ -2066,7 +2066,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     "ZotLit Research Collective",
   ];
 
-  // #1969: a list goes into the note for every item. Chosen as "Each item"
+  // A list goes into the note for every item. Chosen as "Each item"
   // in its details, it writes one Markdown list line per item, which the
   // Preview shows as one list item each.
   it("inserts a list in the Each item form, and the Preview shows one list line per item", async () => {
@@ -2204,7 +2204,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(result.items).toEqual(expect.arrayContaining(ALPHA_CREATORS));
   });
 
-  // Walkthrough of spec #1962 (F3): ZotLit Research Collective is a one-field
+  // Walkthrough F3: ZotLit Research Collective is a one-field
   // name, with no family name. The details list all three creators and mark
   // that one; both forms pass over it, and the Preview shows what each form's
   // result says.
@@ -2385,7 +2385,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1966: pinned in a wide leaf, the Fields Panel docks at the leading edge
+  // Pinned in a wide leaf, the Fields Panel docks at the leading edge
   // beside the editor. It stays while the reader inserts, the action hides
   // and shows it without unpinning it, and the workspace keeps the pin, the
   // hidden state and the width.
@@ -2631,7 +2631,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1967 in the docked panel (#1966). No Scope of the panel's holds its keys
+  // In the docked panel no Scope of the panel's holds its keys
   // there, and none is needed: a reader's hotkey on Mod+Enter, live in the
   // editor, does not run while focus is in the panel's search.
   it("shows a field's details beside the docked Fields Panel with the focus in them, inserts with Mod+Enter and stays docked, and stops Escape after the search", async () => {
@@ -2861,7 +2861,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1962: with no place in the template to put a field, the Fields popover
+  // With no place in the template to put a field, the Fields popover
   // says so in its keys hint, beside a disabled Insert and in a notice for
   // Mod+Enter; its search finds a field by the path the template writes.
   it("names the missing place before an insert, and finds a field by its template path", async () => {
@@ -3010,7 +3010,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1962: a collapse or an expand keeps the section header the reader
+  // A collapse or an expand keeps the section header the reader
   // pressed where it stood in the list. A stuck header stays in view as its
   // section closes, and an expand never scrolls to a selection it shows
   // again.
@@ -3207,7 +3207,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1962: a workbench in the right-hand leaf of a split keeps a field's
+  // A workbench in the right-hand leaf of a split keeps a field's
   // details inside its own leaf, from the Fields popover and from the
   // docked Fields Panel, so they never cover the note beside it.
   it("keeps a field's details inside a workbench leaf on the right of a split, popover and docked", async () => {
@@ -3332,7 +3332,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1957: the Preview's Show problem is the shared repair command, so the
+  // The Preview's Show problem is the shared repair command, so the
   // problem round trip is the same in a narrow and a wide leaf.
   it("reveals the call from the Preview's Show problem in a narrow and a wide leaf, keeping the Preview in place", async () => {
     const path = `templates/${booksProfile.document}`;
@@ -3468,7 +3468,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               () => selected() === call,
             );
             // The reveal scrolls the call into the edit region's view, at the
-            // editor's height floor too (#1952).
+            // editor's height floor too.
             const region = el.querySelector<HTMLElement>(
               '[data-workbench-scroll="editor"]',
             )!;
@@ -3518,7 +3518,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1965: the Preview's header row stays at the top of the panel while the
+  // The Preview's header row stays at the top of the panel while the
   // preview scrolls, beside the editor and under it, and the editor's tabs
   // stand above the template source only.
   it("keeps the Preview's header row in view while the preview scrolls, beside and under the editor", async () => {
@@ -3651,7 +3651,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // #1962: the Preview and Fields panes carry their own actions, as a small
+  // The Preview and Fields panes carry their own actions, as a small
   // view header does.
   it("switches the Preview's mode and opens each pane's More options from its header", async () => {
     const path = `templates/${booksProfile.document}`;

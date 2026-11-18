@@ -123,7 +123,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       let trackOpens = false;
       let retired = false;
       const colors = toolColorStore(settings, bridge);
-      // PdfReads and the PDF.js bindings are callback edges until #1860.
+      // PdfReads and the PDF.js bindings are callback edges that reach Effect through the bridge.
       const reads = new PdfReads({
         now,
         record: ({ attachmentKey, itemKey, serverID, instant }) => {

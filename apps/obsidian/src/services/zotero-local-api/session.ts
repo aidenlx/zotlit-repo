@@ -139,7 +139,7 @@ export type LocalApiEvent =
   /**
    * Zotero refused a write, for the surface that rolls the change back and says
    * why. Every refusal is announced; what one means for the change itself is
-   * the caller's (aidenlx/zotlit#1145).
+   * the caller's.
    *
    * @param library the library the write targeted, as the route spells it.
    */
@@ -490,7 +490,7 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
    * A signal that lands while a probe is already running is coalesced into it
    * rather than dropped, so a Freshness Signal always reaches the partition it
    * invalidates however it is timed against the probe. A move of the resolved
-   * paths is the exception (#1645): the probe in flight read the port before
+   * paths is the exception: the probe in flight read the port before
    * the move, so its answer is about another Zotero. That answer is discarded
    * unseen, and the probe runs again before it settles for everyone waiting on
    * it. The last check for a move and the release of the probe happen in one
@@ -920,8 +920,7 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
 
   /**
    * One request that spends a Write Authorization — the seam every write goes
-   * through, with the method, body and preconditions its caller builds
-   * (aidenlx/zotlit#1145).
+   * through, with the method, body and preconditions its caller builds.
    *
    * The key is read here and never held: a Remembered Authorization comes fresh
    * from the store at every call, so one the user deleted in Obsidian's Keychain

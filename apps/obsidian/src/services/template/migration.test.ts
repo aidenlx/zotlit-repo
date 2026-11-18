@@ -245,7 +245,7 @@ async function makeHarness(
 }
 
 it.effect(
-  "#1705: closing a migration fixture scope disables late layout callbacks",
+  "closing a migration fixture scope disables late layout callbacks",
   () =>
     Effect.gen(function* () {
       const context = yield* Effect.context<never>();
@@ -687,7 +687,7 @@ describe("LiteratureNoteTemplateMigrationService", () => {
   );
 
   it.effect(
-    "#1904: converts the document and names a field that failed the dry run",
+    "converts the document and names a field that failed the dry run",
     () =>
       Effect.gen(function* () {
         const context = yield* Effect.context<never>();
@@ -726,7 +726,7 @@ describe("LiteratureNoteTemplateMigrationService", () => {
   );
 
   it.effect(
-    "#1904: refuses with the files and the engine's words when a template cannot render",
+    "refuses with the files and the engine's words when a template cannot render",
     () =>
       Effect.gen(function* () {
         const context = yield* Effect.context<never>();
@@ -761,7 +761,7 @@ describe("LiteratureNoteTemplateMigrationService", () => {
   );
 
   it.effect(
-    "#1904: reports a failed document write as a refusal the banner can show",
+    "reports a failed document write as a refusal the banner can show",
     () =>
       Effect.gen(function* () {
         const context = yield* Effect.context<never>();

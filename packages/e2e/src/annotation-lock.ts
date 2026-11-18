@@ -4,8 +4,6 @@ import { ATTACHMENTS } from "@zotlit/scripts/fixture";
 // The lock on an External Annotation, walked end to end: Zotero imports the
 // highlight a Fixture PDF embeds, and ZotLit then refuses every edit of it on
 // the Annotation Card and in the reader, as Zotero's own reader does.
-//
-// @see https://github.com/aidenlx/zotlit/issues/1270
 
 import { obRunUntil, obRun } from "./obsidian-cli.ts";
 import { clearNotices, waitFor } from "./obsidian-cli.ts";

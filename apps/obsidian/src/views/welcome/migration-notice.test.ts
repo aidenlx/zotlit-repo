@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 
 import { templateMigrationNotice } from "./migration-notice";
 
-it("#1904: names the properties a converted document still needs fixed", () => {
+it("names the properties a converted document still needs fixed", () => {
   const notice = templateMigrationNotice({
     outcome: "converted",
     document: "zotlit-profile.default.md",

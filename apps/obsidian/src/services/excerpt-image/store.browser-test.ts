@@ -302,7 +302,7 @@ export async function run(): Promise<string[]> {
     passed.push("latest references");
   }
   {
-    // #1862: eviction must keep its transaction even when the caller is due to yield.
+    // Eviction must keep its transaction even when the caller is due to yield.
     using store = await openExcerptStore("eviction-yield", 10 * UNIT);
     await Effect.runPromise(store.put("oldest", entry(4)));
     await Effect.runPromise(store.put("next", entry(4)));
@@ -329,7 +329,7 @@ export async function run(): Promise<string[]> {
     passed.push("eviction transaction survives scheduler pressure");
   }
   {
-    // #1862: interruption after a reference deletion rolls the whole write back.
+    // Interruption after a reference deletion rolls the whole write back.
     using store = await openExcerptStore("eviction-interrupt", 10 * UNIT);
     await Effect.runPromise(store.put("held", entry(10)));
     await store.putLatest("annotation", {

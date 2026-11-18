@@ -29,7 +29,7 @@ class TestReferencesView extends ReferencesView {
   }
 }
 
-it("#1704 refreshes an Annotation Citation's parent in References after a database change", async () => {
+it("refreshes an Annotation Citation's parent in References after a database change", async () => {
   await using harness = await createCitationIndexHarness(
     { "draft.md": `[](${annotationUri})` },
     {

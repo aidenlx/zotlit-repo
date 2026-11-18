@@ -7,7 +7,7 @@ This note cites works that the generated Zotero data holds and that no single Li
 in the Fixture Vault ends on. Each unique key below names a group-Library Item without a
 Literature Note, so it stays a cited work without a note, and the
 last key here names two Items instead of one. Use this note for the Cited Work Node states of
-spec #1052 and the source-less Citation Popover of spec #1063.
+the Citation Graph and the source-less Citation Popover.
 
 ## Unique key, no Literature Note
 

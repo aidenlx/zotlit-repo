@@ -37,7 +37,7 @@ function commands(h: CitationIndexHarness) {
 }
 
 it.effect.each(["annotation-uses", "cited-by"])(
-  "#1683 waits for an edited note before answering %s as complete",
+  "waits for an edited note before answering %s as complete",
   (command) =>
     Effect.gen(function* () {
       const run = Effect.runPromiseWith(yield* Effect.context<never>());
@@ -92,7 +92,7 @@ it.effect.each(["annotation-uses", "cited-by"])(
 );
 
 it.effect(
-  "#1683 keeps the captured annotation keys when a note changes during lookup",
+  "keeps the captured annotation keys when a note changes during lookup",
   () =>
     Effect.gen(function* () {
       const h = yield* Effect.acquireDisposable(
@@ -135,7 +135,7 @@ it.effect(
 );
 
 it.effect(
-  "#1683 captures References entries, omissions and source choices together",
+  "captures References entries, omissions and source choices together",
   () =>
     Effect.gen(function* () {
       const h = yield* Effect.acquireDisposable(
@@ -179,7 +179,7 @@ it.effect(
 );
 
 it.effect(
-  "#1683 reports incomplete coverage when a pending edit exceeds the bounded wait",
+  "reports incomplete coverage when a pending edit exceeds the bounded wait",
   () =>
     Effect.gen(function* () {
       const run = Effect.runPromiseWith(yield* Effect.context<never>());
@@ -228,7 +228,7 @@ it.effect(
 );
 
 it.effect.each(["references", "cited-by", "annotation-uses"])(
-  "#1683 refreshes saved text before its metadata event for %s",
+  "refreshes saved text before its metadata event for %s",
   (command) =>
     Effect.gen(function* () {
       const h = yield* Effect.acquireDisposable(
@@ -265,7 +265,7 @@ it.effect.each(["references", "cited-by", "annotation-uses"])(
 );
 
 it.effect.each(["references", "cited-by", "annotation-uses"])(
-  "#1683 bounds a stale saved scan refresh for %s",
+  "bounds a stale saved scan refresh for %s",
   (command) =>
     Effect.gen(function* () {
       const h = yield* Effect.acquireDisposable(

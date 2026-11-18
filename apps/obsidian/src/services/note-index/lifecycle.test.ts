@@ -24,7 +24,7 @@ import {
 import { NoteIndex } from "./service";
 import type { NoteIndexChange } from "./service";
 
-// #1705: recursive YAML aliases fail serialization at the real host boundary.
+// Recursive YAML aliases fail serialization at the real host boundary.
 it.effect(
   "a failed metadata update leaves the next valid update consumable",
   () =>
@@ -47,32 +47,30 @@ it.effect(
     }),
 );
 
-it.effect(
-  "a failed rename settles whenSettled before scope close (#1705)",
-  () =>
-    Effect.gen(function* () {
-      const host = createNoteHost(
-        { "paper.txt": cache({}) },
-        { enabledAtRuntime: true },
-      );
-      const index = yield* noteIndexOf(host);
-      const recursive: Record<string, unknown> = {};
-      recursive["self"] = recursive;
-      host.metadataCache.setCache(
-        "paper.txt",
-        cache({ itemKey: "ABCD2345", properties: { recursive } }),
-      );
-      const file = host.vault.renameFile("paper.txt", "paper.md");
-      yield* index.whenSettled;
-      expect(yield* index.getIndexedItemKeys).toEqual([]);
-      host.metadataCache.change(file, cache({ itemKey: "ZZZ99999" }));
-      yield* index.whenSettled;
-      expect(yield* index.getIndexedItemKeys).toEqual(["ZZZ99999"]);
-    }),
+it.effect("a failed rename settles whenSettled before scope close", () =>
+  Effect.gen(function* () {
+    const host = createNoteHost(
+      { "paper.txt": cache({}) },
+      { enabledAtRuntime: true },
+    );
+    const index = yield* noteIndexOf(host);
+    const recursive: Record<string, unknown> = {};
+    recursive["self"] = recursive;
+    host.metadataCache.setCache(
+      "paper.txt",
+      cache({ itemKey: "ABCD2345", properties: { recursive } }),
+    );
+    const file = host.vault.renameFile("paper.txt", "paper.md");
+    yield* index.whenSettled;
+    expect(yield* index.getIndexedItemKeys).toEqual([]);
+    host.metadataCache.change(file, cache({ itemKey: "ZZZ99999" }));
+    yield* index.whenSettled;
+    expect(yield* index.getIndexedItemKeys).toEqual(["ZZZ99999"]);
+  }),
 );
 
 it.effect(
-  "a failed Full Scan settles whenIndexed and permits later updates (#1705)",
+  "a failed Full Scan settles whenIndexed and permits later updates",
   () =>
     Effect.gen(function* () {
       const recursive: Record<string, unknown> = {};
@@ -92,7 +90,7 @@ it.effect(
     }),
 );
 
-// #1705: host callbacks publish; one consumer applies the ordered input.
+// Host callbacks publish; one consumer applies the ordered input.
 it.effect(
   "applies a burst of published metadata and vault events in arrival order",
   () =>
@@ -125,7 +123,7 @@ it.effect(
     }),
 );
 
-// #1705: use the same graph barrier as plugin startup before reading the index.
+// Use the same graph barrier as plugin startup before reading the index.
 it.effect(
   "the built runtime exposes the first scan when layout and cache are ready",
   () =>
@@ -169,7 +167,7 @@ it.effect(
     }),
 );
 
-// #1705: completion covers every queued rename read, including key restoration.
+// Completion covers every queued rename read, including key restoration.
 it.effect("whenSettled waits for queued renames to restore their keys", () =>
   Effect.gen(function* () {
     const host = createNoteHost(

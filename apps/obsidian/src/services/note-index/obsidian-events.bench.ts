@@ -1,4 +1,4 @@
-// #1705: the reviewer's 50,000-event probe, through the real NoteIndex.
+// A 50,000-event probe, through the real NoteIndex.
 // Run on an idle host: pnpm --filter @zotlit/obsidian bench src/services/note-index/obsidian-events.bench.ts
 // Three warm-ups, nine measured bursts; acquisition and assertions are untimed.
 import { it } from "@effect/vitest";
@@ -12,7 +12,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { cache, createNoteHost, noteIndexOf } from "./__fixtures__";
 
-it.live("measures metadata event dispatch (#1705)", () =>
+it.live("measures metadata event dispatch", () =>
   Effect.gen(function* () {
     const host = createNoteHost(
       { "paper.md": cache({ itemKey: "ABCD2345" }), "paper.txt": cache({}) },

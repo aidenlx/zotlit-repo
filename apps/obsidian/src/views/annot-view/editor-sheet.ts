@@ -470,8 +470,6 @@ const CONFLICT_VERB: Record<ConflictVerb, keyof ConflictActions> = {
  * as a click on the resting comment does, and raises the notice while the
  * edit is blocked (ADR 0066); otherwise the held text is for reading and
  * copying.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1145
  */
 export function renderHeldDraftPanel(
   parent: HTMLElement,
@@ -579,8 +577,6 @@ function heldReasonAndVerbs(
  * A Write Conflict: the fresh Zotero value beside what the user asked for, and
  * the two verbs that end it. Applying again is a write, so it rests disabled
  * while the Editing Capability refuses one; discarding never is.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1151
  */
 export function renderConflictPanel(
   parent: HTMLElement,

@@ -139,10 +139,10 @@ function findExactHandler(
 }
 
 /**
- * Same defect as discussion #644, in the quick switcher: the modal advertised
- * a Mod+Enter chord for "open in new pane", but Obsidian's suggestion popup
- * registers `Enter` with no modifiers and matches them exactly, so the
- * keypress reached no handler and the modal just sat there.
+ * The same defect as in the citation insert modal, in the quick switcher: the
+ * modal advertised a Mod+Enter chord for "open in new pane", but Obsidian's
+ * suggestion popup registers `Enter` with no modifiers and matches them
+ * exactly, so the keypress reached no handler and the modal just sat there.
  */
 describe("QuickSwitchModal keymap", () => {
   it("selects the highlighted suggestion when Mod+Enter fires", () => {
@@ -189,8 +189,7 @@ describe("QuickSwitchModal instructions", () => {
   });
 
   it("labels the new-pane chord as Ctrl off macOS", () => {
-    // The reporter of #644 was on Linux, where a hardcoded ⌘ names a key the
-    // keyboard does not have.
+    // On Linux a hardcoded ⌘ names a key the keyboard does not have.
     expect(capture(false)).toContain("Ctrl↵");
   });
 

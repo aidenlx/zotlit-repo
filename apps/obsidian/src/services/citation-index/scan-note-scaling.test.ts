@@ -1,4 +1,4 @@
-// #1689: unmatched math openers must not repeatedly scan the paragraph suffix.
+// Unmatched math openers must not repeatedly scan the paragraph suffix.
 // Same harness shape as packages/templates/src/pandoc-citation-scaling.test.ts: keep the two in step.
 import { expect, it } from "vitest";
 
@@ -16,7 +16,7 @@ it.each([
     links: [],
   },
 ])(
-  "scans $name in linear time (#1689)",
+  "scans $name in linear time",
   ({ source, links }) => {
     const counts = [2_000, 4_000, 8_000, 16_000];
     const sources = counts.map(source);

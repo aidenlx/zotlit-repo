@@ -168,8 +168,6 @@ it("raises no second dialog once an authorization is remembered", async () => {
  * that is not a button press, and Zotero maps slot 1 to Always Allow, so
  * closing the dialog grants a persistent key. ZotLit cannot treat it as a
  * refusal, because Zotero does not report one.
- *
- * @see https://github.com/aidenlx/zotlit/issues/1144
  */
 it.each<[string, () => Response]>([
   ["Always Allow", () => authorized({ remember: true })],

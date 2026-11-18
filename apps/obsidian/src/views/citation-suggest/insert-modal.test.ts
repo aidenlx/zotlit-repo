@@ -92,7 +92,7 @@ function makeModal(
 }
 
 /**
- * Regression for discussion #644: the modal advertises `⇧↵` for the alternate
+ * Regression: the modal advertises `⇧↵` for the alternate
  * citation, but Obsidian's suggestion popup registers `Enter` with no
  * modifiers and matches them exactly, so Shift+Enter reached no handler at all
  * and the modal just sat there. The modal has to register the chord itself.
@@ -191,47 +191,45 @@ describe("InsertCitationModal ambiguity", () => {
 });
 
 describe("InsertCitationModal Uses", () => {
-  effectIt.effect(
-    "#1857 unload cancels insertion without a notice or Use",
-    () =>
-      Effect.promise(async () => {
-        const started = Promise.withResolvers<void>();
-        const renderCitation = vi.fn(() => "[@doe2024]");
-        const record = vi.fn<(key: string, kind: UseKind) => void>();
-        const draft = editor();
-        const modal = makeModal(
-          {
-            bridge,
-            noteFeature: { renderCitation },
-            citationLookup: {
-              current: Effect.succeed({
-                status: "fresh",
-                revision: null,
-                stopped: false,
-              }),
-              read: () =>
-                Effect.sync(() => started.resolve()).pipe(
-                  Effect.andThen(Effect.never),
-                ),
-            },
-            useLedger: {
-              record: (key, kind) =>
-                Effect.sync(() => {
-                  record(key, kind);
-                  return { instant: DateTime.makeUnsafe(0), kind };
-                }),
-            },
+  effectIt.effect("unload cancels insertion without a notice or Use", () =>
+    Effect.promise(async () => {
+      const started = Promise.withResolvers<void>();
+      const renderCitation = vi.fn(() => "[@doe2024]");
+      const record = vi.fn<(key: string, kind: UseKind) => void>();
+      const draft = editor();
+      const modal = makeModal(
+        {
+          bridge,
+          noteFeature: { renderCitation },
+          citationLookup: {
+            current: Effect.succeed({
+              status: "fresh",
+              revision: null,
+              stopped: false,
+            }),
+            read: () =>
+              Effect.sync(() => started.resolve()).pipe(
+                Effect.andThen(Effect.never),
+              ),
           },
-          draft.editor,
-        );
-        const pending = modal.onChooseSuggestion(searchHit(), {} as MouseEvent);
-        await started.promise;
-        await bridge[Symbol.asyncDispose]();
-        await pending;
-        expect(draft.text()).toBe("");
-        expect(renderCitation).not.toHaveBeenCalled();
-        expect(record).not.toHaveBeenCalled();
-      }),
+          useLedger: {
+            record: (key, kind) =>
+              Effect.sync(() => {
+                record(key, kind);
+                return { instant: DateTime.makeUnsafe(0), kind };
+              }),
+          },
+        },
+        draft.editor,
+      );
+      const pending = modal.onChooseSuggestion(searchHit(), {} as MouseEvent);
+      await started.promise;
+      await bridge[Symbol.asyncDispose]();
+      await pending;
+      expect(draft.text()).toBe("");
+      expect(renderCitation).not.toHaveBeenCalled();
+      expect(record).not.toHaveBeenCalled();
+    }),
   );
 
   function editor(value = "") {

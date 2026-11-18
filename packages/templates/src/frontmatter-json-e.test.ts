@@ -41,7 +41,7 @@ describe("Managed Frontmatter JSON-e values", () => {
       ["reference/book", "reference/book/monograph"],
     ],
     ["another tag", [{ name: "Reference" }], ["reference/book"]],
-  ])("selects the #645 value for $case", (_case, tags, expected) => {
+  ])("selects the conditional value for $case", (_case, tags, expected) => {
     expect(
       render(
         {
@@ -55,7 +55,7 @@ describe("Managed Frontmatter JSON-e values", () => {
     ).toEqual(expected);
   });
 
-  it("makes the #645 field absent when its condition is false", () => {
+  it("makes the field absent when its condition is false", () => {
     expect(
       render(
         {

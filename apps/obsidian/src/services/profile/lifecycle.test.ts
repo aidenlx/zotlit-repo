@@ -12,7 +12,7 @@ import { TemplateOperationError } from "@/services/template/errors";
 import { profileOver, profileRuntimeOf } from "./__fixtures__";
 import { Profile } from "./service";
 
-it.effect("#1705: a built Profile exposes and replays its first registry", () =>
+it.effect("a built Profile exposes and replays its first registry", () =>
   Effect.gen(function* () {
     const host = createTemplateHost({
       "templates/zotlit-profile.books.md": `---
@@ -39,7 +39,7 @@ Annotation`,
 );
 
 it.effect(
-  "#1705: a plain subscription attaches before two immediate settings changes",
+  "a plain subscription attaches before two immediate settings changes",
   () =>
     Effect.gen(function* () {
       const { bridge, profile, settings } =
@@ -62,37 +62,32 @@ it.effect(
     }),
 );
 
-it.effect(
-  "#1705: a late Profile subscriber sees Template startup failure",
-  () =>
-    Effect.gen(function* () {
-      const host = createTemplateHost();
-      yield* Effect.acquireDisposable(
-        Effect.sync(() =>
-          vi.spyOn(host.vault, "getFolderByPath").mockImplementationOnce(() => {
-            throw new Error("Vault unavailable");
-          }),
-        ),
-      );
-      const profile = Context.get(
-        yield* Layer.build(profileOver(host)),
-        Profile,
-      );
-      const states = yield* Stream.runCollect(Stream.take(profile.changes, 1));
-      expect(states[0]).toMatchObject({
-        loaded: false,
-        profiles: [],
-        templateStatus: { state: "init-failed" },
-      });
-      expect(states[0]?.failure).toBeDefined();
-      expect(
-        yield* Effect.flip(profile.resolveProfile("default")),
-      ).toMatchObject({ _tag: "ProfileOperationError" });
-    }),
+it.effect("a late Profile subscriber sees Template startup failure", () =>
+  Effect.gen(function* () {
+    const host = createTemplateHost();
+    yield* Effect.acquireDisposable(
+      Effect.sync(() =>
+        vi.spyOn(host.vault, "getFolderByPath").mockImplementationOnce(() => {
+          throw new Error("Vault unavailable");
+        }),
+      ),
+    );
+    const profile = Context.get(yield* Layer.build(profileOver(host)), Profile);
+    const states = yield* Stream.runCollect(Stream.take(profile.changes, 1));
+    expect(states[0]).toMatchObject({
+      loaded: false,
+      profiles: [],
+      templateStatus: { state: "init-failed" },
+    });
+    expect(states[0]?.failure).toBeDefined();
+    expect(yield* Effect.flip(profile.resolveProfile("default"))).toMatchObject(
+      { _tag: "ProfileOperationError" },
+    );
+  }),
 );
 
 it.effect(
-  "#1705: failed Template startup rejects Default restoration before touching the document",
+  "failed Template startup rejects Default restoration before touching the document",
   () =>
     Effect.gen(function* () {
       const path = "templates/zotlit-profile.default.md";
@@ -117,7 +112,7 @@ it.effect(
 );
 
 it.effect(
-  "#1705: failed Template startup blocks Default creation through either write entry point",
+  "failed Template startup blocks Default creation through either write entry point",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost();
@@ -142,7 +137,7 @@ it.effect(
 );
 
 it.effect(
-  "#1705: runtime disposal stops Profile listeners and calls, and retains the plain sync reads",
+  "runtime disposal stops Profile listeners and calls, and retains the plain sync reads",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost();
@@ -192,7 +187,7 @@ it.effect(
 );
 
 it.effect(
-  "#1705: runtime disposal waits for a Profile document write already started",
+  "runtime disposal waits for a Profile document write already started",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost();
@@ -227,7 +222,7 @@ it.effect(
 );
 
 it.effect.each(["read", "create", "duplicate", "save"] as const)(
-  "#1705, #1792: a stalled Profile source %s does not hold runtime disposal",
+  "a stalled Profile source %s does not hold runtime disposal",
   (operation) =>
     Effect.gen(function* () {
       const host = createTemplateHost();
@@ -281,7 +276,7 @@ it.effect.each(["read", "create", "duplicate", "save"] as const)(
 );
 
 it.effect(
-  "#1792: disposal interrupts a Profile write waiting for the first note index",
+  "disposal interrupts a Profile write waiting for the first note index",
   () =>
     Effect.gen(function* () {
       const host = createTemplateHost({
@@ -325,7 +320,7 @@ Annotation`,
     }),
 );
 
-it.effect("#1792: a Profile create preserves the FileExists error type", () =>
+it.effect("a Profile create preserves the FileExists error type", () =>
   Effect.gen(function* () {
     const host = createTemplateHost();
     const { profileService } = yield* profileRuntimeOf(host);
