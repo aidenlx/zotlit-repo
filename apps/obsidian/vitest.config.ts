@@ -1,16 +1,13 @@
 import preact from "@preact/preset-vite";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 import { pandocFilterVariants } from "@zotlit/citations/vite";
 import { testDefaults } from "@zotlit/config/vitest";
-import {
-  obsidianMock,
-  obsidianSetupFile,
-  packageSource,
-} from "@zotlit/obsidian-kit/vitest";
+import { obsidianMock, obsidianSetupFile } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
+import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
 
 const packageRoot = import.meta.dirname;
 
@@ -43,6 +40,11 @@ export default defineConfig({
         packageRoot,
         "__mocks__/worker-source.ts",
       ),
+      // The host's composition names the ZoteroReads worker bundle too.
+      "virtual:zotero-reads-worker": resolve(
+        packageRoot,
+        "__mocks__/worker-source.ts",
+      ),
     },
     tsconfigPaths: true,
   },
@@ -70,22 +72,9 @@ export default defineConfig({
       scopes: [
         resolve(packageRoot, "src"),
         resolve(packageRoot, "scripts"),
-        packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
-        packageSource(
-          import.meta.resolve("@zotlit/obsidian-desktop/package.json"),
-        ),
-        packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
-        packageSource(
-          import.meta.resolve("@zotlit/plugin-services/package.json"),
-        ),
-        packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
-        packageSource(import.meta.resolve("@zotlit/citations/package.json")),
-        packageSource(import.meta.resolve("@zotlit/notes/package.json")),
-        packageSource(
-          import.meta.resolve("@zotlit/template-workbench/package.json"),
-        ),
-        packageSource(import.meta.resolve("@zotlit/query-views/package.json")),
-        packageSource(import.meta.resolve("@zotlit/library-view/package.json")),
+        ...pluginPackages(packageRoot)
+          .filter(({ name }) => name !== PLUGIN_KERNEL)
+          .map(({ root }) => join(root, "src")),
       ],
     }),
     preact(),

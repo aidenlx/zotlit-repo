@@ -33,9 +33,15 @@ import { literatureNoteItems, profilesPage } from "./profiles.ts";
 import { resourcesGroup } from "./resources.ts";
 import { zoteroPageItems } from "./zotero.ts";
 
-vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
-  openTemplateWorkbench: vi.fn(() => Effect.void),
-}));
+vi.mock(
+  "@zotlit/template-workbench/desktop/view/open.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/template-workbench/desktop/view/open.ts")
+    >()),
+    openTemplateWorkbench: vi.fn(() => Effect.void),
+  }),
+);
 
 function ctx(): SettingTabContext {
   return stubService<SettingTabContext>("SettingTabContext", {

@@ -10,7 +10,6 @@ import { analyzer, unstableRolldownAdapter } from "vite-bundle-analyzer";
 
 import { pandocFilterVariants } from "@zotlit/citations/vite";
 import { obsidianI18n } from "@zotlit/obsidian-i18n/vite";
-import { packageSource } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
 import {
   EXCLUDE_MESSAGE_PREFIXES,
@@ -24,6 +23,7 @@ import {
   parseMinElectronVersion,
 } from "@zotlit/scripts/obsidian-manifest";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
+import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
 
 import packageJson from "./package.json" with { type: "json" };
 import {
@@ -57,16 +57,9 @@ const messagesDirectory = fileURLToPath(
 const pluginCode = [
   resolve(import.meta.dirname, "src"),
   resolve(import.meta.dirname, "scripts"),
-  packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
-  packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
-  packageSource(import.meta.resolve("@zotlit/zotero-reads/package.json")),
-  packageSource(import.meta.resolve("@zotlit/plugin-services/package.json")),
-  packageSource(import.meta.resolve("@zotlit/annotations/package.json")),
-  packageSource(import.meta.resolve("@zotlit/citations/package.json")),
-  packageSource(import.meta.resolve("@zotlit/notes/package.json")),
-  packageSource(import.meta.resolve("@zotlit/template-workbench/package.json")),
-  packageSource(import.meta.resolve("@zotlit/query-views/package.json")),
-  packageSource(import.meta.resolve("@zotlit/library-view/package.json")),
+  ...pluginPackages(import.meta.dirname)
+    .filter(({ name }) => name !== PLUGIN_KERNEL)
+    .map(({ root }) => join(root, "src")),
 ];
 const fullContractIRPath = fileURLToPath(
   import.meta.resolve("@zotlit/db/contract/ir.json"),

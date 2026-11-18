@@ -1,7 +1,7 @@
 // Borrowing the PDF document an open reader already holds, and the revision
 // proof a borrowed document passes before excerpt work crops from it.
 
-import { Effect } from "effect";
+import { Context, Effect, Layer } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
@@ -100,6 +100,22 @@ export interface ExcerptReaderDocuments {
    */
   borrow(path: string): BorrowedExcerptDocument | null;
 }
+
+/**
+ * The one holder through which the PDF reader hands its documents to the
+ * excerpt service: the excerpt service builds before the reader, and a crop
+ * answers detached while the holder is empty.
+ */
+export class ExcerptReaders extends Context.Service<
+  ExcerptReaders,
+  ExcerptReaderDocuments
+>()("zotlit/annotations/ExcerptReaders") {}
+
+/** An empty holder, which the PDF reader fills as it binds. */
+export const layerExcerptReaders: Layer.Layer<ExcerptReaders> = Layer.sync(
+  ExcerptReaders,
+  (): ExcerptReaderDocuments => ({ borrow: () => null }),
+);
 
 /**
  * One borrowed crop: the reader's own page, and the live check that the

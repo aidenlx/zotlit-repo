@@ -1,0 +1,48 @@
+{
+  "name": "@zotlit/plugin-shell",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The host shell every ZotLit Obsidian plugin is built on: the plugin class and its lifecycle, the runtime that builds the Layer graph from the features a host composes, start-up failure handling, the platform services as a feature, and the setting tab shell",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@effect/platform-node": "catalog:",
+    "@zotlit/obsidian-desktop": "workspace:*",
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
+    "effect": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "preact": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -26,6 +26,7 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/query-views": "workspace:*",
     "@zotlit/scripts": "workspace:*",

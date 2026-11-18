@@ -18,13 +18,15 @@ import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/ser
 import type { LanguagePackSituation } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { layerSettingTab } from "@zotlit/plugin-shell/obsidian/setting-tab/layer.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
+import { features } from "@/features.ts";
+import { host } from "@/host.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { unimplementedTabServices } from "./__fixtures__.ts";
-import { layerSettingTab } from "./layer.ts";
 
 const CONNECTION: WorkbenchConnection = {
   origin: "https://zotlit.aidenlx.site",
@@ -119,7 +121,9 @@ const tabLayer = Effect.gen(function* () {
     ),
   );
   yield* Layer.build(
-    layerSettingTab({ webWorkbenchEnabled: true }).pipe(
+    layerSettingTab(features, host.settingTab, {
+      webWorkbenchEnabled: true,
+    }).pipe(
       Layer.provide(testNotifier().layer),
       // The test gives the services the tab layer itself reads; the rest
       // stay unimplemented.

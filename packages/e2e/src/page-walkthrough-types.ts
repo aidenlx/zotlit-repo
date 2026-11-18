@@ -8,8 +8,7 @@ import type {
 } from "obsidian";
 
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-
-import type { ZotLitSettingTab } from "@/setting-tab/index.ts";
+import type { ShellSettingTab } from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
 
 import type { PageApp } from "./page-host.ts";
 
@@ -33,7 +32,7 @@ export interface WalkthroughEditorSuggest {
 }
 export type WalkthroughApp = PageApp & {
   internalPlugins: { plugins: { sync: { enabled: boolean } } };
-  plugins: { plugins: { zotlit: { settingTab: ZotLitSettingTab } } };
+  plugins: { plugins: { zotlit: { settingTab: ShellSettingTab } } };
   workspace: { editorSuggest: WalkthroughEditorSuggest };
   vault: {
     adapter: FileSystemAdapter;

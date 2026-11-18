@@ -72,6 +72,7 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/obsidian-desktop",
   "packages/zotero-reads",
   "packages/plugin-services",
+  "packages/plugin-shell",
   "packages/annotations",
   "packages/citations",
   "packages/notes",

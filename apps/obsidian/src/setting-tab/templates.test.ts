@@ -28,12 +28,24 @@ import { openNewPartialPrompt } from "@zotlit/template-workbench/obsidian/view/n
 import { rebuildingSettingTab } from "./__fixtures__.ts";
 import { citationTextItems, partialItems } from "./templates.ts";
 
-vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
-  openTemplateWorkbench: vi.fn(() => Effect.void),
-}));
-vi.mock("@zotlit/template-workbench/obsidian/view/new-partial.ts", () => ({
-  openNewPartialPrompt: vi.fn(),
-}));
+vi.mock(
+  "@zotlit/template-workbench/desktop/view/open.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/template-workbench/desktop/view/open.ts")
+    >()),
+    openTemplateWorkbench: vi.fn(() => Effect.void),
+  }),
+);
+vi.mock(
+  "@zotlit/template-workbench/obsidian/view/new-partial.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/template-workbench/obsidian/view/new-partial.ts")
+    >()),
+    openNewPartialPrompt: vi.fn(),
+  }),
+);
 
 /**
  * The tab context over `template` and `vault`, with a settings window that

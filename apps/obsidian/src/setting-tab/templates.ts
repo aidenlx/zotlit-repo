@@ -8,6 +8,7 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
+import { templateSettings } from "@zotlit/notes/core/template/settings.ts";
 import { reportCitationTemplateOpen } from "@zotlit/notes/obsidian/template/actions.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
@@ -26,7 +27,6 @@ import { createSharedPartial } from "@zotlit/template-workbench/desktop/view/par
 import type { AutoTrim } from "@zotlit/templates/constants";
 
 import { appendCompileError } from "./compile-error.ts";
-import { defaultPlaceholder } from "./placeholder.ts";
 
 /** Auto-trim dropdown sentinel for "keep whitespace" (`false` isn't a string). */
 const TRIM_KEEP = "keep";
@@ -78,7 +78,7 @@ export function templateEngineItems(
       control: {
         type: "folder",
         key: "template.folder",
-        placeholder: defaultPlaceholder("template.folder"),
+        placeholder: templateSettings.defaults["template.folder"],
       },
     },
     {

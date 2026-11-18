@@ -1,0 +1,16 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "types": ["node-24"],
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "../obsidian-kit/src/typings/*.d.ts",
+    // The build constants the platform services read.
+    "../plugin-services/src/typings/*.d.ts"
+  ],
+  "exclude": ["./node_modules"]
+}

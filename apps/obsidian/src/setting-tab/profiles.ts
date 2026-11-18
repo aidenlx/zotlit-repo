@@ -15,8 +15,11 @@ import {
   importProfileDialog,
   shareProfile,
 } from "@zotlit/notes/desktop/profile/dialogs.ts";
+import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { profileControlKey } from "@zotlit/notes/obsidian/profile/setting-controls.ts";
+import type { ProfileControlKey } from "@zotlit/notes/obsidian/profile/setting-controls.ts";
+import { profileSettings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
@@ -26,7 +29,10 @@ import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
+import type {
+  SettingsKey,
+  SettingTabContext,
+} from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { SettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import type { SettingTabEnv } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -35,12 +41,20 @@ import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/custo
 import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 
 import { referencesStyleDefinition } from "./citations.ts";
-import type { SettingsControlKey } from "./controls.ts";
 import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
-import { defaultProfileBindingPlaceholder } from "./placeholder.ts";
 import { partialItems } from "./templates.ts";
 
 /** The excluded document left the excluded list before its delete. */
+/** Default Profile binding value for a nested declarative control. */
+function defaultBinding(
+  key: keyof ResolvedLiteratureNoteProfileBindings,
+): string {
+  return String(profileSettings.defaults["note.default-profile"].bindings[key]);
+}
+
+/** The keys a declarative `control` of these rows binds: a settings key or a default Profile binding. */
+type SettingsControlKey = SettingsKey | ProfileControlKey;
+
 export class ExcludedDocumentChanged extends Schema.TaggedError<
   ExcludedDocumentChanged,
   { readonly brand: unique symbol }
@@ -110,7 +124,7 @@ export function literatureNoteItems(
       control: {
         type: "folder",
         key: profileControlKey("default", "folder"),
-        placeholder: defaultProfileBindingPlaceholder("note.literature-folder"),
+        placeholder: defaultBinding("note.literature-folder"),
       },
     },
     {
@@ -120,7 +134,7 @@ export function literatureNoteItems(
       control: {
         type: "folder",
         key: profileControlKey("default", "import-folder"),
-        placeholder: defaultProfileBindingPlaceholder("note.import-folder"),
+        placeholder: defaultBinding("note.import-folder"),
       },
     },
     referencesStyleDefinition(ctx),

@@ -701,6 +701,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../../packages/plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../../packages/plugin-shell
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -976,6 +979,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1112,6 +1118,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
@@ -1371,6 +1380,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -1560,6 +1572,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/query-views':
         specifier: workspace:*
         version: link:../query-views
@@ -1684,6 +1699,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -2218,6 +2236,79 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
+  packages/plugin-shell:
+    dependencies:
+      '@effect/platform-node':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(redis@6.3.0)
+      '@zotlit/obsidian-desktop':
+        specifier: workspace:*
+        version: link:../obsidian-desktop
+      '@zotlit/obsidian-kit':
+        specifier: workspace:*
+        version: link:../obsidian-kit
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../plugin-kernel
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../plugin-messages
+      '@zotlit/plugin-services':
+        specifier: workspace:*
+        version: link:../plugin-services
+      '@zotlit/zotero-reads':
+        specifier: workspace:*
+        version: link:../zotero-reads
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+      valibot:
+        specifier: 'catalog:'
+        version: 1.4.2(typescript@7.0.2)
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+      '@logtape/logtape':
+        specifier: 'catalog:'
+        version: 2.1.0
+      '@preact/preset-vite':
+        specifier: 'catalog:'
+        version: 2.10.6(@babel/core@7.29.7(supports-color@10.2.2))(preact@11.0.0-rc.2)(supports-color@10.2.2)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/node-24':
+        specifier: 'catalog:'
+        version: '@types/node@24.13.3'
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      '@zotlit/scripts':
+        specifier: workspace:*
+        version: link:../scripts
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.9.0
+      obsidian:
+        specifier: 'catalog:'
+        version: 1.14.4(@codemirror/state@6.7.6)(@codemirror/view@6.43.13)
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      preact:
+        specifier: 'catalog:'
+        version: 11.0.0-rc.2
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/protocol:
     dependencies:
       '@zotlit/zotero-types':
@@ -2281,6 +2372,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared
@@ -2529,6 +2623,9 @@ importers:
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../plugin-services
+      '@zotlit/plugin-shell':
+        specifier: workspace:*
+        version: link:../plugin-shell
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates

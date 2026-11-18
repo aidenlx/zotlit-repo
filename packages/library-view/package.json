@@ -31,6 +31,7 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/query-views": "workspace:*",
     "@zotlit/templates": "workspace:*",
     "@zotlit/ui": "workspace:*",

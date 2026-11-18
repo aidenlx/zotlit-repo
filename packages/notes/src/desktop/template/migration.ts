@@ -457,6 +457,15 @@ export interface TemplateMigrationOptions<R = never> {
   openPrompt: () => void | Promise<void>;
 }
 
+/**
+ * Where the template conversion prompts the user: the host's onboarding
+ * surface (`@zotlit/library-view` opens the Welcome View) fills it.
+ */
+export class TemplateMigrationPrompt extends Context.Service<
+  TemplateMigrationPrompt,
+  Pick<TemplateMigrationOptions, "openPrompt">
+>()("zotlit/template/TemplateMigrationPrompt") {}
+
 export class TemplateMigration extends Context.Service<
   TemplateMigration,
   {

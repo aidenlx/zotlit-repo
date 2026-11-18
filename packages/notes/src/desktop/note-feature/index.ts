@@ -1,5 +1,3 @@
-export { NoteFeature } from "./service.ts";
-export { bindNoteFeature } from "./handle.ts";
 export {
   applyComposedFrontmatter,
   composeLiteratureNote,
@@ -33,7 +31,6 @@ export {
   type CreationSelectionProblem,
   type ProfileNotePreview,
   type ProfilePreview,
-  type NoteFeatureHandle,
   type UpdateResult,
   type UpdateScope,
 } from "./operations.ts";

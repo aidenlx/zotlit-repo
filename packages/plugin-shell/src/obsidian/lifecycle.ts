@@ -4,7 +4,7 @@ import { Plugin } from "obsidian";
 
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
-import { releaseKeyDescription } from "@/plugin-release-key.ts";
+import { releaseKeyDescription } from "#core/release-key.ts";
 
 const logger = getLogger("plugin-lifecycle");
 

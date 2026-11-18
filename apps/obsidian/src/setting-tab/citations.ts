@@ -7,7 +7,10 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { citationLocaleError } from "@zotlit/citations/core/citation-index/settings.ts";
+import {
+  citationLocaleError,
+  citationSettings,
+} from "@zotlit/citations/core/citation-index/settings.ts";
 import type { HoverAction } from "@zotlit/citations/core/citation-index/settings.ts";
 import {
   referencesStyleOptions,
@@ -35,8 +38,6 @@ import type {
 import { paintEach } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { annotationTriggerError } from "@zotlit/query-views/core/annotation-suggest/annotation-trigger.ts";
-
-import { defaults } from "@/services/settings/schema.ts";
 
 import { citationTextItems } from "./templates.ts";
 
@@ -84,7 +85,8 @@ export function citationsPageItems(
                 control: {
                   type: "text",
                   key: "citation.annotation-trigger",
-                  placeholder: defaults["citation.annotation-trigger"],
+                  placeholder:
+                    citationSettings.defaults["citation.annotation-trigger"],
                   validate: annotationTriggerError,
                 },
               } satisfies SettingDefinitionItem<SettingsKey>,

@@ -48,7 +48,7 @@ export function registerAnnotView(
  * Popup's reveal verb, and a notice's reveal.
  */
 export async function revealAnnotationInView(
-  plugin: AnnotViewPlugin,
+  plugin: Pick<Plugin, "app">,
   annotationKey: string,
 ): Promise<void> {
   await activateAnnotView(plugin.app);

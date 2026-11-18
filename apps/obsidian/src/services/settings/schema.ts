@@ -1,71 +1,26 @@
-// The settings this plugin keeps: the slices of the platform services and of
-// every feature, composed into the one definition `PluginSettings` loads.
-// Each slice registers itself in `SettingsRegistry` beside its owner; the
-// check below keeps this list equal to the registered keys.
-import * as v from "valibot";
+// The settings this plugin keeps: the slices of its features, composed by the
+// shell into the one definition `PluginSettings` loads. Each slice registers
+// itself in `SettingsRegistry` beside its owner; the check below keeps the
+// composition equal to the registered keys.
+import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
+import { settingsDefinitionOf } from "@zotlit/plugin-shell/obsidian/compose.ts";
+import type { ComposedSettings } from "@zotlit/plugin-shell/obsidian/feature.ts";
 
-import { readerSettings } from "@zotlit/annotations/obsidian/pdf-annotation-editor/settings.ts";
-import { citationSettings } from "@zotlit/citations/core/citation-index/settings.ts";
-import { librarySettings } from "@zotlit/library-view/core/library/settings.ts";
-import { releaseSettings } from "@zotlit/library-view/core/release/settings.ts";
-import { welcomeSettings } from "@zotlit/library-view/core/welcome/settings.ts";
-import { noteImportSettings } from "@zotlit/notes/core/note-import/settings.ts";
-import { templateSettings } from "@zotlit/notes/core/template/settings.ts";
-import { profileSettings } from "@zotlit/notes/obsidian/profile/settings.ts";
-import { attachmentSettings } from "@zotlit/plugin-services/core/attachment-import/settings.ts";
-import { databaseSettings } from "@zotlit/plugin-services/core/database/settings.ts";
-import { itemLookupSettings } from "@zotlit/plugin-services/core/item-lookup/settings.ts";
-import { libraryScopeSettings } from "@zotlit/plugin-services/core/library-scope/settings.ts";
-import { serverSettings } from "@zotlit/plugin-services/core/local-server/settings.ts";
-import { logSettings } from "@zotlit/plugin-services/core/log/settings.ts";
-import type {
-  Settings,
-  SettingsDefinition,
-} from "@zotlit/plugin-services/core/settings/schema.ts";
+import { features } from "@/features.ts";
 
-export const schema = v.object({
-  ...logSettings.entries,
-  ...citationSettings.entries,
-  ...itemLookupSettings.entries,
-  ...profileSettings.entries,
-  ...templateSettings.entries,
-  ...noteImportSettings.entries,
-  ...serverSettings.entries,
-  ...databaseSettings.entries,
-  ...libraryScopeSettings.entries,
-  ...attachmentSettings.entries,
-  ...readerSettings.entries,
-  ...librarySettings.entries,
-  ...welcomeSettings.entries,
-  ...releaseSettings.entries,
-});
+export const settingsDefinition = settingsDefinitionOf(features);
+
+export const { schema } = settingsDefinition;
 
 /**
  * Current defaults. Host-dependent legacy defaults are represented as `null` and
  * resolved at the consume site, so their effective values still match legacy
  * `getDefaultSettings()` without persisting machine-specific values.
  */
-export const defaults: Readonly<Settings> = Object.freeze({
-  ...logSettings.defaults,
-  ...citationSettings.defaults,
-  ...itemLookupSettings.defaults,
-  ...profileSettings.defaults,
-  ...templateSettings.defaults,
-  ...noteImportSettings.defaults,
-  ...serverSettings.defaults,
-  ...databaseSettings.defaults,
-  ...libraryScopeSettings.defaults,
-  ...attachmentSettings.defaults,
-  ...readerSettings.defaults,
-  ...librarySettings.defaults,
-  ...welcomeSettings.defaults,
-  ...releaseSettings.defaults,
-} satisfies Settings);
+export const { defaults } = settingsDefinition;
 
 /** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
-/** The composed schema holds exactly the registered keys. */
-type _Composed = Expect<Equals<v.InferOutput<typeof schema>, Settings>>;
-
-export const settingsDefinition: SettingsDefinition = { schema, defaults };
+/** The composed slices hold exactly the registered keys. */
+type _Composed = Expect<Equals<ComposedSettings<typeof features>, Settings>>;

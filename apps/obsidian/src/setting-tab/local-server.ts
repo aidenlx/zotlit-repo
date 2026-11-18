@@ -8,6 +8,7 @@ import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
+import { serverSettings } from "@zotlit/plugin-services/core/local-server/settings.ts";
 import type {
   SettingsKey,
   SettingTabContext,
@@ -15,8 +16,6 @@ import type {
 import { paintEach } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
-
-import { defaultPlaceholder } from "./placeholder.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 
@@ -65,7 +64,7 @@ export function localServerItems(
       control: {
         type: "number",
         key: "server.port",
-        placeholder: defaultPlaceholder("server.port"),
+        placeholder: String(serverSettings.defaults["server.port"]),
         min: 1024,
         max: 65535,
       },
@@ -87,7 +86,7 @@ export function localServerItems(
       control: {
         type: "text",
         key: "server.hostname",
-        placeholder: defaultPlaceholder("server.hostname"),
+        placeholder: serverSettings.defaults["server.hostname"],
       },
     },
   ];

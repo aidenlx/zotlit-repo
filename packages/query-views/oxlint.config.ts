@@ -160,6 +160,13 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
+      // The start-up hook hands Obsidian's workspace to the Annotation
+      // Suggester and finds the active view for the Annotation History, as
+      // the plugin entry did before the hook moved here.
+      files: ["src/desktop/feature.ts"],
+      rules: { "zotlit-services/obsidian-capabilities": "off" },
+    },
+    {
       // Default-runtime backlog: run the Effect through the bridge, a layer context runner or a runtime, then remove the file from the list.
       files: [
         "src/desktop/annot-view/view.tsx",

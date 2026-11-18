@@ -134,6 +134,16 @@ export class TargetOpener extends Context.Service<
   }
 >()("zotlit/attachment-open/TargetOpener") {}
 
+/**
+ * Obsidian's PDF view as the Target Opener opens a file in it. The host's
+ * Annotation View owner fills it (`@zotlit/query-views`), so the view comes
+ * forward beside the file.
+ */
+export class PdfTargetReader extends Context.Service<
+  PdfTargetReader,
+  TargetReader
+>()("zotlit/annotations/PdfTargetReader") {}
+
 export interface TargetOpenerPorts<R> {
   /** Obsidian's PDF view, built over the layer's services. */
   readonly reader: Effect.Effect<TargetReader, never, R>;

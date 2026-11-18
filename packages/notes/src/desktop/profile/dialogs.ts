@@ -3,6 +3,7 @@
 // callbacks run on a runner the dialog's Scope owns, so an interrupt closes
 // the modal and stops the work its callbacks started.
 
+import type { InteractiveCreationPorts } from "#desktop/note-feature/creation-view.ts";
 import type { TemplateDataServices } from "#desktop/template/data.ts";
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
 import type {
@@ -513,3 +514,12 @@ export const shareProfile = Effect.fn("shareProfile")(function* (
       ),
   );
 });
+
+/** The Profile dialogs a note creation opens, over `app`. */
+export function interactiveCreation(app: App): InteractiveCreationPorts {
+  return {
+    app,
+    createProfile: (options) => createProfileDialog(app, options),
+    importProfile: (options) => importProfileDialog(app, options),
+  };
+}

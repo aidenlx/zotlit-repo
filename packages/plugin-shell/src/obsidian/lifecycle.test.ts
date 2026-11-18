@@ -9,7 +9,7 @@ import {
   logLateRelease,
   PREVIOUS_RELEASE_WAIT_MS,
   UnloadAwarePlugin,
-} from "./plugin-lifecycle.ts";
+} from "./lifecycle.ts";
 
 const manifest: PluginManifest = {
   id: "zotlit",

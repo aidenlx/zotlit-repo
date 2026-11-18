@@ -51,9 +51,15 @@ import { defaults } from "@/services/settings/schema.ts";
 import { rebuildingSettingTab } from "./__fixtures__.ts";
 import { literatureNoteItems, profilesPage } from "./profiles.ts";
 
-vi.mock("@zotlit/template-workbench/desktop/view/open.ts", () => ({
-  openTemplateWorkbench: vi.fn(() => Effect.void),
-}));
+vi.mock(
+  "@zotlit/template-workbench/desktop/view/open.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/template-workbench/desktop/view/open.ts")
+    >()),
+    openTemplateWorkbench: vi.fn(() => Effect.void),
+  }),
+);
 
 const books = "Bk3Qn7XvT2Lp" as ProfileId;
 const DEFAULT_DOCUMENT = "templates/zotlit-profile.default.md";

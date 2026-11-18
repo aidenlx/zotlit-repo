@@ -1,5 +1,5 @@
-// This plugin's settings store: its composed definition and the migrations of
-// its `data.json` history, over the platform's `PluginSettings`.
+// This plugin's settings options: its composed definition and the migrations
+// of its `data.json` history, over the platform's `PluginSettings`.
 import type { Layer } from "effect";
 import type { Plugin } from "obsidian";
 

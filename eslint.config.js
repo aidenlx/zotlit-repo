@@ -1,7 +1,10 @@
 import json from "@eslint/json";
 import obsidianmd from "eslint-plugin-obsidianmd";
 import { globalIgnores } from "eslint/config";
+import { join, relative } from "node:path";
 import tseslint from "typescript-eslint";
+
+import { pluginPackages } from "@zotlit/scripts/plugin-packages";
 
 import pkg from "./apps/obsidian/package.json" with { type: "json" };
 
@@ -84,17 +87,9 @@ function toWarns(config) {
 /** The source that ships in the plugin: the app and the plugin packages. */
 const PLUGIN_SOURCES = [
   "apps/obsidian/src",
-  "packages/plugin-kernel/src",
-  "packages/obsidian-kit/src",
-  "packages/obsidian-desktop/src",
-  "packages/zotero-reads/src",
-  "packages/plugin-services/src",
-  "packages/annotations/src",
-  "packages/citations/src",
-  "packages/notes/src",
-  "packages/template-workbench/src",
-  "packages/query-views/src",
-  "packages/library-view/src",
+  ...pluginPackages(join(import.meta.dirname, "apps/obsidian")).map(
+    ({ root }) => `${relative(import.meta.dirname, root)}/src`,
+  ),
 ];
 
 export default [

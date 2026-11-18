@@ -83,6 +83,7 @@
       "cache": false
     },
     "//#lint:test-gates": {},
+    "//#lint:plugin-packages": {},
     "//#lint:messages": {},
     "//#lint:unused": {
       "dependsOn": ["//#lint:repo:deps"]
@@ -117,6 +118,8 @@
         "packages/citations/tsconfig*.json",
         "packages/notes/src/**",
         "packages/notes/tsconfig*.json",
+        "packages/plugin-shell/src/**",
+        "packages/plugin-shell/tsconfig*.json",
         "packages/template-workbench/src/**",
         "packages/template-workbench/tsconfig*.json",
         "packages/query-views/src/**",

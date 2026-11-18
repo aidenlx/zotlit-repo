@@ -7,11 +7,13 @@ import { expect } from "vitest";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import { ShellSettingTab } from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
 
+import { features } from "@/features.ts";
+import { host } from "@/host.ts";
 import { settingsRuntimeOf } from "@/services/settings/__fixtures__.ts";
 
 import { scopedSettingTab } from "./__fixtures__.ts";
-import { ZotLitSettingTab } from "./index.ts";
 
 it.effect(
   "control writes are readable once written and persist through the settings service",
@@ -30,15 +32,16 @@ it.effect(
       const { tab } = yield* scopedSettingTab(
         Context.make(PluginSettings, settings),
       );
-      const settingTab = new ZotLitSettingTab(
+      const settingTab = new ShellSettingTab(
         stubService<Plugin>("Plugin", {
           app: stubService("App", {}),
           manifest: stubService("PluginManifest", {}),
         }),
-        stubService<Omit<SettingTabContext, "app" | "manifest">>(
+        stubService<Pick<SettingTabContext, "tab" | "webWorkbenchEnabled">>(
           "SettingTabContext",
           { tab },
         ),
+        { features, order: host.settingTab },
       );
       // Obsidian awaits each write before it refreshes the DOM state.
       const write = (key: string, value: unknown) =>
