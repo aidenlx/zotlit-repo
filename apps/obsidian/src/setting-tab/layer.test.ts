@@ -4,9 +4,10 @@ import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 import { TestClock } from "effect/testing";
 import type { App, Plugin, PluginManifest } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import { LanguagePack } from "@/services/language-pack/service.ts";

@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Scope, Stream } from "effect";
 import { describe, expect, it as plainIt, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 
 import {
   citationStyleMissingNotice,

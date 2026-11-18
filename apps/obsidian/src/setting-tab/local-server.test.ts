@@ -1,13 +1,17 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Stream } from "effect";
 import type { SettingDefinitionItem, SettingGroupItem } from "obsidian";
 import { vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  ButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import type { WorkbenchConnection } from "@/services/local-bridge/service.ts";
 import { LocalServer } from "@/services/local-server/service.ts";

@@ -37,6 +37,21 @@ import type {
 import { createFixtureSchema, rowInstant } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import type { ObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { parseFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import {
+  FIELD_CITATION_STYLE,
+  FIELD_CITEKEY,
+  FIELD_LITERATURE_NOTE_PROFILE,
+  FIELD_ZOTERO_KEY,
+} from "@zotlit/plugin-kernel/constants.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { filenameSuffix, TemplateEngine } from "@zotlit/templates";
 import { MissingTemplateError, TemplateFacade } from "@zotlit/templates/facade";
@@ -53,21 +68,6 @@ import {
 } from "@zotlit/templates/obsidian";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import type { ObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import {
-  FIELD_CITATION_STYLE,
-  FIELD_CITEKEY,
-  FIELD_LITERATURE_NOTE_PROFILE,
-  FIELD_ZOTERO_KEY,
-} from "@/lib/constants.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { parseFrontMatter } from "@/lib/live-text.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import { VaultError } from "@/lib/vault-errors.ts";
 import type {
   AttachmentSource,
   SourceOrigin,

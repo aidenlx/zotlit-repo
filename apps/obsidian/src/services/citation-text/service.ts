@@ -14,28 +14,26 @@ import type { TFile } from "obsidian";
 
 // The formatted text of one document's Citations, held for every surface that shows them.
 import type { CslItemData } from "@zotlit/db";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { FIELD_ZOTERO_NOTE_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { FileNotFound } from "@zotlit/plugin-kernel/vault-errors.ts";
+import {
+  citationOfRun,
+  citationRuns,
+  wikilinkCitation,
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import {
   formatPandocCitation,
   scanPandocCitations,
 } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import { FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import { mapsEqual } from "@/lib/maps-equal.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { OpenDocuments } from "@/lib/open-documents.ts";
-import { FileNotFound } from "@/lib/vault-errors.ts";
-import {
-  citationOfRun,
-  citationRuns,
-  wikilinkCitation,
-} from "@/lib/wikilink-citation.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { renderParsedCitation } from "@/services/citation-index/parsed-note.ts";
 import type { NoteScanRecord } from "@/services/citation-index/scan-note.ts";
@@ -45,6 +43,8 @@ import type {
   CitationOccurrence,
   DocumentCitationSet,
 } from "@/services/citation-index/service.ts";
+import { mapsEqual } from "@/services/citation-text/maps-equal.ts";
+import type { OpenDocuments } from "@/services/citation-text/open-documents.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import {
   documentCitationPresentation,

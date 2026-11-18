@@ -15,7 +15,7 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { testPluginData } from "@/lib/__fixtures__/plugin-data.ts";
+import { testPluginData } from "@/services/settings/__fixtures__/plugin-data.ts";
 
 import { settingsOf, settingsRuntimeOf } from "./__fixtures__.ts";
 import {

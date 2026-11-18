@@ -6,10 +6,10 @@ import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";

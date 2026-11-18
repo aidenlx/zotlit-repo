@@ -1,5 +1,5 @@
 // The Local Bridge for callers outside Effect: the saved Notice.
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { LocalBridge } from "./service.ts";
 

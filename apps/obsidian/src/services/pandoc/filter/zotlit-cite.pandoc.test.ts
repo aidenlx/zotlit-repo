@@ -16,7 +16,8 @@ import {
 import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { CITATION_FRAGMENT_FIXTURES } from "@/lib/__fixtures__/citation-fragments.ts";
+import { CITATION_FRAGMENT_FIXTURES } from "@zotlit/plugin-kernel/__fixtures__/citation-fragments.ts";
+
 import { runFileEffect } from "@/services/pandoc/__fixtures__/file-effects.ts";
 import {
   materializeCslStyle,

@@ -6,8 +6,7 @@
 // @see apps/obsidian/docs/adr/0067-annotation-locks-come-from-the-zotero-database.md
 
 import type { Annotation } from "@zotlit/db";
-
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import { lockReasonText } from "./lock-copy.ts";
 

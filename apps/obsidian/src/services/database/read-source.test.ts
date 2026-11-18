@@ -5,9 +5,9 @@ import { basename, dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
-import { nodeFileSystemCall } from "@/lib/errno.ts";
+import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.ts";
+import { nodeFileSystemCall } from "@zotlit/plugin-kernel/errno.ts";
 
 import { planReadParents } from "./read-parent.ts";
 import type { ReadParentPlan } from "./read-parent.ts";

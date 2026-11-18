@@ -3,8 +3,7 @@
 // Group offers the group paths the layouts of the view's dataset can gather
 // rows by.
 import { fieldSearchTerms } from "@zotlit/item-query";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { datasetSpec } from "./datasets.ts";
 import { propertyIcon } from "./property-icon.ts";

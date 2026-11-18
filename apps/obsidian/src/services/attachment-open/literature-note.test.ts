@@ -2,9 +2,10 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Layer, Scope } from "effect";
 import { describe, expect } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { layerRcRef } from "@/services/zotero-reads/connection.ts";

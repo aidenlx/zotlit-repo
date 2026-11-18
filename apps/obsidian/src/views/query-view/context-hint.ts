@@ -3,8 +3,7 @@
 // each surface can bind, and where a member gets its record otherwise, live
 // here, so no host writes the hint.
 import type { ContextRecord } from "@zotlit/item-query";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 

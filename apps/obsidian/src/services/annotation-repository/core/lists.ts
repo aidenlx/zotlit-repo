@@ -22,10 +22,10 @@ import type {
   Library,
   ZoteroDatabaseIdentity,
 } from "@zotlit/db";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { settleAtEdge } from "@zotlit/plugin-kernel/signal-edge.ts";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { settleAtEdge } from "@/lib/signal-edge.ts";
 import {
   capabilityReason,
   editingCapabilityOf,

@@ -9,11 +9,11 @@
 import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 import type { App, Component } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import {
   commentToMarkdown,
   createCommentTurndown,
-} from "@/lib/turndown/comment.ts";
+} from "@zotlit/plugin-kernel/turndown/comment.ts";
 
 import { postProcessComment } from "./comment-postprocess.ts";
 

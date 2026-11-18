@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 import { textFieldWording } from "@/views/annot-view/card-controls.ts";
 import { createFieldEditor } from "@/views/annot-view/field-editor.ts";
 

@@ -5,9 +5,9 @@ import type { RpcClientError } from "effect/rpc";
 import type { PaneType, TFile, WorkspaceLeaf } from "obsidian";
 
 import type { Item } from "@zotlit/db";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { OpenLinkFailed } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { OpenLinkFailed } from "@/lib/obsidian-workspace.ts";
 import type { ItemQueryError } from "@/services/item-query/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { ProfileOperationError } from "@/services/profile/service.ts";

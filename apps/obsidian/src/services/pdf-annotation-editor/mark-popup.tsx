@@ -19,12 +19,13 @@ import type { CSSProperties, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { AppContext } from "@/lib/app-context.ts";
-import { HoverPopover } from "@/lib/hover-popover.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { HoverPopover } from "@zotlit/obsidian-kit/hover-popover.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type {
   MutationState,

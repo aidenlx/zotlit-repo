@@ -1,22 +1,28 @@
-import { Menu } from "@mock/obsidian.ts";
-import type { MenuItem as MockMenuItem } from "@mock/obsidian.ts";
 import type { App, Menu as ObsidianMenu, MenuItem, Workspace } from "obsidian";
 import { TFile } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { openAttachments } from "@/lib/attachment-open.ts";
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { MenuItem as MockMenuItem } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu.ts";
+import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 
 import type { AttachmentOpenDeps } from "./actions.ts";
 import { attachmentOpenFileMenu } from "./menu.ts";
 import type { TargetOpener } from "./open-target.ts";
 import type { ObsidianOpenableAttachment } from "./resolve.ts";
 
-vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
-  openAttachments: vi.fn(),
-}));
+vi.mock(
+  "@/services/attachment-open/open-attachments.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/services/attachment-open/open-attachments.ts")
+    >()),
+    openAttachments: vi.fn(),
+  }),
+);
 
 /** What the Literature Note's lookup resolves to in a case. */
 let resolved: ObsidianOpenableAttachment[] = [];
@@ -182,8 +188,8 @@ describe("Literature Note attachment-open file menu", () => {
    */
   it("shows the picker at the button's own box for a keyboard click, after the async Attachment lookup", async () => {
     const actual = await vi.importActual<
-      typeof import("@/lib/attachment-open.ts")
-    >("@/lib/attachment-open");
+      typeof import("@/services/attachment-open/open-attachments.ts")
+    >("@/services/attachment-open/open-attachments.ts");
     vi.mocked(openAttachments).mockImplementation(actual.openAttachments);
     resolved = [
       {

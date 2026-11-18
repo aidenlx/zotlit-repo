@@ -4,7 +4,8 @@ import type { EventRef, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import {
   annotationRows,
   annotationUri,

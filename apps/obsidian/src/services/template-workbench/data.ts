@@ -18,20 +18,20 @@ import type {
   NoteResolvers,
   NoteSource,
 } from "@zotlit/db";
+import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { TemplateError } from "@zotlit/templates/facade";
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 import { citationExampleData } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
 
-import { annotationCitation } from "@/lib/annotation-render.ts";
-import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
-import { creatorSummary } from "@/lib/item-summary.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import { itemFacets } from "@/services/note-feature/context.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
+import { annotationCitation } from "@/services/template/annotation-render.ts";
 import { CITATION_TEMPLATE_NAME } from "@/services/template/defaults.ts";
 import { InertTemplateError } from "@/services/template/errors.ts";
 import {

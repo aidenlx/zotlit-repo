@@ -2,7 +2,8 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+
 import type { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import type { NoteIndex } from "@/services/note-index/service.ts";
 import type { Profile } from "@/services/profile/service.ts";

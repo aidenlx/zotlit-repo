@@ -7,6 +7,7 @@ import type { Context } from "hono";
 import { Hono } from "hono/tiny";
 import * as v from "valibot";
 
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import {
   codeBootstrapRequestSchema,
   disconnectRequestSchema,
@@ -17,8 +18,6 @@ import {
   templateDependenciesRequestSchema,
 } from "@zotlit/workbench/bridge";
 import type { ConnectionGrant } from "@zotlit/workbench/bridge";
-
-import { getLogger } from "@/lib/log.ts";
 
 import {
   ProfileDocumentMissingError,

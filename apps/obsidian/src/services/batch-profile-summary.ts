@@ -1,5 +1,5 @@
 // Shared summary text for Profile-aware literature-note and Imported Note runs.
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { BatchRunResult } from "./batch-run.ts";
 

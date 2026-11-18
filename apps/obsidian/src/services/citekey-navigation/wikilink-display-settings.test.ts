@@ -2,7 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { describe, expect } from "vitest";
 
-import { forkEach } from "@/lib/effect-stream.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { settingsOf } from "@/services/settings/__fixtures__.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 

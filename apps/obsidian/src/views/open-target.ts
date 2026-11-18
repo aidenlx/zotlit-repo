@@ -4,8 +4,9 @@
 // that tab, and ends when the plugin unloads.
 import type { Effect } from "effect";
 
-import { viewRuntime } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { openGesture } from "@/services/attachment-open/actions.ts";
 import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import type {

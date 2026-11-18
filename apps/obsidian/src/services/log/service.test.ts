@@ -5,7 +5,8 @@ import { TestClock, TestConsole } from "effect/testing";
 import type { App, Plugin } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { settingsOf } from "@/services/settings/__fixtures__.ts";
 import { settingsMigrations } from "@/services/settings/migrate.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

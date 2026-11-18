@@ -10,10 +10,15 @@ const { livePreview, tokenClassNodeProp } = vi.hoisted(() => ({
   tokenClassNodeProp: {},
 }));
 
-vi.mock("@/lib/editor-decoration.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/editor-decoration.ts")>()),
-  livePreviewOf: livePreview,
-}));
+vi.mock(
+  "@zotlit/obsidian-kit/editor-decoration.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/obsidian-kit/editor-decoration.ts")
+    >()),
+    livePreviewOf: livePreview,
+  }),
+);
 
 vi.mock("@codemirror/language", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@codemirror/language")>();

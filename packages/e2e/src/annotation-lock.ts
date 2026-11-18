@@ -16,7 +16,7 @@ import {
   settledGesture,
 } from "./reader-gestures.ts";
 
-type Messages = typeof import("@obsidian-messages");
+type Messages = typeof import("@zotlit/plugin-messages/messages.ts");
 
 /** The Fixture Attachment whose PDF embeds one highlight and seeds nothing. */
 const attachment = ATTACHMENTS.find(({ key }) => key === "EXTPDF25")!;

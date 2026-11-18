@@ -6,34 +6,38 @@ import { Effect, Layer } from "effect";
 import { setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import { renderProfileRecovery } from "@/lib/profile-recovery.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import {
+  Workspace,
+  workspaceTrigger,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { renderProfileRecovery } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import {
   rerenderReadingViewsIn,
   retireReadingSurface,
-} from "@/lib/reading-surface.ts";
+} from "@zotlit/obsidian-kit/reading-surface.ts";
 import {
   LiveSections,
   isDraftMarkdown,
   markdownViewOf,
   sectionRange,
-} from "@/lib/reading-view.ts";
+} from "@zotlit/obsidian-kit/reading-view.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import {
   citationOfRun,
   citationTarget,
   wikilinkCitation,
-} from "@/lib/wikilink-citation.ts";
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import type {
   LiteratureNoteTarget,
   RunMember,
-} from "@/lib/wikilink-citation.ts";
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { CitationLookupAnswer } from "@/services/citation-index/service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {

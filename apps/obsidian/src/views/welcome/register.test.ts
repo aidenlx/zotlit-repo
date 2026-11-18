@@ -4,7 +4,8 @@ import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { App } from "obsidian";
 import { expect } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+
 import { readsFixture } from "@/services/zotero-reads/__fixtures__.ts";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";

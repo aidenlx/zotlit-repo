@@ -4,12 +4,13 @@
 // @see apps/obsidian/policies/ui-seams.md
 import { Clock, Context, Duration, Effect, FiberSet, Layer } from "effect";
 
-import { dateTimeClock } from "@/lib/effect-clock.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { NoticeHandle } from "@/lib/notifier.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
+import { dateTimeClock } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
 import {

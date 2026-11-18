@@ -6,9 +6,6 @@ import type { CliData } from "obsidian";
 
 import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
 import type { CitationVariant, ContractRoot, TemplateSlot } from "@zotlit/db";
-import type { PartialContext } from "@zotlit/workbench/render";
-import { isIndexedKey } from "@zotlit/zotero-types/keys";
-
 import {
   cliDefault,
   cliLiterals,
@@ -23,12 +20,15 @@ import {
   decodeCliParams,
   expectSourceParam,
   noCliParams,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
 import type {
   CliOutput,
   CliParamName,
   CliRejection,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type { PartialContext } from "@zotlit/workbench/render";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { isPartialNameShape } from "@/services/template/defaults.ts";
 
 import { diagnostic } from "./envelope.ts";

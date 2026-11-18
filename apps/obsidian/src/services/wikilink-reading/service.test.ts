@@ -10,17 +10,18 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { layerMetadataCacheFrom } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import {

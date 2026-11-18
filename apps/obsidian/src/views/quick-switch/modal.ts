@@ -1,6 +1,7 @@
 import { Keymap, Platform } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ItemSearchModal } from "@/services/item-lookup/search-modal.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";
 

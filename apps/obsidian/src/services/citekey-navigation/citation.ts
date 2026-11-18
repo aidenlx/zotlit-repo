@@ -3,7 +3,8 @@
 import { Menu } from "obsidian";
 import type { HoverParent, Workspace } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type { ShownCitation } from "@/services/citation-text/present.ts";
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 

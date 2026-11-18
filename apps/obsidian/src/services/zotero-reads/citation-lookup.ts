@@ -9,9 +9,9 @@ import {
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
 import type { ZoteroDatabase } from "@zotlit/db";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { withLogCategory } from "@/lib/effect-log-category.ts";
 import type {
   CitationLookupRequest,
   CitationLookupWireAnswer,

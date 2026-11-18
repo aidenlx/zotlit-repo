@@ -1,20 +1,25 @@
 // @vitest-environment happy-dom
 import { EditorView } from "@codemirror/view";
-import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { pressSubmit } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import {
+  Menu,
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { PdfTextStructure } from "@zotlit/pdf-structure";
 import type {
   PdfPageSource,
   SelectedText,
   TextSelection,
 } from "@zotlit/pdf-structure";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
 import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
@@ -28,7 +33,6 @@ import {
 } from "@/services/annotation-repository/write.ts";
 import { createRefused } from "@/services/zotero-local-api/__fixtures__.ts";
 import type { ZoteroRequest } from "@/services/zotero-local-api/__fixtures__.ts";
-import { pressSubmit } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
 import {
   annotation,

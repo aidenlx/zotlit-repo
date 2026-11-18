@@ -31,7 +31,7 @@ declare module "obsidian" {
     on(
       name: "zotlit:open-template-workbench",
       callback: (
-        request: import("@/lib/workbench-recovery.ts").TemplateWorkbenchRequest,
+        request: import("@/services/template/workbench-recovery.ts").TemplateWorkbenchRequest,
       ) => void,
       ctx?: any,
     ): EventRef;

@@ -1,7 +1,7 @@
 // Shared invalidation of Item queries when device Uses change.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import { QueryService } from "./service.ts";
 

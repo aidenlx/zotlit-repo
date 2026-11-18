@@ -1,4 +1,4 @@
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 
 import { Effect, Stream } from "effect";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";

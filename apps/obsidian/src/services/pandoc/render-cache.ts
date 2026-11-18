@@ -17,9 +17,9 @@ import {
 } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 import type { Held } from "@/services/query-client/service.ts";

@@ -2,10 +2,11 @@
 import { FileView, setIcon, setTooltip } from "obsidian";
 import type { App, Plugin, View, WorkspaceLeaf } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import type { ReaderSession } from "@/services/reader-session/session.ts";

@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { describe, expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import type { CliCommandHandler } from "@/lib/cli-command.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import type { CliCommandHandler } from "@zotlit/obsidian-kit/cli-command.ts";
 
 import { QUERY_MEASURE_COMMAND, registerQueryMeasureCli } from "./measure.ts";
 

@@ -6,9 +6,10 @@
 import { Effect, Layer } from "effect";
 import type { App, CliFlag, CliFlags } from "obsidian";
 
-import type { CliHost } from "@/lib/cli-command.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";

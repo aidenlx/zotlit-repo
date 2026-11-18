@@ -1,13 +1,14 @@
 import { Effect } from "effect";
 import type { App, PaneType, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import "./style.css";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";

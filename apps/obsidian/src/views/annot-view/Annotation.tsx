@@ -4,19 +4,19 @@ import { useContext, useEffect, useMemo, useRef } from "react";
 import type { DragEvent, KeyboardEvent, MouseEvent, RefObject } from "react";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
-
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import {
   activatable,
   claimClick,
   clickClaimed,
   cn,
   tooltipAttrs,
-} from "@/lib/utils.ts";
+} from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { lockReasonText } from "@/services/annotation-repository/lock-copy.ts";
 import type { AnnotationLock } from "@/services/annotation-repository/lock.ts";

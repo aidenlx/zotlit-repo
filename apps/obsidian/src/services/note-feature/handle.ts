@@ -1,7 +1,7 @@
 // The Note Feature for callers outside Effect: views, the setting tab and the legacy runners.
 import { Effect } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { NoteCitations } from "./citations-handle.ts";
 import type { NoteCreation } from "./creation-handle.ts";

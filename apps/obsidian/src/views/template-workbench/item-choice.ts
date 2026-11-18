@@ -6,15 +6,15 @@ import { Effect } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 
 import { isChildItemFields } from "@zotlit/db";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import type { AnnotationExample } from "@zotlit/workbench/render";
 import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchHost, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
-import { itemSummary } from "@/lib/item-summary.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
 import { awaitItem } from "@/services/item-lookup/search-modal.ts";
 import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
 import { DEFAULT_LIMIT, ItemLookup } from "@/services/item-lookup/service.ts";

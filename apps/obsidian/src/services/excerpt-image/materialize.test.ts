@@ -15,17 +15,17 @@ import { join } from "node:path";
 import { FileSystemAdapter } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerFileManagerFrom } from "@/lib/obsidian-file-manager.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { layerFileManagerFrom } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type {
   FileManager,
   FileManagerSource,
-} from "@/lib/obsidian-file-manager.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
-import type { Vault } from "@/lib/obsidian-vault.ts";
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
+
 import { defaults } from "@/services/settings/schema.ts";
 
 import { availableOutcome } from "./__fixtures__/outcome.ts";

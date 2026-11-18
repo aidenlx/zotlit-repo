@@ -1,7 +1,7 @@
 // Bounded reads of the revision used by an excerpt or a reader proof.
 import { Effect, Fiber, FileSystem, Option, Scope } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 const logged = withLogCategory("excerpt-image", "file");
 
 /** The metadata used by the excerpt cache, from the platform's file stamp. */

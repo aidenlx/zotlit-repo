@@ -3,7 +3,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { FileSystemAdapter } from "obsidian";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 
 /**
  * An in-memory host whose images live on disk under `vaultRoot`: a folder the

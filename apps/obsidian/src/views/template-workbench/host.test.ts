@@ -1,12 +1,6 @@
 // @vitest-environment happy-dom
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import {
-  ConfirmationModal,
-  Menu,
-  Modal,
-  SuggestModal,
-} from "@mock/obsidian.ts";
 import { Cause, Effect, Exit } from "effect";
 import type { Fiber } from "effect";
 import type { App } from "obsidian";
@@ -14,6 +8,14 @@ import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  ConfirmationModal,
+  Menu,
+  Modal,
+  SuggestModal,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { liquidTemplate } from "@zotlit/workbench/language";
 import {
@@ -22,9 +24,6 @@ import {
   WorkbenchClipboardError,
   WorkbenchHostError,
 } from "@zotlit/workbench/ui";
-
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 
 import { createTemplateWorkbenchHost } from "./host.tsx";
 import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";

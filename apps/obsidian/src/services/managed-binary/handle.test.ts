@@ -2,7 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
 import { createHash } from "node:crypto";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { openManagedBinary } from "./__fixtures__.ts";
 import { memoryDevice } from "./test-utils.ts";

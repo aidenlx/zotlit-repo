@@ -4,12 +4,13 @@
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 

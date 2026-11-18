@@ -13,11 +13,11 @@ import {
 } from "obsidian";
 import type { App, TFolder } from "obsidian";
 
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
 import {
   dialogFooter,
   field,

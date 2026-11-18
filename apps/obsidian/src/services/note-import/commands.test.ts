@@ -3,10 +3,11 @@ import { Cause, Effect, Exit, Fiber, Layer, Option } from "effect";
 import type { App } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {

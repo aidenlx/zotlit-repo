@@ -21,19 +21,22 @@ import type { Item, Library } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ProfileId,
+  ProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
 import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import type { BatchRunControls } from "@/services/batch-run.ts";
 import { excerptReuseProbe } from "@/services/excerpt-image/__fixtures__/reuse.ts";

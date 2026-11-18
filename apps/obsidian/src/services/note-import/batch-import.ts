@@ -5,15 +5,15 @@ import type { TFile } from "obsidian";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Note } from "@zotlit/db";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ImportMode } from "@zotlit/protocol";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
 import { batchProfileSummary } from "@/services/batch-profile-summary.ts";
 import type { BatchProfileCount } from "@/services/batch-profile-summary.ts";
 import {

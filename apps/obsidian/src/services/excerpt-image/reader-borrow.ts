@@ -3,7 +3,7 @@
 
 import { Effect } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { openExcerptFile, pdfStamp, readBounded } from "./file.ts";
 import type { ExcerptViewport } from "./geometry.ts";

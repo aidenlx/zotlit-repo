@@ -2,11 +2,11 @@
 // independently of preview rendering mode.
 import { useAtomValue } from "@effect/atom-react";
 
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
 import type { WorkbenchDocumentController } from "@zotlit/workbench/document";
 import { MatchPane, WorkbenchThemeProvider } from "@zotlit/workbench/ui";
 
-import { Select } from "@/components/select.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
 import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
 
 import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";

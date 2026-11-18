@@ -3,7 +3,8 @@ import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { Vault } from "@/lib/obsidian-vault.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+
 import type { ParseRequest } from "@/services/citation-parse/client.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 

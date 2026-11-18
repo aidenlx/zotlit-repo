@@ -10,16 +10,20 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import { workLabel } from "@/lib/item-summary.ts";
-import type { WorkLabel } from "@/lib/item-summary.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import {
+  Workspace,
+  workspaceTrigger,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { workLabel } from "@zotlit/plugin-kernel/item-summary.ts";
+import type { WorkLabel } from "@zotlit/plugin-kernel/item-summary.ts";
+
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupObservation } from "@/services/citation-index/lookup-service.ts";
 import { heldResolution } from "@/services/citation-index/lookup.ts";

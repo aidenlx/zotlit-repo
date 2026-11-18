@@ -1,8 +1,8 @@
 // The Cited By Sidebar's sort menu.
 import { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CITED_BY_SORT_GROUPS } from "./store.ts";
 import type { CitedBySortMode } from "./store.ts";

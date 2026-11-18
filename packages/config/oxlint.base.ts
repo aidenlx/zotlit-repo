@@ -64,6 +64,14 @@ export const datePattern = {
   message: dateFix,
 };
 
+/** The lint configs that load the zotlit-effect-tests plugin (oxlint-plugin-code.ts). */
+const EFFECT_TESTS_CONFIGS = new Set([
+  "apps/obsidian",
+  "packages/plugin-kernel",
+  "packages/obsidian-kit",
+  "packages/obsidian-desktop",
+]);
+
 /**
  * One override per baselined rule, with exact paths relative to the nested
  * lint config in `directory`, or to the repository root when it is omitted.
@@ -76,11 +84,11 @@ export function testBaselineOverrides(directory?: string) {
   )) {
     if (!file.startsWith(prefix)) continue;
     for (const rule of rules) {
-      // Only apps/obsidian loads the zotlit-effect-tests plugin; any other
+      // Only the plugin code loads the zotlit-effect-tests plugin; any other
       // config that names one of its rules fails to build.
       if (
         rule.startsWith("zotlit-effect-tests/") &&
-        directory !== "apps/obsidian"
+        !EFFECT_TESTS_CONFIGS.has(directory ?? "")
       )
         continue;
       filesByRule.set(rule, [

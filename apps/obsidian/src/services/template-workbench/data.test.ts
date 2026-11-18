@@ -13,18 +13,18 @@ import annotationSchema from "@zotlit/db/contract/annotation.schema.json";
 import citationSchema from "@zotlit/db/contract/citation.schema.json";
 import filenameSchema from "@zotlit/db/contract/filename.schema.json";
 import noteSchema from "@zotlit/db/contract/note.schema.json";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import {
+  FileManager,
+  layerFileManagerFrom,
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { TemplateEngine } from "@zotlit/templates";
 import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import {
-  FileManager,
-  layerFileManagerFrom,
-} from "@/lib/obsidian-file-manager.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type {
   NoteProfile,

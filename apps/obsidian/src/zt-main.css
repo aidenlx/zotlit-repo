@@ -138,6 +138,11 @@
 @import "tailwindcss/utilities.css" layer(utilities) prefix(zt);
 @import "tw-animate-css" prefix(zt);
 
+/* The plugin packages draw with zt: classes too; Tailwind scans only this
+   package's own files unless a source names them. */
+@source "../../../packages/plugin-kernel/src";
+@source "../../../packages/obsidian-kit/src";
+
 /* Scoped preflight. Resets UA/Obsidian element defaults *inside plugin UI roots
    only* — mark a root with `class="zt-root"` — so semantic HTML (blockquote, p,
    ul, headings, hr) renders clean and Tailwind owns the box-model. Kept in

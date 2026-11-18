@@ -4,7 +4,7 @@ import { TFile } from "obsidian";
 import type { Editor, EventRef, MarkdownFileInfo, Workspace } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { stateEditor } from "./__fixtures__/editor.ts";
 import { captureInsertion } from "./async-insert.ts";

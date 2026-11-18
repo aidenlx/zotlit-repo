@@ -3,7 +3,7 @@ import { Effect, Schema } from "effect";
 import type { CliData } from "obsidian";
 import { describe, expect } from "vitest";
 
-import type { CliRejection } from "@/lib/cli-params.ts";
+import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 
 import * as decode from "./decode.ts";
 import { DecodedQuery } from "./query-codec.ts";

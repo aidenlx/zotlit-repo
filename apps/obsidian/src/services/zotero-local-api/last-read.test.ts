@@ -3,8 +3,9 @@ import { DateTime, Effect, Exit, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";
 

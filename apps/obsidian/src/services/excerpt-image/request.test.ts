@@ -7,9 +7,9 @@ import { describe, expect, vi } from "vitest";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { createClient, connectClient } from "@zotlit/db/client/node";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,

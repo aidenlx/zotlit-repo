@@ -5,9 +5,10 @@ import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 import { afterEach, describe, expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
+import { effectTestParse } from "@/services/citation-index/__fixtures__/parse-client.ts";
 import { ParseFailed } from "@/services/citation-parse/client.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";

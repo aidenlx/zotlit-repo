@@ -1,15 +1,19 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { renderRow } from "@mock/obsidian.ts";
-import type { DropdownComponent, TextComponent } from "@mock/obsidian.ts";
 import { Context, Effect } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { highlightEmoji } from "@/lib/highlight-mapping.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type {
+  DropdownComponent,
+  TextComponent,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import {

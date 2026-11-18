@@ -2,7 +2,7 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held } from "@/lib/view-atoms.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import { defaults } from "./schema.ts";
 import { PluginSettings } from "./service.ts";

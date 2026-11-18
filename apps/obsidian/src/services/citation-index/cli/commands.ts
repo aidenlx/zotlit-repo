@@ -2,9 +2,10 @@
 import { Cause, Effect } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler } from "@/lib/cli-command.ts";
-import { catchRejection } from "@/lib/cli-params.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import type { CliCommandHandler } from "@zotlit/obsidian-kit/cli-command.ts";
+import { catchRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type {
   CitationIndex,
   DocumentCitationSet,

@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { IDLE } from "@/services/annotation-repository/write.ts";

@@ -9,14 +9,13 @@ import { EditorView } from "@codemirror/view";
 import { Effect } from "effect";
 import { Menu } from "obsidian";
 
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { SuggestionSource } from "@zotlit/workbench/language";
 import { observeExit } from "@zotlit/workbench/ui";
 import type { WorkbenchRunner } from "@zotlit/workbench/ui";
-
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
 
 /**
  * Move `source` into a new Shared Partial: the host asks a name, writes the

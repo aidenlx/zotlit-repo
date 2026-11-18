@@ -2,8 +2,9 @@
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type { Scope } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import type { LibraryScopeState } from "@/services/library-scope/service.ts";

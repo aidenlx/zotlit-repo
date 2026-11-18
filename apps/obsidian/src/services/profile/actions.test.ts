@@ -3,9 +3,10 @@ import { Effect, Layer } from "effect";
 import type { App } from "obsidian";
 import { expect } from "vitest";
 
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";
 
 import { layerProfileActions } from "./actions.ts";

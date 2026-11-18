@@ -3,11 +3,12 @@ import { ItemView } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 
-import { writeClipboardRichText } from "@/lib/clipboard.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { writeClipboardRichText } from "@zotlit/plugin-kernel/clipboard.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { showInLibraryCommand } from "@/views/library/atoms.ts";
 
 import {

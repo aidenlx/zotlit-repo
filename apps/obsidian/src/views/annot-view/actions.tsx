@@ -3,20 +3,20 @@ import type { App, PaneType } from "obsidian";
 import { createContext } from "react";
 import type { DragEvent, KeyboardEvent, MouseEvent } from "react";
 
+import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
+import { confirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import type { MenuAlign } from "@zotlit/obsidian-kit/menu.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import * as toast from "@zotlit/obsidian-kit/toast.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { observeExit } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { confirm } from "@/lib/confirm.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import type { MenuAlign } from "@/lib/menu.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { requireElectron } from "@/lib/require.ts";
-import * as toast from "@/lib/toast.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
-import type { ViewRun } from "@/lib/view-runner.ts";
 import type {
   AnnotationRecord,
   TextField,

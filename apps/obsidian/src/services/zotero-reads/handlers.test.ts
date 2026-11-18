@@ -13,8 +13,8 @@ import {
 import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
 import { workerQuery } from "@/services/item-query/__fixtures__/worker-query.ts";
 import { makeAttachmentFileResolver } from "@/services/item-query/attachment-files.ts";
 import type { QueryJob } from "@/services/item-query/worker-protocol.ts";

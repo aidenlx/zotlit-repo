@@ -7,7 +7,8 @@ import {
   ANNOTATION_COLORS,
   annotationColorLabel,
   isColor,
-} from "@/lib/annotation-colors.ts";
+} from "@zotlit/plugin-kernel/annotation-colors.ts";
+
 import { menuSections } from "@/services/menu-events.ts";
 
 const SECTION = menuSections("zotlit:annotation-color-menu");

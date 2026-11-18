@@ -34,7 +34,12 @@
       "@brand/*": ["../../assets/logo/*"]
     }
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    // The private Obsidian API the kit declares, which app code reads too.
+    "../../packages/obsidian-kit/src/typings/*.d.ts"
+  ],
   "exclude": [
     "./node_modules",
     "./dist",

@@ -1,14 +1,15 @@
 import { expect, it } from "@effect/vitest";
-// @vitest-environment happy-dom
-import { Menu, TFile } from "@mock/obsidian.ts";
 import { Effect, Layer } from "effect";
 import type { CachedMetadata, Command } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+// @vitest-environment happy-dom
+import { Menu, TFile } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { fileMenuHandler } from "@/services/__fixtures__/file-menu.ts";
 
 import {

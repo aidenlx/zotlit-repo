@@ -5,7 +5,7 @@ import type { Scope } from "effect";
 import { RpcClient, RpcServer } from "effect/rpc";
 import type { RpcClientError, RpcGroup } from "effect/rpc";
 
-import { makeInMemoryRpcProtocols } from "@/lib/effect-rpc-in-process.ts";
+import { makeInMemoryRpcProtocols } from "@zotlit/plugin-kernel/effect-rpc-in-process.ts";
 
 import { decodeParseReply, ParseFailed } from "./client.ts";
 import type { ParseClient } from "./client.ts";

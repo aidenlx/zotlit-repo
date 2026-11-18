@@ -13,10 +13,10 @@ import {
 
 import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
 import { contentOf } from "@/services/annotation-repository/history.ts";
 import type {
   HistoryJoin,

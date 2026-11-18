@@ -31,23 +31,23 @@
     "zotlit-tests/no-markup-assertion",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/lib/brand.test.ts": [
+  "packages/plugin-kernel/src/brand.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/lib/obsidian-private/embed-registry.test.ts": [
+  "apps/obsidian/src/views/query-view/obsidian-private/embed-registry.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/lib/obsidian-private/metadata-type-manager.test.ts": [
+  "apps/obsidian/src/views/query-view/obsidian-private/metadata-type-manager.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/lib/obsidian-private/property-values.test.ts": [
+  "apps/obsidian/src/views/query-view/obsidian-private/property-values.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/obsidian/src/lib/pointer-drag.test.ts": [
+  "packages/obsidian-kit/src/pointer-drag.test.ts": [
     "zotlit-tests/no-markup-assertion"
   ],
   "apps/obsidian/src/services/attachment-import/copy-security.test.ts": [

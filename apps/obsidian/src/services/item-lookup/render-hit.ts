@@ -3,10 +3,10 @@ import type { SearchMatches } from "obsidian";
 
 import { isChildItemFields } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { itemSummary } from "@/lib/item-summary.ts";
 import { libraryLabel } from "@/services/library-scope/label.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
 

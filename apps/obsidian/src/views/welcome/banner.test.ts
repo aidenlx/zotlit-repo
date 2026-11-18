@@ -1,19 +1,23 @@
-// @vitest-environment happy-dom
-// The Welcome View as a banner above the Library View: it shows while setup
-// is incomplete, until the researcher dismisses it, and an upgrade from v1
-// keeps its Migration Prompt on screen until a dismissal acknowledges it.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Layer } from "effect";
 import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+// @vitest-environment happy-dom
+// The Welcome View as a banner above the Library View: it shows while setup
+// is incomplete, until the researcher dismisses it, and an upgrade from v1
+// keeps its Migration Prompt on screen until a dismissal acknowledges it.
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { buildRelease } from "@/services/release/__fixtures__.ts";
 import { Release } from "@/services/release/service.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";

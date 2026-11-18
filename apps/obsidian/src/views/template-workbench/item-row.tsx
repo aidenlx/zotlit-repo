@@ -3,12 +3,11 @@
 // one control that chooses other data.
 import { useAtomValue } from "@effect/atom-react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { citationExampleLabel, ItemRow } from "@zotlit/workbench/ui";
-
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { selectionControl } from "@/components/obsidian/selection-control.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import { previewTarget } from "./preview-panel.tsx";
 import { selectionName } from "./selection.tsx";

@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 
 import { referencedExcerptPaths } from "./references.ts";
 

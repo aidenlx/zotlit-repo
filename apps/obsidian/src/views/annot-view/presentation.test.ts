@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
+import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ItemSummary } from "@/lib/item-summary.ts";
 import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";

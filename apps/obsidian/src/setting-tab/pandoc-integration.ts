@@ -2,12 +2,13 @@ import { Effect } from "effect";
 // Tutorial, integration-pair save action, and local CLI Guide for native Pandoc settings.
 import type { Setting, SettingDefinitionGroup } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { requireDialog } from "@/lib/require.ts";
+import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   pandocIntegrationFiles,
   renderPandocGuide,

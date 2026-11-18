@@ -9,8 +9,9 @@ import type {
   TFile,
 } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
 import { DEFAULT_LIMIT } from "@/services/item-lookup/service.ts";
 import type { QueryHandle } from "@/services/item-query/handle.ts";

@@ -9,12 +9,13 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AppContext } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
-import { editorApp } from "./__fixtures__/editor-app.ts";
 import { makeAnnotHost } from "./__fixtures__/host.ts";
 import { AnnotActionsContext, NOOP_ACTIONS } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";

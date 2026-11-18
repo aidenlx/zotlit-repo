@@ -3,7 +3,7 @@ import { Deferred, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { openExcerptFile } from "./file.ts";
 

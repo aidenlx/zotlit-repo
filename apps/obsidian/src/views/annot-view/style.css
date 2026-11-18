@@ -96,7 +96,7 @@
    them in turn, and `revert-layer` rolls the element back to the plugin's own
    layers, where the utilities on the block are what draws it. The same trick
    the Chooser trigger takes.
-   @see apps/obsidian/src/components/chooser.css */
+   @see packages/obsidian-kit/src/components/chooser.css */
 .zt-root button.zt-annot-header {
   all: revert-layer;
 }

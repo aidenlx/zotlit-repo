@@ -12,7 +12,8 @@ import {
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
 import { layerLibraryScope } from "@/services/library-scope/service.ts";
 import { layerQueryClients } from "@/services/query-client/service.ts";

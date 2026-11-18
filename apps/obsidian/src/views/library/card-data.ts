@@ -1,6 +1,7 @@
 // Pure Reading Card data: row previews, bibliographic fields and annotation quotes.
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 
 import {

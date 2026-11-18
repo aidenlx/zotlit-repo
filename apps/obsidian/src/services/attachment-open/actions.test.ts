@@ -9,12 +9,13 @@ import type {
 } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import {
   createObsidianAttachmentReader,
   openAttachments,
-} from "@/lib/attachment-open.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
+} from "@/services/attachment-open/open-attachments.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
@@ -36,14 +37,19 @@ vi.mock("@/views/annot-view/register.ts", () => ({
   activateAnnotView: vi.fn(),
 }));
 
-vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
-  openAttachments: vi.fn(),
-  createObsidianAttachmentReader: vi.fn(() => ({
-    icon: "file-text",
-    open: vi.fn(),
-  })),
-}));
+vi.mock(
+  "@/services/attachment-open/open-attachments.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/services/attachment-open/open-attachments.ts")
+    >()),
+    openAttachments: vi.fn(),
+    createObsidianAttachmentReader: vi.fn(() => ({
+      icon: "file-text",
+      open: vi.fn(),
+    })),
+  }),
+);
 
 beforeEach(() => {
   vi.mocked(openAttachments).mockReset();

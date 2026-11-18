@@ -1,11 +1,11 @@
 // One annotation insertion: render, commit, and return its operation outcome.
 import { Effect } from "effect";
 
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationRecord,

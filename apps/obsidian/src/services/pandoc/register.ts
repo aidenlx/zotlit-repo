@@ -8,7 +8,7 @@ import { isAbsolute, relative } from "node:path";
 import { normalizePath } from "obsidian";
 import type { App, CliData, CliFlag, CliFlags, TFile } from "obsidian";
 
-import type { VersionedCliHost } from "@/lib/cli-command.ts";
+import type { VersionedCliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
   catchRejection,
   cliMap,
@@ -18,11 +18,12 @@ import {
   cliVariants,
   decodeCliParams,
   rejectionText,
-} from "@/lib/cli-params.ts";
-import type { CliParamName } from "@/lib/cli-params.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type { CliParamName } from "@zotlit/obsidian-kit/cli-params.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import { resolveIndexedKey } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";

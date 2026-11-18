@@ -3,12 +3,13 @@
 import type { IconName } from "obsidian";
 import type { MouseEvent, ReactNode } from "react";
 
-import { AmbiguousCandidates } from "@/components/ambiguous-candidates.tsx";
-import { Button } from "@/components/obsidian/button.tsx";
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import { AmbiguousCandidates } from "@/services/citation-index/ambiguous-candidates.tsx";
 import type { Inlines } from "@/services/pandoc/ast.ts";
 import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
 import { InlineContent } from "@/services/pandoc/inline-content.tsx";

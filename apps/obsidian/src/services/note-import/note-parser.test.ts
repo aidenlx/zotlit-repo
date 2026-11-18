@@ -19,19 +19,19 @@ import type {
   TemplateParentItemData,
 } from "@zotlit/db";
 import { makeItem } from "@zotlit/db/item-fixture";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 import { inlineCitation, TemplateEngine } from "@zotlit/templates";
 import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { renderAnnotationSources } from "@/lib/annotation-render.ts";
 import type {
   AttachmentSource,
   ResolveLinkOptions,
   SourceOrigin,
 } from "@/services/attachment-import/service.ts";
+import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 
 import { noteReferences, parseNote } from "./note-parser.ts";
 import type { ParseNoteDeps } from "./note-parser.ts";
@@ -1239,7 +1239,7 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
 describe("fixtures (resolving)", () => {
   function fixture(name: string): string {
     return readFileSync(
-      join(packageRoot, "src/lib/turndown/__fixtures__", name),
+      join(packageRoot, "src/services/note-import/turndown/__fixtures__", name),
       "utf8",
     );
   }

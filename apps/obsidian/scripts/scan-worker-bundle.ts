@@ -4,7 +4,9 @@ import { resolve } from "node:path";
 import type { MessagePort } from "node:worker_threads";
 import { build } from "vite";
 
-import { effectEntry } from "./effect-entry.ts";
+import { packageSource } from "@zotlit/obsidian-kit/vitest";
+import { effectEntry } from "@zotlit/plugin-kernel/vite";
+
 import { embeddedWorker } from "./embedded-worker.ts";
 
 export interface BenchmarkParseRequest {
@@ -28,7 +30,7 @@ const CLIENT_ENTRY_ID = resolve(import.meta.dirname, "scan-benchmark-entry.js");
 const CLIENT_ENTRY = `
 export { default } from "virtual:scan-worker";
 import { Effect, Scope } from "effect";
-import { openScope } from "@/lib/effect-scope";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { decodeParseReply } from "@/services/citation-parse/client";
 import { makeParseWorkerClient } from "@/services/citation-parse/worker-client";
 export async function connect(spawn, onEncode) {
@@ -62,6 +64,12 @@ export async function scanWorkerBundle<Reply>(): Promise<{
 }> {
   const packageRoot = resolve(import.meta.dirname, "..");
   const resolveConfig = { alias: { "@": resolve(packageRoot, "src") } };
+  const scopes = [
+    resolve(packageRoot, "src"),
+    resolve(packageRoot, "scripts"),
+    packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
+    packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
+  ];
   const result = await build({
     configFile: false,
     logLevel: "silent",
@@ -72,14 +80,14 @@ export async function scanWorkerBundle<Reply>(): Promise<{
         resolveId: (id) => (id === CLIENT_ENTRY_ID ? id : null),
         load: (id) => (id === CLIENT_ENTRY_ID ? CLIENT_ENTRY : null),
       },
-      effectEntry("renderer"),
+      effectEntry("renderer", { scopes }),
       embeddedWorker({
         id: "virtual:scan-worker",
         entry: resolve(packageRoot, "src/services/citation-parse/worker.ts"),
         config: {
           resolve: resolveConfig,
           // The renderer entry, as the `@` alias gave this worker before.
-          plugins: [effectEntry("renderer")],
+          plugins: [effectEntry("renderer", { scopes })],
           external: [],
           minify: false,
           sourcemap: false,

@@ -6,7 +6,11 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Logger, Ref } from "effect";
 import { RpcServer, RpcWorker } from "effect/rpc";
 
-import { layerLibraryLogPort, makePortLogger } from "@/lib/effect-log-port.ts";
+import {
+  layerLibraryLogPort,
+  makePortLogger,
+} from "@zotlit/plugin-kernel/effect-log-port.ts";
+
 import { prepareRead } from "@/services/database/read-source.ts";
 
 import { handlersLayer } from "./handlers.ts";

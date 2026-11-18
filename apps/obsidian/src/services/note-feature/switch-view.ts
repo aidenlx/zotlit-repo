@@ -4,13 +4,14 @@ import { dirname } from "node:path/posix";
 import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, withProgress } from "@/lib/notifier.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { normalizeFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
+import { Notifier, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,

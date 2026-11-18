@@ -1,16 +1,21 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Exit, Fiber, Layer, Logger } from "effect";
 import type { App } from "obsidian";
 import { beforeEach, expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  Modal,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Profile } from "@/services/profile/service.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";
 

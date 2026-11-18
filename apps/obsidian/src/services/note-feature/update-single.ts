@@ -1,13 +1,16 @@
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
-import { recover } from "@/lib/effect-cause.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { withProgress } from "@/lib/notifier.ts";
-import type { NoticeMessage, ProgressCopy } from "@/lib/notifier.ts";
-import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
-import { missingPartialNotice } from "@/lib/workbench-recovery.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import type {
+  NoticeMessage,
+  ProgressCopy,
+} from "@zotlit/obsidian-kit/notifier.ts";
+import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { plainNoteError } from "@/services/note-feature/errors.ts";
 import { EmptyFilenameError } from "@/services/note-feature/filename.ts";
 import type {
@@ -17,6 +20,7 @@ import type {
   UpdateScope,
 } from "@/services/note-feature/operations.ts";
 import { isInertTemplateError } from "@/services/template/errors.ts";
+import { missingPartialNotice } from "@/services/template/workbench-recovery.ts";
 
 import { NoteFeature } from "./service.ts";
 import type { UpdateNoteOptions } from "./write-pipeline.ts";

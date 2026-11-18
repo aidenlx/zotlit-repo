@@ -1,9 +1,13 @@
 // The wikilink Citations one rendered reading-view section holds, and the swap
 // that puts their formatted text in place.
 
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { citationRuns } from "@/lib/wikilink-citation.ts";
-import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { citationRuns } from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import type {
+  RunMember,
+  WikilinkCitation,
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
+
 import { showCitation } from "@/services/citation-text/present.ts";
 import type { PresentedCitation } from "@/services/citation-text/present.ts";
 

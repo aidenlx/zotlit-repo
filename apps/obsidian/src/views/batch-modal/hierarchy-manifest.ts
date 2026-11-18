@@ -1,5 +1,5 @@
 // Parent → child-note tree body for the batch modal (import child notes).
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
 import {
   GROUP_SUMMARY_CLS,

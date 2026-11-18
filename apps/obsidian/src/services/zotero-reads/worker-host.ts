@@ -18,9 +18,10 @@ import type { FileSystem } from "effect";
 import { RpcClient, RpcClientError, RpcSchema, RpcWorker } from "effect/rpc";
 import { tmpdir } from "node:os";
 
-import { layerHostLogPort } from "@/lib/effect-log-port.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { layerHostLogPort } from "@zotlit/plugin-kernel/effect-log-port.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+
 import { readParentBeside } from "@/services/database/read-parent.ts";
 import type { EffectiveReadMode } from "@/services/database/read-source.ts";
 import { reapWorkerClones } from "@/services/database/reap-temps.ts";

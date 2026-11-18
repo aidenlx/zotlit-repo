@@ -12,16 +12,23 @@ import {
 import type { HoverParent } from "obsidian";
 import type { ReactNode } from "react";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { bridgeLog, withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
-import type { WorkspaceEventHost } from "@/lib/obsidian-workspace.ts";
-import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import {
+  Workspace,
+  workspaceTrigger,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { WorkspaceEventHost } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import {
+  bridgeLog,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   describeCandidatesEffect,
   describeJoinedCandidates,

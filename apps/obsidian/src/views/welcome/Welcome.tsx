@@ -5,15 +5,14 @@ import type { IconName } from "obsidian";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { CONVERTED_DEFAULT_PROFILE_DOCUMENT } from "@zotlit/templates/facade";
 import { useUniqueId } from "@zotlit/ui";
-
-import { Button } from "@/components/obsidian/button.tsx";
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { companionDocsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import { useWelcomeActions } from "./actions.ts";
 import {

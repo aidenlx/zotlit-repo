@@ -14,8 +14,8 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
+import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
 
-import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
 import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 
 import { workerQuery } from "./__fixtures__/worker-query.ts";

@@ -1,10 +1,11 @@
 import { ButtonComponent, Modal, setIcon } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { cn } from "@/lib/utils.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { makeStopRequest } from "@/services/batch-run.ts";
 import type { BatchFailure } from "@/services/batch-run.ts";
 

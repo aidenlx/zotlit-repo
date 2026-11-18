@@ -1,0 +1,48 @@
+{
+  "name": "@zotlit/plugin-kernel",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The host-free base of the ZotLit Obsidian plugins: the Effect entry points, logging, bridges and stream helpers, and pure utilities",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./vite": "./scripts/effect-entry.ts",
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@logtape/logtape": "catalog:",
+    "@zotlit/db": "workspace:*",
+    "@zotlit/obsidian-i18n": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/shared": "workspace:*",
+    "@zotlit/templates": "workspace:*",
+    "@zotlit/workbench": "workspace:*",
+    "cn": "catalog:",
+    "effect": "catalog:",
+    "tailwind-variants": "catalog:",
+    "valibot": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/turndown": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/item-lookup": "workspace:*",
+    "oxlint": "catalog:",
+    "turndown": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -4,13 +4,13 @@ import { around } from "monkey-around";
 import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import * as toast from "@zotlit/obsidian-kit/toast.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { disposable } from "@/lib/disposables.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import * as toast from "@/lib/toast.ts";
 import type { CitekeyResolution } from "@/services/citation-index/service.ts";
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 

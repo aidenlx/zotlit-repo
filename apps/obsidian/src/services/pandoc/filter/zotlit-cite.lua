@@ -693,7 +693,7 @@ end
 --@variant cli
 --- Obsidian 1.14.2's Properties boundary, as `getFrontMatterInfo` scans it: an
 --- opening `---` line, then the first line that starts with `---` and ends
---- there. The mock in `apps/obsidian/__mocks__/obsidian.ts` models the same rule.
+--- there. The mock in `packages/obsidian-kit/src/__mocks__/obsidian.ts` models the same rule.
 --- @return string|nil properties the YAML between the fences
 --- @return string body the text after the closing fence
 local function split_properties(source)

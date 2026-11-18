@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { chooserLayout } from "@/components/chooser-logic.ts";
-import type { ChooserMatcher } from "@/components/chooser-logic.ts";
+import { chooserLayout } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
+import type { ChooserMatcher } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 
 import { listedProperties, propertyRow } from "./properties-menu.tsx";
 import { parseQueryFile } from "./query-file.ts";

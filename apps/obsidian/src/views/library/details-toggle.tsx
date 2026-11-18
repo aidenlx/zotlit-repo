@@ -6,9 +6,9 @@
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 export class DetailsToggle {
   readonly #root: Root;

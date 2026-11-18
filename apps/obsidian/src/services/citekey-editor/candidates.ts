@@ -4,10 +4,11 @@ import { Effect, Layer } from "effect";
 import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { candidateRow } from "@/services/citation-index/ambiguity.ts";
 import type {
   AmbiguousCandidate,

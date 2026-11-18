@@ -2,8 +2,7 @@
 import { Effect, Stream } from "effect";
 
 import type { LibraryCitekey } from "@zotlit/db";
-
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 const SNAPSHOT_SLICE_MS = 4;
 

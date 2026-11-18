@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from "vitest";
 
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";

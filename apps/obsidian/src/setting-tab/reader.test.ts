@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
 
 import { readerPageItems } from "./reader.ts";

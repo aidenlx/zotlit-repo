@@ -4,8 +4,9 @@
 // read is the only seam: it can be held, failed, or left unopened.
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import {
   layerQueryClients,
   QueryClients,

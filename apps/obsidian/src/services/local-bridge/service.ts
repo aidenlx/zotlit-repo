@@ -16,6 +16,13 @@ import {
 import type { Context as HonoContext } from "hono";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import type { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { DOCS_SITE_URL } from "@zotlit/plugin-kernel/constants.ts";
+import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import {
   BRIDGE_CAPABILITIES,
   BRIDGE_VERSION,
@@ -23,13 +30,6 @@ import {
 } from "@zotlit/workbench/bridge";
 import type { ProfileBindingDefaults } from "@zotlit/workbench/bridge";
 
-import { DOCS_SITE_URL } from "@/lib/constants.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import { instantClock } from "@/lib/effect-clock.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import type { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import { LocalServer } from "@/services/local-server/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

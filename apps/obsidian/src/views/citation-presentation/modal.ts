@@ -4,7 +4,8 @@
 import { Modal, Setting } from "obsidian";
 import type { App, TextComponent } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { citationLocaleError } from "@/setting-tab/citations.ts";
 import type { StyleDropdownOptions } from "@/views/style-dropdown.ts";
 import { addStyleDropdown } from "@/views/style-dropdown.ts";

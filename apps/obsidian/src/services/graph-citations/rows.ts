@@ -4,7 +4,7 @@ import { around } from "monkey-around";
 import { Setting } from "obsidian";
 import type { GraphControlSection, GraphEngine, GraphOptions } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import { targetOnce } from "./install.ts";
 

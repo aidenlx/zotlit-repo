@@ -15,6 +15,13 @@ import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json" with { type: "json" };
 import noteSchema from "@zotlit/db/contract/note.schema.json" with { type: "json" };
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 import type {
   LiteratureNotePackError,
@@ -23,13 +30,6 @@ import type {
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { excerptAssetIdentities } from "@/services/excerpt-image/materialize.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";

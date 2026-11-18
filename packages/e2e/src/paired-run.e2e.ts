@@ -138,11 +138,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
   const api = baseUrl!;
   let serverID = "";
   let authorizationFixture: { secret: string; rdp: ZoteroRdp } | undefined;
-  let m: typeof import("@obsidian-messages");
+  let m: typeof import("@zotlit/plugin-messages/messages.ts");
 
   beforeAll(async () => {
     // The dev build generates this facade; unreachable runs never load it.
-    m = await import("@obsidian-messages");
+    m = await import("@zotlit/plugin-messages/messages.ts");
     serverID = await readServerID(api);
     authorizationFixture = {
       // The vault half of the seeded Write Authorization. Each tier that
@@ -16300,7 +16300,7 @@ async function installLostWriteProbe(vaultId: string): Promise<void> {
       { effectPath }: { effectPath: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect.ts"),
+        typeof import("@zotlit/plugin-kernel/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;
@@ -16356,7 +16356,7 @@ async function installClosingPaneProbe(
       }: { effectPath: string; annotationKey: string; color: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect.ts"),
+        typeof import("@zotlit/plugin-kernel/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;
@@ -16411,7 +16411,7 @@ async function installHeldWriteProbe(vaultId: string): Promise<void> {
       { effectPath }: { effectPath: string },
     ) => {
       const { Effect } = require(effectPath) as Pick<
-        typeof import("@/lib/effect.ts"),
+        typeof import("@zotlit/plugin-kernel/effect.ts"),
         "Effect"
       >;
       const services = zotlit.services;

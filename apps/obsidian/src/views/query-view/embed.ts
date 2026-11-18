@@ -9,12 +9,16 @@
 import { Component, Keymap } from "obsidian";
 import type { App, EventRef, TFile } from "obsidian";
 
-import { processLiveText, readLiveText } from "@/lib/live-text.ts";
+import {
+  processLiveText,
+  readLiveText,
+} from "@zotlit/obsidian-kit/live-text.ts";
+
 import type {
   EmbedComponent,
   EmbedContext,
   EmbedCreator,
-} from "@/lib/obsidian-private/embed-registry.ts";
+} from "@/views/query-view/obsidian-private/embed-registry.ts";
 
 import { NoteQueryHost } from "./note-host.ts";
 import { inPreview, renderPreviewPlaceholder } from "./preview-placeholder.ts";

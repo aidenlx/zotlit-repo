@@ -7,10 +7,10 @@ import { expect } from "vitest";
 import { getAnnotationsByKey } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";

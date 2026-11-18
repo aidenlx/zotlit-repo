@@ -19,8 +19,8 @@ import {
 } from "react";
 import type { HTMLAttributes, LiHTMLAttributes, ReactNode } from "react";
 
-import { observeResize } from "@/lib/observe-resize.ts";
-import { cn } from "@/lib/utils.ts";
+import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
 import { ITEM_ROW_ATTRIBUTE, NO_ROWS } from "./item-rows.ts";
 import type { QueryView } from "./view.tsx";

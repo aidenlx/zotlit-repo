@@ -7,6 +7,25 @@ import type { Menu, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import {
+  answerOf,
+  inFlightSlot,
+  latestSlot,
+  makeViewRunner,
+} from "@zotlit/obsidian-kit/view-runner.ts";
+import type {
+  InFlightSlot,
+  LatestSlot,
+  ViewRunner,
+} from "@zotlit/obsidian-kit/view-runner.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { DisplayNode } from "@zotlit/workbench/explorer";
 import {
   failedRender,
@@ -22,22 +41,6 @@ import {
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
-import {
-  answerOf,
-  inFlightSlot,
-  latestSlot,
-  makeViewRunner,
-} from "@/lib/view-runner.ts";
-import type {
-  InFlightSlot,
-  LatestSlot,
-  ViewRunner,
-} from "@/lib/view-runner.ts";
 import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
 import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
 import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";

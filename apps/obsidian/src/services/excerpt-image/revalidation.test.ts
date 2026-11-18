@@ -4,8 +4,8 @@ import { Deferred, Effect, Layer, PubSub, Queue, Stream } from "effect";
 import { expect } from "vitest";
 
 import type { AnnotationSources, Attachment } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationRecord,

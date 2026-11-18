@@ -10,14 +10,15 @@ import type {
   WorkspaceRoot,
 } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Profile } from "@/services/profile/service.ts";
 import { TEMPLATE_WORKBENCH_VIEW_TYPE } from "@/views/template-workbench/view.tsx";
 

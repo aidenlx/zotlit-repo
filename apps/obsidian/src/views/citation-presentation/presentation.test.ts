@@ -2,8 +2,9 @@ import { stringifyYaml } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 import {

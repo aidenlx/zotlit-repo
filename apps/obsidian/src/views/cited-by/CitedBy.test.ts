@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Keymap, MarkdownView } from "obsidian";
 import type {
@@ -18,11 +16,14 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { vaultError } from "@/lib/vault-errors.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+// @vitest-environment happy-dom
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   annotationRows,
   annotationUri,

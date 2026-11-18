@@ -1,8 +1,8 @@
 import type { App, Command, Plugin, WorkspaceLeaf } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { openCitedByView, registerCitedByView } from "./register.ts";
 import { CITED_BY_VIEW_TYPE } from "./view.tsx";

@@ -5,12 +5,13 @@ import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type { CitedBySnapshot } from "@/services/citation-index/service.ts";

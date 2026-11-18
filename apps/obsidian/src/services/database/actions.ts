@@ -1,10 +1,11 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 
-import { exitOver, scopedBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { withProgress } from "@/lib/notifier.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { exitOver, scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 

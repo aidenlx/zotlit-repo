@@ -4,9 +4,10 @@ import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { FIELD_CITATION_STYLE } from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FIELD_CITATION_STYLE } from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { citationOutcome } from "@/services/citation-index/outcome.ts";
 import type {
@@ -33,13 +34,16 @@ type RenderedBibliography = Extract<
   { kind: "held" }
 >;
 
-vi.mock("@/components/obsidian/icon-button.tsx", async () => {
-  const { createElement } = await import("react");
-  return {
-    IconButton: ({ icon, ...props }: { icon: string }) =>
-      createElement("button", { ...props, "data-icon": icon }),
-  };
-});
+vi.mock(
+  "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx",
+  async () => {
+    const { createElement } = await import("react");
+    return {
+      IconButton: ({ icon, ...props }: { icon: string }) =>
+        createElement("button", { ...props, "data-icon": icon }),
+    };
+  },
+);
 
 /** The one cited work: a book in My Library, signed in as user 1. */
 const SEED = `

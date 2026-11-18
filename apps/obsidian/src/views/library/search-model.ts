@@ -5,7 +5,8 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import {
   libraryScopeStateAtom,

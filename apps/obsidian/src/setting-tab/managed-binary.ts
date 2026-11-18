@@ -3,7 +3,8 @@
 import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
-import { reportOutcome, withProgress } from "@/lib/notifier.ts";
+import { reportOutcome, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+
 import type {
   ManagedBinaryApi,
   ManagedBinaryFailure,

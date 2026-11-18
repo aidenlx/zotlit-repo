@@ -1,7 +1,7 @@
 // Shared companion reader state for views.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import { LocalServer } from "./service.ts";
 import type { ReaderTarget } from "./service.ts";

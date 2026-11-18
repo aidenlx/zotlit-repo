@@ -4,9 +4,10 @@ import { ButtonComponent } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { batchGroups } from "@/services/batch-scope.ts";
 
 import { section } from "./dom.ts";

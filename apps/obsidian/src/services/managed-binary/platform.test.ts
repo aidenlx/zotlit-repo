@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import type { RequestUrlResponse } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { requestUrlHttpClient } from "@/lib/http-client.ts";
+import { requestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
 
 import { downloadBytes } from "./platform.ts";
 

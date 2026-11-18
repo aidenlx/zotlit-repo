@@ -2,9 +2,10 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Scope } from "effect";
 import { expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { WriteRunFailed } from "@/services/annotation-repository/service.ts";
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 

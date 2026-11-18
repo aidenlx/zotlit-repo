@@ -4,8 +4,8 @@ import type { Effect } from "effect";
 import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
 
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 /** The Literature Note that is active when the dialog opens. */
 export interface ActiveNote {

@@ -4,10 +4,11 @@ import { Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { HoverLinkSource } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+
 import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";

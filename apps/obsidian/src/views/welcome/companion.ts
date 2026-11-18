@@ -1,7 +1,8 @@
 // Whether Zotero lists ZotLit Companion as installed, re-read when the researcher may have installed it.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 

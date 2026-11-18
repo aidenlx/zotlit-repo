@@ -116,6 +116,9 @@ catalogs:
     '@effect/atom-react':
       specifier: 4.1.2
       version: 4.1.2
+    '@effect/platform-node':
+      specifier: 4.1.2
+      version: 4.1.2
     '@effect/tsgo':
       specifier: 0.68.1
       version: 0.68.1
@@ -152,6 +155,9 @@ catalogs:
     '@pnpm/find-workspace-dir':
       specifier: ^1000.1.5
       version: 1000.1.5
+    '@preact/preset-vite':
+      specifier: ^2.10.6
+      version: 2.10.6
     '@std/async':
       specifier: jsr:1.4.0
       version: 1.4.0
@@ -188,6 +194,9 @@ catalogs:
     '@types/semver':
       specifier: ^7.7.1
       version: 7.7.1
+    '@types/turndown':
+      specifier: ^5.0.6
+      version: 5.0.6
     '@types/yargs':
       specifier: ^17.0.35
       version: 17.0.35
@@ -197,6 +206,9 @@ catalogs:
     arkregex:
       specifier: ^0.0.5
       version: 0.0.5
+    cn:
+      specifier: ^0.2.4
+      version: 0.2.4
     cross-env:
       specifier: ^10.1.0
       version: 10.1.0
@@ -212,6 +224,9 @@ catalogs:
     effect:
       specifier: 4.1.2
       version: 4.1.2
+    electron:
+      specifier: 43.3.0
+      version: 43.3.0
     eta:
       specifier: 4.6.0
       version: 4.6.0
@@ -260,9 +275,15 @@ catalogs:
     semver:
       specifier: ^7.7.2
       version: 7.8.5
+    tailwind-variants:
+      specifier: ^3.2.2
+      version: 3.2.2
     tailwindcss:
       specifier: ^4.3.0
       version: 4.3.2
+    turndown:
+      specifier: 7.2.0
+      version: 7.2.0
     typescript:
       specifier: ^7.0.2
       version: 7.0.2
@@ -464,7 +485,7 @@ importers:
         specifier: 1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       cn:
-        specifier: ^0.2.4
+        specifier: 'catalog:'
         version: 0.2.4
       effect:
         specifier: 'catalog:'
@@ -633,7 +654,7 @@ importers:
         specifier: 4.1.2
         version: 4.1.2(effect@4.1.2)
       '@effect/platform-node':
-        specifier: 4.1.2
+        specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)(redis@6.3.0)
       '@hono/node-server':
         specifier: 'catalog:'
@@ -674,12 +695,24 @@ importers:
       '@zotlit/item-query':
         specifier: workspace:*
         version: link:../../packages/item-query
+      '@zotlit/obsidian-desktop':
+        specifier: workspace:*
+        version: link:../../packages/obsidian-desktop
       '@zotlit/obsidian-i18n':
         specifier: workspace:*
         version: link:../../packages/obsidian-i18n
+      '@zotlit/obsidian-kit':
+        specifier: workspace:*
+        version: link:../../packages/obsidian-kit
       '@zotlit/pdf-structure':
         specifier: workspace:*
         version: link:../../packages/pdf-structure
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../../packages/plugin-kernel
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../../packages/plugin-messages
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -701,12 +734,6 @@ importers:
       arkregex:
         specifier: 'catalog:'
         version: 0.0.5
-      cn:
-        specifier: ^0.2.4
-        version: 0.2.4
-      diff:
-        specifier: 'catalog:'
-        version: 8.0.4
       effect:
         specifier: 'catalog:'
         version: 4.1.2
@@ -743,9 +770,6 @@ importers:
       semver:
         specifier: ^7.8.0
         version: 7.8.5
-      tailwind-variants:
-        specifier: ^3.2.2
-        version: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.2)
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -774,14 +798,11 @@ importers:
       '@electron/remote':
         specifier: 'catalog:'
         version: 2.1.3(electron@43.3.0(supports-color@10.2.2))
-      '@lezer/common':
-        specifier: 'catalog:'
-        version: 1.5.2
       '@logtape/logtape':
         specifier: 'catalog:'
         version: 2.1.0
       '@preact/preset-vite':
-        specifier: ^2.10.6
+        specifier: 'catalog:'
         version: 2.10.6(@babel/core@7.29.7(supports-color@10.2.2))(preact@11.0.0-rc.2)(supports-color@10.2.2)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@tailwindcss/node':
         specifier: ^4.3.0
@@ -805,7 +826,7 @@ importers:
         specifier: ^7.7.1
         version: 7.7.1
       '@types/turndown':
-        specifier: ^5.0.6
+        specifier: 'catalog:'
         version: 5.0.6
       '@zotlit/config':
         specifier: workspace:*
@@ -820,7 +841,7 @@ importers:
         specifier: 'catalog:'
         version: 8.20.0
       electron:
-        specifier: 43.3.0
+        specifier: 'catalog:'
         version: 43.3.0(supports-color@10.2.2)
       fake-indexeddb:
         specifier: 6.2.5
@@ -844,7 +865,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.2
       turndown:
-        specifier: 7.2.0
+        specifier: 'catalog:'
         version: 7.2.0
       typescript:
         specifier: 'catalog:'
@@ -1084,6 +1105,15 @@ importers:
       '@zotlit/obsidian':
         specifier: workspace:*
         version: link:../../apps/obsidian
+      '@zotlit/obsidian-kit':
+        specifier: workspace:*
+        version: link:../obsidian-kit
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../plugin-kernel
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../plugin-messages
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -1229,6 +1259,52 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/obsidian-desktop:
+    dependencies:
+      '@zotlit/db':
+        specifier: workspace:*
+        version: link:../db
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../plugin-kernel
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+    devDependencies:
+      '@effect/platform-node':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(redis@6.3.0)
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+      '@electron/remote':
+        specifier: 'catalog:'
+        version: 2.1.3(electron@43.3.0(supports-color@10.2.2))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/node-24':
+        specifier: 'catalog:'
+        version: '@types/node@24.13.3'
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      electron:
+        specifier: 'catalog:'
+        version: 43.3.0(supports-color@10.2.2)
+      obsidian:
+        specifier: 'catalog:'
+        version: 1.14.4(@codemirror/state@6.7.6)(@codemirror/view@6.43.13)
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/obsidian-i18n:
     dependencies:
       '@inlang/plugin-m-function-matcher':
@@ -1259,6 +1335,109 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/obsidian-kit:
+    dependencies:
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(react@19.2.7)(scheduler@0.27.0)
+      '@zotlit/item-query':
+        specifier: workspace:*
+        version: link:../item-query
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../plugin-kernel
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../plugin-messages
+      '@zotlit/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@zotlit/workbench':
+        specifier: workspace:*
+        version: link:../workbench
+      '@zotlit/zotero-types':
+        specifier: workspace:*
+        version: link:../zotero-types
+      arkregex:
+        specifier: 'catalog:'
+        version: 0.0.5
+      cn:
+        specifier: 'catalog:'
+        version: 0.2.4
+      diff:
+        specifier: 'catalog:'
+        version: 8.0.4
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+      monkey-around:
+        specifier: 'catalog:'
+        version: 3.0.0
+      preact:
+        specifier: 'catalog:'
+        version: 11.0.0-rc.2
+      tailwind-variants:
+        specifier: 'catalog:'
+        version: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.2)
+    devDependencies:
+      '@codemirror/language':
+        specifier: 6.12.3
+        version: 6.12.3
+      '@codemirror/state':
+        specifier: 6.7.6
+        version: 6.7.6
+      '@codemirror/view':
+        specifier: 6.43.13
+        version: 6.43.13
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+      '@lezer/common':
+        specifier: 'catalog:'
+        version: 1.5.2
+      '@preact/preset-vite':
+        specifier: 'catalog:'
+        version: 2.10.6(@babel/core@7.29.7(supports-color@10.2.2))(preact@11.0.0-rc.2)(supports-color@10.2.2)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/node-24':
+        specifier: 'catalog:'
+        version: '@types/node@24.13.3'
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@types/turndown':
+        specifier: 'catalog:'
+        version: 5.0.6
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.9.0
+      obsidian:
+        specifier: 'catalog:'
+        version: 1.14.4(@codemirror/state@6.7.6)(@codemirror/view@6.43.13)
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      yaml:
+        specifier: 'catalog:'
+        version: 2.9.1
 
   packages/paraglide-vite:
     dependencies:
@@ -1314,6 +1493,95 @@ importers:
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/pdfjs-dist: {}
+
+  packages/plugin-kernel:
+    dependencies:
+      '@logtape/logtape':
+        specifier: 'catalog:'
+        version: 2.1.0
+      '@zotlit/db':
+        specifier: workspace:*
+        version: link:../db
+      '@zotlit/obsidian-i18n':
+        specifier: workspace:*
+        version: link:../obsidian-i18n
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../plugin-messages
+      '@zotlit/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@zotlit/templates':
+        specifier: workspace:*
+        version: link:../templates
+      '@zotlit/workbench':
+        specifier: workspace:*
+        version: link:../workbench
+      cn:
+        specifier: 'catalog:'
+        version: 0.2.4
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+      tailwind-variants:
+        specifier: 'catalog:'
+        version: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.2)
+      valibot:
+        specifier: 'catalog:'
+        version: 1.4.2(typescript@7.0.2)
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/node-24':
+        specifier: 'catalog:'
+        version: '@types/node@24.13.3'
+      '@types/turndown':
+        specifier: 'catalog:'
+        version: 5.0.6
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      '@zotlit/item-lookup':
+        specifier: workspace:*
+        version: link:../item-lookup
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      turndown:
+        specifier: 'catalog:'
+        version: 7.2.0
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/plugin-messages:
+    dependencies:
+      '@zotlit/obsidian-i18n':
+        specifier: workspace:*
+        version: link:../obsidian-i18n
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
 
   packages/protocol:
     dependencies:

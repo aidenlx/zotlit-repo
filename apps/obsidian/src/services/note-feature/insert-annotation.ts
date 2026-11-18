@@ -2,14 +2,10 @@
 import { Effect } from "effect";
 
 import { buildAnnotationParents } from "@zotlit/db";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import {
-  annotationCitation,
-  buildAnnotationResolvers,
-} from "@/lib/annotation-render.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,
@@ -24,6 +20,10 @@ import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
+import {
+  annotationCitation,
+  buildAnnotationResolvers,
+} from "@/services/template/annotation-render.ts";
 import {
   ProfileAnnotationError,
   Template,

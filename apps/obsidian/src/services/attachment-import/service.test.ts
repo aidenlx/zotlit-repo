@@ -15,13 +15,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
-import { copyAttachments } from "@/lib/copy-attachments.ts";
+import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+
+import { copyAttachments } from "@/services/attachment-import/copy-attachments.ts";
 
 import { attachmentImportFixture } from "./__fixtures__.ts";
 import type { AttachmentImportFixtureOptions } from "./__fixtures__.ts";
 
-vi.mock("@/lib/copy-attachments.ts", () => ({
+vi.mock("@/services/attachment-import/copy-attachments.ts", () => ({
   copyAttachments: vi.fn((items: readonly unknown[]) =>
     Effect.succeed({ copied: items.length, skipped: 0, missing: 0 }),
   ),

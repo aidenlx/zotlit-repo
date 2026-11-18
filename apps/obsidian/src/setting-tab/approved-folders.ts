@@ -4,7 +4,8 @@
 
 import type { SettingDefinitionItem, SettingDefinitionPage } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";

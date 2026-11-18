@@ -1,12 +1,3 @@
-// The Query View runs one view of a Query File through ZotLit Query and shows
-// its rows as live Annotation Cards. These tests drive it as a host does: the
-// file's text in, the cards, the count and the messages out.
-import {
-  Menu,
-  hideSuggestChooser,
-  resetMockPlatform,
-  setMockPlatform,
-} from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Scope } from "obsidian";
 import type { App } from "obsidian";
@@ -21,14 +12,24 @@ import type {
   QueryContext,
   QuerySummary,
 } from "@zotlit/item-query";
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import { pressTop } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+// The Query View runs one view of a Query File through ZotLit Query and shows
+// its rows as live Annotation Cards. These tests drive it as a host does: the
+// file's text in, the cards, the count and the messages out.
+import {
+  Menu,
+  hideSuggestChooser,
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
-import { pressTop } from "@/lib/__fixtures__/keymap.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AppContext } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
@@ -47,7 +48,6 @@ import { libraryAvailabilityRevisionAtom } from "@/services/library-scope/atoms.
 import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import { annotationReads } from "@/services/pdf-annotation-editor/__fixtures__.ts";
 import { zoteroRevisionAtom } from "@/services/zotero-reads/atoms.ts";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 

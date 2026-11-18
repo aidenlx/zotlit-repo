@@ -7,11 +7,11 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { WorkspaceLeaf } from "obsidian";
 import { vi } from "vitest";
 
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { INITIAL_PANELS } from "@zotlit/workbench/ui";
 import type { WorkbenchModel } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
 import { EXPLORER_VIEW_TYPE } from "@/views/template-data-explorer/view.tsx";
 
 import { findWorkbenchLayout, openWorkbenchLayout } from "./layout.ts";

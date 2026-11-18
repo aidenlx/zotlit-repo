@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { Menu, resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Deferred, Effect, Fiber } from "effect";
 import { MarkdownView, TFile } from "obsidian";
 import type {
@@ -21,12 +20,18 @@ import {
   vi,
 } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  Menu,
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { registerFileMenu } from "@/services/file-menu.ts";
 import type {
   Customize,

@@ -1,15 +1,19 @@
-// The Query File tab writes a toolbar change to its file at once, through
-// its own save, and the toolbar says when the write failed.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Stream } from "effect";
 import { debounce } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+// The Query File tab writes a toolbar change to its file at once, through
+// its own save, and the toolbar says when the write failed.
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import { testAnnotHost } from "@/views/annot-view/__fixtures__/host.ts";
 import type { QueryHostDeps } from "@/views/query-view/__fixtures__/host.ts";

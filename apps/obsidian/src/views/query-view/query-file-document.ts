@@ -1,12 +1,11 @@
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 // The Query File document: the text of one Query View's file, the file it
 // parses to, the view on screen, every edit, and when an edit saves. Each
 // Query View has its own, so two tabs or embeds of one file each keep their
 // own view on screen. The host stays the adapter: it writes the text and
 // remembers the view through its save and select-view callbacks.
 import type { MatchTree } from "@zotlit/templates/facade";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
 
 import {
   editView,

@@ -2,11 +2,11 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Layer, Logger, References } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { LegacyPortError, portCall } from "@/lib/legacy-port.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { LegacyPortError, portCall } from "@zotlit/obsidian-kit/legacy-port.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { explainWorkbenchOpen, templateWorkbenchAction } from "./actions.ts";
 

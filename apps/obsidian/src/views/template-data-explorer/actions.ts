@@ -2,8 +2,9 @@
 import type { Menu } from "obsidian";
 import { createContext } from "react";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { IndexedKeyCopyTarget } from "@/services/indexed-key/actions.ts";
 import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
 

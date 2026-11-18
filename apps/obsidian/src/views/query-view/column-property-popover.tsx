@@ -6,8 +6,11 @@
 import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 import type { Ref, RefObject } from "react";
 
-import { Chooser, useChooserOpenPage } from "@/components/chooser.tsx";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
+import {
+  Chooser,
+  useChooserOpenPage,
+} from "@zotlit/obsidian-kit/components/chooser.tsx";
+import type { PinnedPopoverHandle } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
 
 import { PropertyPage } from "./property-page.tsx";
 import type { ViewProperties } from "./view-properties.ts";

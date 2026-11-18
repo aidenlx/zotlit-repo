@@ -14,12 +14,13 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupRequest } from "@/services/citation-index/lookup.ts";

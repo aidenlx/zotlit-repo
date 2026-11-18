@@ -6,14 +6,17 @@ import type { App, Events } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { citekeysToCiteTemplateData } from "@zotlit/db";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import {
+  MockVault,
+  PluginStub,
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { LegacyTemplateConversionError } from "@zotlit/templates/facade";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";
@@ -1642,7 +1645,10 @@ async function buildMigration(
   options: TemplateMigrationOptions & {
     app: App;
     settings: PluginSettings["Service"];
-    bridge: Pick<import("@/lib/effect-bridge.ts").EffectBridge, "runSync">;
+    bridge: Pick<
+      import("@zotlit/plugin-kernel/effect-bridge.ts").EffectBridge,
+      "runSync"
+    >;
     template: Pick<
       Template["Service"],
       | "refresh"

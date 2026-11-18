@@ -3,8 +3,11 @@
 import { Duration, Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { isOlderThan, sweepTempDirectory } from "@/lib/temp-sweep.ts";
-import type { ReapTempsOptions } from "@/lib/temp-sweep.ts";
+import {
+  isOlderThan,
+  sweepTempDirectory,
+} from "@zotlit/obsidian-desktop/temp-sweep.ts";
+import type { ReapTempsOptions } from "@zotlit/obsidian-desktop/temp-sweep.ts";
 
 import { excerptTempDirectory } from "./temp-store.ts";
 

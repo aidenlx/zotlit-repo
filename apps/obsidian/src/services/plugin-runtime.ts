@@ -1,16 +1,17 @@
 // Composes the plugin's Effect runtime and binds the services the plugin shell and debug surface read.
 import { Effect, FiberSet, FileSystem, Scope } from "effect";
 
-import { cliRunner } from "@/lib/cli-command.ts";
-import { WEB_WORKBENCH_ENABLED } from "@/lib/constants.ts";
-import { DisposableAbortController } from "@/lib/disposables.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { revealSetting } from "@/lib/open-settings.ts";
-import { ViewRegistry } from "@/lib/view-atoms.ts";
+import { cliRunner } from "@zotlit/obsidian-kit/cli-command.ts";
+import { DisposableAbortController } from "@zotlit/obsidian-kit/disposables.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
+import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { libraryTagNamesOf } from "@/services/database/library-tag-names.ts";
 import {
   createProfileDialog,

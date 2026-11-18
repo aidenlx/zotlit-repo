@@ -1,0 +1,38 @@
+{
+  "name": "@zotlit/obsidian-desktop",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The desktop-only helpers of the ZotLit plugins, which need Node or Electron: file URLs, reflink copies, temp sweeps, content hashes, and the Electron dialogs",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@zotlit/db": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@electron/remote": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "electron": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

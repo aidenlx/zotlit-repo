@@ -2,23 +2,21 @@ import { View } from "obsidian";
 import type { Plugin } from "obsidian";
 import semverGte from "semver/functions/gte";
 
-import type { CliCommand, CliHost } from "@/lib/cli-command.ts";
-import {
-  handlerCheckedFlags,
-  printableCliHandler,
-} from "@/lib/cli-rejection.ts";
+import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import {
   ANNOTATION_SUGGESTER_ENABLED,
   WEB_WORKBENCH_ENABLED,
-} from "@/lib/constants.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { revealSetting } from "@/lib/open-settings.ts";
-import { logLateRelease, UnloadAwarePlugin } from "@/lib/plugin-lifecycle.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
+import { enableStartupLogging } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { startI18n } from "./lib/i18n.ts";
-import { enableStartupLogging } from "./lib/log.ts";
-import { BaseNotice } from "./lib/notice.ts";
+import { handlerCheckedFlags, printableCliHandler } from "@/cli-rejection.ts";
+import { logLateRelease, UnloadAwarePlugin } from "@/plugin-lifecycle.ts";
+
+import { startI18n } from "./i18n.ts";
 import { addAnnotationHistoryActions } from "./services/annotation-repository/actions.ts";
 import type { HistorySurface } from "./services/annotation-repository/actions.ts";
 import { annotationHistoryFileMenu } from "./services/annotation-repository/menu.ts";
@@ -202,7 +200,7 @@ export default class ZotLitPlugin extends UnloadAwarePlugin implements CliHost {
 
   /**
    * Register a zotlit:* command whose handler is an Effect, run on the
-   * plugin's runtime (`@/lib/cli-command`).
+   * plugin's runtime (`@zotlit/obsidian-kit/cli-command.ts`).
    */
   registerCliCommand(
     name: string,

@@ -4,9 +4,10 @@ import { Effect } from "effect";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type { HydrationOrigin } from "@/services/settings/classify.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 

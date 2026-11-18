@@ -3,19 +3,19 @@ import { Effect } from "effect";
 
 import { isChildItemFields, itemToCsl } from "@zotlit/db";
 import type { CslItemData } from "@zotlit/db";
-import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
-
-import type { CitationSource } from "@/lib/citation-source.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { ViewServices } from "@/lib/view-atoms.ts";
-import type { WikilinkCitation } from "@/lib/wikilink-citation.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { ViewServices } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { CitationSource } from "@zotlit/plugin-kernel/citation-source.ts";
+import type { WikilinkCitation } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import {
   citationOfRun,
   citationRuns,
   citationTarget,
   wikilinkCitation,
-} from "@/lib/wikilink-citation.ts";
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
+
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 import type { PresentedCitation } from "@/services/citation-text/present.ts";

@@ -1,15 +1,20 @@
-// @vitest-environment happy-dom
-import { ButtonComponent, TextComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+// @vitest-environment happy-dom
+import {
+  ButtonComponent,
+  TextComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { PreparedProfileCreation } from "@/services/profile/service.ts";

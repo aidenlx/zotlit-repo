@@ -4,11 +4,12 @@
 
 import { Context, Effect, Layer } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import {
   DATA_DIR,
   openResolver,

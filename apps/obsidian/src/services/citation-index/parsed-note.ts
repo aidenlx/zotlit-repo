@@ -2,10 +2,10 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { rewriteScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import { Vault } from "@/lib/obsidian-vault.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 
 import type { NoteScanRecord } from "./scan-note.ts";

@@ -1,8 +1,4 @@
 import { it } from "@effect/vitest";
-import { settingsOf } from "@mock/obsidian.ts";
-import type { ToggleComponent } from "@mock/obsidian.ts";
-// @vitest-environment happy-dom
-import { Keymap, Menu } from "@mock/obsidian.ts";
 import {
   Context,
   Deferred,
@@ -35,15 +31,23 @@ import type {
 import { afterEach, describe, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { CliHost } from "@/lib/cli-command.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { layerMetadataCacheFrom } from "@/lib/obsidian-metadata-cache.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import { makePluginHost, PluginHost } from "@/lib/plugin-host.ts";
-import { themeProperty } from "@/lib/theme-hooks.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { settingsOf } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { ToggleComponent } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+// @vitest-environment happy-dom
+import { Keymap, Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
+import { layerMetadataCacheFrom } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import {
+  makePluginHost,
+  PluginHost,
+} from "@zotlit/obsidian-kit/plugin-host.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -83,8 +87,8 @@ const DEFAULT_COLOR = { a: 1, rgb: 0xe8622c };
 
 const warn = vi.hoisted(() => vi.fn());
 // The real Note Index logs through the root logger; keep it.
-vi.mock("@/lib/log.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/log.ts")>()),
+vi.mock("@zotlit/plugin-kernel/log.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@zotlit/plugin-kernel/log.ts")>()),
   getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
 }));
 

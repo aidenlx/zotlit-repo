@@ -2,7 +2,8 @@ import { TFile } from "obsidian";
 import type { MetadataCache } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";

@@ -20,10 +20,13 @@ import { getSchemaVersions, SUPPORTED_SCHEMA_VERSIONS } from "@zotlit/db";
 import type { ZoteroDatabase, ZoteroSchemaVersions } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import {
+  ZOTERO_DB_FILENAME,
+  ZOTERO_WAL_FILENAME,
+} from "@zotlit/plugin-kernel/constants.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
-import { ZOTERO_DB_FILENAME, ZOTERO_WAL_FILENAME } from "@/lib/constants.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
 import { readParentBeside } from "@/services/database/read-parent.ts";
 import {
   buildSqliteUri,

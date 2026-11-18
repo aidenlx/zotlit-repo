@@ -9,8 +9,7 @@ import type {
   PdfPageSource,
   Rect,
 } from "@zotlit/pdf-structure";
-
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 const logger = getLogger("pdf-annotation-editor");
 

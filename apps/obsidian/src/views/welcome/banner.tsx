@@ -4,8 +4,8 @@ import { Component } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import { WelcomeActionsContext } from "./actions.ts";
 import type { WelcomeActions, WelcomeBannerHost } from "./actions.ts";

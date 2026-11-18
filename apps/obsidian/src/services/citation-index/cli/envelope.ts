@@ -8,7 +8,8 @@
 
 import type { Loc } from "obsidian";
 
-import { createCliDiagnostics } from "@/lib/cli-diagnostic.ts";
+import { createCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+
 import type {
   AnnotationOccurrence,
   AnnotationUse,

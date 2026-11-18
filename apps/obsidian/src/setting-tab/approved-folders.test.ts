@@ -3,10 +3,11 @@ import { expect, it } from "@effect/vitest";
 import { Context, Deferred, Effect, Ref } from "effect";
 import type { SettingDefinitionList } from "obsidian";
 
-import { eventually } from "@/lib/__fixtures__/eventually.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { DeviceStorageError } from "@/lib/obsidian-device-storage.ts";
+import { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 
 import { failureOf, recordingRuns, scopedSettingTab } from "./__fixtures__.ts";

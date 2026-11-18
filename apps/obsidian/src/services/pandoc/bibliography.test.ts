@@ -5,9 +5,11 @@ import { TestClock } from "effect/testing";
 import { describe, expect } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
-
-import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch.ts";
-import { withZoteroHeaders, ZoteroHttp } from "@/lib/zotero-http.ts";
+import { fakeFetchClient } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
+import {
+  withZoteroHeaders,
+  ZoteroHttp,
+} from "@zotlit/plugin-kernel/zotero-http.ts";
 
 import {
   fetchBibliography as fetchEffect,

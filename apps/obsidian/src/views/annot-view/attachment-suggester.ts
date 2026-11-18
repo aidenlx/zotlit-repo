@@ -6,7 +6,7 @@
 import { FuzzySuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { AttachmentLine } from "./presentation.ts";
 

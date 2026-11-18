@@ -18,6 +18,42 @@ import { join } from "node:path/posix";
 import type { TFile } from "obsidian";
 import { parseDocument } from "yaml";
 
+import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
+import {
+  processLiveText,
+  readLiveText,
+} from "@zotlit/obsidian-kit/effect-live-text.ts";
+import type { LiveTextRewriteFailed } from "@zotlit/obsidian-kit/effect-live-text.ts";
+import { normalizeFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
+import {
+  parseFrontMatter,
+  spliceFrontMatter,
+} from "@zotlit/obsidian-kit/live-text.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import {
+  DEFAULT_PROFILE,
+  isProfileId,
+  PROFILE_ID_LENGTH,
+  PROFILE_ID_RULE,
+  readProfileStamp,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ProfileId,
+  ProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ensureVaultParentFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+import type {
+  VaultError,
+  FileExists,
+  VaultFolderBlockedError,
+} from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   TemplateFacade,
   parseLiteratureNoteTemplate,
@@ -34,33 +70,6 @@ import {
 } from "@zotlit/templates/literature-note-pack";
 import type { LiteratureNotePartialUnpack } from "@zotlit/templates/literature-note-pack";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
-import { processLiveText, readLiveText } from "@/lib/effect-live-text.ts";
-import type { LiveTextRewriteFailed } from "@/lib/effect-live-text.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
-import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { profileRevision } from "@/lib/profile-revision.ts";
-import {
-  DEFAULT_PROFILE,
-  isProfileId,
-  PROFILE_ID_LENGTH,
-  PROFILE_ID_RULE,
-  readProfileStamp,
-} from "@/lib/profile-stamp.ts";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
-import type {
-  VaultError,
-  FileExists,
-  VaultFolderBlockedError,
-} from "@/lib/vault-errors.ts";
-import { ensureVaultParentFolder } from "@/lib/vault-folder.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { compileProfileMatch } from "@/services/profile-selection/index.ts";
 import type { ProfileMatch } from "@/services/profile-selection/index.ts";

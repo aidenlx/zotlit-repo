@@ -5,25 +5,25 @@ import { MarkdownRenderChild } from "obsidian";
 // citation it is where the settings ask for it.
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 
-import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
-import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
-
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
 import {
   rerenderReadingViewsIn,
   retireReadingSurface,
-} from "@/lib/reading-surface.ts";
+} from "@zotlit/obsidian-kit/reading-surface.ts";
 import {
   isDraftMarkdown,
   markdownViewOf,
   sectionRange,
-} from "@/lib/reading-view.ts";
-import type { SectionRange } from "@/lib/reading-view.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+} from "@zotlit/obsidian-kit/reading-view.ts";
+import type { SectionRange } from "@zotlit/obsidian-kit/reading-view.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
+import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
+
 import { showCitation } from "@/services/citation-text/present.ts";
 import type {
   DocumentCitations,

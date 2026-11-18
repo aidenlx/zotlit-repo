@@ -2,12 +2,13 @@
 import type { Scope } from "effect";
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import type { ParseClient } from "@/services/citation-parse/client.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 import {

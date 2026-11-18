@@ -2,7 +2,8 @@
 
 import type { SettingDefinition } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { PandocEngine } from "@/services/pandoc/service.ts";
 
 import type { SettingsKey, SettingTabContext } from "./context.ts";

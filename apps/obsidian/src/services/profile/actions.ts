@@ -1,9 +1,10 @@
 // Profile import has one shared UI entry from the command palette.
 import { Effect, Layer } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { importProfileDialog } from "@/setting-tab/profile-dialogs.ts";
 import type { ProfileDialogServices } from "@/setting-tab/profile-dialogs.ts";
 

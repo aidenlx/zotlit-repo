@@ -2,9 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect, Exit } from "effect";
 import { describe, expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
 
 import { showProtocolOutcome } from "./notices.ts";

@@ -21,11 +21,12 @@ import { randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import type { CliData } from "obsidian";
 
-import type { CliRejection } from "@/lib/cli-params.ts";
-import { awaitOwned } from "@/lib/effect-fiber.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";

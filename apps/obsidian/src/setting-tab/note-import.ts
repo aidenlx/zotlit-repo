@@ -4,15 +4,15 @@ import { Effect } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 
 import type { AnnotationColorName } from "@zotlit/db";
-
 import {
   getHighlightMapping,
   HIGHLIGHT_COLORS,
   HIGHLIGHT_EMOJI,
   isHighlightEmoji,
-} from "@/lib/highlight-mapping.ts";
-import type { HighlightMapping } from "@/lib/highlight-mapping.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+} from "@zotlit/plugin-kernel/highlight-mapping.ts";
+import type { HighlightMapping } from "@zotlit/plugin-kernel/highlight-mapping.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 
 import type {

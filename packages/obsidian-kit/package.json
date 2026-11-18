@@ -1,0 +1,59 @@
+{
+  "name": "@zotlit/obsidian-kit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Obsidian layer of the ZotLit plugins: capability tags over Obsidian's API, shared components, and view and workspace helpers that load on desktop and mobile",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./vitest": "./vitest.preset.ts",
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@effect/atom-react": "catalog:",
+    "@zotlit/item-query": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/ui": "workspace:*",
+    "@zotlit/workbench": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "arkregex": "catalog:",
+    "cn": "catalog:",
+    "diff": "catalog:",
+    "effect": "catalog:",
+    "monkey-around": "catalog:",
+    "preact": "catalog:",
+    "tailwind-variants": "catalog:"
+  },
+  "devDependencies": {
+    "@codemirror/language": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@lezer/common": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-24": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/turndown": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "yaml": "catalog:"
+  }
+}

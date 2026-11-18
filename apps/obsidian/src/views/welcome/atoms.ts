@@ -2,11 +2,12 @@
 import { Cause, Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { requireDialog } from "@/lib/require.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Release } from "@/services/release/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import type { SettingsPatch } from "@/services/settings/service.ts";

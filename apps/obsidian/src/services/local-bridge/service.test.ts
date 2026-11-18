@@ -4,6 +4,16 @@ import { expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
+import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { DOCS_SITE_URL } from "@zotlit/plugin-kernel/constants.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   BRIDGE_VERSION,
   CONNECT_FRAGMENT_CODE,
@@ -11,16 +21,6 @@ import {
   LOCAL_BRIDGE_PATHS,
 } from "@zotlit/workbench/bridge";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { DOCS_SITE_URL } from "@/lib/constants.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { buildLocalServer } from "@/services/local-server/__fixtures__.ts";
 import type { LocalServer } from "@/services/local-server/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";

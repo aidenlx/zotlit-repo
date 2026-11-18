@@ -105,9 +105,9 @@ jobs:
       # skipped once and every later step globs one place.
       - name: Stage resources
         run: |
-          pnpm turbo run @zotlit/obsidian#generate:language-packs @zotlit/item-query#generate:schema
+          pnpm turbo run @zotlit/plugin-messages#generate:language-packs @zotlit/item-query#generate:schema
           mkdir -p apps/obsidian/dist/resources
-          for pack in apps/obsidian/src/lib/i18n/generated/*.json; do
+          for pack in packages/plugin-messages/generated/*.json; do
             [ "${pack##*/}" = "en.json" ] && continue
             cp "$pack" apps/obsidian/dist/resources/
           done

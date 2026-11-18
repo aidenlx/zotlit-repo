@@ -1,11 +1,11 @@
 // Query View reads and commands, run in the plugin's view registry.
 import { Cause, Effect } from "effect";
 
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { FilterValues } from "@zotlit/workbench/ui";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,

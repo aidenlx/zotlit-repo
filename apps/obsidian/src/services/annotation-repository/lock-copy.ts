@@ -1,7 +1,7 @@
 // What each Lock Reason says to the user, in one table every surface reads:
 // the lock icon, the notice of a press, and the notice of a refused write.
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { LockReason } from "./lock.ts";
 

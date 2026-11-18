@@ -5,12 +5,13 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";

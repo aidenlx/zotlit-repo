@@ -5,8 +5,9 @@ import { hashKey } from "@tanstack/query-core";
 import type { QueryKey } from "@tanstack/query-core";
 import { Context, Effect, Fiber, FiberSet, Layer, Ref, Schema } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+
 import { QueryClients } from "@/services/query-client/service.ts";
 
 import {

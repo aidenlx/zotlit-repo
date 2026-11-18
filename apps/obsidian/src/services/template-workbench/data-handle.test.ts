@@ -2,9 +2,10 @@ import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
 import { expect } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

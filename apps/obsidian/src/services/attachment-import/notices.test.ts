@@ -1,13 +1,19 @@
 // @vitest-environment happy-dom
 // The skipped-sources notice: one notice for each pooled skip summary.
 import { it } from "@effect/vitest";
-import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect, vi } from "vitest";
 
-import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  layerSignalling,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { layerAttachmentSkipNotice } from "./notices.ts";
 import { AttachmentImport } from "./service.ts";

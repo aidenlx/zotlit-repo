@@ -18,18 +18,19 @@ import {
 import { TFile } from "obsidian";
 import type { TAbstractFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import { startupBarrier } from "@/lib/effect-startup.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { VaultEvent } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { VaultError } from "@/lib/vault-errors.ts";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { VaultEvent } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+
 import type {
   ParseFailed,
   ParseWorkerDied,

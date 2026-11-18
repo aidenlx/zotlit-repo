@@ -3,10 +3,10 @@
 
 import { Effect } from "effect";
 
-import { companionDocsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 interface CompanionNoticeAction {
   label: string;

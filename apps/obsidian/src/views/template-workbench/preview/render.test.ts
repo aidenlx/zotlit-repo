@@ -2,10 +2,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { emptyRender, SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { annotationSamples } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import type { PandocEngineStatus } from "@/services/pandoc/service.ts";
 import {
   getSampleItem,

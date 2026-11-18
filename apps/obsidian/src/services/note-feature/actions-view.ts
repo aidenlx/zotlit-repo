@@ -3,12 +3,12 @@
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { Notifier, ProgressCopy } from "@/lib/notifier.ts";
-import { reportOutcome, withProgress } from "@/lib/notifier.ts";
-import { missingPartialNotice } from "@/lib/workbench-recovery.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import type { Notifier, ProgressCopy } from "@zotlit/obsidian-kit/notifier.ts";
+import { reportOutcome, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { importedNoteProfileErrorNotice } from "@/services/note-import/batch-import-notices.ts";
 import { reimportNoteByKey } from "@/services/note-import/batch-import.ts";
 import type {
@@ -17,6 +17,7 @@ import type {
   ReimportResult,
 } from "@/services/note-import/batch-import.ts";
 import { isInertTemplateError } from "@/services/template/errors.ts";
+import { missingPartialNotice } from "@/services/template/workbench-recovery.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 
 import type { InteractiveCreationPorts } from "./creation-view.ts";

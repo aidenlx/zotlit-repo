@@ -13,9 +13,9 @@ import type { RpcClientError } from "effect/rpc";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { libraryLabel } from "@/services/library-scope/label.ts";
 import {
   compareSelectors,

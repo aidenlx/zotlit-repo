@@ -6,6 +6,11 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import { WorkbenchHostProvider } from "@zotlit/workbench/ui";
 import type {
@@ -14,11 +19,6 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import { answerOf, makeViewRunner } from "@/lib/view-runner.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import { workbenchAnnotationChoice } from "@/views/template-workbench/item-choice.ts";

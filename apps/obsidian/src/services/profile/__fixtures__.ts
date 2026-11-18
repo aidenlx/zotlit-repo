@@ -1,8 +1,9 @@
 import { Effect, Layer } from "effect";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { layerNoteIndex } from "@/services/note-index/service.ts";
 import {
   layerPluginSettings,

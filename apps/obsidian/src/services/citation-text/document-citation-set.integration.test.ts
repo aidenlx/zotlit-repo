@@ -7,10 +7,10 @@ import { dirname, join } from "node:path";
 import type { CachedMetadata, TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import {
   annotationRows,
   annotationUri,
@@ -33,6 +33,7 @@ import type {
   CitationIndexHarness,
   CitationIndexHarnessOptions,
 } from "@/services/citation-index/test-harness.ts";
+import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
 import { createCitationEngine } from "@/services/pandoc/engine.ts";
 import type { CitationEngine } from "@/services/pandoc/engine.ts";
 import { inlineText, noteContent } from "@/services/pandoc/inline-content.tsx";

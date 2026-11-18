@@ -11,11 +11,10 @@
 import { useMemo } from "react";
 
 import { cellProperties, fieldSearchTerms } from "@zotlit/item-query";
+import { NON_VAULT_PROPERTY_KEYS } from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
-
-import { NON_VAULT_PROPERTY_KEYS } from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { runtime } from "@/lib/i18n/generated/runtime.ts";
 
 import { DATASETS } from "./datasets.ts";
 import { useQueryViewState } from "./model.ts";

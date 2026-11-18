@@ -1,11 +1,4 @@
 import { it as effectIt } from "@effect/vitest";
-// @vitest-environment happy-dom
-import {
-  ButtonComponent,
-  DropdownComponent,
-  Modal,
-  settingsOf,
-} from "@mock/obsidian.ts";
 import {
   Cause,
   Context,
@@ -21,13 +14,21 @@ import { TFile } from "obsidian";
 import type { App, Command, FileSystemAdapter, Plugin } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+// @vitest-environment happy-dom
+import {
+  ButtonComponent,
+  DropdownComponent,
+  Modal,
+  settingsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";

@@ -6,10 +6,11 @@
 import { Context, Effect, Layer } from "effect";
 import type { CliData, CliFlag, CliFlags } from "obsidian";
 
-import type { VersionedCliHost } from "@/lib/cli-command.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import type { VersionedCliHost } from "@zotlit/obsidian-kit/cli-command.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 

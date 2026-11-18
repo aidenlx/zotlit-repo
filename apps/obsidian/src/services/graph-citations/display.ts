@@ -2,7 +2,7 @@
 
 import type { GraphEngine, GraphOptions } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { installToggleRow, rowFlag, toggleRowTarget } from "./rows.ts";
 

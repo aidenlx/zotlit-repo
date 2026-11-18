@@ -4,10 +4,10 @@
 // narrowest a card is drawn, as in Bases 1.14.4.
 import type { CSSProperties } from "react";
 
-import { Chooser } from "@/components/chooser.tsx";
-import { Slider } from "@/components/obsidian/slider.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
+import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
+import { Slider } from "@zotlit/obsidian-kit/components/obsidian/slider.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { QueryLayout } from "./layouts.ts";
 import { useQueryViewState } from "./model.ts";

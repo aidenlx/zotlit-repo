@@ -6,10 +6,10 @@ import type {
   ResolvedAnnotationTypeName,
   TagType,
 } from "@zotlit/db";
+import { fromInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import type { ZoteroMethod } from "@zotlit/plugin-kernel/zotero-http.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { fromInstant } from "@/lib/effect-clock.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ZoteroMethod } from "@/lib/zotero-http.ts";
 import type { LocalApiFailure } from "@/services/zotero-local-api/service.ts";
 import type { WireTag } from "@/services/zotero-local-api/wire.ts";
 

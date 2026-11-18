@@ -1,14 +1,15 @@
 // A Welcome test host over in-memory Obsidian sources and controllable Effect services.
 import { Effect, Layer, Stream } from "effect";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { layerQueryClients } from "@/services/query-client/service.ts";
 import { Release } from "@/services/release/service.ts";

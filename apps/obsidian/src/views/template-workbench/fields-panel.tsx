@@ -3,6 +3,9 @@ import { useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { WorkbenchDocumentAtoms } from "@zotlit/workbench/document";
 import { initialTreeState, setAnchor } from "@zotlit/workbench/explorer";
 import type { DisplayNode, TreeState } from "@zotlit/workbench/explorer";
@@ -20,9 +23,6 @@ import type {
   WorkbenchModel,
 } from "@zotlit/workbench/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
 import { javascriptTemplatesEnabledAtom } from "@/services/template/atoms.ts";
 import {
   createExplorerActions,

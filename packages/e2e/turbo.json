@@ -2,13 +2,13 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // tsconfig.json maps `@obsidian-messages` to the plugin's generated
-    // message module, and the plugin source it reaches reads the Workbench
-    // message contract, so the type check needs both first.
+    // The suite reads the plugin's generated Message facade, and the plugin
+    // source it reaches reads the Workbench message contract, so the type
+    // check needs both first.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types"
       ]
     },

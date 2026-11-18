@@ -7,15 +7,18 @@ import { Cause, Effect, Exit } from "effect";
 import type { PaneType } from "obsidian";
 
 import type { Item } from "@zotlit/db";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import {
   openGesture,
   pdfPickerReader,
 } from "@/services/attachment-open/actions.ts";
 import type { AttachmentOpenDeps } from "@/services/attachment-open/actions.ts";
+import {
+  openAttachments,
+  withFixedPane,
+} from "@/services/attachment-open/open-attachments.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import { openLiteratureNote } from "@/services/note-feature/navigation.ts";
 

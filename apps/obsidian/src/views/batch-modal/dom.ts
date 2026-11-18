@@ -2,10 +2,11 @@
 import { setIcon, setTooltip } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { renderProfileRecovery } from "@/lib/profile-recovery.ts";
-import { cn } from "@/lib/utils.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { renderProfileRecovery } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { BatchFailure } from "@/services/batch-run.ts";
 import { describeSelectionSource } from "@/services/note-feature/selection-copy.ts";
 

@@ -2,8 +2,9 @@
 // definitions current, and removes it when its Scope closes.
 import { Duration, Effect, Layer, Stream } from "effect";
 
-import { forkEach } from "@/lib/effect-stream.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import { LanguagePack } from "@/services/language-pack/service.ts";

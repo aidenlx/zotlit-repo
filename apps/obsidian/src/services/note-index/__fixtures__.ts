@@ -4,15 +4,15 @@ import { basename } from "node:path/posix";
 import { TFile } from "obsidian";
 import type { CachedMetadata } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { layerNoteIndex, NoteIndex } from "./service.ts";
 
@@ -129,7 +129,7 @@ export interface Harness {
   workspace: MemoryWorkspace;
   service: NoteIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
+    runtime: import("@zotlit/plugin-kernel/effect-stream.ts").SubscriptionRuntime;
   };
   close: () => Promise<void>;
   vault: MockVault;

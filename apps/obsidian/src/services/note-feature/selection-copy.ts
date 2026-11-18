@@ -1,6 +1,6 @@
 // UI seam for a creation selection: the words its reason and its problem are
 // shown by. Shared by the picker badge and the batch rows.
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type {
   CreationProfileSource,

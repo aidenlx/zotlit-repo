@@ -1,8 +1,9 @@
 // The Zotero Reader as a Reader Session, translated from the companion's pushes.
 import { Effect, Stream } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type {
   LocalServer,
   ReaderTarget,

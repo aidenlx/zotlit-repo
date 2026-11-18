@@ -5,12 +5,12 @@
 import { Effect, Schema } from "effect";
 
 import type { CitationTemplateData } from "@zotlit/db";
+import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { parsePlainTemplateDocument } from "@zotlit/templates/facade";
 import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import { isCitationExampleId } from "@zotlit/workbench/render";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 
-import { parseProfileSelector } from "@/lib/profile-stamp.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import { checkDiagnostic } from "@/services/template-workbench/check-profile.ts";
 import type { ProfileCheck } from "@/services/template-workbench/check-profile.ts";

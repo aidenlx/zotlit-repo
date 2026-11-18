@@ -7,8 +7,7 @@ import {
   normalizeAbsolutePath,
 } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
-
-import { EXTERNAL_FILE_PREFIX } from "@/lib/constants.ts";
+import { EXTERNAL_FILE_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
 
 /** One Attachment Obsidian's PDF view can host a Reader Session for. */
 export interface ObsidianOpenableAttachment {

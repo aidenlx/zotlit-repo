@@ -1,9 +1,10 @@
 // Resolves a Literature Note's Indexed Key to its Item's PDF Attachments, over the Zotero database.
 import { Effect } from "effect";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 

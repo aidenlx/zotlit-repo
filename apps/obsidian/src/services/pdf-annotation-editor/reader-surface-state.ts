@@ -7,8 +7,8 @@
 // the model, whose equality holds it still while what it draws stands, so a
 // signal that changes nothing on screen draws nothing.
 import type { SelectedText } from "@zotlit/pdf-structure";
+import { offeredSwatches } from "@zotlit/plugin-kernel/annotation-colors.ts";
 
-import { offeredSwatches } from "@/lib/annotation-colors.ts";
 import { editingCapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
 import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
 import {

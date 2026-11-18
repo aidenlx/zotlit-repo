@@ -6,12 +6,13 @@ import type {
   SettingDefinitionGroup,
 } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { languagePackSettingCopy } from "@/lib/i18n/settings-copy.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { toastLanguagePackInstall } from "@/services/language-pack/notices.ts";
 import { LanguagePack } from "@/services/language-pack/service.ts";
 import { Release } from "@/services/release/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
+import { languagePackSettingCopy } from "@/setting-tab/language-pack-copy.ts";
 import {
   BUG_REPORT,
   communityUrl,

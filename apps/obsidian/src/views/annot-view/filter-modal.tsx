@@ -9,9 +9,13 @@ import type { App } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { AppContext } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { viewRuntime, ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import {
+  viewRuntime,
+  ViewRegistryProvider,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { readFilterValues } from "@/views/query-view/atoms.ts";
 import { useFilterExpressions } from "@/views/query-view/expression-vocabulary.ts";
 import { FilterEditor } from "@/views/query-view/filter-popover.tsx";

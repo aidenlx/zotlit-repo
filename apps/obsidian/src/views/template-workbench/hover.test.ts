@@ -6,14 +6,13 @@ import type { HoverParent } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import {
   eta,
   liquidTemplate,
   templateHighlighting,
 } from "@zotlit/workbench/language";
 import type { SuggestionConfig } from "@zotlit/workbench/language";
-
-import { themeHook } from "@/lib/theme-hooks.ts";
 
 import { templateHover } from "./hover.tsx";
 

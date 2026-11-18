@@ -3,14 +3,6 @@
 // document plugin data holds when the tab opens, and after a toolbar change,
 // the same query when the tab opens again.
 import { it as effectIt } from "@effect/vitest";
-import {
-  Menu,
-  controlsOf,
-  Modal,
-  resetMockPlatform,
-  setMockPlatform,
-  TextComponent,
-} from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import type {
   App,
@@ -25,21 +17,35 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Item } from "@zotlit/db";
 import { makeItem } from "@zotlit/db/item-fixture";
 import { testItemSeed } from "@zotlit/item-query";
-import { createNanoEvents } from "@zotlit/shared/nanoevents";
-
-import { testEvent, testEvents } from "@/lib/__fixtures__/event-stream.ts";
-import { keymapApp, pressTop } from "@/lib/__fixtures__/keymap.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import {
+  keymapApp,
+  pressTop,
+} from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import {
+  Menu,
+  controlsOf,
+  Modal,
+  resetMockPlatform,
+  setMockPlatform,
+  TextComponent,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import {
+  testEvent,
+  testEvents,
+} from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { createNanoEvents } from "@zotlit/shared/nanoevents";
+
 import type {
   SearchHit,
   SearchOptions,

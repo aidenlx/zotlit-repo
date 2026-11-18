@@ -11,12 +11,15 @@ import { Fragment, useMemo, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { resolveVenue } from "@zotlit/db";
+import {
+  FirstLine,
+  Icon,
+} from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { itemTypeIcon } from "@zotlit/obsidian-kit/item-type-icon.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { FirstLine, Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { itemTypeIcon } from "@/lib/item-type-icon.ts";
-import { cn } from "@/lib/utils.ts";
 import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import type { OpenTarget } from "@/services/attachment-open/open-target.ts";
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";

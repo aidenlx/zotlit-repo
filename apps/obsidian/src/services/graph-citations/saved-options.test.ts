@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { savedLeafOptions } from "./saved-options.ts";
 
-vi.mock("@/lib/log.ts", () => ({
+vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

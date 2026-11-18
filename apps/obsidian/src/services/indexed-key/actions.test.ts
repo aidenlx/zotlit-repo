@@ -2,7 +2,7 @@ import { TFile } from "obsidian";
 import type { App, Command, MetadataCache, Vault, Workspace } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { addIndexedKeyActions, indexedKeyForClipboard } from "./actions.ts";
 

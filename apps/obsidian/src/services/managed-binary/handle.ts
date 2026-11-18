@@ -1,7 +1,7 @@
 // A Managed Binary service with runners captured at build, for callers outside Effect.
 import type { Effect } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { ManagedBinaryApi } from "./service.ts";
 

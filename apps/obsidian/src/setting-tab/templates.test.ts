@@ -1,21 +1,22 @@
 import { it } from "@effect/vitest";
+import { Effect, Layer, Queue } from "effect";
+import { TFile } from "obsidian";
+import type { App, Modal, SettingDefinitionList } from "obsidian";
+import { expect, vi } from "vitest";
+
+import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
   ExtraButtonComponent,
   Menu,
   renderRow,
-} from "@mock/obsidian.ts";
-import type { Setting } from "@mock/obsidian.ts";
-import { Effect, Layer, Queue } from "effect";
-import { TFile } from "obsidian";
-import type { App, Modal, SettingDefinitionList } from "obsidian";
-import { expect, vi } from "vitest";
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import { Template } from "@/services/template/service.ts";
 import type { CitationTemplateStatus } from "@/services/template/service.ts";
 import { openNewPartialPrompt } from "@/views/template-workbench/new-partial.ts";

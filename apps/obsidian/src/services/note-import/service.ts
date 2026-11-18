@@ -10,33 +10,35 @@ import type {
   Item,
   Note,
 } from "@zotlit/db";
+import { processLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
+import {
+  joinFolderPath,
+  normalizeFolderPath,
+} from "@zotlit/obsidian-kit/ensure-folder.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
+import { ensureVaultFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
+import {
+  FIELD_LITERATURE_NOTE_PROFILE,
+  FIELD_ZOTERO_LASTMOD,
+  FIELD_ZOTERO_NOTE_KEY,
+  stringifyInstant,
+} from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type {
+  VaultError,
+  VaultFolderBlockedError,
+} from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   MAX_SEGMENT_BYTES,
   normalizeFilename,
   truncateToByteLimit,
 } from "@zotlit/templates";
 
-import { renderAnnotationSources } from "@/lib/annotation-render.ts";
-import {
-  FIELD_LITERATURE_NOTE_PROFILE,
-  FIELD_ZOTERO_LASTMOD,
-  FIELD_ZOTERO_NOTE_KEY,
-  stringifyInstant,
-} from "@/lib/constants.ts";
-import { processLiveText } from "@/lib/effect-live-text.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
-import { formatErrorMessage } from "@/lib/toast.ts";
-import type {
-  VaultError,
-  VaultFolderBlockedError,
-} from "@/lib/vault-errors.ts";
-import { ensureVaultFolder } from "@/lib/vault-folder.ts";
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import type {
   AttachmentFlushError,
@@ -60,6 +62,7 @@ import type {
 import { Profile } from "@/services/profile/service.ts";
 import type { ProfileOperationError } from "@/services/profile/service.ts";
 import { syncTemplate } from "@/services/template-workbench/sync-template.ts";
+import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { readDisplayRef } from "@/services/zotero-reads/display-ref.ts";
 import type { ZoteroReadsApi } from "@/services/zotero-reads/service.ts";

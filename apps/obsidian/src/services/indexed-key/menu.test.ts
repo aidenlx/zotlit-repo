@@ -1,5 +1,10 @@
-import { Menu, TFile, TFolder } from "@mock/obsidian.ts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  Menu,
+  TFile,
+  TFolder,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 
 import { fileMenuHandler as handlerFor } from "@/services/__fixtures__/file-menu.ts";
 

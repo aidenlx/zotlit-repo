@@ -4,8 +4,8 @@
 import type { SecretStorage } from "obsidian";
 import * as v from "valibot";
 
-import { getLogger } from "@/lib/log.ts";
-import { parseJson } from "@/lib/zotero-http.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { parseJson } from "@zotlit/plugin-kernel/zotero-http.ts";
 
 const logger = getLogger(["zotero-local-api", "write-authorization"]);
 

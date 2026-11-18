@@ -4,6 +4,18 @@ import * as Atom from "effect/reactivity/Atom";
 import type { App } from "obsidian";
 import { onTestFinished } from "vitest";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { ViewServices } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import { chooseItem, setPreview } from "@zotlit/workbench/ui";
 import type {
@@ -12,18 +24,6 @@ import type {
   WorkbenchPreviewSettings,
 } from "@zotlit/workbench/ui";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { vaultError } from "@/lib/vault-errors.ts";
-import type { ViewServices } from "@/lib/view-atoms.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { SearchOptions } from "@/services/item-lookup/service.ts";

@@ -13,10 +13,10 @@ import {
 import { describe, expect, vi } from "vitest";
 
 import type { Library } from "@zotlit/db";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { LogCategory } from "@/lib/effect-log.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { BatchUpdateRefusedError } from "@/services/note-feature/update-batch.ts";
 import { NoteImportProfileError } from "@/services/note-import/service.ts";

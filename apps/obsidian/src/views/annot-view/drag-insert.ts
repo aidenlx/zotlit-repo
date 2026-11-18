@@ -3,11 +3,11 @@ import { nanoid } from "nanoid";
 import { MarkdownView } from "obsidian";
 import type { App, Editor, MarkdownFileInfo, TFile } from "obsidian";
 
+import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import { latestSlot } from "@zotlit/obsidian-kit/view-runner.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { observeExit } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
-import { latestSlot } from "@/lib/view-runner.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationInsertOutcome,

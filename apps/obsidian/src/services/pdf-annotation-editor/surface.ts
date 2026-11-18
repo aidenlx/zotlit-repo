@@ -7,8 +7,9 @@
 // is written once here and neither can drift from the other.
 import { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { menuSections } from "@/services/menu-events.ts";
 import { buildColorMenu } from "@/services/pdf-annotation-editor/color-menu.ts";
 

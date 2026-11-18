@@ -2,7 +2,10 @@
 // links they spell out — plus the conceal group each one belongs to, which is
 // what a reveal test has to match.
 
-import type { DocRange, TokenNode } from "@/lib/editor-decoration.ts";
+import type {
+  DocRange,
+  TokenNode,
+} from "@zotlit/obsidian-kit/editor-decoration.ts";
 
 /** One `[[…]]` construct the scan found, in document offsets. */
 export interface WikilinkSpan {

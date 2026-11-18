@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { DateTime, Effect } from "effect";
 import {
   FileSystemAdapter,
@@ -11,10 +9,16 @@ import type { App, EventRef, View, Vault, Workspace } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+// @vitest-environment happy-dom
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { HistoryOutcome } from "@/services/annotation-repository/service.ts";
 import { openNoteVault } from "@/services/note-index/__fixtures__.ts";

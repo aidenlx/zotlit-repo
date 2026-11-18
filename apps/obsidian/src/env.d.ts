@@ -44,9 +44,6 @@ declare module "virtual:citation-parse-worker" {
 }
 
 let __DEV__: boolean;
-let __WEB_WORKBENCH_ENABLED__: boolean;
-let __ANNOTATION_SUGGESTER_ENABLED__: boolean;
-let __DOCS_SITE_URL__: string;
 let __MIN_ELECTRON_VERSION__: string;
 let __LANGUAGE_PACK_DEV_SERVER__: string | undefined;
 let __PANDOC_ENGINE__: import("@/services/pandoc/pinned-engine.ts").PinnedPandocEngine;

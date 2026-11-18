@@ -29,10 +29,10 @@ import type {
   Ref,
 } from "react";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { PinnedPopover } from "@/components/pinned-popover.tsx";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import type { PinnedPopoverHandle } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 
 import { ToolbarButton } from "./toolbar-button.tsx";
 

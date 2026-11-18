@@ -12,6 +12,9 @@ import {
 import type { Env } from "hono";
 import { Hono } from "hono/tiny";
 
+import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type {
   DbUpdated,
   ImportMode,
@@ -19,9 +22,6 @@ import type {
   UpdateScope,
 } from "@zotlit/protocol";
 
-import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import type { Settings } from "@/services/settings/service.ts";

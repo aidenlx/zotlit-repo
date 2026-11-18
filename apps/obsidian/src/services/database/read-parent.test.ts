@@ -2,7 +2,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.ts";
 
 import { planReadParents } from "./read-parent.ts";
 

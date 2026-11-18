@@ -1,10 +1,10 @@
 import { expect, it, vi } from "vitest";
 
+import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { SelectedText } from "@zotlit/pdf-structure";
+import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 
-import { passAborted } from "@/lib/abort-error.ts";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import { watch } from "@/lib/view-atoms.ts";
 import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {

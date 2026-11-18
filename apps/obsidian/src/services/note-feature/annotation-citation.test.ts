@@ -7,11 +7,11 @@ import { citekeysToCiteTemplateData } from "@zotlit/db";
 import type { CiteRef } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { CITATION_TEMPLATE_SOURCE } from "@/services/template/defaults.ts";
 import { TemplateRenderError } from "@/services/template/errors.ts";
 import { Template, templateFailure } from "@/services/template/service.ts";

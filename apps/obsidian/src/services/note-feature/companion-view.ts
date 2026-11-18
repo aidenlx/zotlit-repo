@@ -3,11 +3,10 @@ import { Effect } from "effect";
 import type { App, PaneType } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ProtocolAction } from "@zotlit/protocol";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 
 import type { InteractiveCreationPorts } from "./creation-view.ts";
 import type { CompanionNoteTarget, UpdateScope } from "./operations.ts";

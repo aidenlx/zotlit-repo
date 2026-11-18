@@ -4,8 +4,9 @@
 import { Cause, Effect } from "effect";
 import type { Fiber } from "effect";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type {
   AnnotationInsertOutcome,
   AnnotationInsertRequest,

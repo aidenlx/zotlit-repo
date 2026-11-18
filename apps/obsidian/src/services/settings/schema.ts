@@ -1,6 +1,7 @@
 import { getLogLevels } from "@logtape/logtape";
 import * as v from "valibot";
 
+import { highlightMappingsSchema } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import {
   autoTrimSchema,
   DEFAULT_AUTO_TRIM,
@@ -8,7 +9,6 @@ import {
 } from "@zotlit/templates/constants";
 import type { AutoTrim } from "@zotlit/templates/constants";
 
-import { highlightMappingsSchema } from "@/lib/highlight-mapping.ts";
 import {
   DEFAULT_LIBRARY_SCOPE,
   libraryScopeSchema,

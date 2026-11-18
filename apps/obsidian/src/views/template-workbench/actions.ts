@@ -1,13 +1,14 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, reportOutcome } from "@/lib/notifier.ts";
-import type { NoticeMessage } from "@/lib/notifier.ts";
-import type { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { Customize } from "@/services/local-bridge/customize.ts";
 import type { Profile } from "@/services/profile/service.ts";
 

@@ -13,11 +13,10 @@
 import { Scope } from "obsidian";
 import type { App } from "obsidian";
 
+import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
+import type { FocusScope } from "@zotlit/obsidian-kit/focus-scope.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { composing } from "@zotlit/ui";
-
-import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
-import type { FocusScope } from "@/lib/focus-scope.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
 
 import { readingAngle } from "./free-text-layout.ts";
 import type { TextDraft } from "./reader-surface-state.ts";

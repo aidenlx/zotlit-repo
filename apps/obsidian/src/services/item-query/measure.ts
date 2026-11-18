@@ -14,17 +14,19 @@ import { Cause, Clock, Effect, Exit, Fiber, Layer, Schema } from "effect";
 import type { CliData, CliFlags } from "obsidian";
 
 import type { ItemQueryReader } from "@zotlit/db/item-query";
-
-import type { CliHost } from "@/lib/cli-command.ts";
+import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
   cliMap,
   cliParams,
   cliSwitch,
   decodeCliParams,
   rejectionText,
-} from "@/lib/cli-params.ts";
-import type { CliOutput, CliRejection } from "@/lib/cli-params.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type {
+  CliOutput,
+  CliRejection,
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 
 import { queryFlags } from "./contract.ts";
 import { decodeQuery } from "./decode.ts";

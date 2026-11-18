@@ -69,7 +69,7 @@
     },
     "//#lint:repo:deps": {
       "dependsOn": [
-        "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types",
         "@zotlit/item-query#generate:schema",
         "@zotlit/docs#generate:messages",
@@ -89,7 +89,7 @@
     },
     "//#review:plugin:deps": {
       "dependsOn": [
-        "@zotlit/obsidian#generate:language-packs",
+        "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types"
       ]
     },
@@ -100,7 +100,13 @@
         "manifest.json",
         "apps/obsidian/src/**",
         "apps/obsidian/package.json",
-        "apps/obsidian/tsconfig*.json"
+        "apps/obsidian/tsconfig*.json",
+        "packages/plugin-kernel/src/**",
+        "packages/plugin-kernel/tsconfig*.json",
+        "packages/obsidian-kit/src/**",
+        "packages/obsidian-kit/tsconfig*.json",
+        "packages/obsidian-desktop/src/**",
+        "packages/obsidian-desktop/tsconfig*.json"
       ]
     },
     "//#review:manifest": {

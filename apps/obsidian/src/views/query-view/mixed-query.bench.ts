@@ -55,8 +55,8 @@ import {
   ItemQuerySliceObserver,
   planItemFilter,
 } from "@zotlit/item-query";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 
-import { toInstant } from "@/lib/effect-clock.ts";
 import { answerView } from "@/services/item-query/answer.ts";
 import { QUERY_COMMAND } from "@/services/item-query/contract.ts";
 import type {

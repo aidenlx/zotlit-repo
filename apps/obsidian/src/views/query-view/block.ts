@@ -14,8 +14,8 @@
 import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { writeBlockAt, writeBlockCode } from "./block-write.ts";
 import { NoteQueryHost } from "./note-host.ts";

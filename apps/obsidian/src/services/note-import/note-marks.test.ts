@@ -134,7 +134,10 @@ describe("parseNoteSchema", () => {
 
 describe("zt-excerpt-note.html fixture", () => {
   const html = readFileSync(
-    join(packageRoot, "src/lib/turndown/__fixtures__/zt-excerpt-note.html"),
+    join(
+      packageRoot,
+      "src/services/note-import/turndown/__fixtures__/zt-excerpt-note.html",
+    ),
     "utf8",
   );
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { FIELD_ZOTERO_KEY, FIELD_ZOTERO_NOTE_KEY } from "@/lib/constants.ts";
+import {
+  FIELD_ZOTERO_KEY,
+  FIELD_ZOTERO_NOTE_KEY,
+} from "@zotlit/plugin-kernel/constants.ts";
 
 import { diffContributions, fileContributions } from "./parse.ts";
 

@@ -15,22 +15,22 @@ import { Keymap, setIcon } from "obsidian";
 import { createElement } from "react";
 import type { ReactNode, RefObject } from "react";
 
+import { confirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { registerDomEvent } from "@zotlit/obsidian-kit/disposables.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
   PdfPosition,
   RangeAdjustment,
   SelectedText,
 } from "@zotlit/pdf-structure";
+import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { passAborted } from "@/lib/abort-error.ts";
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import { confirm } from "@/lib/confirm.ts";
-import { registerDomEvent } from "@/lib/disposables.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { watch } from "@/lib/view-atoms.ts";
 import type { CopyInstant } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import {

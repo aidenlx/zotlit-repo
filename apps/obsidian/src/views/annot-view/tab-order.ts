@@ -1,7 +1,7 @@
 // The card list's one tab stop: the controls of every card but the tab stop
 // leave the Tab order, and come back when their card becomes the tab stop.
 
-import { disposable } from "@/lib/disposables.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 
 const CARD = ".zt-annot-card";
 /** Every element that can hold a place in the Tab order. */

@@ -2,8 +2,8 @@ import type { App, Plugin } from "obsidian";
 
 // Registration and the explicit command for the Cited By Sidebar.
 import "./style.css";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CITED_BY_VIEW_TYPE, CitedByView } from "./view.tsx";
 import type { CitedByViewDeps } from "./view.tsx";

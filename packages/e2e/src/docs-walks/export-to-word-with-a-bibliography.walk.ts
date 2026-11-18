@@ -34,7 +34,7 @@ import type { DocsWalk } from "./docs-walk.ts";
 const execFileAsync = promisify(execFile);
 const root = await getWorkspaceRoot(import.meta.dirname);
 const reachable = await isObsidianReachable(root);
-const m = await import("@obsidian-messages");
+const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "export-to-word-with-a-bibliography";
 /** The thesis chapter of the docs Vault Case; it already cites two papers. */

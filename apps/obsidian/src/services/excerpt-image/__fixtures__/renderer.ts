@@ -2,8 +2,8 @@
 import { Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { ExcerptRenderer } from "@/services/excerpt-image/renderer.ts";
 import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";

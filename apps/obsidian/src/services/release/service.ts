@@ -3,13 +3,14 @@
 import { Cause, Context, Deferred, Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import type {

@@ -3,15 +3,16 @@ import { Context, Effect, Exit, Layer, Scope } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { App } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import {
   FileManager,
   layerFileManagerFrom,
-} from "@/lib/obsidian-file-manager.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { layerVaultFrom, Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { layerVaultFrom, Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";

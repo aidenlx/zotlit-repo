@@ -1,14 +1,14 @@
-// @vitest-environment happy-dom
-import type { ItemView as MockItemView } from "@mock/obsidian.ts";
 import { Deferred, Effect } from "effect";
 import type { App, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+// @vitest-environment happy-dom
+import type { ItemView as MockItemView } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import {

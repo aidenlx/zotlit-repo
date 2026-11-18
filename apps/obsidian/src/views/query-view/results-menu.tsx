@@ -6,18 +6,17 @@
 // the arrow keys and Enter, which a Chooser's key scope would hold.
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import type { PinnedPopoverHandle } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import { saveFile } from "@zotlit/obsidian-kit/file-save.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { writeClipboardRichText } from "@zotlit/plugin-kernel/clipboard.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
-
-import { PinnedPopover } from "@/components/pinned-popover.tsx";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
-import { writeClipboardRichText } from "@/lib/clipboard.ts";
-import { saveFile } from "@/lib/file-save.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { cn } from "@/lib/utils.ts";
 
 import { useQueryViewState } from "./model.ts";
 import { toCSV, toHTML, toTSV } from "./table.ts";

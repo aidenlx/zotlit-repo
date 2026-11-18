@@ -4,6 +4,13 @@ import { TestClock } from "effect/testing";
 import type { App } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
+import {
+  MockVault,
+  PluginStub,
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateError, TemplateFacade } from "@zotlit/templates/facade";
 import {
   evalFrontmatterFields,
@@ -11,10 +18,6 @@ import {
 } from "@zotlit/templates/frontmatter";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 
-import { MockVault, PluginStub } from "@/lib/__fixtures__/obsidian-host.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { resolveProfile } from "@/services/profile/__fixtures__/reader.ts";
 import { buildSettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsFixture } from "@/services/settings/__fixtures__.ts";

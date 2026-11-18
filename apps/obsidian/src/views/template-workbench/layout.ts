@@ -6,9 +6,8 @@ import { Deferred, Effect, Semaphore } from "effect";
 import type { Cause } from "effect";
 import type { ViewState, WorkspaceLeaf } from "obsidian";
 
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { showPreview } from "@zotlit/workbench/ui";
-
-import { Workspace } from "@/lib/obsidian-workspace.ts";
 
 import {
   TEMPLATE_WORKBENCH_VIEW_TYPE,

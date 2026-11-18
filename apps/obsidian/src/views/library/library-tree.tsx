@@ -17,14 +17,14 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import { libraryLabel } from "@/services/library-scope/label.ts";
 import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 

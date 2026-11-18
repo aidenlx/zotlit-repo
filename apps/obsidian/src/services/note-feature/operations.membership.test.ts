@@ -12,17 +12,17 @@ import type { Item, NoteTemplateContext } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import {
+  FIELD_LITERATURE_NOTE_PROFILE,
+  FIELD_ZOTERO_KEY,
+} from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
-import {
-  FIELD_LITERATURE_NOTE_PROFILE,
-  FIELD_ZOTERO_KEY,
-} from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import { Template } from "@/services/template/service.ts";

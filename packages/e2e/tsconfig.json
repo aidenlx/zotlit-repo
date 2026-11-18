@@ -12,9 +12,6 @@
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "paths": {
-      "@obsidian-messages": [
-        "../../apps/obsidian/src/lib/i18n/generated/messages.ts"
-      ],
       "@/*": ["../../apps/obsidian/src/*"],
       "@e2e/*": ["./src/*"],
       "@brand/*": ["../../assets/logo/*"]
@@ -24,6 +21,7 @@
   "include": [
     "./src/**/*.ts",
     "../../apps/obsidian/src/typings/**/*.d.ts",
+    "../../packages/obsidian-kit/src/typings/*.d.ts",
     "../../apps/obsidian/src/env.d.ts"
   ],
   "exclude": ["./node_modules"]

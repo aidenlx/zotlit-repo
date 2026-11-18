@@ -3,11 +3,11 @@
 // changes the next import.
 import { Effect, Layer } from "effect";
 
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { NoticeHandle } from "@/lib/notifier.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { AttachmentImport } from "./service.ts";
 import type { AttachmentSkipSummary } from "./service.ts";

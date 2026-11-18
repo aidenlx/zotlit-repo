@@ -7,6 +7,13 @@ import * as Atom from "effect/reactivity/Atom";
 import type { TFile } from "obsidian";
 
 import { CITATION_VARIANTS } from "@zotlit/db";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   CITATION_EXAMPLE_IDS,
   PARTIAL_CONTEXTS,
@@ -41,10 +48,6 @@ import type {
   WorkbenchViewState,
 } from "@zotlit/workbench/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
 import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
 import { templateRevisionAtom } from "@/services/template/atoms.ts";
 import {

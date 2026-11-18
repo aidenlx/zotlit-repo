@@ -6,8 +6,8 @@
 // @see apps/obsidian/policies/ui-seams.md
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { lockBlock } from "@/services/annotation-repository/lock.ts";

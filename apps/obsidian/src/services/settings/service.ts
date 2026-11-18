@@ -90,9 +90,13 @@ import {
 import type { Plugin } from "obsidian";
 import * as v from "valibot";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { layerPluginData, PluginData } from "@/lib/plugin-data.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
+import {
+  layerPluginData,
+  PluginData,
+} from "@/services/settings/plugin-data.ts";
 
 import {
   classifyDiskData,

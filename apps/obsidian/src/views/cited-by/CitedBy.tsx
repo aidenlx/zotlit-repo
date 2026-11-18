@@ -4,14 +4,14 @@ import { Keymap, prepareSimpleSearch } from "obsidian";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-input.tsx";
+import { SidebarToolbar } from "@zotlit/obsidian-kit/components/sidebar-toolbar.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { SearchInput } from "@/components/obsidian/search-input.tsx";
-import { SidebarToolbar } from "@/components/sidebar-toolbar.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
 import type {
   CitationOccurrence,

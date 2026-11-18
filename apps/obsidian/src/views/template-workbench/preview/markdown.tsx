@@ -3,14 +3,14 @@ import { Component, MarkdownRenderer } from "obsidian";
 import type { App } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { RenderedProperty, RenderedRange } from "@zotlit/workbench/render";
 import { PropertyList } from "@zotlit/workbench/ui";
 import type { WorkbenchMarkdownProps } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { cn } from "@/lib/utils.ts";
 import { citationElement } from "@/services/citation-text/present.ts";
 import {
   replaceCitations,

@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Attr, Inline, Inlines } from "./ast.ts";
 
 const logRecords: { level: string; message: string; fields: unknown }[] = [];
-vi.mock("@/lib/log.ts", () => ({
+vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
   getLogger: () => ({
     debug: (message: string, fields: unknown) =>
       logRecords.push({ level: "debug", message, fields }),

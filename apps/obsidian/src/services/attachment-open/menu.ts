@@ -1,8 +1,9 @@
 // Literature Note file-menu entry that opens the Item's PDF Attachment(s).
 
-import { openAttachments } from "@/lib/attachment-open.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 
 import type { AttachmentOpenDeps } from "./actions.ts";

@@ -12,11 +12,11 @@ import type { TemplateAnnotation } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { TemplateError } from "@zotlit/templates/facade";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";

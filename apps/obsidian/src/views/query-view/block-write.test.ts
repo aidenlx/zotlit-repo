@@ -1,7 +1,7 @@
 import type { MarkdownPostProcessorContext } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 
 import { openTextFileView } from "./__fixtures__/open-text-view.ts";
 import { writeBlockCode } from "./block-write.ts";

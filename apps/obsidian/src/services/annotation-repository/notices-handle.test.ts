@@ -1,14 +1,18 @@
-// @vitest-environment happy-dom
-// The handle is a Promise edge for code outside Effect, so its cases run on
-// plain Vitest over a real runtime and bridge.
-import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import { expect, it } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+// @vitest-environment happy-dom
+// The handle is a Promise edge for code outside Effect, so its cases run on
+// plain Vitest over a real runtime and bridge.
+import {
+  ButtonComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 
 import { bindCapabilityNotices } from "./notices-handle.ts";

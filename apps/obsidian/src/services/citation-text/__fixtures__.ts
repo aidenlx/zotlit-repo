@@ -1,11 +1,11 @@
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import type { OpenDocuments } from "@/lib/open-documents.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { scanNote } from "@/services/citation-index/scan-note.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
@@ -13,6 +13,7 @@ import type {
   Citation,
   CitationOccurrence,
 } from "@/services/citation-index/service.ts";
+import type { OpenDocuments } from "@/services/citation-text/open-documents.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 import { inlineText } from "@/services/pandoc/inline-content.tsx";

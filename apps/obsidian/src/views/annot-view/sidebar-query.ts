@@ -6,9 +6,9 @@
 import type { Menu } from "obsidian";
 
 import { annotationColorsForName, annotationColorToName } from "@zotlit/db";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { visibleText } from "@/services/item-query/visible-text.ts";
 import {
   directionLabel,

@@ -12,14 +12,13 @@ import type {
   TemplateFilenameItemData,
 } from "@zotlit/db";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { syntheticFile } from "@zotlit/obsidian-desktop/markdown-link.ts";
+import type { MarkdownLinker } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { joinNotePath } from "@zotlit/templates";
 
-import { buildAnnotationResolvers } from "@/lib/annotation-render.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { creatorSummary } from "@/lib/item-summary.ts";
-import { syntheticFile } from "@/lib/markdown-link.ts";
-import type { MarkdownLinker } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import type { PreparedExcerpts } from "@/services/excerpt-image/prepare.ts";
 import { childNoteLink } from "@/services/note-import/child-note-link.ts";
@@ -27,6 +26,7 @@ import { NoteIndex } from "@/services/note-index/service.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";
 import type { Settings } from "@/services/settings/schema.ts";
+import { buildAnnotationResolvers } from "@/services/template/annotation-render.ts";
 import { Template } from "@/services/template/service.ts";
 
 import { baseNoteName } from "./filename.ts";

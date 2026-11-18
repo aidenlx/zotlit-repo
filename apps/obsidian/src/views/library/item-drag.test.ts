@@ -5,9 +5,8 @@ import type { App } from "obsidian";
 import type { DragEvent as ReactDragEvent } from "react";
 import { expect, it, vi } from "vitest";
 
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
-
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 
 import { createItemDrag, ITEM_DRAG_TYPE, refuseItemDrop } from "./item-drag.ts";
 

@@ -1,10 +1,11 @@
 // Duplicate a Profile and open the copy through the shared workbench flow.
 import { Effect } from "effect";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Customize } from "@/services/local-bridge/customize.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 

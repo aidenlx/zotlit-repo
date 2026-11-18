@@ -13,6 +13,20 @@ import {
 import type { ObsidianProtocolData, PaneType, Plugin } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import {
+  logAndContinue,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import {
   batchProtocolActionId,
   exploreProtocolActionId,
@@ -39,23 +53,15 @@ import {
 } from "@zotlit/protocol";
 import type { ImportMode, ProtocolAction } from "@zotlit/protocol";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
-import type { AttachmentReader } from "@/lib/attachment-open.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { logAndContinue, withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import { parseProfileSelector } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import {
   openGesture,
   pdfPickerReader,
 } from "@/services/attachment-open/actions.ts";
+import {
+  openAttachments,
+  withFixedPane,
+} from "@/services/attachment-open/open-attachments.ts";
+import type { AttachmentReader } from "@/services/attachment-open/open-attachments.ts";
 import { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import { toObsidianOpenable } from "@/services/attachment-open/openable.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";

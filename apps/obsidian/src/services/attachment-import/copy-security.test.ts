@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
-import { reflink } from "@/lib/reflink.ts";
+import { reflink } from "@zotlit/obsidian-desktop/reflink.ts";
 
 import { attachmentImportFixture } from "./__fixtures__.ts";
 import type { AttachmentImport } from "./service.ts";
@@ -29,22 +29,30 @@ const hooks = vi.hoisted(() => ({
   beforeCopy: null as (() => Promise<void>) | null,
 }));
 
-vi.mock("@/lib/copy-attachments.ts", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/lib/copy-attachments.ts")>();
-  return {
-    ...actual,
-    copyAttachments: (items: Parameters<typeof actual.copyAttachments>[0]) =>
-      Effect.promise(async () => hooks.beforeCopy?.()).pipe(
-        Effect.andThen(actual.copyAttachments(items)),
-      ),
-  };
-});
+vi.mock(
+  "@/services/attachment-import/copy-attachments.ts",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("@/services/attachment-import/copy-attachments.ts")
+      >();
+    return {
+      ...actual,
+      copyAttachments: (items: Parameters<typeof actual.copyAttachments>[0]) =>
+        Effect.promise(async () => hooks.beforeCopy?.()).pipe(
+          Effect.andThen(actual.copyAttachments(items)),
+        ),
+    };
+  },
+);
 
 // Spied rather than stubbed: whether a copy reflinks is the observable
 // difference between the two strategies, and the real call still runs.
-vi.mock("@/lib/reflink.ts", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/reflink.ts")>();
+vi.mock("@zotlit/obsidian-desktop/reflink.ts", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("@zotlit/obsidian-desktop/reflink.ts")
+    >();
   return { ...actual, reflink: vi.fn(actual.reflink) };
 });
 

@@ -2,9 +2,9 @@
 // skipped frontmatter expressions, shown through the Notifier.
 import { Effect, Layer } from "effect";
 
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { eventPayloads, NoteFeature } from "./service.ts";
 

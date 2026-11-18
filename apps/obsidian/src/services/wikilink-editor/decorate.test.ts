@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { LiteratureNoteTarget } from "@/lib/wikilink-citation.ts";
+import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 
 import { wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDisplayContext } from "./decorate.ts";

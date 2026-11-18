@@ -12,13 +12,14 @@ import {
 } from "effect";
 import { onTestFinished } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { AttachmentImport } from "@/services/attachment-import/service.ts";

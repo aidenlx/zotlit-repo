@@ -6,14 +6,14 @@ import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Item, ItemRef } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";

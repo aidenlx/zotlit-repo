@@ -16,13 +16,13 @@ import {
 import type { CSSProperties, ReactNode } from "react";
 
 import { isPageNumber } from "@zotlit/db";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import type { ViewServices } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
-import type { ViewServices } from "@/lib/view-atoms.ts";
 import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import { zoteroUri } from "@/services/attachment-open/open-target.ts";
 import type { OpenTarget } from "@/services/attachment-open/open-target.ts";

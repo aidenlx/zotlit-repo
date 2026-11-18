@@ -11,23 +11,23 @@ import type {
   PDFViewerController,
 } from "obsidian";
 
+import {
+  registerDomEvent,
+  registerMigratingWindowEvent,
+} from "@zotlit/obsidian-kit/disposables.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { PdfTextStructure } from "@zotlit/pdf-structure";
 import type {
   PdfPosition,
   RangeAdjustment,
   SelectedText,
 } from "@zotlit/pdf-structure";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeAttribute } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import {
-  registerDomEvent,
-  registerMigratingWindowEvent,
-} from "@/lib/disposables.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { themeAttribute } from "@/lib/theme-hooks.ts";
-import { watch } from "@/lib/view-atoms.ts";
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";

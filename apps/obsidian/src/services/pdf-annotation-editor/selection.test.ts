@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import { EditorView } from "@codemirror/view";
-import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { Keymap } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import * as confirmation from "@zotlit/obsidian-kit/confirm.ts";
 import type { RangeAdjustment, SelectedText } from "@zotlit/pdf-structure";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { AbortError } from "@/lib/abort-error.ts";
-import * as confirmation from "@/lib/confirm.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { useFakeTimers } from "@/services/annotation-repository/__fixtures__.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";

@@ -4,8 +4,7 @@ import { dirname, join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
-
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 
 import type { Inlines } from "./ast.ts";
 import {

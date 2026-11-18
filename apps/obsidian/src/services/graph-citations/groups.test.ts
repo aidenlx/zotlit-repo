@@ -2,8 +2,8 @@
 import type { GraphColor, GraphEngine, GraphOptions } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   addLiteratureNotesGroup,
@@ -17,7 +17,7 @@ import { themeStates, themeStatesNothing } from "./test-stub.ts";
 const DEFAULT_COLOR = { a: 1, rgb: 0xe8622c };
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/log.ts", () => ({
+vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

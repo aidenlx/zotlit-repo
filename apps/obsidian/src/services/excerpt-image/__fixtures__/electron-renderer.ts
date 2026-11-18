@@ -6,9 +6,9 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { build } from "vite";
 
+import { packageSource } from "@zotlit/obsidian-kit/vitest";
+import { effectEntry } from "@zotlit/plugin-kernel/vite";
 import { getPackageRoot, getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
-import { effectEntry } from "@/../scripts/effect-entry.ts";
 
 /** Set ZOTLIT_TEST_ELECTRON_PATH to an installed Electron executable to run these. */
 export const testElectron = process.env.ZOTLIT_TEST_ELECTRON_PATH;
@@ -47,7 +47,15 @@ export async function runInElectron(options: {
   );
   const output = await build({
     configFile: false,
-    plugins: [effectEntry("renderer")],
+    plugins: [
+      effectEntry("renderer", {
+        scopes: [
+          resolve(getPackageRoot(options.entry), "src"),
+          packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
+          packageSource(import.meta.resolve("@zotlit/obsidian-desktop/package.json")),
+        ],
+      }),
+    ],
     logLevel: "silent",
     // The plugin's own build defines this, and the libraries a trial bundles —
     // TanStack Query Core among them — read it at runtime: without it a renderer

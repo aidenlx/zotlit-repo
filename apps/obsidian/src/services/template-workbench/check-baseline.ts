@@ -1,9 +1,10 @@
 // Select one read-only update input before resolving the Profile to check.
 import { Effect, Result } from "effect";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
-import { readLiveText } from "@/lib/effect-live-text.ts";
-import { parseProfileStamp } from "@/lib/profile-stamp.ts";
+import { readLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
+import { parseProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { previewBaseline } from "@/services/template-workbench/preview-baseline.ts";
 

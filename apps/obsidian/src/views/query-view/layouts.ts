@@ -1,6 +1,6 @@
 // The Layouts a Query View can draw, the Query Dataset each one shows, and
 // the options of the Annotations layout as a view's keys hold them.
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CARDS_LAYOUT } from "./cards-layout.tsx";
 import { LIST_LAYOUT } from "./list-layout.tsx";

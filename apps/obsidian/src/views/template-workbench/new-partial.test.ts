@@ -1,20 +1,20 @@
+import { Effect, Exit, Stream } from "effect";
+import type { TFile } from "obsidian";
+import type { App, WorkspaceLeaf } from "obsidian";
+import { beforeEach, expect, it, vi } from "vitest";
+
+import { exitOf } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
   Modal,
   TextComponent,
   controlsOf,
-} from "@mock/obsidian.ts";
-import { Effect, Exit, Stream } from "effect";
-import type { TFile } from "obsidian";
-import type { App, WorkspaceLeaf } from "obsidian";
-import { beforeEach, expect, it, vi } from "vitest";
-
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { exitOf } from "@/lib/__fixtures__/view-runner.ts";
-import { valueOr } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { makeViewRunner } from "@/lib/view-runner.ts";
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { makeWorkbenchHost } from "./__fixtures__.ts";
 import type { WorkbenchHostDeps } from "./__fixtures__.ts";

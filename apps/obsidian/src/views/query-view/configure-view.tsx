@@ -1,15 +1,17 @@
-import { useUniqueId } from "@zotlit/ui";
-
 import {
   Chooser,
   useChooserPageSave,
   useChooserPageText,
-} from "@/components/chooser.tsx";
-import type { ChooserPageMenuItem } from "@/components/chooser.tsx";
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
-import { Slider } from "@/components/obsidian/slider.tsx";
-import { Toggle } from "@/components/obsidian/toggle.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
+} from "@zotlit/obsidian-kit/components/chooser.tsx";
+import type { ChooserPageMenuItem } from "@zotlit/obsidian-kit/components/chooser.tsx";
+import {
+  Dropdown,
+  DropdownItem,
+} from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
+import { Slider } from "@zotlit/obsidian-kit/components/obsidian/slider.tsx";
+import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { useUniqueId } from "@zotlit/ui";
 
 import { CardsLayoutFields, cardsLayoutOptions } from "./cards-layout.tsx";
 import { DATASETS } from "./datasets.ts";

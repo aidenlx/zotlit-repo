@@ -2,8 +2,9 @@
 import type { App } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { ClipboardRepresentation } from "@/lib/clipboard.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ClipboardRepresentation } from "@zotlit/plugin-kernel/clipboard.ts";
+
 import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
 import type {
   CitationOccurrence,

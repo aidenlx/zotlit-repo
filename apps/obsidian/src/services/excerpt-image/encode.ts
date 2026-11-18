@@ -3,7 +3,7 @@ import { Effect } from "effect";
 // onto a canvas and hands it here; the encoded bytes are then reused unchanged by
 // the cache entry, the outcome, and the durable note asset.
 
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { ExcerptImageError } from "./error.ts";
 import { detectExcerptImageFormat, PNG_FORMAT, WEBP_FORMAT } from "./format.ts";

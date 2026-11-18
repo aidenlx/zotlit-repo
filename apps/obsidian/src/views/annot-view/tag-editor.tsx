@@ -12,14 +12,14 @@ import { useLayoutEffect, useRef } from "react";
 import type { RefObject } from "react";
 
 import { tagTypeToName } from "@zotlit/db";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TagsInput, useTagsInput, useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 import { sameHeldTags } from "./card-controls.ts";

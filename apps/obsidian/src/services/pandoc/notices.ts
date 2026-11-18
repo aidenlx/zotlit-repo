@@ -2,13 +2,13 @@
 import { Effect, Layer } from "effect";
 import type { Scope, Stream } from "effect";
 
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { NoticeHandle } from "@/lib/notifier.ts";
-import { revealSetting } from "@/lib/open-settings.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
+import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { BibliographyRender, missingStyleChanges } from "./render-cache.ts";
 import type { BibliographyRenderState } from "./render-cache.ts";

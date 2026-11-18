@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { TokenNode } from "@/lib/editor-decoration.ts";
+import type { TokenNode } from "@zotlit/obsidian-kit/editor-decoration.ts";
 
 import { scanWikilinks } from "./scan.ts";
 

@@ -2,9 +2,9 @@
 import { FuzzySuggestModal } from "obsidian";
 import type { App, TFolder } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { openSettingsTab } from "@/lib/open-settings.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { openSettingsTab } from "@zotlit/obsidian-kit/open-settings.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { setFolderCommand, locateZoteroCommand } from "./atoms.ts";
 

@@ -8,9 +8,10 @@
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import { Component, Scope } from "obsidian";
 
-import { keepPlaces } from "@/lib/keep-places.ts";
-import { observeResize } from "@/lib/observe-resize.ts";
+import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
+
 import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
+import { keepPlaces } from "@/views/query-view/keep-places.ts";
 
 import "./note-host.css";
 import { makeNoteBindingAtom } from "./note-binding.ts";

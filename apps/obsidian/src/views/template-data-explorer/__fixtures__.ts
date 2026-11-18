@@ -5,13 +5,13 @@ import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import type { ContractRoot } from "@zotlit/db";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";

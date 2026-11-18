@@ -15,7 +15,8 @@ import type { Scope } from "effect";
 import { RpcSchema } from "effect/rpc";
 import type { RpcClientError } from "effect/rpc";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type { EffectiveReadMode } from "@/services/database/read-source.ts";
 
 import type { ZoteroReadsClient } from "./in-process.ts";

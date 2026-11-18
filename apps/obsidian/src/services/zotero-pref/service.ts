@@ -20,13 +20,15 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import {
+  COMPANION_ADDON_ID,
+  ZOTERO_DB_FILENAME,
+} from "@zotlit/plugin-kernel/constants.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 import { sourceIdFromUris } from "@zotlit/protocol";
-
-import { COMPANION_ADDON_ID, ZOTERO_DB_FILENAME } from "@/lib/constants.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { startupBarrier } from "@/lib/effect-startup.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
 
 import {
   loadZoteroPathOverrides,

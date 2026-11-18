@@ -1,7 +1,8 @@
 // Draft editing and autosave: the comment, Quoted Text and tag drafts a surface edits, and how they are saved.
 import { Duration, Effect, FiberMap, FiberSet } from "effect";
 
-import { recover } from "@/lib/effect-cause.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+
 import {
   annotationTags,
   byTextField,

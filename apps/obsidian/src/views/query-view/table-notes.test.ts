@@ -7,12 +7,12 @@ import type { App, EventRef, TFile } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeItem } from "@zotlit/db/item-fixture";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
 import {
   buildNoteIndex,
   cache,

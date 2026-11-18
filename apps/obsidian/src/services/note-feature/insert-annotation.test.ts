@@ -17,16 +17,16 @@ import { expect, vi } from "vitest";
 import type { Annotation } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
   TemplateFacade,
 } from "@zotlit/templates/facade";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { FileManagerSource } from "@/lib/obsidian-file-manager.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import { availableOutcome } from "@/services/excerpt-image/__fixtures__/outcome.ts";

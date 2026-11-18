@@ -7,7 +7,8 @@ import type { App } from "obsidian";
 import { act } from "preact/test-utils";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { QueryService } from "@/services/item-query/service.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";

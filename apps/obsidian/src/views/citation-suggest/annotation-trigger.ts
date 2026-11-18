@@ -1,6 +1,6 @@
 // The Annotation Suggester's trigger: a setting, kept clear of the Citation
 // Suggester's triggers and Obsidian's own `[[`.
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 /**
  * Text that opens another suggester: the Bracket Trigger (`[@`, `【@`),

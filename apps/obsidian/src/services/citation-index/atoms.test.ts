@@ -4,14 +4,13 @@ import type * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { expect } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import {
-  layerUnreadViewServices,
-  scopedViewRegistry,
-} from "@/services/__fixtures__/view-atoms.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { scopedViewRegistry } from "@zotlit/obsidian-kit/__fixtures__/view-atoms.ts";
+
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 
 import { activeCitedByAtom, citedByAtom } from "./atoms.ts";
 import { CitationIndex } from "./service.ts";

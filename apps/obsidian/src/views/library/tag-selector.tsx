@@ -7,9 +7,8 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
 
 import { TAG_CHIP_CLASS } from "./chip.ts";
 import type { LibraryTree } from "./library-tree.tsx";

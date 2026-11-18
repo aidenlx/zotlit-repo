@@ -3,9 +3,10 @@ import { Context, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import { FileExists } from "@/lib/vault-errors.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { FileExists } from "@zotlit/plugin-kernel/vault-errors.ts";
+
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { TemplateOperationError } from "@/services/template/errors.ts";
 

@@ -11,24 +11,24 @@ import { useMemo, useRef, useState } from "react";
 
 import { parseExpression } from "@zotlit/filter-expression";
 import { FORMULA_NAME, nameDictionary } from "@zotlit/item-query";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import {
+  Chooser,
+  useChooserPage,
+  useChooserPageSave,
+  useChooserPageText,
+} from "@zotlit/obsidian-kit/components/chooser.tsx";
+import type { ChooserPageMenuItem } from "@zotlit/obsidian-kit/components/chooser.tsx";
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { PlacedFault } from "@zotlit/workbench/language";
 import {
   MatchExpressionInput,
   WorkbenchThemeProvider,
 } from "@zotlit/workbench/ui";
 
-import {
-  Chooser,
-  useChooserPage,
-  useChooserPageSave,
-  useChooserPageText,
-} from "@/components/chooser.tsx";
-import type { ChooserPageMenuItem } from "@/components/chooser.tsx";
-import { Button } from "@/components/obsidian/button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
 import { matchTheme } from "@/views/template-workbench/match-pane.tsx";
 import { onKeymap } from "@/views/template-workbench/theme.tsx";
 

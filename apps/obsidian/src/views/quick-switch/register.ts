@@ -1,7 +1,8 @@
 import type { App, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
 import type { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";

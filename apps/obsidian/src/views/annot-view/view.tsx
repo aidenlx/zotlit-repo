@@ -6,15 +6,15 @@ import type {
 } from "obsidian";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
+import { registerMigratingWindowEvent } from "@zotlit/obsidian-kit/disposables.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { registerMigratingWindowEvent } from "@/lib/disposables.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ItemSummary } from "@/lib/item-summary.ts";
-import { getLogger } from "@/lib/log.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import {
   annotationCapabilityAtom,

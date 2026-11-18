@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import { IDLE } from "@/services/annotation-repository/write.ts";

@@ -3,8 +3,8 @@
 import { around } from "monkey-around";
 import type { GraphColor, GraphLink, GraphLinkSprite } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
-import { themeProperty } from "@/lib/theme-hooks.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
 import { membersPresent } from "./install.ts";

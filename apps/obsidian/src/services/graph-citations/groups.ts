@@ -8,9 +8,9 @@ import type {
   GraphOptions,
 } from "obsidian";
 
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { targetOnce } from "./install.ts";
 import type { GraphNodeColors } from "./node-color.ts";

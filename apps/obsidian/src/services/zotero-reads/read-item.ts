@@ -2,9 +2,8 @@
 import { Effect } from "effect";
 
 import type { Item } from "@zotlit/db";
-
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { ZoteroReads } from "./service.ts";
 

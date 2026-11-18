@@ -6,7 +6,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 import { CONTRACT_VERSION } from "./contract.ts";
 import type {

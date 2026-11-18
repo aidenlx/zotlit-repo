@@ -3,10 +3,11 @@ import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { viewRuntime } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
-import { answerOf, makeViewRunner } from "@/lib/view-runner.ts";
-import type { ViewRunner } from "@/lib/view-runner.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 
 import {

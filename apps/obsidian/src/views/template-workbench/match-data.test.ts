@@ -5,10 +5,10 @@ import { vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { scopedViewRunner } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
-import { makeViewRunner } from "@/lib/view-runner.ts";
 import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
 import {
   inProcessReadsService,

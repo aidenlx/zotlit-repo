@@ -7,15 +7,18 @@
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler, CliHost } from "@/lib/cli-command.ts";
-import { createCliDiagnostics } from "@/lib/cli-diagnostic.ts";
+import type {
+  CliCommandHandler,
+  CliHost,
+} from "@zotlit/obsidian-kit/cli-command.ts";
+import { createCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
 import {
   catchRejection,
   decodeCliParams,
   noCliParams,
-} from "@/lib/cli-params.ts";
-import type { CliRejection } from "@/lib/cli-params.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 
 import { LibraryScope } from "./service.ts";
 

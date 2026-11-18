@@ -16,7 +16,7 @@ import { clearVault } from "./vault-script.ts";
 /** Shared End-to-end Run vault state for every area file. */
 export const run = {
   vaultId: "",
-  m: undefined as unknown as typeof import("@obsidian-messages"),
+  m: undefined as unknown as typeof import("@zotlit/plugin-messages/messages.ts"),
   booksNotePath: "",
 };
 
@@ -24,7 +24,7 @@ let initPromise: Promise<void> | null = null;
 let refCount = 0;
 
 async function bootstrap(): Promise<void> {
-  run.m = await import("@obsidian-messages");
+  run.m = await import("@zotlit/plugin-messages/messages.ts");
   await assertDevBundleFresh(workspaceRoot);
   await clearVault(runVaultScript, e2eVaultPath);
   const pluginBundleDir = join(workspaceRoot, "apps", "obsidian", "dist-dev");

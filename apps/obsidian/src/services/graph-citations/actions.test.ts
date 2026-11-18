@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-import { createMockPlugin, Keymap } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import { TFile } from "obsidian";
 import type {
@@ -14,8 +12,13 @@ import type {
 } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+// @vitest-environment happy-dom
+import {
+  createMockPlugin,
+  Keymap,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import {
   addGraphCitationsActions,

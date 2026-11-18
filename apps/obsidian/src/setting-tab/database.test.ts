@@ -1,11 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import {
-  DropdownComponent,
-  ExtraButtonComponent,
-  renderRow,
-} from "@mock/obsidian.ts";
-import {
   Cause,
   Effect,
   Exit,
@@ -17,9 +12,15 @@ import {
 } from "effect";
 import { TestClock } from "effect/testing";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  DropdownComponent,
+  ExtraButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
 import {
   PluginSettings,

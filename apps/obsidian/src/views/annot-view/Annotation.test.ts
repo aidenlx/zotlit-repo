@@ -9,9 +9,11 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { pressTop } from "@/lib/__fixtures__/keymap.ts";
-import { AppContext } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import { pressTop } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,
@@ -20,7 +22,6 @@ import type {
 } from "@/services/annotation-repository/service.ts";
 import type { ExcerptRequest } from "@/services/excerpt-image/contract.ts";
 
-import { editorApp } from "./__fixtures__/editor-app.ts";
 import { makeAnnotHost } from "./__fixtures__/host.ts";
 import { AnnotActionsContext } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Cause, Context, Effect, Exit } from "effect";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";

@@ -3,12 +3,12 @@ import type * as Atom from "effect/reactivity/Atom";
 // A view registry over controlled repository and Zotero services for annotation tests.
 import { onTestFinished } from "vitest";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { openScope } from "@/lib/effect-scope.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";

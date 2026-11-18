@@ -1,14 +1,18 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
-import type { Setting } from "@mock/obsidian.ts";
 import { Context, Effect, Exit, Layer, Stream } from "effect";
 import { describe, vi } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { Setting } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import { ManagedBinaryError } from "@/services/managed-binary/platform.ts";
 import type {

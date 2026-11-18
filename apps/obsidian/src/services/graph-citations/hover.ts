@@ -4,8 +4,9 @@ import { around } from "monkey-around";
 import { Keymap, PopoverState } from "obsidian";
 import type { GraphData, MetadataCache, Workspace } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { getLogger } from "@/lib/log.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type {
   CitationPopover,
   WorkHoverRequest,

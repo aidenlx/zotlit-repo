@@ -2,14 +2,15 @@ import { Effect } from "effect";
 import { strToU8, zipSync } from "fflate";
 import type { SettingDefinitionItem } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
-import { exportTimestamp, saveFile } from "@/lib/file-save.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { LegacyPortError, portCall } from "@/lib/legacy-port.ts";
-import { reportOutcome } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { requireElectron } from "@/lib/require.ts";
+import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { exportTimestamp, saveFile } from "@zotlit/obsidian-kit/file-save.ts";
+import { LegacyPortError, portCall } from "@zotlit/obsidian-kit/legacy-port.ts";
+import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LOG_FILENAME } from "@/services/log/service.ts";
 import { isLogLevel, LOG_LEVELS } from "@/services/settings/schema.ts";
 import type { LogLevel } from "@/services/settings/schema.ts";

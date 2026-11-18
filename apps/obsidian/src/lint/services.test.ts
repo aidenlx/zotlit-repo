@@ -17,7 +17,7 @@ import {
   serviceTagId,
   temporalInEffect,
   workerRpc,
-} from "../../scripts/oxlint-plugin-services.ts";
+} from "../../../../packages/config/oxlint-plugin-services.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -155,7 +155,7 @@ tester.run("worker-rpc", workerRpc, {
 tester.run("no-nanoevents", noNanoevents, {
   valid: [
     'import { PubSub, SubscriptionRef } from "effect";',
-    'import { subscribe } from "@/lib/effect-stream";',
+    'import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";',
   ],
   invalid: [
     {
@@ -243,7 +243,7 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
     "const file = app.vault.getFileByPath(path);",
     'stack.use(this.registerEvent(this.app.workspace.on("file-open", open)));',
     // A type-only import of the bridge names the seam a legacy file holds.
-    'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst cache = app.metadataCache.getFileCache(file);',
+    'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst cache = app.metadataCache.getFileCache(file);',
     // Not the App: a tag, or another object's members.
     `${effect}Effect.gen(function* () {
       const vault = yield* Vault;
@@ -275,12 +275,12 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
     },
     {
       // A type-only import of another Effect module counts.
-      code: 'import type { ClosableModal } from "@/lib/effect-modal";\nctx.app.vault.create(path, data);',
+      code: 'import type { ClosableModal } from "@zotlit/obsidian-kit/effect-modal.ts";\nctx.app.vault.create(path, data);',
       errors: [{ messageId: "capability" }],
     },
     {
       // The bridge is an Effect module when its values are imported.
-      code: 'import { bridgeOf } from "@/lib/effect-bridge.ts";\napp.metadataCache.getFirstLinkpathDest(link, path);',
+      code: 'import { bridgeOf } from "@zotlit/plugin-kernel/effect-bridge.ts";\napp.metadataCache.getFirstLinkpathDest(link, path);',
       errors: [{ messageId: "capability" }],
     },
     {
@@ -337,7 +337,7 @@ tester.run("no-default-runtime", noDefaultRuntime, {
 
 tester.run("scoped-runner", scopedRunner, {
   valid: [
-    'import { Effect } from "effect";\nimport { scopedBridge } from "@/lib/effect-bridge.ts";\nEffect.gen(function* () { const bridge = yield* scopedBridge; bridge.runPromise(x); });',
+    'import { Effect } from "effect";\nimport { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nEffect.gen(function* () { const bridge = yield* scopedBridge; bridge.runPromise(x); });',
     'import { Effect, FiberSet } from "effect";\nEffect.gen(function* () { const run = yield* FiberSet.makeRuntimePromise(); });',
     // A sync runner settles before unload can reach it.
     'import { Effect } from "effect";\nEffect.runSyncWith(ctx)(x);',
@@ -362,7 +362,7 @@ tester.run("scoped-runner", scopedRunner, {
 });
 
 const services = "/repo/apps/obsidian/src/services/example/layer.ts";
-const library = "/repo/apps/obsidian/src/lib/example.ts";
+const library = "/repo/packages/plugin-kernel/src/example.ts";
 const effectImport = 'import { Effect } from "effect";\n';
 const instantOption = { messageId: "option" };
 
@@ -378,7 +378,7 @@ tester.run("clock-time", clockTime, {
     },
     // A type-only import of the bridge is not Effect code.
     {
-      code: 'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst at = Date.now();\nconst instant = Temporal.Now.instant();',
+      code: 'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst at = Date.now();\nconst instant = Temporal.Now.instant();',
       filename: library,
     },
     // Reading time through Clock, and building a Date from a value.
@@ -466,7 +466,7 @@ tester.run("temporal-in-effect", temporalInEffect, {
     },
     // A type-only import of the bridge is not Effect code.
     {
-      code: 'import type { EffectBridge } from "@/lib/effect-bridge.ts";\nconst at = Temporal.Instant.from(text);',
+      code: 'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst at = Temporal.Instant.from(text);',
       filename: library,
     },
     // Effect's DateTime, and a property that only shares the name.
@@ -502,8 +502,8 @@ tester.run("temporal-in-effect", temporalInEffect, {
       errors: [temporal],
     },
     {
-      // An `@/lib/effect-*` module is Effect code too.
-      code: 'import { instantClock } from "@/lib/effect-clock";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
+      // An `effect-*` module of the plugin packages is Effect code too.
+      code: 'import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
       filename: library,
       errors: [temporal],
     },
@@ -515,17 +515,17 @@ tester.run("no-plain-service-adapters", noPlainServiceAdapters, {
   valid: [
     {
       code: 'import { Template } from "@/services/template/service";',
-      filename: "/repo/apps/obsidian/src/lib/render.ts",
+      filename: "/repo/packages/plugin-kernel/src/render.ts",
     },
     {
       code: 'import { plain } from "./plain";',
-      filename: "/repo/apps/obsidian/src/lib/text.ts",
+      filename: "/repo/packages/plugin-kernel/src/text.ts",
     },
   ],
   invalid: [
     {
       code: 'import type { PlainTemplate } from "@/services/template/plain";',
-      filename: "/repo/apps/obsidian/src/lib/render.ts",
+      filename: "/repo/packages/plugin-kernel/src/render.ts",
       errors: [{ messageId: "adapter" }],
     },
     {
@@ -540,12 +540,12 @@ tester.run("no-plain-service-adapters", noPlainServiceAdapters, {
     },
     {
       code: 'export * from "@/services/pandoc/render-cache/plain";',
-      filename: "/repo/apps/obsidian/src/lib/render.ts",
+      filename: "/repo/packages/plugin-kernel/src/render.ts",
       errors: [{ messageId: "adapter" }],
     },
     {
       code: 'const adapter = import("@/services/template/plain");',
-      filename: "/repo/apps/obsidian/src/lib/render.ts",
+      filename: "/repo/packages/plugin-kernel/src/render.ts",
       errors: [{ messageId: "adapter" }],
     },
   ],

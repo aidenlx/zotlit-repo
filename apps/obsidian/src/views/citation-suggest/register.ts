@@ -1,7 +1,7 @@
 import type { App, Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import "./style.css";
 import type { CitationLookup } from "@/services/citation-index/lookup-service.ts";

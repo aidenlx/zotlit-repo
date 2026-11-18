@@ -1,8 +1,8 @@
 // Legacy Promise test harnesses exercise the real display layer through this edge.
 import { Effect, Layer } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 
 import { ExcerptDisplays, layerExcerptDisplays } from "@/services/excerpt-image/display.ts";

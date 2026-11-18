@@ -3,12 +3,12 @@
 
 import type { Component, HoverParent } from "obsidian";
 
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
 
-import { AbortError } from "@/lib/abort-error.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { getLogger } from "@/lib/log.ts";
 import type {
   AnnotationList,
   AnnotationRecord,

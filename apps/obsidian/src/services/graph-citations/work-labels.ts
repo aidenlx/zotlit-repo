@@ -8,8 +8,8 @@ import type {
   GraphTextStyle,
 } from "obsidian";
 
-import type { WorkLabel } from "@/lib/item-summary.ts";
-import { getLogger } from "@/lib/log.ts";
+import type { WorkLabel } from "@zotlit/plugin-kernel/item-summary.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type { GraphLeafMembers } from "./install.ts";
 import { workLabelTitleAlpha } from "./work-label-zoom.ts";

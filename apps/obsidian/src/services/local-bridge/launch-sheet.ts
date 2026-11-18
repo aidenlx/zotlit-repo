@@ -4,7 +4,7 @@
 import { ConfirmationModal, Setting } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { ConfirmLaunch, LaunchSheetDetails } from "./customize.ts";
 

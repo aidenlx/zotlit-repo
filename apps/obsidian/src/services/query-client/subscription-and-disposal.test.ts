@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { queryClientsFixture, queryClientsOf } from "./__fixtures__.ts";
 import type { HeldReadChange } from "./service.ts";

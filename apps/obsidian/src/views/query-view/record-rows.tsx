@@ -5,9 +5,9 @@
 import { Fragment, useLayoutEffect, useMemo } from "react";
 
 import { errorCell, valueText } from "@zotlit/item-query";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { tooltipAttrs } from "@/lib/utils.ts";
 import type {
   QueryViewRow,
   QueryViewValue,

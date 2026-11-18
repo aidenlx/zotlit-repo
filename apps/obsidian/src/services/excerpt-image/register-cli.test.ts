@@ -7,11 +7,11 @@ import { describe, expect } from "vitest";
 
 import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
+import type { CliCommand } from "@zotlit/obsidian-kit/cli-command.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { CliCommand } from "@/lib/cli-command.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { PluginHostShape } from "@/lib/plugin-host.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { layerRcRef } from "@/services/zotero-reads/connection.ts";

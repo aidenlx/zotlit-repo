@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { SingletonHoverPopover } from "@/lib/singleton-hover-popover.ts";
+import { SingletonHoverPopover } from "@zotlit/obsidian-kit/singleton-hover-popover.ts";
 
 import "./style.css";
 

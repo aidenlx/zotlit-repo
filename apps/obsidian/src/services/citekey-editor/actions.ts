@@ -4,9 +4,10 @@
 
 import type { Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
 import { citekeyAtPos } from "./extension.ts";

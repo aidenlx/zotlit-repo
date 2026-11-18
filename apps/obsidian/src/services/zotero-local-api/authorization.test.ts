@@ -6,7 +6,7 @@ import { DateTime, Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import {
   authorized,

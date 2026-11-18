@@ -3,10 +3,10 @@
 import { Context, Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
-import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerDeviceStorageFrom } from "@/lib/obsidian-device-storage.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { layerFakeFetch } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import {
   LanguagePack,

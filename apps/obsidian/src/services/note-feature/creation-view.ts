@@ -3,12 +3,12 @@ import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type {

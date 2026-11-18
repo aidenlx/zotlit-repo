@@ -1,11 +1,11 @@
 // The Annotation Popover as an Effect service.
 import { Context, Effect, Layer } from "effect";
 
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {
   AnnotationLibraryUnresolved,

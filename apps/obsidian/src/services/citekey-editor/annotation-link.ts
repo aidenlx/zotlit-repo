@@ -14,18 +14,21 @@ import {
 import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, Keymap, livePreviewState } from "obsidian";
 
-import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
-import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
-
 import {
   livePreviewOf,
   overlapsSelection,
   tokenNodes,
   visibleLineRanges,
-} from "@/lib/editor-decoration.ts";
-import type { DocRange, TokenNode } from "@/lib/editor-decoration.ts";
-import { getLogger } from "@/lib/log.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+} from "@zotlit/obsidian-kit/editor-decoration.ts";
+import type {
+  DocRange,
+  TokenNode,
+} from "@zotlit/obsidian-kit/editor-decoration.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
+import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
+
 import type { AnnotationHoverRequest } from "@/services/annotation-popover/service.tsx";
 import {
   citationContent,

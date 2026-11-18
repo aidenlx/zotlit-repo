@@ -3,10 +3,10 @@ import { Context, Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime, Scope } from "effect";
 import { RpcSchema } from "effect/rpc";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import type { ZoteroReadsClient } from "./in-process.ts";
 import { acquireReadLease } from "./lease.ts";

@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noTacit } from "../../scripts/oxlint-plugin-effect-style.ts";
+import { noTacit } from "../../../../packages/config/oxlint-plugin-effect-style.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

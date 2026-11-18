@@ -7,16 +7,16 @@ import { Duration, Effect, Option } from "effect";
 // situation; the export UI owns the wording that guides the user out of it.
 
 import type { CslItemData } from "@zotlit/db";
-import { formatIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import {
   parseJson,
   exchangeWithZotero,
   ZoteroHttp,
   zoteroOrigin,
-} from "@/lib/zotero-http.ts";
-import type { ZoteroRequest } from "@/lib/zotero-http.ts";
+} from "@zotlit/plugin-kernel/zotero-http.ts";
+import type { ZoteroRequest } from "@zotlit/plugin-kernel/zotero-http.ts";
+import { formatIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { ZOTERO_HTTP_PORT_PREF } from "@/services/zotero-pref/prefs-file.ts";
 
 /** Pref that opens Zotero's local HTTP API; Zotero ships it off. */

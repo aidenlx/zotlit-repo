@@ -18,14 +18,15 @@ import type { Mock } from "vitest";
 
 import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import { dispatchKey } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { PdfPosition, PdfTextStructure } from "@zotlit/pdf-structure";
+import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
+import { withRecentColor } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 
-import { dispatchKey } from "@/lib/__fixtures__/keymap.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { passAborted } from "@/lib/abort-error.ts";
-import { withRecentColor } from "@/lib/annotation-colors.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
 import {
   markExternal,
   nextChange,
@@ -48,7 +49,6 @@ import type { Settings } from "@/services/settings/schema.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
 import { freshnessSignal } from "@/services/zotero-local-api/__fixtures__.ts";
 import type { WireAnnotation } from "@/services/zotero-local-api/__fixtures__.ts";
-import { editorApp } from "@/views/annot-view/__fixtures__/editor-app.ts";
 
 import type { AttachmentReads } from "./binding.ts";
 import { MarkCreation } from "./creation.ts";

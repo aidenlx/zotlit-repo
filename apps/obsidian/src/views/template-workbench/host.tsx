@@ -20,6 +20,16 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { awaitModal, openModalIn } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import {
   completionSuggestion,
   templateCompletion,
@@ -39,18 +49,6 @@ import type {
   WorkbenchRunner,
 } from "@zotlit/workbench/ui";
 
-import { Toggle } from "@/components/obsidian/toggle.tsx";
-import { citationStyleLabel } from "@/lib/citation-style.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import { awaitModal, openModalIn } from "@/lib/effect-modal.ts";
-import { obsidianPopupKeys } from "@/lib/field-popup.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { runtime } from "@/lib/i18n/generated/runtime.ts";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
-import { answerOf } from "@/lib/view-runner.ts";
 import {
   CurrentAnswer,
   takeEnter,
@@ -60,6 +58,8 @@ import {
   appendTrailingFlair,
   FLAIR_ROW_CLASS,
 } from "@/services/item-lookup/render-hit.ts";
+import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
+import { obsidianPopupKeys } from "@/views/template-workbench/field-popup.ts";
 import { communityUrl } from "@/views/welcome/links.ts";
 
 import { extractPartialMenu } from "./extract-partial.ts";

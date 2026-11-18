@@ -1,10 +1,14 @@
 import type { App } from "obsidian";
 
+import type {
+  NoticeMessage,
+  OutcomeCopy,
+} from "@zotlit/obsidian-kit/notifier.ts";
+import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import * as toast from "@zotlit/obsidian-kit/toast.ts";
 // Batch-import outcomes and actionable Profile recovery for notices and toasts.
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier.ts";
-import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
-import * as toast from "@/lib/toast.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { BatchRunResult } from "@/services/batch-run.ts";
 import { ProfileAnnotationError } from "@/services/template/service.ts";
 

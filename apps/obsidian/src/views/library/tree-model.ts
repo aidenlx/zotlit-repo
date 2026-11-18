@@ -5,9 +5,10 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { createContext, useContext } from "react";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import { QueryService } from "@/services/item-query/service.ts";
 import {
   availableLibrariesAtom,

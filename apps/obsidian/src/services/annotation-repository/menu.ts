@@ -1,8 +1,9 @@
 // The Annotation History entries in a bound PDF view's More options menu.
 import type { WorkspaceLeaf } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 
 import {

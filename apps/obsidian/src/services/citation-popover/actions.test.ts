@@ -4,7 +4,7 @@ import type { Workspace } from "obsidian";
 import type { MouseEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { createCitationPopoverActions } from "./actions.ts";
 import type { CitationEntryBlock } from "./blocks.ts";

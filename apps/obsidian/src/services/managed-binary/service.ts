@@ -16,8 +16,8 @@ import {
 } from "effect";
 import type { Context, Stream } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { startupBarrier } from "@/lib/effect-startup.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 
 import type { BinaryPin } from "./pin.ts";
 import {

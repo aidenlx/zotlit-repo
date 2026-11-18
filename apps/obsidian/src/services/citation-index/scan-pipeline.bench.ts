@@ -28,10 +28,10 @@ import { cpus, platform, arch, loadavg } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { effectTestParseClient } from "@/lib/__fixtures__/parse-client.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { effectTestParseClient } from "@/services/citation-index/__fixtures__/parse-client.ts";
 import type { ParseReply } from "@/services/citation-parse/client.ts";
 
 // oxlint-disable-next-line no-restricted-imports -- this Node benchmark uses the guarded build tooling outside src.

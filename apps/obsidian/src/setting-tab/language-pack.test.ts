@@ -1,12 +1,16 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Layer, Stream } from "effect";
 import type { SettingDefinition } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { fakeDevice, startOn } from "@/services/language-pack/__fixtures__.ts";
 import { LanguagePack } from "@/services/language-pack/service.ts";
 import { defaults } from "@/services/settings/schema.ts";

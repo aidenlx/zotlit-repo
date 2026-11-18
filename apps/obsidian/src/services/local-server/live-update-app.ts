@@ -5,6 +5,8 @@ import { vValidator } from "@hono/valibot-validator";
 import type { Context, Next } from "hono";
 import { Hono } from "hono/tiny";
 
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import {
   batchUpdateRequestSchema,
   importNotesRequestSchema,
@@ -19,8 +21,6 @@ import type {
   UpdateScope,
 } from "@zotlit/protocol";
 
-import { getLogger } from "@/lib/log.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
 import { rejectIncompatibleProtocol } from "@/services/protocol/compat.ts";
 
 const logger = getLogger("live-update");

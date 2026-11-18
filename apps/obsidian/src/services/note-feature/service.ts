@@ -14,10 +14,10 @@ import {
 import type { TFile } from "obsidian";
 
 import type { Item } from "@zotlit/db";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import { collectExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import {

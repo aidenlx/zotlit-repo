@@ -18,17 +18,17 @@ import type { App } from "obsidian";
 import { createElement } from "react";
 import type { ReactNode, RefObject } from "react";
 
+import { registerDomEvent } from "@zotlit/obsidian-kit/disposables.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import * as toast from "@zotlit/obsidian-kit/toast.ts";
+import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { PdfTextStructure, SelectedText } from "@zotlit/pdf-structure";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import { registerDomEvent } from "@/lib/disposables.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import * as toast from "@/lib/toast.ts";
-import { watch } from "@/lib/view-atoms.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRecord,

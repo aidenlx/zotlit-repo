@@ -7,12 +7,16 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
-import { ANNOTATION_SUGGESTER_ENABLED } from "@/lib/constants.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { isLanguageTag } from "@/lib/language-tag.ts";
+import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { GRAPH_CORE_PLUGIN_ID } from "@/services/graph-citations/install.ts";
+import {
+  referencesStyleOptions,
+  STYLE_DEFAULT,
+} from "@/services/pandoc/citation-style.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 import { defaults } from "@/services/settings/schema.ts";

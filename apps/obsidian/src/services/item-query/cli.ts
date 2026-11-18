@@ -11,9 +11,12 @@
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler, CliHost } from "@/lib/cli-command.ts";
-import { catchRejection } from "@/lib/cli-params.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import type {
+  CliCommandHandler,
+  CliHost,
+} from "@zotlit/obsidian-kit/cli-command.ts";
+import { catchRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 
 import {
   envelope,

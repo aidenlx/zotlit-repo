@@ -3,7 +3,7 @@ import { deleteDB, openDB } from "idb";
 import "fake-indexeddb/auto";
 import { expect, it } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { openCitekeyStore, SCANNER_REVISION } from "./store.ts";
 import { createCitationIndexHarness, makeFile } from "./test-harness.ts";

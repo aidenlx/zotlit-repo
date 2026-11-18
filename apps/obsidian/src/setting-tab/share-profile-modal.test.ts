@@ -1,5 +1,14 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it as effectIt } from "@effect/vitest";
+import { Effect, Fiber, Layer } from "effect";
+// @vitest-environment happy-dom
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { expect, vi } from "vitest";
+
+import * as nativeDialog from "@zotlit/obsidian-desktop/require.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import {
   ButtonComponent,
   ExtraButtonComponent,
@@ -9,22 +18,19 @@ import {
   ToggleComponent,
   settingsOf,
   renderRow,
-} from "@mock/obsidian.ts";
-import { Effect, Fiber, Layer } from "effect";
-// @vitest-environment happy-dom
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { expect, vi } from "vitest";
-
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type {
+  ProfileId,
+  ProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import {
+  eventually,
+  until,
+} from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { eventually, until } from "@/lib/__fixtures__/eventually.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
-import * as nativeDialog from "@/lib/require.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import type {
   Profile,

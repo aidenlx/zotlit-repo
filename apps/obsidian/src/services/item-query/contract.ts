@@ -15,10 +15,10 @@ import type {
   SchemaCustomField,
   SortSpec,
 } from "@zotlit/item-query";
+import { createRenderedCliDiagnostics } from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { DELIMITED_FORMATS } from "@zotlit/shared/delimited";
 
-import { createRenderedCliDiagnostics } from "@/lib/cli-diagnostic.ts";
-import type { CliRejection } from "@/lib/cli-params.ts";
 import type { WorkbenchIdentity } from "@/services/template-workbench/envelope.ts";
 import type { SchemaAsset } from "@/services/template-workbench/schema.ts";
 

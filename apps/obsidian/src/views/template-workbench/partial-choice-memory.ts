@@ -9,13 +9,12 @@
 
 import type { App } from "obsidian";
 
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
 } from "@zotlit/workbench/render";
 import type { PartialChoice } from "@zotlit/workbench/render";
-
-import { getLogger } from "@/lib/log.ts";
 
 const logger = getLogger(["views", "template-workbench"]);
 

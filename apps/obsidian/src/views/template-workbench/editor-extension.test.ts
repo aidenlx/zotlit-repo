@@ -4,6 +4,8 @@ import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { windowMigration } from "@zotlit/obsidian-kit/__fixtures__/window-migration.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import {
   eta,
   jsonRule,
@@ -11,10 +13,7 @@ import {
   templateHighlighting,
 } from "@zotlit/workbench/language";
 
-import { themeHook } from "@/lib/theme-hooks.ts";
-
 import { codePane } from "./editor-extension.ts";
-import { windowMigration } from "./test-window-migration.ts";
 
 let view: EditorView | null = null;
 afterEach(() => {

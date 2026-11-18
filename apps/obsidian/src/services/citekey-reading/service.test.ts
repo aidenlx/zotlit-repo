@@ -10,17 +10,17 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { vaultError } from "@/lib/vault-errors.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CitationLookupStub } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import { lookupAnswerFor } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -37,6 +37,7 @@ import {
   rendered,
 } from "@/services/citation-text/__fixtures__.ts";
 import { citationTextFixture } from "@/services/citation-text/__fixtures__.ts";
+import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
 import { CitationText } from "@/services/citation-text/service.ts";
 import type { CitationTextEvent } from "@/services/citation-text/service.ts";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";

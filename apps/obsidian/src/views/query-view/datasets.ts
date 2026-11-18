@@ -3,9 +3,9 @@
 // offers, and the paths of its parent records in a filter condition.
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";
+import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { annotationColorLabel } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import type { QueryViewRow } from "@/services/item-query/query-view.ts";
 import { itemTypeLabel } from "@/services/profile-selection/describe.ts";
 

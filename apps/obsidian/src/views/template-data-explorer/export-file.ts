@@ -1,11 +1,11 @@
+import { exportTimestamp, saveFile } from "@zotlit/obsidian-kit/file-save.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 // Export rebuilds the selected contract root through the native loader so its
 // request remains reproducible and device image handling stays with that loader.
 import type { TemplateRoot } from "@zotlit/workbench/ui";
 
-import { exportTimestamp, saveFile } from "@/lib/file-save.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";
 import { getSampleItem } from "@/views/template-workbench/selection-data.ts";
 

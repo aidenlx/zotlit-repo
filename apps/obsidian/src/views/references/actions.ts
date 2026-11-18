@@ -4,17 +4,17 @@ import type { App } from "obsidian";
 import { createContext, useContext } from "react";
 import type { MouseEvent } from "react";
 
+import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import type { ClipboardRepresentation } from "@zotlit/plugin-kernel/clipboard.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import {
   openAttachments,
   zoteroAttachmentReader,
-} from "@/lib/attachment-open.ts";
-import type { ClipboardRepresentation } from "@/lib/clipboard.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
+} from "@/services/attachment-open/open-attachments.ts";
 import type {
   CitationOccurrence,
   ReferenceSource,

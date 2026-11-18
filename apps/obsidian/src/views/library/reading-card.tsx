@@ -26,18 +26,21 @@ import type {
   ReactNode,
 } from "react";
 
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import {
+  FirstLine,
+  Icon,
+} from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { itemTypeIcon } from "@zotlit/obsidian-kit/item-type-icon.ts";
+import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { Button } from "@/components/obsidian/button.tsx";
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { FirstLine, Icon } from "@/components/obsidian/icon.tsx";
-import { annotationColorLabel } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { itemTypeIcon } from "@/lib/item-type-icon.ts";
-import { observeResize } from "@/lib/observe-resize.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";
 import { AnnotList } from "@/views/annot-view/AnnotView.tsx";
 import { viewTargetOpener } from "@/views/open-target.ts";

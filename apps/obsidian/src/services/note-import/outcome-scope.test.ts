@@ -25,13 +25,13 @@ import { expect, vi } from "vitest";
 import { getNoteByKey } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
   TemplateFacade,
 } from "@zotlit/templates/facade";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { NodeExcerptImageFixture as ExcerptImageService } from "@/services/excerpt-image/__fixtures__/node-service.ts";
 import { bluePng } from "@/services/excerpt-image/__fixtures__/png.ts";
 import { ExcerptCacheWriteError } from "@/services/excerpt-image/error.ts";

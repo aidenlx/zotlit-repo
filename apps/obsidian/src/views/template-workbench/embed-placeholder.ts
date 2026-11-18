@@ -11,8 +11,8 @@
 import { parseLinktext, setIcon } from "obsidian";
 import type { App, MarkdownPostProcessor, TFile } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { isDraftMarkdown } from "@/lib/reading-view.ts";
+import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 /** The note an embed in the preview links to; `null` for an embed of another file. */
 function embeddedNote(

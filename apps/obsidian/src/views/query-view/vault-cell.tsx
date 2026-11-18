@@ -29,12 +29,11 @@ import type { MouseEvent, ReactNode } from "react";
 
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
-import { Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import { useQueryTask } from "./model.ts";
 import { LIST_TYPES } from "./table-notes.ts";

@@ -4,7 +4,7 @@
 // header, a file view's "More options", a link's context menu, and more. Every
 // ZotLit entry there comes through the single listener below, from segments
 // named in one ordered list, so where an entry sits is decided in one place:
-// its section (`@/lib/menu-section`) picks the group, and the list's order
+// its section (`@zotlit/plugin-kernel/menu-section.ts`) picks the group, and the list's order
 // picks its row inside that group.
 import { TFile, TFolder } from "obsidian";
 import type { Menu, Plugin, WorkspaceLeaf } from "obsidian";

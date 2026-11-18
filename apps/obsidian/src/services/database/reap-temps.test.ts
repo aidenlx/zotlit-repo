@@ -9,7 +9,7 @@ import { afterEach, beforeEach, expect } from "vitest";
 import {
   ZOTERO_DB_READ_PARENT_DIRNAME,
   ZOTERO_DB_READ_TEMP_PREFIX,
-} from "@/lib/constants.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
 
 import { reapReadClones, reapWorkerClones } from "./reap-temps.ts";
 

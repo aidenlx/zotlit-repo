@@ -1,10 +1,11 @@
 // View atoms over the Citation Index: the live Cited By of an Item. Read
-// through `@/lib/view-atoms`.
+// through `@zotlit/obsidian-kit/view-atoms.ts`.
 import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type { CitedBySnapshot } from "@/services/citation-index/service.ts";
 import { activeKeyAtom } from "@/services/note-index/atoms.ts";

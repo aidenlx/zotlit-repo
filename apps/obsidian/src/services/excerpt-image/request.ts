@@ -15,12 +15,12 @@ import type {
 } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,

@@ -8,12 +8,13 @@ import {
 } from "obsidian";
 import type { App, ButtonComponent } from "obsidian";
 
-import { citationStyleLabel } from "@/lib/citation-style.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { isUserStop } from "@/lib/user-cancel.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { ProfileNoteDraft } from "@/services/note-feature/service.ts";
+import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 import { describeMatch } from "@/services/profile-selection/index.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";

@@ -4,7 +4,7 @@ import { describe, it } from "vitest";
 import {
   noObsidianClass,
   noSettingInReact,
-} from "../../scripts/oxlint-plugin-obsidian-css.ts";
+} from "../../../../packages/config/oxlint-plugin-obsidian-css.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

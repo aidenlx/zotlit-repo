@@ -16,7 +16,7 @@ import type { FrameRecord } from "./page-notes-types.ts";
 async function createFixtureNote(
   vaultId: string,
   itemID: number,
-  profile?: import("../../../apps/obsidian/src/lib/profile-stamp.ts").ProfileSelector,
+  profile?: import("@zotlit/obsidian-kit/profile-stamp.ts").ProfileSelector,
 ): Promise<CreateOperationReply> {
   return obRun(
     vaultId,

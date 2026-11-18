@@ -8,16 +8,17 @@ import { Effect, Layer } from "effect";
 import type { Context, Scope } from "effect";
 import type { WorkspaceLeaf } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { reportOutcome } from "@/lib/notifier.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import type { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { Profile } from "@/services/profile/service.ts";
 import { openTemplateWorkbench } from "@/views/template-workbench/open.ts";
 

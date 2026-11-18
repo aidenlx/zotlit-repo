@@ -11,8 +11,9 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import type { MutationState } from "@/services/annotation-repository/service.ts";
 import { IDLE } from "@/services/annotation-repository/write.ts";
 

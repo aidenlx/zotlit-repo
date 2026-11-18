@@ -10,14 +10,13 @@ import {
 } from "react";
 import type { CSSProperties, RefObject } from "react";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-input.tsx";
+import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { SearchInput } from "@/components/obsidian/search-input.tsx";
-import { PaneState } from "@/components/pane-state.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 
 import { AnnotActionsContext } from "./actions.tsx";
 import { Annotation, FIELD_SHEET_SELECTOR } from "./Annotation.tsx";

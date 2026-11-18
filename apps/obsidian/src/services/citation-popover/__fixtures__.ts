@@ -3,10 +3,11 @@ import { Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupStatus } from "@/services/citation-index/lookup-service.ts";
 import type {

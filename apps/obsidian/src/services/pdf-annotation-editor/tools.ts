@@ -10,13 +10,13 @@
 import * as v from "valibot";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
-
 import {
   ANNOTATION_COLORS,
   isColor,
   withRecentColor,
-} from "@/lib/annotation-colors.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+} from "@zotlit/plugin-kernel/annotation-colors.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+
 import type { PluginSettings } from "@/services/settings/service.ts";
 
 /** Every tool of the toggle group, in Zotero's own toolbar order. */

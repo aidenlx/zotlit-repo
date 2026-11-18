@@ -1,11 +1,11 @@
-import { createMockPlugin } from "@mock/obsidian.ts";
 import { DateTime, Effect } from "effect";
 import type { Command } from "obsidian";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { createMockPlugin } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   addAnnotationHistoryActions,

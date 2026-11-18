@@ -45,14 +45,18 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import {
+  reflink,
+  ReflinkUnsupportedError,
+} from "@zotlit/obsidian-desktop/reflink.ts";
+import { ZOTERO_DB_READ_TEMP_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import {
   isNotFound,
   isPlatformErrno,
   nodeFileSystemCall,
-} from "@/lib/errno.ts";
-import { reflink, ReflinkUnsupportedError } from "@/lib/reflink.ts";
+} from "@zotlit/plugin-kernel/errno.ts";
+
 import type { ZoteroReadMode } from "@/services/settings/schema.ts";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 

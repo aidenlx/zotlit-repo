@@ -19,6 +19,41 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { loadedTextFileView } from "@zotlit/obsidian-kit/live-text.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import {
+  ViewRegistryProvider,
+  viewRuntime,
+  watch,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import {
+  answerOf,
+  inFlightSlot,
+  joinOnView,
+  latestSlot,
+  makeViewRunner,
+} from "@zotlit/obsidian-kit/view-runner.ts";
+import type {
+  InFlightSlot,
+  LatestSlot,
+  ViewRunner,
+} from "@zotlit/obsidian-kit/view-runner.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import {
   externalEdit,
@@ -106,35 +141,6 @@ import type {
   ViewSize,
 } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { AppContext } from "@/lib/app-context.ts";
-import { awaitConfirm } from "@/lib/confirm.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
-import { loadedTextFileView } from "@/lib/live-text.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import { Notifier, withOutcome } from "@/lib/notifier.ts";
-import type { NoticeMessage } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { ViewRegistryProvider, viewRuntime, watch } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
-import {
-  answerOf,
-  inFlightSlot,
-  joinOnView,
-  latestSlot,
-  makeViewRunner,
-} from "@/lib/view-runner.ts";
-import type {
-  InFlightSlot,
-  LatestSlot,
-  ViewRunner,
-} from "@/lib/view-runner.ts";
-import type { ArrivingProblem } from "@/lib/workbench-recovery.ts";
 import type { ItemLookupHandle } from "@/services/item-lookup/handle.ts";
 import type { ItemSearchDeps } from "@/services/item-lookup/search-modal.ts";
 import { plainNoteError } from "@/services/note-feature/errors.ts";
@@ -157,6 +163,7 @@ import {
 } from "@/services/template/atoms.ts";
 import { Template } from "@/services/template/service.ts";
 import type { PartialUnpackOutcome } from "@/services/template/service.ts";
+import type { ArrivingProblem } from "@/services/template/workbench-recovery.ts";
 import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 import type { ExplorerActions } from "@/views/template-data-explorer/actions.ts";
 import { makeExportTemplateDataCommand } from "@/views/template-data-explorer/atoms.ts";

@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { cache, makeHarness } from "./__fixtures__.ts";
 import type { NoteIndexChange } from "./service.ts";

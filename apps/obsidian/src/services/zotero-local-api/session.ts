@@ -13,16 +13,18 @@ import {
 } from "effect";
 import * as v from "valibot";
 
-import { parseIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import {
   exchangeWithZotero,
   isTransportAbort,
   parseJson,
   zoteroOrigin,
-} from "@/lib/zotero-http.ts";
-import type { ZoteroHttp, ZoteroMethod } from "@/lib/zotero-http.ts";
+} from "@zotlit/plugin-kernel/zotero-http.ts";
+import type {
+  ZoteroHttp,
+  ZoteroMethod,
+} from "@zotlit/plugin-kernel/zotero-http.ts";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import {
   API_VERSION,

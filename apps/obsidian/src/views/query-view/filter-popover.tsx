@@ -16,6 +16,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { foldFilterTree } from "@zotlit/filter-expression";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ExpressionVocabulary } from "@zotlit/workbench/language";
 import {
@@ -32,11 +37,6 @@ import type {
   MatchFilter,
 } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
-import type { ViewRun } from "@/lib/view-runner.ts";
 import {
   createTemplateWorkbenchHost,
   refuseRender,

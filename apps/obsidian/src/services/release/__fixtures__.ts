@@ -5,16 +5,17 @@ import { TFile, TFolder } from "obsidian";
 import type { App, Events } from "obsidian";
 import { vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import type { HydrationOrigin } from "@/services/settings/classify.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

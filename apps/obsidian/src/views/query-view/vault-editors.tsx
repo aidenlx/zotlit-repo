@@ -30,19 +30,19 @@ import type {
 
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
+import { hasActiveMenu, showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { hasActiveMenu, showMenuAtButton } from "@/lib/menu.ts";
 import {
   canClearSuggestHighlight,
   clearSuggestHighlight,
-} from "@/lib/obsidian-private/suggest-highlight.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+} from "@/views/query-view/obsidian-private/suggest-highlight.ts";
 
 import { LIST_TYPES } from "./table-notes.ts";
 import type { VaultPropertyType } from "./table-notes.ts";

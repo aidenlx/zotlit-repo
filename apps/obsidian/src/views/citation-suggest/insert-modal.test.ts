@@ -5,8 +5,9 @@ import { TFile } from "obsidian";
 import type { App, Editor, Modifier } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {

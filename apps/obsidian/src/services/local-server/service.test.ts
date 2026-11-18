@@ -5,14 +5,13 @@ import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
 import { expect, it } from "vitest";
 
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import {
   PROTOCOL_VERSION,
   PROTOCOL_VERSION_HEADER,
   SOURCE_ID_HEADER,
 } from "@zotlit/protocol";
-
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
 
 import { buildLocalServer } from "./__fixtures__.ts";
 

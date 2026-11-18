@@ -20,9 +20,10 @@ import { Decoration, EditorView, keymap, placeholder } from "@codemirror/view";
 import { Menu, Scope } from "obsidian";
 import type { App, ExtendedHotkey } from "obsidian";
 
-import { overlapsSelection } from "@/lib/editor-decoration.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
+import { overlapsSelection } from "@zotlit/obsidian-kit/editor-decoration.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 
 import {

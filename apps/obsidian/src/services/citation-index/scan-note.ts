@@ -4,12 +4,12 @@ import type { BlockContext, Line } from "@lezer/markdown";
 import { regex } from "arkregex";
 import { decodeHTMLStrict } from "entities/decode";
 
+import { parseCitationFragment } from "@zotlit/plugin-kernel/citation-fragment.ts";
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 import type { ScannedPandocCitation } from "@zotlit/templates/pandoc-citation";
 
-import type { AnnotationLink } from "@/lib/annotation-link.ts";
-import { classifyAnnotationLink } from "@/lib/annotation-link.ts";
-import { parseCitationFragment } from "@/lib/citation-fragment.ts";
+import type { AnnotationLink } from "@/services/citation-index/annotation-link.ts";
+import { classifyAnnotationLink } from "@/services/citation-index/annotation-link.ts";
 
 export interface SourceLocation {
   line: number;

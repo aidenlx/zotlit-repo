@@ -25,14 +25,14 @@ import { DateTime, Effect, Layer, PubSub, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { vi } from "vitest";
 
+import { layerFakeFetch } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { layerZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import type { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import type { DbUpdated } from "@zotlit/protocol";
 
-import { layerFakeFetch } from "@/lib/__fixtures__/fake-fetch.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { layerZoteroHttp } from "@/lib/zotero-http.ts";
-import type { ZoteroHttp } from "@/lib/zotero-http.ts";
 import { LocalServer } from "@/services/local-server/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";

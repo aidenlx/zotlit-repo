@@ -7,9 +7,10 @@ import { Effect } from "effect";
 import { around } from "monkey-around";
 import type { PaneType } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import type { AttachmentResolver } from "@/services/attachment-resolver/service.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
 

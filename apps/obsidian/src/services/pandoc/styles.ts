@@ -5,7 +5,7 @@ import { Effect, FileSystem } from "effect";
 import type { PlatformError } from "effect";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 /**
  * Zotero installs styles in `styles/`, and keeps the independent parents that

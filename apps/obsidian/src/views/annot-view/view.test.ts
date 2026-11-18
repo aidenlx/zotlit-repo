@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-import { Menu, setMockPlatform } from "@mock/obsidian.ts";
 import { Effect, Layer, Stream } from "effect";
 import { debounce, Scope, TFile } from "obsidian";
 import type { App, Menu as ObsidianMenu, WorkspaceLeaf } from "obsidian";
@@ -7,13 +5,22 @@ import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
 import type { AnnotViewAttachment } from "@zotlit/db";
+import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+// @vitest-environment happy-dom
+import {
+  Menu,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import {
+  testEvents,
+  testEvent,
+} from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { testEvents, testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type {
   AnnotationRepository,
@@ -41,7 +48,6 @@ import { requested } from "@/views/query-view/__fixtures__/query-run.ts";
 import { serializeQueryFile } from "@/views/query-view/query-file.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 
-import { editorApp } from "./__fixtures__/editor-app.ts";
 import type { AnnotHostOptions } from "./__fixtures__/host.ts";
 import { AnnotationView } from "./view.tsx";
 import type { AnnotViewDeps } from "./view.tsx";

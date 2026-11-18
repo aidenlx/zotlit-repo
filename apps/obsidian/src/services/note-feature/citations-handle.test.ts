@@ -4,10 +4,10 @@ import { Effect, Layer, Stream } from "effect";
 import { expect, vi } from "vitest";
 
 import type { CiteRef } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
 import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";

@@ -2,13 +2,13 @@
 import type { TFile } from "obsidian";
 
 import type { Item, NoteTemplateContext } from "@zotlit/db";
-import type { UpdateScope } from "@zotlit/protocol";
-
 import type {
   ProfileId,
   ProfileSelector,
   UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { UpdateScope } from "@zotlit/protocol";
+
 import type { ExcerptOutcomeScope } from "@/services/excerpt-image/outcome-scope.ts";
 import type { ExcerptSummary } from "@/services/excerpt-image/prepare.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";

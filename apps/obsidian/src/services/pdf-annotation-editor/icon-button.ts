@@ -11,7 +11,7 @@
 import { setIcon, setTooltip } from "obsidian";
 import type { IconName } from "obsidian";
 
-import { onActivateKey } from "@/lib/utils.ts";
+import { onActivateKey } from "@zotlit/obsidian-kit/utils.ts";
 
 /** What one icon button shows, and what it lets a press do. */
 export interface IconButtonSpec {

@@ -2,10 +2,10 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { PluginHostShape } from "@/lib/plugin-host.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { PluginHostShape } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import {
   LIBRARY_SCOPE_COMMAND,

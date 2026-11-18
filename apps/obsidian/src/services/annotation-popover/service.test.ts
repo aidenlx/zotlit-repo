@@ -9,11 +9,12 @@ import { Context, Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { App, HoverParent } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { setup } from "@/services/annotation-repository/__fixtures__.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type {

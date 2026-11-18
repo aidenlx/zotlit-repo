@@ -22,12 +22,12 @@ import { vi } from "vitest";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import type { AvailableExcerpt } from "@/services/excerpt-image/service.ts";
 import {

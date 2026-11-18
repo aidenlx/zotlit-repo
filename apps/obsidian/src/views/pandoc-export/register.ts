@@ -7,17 +7,16 @@ import type { App, FileSystemAdapter, Plugin, TFile } from "obsidian";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { citationStyleLabel } from "@/lib/citation-style.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { withProgress } from "@/lib/notifier.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { requestProfileSwitch } from "@/lib/profile-recovery.ts";
-import { ZoteroHttp } from "@/lib/zotero-http.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";
 import { resolveIndexedKey } from "@/services/note-index/service.ts";
@@ -26,6 +25,7 @@ import {
   LOCAL_API_PREF,
 } from "@/services/pandoc/bibliography.ts";
 import type { BibliographyItemRef } from "@/services/pandoc/bibliography.ts";
+import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
 import {
   documentPresentation,
   profileReaderOf,

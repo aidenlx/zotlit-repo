@@ -4,13 +4,14 @@
 import { Keymap, normalizePath } from "obsidian";
 import type { App, Menu, Plugin, TFile, TFolder } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { registerEmbed } from "@/lib/obsidian-private/embed-registry.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   FileMenuSegment,
   FolderMenuSegment,
 } from "@/services/file-menu.ts";
+import { registerEmbed } from "@/views/query-view/obsidian-private/embed-registry.ts";
 
 import { createQueryFileEmbed } from "./embed.ts";
 import { installEmptyViewAction } from "./empty-view-action.ts";

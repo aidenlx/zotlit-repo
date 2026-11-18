@@ -4,8 +4,8 @@ import { TestClock } from "effect/testing";
 import { describe, expect, vi } from "vitest";
 
 import type { Library } from "@zotlit/db";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
-import { subscribe } from "@/lib/effect-stream.ts";
 import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import {

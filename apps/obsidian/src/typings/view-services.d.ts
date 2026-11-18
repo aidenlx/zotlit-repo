@@ -30,7 +30,7 @@ import type { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type { ShowInLibrary } from "@/views/library/show-in-library.ts";
 
-declare module "@/lib/view-atoms.ts" {
+declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   interface ViewServiceRegistry {
     PdfAnnotationEditor: PdfAnnotationEditor;
     CitationParse: CitationParse;

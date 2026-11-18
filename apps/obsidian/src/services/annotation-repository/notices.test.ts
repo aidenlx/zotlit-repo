@@ -1,13 +1,17 @@
 import { it } from "@effect/vitest";
-// @vitest-environment happy-dom
-import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Context, Deferred, Effect, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+// @vitest-environment happy-dom
+import {
+  ButtonComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ZoteroLocalApi } from "@/services/zotero-local-api/service.ts";
 import type {
   LocalApiFailure,

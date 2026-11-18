@@ -1,11 +1,12 @@
 import { Context, Effect, Layer, Stream } from "effect";
 import type { Plugin } from "obsidian";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 
 import { defaults } from "./schema.ts";

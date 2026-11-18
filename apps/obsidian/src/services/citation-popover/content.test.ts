@@ -5,8 +5,9 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
 import type { Inlines } from "@/services/pandoc/ast.ts";
 import type { ProfilePresentationFailure } from "@/services/pandoc/document-presentation.ts";
@@ -19,13 +20,16 @@ import type {
 } from "./blocks.ts";
 import { CitationPopoverContent } from "./content.tsx";
 
-vi.mock("@/components/obsidian/icon-button.tsx", async () => {
-  const { createElement } = await import("react");
-  return {
-    IconButton: ({ icon, ...props }: { icon: string }) =>
-      createElement("button", { ...props, "data-icon": icon }),
-  };
-});
+vi.mock(
+  "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx",
+  async () => {
+    const { createElement } = await import("react");
+    return {
+      IconButton: ({ icon, ...props }: { icon: string }) =>
+        createElement("button", { ...props, "data-icon": icon }),
+    };
+  },
+);
 
 const actions: CitationPopoverActions = {
   onOpenNote: vi.fn(),

@@ -1,203 +1,24 @@
 import { defineConfig } from "oxlint";
 
-import { testBaselineOverrides } from "@zotlit/config/oxlint";
 import baseConfig, {
   datePattern,
-  itemQuerySchemaPaths,
   parentImportPattern,
-  uniqueIdPaths,
+  testBaselineOverrides,
 } from "@zotlit/config/oxlint";
-
-const obsidianImportPaths = [
-  {
-    name: "semver",
-    allowTypeImports: true,
-    message:
-      "Import from semver/functions/<name> to keep unused semver code out of the plugin bundle.",
-  },
-  {
-    name: "obsidian",
-    importNames: ["HoverPopover"],
-    allowTypeImports: true,
-    message:
-      "Extend HoverPopover from @/lib/hover-popover; it cancels Obsidian's popover timers on the window that armed them and keeps a popover in its own window (see policies/hover-popover.md).",
-  },
-  ...uniqueIdPaths,
-];
-
-// The wrappers are applied by the effectEntry Vite plugin
-// (scripts/effect-entry.ts); code imports the package names.
-const effectWrapperPaths = [
-  {
-    name: "@/lib/effect.ts",
-    message:
-      'Import from "effect": the effectEntry Vite plugin (scripts/effect-entry.ts) resolves "effect" to this wrapper.',
-  },
-  {
-    name: "@/lib/effect-vitest.ts",
-    message:
-      'Import from "@effect/vitest": the effectEntry Vite plugin (scripts/effect-entry.ts) resolves "@effect/vitest" to this wrapper in tests.',
-  },
-];
-
-const commonImports = {
-  patterns: [
-    parentImportPattern,
-    datePattern,
-    {
-      group: ["**/citation-index/scan.ts", "./scan.ts"],
-      importNames: [
-        "scanDocumentCitations",
-        "scanCitekeyOccurrences",
-        "documentWikilinks",
-        "maskExclusions",
-        "maskWikilinks",
-      ],
-      message: "Read document citations through the citation parse worker.",
-    },
-  ],
-  paths: [...obsidianImportPaths, ...itemQuerySchemaPaths],
-};
-
-// LogTape's own configure and reset leave a host-process listener and a
-// window-wide root logger that hold a disabled plugin in memory;
-// src/lib/log.ts releases both.
-const logTapeConfigurePath = {
-  name: "@logtape/logtape",
-  importNames: ["configure", "configureSync", "reset"],
-  message:
-    "Configure and reset LogTape through configureLogTape, configureLogTapeSync, and resetLogTape from @/lib/log.",
-};
-
-const runtimeImports = {
-  ...commonImports,
-  paths: [
-    {
-      name: "effect",
-      importNames: ["ManagedRuntime", "Scheduler"],
-      allowTypeImports: true,
-      message:
-        "Run Effects with the run functions of Effect from effect instead; they supply the browser scheduler.",
-    },
-    {
-      name: "effect/Effect",
-      allowTypeImports: true,
-      message: "Import Effect from effect.",
-    },
-    {
-      name: "effect/ManagedRuntime",
-      allowTypeImports: true,
-      message:
-        "Use the Effect entry points from effect for Chromium scheduling.",
-    },
-    {
-      name: "effect/Scheduler",
-      allowTypeImports: true,
-      message:
-        "Obsidian scheduling is owned by @/lib/effect-runtime and @/lib/browser-scheduler.",
-    },
-    ...effectWrapperPaths,
-    logTapeConfigurePath,
-    ...commonImports.paths,
-  ],
-};
+import {
+  pluginCodeJsPlugins,
+  pluginCodeOverrides,
+  pluginCodeRules,
+  pluginTestImports,
+  runtimeImports,
+} from "@zotlit/config/oxlint-plugin-code";
 
 export default defineConfig({
   extends: [baseConfig],
-  jsPlugins: [
-    new URL("../../packages/config/oxlint-plugin-design.ts", import.meta.url)
-      .pathname,
-    "./scripts/oxlint-plugin-popout-windows.ts",
-    "./scripts/oxlint-plugin-menu-sections.ts",
-    "./scripts/oxlint-plugin-obsidian-css.ts",
-    "./scripts/oxlint-plugin-private-api.ts",
-    "./scripts/oxlint-plugin-services.ts",
-    "./scripts/oxlint-plugin-effect-tests.ts",
-    "./scripts/oxlint-plugin-logging.ts",
-    "./scripts/oxlint-plugin-errors.ts",
-    "./scripts/oxlint-plugin-effect-style.ts",
-    new URL("../../packages/config/oxlint-plugin-keyboard.ts", import.meta.url)
-      .pathname,
-    new URL("../../packages/config/oxlint-plugin-obsidian.ts", import.meta.url)
-      .pathname,
-  ],
-  rules: {
-    "effecttsgo/global-console": "error",
-    "effecttsgo/global-console-in-effect": "error",
-    "zotlit-obsidian/no-cross-window-instanceof": "error",
-    "zotlit-obsidian/no-global-resize-observer": "error",
-    "zotlit-keyboard/no-layer-check": "error",
-    "zotlit-menu/no-literal-section": "error",
-    "zotlit-services/service-tag-id": "error",
-    "zotlit-services/no-plain-service-adapters": "error",
-    "zotlit-services/cli-command-registration": "error",
-    "zotlit-effect-style/no-tacit": "error",
-    // Repeats the base pattern: a rule set here replaces the base entry.
-    "no-restricted-imports": ["error", runtimeImports],
-  },
+  jsPlugins: pluginCodeJsPlugins,
+  rules: pluginCodeRules(runtimeImports),
   overrides: [
-    {
-      // Obsidian's guideline rules, on the code that ships. `pnpm review` runs
-      // the type-aware rest.
-      files: ["src/**"],
-      excludeFiles: [
-        "src/**/*.test.{ts,tsx}",
-        "src/**/*.bench.ts",
-        "src/**/*.browser-test.ts",
-        "src/**/__fixtures__/**",
-        "src/**/__fixtures__.ts",
-      ],
-      rules: {
-        "obsidianmd/no-nodejs-modules": "off",
-        "obsidianmd/rule-custom-message": [
-          "error",
-          {
-            "no-console": {
-              messages: {
-                "Unexpected console statement. Only these console methods are allowed: warn, error, debug.":
-                  "Avoid unnecessary logging to console. See https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Avoid+unnecessary+logging+to+console",
-              },
-              options: [{ allow: ["warn", "error", "debug"] }],
-            },
-            "no-new-func": {
-              messages: {
-                "The Function constructor is eval":
-                  "Using the `Function` constructor is dangerous because it executes arbitrary code, similar to `eval()`",
-              },
-            },
-          },
-        ],
-        "obsidianmd/commands/no-command-in-command-id": "error",
-        "obsidianmd/commands/no-command-in-command-name": "error",
-        "obsidianmd/commands/no-default-hotkeys": "error",
-        "obsidianmd/commands/no-plugin-id-in-command-id": "error",
-        "obsidianmd/commands/no-plugin-name-in-command-name": "error",
-        "obsidianmd/settings-tab/no-manual-html-headings": "error",
-        "obsidianmd/settings-tab/no-problematic-settings-headings": "error",
-        "obsidianmd/settings-tab/require-display": "error",
-        "obsidianmd/settings-tab/prefer-setting-definitions": "error",
-        "obsidianmd/settings-tab/prefer-update-over-display": "error",
-        "obsidianmd/settings-tab/no-deprecated-display": "error",
-        "obsidianmd/vault/iterate": "error",
-        "obsidianmd/detach-leaves": "error",
-        "obsidianmd/editor-drop-paste": "error",
-        "obsidianmd/hardcoded-config-path": "error",
-        "obsidianmd/no-forbidden-elements": "error",
-        "obsidianmd/no-global-this": "error",
-        "obsidianmd/no-restricted-globals": "error",
-        "obsidianmd/no-sample-code": "error",
-        "obsidianmd/no-tfile-tfolder-cast": "error",
-        "obsidianmd/no-static-styles-assignment": "error",
-        "obsidianmd/object-assign": "error",
-        "obsidianmd/platform": "error",
-        "obsidianmd/prefer-get-language": "error",
-        "obsidianmd/prefer-abstract-input-suggest": "error",
-        "obsidianmd/prefer-window-timers": "error",
-        "obsidianmd/prefer-active-doc": "off",
-        "obsidianmd/regex-lookbehind": "error",
-        "obsidianmd/sample-names": "error",
-      },
-    },
+    ...pluginCodeOverrides({ testImports: pluginTestImports }),
     {
       files: ["src/services/citekey-editor/decorate.ts"],
       rules: {
@@ -208,26 +29,8 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/**"],
-      rules: { "zotlit-services/worker-rpc": "error" },
-    },
-    {
-      files: ["src/**"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "error" },
-    },
-    {
-      files: ["src/**"],
-      excludeFiles: ["src/**/*.test.{ts,tsx}"],
-      rules: { "zotlit-errors/no-message-match": "error" },
-    },
-    {
-      // Tests and the LogTape bridge and sink owners may use LogTape directly.
-      files: [
-        "src/**/*.test.{ts,tsx}",
-        "src/lib/log.ts",
-        "src/lib/effect-log.ts",
-        "src/services/log/**",
-      ],
+      // The sink owners may use LogTape directly.
+      files: ["src/services/log/**"],
       rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
     },
     {
@@ -263,65 +66,6 @@ export default defineConfig({
       // then remove this file from the list.
       files: ["src/services/database/snapshot-integrity.ts"],
       rules: { "zotlit-services/worker-rpc": "off" },
-    },
-    {
-      files: ["src/**/*.test.{ts,tsx}"],
-      rules: {
-        "zotlit-effect-tests/no-effect-run-in-test": "error",
-        "zotlit-effect-tests/no-notice-mock": "error",
-        "zotlit-effect-tests/no-real-timer-in-effect-test": "error",
-      },
-    },
-    {
-      files: ["src/**"],
-      rules: { "zotlit-effect-tests/service-stub": "error" },
-    },
-    {
-      files: [
-        "src/**/*.test.{ts,tsx}",
-        "src/**/__fixtures__.ts",
-        "src/**/__fixtures__/**",
-      ],
-      rules: { "zotlit-effect-tests/typed-fake": "error" },
-    },
-    {
-      // These tests exercise the run entry points themselves.
-      files: ["src/lib/effect-runtime.test.ts", "src/lib/effect-entry.test.ts"],
-      rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
-    },
-    {
-      files: ["src/**"],
-      excludeFiles: ["**/*.test.{ts,tsx}"],
-      rules: {
-        "zotlit-services/effect-native-resources": "error",
-        "zotlit-services/interrupt-predicate": "error",
-        "zotlit-services/layer-stream-consumer": "error",
-        "zotlit-services/no-legacy-service": "error",
-        "zotlit-services/scope-closed": "error",
-      },
-    },
-    {
-      files: ["src/**"],
-      excludeFiles: [
-        "**/*.test.{ts,tsx}",
-        "**/__fixtures__/**",
-        "**/__fixtures__.ts",
-        // The capability tags themselves read the App.
-        "src/lib/obsidian-*.ts",
-      ],
-      rules: { "zotlit-services/obsidian-capabilities": "error" },
-    },
-    // A test double needs no span: service methods are Effect.fn in the plugin
-    // code only.
-    {
-      files: [
-        "**/*.test.*",
-        "**/*.bench.ts",
-        "**/*.browser-test.ts",
-        "**/__fixtures__/**",
-        "**/__fixtures__.ts",
-      ],
-      rules: { "effecttsgo/effect-fn-opportunity": "off" },
     },
     // Capability backlog: files that import Effect and still reach the App,
     // grouped by what blocks the change. A file moves off its list when it
@@ -399,34 +143,8 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      // The helper the rule points at.
-      files: ["src/lib/effect-scope.ts"],
-      rules: { "zotlit-services/scope-closed": "off" },
-    },
-    {
-      files: ["src/**"],
-      rules: { "zotlit-services/no-nanoevents": "error" },
-    },
-    {
-      files: ["src/**/*.{ts,tsx}"],
-      excludeFiles: [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/*.browser-test.ts",
-        "**/__fixtures__/**",
-        "**/__fixtures__.ts",
-        // Test support and benchmarks, not plugin code: no plugin runtime exists there.
-        "**/test-harness.ts",
-        "**/*.bench.ts",
-        "src/lib/effect-bridge.ts",
-        "src/lib/effect-vitest.ts",
-      ],
-      rules: { "zotlit-services/no-default-runtime": "error" },
-    },
-    {
       // Default-runtime backlog: run the Effect through the bridge, a layer context runner or a runtime, then remove the file from the list.
       files: [
-        "src/lib/effect-scope.ts",
         "src/services/batch-run.ts",
         "src/services/citation-index/sources.ts",
         "src/services/profile/service.ts",
@@ -444,32 +162,6 @@ export default defineConfig({
       rules: { "zotlit-services/no-default-runtime": "off" },
     },
     {
-      files: ["src/services/**"],
-      excludeFiles: [
-        "**/*.test.{ts,tsx}",
-        "**/*.browser-test.ts",
-        "**/__fixtures__/**",
-        "**/__fixtures__.ts",
-        "**/test-harness.ts",
-      ],
-      rules: { "zotlit-services/scoped-runner": "error" },
-    },
-    {
-      files: ["src/**/*.{ts,tsx}"],
-      excludeFiles: [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/*.browser-test.ts",
-        "**/__fixtures__/**",
-        "**/__fixtures__.ts",
-        // Benchmarks measure wall time on purpose.
-        "**/*.bench.ts",
-        // Converts the Effect Clock into a Temporal function for a non-Effect core.
-        "src/lib/effect-clock.ts",
-      ],
-      rules: { "zotlit-services/clock-time": "error" },
-    },
-    {
       // Clock backlog: read time through Clock (`Clock.currentTimeMillis` or `DateTime.now` in Effect code; `instantClock(yield* Clock.Clock)` from `@/lib/effect-clock` for a non-Effect core), then remove the file from the list.
       files: [
         "src/services/citation-index/snapshot.ts",
@@ -483,22 +175,13 @@ export default defineConfig({
     {
       // Date adapter: Obsidian's YAML frontmatter can hand in a Date.
       files: [
-        "src/lib/frontmatter-date.ts",
-        "src/lib/frontmatter-date.test.ts",
+        "src/services/note-index/frontmatter-date.ts",
+        "src/services/note-index/frontmatter-date.test.ts",
       ],
       rules: {
         "effecttsgo/global-date": "off",
         "no-restricted-globals": "off",
       },
-    },
-    {
-      files: ["src/**/*.{ts,tsx}"],
-      excludeFiles: [
-        // Converts between Effect's DateTime and Clock and the Temporal of plain code.
-        "src/lib/effect-clock.ts",
-        "src/lib/effect-clock.test.ts",
-      ],
-      rules: { "zotlit-services/temporal-in-effect": "error" },
     },
     {
       // @zotlit/db rows carry Temporal.Instant, the date type of the template
@@ -524,75 +207,14 @@ export default defineConfig({
     },
     ...testBaselineOverrides("apps/obsidian"),
     {
-      // UI code runs in the window it stands in, a pop-out included.
-      files: ["src/views/**", "src/components/**", "src/**/*.tsx"],
-      rules: { "zotlit-obsidian/no-global-timer": "error" },
-    },
-    {
-      // So does UI that services draw, such as a picker; tests keep the
-      // timers their fakes replace.
-      files: ["src/**"],
-      excludeFiles: [
-        "**/*.test.{ts,tsx}",
-        "**/*.browser-test.ts",
-        "**/__fixtures__/**",
-        "**/__fixtures__.{ts,tsx}",
-      ],
-      rules: { "zotlit-obsidian/no-global-timer": "error" },
-    },
-    {
       // Guarded private API reaches its surface through obsidian-ex.d.ts.
-      files: ["src/lib/obsidian-private/**"],
+      files: ["src/views/query-view/obsidian-private/**"],
       rules: { "zotlit-private/no-unknown-cast": "error" },
     },
     {
       // A test's fake App stands in for the whole surface.
-      files: ["src/lib/obsidian-private/*.test.ts"],
+      files: ["src/views/query-view/obsidian-private/*.test.ts"],
       rules: { "zotlit-private/no-unknown-cast": "off" },
-    },
-    {
-      // React draws its controls from JSX; imperative DOM builds on Obsidian's.
-      files: ["src/**/*.tsx"],
-      rules: {
-        "zotlit-css/no-obsidian-class": "error",
-        "zotlit-css/no-setting-in-react": "error",
-      },
-    },
-    {
-      // The wrappers that hand Obsidian's control classes to everything else.
-      files: ["src/components/obsidian/**"],
-      rules: { "zotlit-css/no-obsidian-class": "off" },
-    },
-    {
-      // Tests can inspect the schema; the plugin's other import rules remain.
-      files: [
-        "src/**/*.{test,spec}.{ts,tsx,js,jsx}",
-        "*.{config,setup}.{ts,js,mjs,cjs}",
-      ],
-      rules: {
-        "no-restricted-imports": [
-          "error",
-          {
-            patterns: [parentImportPattern, datePattern],
-            paths: [...effectWrapperPaths, ...obsidianImportPaths],
-          },
-        ],
-      },
-    },
-    {
-      // The owner of LogTape's configuration.
-      files: ["src/lib/log.ts"],
-      rules: {
-        "no-restricted-imports": [
-          "error",
-          {
-            ...runtimeImports,
-            paths: runtimeImports.paths.filter(
-              (path) => path !== logTapeConfigurePath,
-            ),
-          },
-        ],
-      },
     },
     {
       // IndexedDB transactions must finish their request microtasks before a task yield.
@@ -621,22 +243,6 @@ export default defineConfig({
       },
     },
     {
-      // The wrappers, which reach the real package (NATIVE in scripts/effect-entry.ts).
-      files: [
-        "src/lib/browser-scheduler.ts",
-        "src/lib/effect.ts",
-        "src/lib/effect-layer.ts",
-        "src/lib/effect-log.ts",
-        "src/lib/effect-runtime.ts",
-        "src/lib/effect-runtime-factory.ts",
-        "src/lib/effect-services.ts",
-        "src/lib/effect-vitest.ts",
-        "src/lib/effect-worker.ts",
-        "src/lib/effect-worker-runtime.ts",
-      ],
-      rules: { "no-restricted-imports": ["error", commonImports] },
-    },
-    {
       files: [
         "vite.config.ts",
         "src/services/pandoc/filter/zotlit-cite.pandoc.test.ts",
@@ -646,26 +252,6 @@ export default defineConfig({
       rules: {
         "effecttsgo/global-console": "off",
         "effecttsgo/global-console-in-effect": "off",
-      },
-    },
-    {
-      // The one module that wraps Obsidian's popover itself.
-      files: ["src/lib/hover-popover.ts"],
-      rules: {
-        "no-restricted-imports": [
-          "error",
-          {
-            patterns: [datePattern],
-            paths: itemQuerySchemaPaths,
-          },
-        ],
-      },
-    },
-    {
-      // This stand-in implements the runtime helper that the rule requires.
-      files: ["vitest.setup.js"],
-      rules: {
-        "zotlit-obsidian/no-cross-window-instanceof": "off",
       },
     },
     {
@@ -698,8 +284,7 @@ export default defineConfig({
       // Background work that stands in no window, which lives as long as the
       // plugin and so as the main window.
       files: [
-        "src/lib/disposables.ts",
-        "src/lib/plugin-lifecycle.ts",
+        "src/plugin-lifecycle.ts",
         "src/services/item-query/measure.ts",
         "src/services/log/vault-sink.ts",
       ],

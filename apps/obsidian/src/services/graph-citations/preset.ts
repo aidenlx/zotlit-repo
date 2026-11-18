@@ -2,7 +2,7 @@
 
 import type { GraphColor, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import {
   AUTHOR_TITLE_LABELS,

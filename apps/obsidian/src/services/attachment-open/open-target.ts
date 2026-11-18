@@ -13,6 +13,12 @@ import { fileURLToPath } from "node:url";
 import type { PaneType } from "obsidian";
 
 import { formatAnnotationSubpath } from "@zotlit/db";
+import { portCall } from "@zotlit/obsidian-kit/legacy-port.ts";
+import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 import {
   annotationOpenUri,
@@ -20,12 +26,6 @@ import {
   parseAnnotationOpenUri,
 } from "@zotlit/zotero-types/uri";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { portCall } from "@/lib/legacy-port.ts";
-import { Notifier, withOutcome } from "@/lib/notifier.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import {
   AttachmentResolver,
   indexedWithin,

@@ -4,7 +4,8 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { homedir } from "node:os";
 
-import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { QueryClients } from "@/services/query-client/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";

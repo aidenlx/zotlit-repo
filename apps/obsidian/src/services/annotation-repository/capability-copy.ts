@@ -2,7 +2,7 @@
 // reads: the settings row, the reader's Creation Toolbar, and the Annotation
 // View toolbar all name one state the same way.
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { EditingCapability } from "./capability.ts";
 

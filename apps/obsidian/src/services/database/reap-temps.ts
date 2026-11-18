@@ -3,10 +3,10 @@
 import { Effect } from "effect";
 import { tmpdir } from "node:os";
 
-import { ZOTERO_DB_READ_TEMP_PREFIX } from "@/lib/constants.ts";
-import { isErrno } from "@/lib/errno.ts";
-import { sweepTempDirectory } from "@/lib/temp-sweep.ts";
-import type { ReapTempsOptions } from "@/lib/temp-sweep.ts";
+import { sweepTempDirectory } from "@zotlit/obsidian-desktop/temp-sweep.ts";
+import type { ReapTempsOptions } from "@zotlit/obsidian-desktop/temp-sweep.ts";
+import { ZOTERO_DB_READ_TEMP_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
+import { isErrno } from "@zotlit/plugin-kernel/errno.ts";
 
 /**
  * Remove clone temp dirs left behind by crashed runs. Each dir is tagged with

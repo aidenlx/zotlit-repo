@@ -7,9 +7,9 @@ import type {
   ItemFixtureOptions,
   TypedItemFixtureOptions,
 } from "@zotlit/item-lookup/fixtures";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import type { AvailableLibrary } from "@/services/library-scope/scope.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";

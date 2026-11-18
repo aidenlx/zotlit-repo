@@ -4,13 +4,15 @@
 // `separator`.
 import { useMemo, useState } from "react";
 
+import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
+import {
+  Dropdown,
+  DropdownItem,
+} from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
+import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
-
-import { Chooser } from "@/components/chooser.tsx";
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
-import { Toggle } from "@/components/obsidian/toggle.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
 
 import { ItemsWindow } from "./items-window.tsx";
 import type { DrawnEntry, WindowEntry } from "./items-window.tsx";

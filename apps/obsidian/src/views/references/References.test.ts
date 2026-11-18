@@ -7,10 +7,11 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ambiguousCandidates } from "@/services/citation-index/__fixtures__/ambiguous-candidates.ts";
 import type {
   CitationOccurrence,
@@ -26,13 +27,16 @@ import { makeReferencesModel, ReferencesModelContext } from "./model.ts";
 import { References } from "./References.tsx";
 import type { ReferencesListMode, ReferencesState } from "./state.ts";
 
-vi.mock("@/components/obsidian/icon-button.tsx", async () => {
-  const { createElement } = await import("react");
-  return {
-    IconButton: ({ icon, ...props }: { icon: string }) =>
-      createElement("button", { ...props, "data-icon": icon }),
-  };
-});
+vi.mock(
+  "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx",
+  async () => {
+    const { createElement } = await import("react");
+    return {
+      IconButton: ({ icon, ...props }: { icon: string }) =>
+        createElement("button", { ...props, "data-icon": icon }),
+    };
+  },
+);
 
 const actions: ReferenceActions = {
   onSelect: () => undefined,

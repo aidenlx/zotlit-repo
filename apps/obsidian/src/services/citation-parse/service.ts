@@ -2,8 +2,8 @@
 import { Context, Effect, Layer } from "effect";
 import workerSource from "virtual:citation-parse-worker";
 
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 
 import type {
   ParseFailed,

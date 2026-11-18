@@ -5,23 +5,23 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer } from "effect";
 import type { ManagedRuntime } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { layerFileManagerFrom } from "@/lib/obsidian-file-manager.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { layerFileManagerFrom } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type {
   FileManager,
   FileManagerSource,
-} from "@/lib/obsidian-file-manager.ts";
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import {
   layerMetadataCacheFrom,
   MetadataCache,
-} from "@/lib/obsidian-metadata-cache.ts";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
-import { layerVaultFrom, Vault } from "@/lib/obsidian-vault.ts";
-import type { VaultSource } from "@/lib/obsidian-vault.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import type { Workspace, WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+} from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { layerVaultFrom, Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { Workspace, WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import {

@@ -11,13 +11,13 @@ import type {
 } from "obsidian";
 
 import type { CitationVariant } from "@zotlit/db";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
 import { CurrentAnswer } from "@/services/item-lookup/current-answer.ts";
 import type { SearchSession } from "@/services/item-lookup/handle.ts";
 import { renderSuggestion as renderSearchHit } from "@/services/item-lookup/render-hit.ts";

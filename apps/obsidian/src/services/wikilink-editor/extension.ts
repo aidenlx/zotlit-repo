@@ -16,9 +16,10 @@ import {
   livePreviewOf,
   tokenNodes,
   visibleLineRanges,
-} from "@/lib/editor-decoration.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import type { LiteratureNoteTarget } from "@/lib/wikilink-citation.ts";
+} from "@zotlit/obsidian-kit/editor-decoration.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
+
 import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
 import type {
   CitationLookupAnswer,

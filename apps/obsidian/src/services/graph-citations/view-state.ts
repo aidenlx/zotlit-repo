@@ -3,7 +3,7 @@
 import { around } from "monkey-around";
 import type { GraphEngine, GraphOptions, GraphView, View } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 
 import { CITATION_POPOVER, COLOR_CITATION_LINKS } from "./display.ts";
 import {

@@ -3,8 +3,9 @@
 // component, so a test reads the verbs instead of clicking them.
 //
 // @see apps/obsidian/policies/ui-seams.md
-import { annotationColorLabel } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   TextField,
   WriteConflict,

@@ -1,11 +1,4 @@
 import { it } from "@effect/vitest";
-import {
-  ButtonComponent,
-  DropdownComponent,
-  Modal,
-  settingsOf,
-  TextComponent,
-} from "@mock/obsidian.ts";
 import { Effect, Exit, Fiber, FileSystem, Scope } from "effect";
 import type {
   App,
@@ -16,13 +9,21 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { makeMetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { makeWorkspace } from "@/lib/obsidian-workspace.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import {
+  ButtonComponent,
+  DropdownComponent,
+  Modal,
+  settingsOf,
+  TextComponent,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { makeMetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { makeWorkspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
 import { zoteroPrefFixture } from "@/services/zotero-pref/__fixtures__.ts";
 

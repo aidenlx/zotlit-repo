@@ -12,7 +12,7 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 const logger = getLogger("graph-citations");
 

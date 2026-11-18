@@ -10,12 +10,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { LogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
 import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
 import {
   lookupAnswer,

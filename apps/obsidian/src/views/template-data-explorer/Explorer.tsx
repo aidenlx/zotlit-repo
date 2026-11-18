@@ -2,6 +2,11 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useContext } from "react";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   DataExplorer,
   useWorkbenchHost,
@@ -12,11 +17,6 @@ import type {
   WorkbenchItemChoice,
 } from "@zotlit/workbench/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { selectionControl } from "@/components/obsidian/selection-control.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 import {
   ItemSelectionList,
   AnnotationSelectionList,

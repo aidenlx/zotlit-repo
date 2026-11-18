@@ -3,18 +3,21 @@ import { Effect, Result } from "effect";
 import type { CliData } from "obsidian";
 
 import type { CitationVariant, ContractRoot } from "@zotlit/db";
+import type { CliCommandHandler } from "@zotlit/obsidian-kit/cli-command.ts";
+import { catchRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
+import {
+  DEFAULT_PROFILE,
+  parseProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { LiteratureNoteTemplateError } from "@zotlit/templates/facade";
 import {
   ContractMetadataError,
   serializeTemplateData,
 } from "@zotlit/workbench/explorer";
 
-import type { CliCommandHandler } from "@/lib/cli-command.ts";
-import { catchRejection } from "@/lib/cli-params.ts";
-import type { CliRejection } from "@/lib/cli-params.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { DEFAULT_PROFILE, parseProfileSelector } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import type {
   ProfileDiagnostic,

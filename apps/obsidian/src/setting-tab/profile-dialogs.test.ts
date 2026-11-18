@@ -1,21 +1,26 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, Modal, controlsOf } from "@mock/obsidian.ts";
 import { Deferred, Effect, Fiber, Layer } from "effect";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { until } from "@/lib/__fixtures__/eventually.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import { UserCancelled } from "@/lib/user-cancel.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  Modal,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { until } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import { UserCancelled } from "@zotlit/plugin-kernel/user-cancel.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";

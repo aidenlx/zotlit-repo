@@ -10,19 +10,25 @@ import { Effect, Exit } from "effect";
 import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
 
 import type { Item } from "@zotlit/db";
+import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
-import { openAttachments, withFixedPane } from "@/lib/attachment-open.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, reportOutcome } from "@/lib/notifier.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import type { AttachmentOpenDeps } from "@/services/attachment-open/actions.ts";
 import { pdfPickerReader } from "@/services/attachment-open/actions.ts";
 import { literatureNoteAttachments } from "@/services/attachment-open/literature-note.ts";
+import {
+  openAttachments,
+  withFixedPane,
+} from "@/services/attachment-open/open-attachments.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
 import { openLiteratureNote } from "@/services/note-feature/navigation.ts";

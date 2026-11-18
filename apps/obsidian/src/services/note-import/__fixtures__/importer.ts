@@ -6,12 +6,12 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import type { FileManagerSource } from "@/lib/obsidian-file-manager.ts";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
-import type { VaultSource } from "@/lib/obsidian-vault.ts";
-import type { WorkspaceSource } from "@/lib/obsidian-workspace.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { layerAttachmentImportOver } from "@/services/attachment-import/__fixtures__.ts";
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";

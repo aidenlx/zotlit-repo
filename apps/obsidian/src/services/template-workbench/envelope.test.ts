@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
-
-import { CliRejection } from "@/lib/cli-params.ts";
 
 import {
   DIAGNOSTIC_HINTS,

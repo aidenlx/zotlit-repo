@@ -2,7 +2,7 @@
 
 import type { App, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import { GRAPH_CORE_PLUGIN_ID, GRAPH_VIEW_TYPES } from "./install.ts";
 

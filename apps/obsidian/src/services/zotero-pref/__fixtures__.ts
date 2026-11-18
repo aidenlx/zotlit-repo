@@ -3,9 +3,9 @@ import { Context, Effect, Layer } from "effect";
 import type { PlatformError } from "effect";
 import type { App } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { electronAppData } from "./__fixtures__/electron-app-data.ts";
 import { zoteroProfilesRoot } from "./profile-root.ts";

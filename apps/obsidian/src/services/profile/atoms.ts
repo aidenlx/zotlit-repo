@@ -3,10 +3,10 @@ import { Effect, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import { filterTag } from "@/lib/effect-stream.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { viewRuntime, held } from "@/lib/view-atoms.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { viewRuntime, held } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { Profile } from "./service.ts";
 import type { ProfileState, LiteratureNoteProfile } from "./service.ts";

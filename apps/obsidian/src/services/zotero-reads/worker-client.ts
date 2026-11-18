@@ -3,8 +3,8 @@ import { Effect, FileSystem, Ref, Stream } from "effect";
 import workerSource from "virtual:zotero-reads-worker";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import { reapReadClones } from "@/services/database/reap-temps.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

@@ -4,12 +4,12 @@ import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
 import type { Item } from "@zotlit/db";
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import type { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import { defaults } from "@/services/settings/schema.ts";

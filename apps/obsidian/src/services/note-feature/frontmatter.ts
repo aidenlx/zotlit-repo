@@ -1,4 +1,5 @@
 import type { NoteTemplateContext } from "@zotlit/db";
+import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
 import {
   evalFrontmatterFields,
   evalManagedFrontmatterEntries,
@@ -17,8 +18,6 @@ import type {
   EvaluatedFrontmatterField,
   FrontmatterMergeConflictHandler,
 } from "@zotlit/templates/frontmatter-merge";
-
-import { FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
 
 export interface ApplyManagedFrontmatterOptions {
   compiled: readonly CompiledFrontmatterField[];

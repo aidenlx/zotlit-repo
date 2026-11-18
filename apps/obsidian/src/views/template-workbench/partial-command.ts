@@ -4,11 +4,12 @@
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { withOutcome } from "@/lib/notifier.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Template } from "@/services/template/service.ts";
 
 import { openNewPartialPrompt } from "./new-partial.ts";

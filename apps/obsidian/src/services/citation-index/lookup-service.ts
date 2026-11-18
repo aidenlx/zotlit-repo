@@ -17,9 +17,10 @@ import {
 } from "effect";
 import type { RpcClientError } from "effect/rpc";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 import type { Held } from "@/services/query-client/service.ts";

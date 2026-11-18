@@ -9,8 +9,9 @@ import { TFile } from "obsidian";
 import type { App, FileSystemAdapter, MetadataCache, Vault } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileReader } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";

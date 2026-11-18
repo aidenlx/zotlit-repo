@@ -9,6 +9,8 @@ import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 
 import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import {
   initialTreeState,
   setAnchor,
@@ -32,8 +34,6 @@ import type {
 import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
 import { indexedKeyForClipboard } from "@/services/indexed-key/actions.ts";
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 import type { TemplateDataLoadResult } from "@/services/template-workbench/data.ts";

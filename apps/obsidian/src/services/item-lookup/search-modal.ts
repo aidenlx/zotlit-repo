@@ -6,10 +6,11 @@ import type { Effect } from "effect";
 import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { modalAnswer } from "@/lib/modal-answer.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { modalAnswer } from "@zotlit/obsidian-kit/modal-answer.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { PluginSettings } from "@/services/settings/service.ts";
 
 import { CurrentAnswer, takeEnter } from "./current-answer.ts";

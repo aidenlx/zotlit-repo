@@ -3,7 +3,7 @@
 // back, and search. Where Zotero lives on this device sits one page deeper.
 import type { SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { chineseSegmenterDefinition } from "./chinese-segmenter.ts";
 import type { SettingsKey, SettingTabContext } from "./context.ts";

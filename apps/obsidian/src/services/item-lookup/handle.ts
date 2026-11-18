@@ -2,9 +2,9 @@
 import { Scope } from "effect";
 import type { Exit } from "effect";
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { openScope } from "@/lib/effect-scope.ts";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 
 import type { ItemLookup, SearchHit, SearchOptions } from "./service.ts";
 

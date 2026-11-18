@@ -2,7 +2,8 @@ import { it } from "@effect/vitest";
 import { Cause, Duration, Effect, Exit, Stream } from "effect";
 import { afterEach, describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
 import { queryClientsFixture } from "@/services/query-client/__fixtures__.ts";
 import { testReads } from "@/services/zotero-reads/__fixtures__.ts";

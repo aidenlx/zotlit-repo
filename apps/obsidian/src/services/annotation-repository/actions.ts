@@ -2,8 +2,8 @@
 // is not a key: the command palette, and the PDF view's More options menu.
 import type { Plugin } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { CopyInstant } from "./capability-copy.ts";
 import type { HistoryDirection, HistoryOutcome } from "./history.ts";

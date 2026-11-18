@@ -2,8 +2,8 @@ import type { WorkspaceLeaf } from "obsidian";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
+import type { Effect as PluginEffect } from "@zotlit/plugin-kernel/effect.ts";
 
-import type { Effect as PluginEffect } from "@/lib/effect.ts";
 import type { QueryView } from "@/views/query-view/view.tsx";
 import type { TemplateWorkbenchView } from "@/views/template-workbench/view.tsx";
 

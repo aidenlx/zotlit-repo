@@ -5,14 +5,14 @@ import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeItem } from "@zotlit/db/item-fixture";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { openAttachments } from "@/lib/attachment-open.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import type { LiteratureNoteAttachmentsHandle } from "@/services/attachment-open/handle.ts";
+import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
@@ -31,10 +31,15 @@ import type { QuickSwitchDeps } from "./register.ts";
 const literatureNoteAttachments =
   vi.fn<LiteratureNoteAttachmentsHandle["literatureNoteAttachments"]>();
 
-vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
-  openAttachments: vi.fn(),
-}));
+vi.mock(
+  "@/services/attachment-open/open-attachments.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/services/attachment-open/open-attachments.ts")
+    >()),
+    openAttachments: vi.fn(),
+  }),
+);
 
 beforeEach(() => vi.clearAllMocks());
 let cleanup = new AsyncDisposableStack();

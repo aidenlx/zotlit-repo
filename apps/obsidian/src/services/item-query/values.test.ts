@@ -8,8 +8,8 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
+import { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 
-import { CliRejection } from "@/lib/cli-params.ts";
 import type { LibraryScope } from "@/services/library-scope/scope.ts";
 import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
 

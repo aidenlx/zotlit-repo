@@ -2,10 +2,11 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 /** The real bibliography layer over the dependency ports used by consumer fixtures. */
 import { Context, Effect, Layer, Stream } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { AbortError } from "@/lib/abort-error.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import type { ManagedBinaryHandle } from "@/services/managed-binary/handle.ts";
 import type { CitationEngine } from "@/services/pandoc/engine.ts";
 import {

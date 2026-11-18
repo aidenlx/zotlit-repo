@@ -8,9 +8,10 @@ import type {
 } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { revealSetting } from "@/lib/open-settings.ts";
+import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import { ChineseSegmenter } from "@/services/chinese-segmenter/service.ts";
 import { LanguagePack } from "@/services/language-pack/service.ts";

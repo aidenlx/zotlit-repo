@@ -11,6 +11,12 @@ import type { FileSystem } from "effect";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json" with { type: "json" };
 import filenameSchema from "@zotlit/db/contract/filename.schema.json" with { type: "json" };
 import noteSchema from "@zotlit/db/contract/note.schema.json" with { type: "json" };
+import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
+import {
+  DEFAULT_PROFILE,
+  isProfileId,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type {
   InstalledCitationStyle,
@@ -25,9 +31,6 @@ import type {
   SnapshotSelection,
 } from "@zotlit/workbench/snapshot";
 
-import { profileRevision } from "@/lib/profile-revision.ts";
-import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { listInstalledStyles } from "@/services/pandoc/installed-styles.ts";
 import { resolveInstalledStyle } from "@/services/pandoc/styles.ts";

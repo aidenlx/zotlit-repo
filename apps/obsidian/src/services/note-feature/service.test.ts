@@ -13,12 +13,12 @@ import { TFile } from "obsidian";
 import { describe, expect } from "vitest";
 
 import type { Item } from "@zotlit/db";
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
 

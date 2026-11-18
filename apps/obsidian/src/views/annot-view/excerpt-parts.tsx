@@ -7,13 +7,13 @@ import { sanitizeHTMLToDom } from "obsidian";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { isPageNumber } from "@zotlit/db";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { useSanitizedHtml } from "@/lib/sanitize-html.ts";
-import { cn } from "@/lib/utils.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type { ExcerptDisplayDemand } from "@/services/excerpt-image/display.ts";
 import type { ExcerptImage } from "@/services/excerpt-image/format.ts";
+import { useSanitizedHtml } from "@/views/annot-view/sanitize-html.ts";
 
 import { excerptImageOwnership } from "./excerpt-image-state.ts";
 import type { ExcerptImageOwnership } from "./excerpt-image-state.ts";

@@ -3,8 +3,12 @@
 // extension registers in ./register.
 import { Cause, Context, Effect, Layer, PubSub, Stream } from "effect";
 
-import { logAndContinue, withLogCategory } from "@/lib/effect-log.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import {
+  logAndContinue,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+
 import { describeCandidatesEffect } from "@/services/citation-index/ambiguity.ts";
 import type { AmbiguousCandidate } from "@/services/citation-index/ambiguity.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";

@@ -1,5 +1,4 @@
 import { it } from "@effect/vitest";
-import { ToggleComponent, controlsOf } from "@mock/obsidian.ts";
 import { Context, Effect, Fiber, Layer } from "effect";
 // @vitest-environment happy-dom
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -9,13 +8,18 @@ import { ButtonComponent, Modal, SuggestModal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { until } from "@/lib/__fixtures__/eventually.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import * as nativeDialog from "@/lib/require.ts";
+import * as nativeDialog from "@zotlit/obsidian-desktop/require.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ToggleComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { until } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,

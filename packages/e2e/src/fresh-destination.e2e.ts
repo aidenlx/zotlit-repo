@@ -26,10 +26,10 @@ import { reloadWindow } from "./window-reload.ts";
 describe.skipIf(!reachable)("Fresh destination flow", () => {
   const vaultPath = e2eVaultDir(workspaceRoot, "destination-vault");
   let vaultId = "";
-  let m: typeof import("@obsidian-messages");
+  let m: typeof import("@zotlit/plugin-messages/messages.ts");
 
   beforeAll(async () => {
-    m = await import("@obsidian-messages");
+    m = await import("@zotlit/plugin-messages/messages.ts");
     await clearVault(runVaultScript, vaultPath);
     const pluginDir = join(vaultPath, ".obsidian", "plugins", "zotlit");
     await mkdir(pluginDir, { recursive: true });

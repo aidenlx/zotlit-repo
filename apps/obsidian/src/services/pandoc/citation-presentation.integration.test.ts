@@ -3,8 +3,8 @@
 
 import { describe, expect, it } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   EXPORT_BODY,

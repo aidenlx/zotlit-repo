@@ -6,12 +6,13 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import type { PaneType } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag } from "@/lib/effect-stream.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import type {

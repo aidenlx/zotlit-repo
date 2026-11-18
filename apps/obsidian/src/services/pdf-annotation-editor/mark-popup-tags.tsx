@@ -5,7 +5,8 @@
 import { useMemo } from "react";
 import type { RefObject } from "react";
 
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+
 import type {
   AnnotationRecord,
   TagDraft,

@@ -5,7 +5,7 @@ import { Effect } from "effect";
 import type { FileSystem, PlatformError } from "effect";
 import { join } from "node:path";
 
-import { withLogCategory } from "@/lib/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 import {
   HIDDEN_DIR,

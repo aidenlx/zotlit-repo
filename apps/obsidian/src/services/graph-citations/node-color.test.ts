@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { GraphData } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { themeProperty } from "@/lib/theme-hooks.ts";
+import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import { NO_ADDITIONS } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
@@ -18,7 +18,7 @@ import {
 // @vitest-environment happy-dom
 import { graphNode, themeStates, themeStatesNothing } from "./test-stub.ts";
 
-vi.mock("@/lib/log.ts", () => ({
+vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

@@ -56,7 +56,7 @@ declare module "../page-helpers.ts" {
 const execFileAsync = promisify(execFile);
 const root = await getWorkspaceRoot(import.meta.dirname);
 const reachable = await isObsidianReachable(root);
-const m = await import("@obsidian-messages");
+const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "connect-zotero-to-obsidian";
 /** Sandve et al. 2013 in the docs Vault Case: a PDF in Zotero storage, five annotations. */

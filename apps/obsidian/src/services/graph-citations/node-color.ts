@@ -4,9 +4,9 @@ import { regex } from "arkregex";
 import { around } from "monkey-around";
 import type { GraphColor, GraphData } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
-import { getLogger } from "@/lib/log.ts";
-import { themeProperty } from "@/lib/theme-hooks.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
 import type { GraphLeafMembers } from "./install.ts";

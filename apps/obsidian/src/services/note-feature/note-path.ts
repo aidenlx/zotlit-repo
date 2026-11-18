@@ -3,10 +3,10 @@ import { Effect, Schema } from "effect";
 
 import { buildFilenameContext } from "@zotlit/db";
 import type { Item, ItemTag, TemplateCollection } from "@zotlit/db";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { hasSuffixMarker, joinNotePath } from "@zotlit/templates";
 
-import { creatorSummary } from "@/lib/item-summary.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import { getProfileBinding } from "@/services/profile/bindings.ts";
 import type { ProfileBindingSettings } from "@/services/profile/bindings.ts";
 import { Template } from "@/services/template/service.ts";

@@ -20,6 +20,27 @@ import type {
   CitationVariant,
   CiteRef,
 } from "@zotlit/db";
+import {
+  processLiveText,
+  readLiveText,
+} from "@zotlit/obsidian-kit/effect-live-text.ts";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { VaultEvent } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { UnknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ensureVaultFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
+import { RESERVED_KEYS } from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import {
+  FileExists,
+  VaultError,
+  VaultFolderBlockedError,
+} from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { inlineCitation } from "@zotlit/templates";
 import type {
   AutoTrim,
@@ -63,24 +84,6 @@ import {
   managedRegionTransform,
 } from "@zotlit/templates/obsidian";
 
-import { RESERVED_KEYS } from "@/lib/constants.ts";
-import { processLiveText, readLiveText } from "@/lib/effect-live-text.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { VaultEvent } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { UnknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import {
-  FileExists,
-  VaultError,
-  VaultFolderBlockedError,
-} from "@/lib/vault-errors.ts";
-import { ensureVaultFolder } from "@/lib/vault-folder.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
@@ -1123,7 +1126,7 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
       boolean,
       | VaultError
       | VaultFolderBlockedError
-      | import("@/lib/effect-live-text.ts").LiveTextRewriteFailed,
+      | import("@zotlit/obsidian-kit/effect-live-text.ts").LiveTextRewriteFailed,
       Vault | Workspace
     > {
       if (step.verdict === "conflict") {
@@ -2453,7 +2456,7 @@ export type TemplateFailure =
   | VaultError
   | FileExists
   | VaultFolderBlockedError
-  | import("@/lib/effect-live-text.ts").LiveTextRewriteFailed;
+  | import("@zotlit/obsidian-kit/effect-live-text.ts").LiveTextRewriteFailed;
 
 export class Template extends Context.Service<
   Template,

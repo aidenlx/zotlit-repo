@@ -6,17 +6,17 @@ import { Effect, Semaphore } from "effect";
 import { TFile } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { ArrivingProblem } from "@/lib/workbench-recovery.ts";
 import { Customize } from "@/services/local-bridge/customize.ts";
 import type {
   CustomizeRequest,
   NativeProfileTarget,
 } from "@/services/local-bridge/customize.ts";
 import { Profile } from "@/services/profile/service.ts";
+import type { ArrivingProblem } from "@/services/template/workbench-recovery.ts";
 
 import type { WorkbenchOpened } from "./actions.ts";
 import {

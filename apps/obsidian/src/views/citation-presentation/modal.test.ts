@@ -1,3 +1,7 @@
+import { Effect } from "effect";
+import type { App } from "obsidian";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   ButtonComponent,
   DropdownComponent,
@@ -5,14 +9,11 @@ import {
   Modal,
   settingsOf,
   TextComponent,
-} from "@mock/obsidian.ts";
-import { Effect } from "effect";
-import type { App } from "obsidian";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { modalAnswer } from "@zotlit/obsidian-kit/modal-answer.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { modalAnswer } from "@/lib/modal-answer.ts";
 import { nodeFileSystem } from "@/services/pandoc/__fixtures__/file-effects.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 

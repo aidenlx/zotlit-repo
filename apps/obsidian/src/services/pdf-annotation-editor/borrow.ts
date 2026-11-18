@@ -4,7 +4,8 @@
 
 import type { PDFDocumentProxy, PDFViewerController } from "obsidian";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type {
   BorrowedExcerptDocument,
   ExcerptCropPage,

@@ -2,13 +2,13 @@
 import { Clock, DateTime, Effect, Layer } from "effect";
 import type { App, FileSystemAdapter, View } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { WorkspaceSource } from "@/lib/obsidian-workspace.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";

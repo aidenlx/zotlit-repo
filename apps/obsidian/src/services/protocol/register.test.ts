@@ -16,19 +16,19 @@ import type { App, ObsidianProtocolData } from "obsidian";
 import { beforeEach, describe, expect, vi } from "vitest";
 
 import type { Attachment, getItemDisplayRefByID, Library } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { testPluginHost } from "@/lib/__fixtures__/plugin-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { openAttachments } from "@/lib/attachment-open.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
 import { TargetOpener } from "@/services/attachment-open/open-target.ts";
 import { toObsidianOpenableAttachments } from "@/services/attachment-open/resolve.ts";
 import type { ObsidianOpenableAttachment } from "@/services/attachment-open/resolve.ts";
@@ -94,10 +94,15 @@ vi.mock("@/services/note-feature/index.ts", async (importOriginal) => {
   };
 });
 
-vi.mock("@/lib/attachment-open.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/attachment-open.ts")>()),
-  openAttachments: vi.fn(),
-}));
+vi.mock(
+  "@/services/attachment-open/open-attachments.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/services/attachment-open/open-attachments.ts")
+    >()),
+    openAttachments: vi.fn(),
+  }),
+);
 
 vi.mock("@/services/attachment-open/resolve.ts", async (importOriginal) => ({
   ...(await importOriginal<

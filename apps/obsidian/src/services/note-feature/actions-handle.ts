@@ -3,8 +3,9 @@
 import type { Context, Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import { exitOver, valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+
 import type { NoteImportView } from "@/services/note-import/view.ts";
 
 import {

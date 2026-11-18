@@ -5,13 +5,14 @@ import { TestClock } from "effect/testing";
 import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import {
   annotationRows,
   annotationUri,
 } from "@/services/citation-index/__fixtures__/annotations.ts";
+import { effectTestParse } from "@/services/citation-index/__fixtures__/parse-client.ts";
 import { createCitationIndexHarness } from "@/services/citation-index/test-harness.ts";
 import type { CitationIndexHarness } from "@/services/citation-index/test-harness.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";

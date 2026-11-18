@@ -10,9 +10,9 @@
 import { setIcon } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { claimClick } from "@/lib/utils.ts";
+import { claimClick } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { ConflictPanel, ConflictVerb } from "./card-conflict.ts";
 import type {

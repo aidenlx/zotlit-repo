@@ -3,7 +3,7 @@ import type { ServerType } from "@hono/node-server";
 import { Stream } from "effect";
 import { expect, it, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { buildLocalServer } from "./__fixtures__.ts";
 

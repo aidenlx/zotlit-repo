@@ -13,6 +13,9 @@ const config: KnipConfig = {
   ignoreIssues: {
     // shadcn/ui components: each file ships the component's whole API.
     "apps/docs/src/components/ui/**": ["exports", "types"],
+    // The effectEntry Vite plugin resolves `@effect/vitest` to this wrapper,
+    // which mirrors that package's exports for every test that imports it.
+    "packages/plugin-kernel/src/effect-vitest.ts": ["exports"],
   },
   workspaces: {
     ".": {
@@ -28,17 +31,36 @@ const config: KnipConfig = {
         "src/zt-main.ts",
         // Bundled by the embeddedWorker Vite plugin.
         "src/services/*/worker.ts",
-        // The effectEntry Vite plugin resolves `effect`, `effect/Effect` and
-        // `@effect/vitest` to these wrappers.
-        "src/lib/effect.ts",
-        "src/lib/effect-runtime.ts",
-        "src/lib/effect-worker.ts",
-        "src/lib/effect-worker-runtime.ts",
-        "src/lib/effect-vitest.ts",
         "scripts/**/*.ts",
         "vitest.*.ts",
         "vitest.setup.js",
       ],
+    },
+    // The plugin packages export their whole source (`./*`), so every module
+    // is an entry; their exports still need a reader somewhere in the
+    // workspace.
+    "packages/plugin-kernel": {
+      entry: [
+        // The effectEntry Vite plugin resolves `effect`, `effect/Effect` and
+        // `@effect/vitest` to these wrappers.
+        "src/effect.ts",
+        "src/effect-runtime.ts",
+        "src/effect-worker.ts",
+        "src/effect-worker-runtime.ts",
+        "src/effect-vitest.ts",
+        "scripts/**/*.ts",
+      ],
+      includeEntryExports: true,
+    },
+    "packages/obsidian-kit": {
+      includeEntryExports: true,
+    },
+    "packages/obsidian-desktop": {
+      includeEntryExports: true,
+    },
+    "packages/plugin-messages": {
+      // Generated: the facade exports every Message, read or not.
+      ignore: ["generated/**"],
     },
     "apps/zotero": {
       entry: [

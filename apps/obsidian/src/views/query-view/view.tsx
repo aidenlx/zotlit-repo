@@ -14,18 +14,21 @@ import type { ComponentType } from "react";
 
 import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary, QueryContext } from "@zotlit/item-query";
+import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
+import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { PaneState } from "@/components/pane-state.tsx";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { reportOutcome } from "@/lib/notifier.ts";
-import type { NoticeMessage } from "@/lib/notifier.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import { makeViewRunner } from "@/lib/view-runner.ts";
-import type { ViewRunner } from "@/lib/view-runner.ts";
 import type { HistorySurface } from "@/services/annotation-repository/actions.ts";
 import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
 import type { TargetOpenGesture } from "@/services/attachment-open/actions.ts";

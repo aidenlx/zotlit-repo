@@ -1,8 +1,8 @@
 // Promise test hosts exercise the real scoped service through its bridge.
 import { Effect, FileSystem, Layer, Scope, Exit } from "effect";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { ExcerptImageService, layerExcerptImage } from "@/services/excerpt-image/service.ts";
 import type { ExcerptDeps, ExcerptRequest, ExcerptImageOperation } from "@/services/excerpt-image/service.ts";

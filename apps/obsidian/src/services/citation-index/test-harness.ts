@@ -14,15 +14,18 @@ import type {
 } from "obsidian";
 
 import type { Library, LibraryCitekey } from "@zotlit/db";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { VaultSource } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import {
+  FIELD_CITEKEY,
+  FIELD_ZOTERO_KEY,
+} from "@zotlit/plugin-kernel/constants.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { FIELD_CITEKEY, FIELD_ZOTERO_KEY } from "@/lib/constants.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
-import type { VaultSource } from "@/lib/obsidian-vault.ts";
 import type { ParseClient } from "@/services/citation-parse/client.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 import { resolveLibraryScope } from "@/services/library-scope/scope.ts";
@@ -682,7 +685,7 @@ export interface CitationIndexHarness extends AsyncDisposable {
   draft: TFile;
   index: CitationIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
+    runtime: import("@zotlit/plugin-kernel/effect-stream.ts").SubscriptionRuntime;
   };
   ready: Promise<void>;
   runtime: ReturnType<typeof citationIndexFixture>["runtime"];
@@ -810,7 +813,7 @@ export async function createCitationIndexHarness(
   );
   let index: CitationIndex["Service"] & {
     bridge: EffectBridge;
-    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
+    runtime: import("@zotlit/plugin-kernel/effect-stream.ts").SubscriptionRuntime;
   };
   const ready = fixture.ready.then((value) => {
     index = value;

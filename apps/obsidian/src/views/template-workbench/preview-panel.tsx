@@ -6,6 +6,9 @@ import "./preview-panel.css";
 import { useAtomValue } from "@effect/atom-react";
 import type { ComponentProps } from "react";
 
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { WorkbenchDocumentKind } from "@zotlit/workbench/document";
 import {
   DEFAULT_PARTIAL_CONTEXT,
@@ -25,9 +28,6 @@ import {
 } from "@zotlit/workbench/ui";
 import type { ResultMode, TemplateRoot } from "@zotlit/workbench/ui";
 
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
 import { NativeMarkdown } from "@/views/template-workbench/preview/markdown.tsx";
 
 import { paneCover, selectionHint, templateWorkbenchButton } from "./theme.tsx";

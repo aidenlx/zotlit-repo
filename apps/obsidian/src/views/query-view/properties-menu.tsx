@@ -12,20 +12,22 @@ import type { IconName } from "obsidian";
 import { useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-import { composing } from "@zotlit/ui";
-
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
+import type {
+  ChooserGroup,
+  ChooserRow,
+} from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import {
   Chooser,
   chooserIconButton,
   useChooserPage,
   useChooserQuery,
   useChooserScope,
-} from "@/components/chooser.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { registerKeymap } from "@/lib/disposables.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+} from "@zotlit/obsidian-kit/components/chooser.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { registerKeymap } from "@zotlit/obsidian-kit/disposables.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { composing } from "@zotlit/ui";
 
 import { useQueryViewState } from "./model.ts";
 import { propertyIcon } from "./property-icon.ts";

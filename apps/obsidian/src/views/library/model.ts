@@ -2,7 +2,7 @@
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 export interface LibrarySelection {
   readonly key: string | null;

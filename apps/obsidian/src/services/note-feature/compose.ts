@@ -5,14 +5,14 @@
 import { stringifyYaml } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
+import {
+  FIELD_CITATION_STYLE,
+  FIELD_LITERATURE_NOTE_PROFILE,
+} from "@zotlit/plugin-kernel/constants.ts";
 import { stringifyFrontmatterInOrder } from "@zotlit/templates/frontmatter";
 import type { ManagedFrontmatterEvaluation } from "@zotlit/templates/frontmatter";
 import type { FrontmatterMergeConflictHandler } from "@zotlit/templates/frontmatter-merge";
 
-import {
-  FIELD_CITATION_STYLE,
-  FIELD_LITERATURE_NOTE_PROFILE,
-} from "@/lib/constants.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type {
   ResolvedLiteratureNoteTemplate,

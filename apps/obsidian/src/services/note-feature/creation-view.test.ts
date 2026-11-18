@@ -5,12 +5,12 @@ import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { ProfileOperationError } from "@/services/profile/service.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";

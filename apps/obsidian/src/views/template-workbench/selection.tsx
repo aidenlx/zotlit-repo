@@ -3,17 +3,16 @@ import "./selection.css";
 import type { ItemView } from "obsidian";
 
 import { isPageNumber } from "@zotlit/db";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
 import type { AnnotationExample } from "@zotlit/workbench/render";
 import { annotationOption } from "@zotlit/workbench/ui";
 import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
-
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { selectionControl } from "@/components/obsidian/selection-control.ts";
-import { docsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import * as workbenchM from "@/lib/i18n/generated/workbench-messages.ts";
 
 import { useRecentItems } from "./item-choice.ts";
 import {

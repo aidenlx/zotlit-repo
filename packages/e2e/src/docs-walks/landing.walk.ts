@@ -43,7 +43,7 @@ import type { DocsWalk } from "./docs-walk.ts";
 const execFileAsync = promisify(execFile);
 const root = await getWorkspaceRoot(import.meta.dirname);
 const reachable = await isObsidianReachable(root);
-const m = await import("@obsidian-messages");
+const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "landing";
 /** The window's content area in CSS px: 16:10. */

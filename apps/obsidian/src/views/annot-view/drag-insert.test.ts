@@ -14,9 +14,10 @@ import type {
 } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { openScope } from "@/lib/effect-scope.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
 import type { AnnotationInsertRequest } from "@/services/note-feature/insert-action.ts";

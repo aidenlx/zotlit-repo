@@ -18,9 +18,8 @@ import {
   parseAnnotationSubpath,
 } from "@zotlit/db";
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
-
-import { disposable } from "@/lib/disposables.ts";
-import { getLogger } from "@/lib/log.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import { PDF_VIEW_TYPE } from "./seam.ts";
 

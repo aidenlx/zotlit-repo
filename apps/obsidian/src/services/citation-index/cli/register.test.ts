@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { registerCitationsCli } from "./register.ts";
 

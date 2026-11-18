@@ -3,7 +3,8 @@ import { Stream } from "effect";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import * as lookupEvents from "@/services/citation-index/lookup-service.ts";
 import { layerRcRef } from "@/services/zotero-reads/connection.ts";
 import {

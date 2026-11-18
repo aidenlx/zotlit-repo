@@ -1,6 +1,6 @@
 // UI seam for Library Scope: the display name of one Library or selector.
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { AvailableLibrary, LibrarySelector } from "./scope.ts";
 

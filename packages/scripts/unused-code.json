@@ -1,9 +1,6 @@
 {
   "exports": [
     "apps/docs/src/lib/workbench/fields.ts: fieldValueText",
-    "apps/obsidian/src/components/obsidian/dropdown.tsx: DropdownGroup",
-    "apps/obsidian/src/lib/disposables.ts: registerInterval",
-    "apps/obsidian/src/lib/toast.ts: toast.rethrowWithNotice",
     "apps/obsidian/src/services/citation-index/service.ts: toZoteroOpenableAttachments",
     "apps/obsidian/src/services/citekey-navigation/index.ts: citationTarget",
     "apps/obsidian/src/services/citekey-navigation/index.ts: hoverEditingMode",
@@ -30,12 +27,14 @@
     "apps/obsidian/src/services/zotero-local-api/__fixtures__.ts: unauthorized",
     "apps/obsidian/src/views/query-view/vault-cell.tsx: VaultCell",
     "apps/obsidian/src/views/template-data-explorer/item-memory.ts: lastTemplateItem",
+    "packages/obsidian-kit/src/components/obsidian/color.tsx: Color",
+    "packages/obsidian-kit/src/components/obsidian/dropdown.tsx: DropdownGroup",
+    "packages/obsidian-kit/src/disposables.ts: registerInterval",
+    "packages/obsidian-kit/src/toast.ts: toast.rethrowWithNotice",
     "packages/workbench/src/language/contract.ts: sampleValue",
     "packages/workbench/src/ui/example-state.tsx: useExampleMessage"
   ],
   "types": [
-    "apps/obsidian/src/lib/citation-source.ts: ScannedCitation",
-    "apps/obsidian/src/lib/menu-section.ts: MenuSection",
     "apps/obsidian/src/services/attachment-import/service.ts: BlockedSource",
     "apps/obsidian/src/services/attachment-import/service.ts: SourceBlock",
     "apps/obsidian/src/services/citation-index/cli/commands.ts: CitationsIdentity",
@@ -95,7 +94,9 @@
     "apps/obsidian/src/views/batch-modal/index.ts: BatchModalText",
     "apps/obsidian/src/views/batch-modal/types.ts: BatchFailure",
     "apps/zotero/src/lib/bootstrap-reasons.ts: BootstrapReasonName",
-    "packages/item-query/src/filter-error.ts: EvaluationErrorCodesExhaustive"
+    "packages/item-query/src/filter-error.ts: EvaluationErrorCodesExhaustive",
+    "packages/plugin-kernel/src/citation-source.ts: ScannedCitation",
+    "packages/plugin-kernel/src/menu-section.ts: MenuSection"
   ],
   "enumMembers": []
 }

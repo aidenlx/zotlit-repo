@@ -1,8 +1,15 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 
-import { citationOfRun, wikilinkCitation } from "@/lib/wikilink-citation.ts";
-import type { RunMember, WikilinkCitation } from "@/lib/wikilink-citation.ts";
+import {
+  citationOfRun,
+  wikilinkCitation,
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
+import type {
+  RunMember,
+  WikilinkCitation,
+} from "@zotlit/plugin-kernel/wikilink-citation.ts";
+
 import { presented } from "@/services/citation-text/__fixtures__.ts";
 import type { PresentedCitation } from "@/services/citation-text/present.ts";
 

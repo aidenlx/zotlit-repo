@@ -3,8 +3,11 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect } from "vitest";
 
-import { layerSignalling, testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  layerSignalling,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { layerNoteFeatureNotices } from "./notices.ts";
 import { NoteFeature } from "./service.ts";

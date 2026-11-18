@@ -6,10 +6,11 @@ import * as Atom from "effect/reactivity/Atom";
 import { normalizePath } from "obsidian";
 import { createContext, useContext } from "react";
 
-import { filterTag } from "@/lib/effect-stream.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { held, viewRuntime } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { releaseVersionAtom } from "@/services/release/atoms.ts";
 import { Release } from "@/services/release/service.ts";
 import { settingsAtom } from "@/services/settings/atoms.ts";

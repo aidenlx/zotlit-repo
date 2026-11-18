@@ -3,17 +3,17 @@ import { DateTime, Effect, Schema } from "effect";
 import type { TFile } from "obsidian";
 
 import type { Item, ItemFacets } from "@zotlit/db";
-
-import { toInstant } from "@/lib/effect-clock.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { Vault } from "@/lib/obsidian-vault.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import {
   DEFAULT_PROFILE,
   unknownProfileDiagnostic,
-} from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { classifyStream } from "@/services/batch-run.ts";
 import type { QueryService } from "@/services/item-query/service.ts";
 import {

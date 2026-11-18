@@ -79,7 +79,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("shows Cited by counts only while following a literature note", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     const result = await obRun(
       vaultId,
       async ({ app: host, page }, { emptyMessage, openNoteMessage }) => {
@@ -214,7 +214,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("exports a draft as HTML after the destination follows the chosen format", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     const vault = basename(path);
     const source = await readFile(
       join(root, "packages/scripts/lib/fixture/vault-pages/pandoc-export.md"),
@@ -565,7 +565,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       async ({ app: host, zotlit }, { EFFECT_MODULE_PATH }) => {
         const { Effect } = require(
           EFFECT_MODULE_PATH,
-        ) as typeof import("@/lib/effect.ts");
+        ) as typeof import("@zotlit/plugin-kernel/effect.ts");
         const app = host as WalkthroughApp;
 
         await using cleanup = new AsyncDisposableStack();
@@ -1581,7 +1581,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       const services = zotlit.services;
       const template = (await services.runtime.context()).mapUnsafe.get(
         "zotlit/template/Template",
-      ) as import("@/lib/effect.ts").Context.Service.Shape<
+      ) as import("@zotlit/plugin-kernel/effect.ts").Context.Service.Shape<
         typeof import("@/services/template/service.ts").Template
       >;
       const setPermission = (enabled: boolean) =>
@@ -1798,7 +1798,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   );
 
   it("finds a paper in Choose item and previews its callouts with native paragraph styling", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     // The default Profile shows Annotations in a Query Block; a default
     // document that lists them puts one callout per Annotation in the note.
     const original = await obRun(
@@ -2004,7 +2004,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     ).toBe(false);
   });
   it("stores a typed property rule and note name that YAML has to quote as the text the reader typed", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     const rule = 'zt.creators | map: "fullName"';
     const name = "{{ zt.title | replace: ':', '-' }}";
     const result = await obRun(
@@ -2158,7 +2158,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("previews the full note path in the Profile editor and creates the note there", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     // A paper no other walkthrough keeps a note for, so creation is not refused.
     const title = "Why Most Published Research Findings Are False";
     const result = await obRun(
@@ -2337,7 +2337,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("keeps Annotation fields and preview when Customize reopens its workbench", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     await obRun(
       vaultId,
       async ({ app: host }) => {
@@ -2918,7 +2918,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("creates a Profile from a name alone in Add profile and opens it on Name and folder", async () => {
-    const m = await import("@obsidian-messages");
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     await obRun(
       vaultId,
       async ({ app: host }) => {

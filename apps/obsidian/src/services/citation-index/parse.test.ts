@@ -4,9 +4,10 @@ import { Effect, Layer, Scope } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
-import { openScope } from "@/lib/effect-scope.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
+import { effectTestParse } from "@/services/citation-index/__fixtures__/parse-client.ts";
 import {
   ParseFailed,
   ParseWorkerDied,

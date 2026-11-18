@@ -4,7 +4,7 @@
 
 import { Effect } from "effect";
 
-import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 
 import { randomHex } from "./random.ts";
 

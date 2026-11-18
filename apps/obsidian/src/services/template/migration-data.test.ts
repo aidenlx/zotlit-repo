@@ -4,8 +4,8 @@ import { expect, vi } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import {
   MY_LIBRARY_SCOPE,
   resolveLibraryScope,

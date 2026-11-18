@@ -1,16 +1,20 @@
-// A Query File embed shows one view of the file in a note. These tests drive
-// it as Obsidian does: the creator, the component it returns added to the note
-// and loaded, and the file's text on disk changing under it. What it shares
-// with the Query Block is in `note-host.test.ts`.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { Stream } from "effect";
 import type { App, EmbedContext } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+// A Query File embed shows one view of the file in a note. These tests drive
+// it as Obsidian does: the creator, the component it returns added to the note
+// and loaded, and the file's text on disk changing under it. What it shares
+// with the Query Block is in `note-host.test.ts`.
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type {
   QueryViewOutcome,
   QueryViewRequest,

@@ -5,13 +5,14 @@
 // supplies its content and nothing else.
 import type { App, IconName } from "obsidian";
 
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import {
   ANNOTATION_COLORS,
   annotationColorLabel,
   isColor,
-} from "@/lib/annotation-colors.ts";
-import { AppContext } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+} from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import type { MutationState } from "@/services/annotation-repository/write.ts";
 import { editingBlockedReason } from "@/views/annot-view/card-controls.ts";

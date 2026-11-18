@@ -4,12 +4,11 @@ import { TestClock } from "effect/testing";
 import { stringifyYaml } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
+import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
+import { PROFILE_ID_LENGTH } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { profileRevision } from "@/lib/profile-revision.ts";
-import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 
 import { profileServiceFixture as harness } from "./__fixtures__/service.ts";
 

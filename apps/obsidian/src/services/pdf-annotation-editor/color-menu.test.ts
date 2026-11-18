@@ -1,7 +1,8 @@
+import { describe, expect, it } from "vitest";
+
 // @vitest-environment happy-dom
 // The colour menu builds its titles with `createFragment`, which needs a DOM.
-import { Menu } from "@mock/obsidian.ts";
-import { describe, expect, it } from "vitest";
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 
 import { buildColorMenu } from "./color-menu.ts";
 

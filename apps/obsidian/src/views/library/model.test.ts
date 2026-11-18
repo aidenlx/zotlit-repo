@@ -4,7 +4,8 @@ import { Effect, Layer, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { QueryViewOutcome } from "@/services/item-query/query-view.ts";
 import type { QueryViewRequest } from "@/services/item-query/query-view.ts";

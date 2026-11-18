@@ -1,11 +1,15 @@
-// @vitest-environment happy-dom
-import { ButtonComponent, Setting } from "@mock/obsidian.ts";
 import { Context, Effect } from "effect";
 import type { Setting as ObsidianSetting, SettingGroup } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+// @vitest-environment happy-dom
+import {
+  ButtonComponent,
+  Setting,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LanguagePack } from "@/services/language-pack/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

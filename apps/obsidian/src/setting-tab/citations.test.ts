@@ -1,11 +1,6 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
 import {
-  DropdownComponent,
-  ExtraButtonComponent,
-  renderRow,
-} from "@mock/obsidian.ts";
-import {
   Context,
   Deferred,
   Effect,
@@ -21,9 +16,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  DropdownComponent,
+  ExtraButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import {
+  referencesStyleOptions,
+  STYLE_DEFAULT,
+} from "@/services/pandoc/citation-style.ts";
 import { PandocEngine } from "@/services/pandoc/service.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { Settings } from "@/services/settings/schema.ts";

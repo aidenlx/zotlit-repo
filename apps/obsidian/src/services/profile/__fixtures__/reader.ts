@@ -2,8 +2,8 @@ import { Stream } from "effect";
 // ProfileReader test double for consumers; registry behavior is tested with a vault.
 import type { MetadataCache } from "obsidian";
 
-import { readProfileStamp } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { readProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { bindProfile } from "@/services/profile/bindings.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type { LiteratureNoteProfile, ProfileReader } from "@/services/profile/service.ts";

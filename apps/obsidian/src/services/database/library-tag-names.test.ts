@@ -11,9 +11,10 @@ import {
 } from "effect";
 import { describe, expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { LogCategory } from "@/lib/effect-log.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 import type {

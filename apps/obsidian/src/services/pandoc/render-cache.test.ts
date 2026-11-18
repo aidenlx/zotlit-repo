@@ -9,10 +9,10 @@ import { join } from "node:path";
 import { describe, expect } from "vitest";
 
 import type { CslItemData } from "@zotlit/db";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
 import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import { profileRuntimeOf } from "@/services/profile/__fixtures__.ts";
 import type { Held } from "@/services/query-client/service.ts";

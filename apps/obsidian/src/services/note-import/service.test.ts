@@ -7,14 +7,13 @@ import { afterAll, beforeEach, describe, expect, vi } from "vitest";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { AnnotationTemplateContext } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db-testing";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { renderAnnotationSources } from "@/lib/annotation-render.ts";
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { attachmentImportFixture } from "@/services/attachment-import/__fixtures__.ts";
 import { AttachmentCopyError } from "@/services/attachment-import/service.ts";
 import type {
@@ -27,6 +26,7 @@ import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileFixtureSettings as Settings } from "@/services/profile/__fixtures__/reader.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import { defaults } from "@/services/settings/schema.ts";
+import { renderAnnotationSources } from "@/services/template/annotation-render.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";
 import {
   inProcessReadsService,
@@ -41,7 +41,7 @@ import { NoteImportMintError, NoteImportParseError } from "./service.ts";
 
 // The service owns the annotation renderer now; stub the leaf so the test asserts
 // the wiring (resolveLink binding, library scoping) without the template pipeline.
-vi.mock("@/lib/annotation-render.ts", () => ({
+vi.mock("@/services/template/annotation-render.ts", () => ({
   renderAnnotationSources: vi.fn(() => new Map<string, string>()),
 }));
 

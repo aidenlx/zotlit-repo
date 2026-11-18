@@ -2,7 +2,7 @@
 import { Stream } from "effect";
 import type { Stream as StreamType } from "effect";
 
-import { filterTag } from "@/lib/effect-stream.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import type { ZoteroReads, ZoteroReadsEvent } from "./service.ts";
 

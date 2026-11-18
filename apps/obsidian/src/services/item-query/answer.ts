@@ -37,11 +37,11 @@ import type {
   QuerySummary,
   ResolveAttachmentFile,
 } from "@zotlit/item-query";
+import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
 import type { DelimitedFormat } from "@zotlit/shared/delimited";
 
-import { resourceReleaseUrl } from "@/lib/constants.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
 import {
   resolveLibraryScope,
   selectorKey,

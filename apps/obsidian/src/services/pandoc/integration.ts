@@ -3,12 +3,12 @@
 import { Effect, Schema } from "effect";
 import type { CliData } from "obsidian";
 
-import type { CliCommandHandler } from "@/lib/cli-command.ts";
+import type { CliCommandHandler } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
   decodeCliParams,
   noCliParams,
   rejectionText,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
 
 import { CONTRACT_VERSION } from "./contract.ts";
 import {

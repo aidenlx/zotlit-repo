@@ -7,7 +7,7 @@ import {
   noRealTimerInEffectTest,
   serviceStub,
   typedFake,
-} from "../../scripts/oxlint-plugin-effect-tests.ts";
+} from "../../../../packages/config/oxlint-plugin-effect-tests.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -58,7 +58,7 @@ tester.run("no-effect-run-in-test", noEffectRunInTest, {
       errors: run,
     },
     {
-      code: 'import { runSyncWith } from "@/lib/effect-runtime.ts";\nit("reads", () => { runSyncWith(context)(read); })',
+      code: 'import { runSyncWith } from "@zotlit/plugin-kernel/effect-runtime.ts";\nit("reads", () => { runSyncWith(context)(read); })',
       errors: run,
     },
     {
@@ -115,16 +115,16 @@ const mock = [{ messageId: "mock" }];
 // of the Notifier or another module is flagged.
 tester.run("no-notice-mock", noNoticeMock, {
   valid: [
-    'vi.mock("@/lib/notifier")',
+    'vi.mock("@zotlit/obsidian-kit/notifier.ts")',
     'vi.mock("preact/compat", async (importOriginal) => ({ ...(await importOriginal()) }))',
   ],
   invalid: [
     {
-      code: 'vi.mock("@/lib/notice.ts", async (importOriginal) => ({ ...(await importOriginal()) }))',
+      code: 'vi.mock("@zotlit/obsidian-kit/notice.ts", async (importOriginal) => ({ ...(await importOriginal()) }))',
       errors: mock,
     },
-    { code: 'vi.mock("@/lib/toast.ts")', errors: mock },
-    { code: 'vi.doMock("@/lib/notice.ts")', errors: mock },
+    { code: 'vi.mock("@zotlit/obsidian-kit/toast.ts")', errors: mock },
+    { code: 'vi.doMock("@zotlit/obsidian-kit/notice.ts")', errors: mock },
   ],
 });
 
@@ -231,7 +231,7 @@ tester.run("typed-fake", typedFake, {
       errors: hostFake,
     },
     {
-      code: 'import type { Vault } from "@/lib/obsidian-vault";\nconst vault = { read } as unknown as Vault["Service"] & {};',
+      code: 'import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";\nconst vault = { read } as unknown as Vault["Service"] & {};',
       errors: hostFake,
     },
     {

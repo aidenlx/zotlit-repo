@@ -1,7 +1,8 @@
 // The local image command reads one database Snapshot and renders in the renderer.
 import { Effect, FileSystem, Layer } from "effect";
 
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 

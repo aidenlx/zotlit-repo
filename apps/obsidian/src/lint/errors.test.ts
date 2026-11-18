@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noMessageMatch } from "../../scripts/oxlint-plugin-errors.ts";
+import { noMessageMatch } from "../../../../packages/config/oxlint-plugin-errors.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

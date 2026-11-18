@@ -4,7 +4,8 @@ import { Context, Effect } from "effect";
 import type { Plugin } from "obsidian";
 import { expect } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { settingsRuntimeOf } from "@/services/settings/__fixtures__.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 

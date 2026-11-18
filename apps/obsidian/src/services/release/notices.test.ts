@@ -3,10 +3,10 @@ import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { describe, expect, it as plainIt, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { companionDocsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { companionNotice, showCompanionNotice } from "./notices.ts";
 

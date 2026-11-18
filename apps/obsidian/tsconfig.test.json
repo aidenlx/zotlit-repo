@@ -39,6 +39,12 @@
       "@mock/*": ["./__mocks__/*"]
     }
   },
-  "include": ["./src/**/*.ts", "./src/**/*.test.tsx", "./__mocks__/**/*.ts"],
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.test.tsx",
+    "./__mocks__/**/*.ts",
+    // The private Obsidian API the kit declares, which app code reads too.
+    "../../packages/obsidian-kit/src/typings/*.d.ts"
+  ],
   "exclude": ["./node_modules", "./dist", "./dist-dev"]
 }

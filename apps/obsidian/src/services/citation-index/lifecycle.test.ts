@@ -3,9 +3,10 @@ import { Effect, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
-import { effectTestParse } from "@/lib/__fixtures__/parse-client.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
+import { effectTestParse } from "@/services/citation-index/__fixtures__/parse-client.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
 
 import type { CitationIndexState } from "./service.ts";

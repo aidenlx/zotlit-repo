@@ -12,7 +12,6 @@ import { isAbsolute } from "node:path";
 import type { CliData } from "obsidian";
 
 import { nameDictionary, UNLIMITED_LIMIT } from "@zotlit/item-query";
-
 import {
   cliDefault,
   cliIndexedKey,
@@ -26,8 +25,12 @@ import {
   cliVariants,
   decodeCliParams,
   amendRejection,
-} from "@/lib/cli-params.ts";
-import type { CliParamName, CliRejection } from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type {
+  CliParamName,
+  CliRejection,
+} from "@zotlit/obsidian-kit/cli-params.ts";
+
 import {
   compareSelectors,
   selectorKey,

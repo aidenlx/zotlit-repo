@@ -6,7 +6,8 @@
 // not yet written there is missing from the results until it has. Selection
 // reads the live annotation repository (`annotation-insert.ts`), the Local API
 // while Zotero runs, so what lands holds the latest edits.
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type { QueryHandle } from "@/services/item-query/handle.ts";
 import type {
   QueryViewRow,

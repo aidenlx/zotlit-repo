@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Queue, Stream } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { readsFixture } from "./__fixtures__.ts";
 import { layerRcRef } from "./connection.ts";

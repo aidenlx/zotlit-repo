@@ -3,7 +3,7 @@ import { Stream } from "effect";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import { buildUseLedger, ledgerHost } from "./__fixtures__.ts";
 import type { Ledger } from "./service.ts";

@@ -6,19 +6,19 @@ import { TFile } from "obsidian";
 import type { EventRef, LinkCache } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import {
   FIELD_LITERATURE_NOTE_PROFILE,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
-import type { MetadataCacheSource } from "@/lib/obsidian-metadata-cache.ts";
-import { vaultError } from "@/lib/vault-errors.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+
 import { annotationRows } from "@/services/citation-index/__fixtures__/annotations.ts";
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 // @vitest-environment happy-dom
@@ -37,6 +37,7 @@ import {
   MY_LIBRARY_ID,
 } from "@/services/citation-index/test-harness.ts";
 import { inProcessParseClient } from "@/services/citation-parse/in-process.ts";
+import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
 import type { ManagedBinaryApi } from "@/services/managed-binary/service.ts";
 import type {
   BibliographyRequest,

@@ -8,8 +8,11 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/reflink.ts", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/reflink.ts")>();
+vi.mock("@zotlit/obsidian-desktop/reflink.ts", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("@zotlit/obsidian-desktop/reflink.ts")
+    >();
   return {
     ...actual,
     reflink: vi.fn(async () => {

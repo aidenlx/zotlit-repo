@@ -5,7 +5,8 @@ import { zipSync } from "fflate";
 import { createHash } from "node:crypto";
 import { describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { openManagedBinary } from "@/services/managed-binary/__fixtures__.ts";
 import type {
   BinaryPin,

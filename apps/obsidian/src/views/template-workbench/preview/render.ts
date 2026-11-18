@@ -10,6 +10,18 @@ import type {
   NoteTemplateContext,
 } from "@zotlit/db";
 import type { ContractRoot } from "@zotlit/db";
+import { readLiveText } from "@zotlit/obsidian-kit/live-text.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import { FIELD_DOCUMENT_LANGUAGE } from "@zotlit/plugin-kernel/constants.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { replaceSuffixMarkers, resolveNoteRelPath } from "@zotlit/templates";
 import type { LiteratureNoteTemplateManifest } from "@zotlit/templates/facade";
 import { parsePlainTemplateDocument } from "@zotlit/templates/facade";
@@ -37,16 +49,6 @@ import type {
   RenderDiagnostic,
 } from "@zotlit/workbench/render";
 
-import { annotationCitation as renderAnnotationCitation } from "@/lib/annotation-render.ts";
-import { FIELD_DOCUMENT_LANGUAGE } from "@/lib/constants.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { isLanguageTag } from "@/lib/language-tag.ts";
-import { readLiveText } from "@/lib/live-text.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import {
   applyComposedFrontmatter,
   composeLiteratureNote,
@@ -69,6 +71,7 @@ import {
   syncTemplate,
   profileCall,
 } from "@/services/template-workbench/sync-template.ts";
+import { annotationCitation as renderAnnotationCitation } from "@/services/template/annotation-render.ts";
 import { plainTemplateError } from "@/services/template/errors.ts";
 import { Template } from "@/services/template/service.ts";
 import type { TemplateOperations } from "@/services/template/service.ts";

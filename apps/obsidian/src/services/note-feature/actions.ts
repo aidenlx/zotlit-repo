@@ -7,8 +7,9 @@ import type {
   Plugin,
 } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuContext, FileMenuSegment } from "@/services/file-menu.ts";
 import {
   isLiteratureNote,

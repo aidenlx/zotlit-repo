@@ -5,9 +5,10 @@ import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import { unimplementedProfileDialogServices } from "@/setting-tab/__fixtures__.ts";

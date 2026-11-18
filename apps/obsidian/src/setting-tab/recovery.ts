@@ -2,9 +2,10 @@
 // the plugin can always fill again, and names the outcome in a notice.
 import { Effect } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log-category.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, reportOutcome } from "@/lib/notifier.ts";
+import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import { ExcerptDisplays } from "@/services/excerpt-image/display.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";

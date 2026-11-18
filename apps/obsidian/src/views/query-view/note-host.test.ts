@@ -1,9 +1,3 @@
-// A note holds a Query View in two ways: the Query File embed and the Query
-// Block. Both bind `this` to the note's Item, take the card keys, keep a click
-// from selecting them in Live Preview and settle as Export to PDF waits for
-// them. These tests drive each host as Obsidian does: the embed through its
-// creator and `loadFile`, the block through its code block processor.
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { delay } from "@std/async";
 import { Stream } from "effect";
 import type {
@@ -16,9 +10,19 @@ import type {
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+// A note holds a Query View in two ways: the Query File embed and the Query
+// Block. Both bind `this` to the note's Item, take the card keys, keep a click
+// from selecting them in Live Preview and settle as Export to PDF waits for
+// them. These tests drive each host as Obsidian does: the embed through its
+// creator and `loadFile`, the block through its code block processor.
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type {
   QueryViewOutcome,
   QueryViewRequest,

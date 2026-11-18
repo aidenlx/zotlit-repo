@@ -18,17 +18,20 @@
 // @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
 import { useMemo, useRef, useState } from "react";
 
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
+import type {
+  ChooserGroup,
+  ChooserRow,
+} from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import {
   Chooser,
   chooserIconButton,
   useChooserOpenPage,
   useChooserPage,
-} from "@/components/chooser.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import type { PinnedPopoverHandle } from "@/components/pinned-popover.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+} from "@zotlit/obsidian-kit/components/chooser.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import type { PinnedPopoverHandle } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { ConfigureViewFields, viewActions } from "./configure-view.tsx";
 import { layoutOf, layoutsFor } from "./layouts.ts";

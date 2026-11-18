@@ -1,6 +1,6 @@
 // Shared variant recipe for the annotation view's tag data chips (card + bar + drawer).
 
-import { tv } from "@/lib/tw.ts";
+import { tv } from "@zotlit/plugin-kernel/tw.ts";
 
 /**
  * One look for every tag data chip in the view, driven by Obsidian's `--tag-*`

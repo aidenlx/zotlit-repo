@@ -4,9 +4,10 @@
 import { Effect, Stream } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
-import { companionDocsUrl, docsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { revealSetting } from "@/lib/open-settings.ts";
+import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import { LocalServer } from "@/services/local-server/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

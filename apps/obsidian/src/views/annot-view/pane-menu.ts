@@ -2,7 +2,7 @@
 // and the rare action the header row no longer carries.
 import type { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { AnnotActions } from "./actions.tsx";
 import { buildHeaderMenu } from "./menus.ts";

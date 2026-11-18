@@ -6,20 +6,20 @@ import { TFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 import type {
   LiteratureNotePackError,
   LiteratureNoteTemplatePartial,
 } from "@zotlit/templates/literature-note-pack";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
 import { LocalServer } from "@/services/local-server/service.ts";
 import { Profile, ProfileOperationError } from "@/services/profile/service.ts";
 import type { LiteratureNoteProfile } from "@/services/profile/service.ts";

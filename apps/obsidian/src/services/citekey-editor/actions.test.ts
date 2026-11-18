@@ -1,11 +1,12 @@
 import { EditorState } from "@codemirror/state";
-import { createMockPlugin } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import type { Editor } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { createMockPlugin } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
 import { addCitekeyEditorActions } from "./actions.ts";

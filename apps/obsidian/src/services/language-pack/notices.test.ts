@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { ButtonComponent, controlsOf } from "@mock/obsidian.ts";
 import { Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { describe, expect } from "vitest";
 
-import { eventually } from "@/lib/__fixtures__/eventually.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import type { RecordedNotice } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  ButtonComponent,
+  controlsOf,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__.ts";
 import type { FakeDevice } from "./__fixtures__.ts";

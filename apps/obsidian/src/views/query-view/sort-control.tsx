@@ -9,12 +9,15 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { Dropdown, DropdownItem } from "@/components/obsidian/dropdown.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { Select } from "@/components/select.tsx";
-import type { SelectOption } from "@/components/select.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn } from "@/lib/utils.ts";
+import {
+  Dropdown,
+  DropdownItem,
+} from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
+import type { SelectOption } from "@zotlit/obsidian-kit/components/select.tsx";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { directionLabel } from "./properties.ts";
 import type { PropertyOption } from "./properties.ts";

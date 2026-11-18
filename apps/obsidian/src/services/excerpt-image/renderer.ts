@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 import { loadPdfJs } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { excerptSourceIdentity } from "./contract.ts";
 import type { ExcerptRequest } from "./contract.ts";

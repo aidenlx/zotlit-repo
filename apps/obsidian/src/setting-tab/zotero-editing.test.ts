@@ -1,11 +1,15 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { ButtonComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, DateTime, Deferred, Effect, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  ButtonComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { deadlineAfter } from "@/services/annotation-repository/__fixtures__/capability.ts";
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";

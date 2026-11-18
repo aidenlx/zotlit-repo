@@ -19,26 +19,29 @@ import type {
 } from "@zotlit/db";
 import { attachmentAbsPath, parseAttachmentPath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { renderColorMark, renderHighlight } from "@/lib/turndown/color-mark.ts";
+import type {
+  AttachmentImportBatch,
+  SourceOrigin,
+} from "@/services/attachment-import/service.ts";
+import {
+  renderColorMark,
+  renderHighlight,
+} from "@/services/note-import/turndown/color-mark.ts";
 import type {
   ColorMarkKind,
   HighlightOptions,
-} from "@/lib/turndown/color-mark.ts";
+} from "@/services/note-import/turndown/color-mark.ts";
 import {
   ANNOTATION_CALLOUT_ATTR,
   createNoteTurndown,
   createObsidianTurndown,
   encodeCalloutAttr,
-} from "@/lib/turndown/index.ts";
-import type {
-  AttachmentImportBatch,
-  SourceOrigin,
-} from "@/services/attachment-import/service.ts";
+} from "@/services/note-import/turndown/index.ts";
 
 import {
   findAnnotationParagraphs,

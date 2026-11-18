@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { NoteTemplateContext } from "@zotlit/db";
+import {
+  FIELD_CITEKEY,
+  FIELD_LITERATURE_NOTE_PROFILE,
+  FIELD_ZOTERO_KEY,
+  RESERVED_KEYS,
+} from "@zotlit/plugin-kernel/constants.ts";
 import type { ManagedFrontmatterEntry } from "@zotlit/templates/facade";
 import {
   compileFrontmatterFields,
@@ -9,12 +15,6 @@ import {
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 import { createLiquidEngine } from "@zotlit/templates/liquid";
 
-import {
-  FIELD_CITEKEY,
-  FIELD_LITERATURE_NOTE_PROFILE,
-  FIELD_ZOTERO_KEY,
-  RESERVED_KEYS,
-} from "@/lib/constants.ts";
 import { DEFAULT_FRONTMATTER_FIELDS } from "@/services/template/defaults.ts";
 
 import {

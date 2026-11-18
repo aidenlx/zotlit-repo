@@ -8,8 +8,9 @@
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
 import type { IconName } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { EditingCapability } from "@/services/annotation-repository/capability.ts";
 import { IDLE } from "@/services/annotation-repository/write.ts";
 import { editingBlockedReason } from "@/views/annot-view/card-controls.ts";

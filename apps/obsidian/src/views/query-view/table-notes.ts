@@ -14,21 +14,16 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { Keymap, parseLinktext } from "obsidian";
 import type { App, TFile } from "obsidian";
 
+import { processLiveFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
+import type { LiveTextApp } from "@zotlit/obsidian-kit/live-text.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { OpenLinkFailed } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
-import { processLiveFrontMatter } from "@/lib/live-text.ts";
-import type { LiveTextApp } from "@/lib/live-text.ts";
-import {
-  assignedWidget,
-  onTypesChanged,
-} from "@/lib/obsidian-private/metadata-type-manager.ts";
-import {
-  propertyValues,
-  vaultTags,
-} from "@/lib/obsidian-private/property-values.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { OpenLinkFailed } from "@/lib/obsidian-workspace.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
 import type { ItemQueryError } from "@/services/item-query/service.ts";
 import { createNoteInteractively } from "@/services/note-feature/creation-view.ts";
 import type { InteractiveCreationPorts } from "@/services/note-feature/creation-view.ts";
@@ -39,6 +34,14 @@ import { templateRevisionAtom } from "@/services/template/atoms.ts";
 import type { TemplateFailure } from "@/services/template/service.ts";
 import type { DbUnavailable } from "@/services/zotero-reads/rpc.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
+import {
+  assignedWidget,
+  onTypesChanged,
+} from "@/views/query-view/obsidian-private/metadata-type-manager.ts";
+import {
+  propertyValues,
+  vaultTags,
+} from "@/views/query-view/obsidian-private/property-values.ts";
 
 import { replacedKeysAtom } from "./note-atoms.ts";
 import { LITERATURE_NOTE } from "./query-file.ts";

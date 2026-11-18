@@ -2,8 +2,9 @@
 import { Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { isUserStop } from "@/lib/user-cancel.ts";
+import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   LiteratureNoteProfile,
   PreparedProfileCreation,

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    // The typed Message facade and the Language Packs every plugin package
+    // and the plugin's build read.
+    "generate:language-packs": {
+      "inputs": [
+        "scripts/generate-language-packs.ts",
+        "scripts/language-pack-options.ts",
+        "$TURBO_ROOT$/packages/obsidian-i18n/src/**",
+        "$TURBO_ROOT$/project.inlang/settings.json",
+        "$TURBO_ROOT$/messages/**"
+      ],
+      "outputs": ["generated/**"],
+      "outputLogs": "errors-only"
+    },
+    "typecheck": {
+      "dependsOn": ["$TURBO_EXTENDS$", "generate:language-packs"]
+    }
+  }
+}

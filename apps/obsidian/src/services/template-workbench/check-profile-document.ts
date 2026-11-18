@@ -5,16 +5,16 @@
 import { Effect } from "effect";
 
 import type { NoteTemplateContext } from "@zotlit/db";
-import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
-import { serializeTemplateData } from "@zotlit/workbench/explorer";
-import type { RenderCallerSource } from "@zotlit/workbench/render";
-
-import { Vault } from "@/lib/obsidian-vault.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import {
   parseProfileSelector,
   PROFILE_ID_LENGTH,
   PROFILE_ID_RULE,
-} from "@/lib/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
+import { serializeTemplateData } from "@zotlit/workbench/explorer";
+import type { RenderCallerSource } from "@zotlit/workbench/render";
+
 import { bindDraftProfile, Profile } from "@/services/profile/service.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import {

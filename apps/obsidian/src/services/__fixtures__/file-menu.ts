@@ -9,7 +9,7 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { registerFileMenu } from "@/services/file-menu.ts";
 import type {
   FileMenuSegment,

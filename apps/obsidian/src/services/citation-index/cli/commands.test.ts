@@ -4,8 +4,9 @@ import { Effect } from "effect";
 import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import {
   annotationRows,
   annotationUri,

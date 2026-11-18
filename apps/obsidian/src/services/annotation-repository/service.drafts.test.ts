@@ -3,8 +3,9 @@ import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Logger } from "effect";
 import { expect, vi } from "vitest";
 
-import { AbortError } from "@/lib/abort-error.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   annotationItem,
   annotationPage,

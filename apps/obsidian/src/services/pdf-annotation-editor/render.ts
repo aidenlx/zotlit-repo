@@ -6,8 +6,8 @@ import type {
   PdfRectsPosition,
   PdfTextPosition,
 } from "@zotlit/db";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
-import { themeHook } from "@/lib/theme-hooks.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 import type { InkPosition } from "@/services/annotation-repository/write.ts";
 

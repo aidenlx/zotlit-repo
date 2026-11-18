@@ -2,8 +2,9 @@
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import {
   noteIndexSnapshotAtom,

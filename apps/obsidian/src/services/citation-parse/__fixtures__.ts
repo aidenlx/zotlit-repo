@@ -1,9 +1,9 @@
 // The real parse layer over a controllable Obsidian layout boundary.
 import { Effect, Layer } from "effect";
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { layerWorkspaceFrom } from "@/lib/obsidian-workspace.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import type { ParseRequest } from "./client.ts";
 import { CitationParse, layerCitationParse } from "./service.ts";

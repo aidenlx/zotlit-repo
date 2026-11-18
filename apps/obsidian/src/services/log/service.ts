@@ -13,13 +13,13 @@ import {
 } from "effect";
 import type { Plugin } from "obsidian";
 
-import { devToolsFormatter } from "@zotlit/shared/log-formatter";
-
 import {
   configureLogTape,
   configureLogTapeSync,
   resetLogTape,
-} from "@/lib/log.ts";
+} from "@zotlit/plugin-kernel/log.ts";
+import { devToolsFormatter } from "@zotlit/shared/log-formatter";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 import type { Settings } from "@/services/settings/service.ts";
 

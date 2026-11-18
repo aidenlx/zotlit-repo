@@ -13,7 +13,8 @@
     "./oxlint": "./oxlint.base.ts",
     "./oxfmt": "./oxfmt.base.ts",
     "./vitest": "./vitest.base.ts",
-    "./memory-gate": "./memory-gate.ts"
+    "./memory-gate": "./memory-gate.ts",
+    "./oxlint-plugin-code": "./oxlint-plugin-code.ts"
   },
   "scripts": {
     "test": "node --test"

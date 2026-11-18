@@ -9,7 +9,7 @@ import {
 } from "@bjorn3/browser_wasi_shim";
 import type { Inode } from "@bjorn3/browser_wasi_shim";
 
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 const logger = getLogger("pandoc");
 

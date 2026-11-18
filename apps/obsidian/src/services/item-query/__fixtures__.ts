@@ -2,9 +2,10 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import type { LibraryScope as SavedLibraryScope } from "@/services/library-scope/scope.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";

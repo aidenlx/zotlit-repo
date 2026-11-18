@@ -865,7 +865,7 @@ async function expectEmptyCitationFirst(
   vaultId: string,
   { noteBody, cited }: { noteBody: string; cited: boolean },
 ) {
-  const m = await import("@obsidian-messages");
+  const m = await import("@zotlit/plugin-messages/messages.ts");
   await obRun(
     vaultId,
     async (

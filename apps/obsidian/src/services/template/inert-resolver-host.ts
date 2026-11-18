@@ -6,20 +6,20 @@ import TurndownService from "turndown";
 
 import type { NoteResolvers } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import { fileUrlLink } from "@zotlit/obsidian-desktop/markdown-link.ts";
+import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import {
+  commentToMarkdown,
+  createCommentTurndown,
+} from "@zotlit/plugin-kernel/turndown/comment.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   buildInertNoteResolvers,
   findExistingLitNote,
 } from "@zotlit/workbench/explorer";
 import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
 
-import { attachmentFileLink } from "@/lib/annotation-render.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { creatorSummary } from "@/lib/item-summary.ts";
-import { fileUrlLink } from "@/lib/markdown-link.ts";
-import {
-  commentToMarkdown,
-  createCommentTurndown,
-} from "@/lib/turndown/comment.ts";
+import { attachmentFileLink } from "@/services/template/annotation-render.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 
 export { findExistingLitNote };

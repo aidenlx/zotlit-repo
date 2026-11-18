@@ -6,9 +6,9 @@
 import { Modal, TextComponent } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import {
   normalizePartialName,
   partialFilename,

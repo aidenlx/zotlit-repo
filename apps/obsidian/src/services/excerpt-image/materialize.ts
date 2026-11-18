@@ -11,14 +11,14 @@ import {
 import { createHash, randomUUID } from "node:crypto";
 import { basename, dirname, join, relative, isAbsolute, sep } from "node:path";
 
+import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
+import { joinFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
+import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { joinFolderPath } from "@/lib/ensure-folder.ts";
-import type { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 
 import { excerptKey, excerptSourceIdentities } from "./contract.ts";

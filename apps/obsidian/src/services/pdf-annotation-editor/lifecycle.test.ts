@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import {
   Context,
   Deferred,
@@ -21,11 +20,16 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 import { beforeEach, afterEach, expect } from "vitest";
+
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 beforeEach(() => setMockPlatform({ isMacOS: false }));
 afterEach(() => resetMockPlatform());
 
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import {
   annotationReads,

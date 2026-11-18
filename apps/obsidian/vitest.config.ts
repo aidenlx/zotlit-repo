@@ -1,10 +1,16 @@
 import preact from "@preact/preset-vite";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 import { testDefaults } from "@zotlit/config/vitest";
+import {
+  obsidianMock,
+  obsidianSetupFile,
+  packageSource,
+} from "@zotlit/obsidian-kit/vitest";
+import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
-import { effectEntry } from "./scripts/effect-entry.ts";
 import { pandocFilterVariants } from "./scripts/lua-filter.ts";
 
 const packageRoot = import.meta.dirname;
@@ -27,7 +33,7 @@ export default defineConfig({
     alias: {
       // The published `obsidian` package is types-only; redirect runtime
       // imports to our local mock so tests can `import { ... } from "obsidian"`.
-      obsidian: resolve(packageRoot, "__mocks__/obsidian.ts"),
+      obsidian: obsidianMock,
       // Pretext measures text with a canvas, which the test DOM lacks.
       "@chenglou/pretext": resolve(packageRoot, "__mocks__/pretext.ts"),
       "virtual:citation-parse-worker": resolve(
@@ -56,7 +62,17 @@ export default defineConfig({
     }),
   },
   plugins: [
-    effectEntry("renderer", { vitest: true }),
+    effectEntry("renderer", {
+      vitest: true,
+      scopes: [
+        resolve(packageRoot, "src"),
+        resolve(packageRoot, "scripts"),
+        packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
+        packageSource(
+          import.meta.resolve("@zotlit/obsidian-desktop/package.json"),
+        ),
+      ],
+    }),
     preact(),
     pandocFilterVariants(),
   ],
@@ -80,8 +96,13 @@ export default defineConfig({
         ],
       },
     },
-    setupFiles: ["./vitest.setup.js"],
-    globalSetup: [...testDefaults.globalSetup, "./vitest.global-setup.ts"],
+    setupFiles: [obsidianSetupFile],
+    globalSetup: [
+      ...testDefaults.globalSetup,
+      fileURLToPath(
+        import.meta.resolve("@zotlit/plugin-messages/vitest-setup"),
+      ),
+    ],
     // `// @vitest-environment` can't name a project by file path (its pragma only accepts `[\w-]+`), so the split happens here instead.
     projects: [
       {

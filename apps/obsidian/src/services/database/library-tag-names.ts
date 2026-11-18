@@ -4,11 +4,11 @@
 import { Cause, Effect } from "effect";
 
 import { resolveIndexedKeyLibraryIn } from "@zotlit/db";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
 import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 /**

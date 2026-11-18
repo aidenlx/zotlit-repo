@@ -2,18 +2,18 @@ import { Effect, Option, Predicate, Schema } from "effect";
 import type { TFile } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
-
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, withProgress } from "@/lib/notifier.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { Notifier, withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import {
   DEFAULT_PROFILE,
   unknownProfileDiagnostic,
-} from "@/lib/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { batchProfileSummary } from "@/services/batch-profile-summary.ts";
 import type { BatchProfileCount } from "@/services/batch-profile-summary.ts";
 import {

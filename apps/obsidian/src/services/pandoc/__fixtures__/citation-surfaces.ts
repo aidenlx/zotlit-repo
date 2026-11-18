@@ -1,6 +1,6 @@
 import { missingStyleChanges } from "@/services/pandoc/render-cache.ts";
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { Notifier } from "@/lib/notifier.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@/services/zotero-pref/service.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
@@ -25,19 +25,19 @@ import type {
 import { act } from "preact/test-utils";
 import { vi } from "vitest";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 // One vault, read at once through every Citation Presentation surface: the
 // Document Citation Text, the References Sidebar, the Citation Popover, the
 // Copied Bibliography, and the built-in export.
-import { subscribe } from "@/lib/effect-stream.ts";
-import { spliceFrontMatter } from "@/lib/live-text.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { spliceFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 import {
@@ -76,9 +76,9 @@ import { PluginSettings } from "@/services/settings/service.ts";
 import { ZoteroReads } from "@/services/zotero-reads/service.ts";
 
 type ProfileFixture = Pick<Settings, "profiles" | "defaultDocument">;
-import { fakeFetchClient } from "@/lib/__fixtures__/fake-fetch.ts";
-import { ZoteroHttp } from "@/lib/zotero-http.ts";
-import { OpenDocumentsStub } from "@/lib/__fixtures__/open-documents.ts";
+import { fakeFetchClient } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
+import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import { OpenDocumentsStub } from "@/services/citation-text/__fixtures__/open-documents.ts";
 import { seedWorksSql } from "@/services/zotero-reads/test-utils.ts";
 import { applyCitationPresentation } from "@/views/citation-presentation/presentation.ts";
 import type { CitationPresentationChoice } from "@/views/citation-presentation/presentation.ts";
@@ -109,14 +109,14 @@ vi.mock("@/services/pandoc/bibliography.ts", async (importOriginal) => ({
     .fetchCitedBibliography,
 }));
 
-vi.mock("@/lib/clipboard.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/clipboard.ts")>()),
+vi.mock("@zotlit/plugin-kernel/clipboard.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@zotlit/plugin-kernel/clipboard.ts")>()),
   writeClipboardRichText: (await import("./citation-surface-mocks.ts"))
     .collectClipboardWrite,
 }));
 
 
-vi.mock("@/components/obsidian/icon-button.tsx", async () => {
+vi.mock("@zotlit/obsidian-kit/components/obsidian/icon-button.tsx", async () => {
   const { createElement } = await import("react");
   return {
     IconButton: ({ icon, ...props }: { icon: string }) =>

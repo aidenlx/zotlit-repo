@@ -12,9 +12,9 @@ import type {
   TemplateTag,
   ZoteroDatabaseIdentity,
 } from "@zotlit/db";
+import type { LegacyPortError } from "@zotlit/obsidian-kit/legacy-port.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import type { LegacyPortError } from "@/lib/legacy-port.ts";
 import type { FieldHistoryStep } from "@/services/annotation-repository/history.ts";
 import type {
   AnnotationLock,

@@ -10,9 +10,9 @@
 //
 // @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
 import { planItemFilter } from "@zotlit/item-query";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Span } from "@zotlit/workbench/language";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
 import type { FilterLocation } from "@/views/query-view/query-file.ts";
 import type { ReaderDiagnosticSource } from "@/views/query-view/reader-diagnostic.ts";
 import type { VaultValue } from "@/views/query-view/table-notes.ts";

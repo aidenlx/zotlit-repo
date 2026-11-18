@@ -9,18 +9,17 @@ import { Platform } from "obsidian";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
+import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import type {
+  PageKey,
+  PinnedPopoverHandle,
+} from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
   WorkbenchFieldDetailsProps,
   WorkbenchFieldsAction,
   WorkbenchFieldsPopoverProps,
 } from "@zotlit/workbench/ui";
-
-import { PinnedPopover } from "@/components/pinned-popover.tsx";
-import type {
-  PageKey,
-  PinnedPopoverHandle,
-} from "@/components/pinned-popover.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
 
 /**
  * Mod+Enter inserts the field selected in the panel's search, ahead of the

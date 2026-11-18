@@ -2,9 +2,10 @@
 import type { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import type { ConfirmOptions } from "@/lib/confirm.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import type { ConfirmOptions } from "@zotlit/obsidian-kit/confirm.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+
 import { chooseBatchProfile } from "@/services/batch-profile-choice.ts";
 import type {
   BatchProfilePickerDeps,

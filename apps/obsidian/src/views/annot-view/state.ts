@@ -1,8 +1,8 @@
 // The card state, defaults and pure selectors shared by annotation layouts.
 import type { AnnotViewAttachment } from "@zotlit/db";
+import { toggledValues } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
+import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 
-import { toggledValues } from "@/components/chooser-logic.ts";
-import type { ItemSummary } from "@/lib/item-summary.ts";
 import type {
   AnnotationRecord,
   AnnotationSource,

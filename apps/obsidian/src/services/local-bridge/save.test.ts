@@ -7,9 +7,9 @@ import { createHash } from "node:crypto";
 import { expect, vi } from "vitest";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { LOCAL_BRIDGE_PATHS } from "@zotlit/workbench/bridge";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";

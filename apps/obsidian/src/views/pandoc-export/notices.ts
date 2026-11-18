@@ -1,7 +1,8 @@
 // What the user reads when an export cannot start, or stops.
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   BibliographySource,
   ExportFailure,

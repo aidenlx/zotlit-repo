@@ -2,7 +2,7 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { Command } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { makeAnnotViewModel } from "./model.ts";
 import { addFollowModeCommands } from "./register.ts";

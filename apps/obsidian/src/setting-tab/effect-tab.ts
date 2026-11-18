@@ -11,14 +11,15 @@
 import { Cause, Context, Effect, Fiber, Scope, Stream } from "effect";
 import type { FileSystem } from "effect";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log-category.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import type { FileManager } from "@/lib/obsidian-file-manager.ts";
-import type { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
-import type { PluginHost } from "@/lib/plugin-host.ts";
-import { formatErrorMessage } from "@/lib/toast.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+
 import type { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import type { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import type { AttachmentImport } from "@/services/attachment-import/service.ts";

@@ -5,31 +5,40 @@ import type { TFile } from "obsidian";
 
 import { buildNoteContextFromSource } from "@zotlit/db";
 import type { Item, NoteSource, NoteTemplateContext } from "@zotlit/db";
-import type { UpdateScope } from "@zotlit/protocol";
-import { evalManagedFrontmatterEntries } from "@zotlit/templates/frontmatter";
-import { replaceManagedRegion } from "@zotlit/templates/obsidian";
-
+import { processLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
 import {
-  FIELD_LITERATURE_NOTE_PROFILE,
-  FIELD_ZOTERO_KEY,
-} from "@/lib/constants.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import { processLiveText } from "@/lib/effect-live-text.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag } from "@/lib/effect-stream.ts";
-import { parseFrontMatter, spliceFrontMatter } from "@/lib/live-text.ts";
-import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
+  parseFrontMatter,
+  spliceFrontMatter,
+} from "@zotlit/obsidian-kit/live-text.ts";
+import {
+  FileManager,
+  markdownLinker,
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import {
   DEFAULT_PROFILE,
   parseProfileStamp,
   profileStampOf,
-} from "@/lib/profile-stamp.ts";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
-import { ensureVaultParentFolder } from "@/lib/vault-folder.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ProfileId,
+  ProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { ensureVaultParentFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
+import {
+  FIELD_LITERATURE_NOTE_PROFILE,
+  FIELD_ZOTERO_KEY,
+} from "@zotlit/plugin-kernel/constants.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { UpdateScope } from "@zotlit/protocol";
+import { evalManagedFrontmatterEntries } from "@zotlit/templates/frontmatter";
+import { replaceManagedRegion } from "@zotlit/templates/obsidian";
+
 import { AttachmentImport } from "@/services/attachment-import/service.ts";
 import type { AttachmentImportBatch } from "@/services/attachment-import/service.ts";
 import { outcomeScope } from "@/services/excerpt-image/outcome-scope.ts";

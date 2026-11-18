@@ -1,8 +1,9 @@
 // The batch confirmation delegates its optional Profile decision to the shared picker.
 import { Effect } from "effect";
 
-import { awaitModal } from "@/lib/effect-modal.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+
 import {
   installedStyles,
   settleProfilePick,

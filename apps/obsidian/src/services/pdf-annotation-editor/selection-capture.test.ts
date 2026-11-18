@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import type { OverlayPageView } from "./render.ts";
 import { selectionPagesOf } from "./selection-capture.ts";

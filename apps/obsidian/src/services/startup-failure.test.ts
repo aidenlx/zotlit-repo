@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Context, Effect, Layer } from "effect";
 import { expect } from "vitest";
 
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { ServiceStartupFailed, startingAs } from "./startup-failure.ts";
 

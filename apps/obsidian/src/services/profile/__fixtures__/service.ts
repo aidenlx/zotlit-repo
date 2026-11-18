@@ -1,11 +1,11 @@
 import { Context, Effect, Layer, Stream } from "effect";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { buildLibraryScope } from "@/services/library-scope/__fixtures__.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { createTemplateHost } from "@/services/template/__fixtures__.ts";
 import { Template } from "@/services/template/service.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { readsAnswering } from "@/services/zotero-reads/__fixtures__.ts";
 import type { ZoteroReads } from "@/services/zotero-reads/service.ts";
 

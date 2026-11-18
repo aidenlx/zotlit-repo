@@ -1,8 +1,9 @@
 import { Keymap } from "obsidian";
 import type { Editor, TFile } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { ItemSearchModal } from "@/services/item-lookup/search-modal.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";
 

@@ -3,10 +3,10 @@ import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
 import { isChildItemFields } from "@zotlit/db";
+import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { itemSummary } from "@/lib/item-summary.ts";
 import { listInstalledStylesOrNone } from "@/services/pandoc/installed-styles.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { ZoteroPref } from "@/services/zotero-pref/service.ts";

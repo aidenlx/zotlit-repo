@@ -1,8 +1,8 @@
 // Owns scoped worker recovery and bounded requests across connection lifetimes.
 import { Deferred, Effect, Exit, Fiber, Ref, Schedule, Scope } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 
 import { ParseFailed, ParseWorkerDied } from "./client.ts";
 import type { ParseClient, ParseRequest } from "./client.ts";

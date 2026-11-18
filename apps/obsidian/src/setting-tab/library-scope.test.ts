@@ -2,8 +2,9 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   AvailableLibrary,
   LibraryScope as SavedLibraryScope,

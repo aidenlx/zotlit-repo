@@ -1,7 +1,7 @@
 import { PluginSettingTab } from "obsidian";
 import type { Plugin, SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { advancedPageItems } from "./advanced.ts";
 import { attachmentPageItems } from "./attachments.ts";

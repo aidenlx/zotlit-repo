@@ -1,16 +1,20 @@
 // @vitest-environment happy-dom
 import { it as effectIt } from "@effect/vitest";
-import { DropdownComponent, renderRow } from "@mock/obsidian.ts";
 import { Context, Effect, Stream } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { LegacyPortError } from "@/lib/legacy-port.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import * as electron from "@/lib/require.ts";
-import { FileNotFound } from "@/lib/vault-errors.ts";
+import * as electron from "@zotlit/obsidian-desktop/require.ts";
+import {
+  DropdownComponent,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { LegacyPortError } from "@zotlit/obsidian-kit/legacy-port.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { FileNotFound } from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LocalBridge } from "@/services/local-bridge/service.ts";
 import { LocalServer } from "@/services/local-server/service.ts";
 import { defaults } from "@/services/settings/schema.ts";

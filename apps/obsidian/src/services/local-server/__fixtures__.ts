@@ -1,8 +1,9 @@
 // A Local Server built from its layer over empty settings and dependency stubs.
 import { Effect, Layer } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { applySettings } from "@/services/settings/__fixtures__.ts";
 import type { SettingsOverrides } from "@/services/settings/__fixtures__.ts";

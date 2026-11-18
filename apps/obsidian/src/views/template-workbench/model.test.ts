@@ -7,6 +7,9 @@ import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { vi } from "vitest";
 
+import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { SAMPLE_ITEMS } from "@zotlit/workbench/render";
 import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import {
@@ -17,9 +20,6 @@ import {
   setTab,
 } from "@zotlit/workbench/ui";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";
 import { fileProfileAtom } from "@/services/profile/atoms.ts";
 import { defaultBindingsAtom } from "@/services/settings/atoms.ts";
 import { defaults } from "@/services/settings/schema.ts";

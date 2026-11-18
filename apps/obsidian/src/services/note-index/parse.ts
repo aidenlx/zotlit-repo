@@ -1,13 +1,13 @@
 import type { CachedMetadata } from "obsidian";
 
-import { isIndexedKey } from "@zotlit/zotero-types/keys";
-
 import {
   FIELD_ZOTERO_KEY,
   FIELD_ZOTERO_LASTMOD,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants.ts";
-import { frontmatterInstant } from "@/lib/frontmatter-date.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
+
+import { frontmatterInstant } from "@/services/note-index/frontmatter-date.ts";
 
 export interface FileContributions {
   itemKey: string | null;

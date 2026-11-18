@@ -6,8 +6,6 @@ import { basename, join } from "node:path/posix";
 import type { CliData } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";
-import { formatPlainTemplateDocument } from "@zotlit/templates/facade";
-
 import {
   CliRejection,
   cliLiterals,
@@ -19,16 +17,24 @@ import {
   decodeCliParams,
   expectSourceParam,
   amendRejection,
-} from "@/lib/cli-params.ts";
-import type { CliOutput, CliParamName } from "@/lib/cli-params.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import type { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { parseProfileSelector } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
-import type { FileNotFound, VaultError } from "@/lib/vault-errors.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type {
+  CliOutput,
+  CliParamName,
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type {
+  FileNotFound,
+  VaultError,
+} from "@zotlit/plugin-kernel/vault-errors.ts";
+import { formatPlainTemplateDocument } from "@zotlit/templates/facade";
+
 import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import { Profile } from "@/services/profile/service.ts";

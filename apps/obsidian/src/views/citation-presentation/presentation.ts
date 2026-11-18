@@ -3,15 +3,19 @@
 
 import type { CachedMetadata, TFile } from "obsidian";
 
-import { referencesStyleOptions, STYLE_DEFAULT } from "@/lib/citation-style.ts";
-import type { ReferencesStyleOption } from "@/lib/citation-style.ts";
+import { processLiveFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
+import type { LiveTextApp } from "@zotlit/obsidian-kit/live-text.ts";
 import {
   FIELD_CITATION_STYLE,
   FIELD_DOCUMENT_LANGUAGE,
-} from "@/lib/constants.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { processLiveFrontMatter } from "@/lib/live-text.ts";
-import type { LiveTextApp } from "@/lib/live-text.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import {
+  referencesStyleOptions,
+  STYLE_DEFAULT,
+} from "@/services/pandoc/citation-style.ts";
+import type { ReferencesStyleOption } from "@/services/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 /** Style-picker value of a note that names no style of its own. */

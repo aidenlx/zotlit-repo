@@ -9,8 +9,8 @@ import {
 } from "effect";
 import type { Cause, PlatformError } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 
 import {
   excerptAnnotationRecord,

@@ -4,13 +4,13 @@ import type { PlatformError } from "effect";
 import type { CliData } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";
-
 import {
   catchRejection,
   cliIndexedKey,
   cliParams,
   decodeCliParams,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+
 import { diagnostic } from "@/services/item-query/contract.ts";
 import { rejectionDiagnostic } from "@/services/item-query/contract.ts";
 

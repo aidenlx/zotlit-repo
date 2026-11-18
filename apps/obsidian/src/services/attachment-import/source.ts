@@ -8,10 +8,10 @@ import { realpath } from "node:fs/promises";
 import { isAbsolute, join, relative, sep } from "node:path";
 
 import { isCaseInsensitivePlatform } from "@zotlit/db/path";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isErrno, nodeFileSystemCall } from "@zotlit/plugin-kernel/errno.ts";
 
-import type { AttachmentCopySource } from "@/lib/copy-attachments.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isErrno, nodeFileSystemCall } from "@/lib/errno.ts";
+import type { AttachmentCopySource } from "@/services/attachment-import/copy-attachments.ts";
 
 const logged = withLogCategory("attachment-import");
 

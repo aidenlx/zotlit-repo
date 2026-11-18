@@ -8,7 +8,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import type { DatabaseAnnotationSource } from "@/services/annotation-repository/service.ts";
 
 import { excerptImageFixture } from "./__fixtures__/effect-service.ts";

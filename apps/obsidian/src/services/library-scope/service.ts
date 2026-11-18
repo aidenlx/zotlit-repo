@@ -11,10 +11,10 @@ import {
 } from "effect";
 
 import type { Library } from "@zotlit/db";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { startupBarrier } from "@/lib/effect-startup.ts";
 import { QueryClients } from "@/services/query-client/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";

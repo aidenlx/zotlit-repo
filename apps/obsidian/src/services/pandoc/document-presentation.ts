@@ -4,19 +4,19 @@ import { Cause, Effect, Exit } from "effect";
 import type { MetadataCache, TFile } from "obsidian";
 
 import type { CslItemData } from "@zotlit/db";
-
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ProfileSelector,
+  UnknownProfileDiagnostic,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
 import {
   FIELD_CITATION_STYLE,
   FIELD_DOCUMENT_LANGUAGE,
   FIELD_ZOTERO_NOTE_KEY,
-} from "@/lib/constants.ts";
-import { isLanguageTag } from "@/lib/language-tag.ts";
-import { getLogger } from "@/lib/log.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
-import type {
-  ProfileSelector,
-  UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp.ts";
+} from "@zotlit/plugin-kernel/constants.ts";
+import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type { Citation } from "@/services/citation-index/query.ts";
 import type { Profile, ProfileReader } from "@/services/profile/service.ts";
 import type { Settings } from "@/services/settings/schema.ts";

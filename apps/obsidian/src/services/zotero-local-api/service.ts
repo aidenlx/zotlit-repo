@@ -2,9 +2,10 @@
 import { Context, Effect, Layer, PubSub, Stream } from "effect";
 import type { DateTime } from "effect";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import { ZoteroHttp } from "@/lib/zotero-http.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+
 import { LocalServer } from "@/services/local-server/service.ts";
 import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
 

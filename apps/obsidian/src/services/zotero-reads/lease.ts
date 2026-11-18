@@ -1,8 +1,8 @@
 // A Zotero read snapshot lease owned by code outside Effect.
 import { Cause, Exit, Scope } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { openScope } from "@/lib/effect-scope.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
 
 import { DbUnavailable } from "./rpc.ts";
 import type { ZoteroReadLease, ZoteroReads } from "./service.ts";

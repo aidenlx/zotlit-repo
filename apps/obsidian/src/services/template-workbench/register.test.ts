@@ -3,9 +3,10 @@ import { Context, Effect } from "effect";
 import type { CliFlags } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 
 import { workbenchContext } from "./__fixtures__.ts";

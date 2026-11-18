@@ -9,14 +9,18 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { ANNOTATION_COLORS } from "@/lib/annotation-colors.ts";
-import { AppContext } from "@/lib/app-context.ts";
-import { registerKeymap } from "@/lib/disposables.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
-import { makeViewRunner } from "@/lib/view-runner.ts";
-import type { ViewRunner } from "@/lib/view-runner.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { registerKeymap } from "@zotlit/obsidian-kit/disposables.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import { historyOutcomeNotice } from "@/services/annotation-repository/actions.ts";
 import {
   annotationChangeAtom,

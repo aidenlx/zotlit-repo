@@ -2,8 +2,12 @@
 
 import { Effect } from "effect";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { DEFAULT_PROFILE, isProfileId } from "@/lib/profile-stamp.ts";
+import {
+  DEFAULT_PROFILE,
+  isProfileId,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Profile } from "@/services/profile/service.ts";
 
 /**

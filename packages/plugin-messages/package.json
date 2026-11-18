@@ -1,0 +1,27 @@
+{
+  "name": "@zotlit/plugin-messages",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The ZotLit plugin's typed Message facade and its Language Packs, generated from messages/*.json",
+  "type": "module",
+  "exports": {
+    "./language-pack-options": "./scripts/language-pack-options.ts",
+    "./vitest-setup": "./scripts/vitest-setup.ts",
+    "./*": "./generated/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate:language-packs": "node scripts/generate-language-packs.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@zotlit/obsidian-i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "oxlint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

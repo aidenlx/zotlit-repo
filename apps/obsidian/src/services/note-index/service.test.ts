@@ -3,9 +3,9 @@ import { Cause, Effect, Exit, Stream } from "effect";
 import type { CachedMetadata } from "obsidian";
 import { describe, expect } from "vitest";
 
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
 import {
   makeHarness,

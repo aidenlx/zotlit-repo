@@ -4,9 +4,9 @@ import { Cause, Effect } from "effect";
 
 import { isChildItemFields } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { itemSummary } from "@/lib/item-summary.ts";
 import { libraryLabel } from "@/services/library-scope/label.ts";
 import type {
   AvailableLibrary,

@@ -1,6 +1,6 @@
 // The capability notices for callers outside Effect: the reader's gestures,
 // the Query View, the setting tab and the debug surface.
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { CapabilityNotices } from "./notices.ts";
 

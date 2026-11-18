@@ -1,15 +1,16 @@
-// @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian.ts";
 import { DateTime, Effect } from "effect";
 import type { App } from "obsidian";
 import type { MouseEvent } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as confirmation from "@/lib/confirm.ts";
-import { toInstant } from "@/lib/effect-clock.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { makeViewRunner } from "@/lib/view-runner.ts";
+// @vitest-environment happy-dom
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import * as confirmation from "@zotlit/obsidian-kit/confirm.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   AnnotationRepository,
   AnnotationRecord,

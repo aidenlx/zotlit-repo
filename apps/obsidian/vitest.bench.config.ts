@@ -9,15 +9,19 @@ import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 import { testDefaults } from "@zotlit/config/vitest";
-
-import { effectEntry } from "./scripts/effect-entry.ts";
+import {
+  obsidianMock,
+  obsidianSetupFile,
+  packageSource,
+} from "@zotlit/obsidian-kit/vitest";
+import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
 const packageRoot = import.meta.dirname;
 
 export default defineConfig({
   resolve: {
     alias: {
-      obsidian: resolve(packageRoot, "__mocks__/obsidian.ts"),
+      obsidian: obsidianMock,
       "virtual:citation-parse-worker": resolve(
         packageRoot,
         "__mocks__/worker-source.ts",
@@ -41,12 +45,25 @@ export default defineConfig({
       sha256: "0".repeat(64),
     }),
   },
-  plugins: [effectEntry("renderer", { vitest: true }), preact()],
+  plugins: [
+    effectEntry("renderer", {
+      vitest: true,
+      scopes: [
+        resolve(packageRoot, "src"),
+        resolve(packageRoot, "scripts"),
+        packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
+        packageSource(
+          import.meta.resolve("@zotlit/obsidian-desktop/package.json"),
+        ),
+      ],
+    }),
+    preact(),
+  ],
   test: {
     ...testDefaults,
     include: ["src/**/*.bench.ts"],
     environment: "node",
-    setupFiles: ["./vitest.setup.js"],
+    setupFiles: [obsidianSetupFile],
     // One grid runs for many minutes; the bench sets its own per-test timeout.
     testTimeout: 0,
     fileParallelism: false,

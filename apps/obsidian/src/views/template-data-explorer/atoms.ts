@@ -1,7 +1,8 @@
 // Commands of the Template Data Explorer, run on the plugin's view registry.
 import { Cause, Effect } from "effect";
 
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";
 
 import {

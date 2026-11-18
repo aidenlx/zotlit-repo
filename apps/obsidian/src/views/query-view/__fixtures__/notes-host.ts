@@ -2,16 +2,16 @@
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { NoteFeatureHandle } from "@/services/note-feature/operations.ts";
 import { NoteFeature } from "@/services/note-feature/service.ts";
 import type { buildNoteIndex } from "@/services/note-index/__fixtures__.ts";

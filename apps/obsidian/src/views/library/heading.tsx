@@ -10,12 +10,12 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
 import { SaveAsButton, SortButton } from "@/views/query-view/view.tsx";
 import type { QueryView } from "@/views/query-view/view.tsx";
 

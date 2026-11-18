@@ -1,11 +1,15 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import {
+  editorApp,
+  pressSubmit,
+} from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { TextField } from "@/services/annotation-repository/service.ts";
 import { TEXT_FIELDS } from "@/services/annotation-repository/write.ts";
 
-import { editorApp, pressSubmit } from "./__fixtures__/editor-app.ts";
 import { textFieldWording } from "./card-controls.ts";
 import { renderEditorSheet } from "./editor-sheet.ts";
 import type {

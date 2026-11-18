@@ -11,11 +11,10 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { SingletonHoverPopover } from "@zotlit/obsidian-kit/singleton-hover-popover.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { hoverHint } from "@zotlit/workbench/completion";
 import type { Suggestion, SuggestionSource } from "@zotlit/workbench/language";
-
-import { SingletonHoverPopover } from "@/lib/singleton-hover-popover.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
 
 /**
  * Obsidian's own hover delay, which every popover of its own opens after. It

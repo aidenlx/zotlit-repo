@@ -1,14 +1,11 @@
 // The view services a test host leaves unread, so its registry context is
 // whole. Each member dies when called.
-import { Effect, FileSystem, Layer, Stream } from "effect";
-import type { Context } from "effect";
+import { FileSystem, Layer, Stream } from "effect";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
-import type { ViewServices } from "@/lib/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
@@ -91,13 +88,3 @@ export const layerUnreadViewServices = Layer.mergeAll(
     reads: stubService<ZoteroReads["Service"]["reads"]>("ZoteroReadsApi", {}),
   }),
 );
-
-/**
- * A view registry over `context`, with no idle delay, disposed when the
- * current scope closes, a failed assertion included.
- */
-export const scopedViewRegistry = (context: Context.Context<ViewServices>) =>
-  Effect.acquireRelease(
-    Effect.sync(() => makeViewRegistry(context, { idleTTL: 0 })),
-    (registry) => Effect.sync(() => registry.dispose()),
-  );

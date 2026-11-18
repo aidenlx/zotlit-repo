@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noUnknownCast } from "../../scripts/oxlint-plugin-private-api.ts";
+import { noUnknownCast } from "../../../../packages/config/oxlint-plugin-private-api.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

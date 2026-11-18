@@ -1,6 +1,6 @@
 // Real insertion flow over an in-memory Zotero database and a controllable Template.
 import { Effect, Layer } from "effect";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { ExcerptPreparation } from "@/services/excerpt-image/prepare.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";

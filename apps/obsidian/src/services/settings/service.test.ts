@@ -2,8 +2,8 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber, Logger, Queue } from "effect";
 import { beforeEach, describe, expect, vi } from "vitest";
 
-import { subscribe } from "@/lib/effect-stream.ts";
-import { highlightEmoji } from "@/lib/highlight-mapping.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 
 import { settingsRuntimeOf } from "./__fixtures__.ts";
 import type { SettingsFixtureOptions } from "./__fixtures__.ts";

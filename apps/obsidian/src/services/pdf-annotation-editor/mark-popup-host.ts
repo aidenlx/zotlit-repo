@@ -10,9 +10,9 @@ import type { HoverParent } from "obsidian";
 import { createElement, Fragment } from "react";
 import type { ReactNode } from "react";
 
-import { getLogger } from "@/lib/log.ts";
-import { hasActiveMenu } from "@/lib/menu.ts";
-import { watch } from "@/lib/view-atoms.ts";
+import { hasActiveMenu } from "@zotlit/obsidian-kit/menu.ts";
+import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type { Point } from "./hit-test.ts";
 import { MarkPopup } from "./mark-popup.tsx";

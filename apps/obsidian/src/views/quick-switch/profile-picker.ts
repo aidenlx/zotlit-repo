@@ -1,16 +1,17 @@
 import { Scope, SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
-import { citationStyleLabel } from "@/lib/citation-style.ts";
-import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
-import type { FocusScope } from "@/lib/focus-scope.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
+import type { FocusScope } from "@zotlit/obsidian-kit/focus-scope.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   CreationProfileSelection,
   ProfilePreview,
 } from "@/services/note-feature/index.ts";
+import { citationStyleLabel } from "@/services/pandoc/citation-style.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";
 
 export interface LiteratureNoteProfileChoice {

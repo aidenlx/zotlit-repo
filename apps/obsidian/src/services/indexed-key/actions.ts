@@ -2,11 +2,11 @@
 import { TFile } from "obsidian";
 import type { Plugin } from "obsidian";
 
+import * as toast from "@zotlit/obsidian-kit/toast.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import type { ParsedIndexedKey } from "@zotlit/zotero-types/keys";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import * as toast from "@/lib/toast.ts";
 import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 
 export type IndexedKeyKind = "item" | "annotation";

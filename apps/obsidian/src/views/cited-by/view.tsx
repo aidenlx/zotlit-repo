@@ -4,9 +4,10 @@ import type { App, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { ViewRegistryProvider } from "@/lib/view-atoms.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { activeKeyAtom } from "@/services/note-index/atoms.ts";
 
 import { revisionsAtom } from "./atoms.ts";

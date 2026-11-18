@@ -1,6 +1,6 @@
 // ZotLit Query for views and legacy code: the QueryService tag behind Promises.
-import { valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import type { QueryService } from "./service.ts";

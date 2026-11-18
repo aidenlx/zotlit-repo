@@ -4,12 +4,13 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 import { join } from "node:path";
 
-import { MemoryDeviceStorage } from "@/lib/__fixtures__/obsidian-device-storage.ts";
-import { layerTestObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
+import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+
 import { defaults } from "@/services/settings/schema.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import type { Settings } from "@/services/settings/service.ts";

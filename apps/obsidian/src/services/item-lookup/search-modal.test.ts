@@ -5,7 +5,8 @@ import { SuggestModal } from "obsidian";
 import type { App } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { defaults as defaultSettings } from "@/services/settings/schema.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
 

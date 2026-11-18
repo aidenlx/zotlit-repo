@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import { createElement, isValidElement } from "react";
 import { createRoot } from "react-dom/client";
 
-import { getLogger } from "@/lib/log.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { tooltipAttrs } from "@/lib/utils.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import type { Blocks, Inline, Inlines, QuoteType } from "./ast.ts";
 

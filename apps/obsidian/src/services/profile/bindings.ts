@@ -1,7 +1,11 @@
 // Resolved Profile values and the binding overlay used by note rendering.
 
-import { formatProfileStamp } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector, ProfileStamp } from "@/lib/profile-stamp.ts";
+import { formatProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type {
+  ProfileSelector,
+  ProfileStamp,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+
 import type { Settings } from "@/services/settings/schema.ts";
 
 import type { LiteratureNoteProfile } from "./service.ts";

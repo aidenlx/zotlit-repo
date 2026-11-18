@@ -5,8 +5,8 @@ import { expect, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 
-import { AbortError } from "@/lib/abort-error.ts";
 import {
   annotationItem,
   annotationPage,

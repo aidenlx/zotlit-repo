@@ -7,15 +7,16 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { leaveSettingsFor } from "@/lib/plugin-host.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Customize } from "@/services/local-bridge/customize.ts";
 import { installedStyles } from "@/services/note-feature/creation-view.ts";
 import { Profile } from "@/services/profile/service.ts";

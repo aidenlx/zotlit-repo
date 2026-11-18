@@ -12,8 +12,9 @@ import { RpcGroup, RpcServer, RpcWorker } from "effect/rpc";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
-import { testObsidianEnv } from "@/lib/__fixtures__/obsidian-env.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
+import { testObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+
 import {
   ChineseSegmenter,
   CHINESE_SEGMENTER,

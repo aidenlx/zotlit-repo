@@ -3,11 +3,10 @@ import { Effect } from "effect";
 import type { TAbstractFile } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { filenameSuffix } from "@zotlit/templates";
-
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerVaultFrom } from "@/lib/obsidian-vault.ts";
 
 import { EmptyFilenameError } from "./filename.ts";
 import { NotePathUnavailable, resolveRenderedNotePath } from "./note-path.ts";

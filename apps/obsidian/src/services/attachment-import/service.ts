@@ -26,28 +26,37 @@ import { dirname as noteDirname } from "node:path/posix";
 import { normalizePath } from "obsidian";
 
 import type { TemplateLink } from "@zotlit/db";
-import { normalizeFilename } from "@zotlit/templates";
-
-import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
-import { copyAttachments } from "@/lib/copy-attachments.ts";
-import type {
-  AttachmentCopyItem,
-  AttachmentCopyResult,
-} from "@/lib/copy-attachments.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import { joinFolderPath, normalizeFolderPath } from "@/lib/ensure-folder.ts";
-import { fileUrlLink, syntheticFile } from "@/lib/markdown-link.ts";
-import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
-import type { DeviceStorageError } from "@/lib/obsidian-device-storage.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { FileManager, markdownLinker } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
+import {
+  fileUrlLink,
+  syntheticFile,
+} from "@zotlit/obsidian-desktop/markdown-link.ts";
+import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
+import {
+  joinFolderPath,
+  normalizeFolderPath,
+} from "@zotlit/obsidian-kit/ensure-folder.ts";
+import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import type { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import {
+  FileManager,
+  markdownLinker,
+} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { ensureVaultFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type {
   VaultError,
   VaultFolderBlockedError,
-} from "@/lib/vault-errors.ts";
-import { ensureVaultFolder } from "@/lib/vault-folder.ts";
+} from "@zotlit/plugin-kernel/vault-errors.ts";
+import { normalizeFilename } from "@zotlit/templates";
+
+import { copyAttachments } from "@/services/attachment-import/copy-attachments.ts";
+import type {
+  AttachmentCopyItem,
+  AttachmentCopyResult,
+} from "@/services/attachment-import/copy-attachments.ts";
 import { PluginSettings } from "@/services/settings/service.ts";
 import { resolvedChanged, ZoteroPref } from "@/services/zotero-pref/service.ts";
 

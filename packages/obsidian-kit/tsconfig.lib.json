@@ -1,0 +1,37 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": ["@zotlit/config/tsconfig", "@zotlit/config/tsconfig.obsidian"],
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "isolatedDeclarations": false,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "effectFn": ["inferred-span"],
+        "allowedUnstableApis": [
+          "@effect/platform-browser",
+          "@effect/platform-node",
+          "@effect/vitest",
+          "effect/FileSystem",
+          "effect/http",
+          "effect/PlatformError",
+          "effect/rpc",
+          "effect/testing",
+          "effect/workers"
+        ]
+      }
+    ],
+    "types": []
+  },
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": [
+    "./node_modules",
+    "./src/**/*.test.ts",
+    "./src/**/*.test.tsx",
+    "./src/**/*.browser-test.ts",
+    "./src/**/__fixtures__/**",
+    "./src/**/__mocks__/**"
+  ]
+}

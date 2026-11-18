@@ -5,7 +5,8 @@ import { TestClock } from "effect/testing";
 import type { CachedMetadata, CliData } from "obsidian";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
-import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
+import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+
 import { profileServiceFixture } from "@/services/profile/__fixtures__/service.ts";
 import { Template } from "@/services/template/service.ts";
 

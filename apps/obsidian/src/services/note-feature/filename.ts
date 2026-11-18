@@ -1,13 +1,12 @@
 import { customAlphabet } from "nanoid";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   hasSuffixMarker,
   replaceSuffixMarkers,
   resolveFlatNoteName,
   resolveNoteRelPath,
 } from "@zotlit/templates";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
 
 /** Alphanumeric only, `_` and `-` reserved. */
 const suffixNanoid = customAlphabet(

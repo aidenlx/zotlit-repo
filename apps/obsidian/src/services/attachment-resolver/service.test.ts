@@ -4,8 +4,7 @@ import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
-
-import { toInstant } from "@/lib/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 
 import {
   DATA_DIR,

@@ -29,10 +29,11 @@ import {
 } from "effect";
 import type { Fiber } from "effect";
 
-import { awaitOwned } from "@/lib/effect-fiber.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { isScopeClosed } from "@/lib/effect-scope.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
+import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { selectorKey } from "@/services/library-scope/scope.ts";
 import type {
   AvailableLibrary,

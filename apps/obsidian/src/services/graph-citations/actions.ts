@@ -3,10 +3,10 @@
 import { Keymap } from "obsidian";
 import type { App, Plugin, TFile } from "obsidian";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
 import type { GraphCitations } from "./service.ts";

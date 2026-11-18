@@ -6,11 +6,11 @@ import { Menu, Platform } from "obsidian";
 import { useEffect, useRef } from "react";
 import type { CSSProperties, DragEvent, MouseEvent, PointerEvent } from "react";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { useObsidianApp } from "@/lib/app-context.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { pointerDrag } from "@/lib/pointer-drag.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { pointerDrag } from "@zotlit/obsidian-kit/pointer-drag.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { columnMenuEntries } from "./column-menu.ts";
 import type { ColumnMenuAction } from "./column-menu.ts";

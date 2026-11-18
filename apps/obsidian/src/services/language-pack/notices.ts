@@ -3,11 +3,11 @@
 import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 import type { Exit } from "effect";
 
-import { logAndContinue } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
-import { Notifier, reportProgress } from "@/lib/notifier.ts";
-import type { NoticeHandle } from "@/lib/notifier.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Notifier, reportProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
+import { logAndContinue } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { LanguagePack } from "./service.ts";
 import type {

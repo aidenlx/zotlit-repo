@@ -1,6 +1,12 @@
 import "./theme.css";
 import type { App } from "obsidian";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { tv } from "@zotlit/plugin-kernel/tw.ts";
 // Shared authoring controls inherit Obsidian's surfaces and editor typography.
 import {
   expressionOption,
@@ -8,13 +14,7 @@ import {
 } from "@zotlit/workbench/language";
 import type { WorkbenchTheme, WorkbenchIcon } from "@zotlit/workbench/ui";
 
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { selectionControl } from "@/components/obsidian/selection-control.ts";
-import { obsidianPopupKeys } from "@/lib/field-popup.ts";
-import { paneDivider } from "@/lib/pane-divider.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { tv } from "@/lib/tw.ts";
-import { cn } from "@/lib/utils.ts";
+import { obsidianPopupKeys } from "@/views/template-workbench/field-popup.ts";
 
 import { codePane, hostedEditor, popoverTooltips } from "./editor-extension.ts";
 import { nativeCompletion } from "./native-completion.ts";

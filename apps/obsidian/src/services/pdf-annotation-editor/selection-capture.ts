@@ -6,8 +6,7 @@
 // The reader's own text layer is read exactly as the browser laid it out —
 // ZotLit never re-renders it.
 import type { Rect, TextLayerSelection } from "@zotlit/pdf-structure";
-
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type { OverlayPageView } from "./render.ts";
 import { pageContentBox } from "./surface.ts";

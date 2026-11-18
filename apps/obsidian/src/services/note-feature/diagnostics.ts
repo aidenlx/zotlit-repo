@@ -2,14 +2,14 @@
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type {
   ProfileId,
   ProfileSelector,
   UnknownProfileDiagnostic,
-} from "@/lib/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { ComposeWarn } from "./compose.ts";
 import type { ManagedFrontmatterPreparationFailure } from "./frontmatter.ts";

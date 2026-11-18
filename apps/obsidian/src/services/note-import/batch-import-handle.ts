@@ -2,7 +2,7 @@
 import { Effect } from "effect";
 import type { Context } from "effect";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import { reimportNoteByKey, runBatchImport } from "./batch-import.ts";
 import type {

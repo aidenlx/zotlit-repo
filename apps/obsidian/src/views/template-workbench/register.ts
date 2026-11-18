@@ -2,10 +2,11 @@ import "./style.css";
 import { MarkdownView, Platform, TFile } from "obsidian";
 import type { App, Plugin, WorkspaceLeaf } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { profileRecoveryNotice } from "@/lib/profile-recovery.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type {
   DefaultProfileTarget,

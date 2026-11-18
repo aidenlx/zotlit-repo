@@ -4,11 +4,12 @@ import type { HoverParent, MetadataCache, Workspace } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { testEvents } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { lookupAnswer } from "@/services/citation-index/__fixtures__/lookup.ts";
 import { NO_ADDITIONS } from "@/services/graph-citations/adapter.ts";
 import { wrapNodeHover } from "@/services/graph-citations/hover.ts";

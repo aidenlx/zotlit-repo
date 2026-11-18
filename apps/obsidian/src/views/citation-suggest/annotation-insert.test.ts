@@ -13,11 +13,12 @@ import { TFile } from "obsidian";
 import type { App, Editor, MarkdownFileInfo } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { openScope } from "@/lib/effect-scope.ts";
-import { answerOf } from "@/lib/view-runner.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+
 import { setup as repositorySetup } from "@/services/annotation-repository/__fixtures__.ts";
 import { annotationAction } from "@/services/note-feature/__fixtures__/annotation-actions.ts";
 import type { AnnotationInsert } from "@/services/note-feature/insert-annotation.ts";

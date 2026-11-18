@@ -2,11 +2,11 @@
 // document stores, planned as a filter of the Items dataset.
 import { composeFilterTree } from "@zotlit/filter-expression";
 import { planItemFilter } from "@zotlit/item-query";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { runtime } from "@/lib/i18n/generated/runtime.ts";
 import { readerText } from "@/views/query-view/reader-diagnostic.ts";
 
 /** The label of a built-in Zotero item type in the active locale. */

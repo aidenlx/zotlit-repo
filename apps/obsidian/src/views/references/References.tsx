@@ -2,12 +2,13 @@ import { useAtomValue } from "@effect/atom-react";
 import type { IconName } from "obsidian";
 import type { MouseEvent, ReactNode } from "react";
 
-import { AmbiguousCandidates } from "@/components/ambiguous-candidates.tsx";
-import { Button } from "@/components/obsidian/button.tsx";
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { SidebarToolbar } from "@/components/sidebar-toolbar.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { SidebarToolbar } from "@zotlit/obsidian-kit/components/sidebar-toolbar.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import { AmbiguousCandidates } from "@/services/citation-index/ambiguous-candidates.tsx";
 import type { ReferenceSource } from "@/services/citation-index/service.ts";
 import type { DocumentPresentationFailure } from "@/services/pandoc/document-presentation.ts";
 import { InlineContent } from "@/services/pandoc/inline-content.tsx";

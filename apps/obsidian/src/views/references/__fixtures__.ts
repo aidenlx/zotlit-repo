@@ -2,16 +2,17 @@
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
-import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";
-import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
-import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { vaultError } from "@/lib/vault-errors.ts";
-import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
+import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { vaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";

@@ -3,8 +3,9 @@
 import { around } from "monkey-around";
 import { Keymap } from "obsidian";
 
-import { disposable } from "@/lib/disposables.ts";
-import { getLogger } from "@/lib/log.ts";
+import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+
 import type { NavigationPane } from "@/services/citekey-navigation/index.ts";
 
 import type { GraphLeafMembers } from "./install.ts";

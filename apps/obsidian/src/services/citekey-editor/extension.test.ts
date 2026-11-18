@@ -14,10 +14,15 @@ const { livePreview, hoverLinks } = vi.hoisted(() => ({
   hoverLinks: [] as [event: string, link: Record<string, unknown>][],
 }));
 
-vi.mock("@/lib/editor-decoration.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/editor-decoration.ts")>()),
-  livePreviewOf: livePreview,
-}));
+vi.mock(
+  "@zotlit/obsidian-kit/editor-decoration.ts",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@zotlit/obsidian-kit/editor-decoration.ts")
+    >()),
+    livePreviewOf: livePreview,
+  }),
+);
 
 vi.mock("obsidian", async (importOriginal) => {
   const actual = await importOriginal<typeof import("obsidian")>();
@@ -41,7 +46,8 @@ vi.mock("obsidian", async (importOriginal) => {
 
 import { editorInfoField, Keymap } from "obsidian";
 
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+
 import { lookupObservation } from "@/services/citation-index/__fixtures__/citation-lookup.ts";
 import type {
   CitekeyResolution,

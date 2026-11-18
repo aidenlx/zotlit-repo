@@ -2,9 +2,8 @@
 import type { TFile } from "obsidian";
 
 import type { TemplateLink } from "@zotlit/db";
-
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { syntheticFile } from "@/lib/markdown-link.ts";
+import { syntheticFile } from "@zotlit/obsidian-desktop/markdown-link.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { MaterializedExcerpt } from "./materialize.ts";
 

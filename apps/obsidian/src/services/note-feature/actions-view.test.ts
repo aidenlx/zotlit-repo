@@ -5,13 +5,13 @@ import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App, Workspace } from "obsidian";
 import { expect, vi } from "vitest";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace as WorkspaceTag } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace as WorkspaceTag } from "@/lib/obsidian-workspace.ts";
 import { LibraryScope } from "@/services/library-scope/service.ts";
 import { NoteImporter } from "@/services/note-import/service.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";

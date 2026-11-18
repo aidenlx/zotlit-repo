@@ -3,10 +3,11 @@ import { Context, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, expectTypeOf, vi } from "vitest";
 
-import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
+import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 
 import {

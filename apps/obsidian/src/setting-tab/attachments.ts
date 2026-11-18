@@ -3,7 +3,8 @@
 
 import type { SettingDefinitionItem } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 
 import { approvedFoldersPage } from "./approved-folders.ts";

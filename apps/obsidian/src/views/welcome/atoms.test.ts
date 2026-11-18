@@ -4,8 +4,9 @@ import { Effect, Layer } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { expect } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { PluginSettings } from "@/services/settings/service.ts";
 import { TemplateMigration } from "@/services/template/migration.ts";
 

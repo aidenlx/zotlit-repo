@@ -3,11 +3,12 @@
 import { TFile } from "obsidian";
 import type { App, PaneType, Plugin } from "obsidian";
 
-import { openAttachments } from "@/lib/attachment-open.ts";
-import type { AttachmentReader } from "@/lib/attachment-open.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import { openAttachments } from "@/services/attachment-open/open-attachments.ts";
+import type { AttachmentReader } from "@/services/attachment-open/open-attachments.ts";
 import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 
 import type { LiteratureNoteAttachmentsHandle } from "./handle.ts";

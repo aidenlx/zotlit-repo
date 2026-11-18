@@ -6,12 +6,11 @@ import { act } from "preact/test-utils";
 import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { emptyRender } from "@zotlit/workbench/render";
 import { WorkbenchMessagesProvider } from "@zotlit/workbench/ui";
-
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { isDraftMarkdown } from "@/lib/reading-view.ts";
 
 import { NativeMarkdown } from "./markdown.tsx";
 import type { NativeRenderResult } from "./render.ts";

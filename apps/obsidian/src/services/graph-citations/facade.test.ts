@@ -1,7 +1,7 @@
 import type { App, CachedMetadata, MetadataCache, Vault } from "obsidian";
 import { describe, expect, it } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
 import {

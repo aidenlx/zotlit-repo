@@ -21,9 +21,13 @@ import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, livePreviewState } from "obsidian";
 import type { Workspace } from "obsidian";
 
-import { livePreviewOf, overlapsSelection } from "@/lib/editor-decoration.ts";
-import { getLogger } from "@/lib/log.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
+import {
+  livePreviewOf,
+  overlapsSelection,
+} from "@zotlit/obsidian-kit/editor-decoration.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import { EditorLookup } from "@/services/citation-index/editor-lookup.ts";
 import { heldResolution } from "@/services/citation-index/lookup.ts";
 import type {

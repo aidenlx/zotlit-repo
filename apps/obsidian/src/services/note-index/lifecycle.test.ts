@@ -11,7 +11,7 @@ import {
 } from "effect";
 import { expect } from "vitest";
 
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import {
   buildNoteIndex,

@@ -10,9 +10,10 @@ import {
   Stream,
 } from "effect";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { savedExcerptRequestFor } from "@/services/excerpt-image/request.ts";
 import { ExcerptImageService } from "@/services/excerpt-image/service.ts";
 import type { Held } from "@/services/query-client/service.ts";

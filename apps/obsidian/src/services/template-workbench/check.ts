@@ -7,16 +7,6 @@ import type { CliData, CliFlag } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";
 import {
-  captureRenderReport,
-  renderIdentity,
-  isCitationExampleId,
-} from "@zotlit/workbench/render";
-import type {
-  RenderDiagnostic,
-  PartialContext,
-} from "@zotlit/workbench/render";
-
-import {
   catchRejection,
   cliDefault,
   cliIndexedKey,
@@ -32,13 +22,23 @@ import {
   decodeCliParams,
   expectSourceParam,
   amendRejection,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
 import type {
   CliOutput,
   CliParamName,
   CliRejection,
-} from "@/lib/cli-params.ts";
-import { instantClock } from "@/lib/effect-clock.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
+import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
+import {
+  captureRenderReport,
+  renderIdentity,
+  isCitationExampleId,
+} from "@zotlit/workbench/render";
+import type {
+  RenderDiagnostic,
+  PartialContext,
+} from "@zotlit/workbench/render";
+
 import { Profile } from "@/services/profile/service.ts";
 import { PROFILE_OUTPUTS } from "@/services/template-workbench/check-profile.ts";
 import type { ProfileCheck } from "@/services/template-workbench/check-profile.ts";

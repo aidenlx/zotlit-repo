@@ -9,11 +9,11 @@ import type { App } from "obsidian";
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { HTMLAttributes, RefObject } from "react";
 
+import { claimClick, cn } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { themeHook } from "@/lib/theme-hooks.ts";
-import { claimClick, cn } from "@/lib/utils.ts";
 import type { WriteConflict } from "@/services/annotation-repository/write.ts";
 
 import { conflictPanel } from "./card-conflict.ts";

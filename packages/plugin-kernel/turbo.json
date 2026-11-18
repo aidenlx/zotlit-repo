@@ -1,0 +1,30 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    // The source reads the plugin's Message facade and the Workbench message
+    // contract, both generated.
+    "typecheck": {
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ]
+    },
+    "typecheck:test": {
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/workbench#generate:message-types"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "@zotlit/plugin-messages#generate:language-packs"
+      ],
+      // The brand test reads the canonical logo SVGs.
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/assets/logo/**"]
+    }
+  }
+}

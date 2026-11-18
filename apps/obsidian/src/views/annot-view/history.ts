@@ -2,7 +2,8 @@
 // "a card has focus" they answer to.
 import type { Scope } from "obsidian";
 
-import { registerKeymap } from "@/lib/disposables.ts";
+import { registerKeymap } from "@zotlit/obsidian-kit/disposables.ts";
+
 import type { HistoryDirection } from "@/services/annotation-repository/service.ts";
 import { inTextEntry } from "@/services/pdf-annotation-editor/capability-affordance.ts";
 import { historyVerbOf } from "@/services/pdf-annotation-editor/reader-keymap.ts";

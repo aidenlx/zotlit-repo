@@ -2,7 +2,8 @@
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
-import { held, viewRuntime } from "@/lib/view-atoms.ts";
+import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+
 import type { Held } from "@/services/query-client/service.ts";
 
 import { AnnotationRepository } from "./service.ts";

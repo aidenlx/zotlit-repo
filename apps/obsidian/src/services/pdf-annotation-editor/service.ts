@@ -13,13 +13,17 @@ import {
 } from "effect";
 import type { PDFFileView, View, WorkspaceLeaf } from "obsidian";
 
-import { scopedBridge, valueOr } from "@/lib/effect-bridge.ts";
-import { fromInstant, instantClock } from "@/lib/effect-clock.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import {
+  fromInstant,
+  instantClock,
+} from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";
 import { AttachmentResolver } from "@/services/attachment-resolver/service.ts";

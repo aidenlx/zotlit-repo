@@ -23,10 +23,10 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
+import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.ts";
+import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 
-import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
-import { LogCategory } from "@/lib/effect-log.ts";
-import { subscribe } from "@/lib/effect-stream.ts";
 import type { EffectiveReadMode } from "@/services/database/read-source.ts";
 import * as readsEvents from "@/services/zotero-reads/events.ts";
 

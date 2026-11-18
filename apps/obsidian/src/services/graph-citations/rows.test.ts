@@ -1,15 +1,16 @@
-import { settingsOf } from "@mock/obsidian.ts";
-import type { ToggleComponent } from "@mock/obsidian.ts";
 // @vitest-environment happy-dom
 import type { GraphEngine, GraphOptions } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
+
+import { settingsOf } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { ToggleComponent } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 
 import { installToggleRow, toggleRowTarget } from "./rows.ts";
 import type { ToggleRow, ToggleRowTarget } from "./rows.ts";
 import { FakeControlSection } from "./test-double.ts";
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/log.ts", () => ({
+vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
   getLogger: () => ({
     trace: vi.fn(),
     debug: vi.fn(),

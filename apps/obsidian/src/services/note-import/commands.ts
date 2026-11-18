@@ -4,12 +4,13 @@ import { Effect, Layer } from "effect";
 import type { Context } from "effect";
 import type { App } from "obsidian";
 
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { withOutcome } from "@/lib/notifier.ts";
-import type { Notifier } from "@/lib/notifier.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { withLiteratureNote } from "@/services/note-feature/actions.ts";
 
 import {

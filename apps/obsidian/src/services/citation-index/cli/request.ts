@@ -13,12 +13,12 @@ import {
   decodeCliParams,
   expectSourceParam,
   noCliParams,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
 import type {
   CliOutput,
   CliParamName,
   CliRejection,
-} from "@/lib/cli-params.ts";
+} from "@zotlit/obsidian-kit/cli-params.ts";
 
 import { diagnostic } from "./envelope.ts";
 import type { CitationsIdentity, Diagnostic } from "./envelope.ts";

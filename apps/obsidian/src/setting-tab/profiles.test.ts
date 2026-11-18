@@ -1,12 +1,5 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import {
-  ButtonComponent,
-  ExtraButtonComponent,
-  Menu,
-  Modal,
-  renderRow,
-} from "@mock/obsidian.ts";
 import { Effect, Layer, Queue } from "effect";
 import { SuggestModal, TFile } from "obsidian";
 import type {
@@ -18,13 +11,24 @@ import type {
 } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
-import { eventually, until } from "@/lib/__fixtures__/eventually.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
+import {
+  ButtonComponent,
+  ExtraButtonComponent,
+  Menu,
+  Modal,
+  renderRow,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import {
+  eventually,
+  until,
+} from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Customize } from "@/services/local-bridge/customize.ts";
 import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";

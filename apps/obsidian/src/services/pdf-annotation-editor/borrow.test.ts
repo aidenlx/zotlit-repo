@@ -1,8 +1,6 @@
 // The reader's borrowed-document accessor: what excerpt work may reach of an
 // open PDF view's document, and what a closed or replaced one withdraws.
 
-// @vitest-environment happy-dom
-import { resetMockPlatform, setMockPlatform } from "@mock/obsidian.ts";
 import { FileSystemAdapter, Scope } from "obsidian";
 import type {
   App,
@@ -15,7 +13,13 @@ import type {
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+// @vitest-environment happy-dom
+import {
+  resetMockPlatform,
+  setMockPlatform,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+
 import { openNoteVault } from "@/services/note-index/__fixtures__.ts";
 import { NoteIndex } from "@/services/note-index/service.ts";
 

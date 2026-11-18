@@ -1,6 +1,6 @@
 // Docs-site URLs surfaced by the release check.
 
-import { docsUrl } from "@/lib/docs-url.ts";
+import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 
 /**
  * The Release Note: the per-version changelog page for `version`. The slug is

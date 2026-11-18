@@ -2,8 +2,8 @@ import { Context, Effect, Layer, Schema } from "effect";
 import { HttpClient, HttpClientError } from "effect/http";
 import type { App } from "obsidian";
 
-import { layerRequestUrlHttpClient } from "@/lib/http-client.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
+import { layerRequestUrlHttpClient } from "@zotlit/obsidian-kit/http-client.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 
 import { createMemoryBinaryStore, createOpfsBinaryStore } from "./store.ts";
 import type { BinaryStore } from "./store.ts";

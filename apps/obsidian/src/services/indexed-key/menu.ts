@@ -1,8 +1,9 @@
 // Copy-key menu items, and the copy-key entry on a Literature Note's file menu.
 import type { Menu } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 
 import { copyIndexedKey } from "./actions.ts";

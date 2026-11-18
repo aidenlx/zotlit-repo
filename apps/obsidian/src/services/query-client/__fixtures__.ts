@@ -2,9 +2,9 @@ import { Clock, Context, Effect, Exit, Layer, Scope } from "effect";
 // A real QueryClients layer for consumer tests outside Effect.
 import { TestClock } from "effect/testing";
 
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { QueryClients } from "./service.ts";
 import { layerQueryClients } from "./service.ts";
@@ -14,7 +14,7 @@ export function buildQueryClients(
   stack: AsyncDisposableStack,
   now?: QueryTestClock["now"],
 ): QueryClients["Service"] & {
-  runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
+  runtime: import("@zotlit/plugin-kernel/effect-stream.ts").SubscriptionRuntime;
   bridge: EffectBridge;
 } {
   const clock = Context.get(Context.empty(), Clock.Clock);
@@ -46,7 +46,7 @@ export function queryClientsFixture(
   now?: QueryTestClock["now"],
 ): QueryClients["Service"] &
   AsyncDisposable & {
-    runtime: import("@/lib/effect-stream.ts").SubscriptionRuntime;
+    runtime: import("@zotlit/plugin-kernel/effect-stream.ts").SubscriptionRuntime;
     bridge: EffectBridge;
   } {
   const stack = new AsyncDisposableStack();

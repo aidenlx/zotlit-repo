@@ -12,8 +12,9 @@ import type { Scope } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
-import { scheduleBrowserTask } from "@/lib/browser-scheduler.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
+import { scheduleBrowserTask } from "@zotlit/plugin-kernel/browser-scheduler.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+
 import type {
   AnnotationRecord,
   AnnotationRepository,

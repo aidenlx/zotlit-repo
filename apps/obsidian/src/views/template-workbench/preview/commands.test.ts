@@ -2,7 +2,8 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { vi } from "vitest";
 
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
+import { scopedViewRunner } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
+
 import type { ZoteroReadLease } from "@/services/zotero-reads/service.ts";
 import { waitFor } from "@/views/template-data-explorer/__fixtures__.ts";
 import { getSampleItem } from "@/views/template-workbench/selection-data.ts";

@@ -7,14 +7,14 @@ import { Effect } from "effect";
 
 import { annotationHasCacheImage } from "@zotlit/db";
 import type { Item } from "@zotlit/db";
+import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
+import { joinFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
+import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { SnapshotVaultTargets } from "@zotlit/workbench/snapshot";
 
-import { attachmentFolderPath } from "@/lib/attachment-folder.ts";
-import { joinFolderPath } from "@/lib/ensure-folder.ts";
-import type { FileManager } from "@/lib/obsidian-file-manager.ts";
-import type { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
 import {
   excerptAssetIdentities,
   isOwnedExcerptAssetPath,

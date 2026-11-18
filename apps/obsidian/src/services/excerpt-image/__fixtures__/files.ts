@@ -1,7 +1,7 @@
 // The platform file boundary for renderer ownership tests.
 import { DateTime, Effect, FileSystem, Layer, Option } from "effect";
 import type { open } from "node:fs/promises";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 export function layerExcerptFiles(openFile: typeof open) {
   return Layer.succeed(

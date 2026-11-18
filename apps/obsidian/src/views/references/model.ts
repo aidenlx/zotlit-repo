@@ -5,8 +5,9 @@ import * as Atom from "effect/reactivity/Atom";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import {
   citationLookupStateAtom,
   documentRevisionsAtom,

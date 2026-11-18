@@ -3,9 +3,10 @@
 import { DateTime, Effect, FiberHandle, Queue, Stream } from "effect";
 import type { ButtonComponent, Setting, SettingGroupItem } from "obsidian";
 
-import { recover } from "@/lib/effect-cause.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { BaseNotice } from "@/lib/notice.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { editingCapabilityCopy } from "@/services/annotation-repository/capability-copy.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@/services/annotation-repository/service.ts";

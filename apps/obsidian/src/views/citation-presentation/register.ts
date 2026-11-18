@@ -3,14 +3,15 @@ import type { App, Plugin, TFile } from "obsidian";
 // The Set citation presentation action: its command-palette entry, its place in
 // the active note's More options menu, and the update a confirmed dialog writes.
 
-import { valueOr } from "@/lib/effect-bridge.ts";
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { Notifier, reportOutcome } from "@/lib/notifier.ts";
-import type { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import type { Workspace } from "@/lib/obsidian-workspace.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { FileMenuSegment } from "@/services/file-menu.ts";
 import type { PluginSettings } from "@/services/settings/service.ts";
 import type { ZoteroPref } from "@/services/zotero-pref/service.ts";

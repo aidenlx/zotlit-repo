@@ -4,11 +4,11 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
 import { isChildItemFields } from "@zotlit/db";
+import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { itemSummary } from "@/lib/item-summary.ts";
-import { viewRuntime } from "@/lib/view-atoms.ts";
 import {
   annotationChangeAtom,
   annotationListsChangeAtom,

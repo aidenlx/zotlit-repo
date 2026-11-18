@@ -4,8 +4,9 @@ import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
-import { FIELD_LITERATURE_NOTE_PROFILE } from "@/lib/constants.ts";
-import type { ProfileId } from "@/lib/profile-stamp.ts";
+import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { FIELD_LITERATURE_NOTE_PROFILE } from "@zotlit/plugin-kernel/constants.ts";
+
 import { NoteIndex } from "@/services/note-index/service.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";
 import type { ProfileFixture } from "@/services/profile/__fixtures__/reader.ts";

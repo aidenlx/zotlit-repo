@@ -1,21 +1,21 @@
 import { Context, Deferred, Effect, Fiber, Layer, Scope } from "effect";
 import { join } from "node:path/posix";
 
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import {
+  FileExists,
+  VaultError,
+  VaultFolderBlockedError,
+} from "@zotlit/plugin-kernel/vault-errors.ts";
 import {
   CONVERTED_DEFAULT_PROFILE_DOCUMENT,
   LegacyTemplateConversionError,
 } from "@zotlit/templates/facade";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { obsidianEvents } from "@/lib/effect-obsidian-events.ts";
-import { FileManager } from "@/lib/obsidian-file-manager.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import {
-  FileExists,
-  VaultError,
-  VaultFolderBlockedError,
-} from "@/lib/vault-errors.ts";
 import {
   PluginSettings,
   SettingsMutationError,

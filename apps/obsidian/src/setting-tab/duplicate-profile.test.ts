@@ -3,11 +3,15 @@ import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
-import type { ProfileId, ProfileSelector } from "@/lib/profile-stamp.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import type {
+  ProfileId,
+  ProfileSelector,
+} from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { Customize } from "@/services/local-bridge/customize.ts";
 import type { CustomizeRequest } from "@/services/local-bridge/customize.ts";
 import { profileReader } from "@/services/profile/__fixtures__/reader.ts";

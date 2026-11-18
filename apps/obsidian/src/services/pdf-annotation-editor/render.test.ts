@@ -2,8 +2,8 @@
 import { describe, expect, it } from "vitest";
 
 import { parseAnnotationPosition } from "@zotlit/db";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
-import { themeHook } from "@/lib/theme-hooks.ts";
 import type { AnnotationRecord } from "@/services/annotation-repository/service.ts";
 
 import { annotation, viewport } from "./__fixtures__.ts";

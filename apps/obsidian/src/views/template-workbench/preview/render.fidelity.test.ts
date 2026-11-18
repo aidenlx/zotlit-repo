@@ -7,9 +7,9 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
 import { getItemsByKey } from "@zotlit/db";
+import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type { SourceOrigin } from "@/services/attachment-import/source.ts";
 import { noteFeatureHandle } from "@/services/note-feature/__fixtures__/note-feature.ts";
 import type { NoteFeatureSources } from "@/services/note-feature/__fixtures__/note-feature.ts";

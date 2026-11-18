@@ -14,10 +14,11 @@ import type {
 } from "obsidian";
 import { afterEach, expect, it, vi } from "vitest";
 
-import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationLookupAnswer } from "@/services/citation-index/lookup.ts";
 import { UseLedger } from "@/services/use-ledger/service.ts";

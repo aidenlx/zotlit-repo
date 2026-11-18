@@ -8,12 +8,13 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
-import { awaitConfirm } from "@/lib/confirm.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { leaveSettingsFor } from "@/lib/plugin-host.ts";
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { leaveSettingsFor } from "@zotlit/obsidian-kit/plugin-host.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { AutoTrim } from "@/services/settings/schema.ts";
 import { reportCitationTemplateOpen } from "@/services/template/actions.ts";
 import { Template } from "@/services/template/service.ts";

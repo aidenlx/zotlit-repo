@@ -1,7 +1,7 @@
 // Reader sessions observed by the Annotation View through its registry.
 import { Effect, Stream } from "effect";
 
-import { held } from "@/lib/view-atoms.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import { PdfAnnotationEditor } from "./service.ts";
 

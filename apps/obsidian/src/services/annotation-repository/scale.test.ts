@@ -5,7 +5,8 @@ import { Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, it, vi } from "vitest";
 
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+
 import {
   annotationPage,
   rootOk,

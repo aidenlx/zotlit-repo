@@ -1,8 +1,8 @@
 import "./style.css";
 import type { App, Plugin } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { AnnotActions } from "./actions.tsx";
 import type { AnnotViewModel } from "./model.ts";

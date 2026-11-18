@@ -390,7 +390,7 @@ const CITATION_TEMPLATE = "citation";
  * Variant, so a preview holding that template produces the same text. A bundle
  * carrying no Citation Template, and a parent Item with no citation key, leave
  * the value null.
- * @see apps/obsidian/src/lib/annotation-render.ts annotationCitation
+ * @see apps/obsidian/src/services/template/annotation-render.ts annotationCitation
  */
 function withRenderedCitation(
   facade: TemplateFacade,

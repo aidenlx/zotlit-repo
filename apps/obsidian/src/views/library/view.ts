@@ -10,15 +10,15 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { debounce, ItemView, Keymap, Scope } from "obsidian";
 import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
 
+import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
+import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { composing } from "@zotlit/ui";
 
-import { holdScopeWhileFocused } from "@/lib/focus-scope.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { runtime } from "@/lib/i18n/generated/runtime.ts";
-import { getLogger } from "@/lib/log.ts";
-import { showMenuAtButton } from "@/lib/menu.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
 import type { QueryViewValue } from "@/services/item-query/query-view.ts";
 import { libraryScopeStateAtom } from "@/services/library-scope/atoms.ts";
 import type { LibraryScope } from "@/services/library-scope/scope.ts";

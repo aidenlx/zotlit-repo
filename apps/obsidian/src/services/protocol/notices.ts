@@ -4,10 +4,14 @@
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier, reportOutcome } from "@/lib/notifier.ts";
-import type { NoticeMessage, OutcomeCopy } from "@/lib/notifier.ts";
-import { unknownProfileDiagnostic } from "@/lib/profile-stamp.ts";
+import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type {
+  NoticeMessage,
+  OutcomeCopy,
+} from "@zotlit/obsidian-kit/notifier.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { BatchUpdateResult } from "@/services/note-feature/update-batch.ts";
 import { noteOperationDiagnosticNotice } from "@/services/note-feature/update-single.ts";
 import {

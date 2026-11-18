@@ -2,8 +2,9 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, Stream } from "effect";
 import { describe, expect } from "vitest";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { languagePackSettingCopy } from "@/lib/i18n/settings-copy.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import { languagePackSettingCopy } from "@/setting-tab/language-pack-copy.ts";
 
 import { fakeDevice, startOn } from "./__fixtures__.ts";
 import type { LanguagePack } from "./service.ts";

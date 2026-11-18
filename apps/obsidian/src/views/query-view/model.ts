@@ -9,8 +9,11 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import type { NoticeMessage } from "@/lib/notifier.ts";
-import type { ViewRegistryHandle, ViewServices } from "@/lib/view-atoms.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import type {
+  ViewRegistryHandle,
+  ViewServices,
+} from "@zotlit/obsidian-kit/view-atoms.ts";
 
 import type { QueryView, QueryViewState } from "./view.tsx";
 

@@ -3,8 +3,8 @@ import { Effect, Fiber } from "effect";
 import type { WorkspaceLeaf } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { openTemplateDataExplorer } from "./register.ts";
 

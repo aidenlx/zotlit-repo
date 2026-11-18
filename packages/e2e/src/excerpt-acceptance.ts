@@ -268,7 +268,7 @@ async function removeUrlProbe(vaultId: string): Promise<void> {
 export async function verifyReaderBackedExcerpts(
   vaultId: string,
 ): Promise<void> {
-  const m = await import("@obsidian-messages");
+  const m = await import("@zotlit/plugin-messages/messages.ts");
   const layout = await obRun(
     vaultId,
     async ({ app }) => {

@@ -4,16 +4,17 @@ import type { App } from "obsidian";
 import {
   layerHost,
   layerHostApp,
-} from "@/lib/__fixtures__/obsidian-host-app.ts";
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import {
   createObsidianHost,
   PluginStub,
-} from "@/lib/__fixtures__/obsidian-host.ts";
-import { effectBridge } from "@/lib/effect-bridge.ts";
-import { buildRuntime } from "@/lib/effect-layer.ts";
-import { loadedTextFileView } from "@/lib/live-text.ts";
-import { ObsidianApp } from "@/lib/obsidian-app.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+} from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
+import { loadedTextFileView } from "@zotlit/obsidian-kit/live-text.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+
 import {
   layerPluginSettings,
   PluginSettings,

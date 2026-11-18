@@ -11,7 +11,8 @@ import {
 } from "effect";
 import { expect } from "vitest";
 
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+
 import {
   QueryClients,
   layerQueryClients,

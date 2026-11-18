@@ -4,14 +4,17 @@
 import { useMemo } from "react";
 import type { Ref } from "react";
 
-import type { ChooserGroup, ChooserRow } from "@/components/chooser-logic.ts";
-import { Chooser } from "@/components/chooser.tsx";
-import { IconButton } from "@/components/obsidian/icon-button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { annotationColorLabel } from "@/lib/annotation-colors.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { runtime } from "@/lib/i18n/generated/runtime.ts";
-import { cn, tooltipAttrs } from "@/lib/utils.ts";
+import type {
+  ChooserGroup,
+  ChooserRow,
+} from "@zotlit/obsidian-kit/components/chooser-logic.ts";
+import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
+import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
+import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
 import {
   cappedSelection,

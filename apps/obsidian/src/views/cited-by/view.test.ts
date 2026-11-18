@@ -1,13 +1,14 @@
-// @vitest-environment happy-dom
-import { Menu } from "@mock/obsidian.ts";
 import { Effect } from "effect";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { yieldToMain } from "@/lib/yield-to-main.ts";
+// @vitest-environment happy-dom
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { activeCitedByAtom } from "@/services/citation-index/atoms.ts";
 import { ParsedNote } from "@/services/citation-index/parsed-note.ts";
 import { scanNote } from "@/services/citation-index/scan-note.ts";

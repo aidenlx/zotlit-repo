@@ -5,14 +5,15 @@ import { extname } from "node:path";
 import { Modal, Setting } from "obsidian";
 import type { App, FileSystemAdapter } from "obsidian";
 
+import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   citationStyleLabel,
   referencesStyleOptions,
   STYLE_DEFAULT,
-} from "@/lib/citation-style.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { getLogger } from "@/lib/log.ts";
-import { requireDialog } from "@/lib/require.ts";
+} from "@/services/pandoc/citation-style.ts";
 import type { StyleSource } from "@/services/pandoc/document-presentation.ts";
 import type { DocumentFormat } from "@/services/pandoc/engine.ts";
 import type { InstalledCslStyle } from "@/services/pandoc/styles.ts";

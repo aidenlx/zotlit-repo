@@ -7,9 +7,10 @@ import type {
   SettingGroupItem,
 } from "obsidian";
 
-import { companionDocsUrl, docsUrl } from "@/lib/docs-url.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { withProgress } from "@/lib/notifier.ts";
+import { companionDocsUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type {
   ConfiguredReadMode,
   EffectiveReadMode,

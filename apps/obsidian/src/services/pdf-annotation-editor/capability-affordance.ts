@@ -7,7 +7,8 @@
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
 import { setIcon } from "obsidian";
 
-import { themeHook } from "@/lib/theme-hooks.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import type { CapabilityAffordance } from "@/services/annotation-repository/capability-copy.ts";
 
 /** Aligns the status icon and text within the native toolbar. */

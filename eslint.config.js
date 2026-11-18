@@ -6,7 +6,8 @@ import tseslint from "typescript-eslint";
 import pkg from "./apps/obsidian/package.json" with { type: "json" };
 
 /**
- * The community directory scanner's ESLint run, for `apps/obsidian/src`.
+ * The community directory scanner's ESLint run, for the plugin's source:
+ * `apps/obsidian/src` and the plugin packages it bundles (PLUGIN_SOURCES).
  *
  * Mirrors the type-aware branch of `buildScannerEslintConfig` in
  * obsidianmd/obsidian-workflows `src/lint.ts` at
@@ -80,6 +81,14 @@ function toWarns(config) {
   return { ...config, rules: Object.fromEntries(rules) };
 }
 
+/** The source that ships in the plugin: the app and the plugin packages. */
+const PLUGIN_SOURCES = [
+  "apps/obsidian/src",
+  "packages/plugin-kernel/src",
+  "packages/obsidian-kit/src",
+  "packages/obsidian-desktop/src",
+];
+
 export default [
   // The plugin's recommended config globs every TypeScript file. Ignore the
   // tree, then unignore the review targets: each ancestor directory has to be
@@ -88,15 +97,18 @@ export default [
     ignores: [
       "**/*",
       "!apps/",
-      "!apps/obsidian/",
-      "!apps/obsidian/src/",
-      "!apps/obsidian/src/**",
+      "!packages/",
+      ...PLUGIN_SOURCES.flatMap((source) => [
+        `!${source.split("/").slice(0, 2).join("/")}/`,
+        `!${source}/`,
+        `!${source}/**`,
+      ]),
       "!manifest.json",
     ],
   },
 
   {
-    files: ["apps/obsidian/src/**/*.{ts,tsx}"],
+    files: PLUGIN_SOURCES.map((source) => `${source}/**/*.{ts,tsx}`),
     languageOptions: {
       parserOptions: {
         projectService: true,

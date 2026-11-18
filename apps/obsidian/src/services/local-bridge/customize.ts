@@ -7,18 +7,19 @@
 import { Context, Duration, Effect, Layer, Option, Stream } from "effect";
 import type { CachedMetadata, TFile } from "obsidian";
 
-import { DOCS_SITE_URL } from "@/lib/constants.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { awaitModal } from "@/lib/effect-modal.ts";
-import type { ClosableModal } from "@/lib/effect-modal.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Notifier } from "@/lib/notifier.ts";
-import { ObsidianEnv } from "@/lib/obsidian-env.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { DEFAULT_PROFILE } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
+import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import type { ClosableModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { DOCS_SITE_URL } from "@zotlit/plugin-kernel/constants.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { LocalServer } from "@/services/local-server/service.ts";
 import { itemKeyFromFrontmatter } from "@/services/note-index/service.ts";
 import { Profile } from "@/services/profile/service.ts";

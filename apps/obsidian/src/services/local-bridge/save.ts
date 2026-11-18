@@ -8,6 +8,7 @@
 // in this vault, and the vault still holds the revision the page loaded.
 import { Effect, FiberSet } from "effect";
 
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import { LiteratureNotePackError } from "@zotlit/templates/literature-note-pack";
 import type {
@@ -15,7 +16,6 @@ import type {
   SaveSelectedProfileResponse,
 } from "@zotlit/workbench/bridge";
 
-import { withLogCategory } from "@/lib/effect-log.ts";
 import { Profile } from "@/services/profile/service.ts";
 import { Template } from "@/services/template/service.ts";
 

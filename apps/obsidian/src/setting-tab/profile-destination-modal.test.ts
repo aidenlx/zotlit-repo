@@ -1,10 +1,15 @@
-// @vitest-environment happy-dom
-import { ButtonComponent, controlsOf, TextComponent } from "@mock/obsidian.ts";
 import type { App } from "obsidian";
 import { expect, it, vi } from "vitest";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
+// @vitest-environment happy-dom
+import {
+  ButtonComponent,
+  controlsOf,
+  TextComponent,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { ResolvedProfile } from "@/services/profile/bindings.ts";
 import type { PreparedProfileCreation } from "@/services/profile/service.ts";
 import { defaults } from "@/services/settings/schema.ts";

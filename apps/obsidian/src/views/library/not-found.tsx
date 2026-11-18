@@ -10,13 +10,13 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
+import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
-import { Button } from "@/components/obsidian/button.tsx";
-import { Icon } from "@/components/obsidian/icon.tsx";
-import { PaneState } from "@/components/pane-state.tsx";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import type { ViewRegistryHandle } from "@/lib/view-atoms.ts";
 import { zoteroStateAtom } from "@/services/zotero-reads/atoms.ts";
 import type { ZoteroReadsState } from "@/services/zotero-reads/service.ts";
 import { refreshFailed, unavailable } from "@/views/welcome/connection.ts";

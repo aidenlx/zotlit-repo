@@ -1,4 +1,4 @@
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 const logger = getLogger("pdf-reads");
 

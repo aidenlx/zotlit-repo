@@ -1,5 +1,6 @@
-import { Menu } from "@mock/obsidian.ts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 
 import { createExplorerActions } from "./actions.ts";
 

@@ -3,8 +3,7 @@
 import { getFrontMatterInfo } from "obsidian";
 
 import type { CslItemData } from "@zotlit/db";
-
-import { getLogger } from "@/lib/log.ts";
+import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type {
   Blocks,

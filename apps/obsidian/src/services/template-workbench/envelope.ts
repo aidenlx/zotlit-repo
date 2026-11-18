@@ -1,4 +1,14 @@
 import type { ContractRoot } from "@zotlit/db";
+import {
+  createRenderedCliDiagnostics,
+  lineColumn,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import type {
+  FaultFacts,
+  RenderedDiagnostic,
+} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+import { UNKNOWN_PROFILE_HINT } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type {
   FrontmatterLanguage,
   FrontmatterMergeStrategy,
@@ -13,13 +23,6 @@ import { MissingTemplateError, TemplateError } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 
-import {
-  createRenderedCliDiagnostics,
-  lineColumn,
-} from "@/lib/cli-diagnostic.ts";
-import type { FaultFacts, RenderedDiagnostic } from "@/lib/cli-diagnostic.ts";
-import { UNKNOWN_PROFILE_HINT } from "@/lib/profile-stamp.ts";
-import type { ProfileSelector } from "@/lib/profile-stamp.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@/services/profile/bindings.ts";
 import type { ProfileDiagnostic } from "@/services/profile/service.ts";
 import {

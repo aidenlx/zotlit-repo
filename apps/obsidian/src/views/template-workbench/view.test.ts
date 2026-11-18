@@ -1,16 +1,5 @@
 import { forceParsing } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
-import {
-  Menu,
-  resetMockPlatform,
-  setMockPlatform,
-  TextFileView as MockTextFileView,
-} from "@mock/obsidian.ts";
-import type {
-  ItemView as MockItemView,
-  MenuItem,
-  Scope as MockScope,
-} from "@mock/obsidian.ts";
 import { Cause, Effect, Exit } from "effect";
 import { Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -20,6 +9,28 @@ import { act } from "preact/test-utils";
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { answerConfirmation } from "@zotlit/obsidian-kit/__fixtures__/confirm.ts";
+import {
+  dispatchKey,
+  keymapApp,
+} from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
+import { windowMigration } from "@zotlit/obsidian-kit/__fixtures__/window-migration.ts";
+import {
+  Menu,
+  resetMockPlatform,
+  setMockPlatform,
+  TextFileView as MockTextFileView,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type {
+  ItemView as MockItemView,
+  MenuItem,
+  Scope as MockScope,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
+import { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   formatPlainTemplateDocument,
   parsePlainTemplateDocument,
@@ -34,13 +45,6 @@ import {
 } from "@zotlit/workbench/render";
 import { fieldForm } from "@zotlit/workbench/ui";
 
-import { answerConfirmation } from "@/lib/__fixtures__/confirm.ts";
-import { dispatchKey, keymapApp } from "@/lib/__fixtures__/keymap.ts";
-import { testRuntime } from "@/lib/__fixtures__/runtime.ts";
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { MENU_SECTION } from "@/lib/menu-section.ts";
-import { VaultError } from "@/lib/vault-errors.ts";
 import { bindProfile } from "@/services/profile/bindings.ts";
 import { defaults } from "@/services/settings/schema.ts";
 import type { ZoteroReadsClient } from "@/services/zotero-reads/in-process.ts";
@@ -62,7 +66,6 @@ import {
 import type { WorkbenchHostDeps as TemplateWorkbenchDeps } from "./__fixtures__.ts";
 import { createSharedPartialEffect } from "./partial-command.ts";
 import { SAMPLE_ITEM_CHOICES } from "./selection-data.ts";
-import { windowMigration } from "./test-window-migration.ts";
 import {
   TemplateWorkbenchView,
   originatingNoteUpdateNotice,

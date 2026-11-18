@@ -1,3 +1,8 @@
+import { PROFILE_ID_LENGTH } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import {
+  DOCS_SITE_URL,
+  RESERVED_KEYS,
+} from "@zotlit/plugin-kernel/constants.ts";
 // Focused Workbench reference, using the executable command vocabularies.
 import {
   LIQUID_BUILTIN_FILTER_NAMES,
@@ -5,8 +10,6 @@ import {
   ZOTLIT_FILTER_NAMES,
 } from "@zotlit/templates/liquid";
 
-import { DOCS_SITE_URL, RESERVED_KEYS } from "@/lib/constants.ts";
-import { PROFILE_ID_LENGTH } from "@/lib/profile-stamp.ts";
 import { RESERVED_PARTIAL_NAME_LIST } from "@/services/template/defaults.ts";
 
 import { CHECK_GUIDE } from "./check.ts";

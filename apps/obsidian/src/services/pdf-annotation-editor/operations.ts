@@ -10,17 +10,17 @@ import {
 } from "effect";
 import type { Scope } from "effect";
 
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type {
   PdfPosition,
   PdfTextStructure,
   SelectedText,
   TextSelection,
 } from "@zotlit/pdf-structure";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import type { EffectBridge } from "@/lib/effect-bridge.ts";
-import { recover } from "@/lib/effect-cause.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import type { Notifier } from "@/lib/notifier.ts";
 import { historyOutcomeNotice } from "@/services/annotation-repository/actions.ts";
 import type { CopyInstant } from "@/services/annotation-repository/capability-copy.ts";
 import type {

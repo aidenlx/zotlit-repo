@@ -11,18 +11,18 @@ import {
 import type { Stream } from "effect";
 import type { TFile } from "obsidian";
 
-import { isIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { parseInstant, toInstant } from "@/lib/effect-clock.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { filterTag, forkEach } from "@/lib/effect-stream.ts";
-import { DeviceStorage } from "@/lib/obsidian-device-storage.ts";
+import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import type {
   DeviceStorageError,
   DeviceStorageShape,
-} from "@/lib/obsidian-device-storage.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
+} from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { parseInstant, toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { isIndexedKey } from "@zotlit/zotero-types/keys";
+
 import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
 const UseKind = Schema.Literals(["opened", "read", "cited"]);

@@ -4,13 +4,17 @@
 import type { Extension } from "@codemirror/state";
 import { Effect, Layer, Stream } from "effect";
 
-import { dispatchToMarkdownEditors } from "@/lib/editor-decoration.ts";
-import { scopedBridge } from "@/lib/effect-bridge.ts";
-import { withLogCategory } from "@/lib/effect-log.ts";
-import { forkEach } from "@/lib/effect-stream.ts";
-import * as m from "@/lib/i18n/generated/messages.ts";
-import { Workspace, workspaceTrigger } from "@/lib/obsidian-workspace.ts";
-import { PluginHost } from "@/lib/plugin-host.ts";
+import { dispatchToMarkdownEditors } from "@zotlit/obsidian-kit/editor-decoration.ts";
+import {
+  Workspace,
+  workspaceTrigger,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { AnnotationPopover } from "@/services/annotation-popover/service.tsx";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";

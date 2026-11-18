@@ -5,9 +5,9 @@ import type {
   Vault as ObsidianVault,
 } from "obsidian";
 
-import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { QueryService } from "@/services/item-query/service.ts";
 import type { TFile } from "obsidian";
 import { NoteIndex } from "@/services/note-index/service.ts";

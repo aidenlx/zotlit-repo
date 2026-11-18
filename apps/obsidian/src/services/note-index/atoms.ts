@@ -1,14 +1,15 @@
 // View atoms over the active note: which file is active and the Zotero key
-// its frontmatter names. Read through `@/lib/view-atoms`.
+// its frontmatter names. Read through `@zotlit/obsidian-kit/view-atoms.ts`.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import type { TFile } from "obsidian";
 
-import { filterTag } from "@/lib/effect-stream.ts";
-import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
-import { Vault } from "@/lib/obsidian-vault.ts";
-import { Workspace } from "@/lib/obsidian-workspace.ts";
-import { held } from "@/lib/view-atoms.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+
 import { itemKeyFromFrontmatter } from "@/services/note-index/parse.ts";
 
 import { NoteIndex } from "./service.ts";

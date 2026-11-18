@@ -5,7 +5,8 @@
 import { Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 
-import * as m from "@/lib/i18n/generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
 import type { LiteratureNotes } from "@/views/query-view/table-notes.ts";
 
