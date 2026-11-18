@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { Library } from "#queries/libraries.ts";
 
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
@@ -9,7 +9,7 @@ import { getLibraryByGroupID } from "#queries/libraries.ts";
 
 /** Resolve the active library for an `indexedKey`, or `null` when unresolvable. */
 export function resolveIndexedKeyLibrary(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   indexedKey: string,
 ): { key: string; libraryID: number } | null {
   const parsed = parseIndexedKey(indexedKey);

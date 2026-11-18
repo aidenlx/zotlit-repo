@@ -1,20 +1,15 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
-import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
 import type { ItemBaseFieldName, ItemBaseFields } from "#lib/zt-venue.ts";
 
 import type { ItemFields } from "@zotlit/zotero-types";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { getBaseFieldTable, getBaseFieldTableAsync } from "./_base-fields.ts";
+import { getBaseFieldTable } from "./_base-fields.ts";
 import type { BaseFieldTable } from "./_base-fields.ts";
 import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
 import type { ChildItemType, FindManyOptions, QueryRow } from "./_shared.ts";
-import {
-  groupIDForLibrary,
-  groupIDForLibraryAsync,
-  resolveGroupID,
-} from "./libraries.ts";
+import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
 import {
@@ -255,7 +250,7 @@ function toItem(
 }
 
 export function getItemsByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): Item[] {
   const groupId = groupIDForLibrary(db, libraryID);
@@ -264,18 +259,6 @@ export function getItemsByLibrary(
     .prepared(db)
     .all({ libraryID })
     .map((r) => toItem(r, groupId, baseFieldTable));
-}
-
-export async function getItemsByLibraryAsync(
-  db: SQLocalDatabaseClient,
-  libraryID: number,
-): Promise<Item[]> {
-  const [rows, groupID, baseFieldTable] = await Promise.all([
-    itemsByLibraryQuery.prepared(db).all({ libraryID }),
-    groupIDForLibraryAsync(db, libraryID),
-    getBaseFieldTableAsync(db, ITEM_BASE_FIELDS),
-  ]);
-  return rows.map((r) => toItem(r, groupID, baseFieldTable));
 }
 
 /**
@@ -290,7 +273,7 @@ export async function getItemsByLibraryAsync(
  *   to this call.
  */
 export function getItemsByID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): Item[] {
@@ -304,7 +287,7 @@ export function getItemsByID(
 }
 
 export function getItemTypeByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   key: string,
 ): string | null {
@@ -325,7 +308,7 @@ export function getItemTypeByKey(
  *   seeds it and saves the group read.
  */
 export function getItemsByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   keys: readonly string[],
   opts: { libraryID: number; memo?: GroupIDMemo },
 ): Item[] {

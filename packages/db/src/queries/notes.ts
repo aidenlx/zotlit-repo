@@ -1,6 +1,6 @@
 // Zotero note (`itemNotes`) lookups: child-note listing and single-note fetch.
 
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
@@ -103,7 +103,7 @@ function toNote(row: NoteRow, groupID: number | null): Note {
 }
 
 export function getChildNotes(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   parentItemID: number,
   opts?: { memo?: GroupIDMemo },
 ): ChildNote[] {
@@ -117,7 +117,7 @@ export function getChildNotes(
 }
 
 export function getNoteByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   noteKey: string,
   opts: { libraryID: number; memo?: GroupIDMemo },
 ): Note | null {
@@ -152,7 +152,7 @@ const notesByKeysQuery = defineKeyedQuery<string, { libraryID: number }>()(
  * entry; a repeated key repeats its note.
  */
 export function getNotesByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   keys: readonly string[],
 ): Note[] {
@@ -196,7 +196,7 @@ const noteRefsByItemIdsQuery = defineKeyedQuery<number>()(
  * no entry. Entries stay in ascending item ID order.
  */
 export function getNoteRefsByItemIDs(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): Map<number, NoteRef> {
@@ -236,7 +236,7 @@ const childNotesByParentsQuery = defineKeyedQuery<number>()(
  * keyed read: {@link getChildNotes} for each parent, in `parentItemIDs` order.
  */
 export function getChildNotesByParentIDs(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   parentItemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): ChildNote[] {

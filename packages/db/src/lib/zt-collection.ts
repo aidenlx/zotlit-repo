@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { QueryRow } from "#queries/_shared.ts";
 
 import { defineToString } from "./to-string.ts";
@@ -82,7 +82,7 @@ export class CollectionCache {
 
   /** Resolve each item's collections, sorted by name within each item. */
   byItemIDs(
-    db: NodeDatabaseClient,
+    db: ZoteroDatabase,
     libraryID: number,
     itemIDs: readonly number[],
   ): Map<number, TemplateCollection[]> {
@@ -115,7 +115,7 @@ export class CollectionCache {
   }
 
   #nodes(
-    db: NodeDatabaseClient,
+    db: ZoteroDatabase,
     libraryID: number,
   ): ReadonlyMap<number, CollectionNode> {
     return (

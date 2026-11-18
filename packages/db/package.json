@@ -12,7 +12,6 @@
   "exports": {
     ".": "./src/index.ts",
     "./client/node": "./src/client/node.ts",
-    "./client/web": "./src/client/web.ts",
     "./contract/ir": "./src/contract/ir.ts",
     "./item-fixture": "./src/item-fixture.ts",
     "./item-query": "./src/item-query/index.ts",
@@ -55,13 +54,5 @@
     "ts-morph": "^28.0.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "peerDependencies": {
-    "sqlocal": "^0.18.0"
-  },
-  "peerDependenciesMeta": {
-    "sqlocal": {
-      "optional": true
-    }
   }
 }

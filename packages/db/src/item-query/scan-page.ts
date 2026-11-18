@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import {
   and,
   asc,
@@ -46,7 +46,7 @@ function epochMilliseconds(column: AnyColumn): SQL<number | null> {
 }
 
 /** The scan rows of `items`, before a statement restricts them. */
-function selectScanRows(db: NodeDatabaseClient) {
+function selectScanRows(db: ZoteroDatabase) {
   return db
     .select({
       itemID: items.itemID,
@@ -63,7 +63,7 @@ function selectScanRows(db: NodeDatabaseClient) {
 }
 
 /** The terms of the query universe: a top-level Item outside the trash. */
-function universeTerms(db: NodeDatabaseClient): SQL[] {
+function universeTerms(db: ZoteroDatabase): SQL[] {
   return [
     notInArray(itemTypesCombined.typeName, [...CHILD_ITEM_TYPES]),
     notExists(

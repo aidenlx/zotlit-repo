@@ -1,8 +1,5 @@
 // Reports the Zotero schema versions of the database being read.
-import type { NodeDatabaseClient } from "#client/node.ts";
-import type { SQLocalDatabaseClient } from "#client/web.ts";
-
-import { defineQuery } from "./_shared.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { readDatabaseLayout } from "#layout/index.ts";
 
@@ -36,13 +33,6 @@ export interface ZoteroSchemaVersions {
   supported: boolean;
 }
 
-const versionQuery = defineQuery<void>()((db) =>
-  db.query.version.findMany({
-    columns: { schema: true, version: true },
-    where: { schema: { in: ["userdata", "compatibility"] } },
-  }),
-);
-
 /**
  * `supported: false` means ZotLit reads a database shape it was never tested
  * against, so a query may return wrong data or none. The caller decides what to
@@ -52,27 +42,12 @@ const versionQuery = defineQuery<void>()((db) =>
  * The stamps come from the layout of the copy (`readDatabaseLayout`), which
  * reads them once for each copy.
  */
-export function getSchemaVersions(
-  db: NodeDatabaseClient,
-): ZoteroSchemaVersions {
+export function getSchemaVersions(db: ZoteroDatabase): ZoteroSchemaVersions {
   const { userdata, compatibility } = readDatabaseLayout(db).versions;
   const supported =
     inRange(userdata, SUPPORTED_SCHEMA_VERSIONS.userdata) &&
     inRange(compatibility, SUPPORTED_SCHEMA_VERSIONS.compatibility);
   return { userdata, compatibility, supported };
-}
-
-/**
- * Whether the local client revision columns of userdata 129 are available, by
- * the `userdata` stamp. The async client has no layout read; a synchronous
- * reader asks `readDatabaseLayout` for the columns.
- */
-export async function hasClientRevisionsAsync(
-  db: SQLocalDatabaseClient,
-): Promise<boolean> {
-  const rows = await versionQuery.prepared(db).all();
-  const userdata = rows.find(({ schema }) => schema === "userdata")?.version;
-  return typeof userdata === "number" && userdata >= 129;
 }
 
 function inRange(

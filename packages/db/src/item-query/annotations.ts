@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { and, count, or, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
@@ -45,7 +45,7 @@ export interface AnnotationScanRow extends ScanRow {
   sortIndex: string;
 }
 
-function selectAnnotations(db: NodeDatabaseClient) {
+function selectAnnotations(db: ZoteroDatabase) {
   return db
     .select({
       itemID: items.itemID,
@@ -90,7 +90,7 @@ function selectAnnotations(db: NodeDatabaseClient) {
     );
 }
 
-function universe(db: NodeDatabaseClient) {
+function universe(db: ZoteroDatabase) {
   return recordUniverse(db, [items, attachment, parent], false);
 }
 

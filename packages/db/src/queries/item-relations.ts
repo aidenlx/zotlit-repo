@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { defineQuery } from "./_shared.ts";
 
@@ -37,7 +37,7 @@ const relatedObjectsByItemQuery = defineQuery<{ itemID: number }>()(
  * sharing the row shape) are skipped.
  */
 export function getRelatedKeysByItemID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
 ): string[] {
   return relatedObjectsByItemQuery

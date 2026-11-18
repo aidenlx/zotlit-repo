@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
@@ -49,7 +49,7 @@ export type CollectionNode = QueryRow<typeof collectionNodesByLibraryQuery>;
 
 /** Every non-trashed collection of one library, unordered. */
 export function getCollectionNodesByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): CollectionNode[] {
   return collectionNodesByLibraryQuery.prepared(db).all({ libraryID });
@@ -61,7 +61,7 @@ export function getCollectionNodesByLibrary(
  * collections are excluded; a trashed item has none.
  */
 export function getCollectionIDsByItem(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
 ): number[] {
   return collectionIDsByItemQuery

@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { and, count, eq, notExists } from "drizzle-orm";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
@@ -70,7 +70,7 @@ function toAnnotViewAttachment(
 }
 
 export function getAnnotViewAttachments(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemKey: string,
   libraryID: number,
 ): AnnotViewAttachment[] {
@@ -108,7 +108,7 @@ const annotationCountQuery = defineQuery<{ parentItemID: number }>()(
  * @see apps/obsidian/docs/adr/0034-the-annotation-source-is-atomic-per-attachment.md
  */
 export function getAttachmentAnnotationCount(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   attachmentItemID: number,
 ): number {
   const row = annotationCountQuery

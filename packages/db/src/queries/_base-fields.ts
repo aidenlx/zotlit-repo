@@ -1,5 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
-import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
@@ -59,7 +58,7 @@ const tablesByClient = new WeakMap<
  * so the search index and the Item query cannot drift apart.
  */
 export function getBaseFieldTable<TName extends string>(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   names: readonly TName[],
 ): BaseFieldTable<TName> {
   const cached = readCache<TName>(db, names);
@@ -74,20 +73,6 @@ export function getBaseFieldTable<TName extends string>(
       names,
     ),
   );
-}
-
-export async function getBaseFieldTableAsync<TName extends string>(
-  db: SQLocalDatabaseClient,
-  names: readonly TName[],
-): Promise<BaseFieldTable<TName>> {
-  const cached = readCache<TName>(db, names);
-  if (cached) return cached;
-  const args = { names: [...names] };
-  const [canonicalRows, aliasRows] = await Promise.all([
-    canonicalFieldsQuery.prepared(db, args).all(),
-    aliasFieldsQuery.prepared(db, args).all(),
-  ]);
-  return writeCache(db, names, buildTable(canonicalRows, aliasRows, names));
 }
 
 function cacheKey(names: readonly string[]): string {

@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { Attachment } from "#lib/zt-attach.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
@@ -143,7 +143,7 @@ function toAttachment(row: AttachmentRow, groupID: number | null): Attachment {
  * no live attachment adds nothing; a repeated parent repeats its attachments.
  */
 export function getAttachmentsByParents(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   parentItemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): Attachment[] {
@@ -159,7 +159,7 @@ export function getAttachmentsByParents(
  * repeated key repeats its attachment.
  */
 export function getAttachmentsByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   keys: readonly string[],
 ): Attachment[] {
@@ -170,7 +170,7 @@ export function getAttachmentsByKey(
 }
 
 export function getAttachmentByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   key: string,
   libraryID: number,
 ): Attachment | null {
@@ -198,7 +198,7 @@ export interface AttachmentWithParentKey extends Attachment {
  * @see ../lib/zt-path.ts — `attachmentAbsPath` and `attachmentPathKey`
  */
 export function getAttachmentPage(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   page: { afterItemID: number; limit: number },
   opts?: { memo?: GroupIDMemo },
 ): AttachmentWithParentKey[] {
@@ -210,7 +210,7 @@ export function getAttachmentPage(
 }
 
 function toAttachmentWithParentKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   row: AttachmentWithParentRow,
   memo: GroupIDMemo,
 ): AttachmentWithParentKey {
@@ -226,7 +226,7 @@ function toAttachmentWithParentKey(
 }
 
 export function getAttachmentByItemId(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
   opts?: { memo?: GroupIDMemo },
 ): Attachment | null {

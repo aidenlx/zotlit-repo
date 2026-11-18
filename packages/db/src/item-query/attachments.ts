@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { and, count, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { Effect } from "effect";
@@ -36,7 +36,7 @@ export interface AttachmentScanRow extends ScanRow {
   parent: ScanRow;
 }
 
-function selectAttachments(db: NodeDatabaseClient) {
+function selectAttachments(db: ZoteroDatabase) {
   return db
     .select({
       itemID: items.itemID,
@@ -65,7 +65,7 @@ function selectAttachments(db: NodeDatabaseClient) {
     );
 }
 
-function universe(db: NodeDatabaseClient) {
+function universe(db: ZoteroDatabase) {
   return recordUniverse(db, [items, parent], true);
 }
 

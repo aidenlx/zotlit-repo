@@ -1,5 +1,5 @@
 // Reads the signed-in Zotero account's identity from the `settings` table.
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
@@ -65,7 +65,7 @@ const localApiIdentityQuery = defineQuery<void>()((db) =>
  *
  * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/users.js#L61
  */
-export function getZoteroIdentity(db: NodeDatabaseClient): ZoteroUserIdentity {
+export function getZoteroIdentity(db: ZoteroDatabase): ZoteroUserIdentity {
   const rows = identityQuery.prepared(db).all();
   const text = (key: string): string | null => {
     const value = rows.find((row) => row.key === key)?.value;
@@ -94,7 +94,7 @@ export function getZoteroIdentity(db: NodeDatabaseClient): ZoteroUserIdentity {
  * A quiet read for a per-list caller: it logs nothing for a database that
  * never synced, where {@link getZoteroIdentity} warns.
  */
-export function getAccountUserID(db: NodeDatabaseClient): number | null {
+export function getAccountUserID(db: ZoteroDatabase): number | null {
   return parseUserID(userIDQuery.prepared(db).all()[0]?.value);
 }
 
@@ -106,7 +106,7 @@ function parseUserID(raw: unknown): number | null {
 
 /** Identity needed to bind a verified database snapshot to a Local API session. */
 export function getZoteroDatabaseIdentity(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
 ): ZoteroDatabaseIdentity {
   const { userID, localUserKey } = getZoteroIdentity(db);
   const value = localApiIdentityQuery.prepared(db).all()[0]?.value;

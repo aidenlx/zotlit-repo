@@ -1,6 +1,6 @@
+export type { ZoteroDatabase } from "./client/database.ts";
 export {
   getLibraries,
-  getLibrariesAsync,
   getLibraryByGroupID,
   type Library,
 } from "./queries/libraries.ts";
@@ -10,7 +10,6 @@ export {
   getItemTypeByKey,
   getItemsByLibrary,
   getItemsByKey,
-  getItemsByLibraryAsync,
   isChildItemFields,
   type BaseItem,
   type ChildItemFields,

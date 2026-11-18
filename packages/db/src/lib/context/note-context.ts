@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { TemplateAnnotation } from "#lib/context/zt-template-annot.ts";
 import type { TemplateAttachment } from "#lib/context/zt-template-attach.ts";
 import type {
@@ -66,7 +66,7 @@ export interface ItemFacets {
  * none. Pass the memos a batch already holds, so a repeat item costs nothing.
  */
 export function fetchItemFacets(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   items: readonly Pick<Item, "itemID" | "libraryID">[],
   memos: { tagMemo: TagMemo; collectionCache: CollectionCache },
 ): Map<number, ItemFacets> {
@@ -135,7 +135,7 @@ export interface NoteSource {
  * so this call's fetch for `item.itemID` is free.
  */
 export function fetchNoteSource(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   item: Item,
   options: {
     /**
@@ -233,7 +233,7 @@ export function buildNoteContextFromSource(
  * followed by {@link buildNoteContextFromSource}.
  */
 export function fetchNoteContext(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   item: Item,
   options: {
     resolvers: NoteResolvers;
@@ -284,7 +284,7 @@ export interface AnnotationSources {
  * annotation path happens here.
  */
 export function fetchAnnotationSources(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   annotations: readonly Annotation[],
   options: {
     tagMemo?: TagMemo;
@@ -324,7 +324,7 @@ export function fetchAnnotationSources(
  * turns it into each attachment's parent context.
  */
 export function fetchAttachmentSources(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   attachments: readonly Attachment[],
   options: {
     tagMemo?: TagMemo;
@@ -338,7 +338,7 @@ export function fetchAttachmentSources(
 
 /** The parent items and username of `attachments`, and the tags of both. */
 function fetchParentSources(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   {
     annotations,
     attachments,
@@ -463,7 +463,7 @@ export function buildAnnotationParents(
  * annotation-template prepass (many, by key).
  */
 export function fetchAnnotationsTemplateData(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   annotations: readonly Annotation[],
   options: {
     resolvers: AnnotationResolvers;

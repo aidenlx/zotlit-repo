@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { and, eq, sql } from "drizzle-orm";
 import type { SQLWrapper } from "drizzle-orm";
 
@@ -8,7 +8,7 @@ import { unindexed } from "./database.ts";
 import { items, itemTags, tags } from "#drizzle/schema.ts";
 
 export function candidateTag(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   value: SQLWrapper,
   ordered = false,
 ) {
@@ -19,7 +19,7 @@ export function candidateTag(
 }
 
 export function candidateKeys(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: SQLWrapper,
   list: SQLWrapper,
 ) {

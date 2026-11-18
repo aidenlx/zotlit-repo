@@ -1,11 +1,9 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
-import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { LibraryType } from "#drizzle/schema.ts";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
 import { defineQuery } from "./_shared.ts";
-import { hasClientRevisionsAsync } from "./schema-version.ts";
 
 import { groups, libraries } from "#drizzle/schema.ts";
 import { readDatabaseLayout } from "#layout/index.ts";
@@ -37,7 +35,7 @@ export type LibraryColumns = { clientVersion: boolean };
  * statements with it.
  */
 export function selectLibraries(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   columns: LibraryColumns,
   where?: SQL,
 ) {
@@ -59,7 +57,7 @@ export function selectLibraries(
 }
 
 /** The Library columns of the copy behind `db`, from its layout. */
-function libraryColumns(db: NodeDatabaseClient): LibraryColumns {
+function libraryColumns(db: ZoteroDatabase): LibraryColumns {
   return {
     clientVersion: readDatabaseLayout(db).has("libraries", "clientVersion"),
   };
@@ -92,7 +90,7 @@ const libraryByIDQuery = defineQuery<{ libraryID: number }>()(
  * v1's `LibrariesFull` SQL but returns the raw `type` and group fields so the
  * UI can localize labels itself.
  */
-export function getLibraries(db: NodeDatabaseClient): Library[] {
+export function getLibraries(db: ZoteroDatabase): Library[] {
   return librariesQuery.prepared(db, libraryColumns(db)).all();
 }
 
@@ -101,7 +99,7 @@ export function getLibraries(db: NodeDatabaseClient): Library[] {
  * `null` when no group library matches.
  */
 export function getLibraryByGroupID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   groupID: number,
 ): Library | null {
   return (
@@ -111,17 +109,9 @@ export function getLibraryByGroupID(
   );
 }
 
-export async function getLibrariesAsync(
-  db: SQLocalDatabaseClient,
-): Promise<Library[]> {
-  return librariesQuery
-    .prepared(db, { clientVersion: await hasClientRevisionsAsync(db) })
-    .all();
-}
-
 /** Resolve a library's `groupID` (null for the user library). */
 export function groupIDForLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): number | null {
   return (
@@ -130,23 +120,12 @@ export function groupIDForLibrary(
   );
 }
 
-/** Async-client form of {@link groupIDForLibrary}. */
-export async function groupIDForLibraryAsync(
-  db: SQLocalDatabaseClient,
-  libraryID: number,
-): Promise<number | null> {
-  const [row] = await libraryByIDQuery
-    .prepared(db, { clientVersion: false })
-    .all({ libraryID });
-  return row?.groupID ?? null;
-}
-
 /** Per-call `libraryID → groupID` cache; a batch resolves each library once. */
 export type GroupIDMemo = Map<number, number | null>;
 
 /** Resolve a library's `groupID` (null for the user library), caching per call. */
 export function resolveGroupID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   memo: GroupIDMemo,
 ): number | null {

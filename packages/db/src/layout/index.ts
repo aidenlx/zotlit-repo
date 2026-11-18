@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { inArray, sql } from "drizzle-orm";
 
 import { logLibrary } from "@zotlit/shared/logging";
@@ -167,7 +167,7 @@ export function describeLayoutGaps(missing: readonly LayoutGap[]): string {
 // builders through its own statement seam, then records the rows here.
 
 /** @internal The columns of each table and view of the copy. */
-export const selectLayoutColumns = (db: NodeDatabaseClient) =>
+export const selectLayoutColumns = (db: ZoteroDatabase) =>
   db
     .select({
       table: sql<string>`m.name`,
@@ -178,7 +178,7 @@ export const selectLayoutColumns = (db: NodeDatabaseClient) =>
     );
 
 /** @internal The `userdata` and `compatibility` stamps of the copy. */
-export const selectLayoutVersions = (db: NodeDatabaseClient) =>
+export const selectLayoutVersions = (db: ZoteroDatabase) =>
   db
     .select({ schema: version.schema, version: version.version })
     .from(version)
@@ -200,11 +200,11 @@ const columnsQuery = defineQuery<void>()(selectLayoutColumns);
 const versionsQuery = defineQuery<void>()(selectLayoutVersions);
 
 /** The layout of each copy; a copy has one client. */
-const layouts = new WeakMap<NodeDatabaseClient, DatabaseLayout>();
+const layouts = new WeakMap<ZoteroDatabase, DatabaseLayout>();
 
 /** @internal The layout already read for `client`, if any. */
 export function knownLayout(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
 ): DatabaseLayout | undefined {
   return layouts.get(client);
 }
@@ -235,7 +235,7 @@ export function hasVersionStamps(
  * {@link knownLayout} gave nothing.
  */
 export function recordLayout(
-  client: NodeDatabaseClient,
+  client: ZoteroDatabase,
   columns: ReadonlyMap<string, ReadonlySet<string>>,
   versionRows: readonly LayoutVersionRow[],
 ): DatabaseLayout {
@@ -280,7 +280,7 @@ export function recordLayout(
  * manifest. The first call on a copy runs two statements and logs the stamps;
  * every later call gives the same answer and runs none.
  */
-export function readDatabaseLayout(client: NodeDatabaseClient): DatabaseLayout {
+export function readDatabaseLayout(client: ZoteroDatabase): DatabaseLayout {
   const known = knownLayout(client);
   if (known) return known;
   const columns = columnsByTable(columnsQuery.prepared(client).all());

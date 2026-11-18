@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type {
   DatabaseLayout,
   LayoutColumnRow,
@@ -50,7 +50,7 @@ export class ItemQueryDatabaseError extends Data.TaggedError(
  */
 export class ItemQueryDatabase extends Context.Service<
   ItemQueryDatabase,
-  { readonly client: NodeDatabaseClient }
+  { readonly client: ZoteroDatabase }
 >()("@zotlit/db/ItemQueryDatabase") {}
 
 /**
@@ -128,7 +128,7 @@ interface UncheckedStatement<TParams, TRow> {
     params: TParams,
   ): Effect.Effect<TRow[], ItemQueryDatabaseError, ItemQueryDatabase>;
   /** The SQL text of the statement for one client. */
-  readonly sql: (client: NodeDatabaseClient) => string;
+  readonly sql: (client: ZoteroDatabase) => string;
 }
 
 interface Builder<TRow> {
@@ -137,13 +137,13 @@ interface Builder<TRow> {
 }
 
 /** The SQL text of each reader statement, for one client. */
-const readerStatements: ((client: NodeDatabaseClient) => string)[] = [];
+const readerStatements: ((client: ZoteroDatabase) => string)[] = [];
 
 /**
  * @internal The SQL text of every reader statement defined so far. The layout
  * manifest test compiles each one; load the reader modules first.
  */
-export function readerStatementSQL(client: NodeDatabaseClient): string[] {
+export function readerStatementSQL(client: ZoteroDatabase): string[] {
   return readerStatements.map((sqlOf) => sqlOf(client));
 }
 
@@ -181,7 +181,7 @@ export function idSlots(size: number): {
 }
 
 type Build<TParams, TRow> = (
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   operators: QueryOperators<TParams>,
 ) => Builder<TRow>;
 
@@ -215,11 +215,7 @@ function uncheckedStatement<TParams extends Record<string, unknown>, TRow>(
   build: Build<TParams, TRow>,
 ): UncheckedStatement<TParams, TRow> {
   const query = defineQuery<TParams>()(build);
-  const failure = (
-    client: NodeDatabaseClient,
-    params: TParams,
-    cause: unknown,
-  ) => {
+  const failure = (client: ZoteroDatabase, params: TParams, cause: unknown) => {
     const { sql, params: slots } = query(client).toSQL();
     return new ItemQueryDatabaseError({
       query: sql,

@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
 import {
   and,
@@ -167,7 +167,7 @@ export type IndexedItemScanRow = QueryRow<typeof indexedItemRowsRangeQuery>;
  * newest first.
  */
 export function getIndexedItemRowsRange(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   { from, to }: ItemIDRange,
 ): IndexedItemScanRow[] {
@@ -227,7 +227,7 @@ const activityByIDs = defineKeyedQuery<number>()(
 type IndexedItemRow = QueryRow<typeof indexedItemsQuery>;
 
 export function getIndexedItemsByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): IndexedItem[] {
   const table = getBaseFieldTable(db, INDEXED_FIELD_NAMES);
@@ -256,7 +256,7 @@ export function getIndexedItemsByLibrary(
  * {@link getIndexedItemRowsRange}.
  */
 export function getIndexedItemIDsByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): number[] {
   return indexedItemIDsByLibraryQuery
@@ -271,7 +271,7 @@ export function getIndexedItemIDsByLibrary(
  * its own `groupID`/`indexedKey`.
  */
 export function getIndexedItemsByID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): IndexedItem[] {
@@ -309,7 +309,7 @@ const indexedItemCountQuery = defineQuery<void>()((db) =>
     ),
 );
 
-export function getIndexedItemCount(db: NodeDatabaseClient): number {
+export function getIndexedItemCount(db: ZoteroDatabase): number {
   return indexedItemCountQuery.prepared(db).get()?.count ?? 0;
 }
 
@@ -380,7 +380,7 @@ const itemIDBoundsQuery = defineQuery<{ libraryID: number }>()(
  * has no Items. The ranges of {@link getIndexSignatureRange} cover this span.
  */
 export function getItemIDBounds(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): { min: number; max: number } | null {
   const row = itemIDBoundsQuery.prepared(db).get({ libraryID });
@@ -395,7 +395,7 @@ export function getItemIDBounds(
  * span, one range per task, so no single read holds the worker for long.
  */
 export function getIndexSignatureRange(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   { from, to }: ItemIDRange,
 ): IndexSignature {
@@ -470,7 +470,7 @@ const indexSignatureQuery = defineQuery<{ libraryID: number }>()(
  * no read holds the database worker for long.
  */
 export function getIndexSignature(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): IndexSignature {
   const row = indexSignatureQuery.prepared(db).get({ libraryID });

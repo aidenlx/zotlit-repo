@@ -1,13 +1,7 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
-import type { SQLocalDatabaseClient } from "#client/web.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { relations } from "#drizzle/relations.ts";
 import { inArray, sql } from "drizzle-orm";
 import type { AnyColumn, DBQueryConfig, Placeholder, SQL } from "drizzle-orm";
-import type {
-  SQLiteAsyncRelationalQuery,
-  SQLiteAsyncSelectBase,
-  SQLiteSyncRelationalQuery,
-} from "drizzle-orm/sqlite-core";
 
 export { CHILD_ITEM_TYPES, type ChildItemType } from "#lib/item-types.ts";
 
@@ -21,67 +15,6 @@ export { CHILD_ITEM_TYPES, type ChildItemType } from "#lib/item-types.ts";
  */
 export type FindManyOptions<TName extends keyof typeof relations> =
   DBQueryConfig<"many", typeof relations, (typeof relations)[TName]>;
-
-/**
- * Swap the result-kind generic of a Drizzle builder so a query authored
- * against the sync (Node) client can be re-exposed as the async (Web)
- * client's builder type.
- *
- * Handles two families:
- *   1. Relational `findMany`/`findFirst` builders — always
- *      {@link SQLiteSyncRelationalQuery} on a sync session, swapped to
- *      {@link SQLiteAsyncRelationalQuery} of mode `"async"`.
- *   2. {@link SQLiteAsyncSelectBase} chains — both the bare form and the
- *      `Omit<..., "limit" | ...>` wrappers Drizzle returns after chain ops
- *      like `.limit()` / `.orderBy()`. The result-kind lives in the 2nd type
- *      param (`"sync"` on the Node client, `"async"` on the Web client).
- *
- * The relational check comes before the `Omit` branch because
- * `T extends Omit<infer I, infer E>` matches almost any object structurally
- * (with `E = never`), which would otherwise short-circuit the RQB case.
- *
- * Note: `TRunResult` (3rd param of `SQLiteAsyncSelectBase`) is preserved from
- * the source type. That's the node-sqlite `StatementResultingChanges` shape and
- * is only consulted by `.run()` on INSERT/UPDATE/DELETE — fine for shared
- * SELECT queries, wrong if a dual write query is ever introduced.
- */
-type SwapKind<T, K extends "sync" | "async"> =
-  T extends SQLiteSyncRelationalQuery<infer R>
-    ? K extends "async"
-      ? SQLiteAsyncRelationalQuery<"async", R>
-      : T
-    : T extends SQLiteAsyncSelectBase<
-          infer A,
-          any,
-          infer C,
-          infer D,
-          infer E,
-          infer F,
-          infer G,
-          infer H,
-          infer I,
-          infer J
-        >
-      ? SQLiteAsyncSelectBase<A, K, C, D, E, F, G, H, I, J>
-      : T extends Omit<infer Inner, infer Excl>
-        ? Inner extends SQLiteAsyncSelectBase<
-            infer A,
-            any,
-            infer C,
-            infer D,
-            infer E,
-            infer F,
-            infer G,
-            infer H,
-            infer I,
-            infer J
-          >
-          ? Omit<
-              SQLiteAsyncSelectBase<A, K, C, D, E, F, G, H, I, J>,
-              Excl & keyof any
-            >
-          : T
-        : T;
 
 type Prepared<T> = T extends { prepare(): infer P } ? P : never;
 
@@ -176,7 +109,7 @@ type ArgsRest<T extends CacheArgs> = [Record<string, never>] extends [T]
   : [args: T];
 
 /**
- * Overloaded callable produced by {@link defineQuery}.
+ * Callable produced by {@link defineQuery}.
  *
  * - Bare call returns the Drizzle builder (escape hatch for inspection /
  *   `.toSQL()`; not cached, no TParams typing on `.all`).
@@ -184,31 +117,20 @@ type ArgsRest<T extends CacheArgs> = [Record<string, never>] extends [T]
  *   {@link WithParams} so `.all` / `.get` / `.run` / `.values` / `.execute`
  *   check against `TParams`.
  *
- * Carrying the sync return type on the interface itself (rather than only
- * via SwapKind) lets {@link QueryRow} recover the row shape from the
- * unambiguous Node-side signature, bypassing SwapKind for row extraction.
+ * {@link QueryRow} recovers the row shape from the builder type that the
+ * interface carries.
  */
 export interface DefinedQuery<
   TParams,
   TBuildArgs extends CacheArgs,
   TSyncResult,
 > {
-  (db: NodeDatabaseClient, ...rest: ArgsRest<TBuildArgs>): TSyncResult;
-  (
-    db: SQLocalDatabaseClient,
-    ...rest: ArgsRest<TBuildArgs>
-  ): SwapKind<TSyncResult, "async">;
+  (db: ZoteroDatabase, ...rest: ArgsRest<TBuildArgs>): TSyncResult;
   prepared(
-    db: NodeDatabaseClient,
+    db: ZoteroDatabase,
     ...rest: ArgsRest<TBuildArgs>
   ): WithParams<Prepared<TSyncResult>, TParams>;
-  prepared(
-    db: SQLocalDatabaseClient,
-    ...rest: ArgsRest<TBuildArgs>
-  ): WithParams<Prepared<SwapKind<TSyncResult, "async">>, TParams>;
 }
-
-type AnyClient = NodeDatabaseClient | SQLocalDatabaseClient;
 
 /**
  * Stable cache key for a builder-args record. Keys are sorted so callers can
@@ -225,10 +147,8 @@ function cacheKey(args: CacheArgs | undefined): string {
 }
 
 /**
- * Wrap a query whose SQL chain is identical for sync (node-sqlite) and async
- * (sqlite-proxy / sqlocal) clients, producing a callable that returns the
- * correctly-kinded Drizzle builder per call site with a per-client
- * prepared-statement cache.
+ * Wrap a query, producing a callable that returns its Drizzle builder with a
+ * per-client prepared-statement cache.
  *
  * Two-step generic: outer `<TParams>` declares placeholder shape; inner call
  * infers builder arg / result types. Use `<void>` for queries with no
@@ -246,7 +166,7 @@ export function defineQuery<TParams = Record<string, unknown>>(): <
   TSyncResult = unknown,
 >(
   refImpl: (
-    db: NodeDatabaseClient,
+    db: ZoteroDatabase,
     operators: QueryOperators<TParams>,
     args: TBuildArgs,
   ) => TSyncResult,
@@ -258,22 +178,24 @@ export function defineQuery<TParams = Record<string, unknown>>(): <
 
   return <TBuildArgs extends CacheArgs, TSyncResult>(
     refImpl: (
-      db: NodeDatabaseClient,
+      db: ZoteroDatabase,
       operators: QueryOperators<TParams>,
       args: TBuildArgs,
     ) => TSyncResult,
   ): DefinedQuery<TParams, TBuildArgs, TSyncResult> => {
-    const cache = new WeakMap<AnyClient, Map<string, unknown>>();
+    const cache = new WeakMap<ZoteroDatabase, Map<string, unknown>>();
 
     const normalizeArgs = (args: TBuildArgs | undefined): TBuildArgs =>
       (args ?? {}) as TBuildArgs;
 
-    const build = (db: AnyClient, args: TBuildArgs | undefined): TSyncResult =>
-      refImpl(db as NodeDatabaseClient, operators, normalizeArgs(args));
+    const build = (
+      db: ZoteroDatabase,
+      args: TBuildArgs | undefined,
+    ): TSyncResult => refImpl(db, operators, normalizeArgs(args));
 
-    const call = (db: AnyClient, args?: TBuildArgs) => build(db, args);
+    const call = (db: ZoteroDatabase, args?: TBuildArgs) => build(db, args);
 
-    const prepared = (db: AnyClient, args?: TBuildArgs) => {
+    const prepared = (db: ZoteroDatabase, args?: TBuildArgs) => {
       let perDb = cache.get(db);
       if (!perDb) {
         perDb = new Map();
@@ -304,7 +226,7 @@ export function defineQuery<TParams = Record<string, unknown>>(): <
 /**
  * Extract the row type from a {@link defineQuery}-wrapped query. Works for
  * both select chains and relational `findMany` builders by inferring the
- * sync return type off {@link DefinedQuery}'s first overload and unwrapping
+ * builder type off {@link DefinedQuery}'s call signature and unwrapping
  * Drizzle's `QueryPromise<TResult>`.
  *
  * @example
@@ -316,7 +238,7 @@ export type QueryRow<Q> =
     ? Awaited<R> extends ArrayLike<infer E>
       ? E
       : never
-    : Q extends (db: NodeDatabaseClient, ...args: any[]) => (infer R)[]
+    : Q extends (db: ZoteroDatabase, ...args: any[]) => (infer R)[]
       ? R
       : never;
 
@@ -347,7 +269,7 @@ export function defineKeyedQuery<
 >() {
   return <R, TBuildArgs extends CacheArgs = Record<string, never>>(
     build: (
-      db: NodeDatabaseClient,
+      db: ZoteroDatabase,
       operators: {
         contains: (column: AnyColumn) => SQL;
         placeholder: ParamsPlaceholder<TParams>;
@@ -362,7 +284,7 @@ export function defineKeyedQuery<
       orderWithinKey?: (a: NoInfer<R>, b: NoInfer<R>) => number;
     },
   ): ((
-    db: NodeDatabaseClient,
+    db: ZoteroDatabase,
     keys: readonly K[],
     ...options: KeyedOptionsRest<TParams, TBuildArgs>
   ) => R[]) => {

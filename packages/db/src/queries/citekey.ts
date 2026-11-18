@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { eq, sql } from "drizzle-orm";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
@@ -41,7 +41,7 @@ const itemIDByCitekeyQuery = defineQuery<{
  * within `libraryID`, or `null` when no live item matches.
  */
 export function getItemIDByCitekey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   citekey: string,
 ): number | null {
@@ -76,7 +76,7 @@ const citekeyByItemKeyQuery = defineQuery<{
  * The forward mirror of {@link getItemIDByCitekey}.
  */
 export function getCitekeyByItemKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
   key: string,
 ): string | null {
@@ -150,7 +150,7 @@ export type CitekeyRow = QueryRow<typeof citekeyWindowQuery>;
 
 /** Every live Item with a native citation key, `afterItemID < itemID <= throughItemID`, in itemID order. */
 export function getCitekeyWindow(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   window: { afterItemID: number; throughItemID: number },
 ): CitekeyRow[] {
   return citekeyWindowQuery.prepared(db).all(window);
@@ -161,7 +161,7 @@ export function getCitekeyWindow(
  * key — the one read the Citation Index's resolution snapshot rebuilds from.
  */
 export function getCitekeysByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): LibraryCitekey[] {
   return toLibraryCitekeys(
@@ -201,6 +201,6 @@ const lastItemIDQuery = defineQuery<void>()((db) =>
 );
 
 /** The largest itemID in the database, or 0 when it has no Items. */
-export function getLastItemID(db: NodeDatabaseClient): number {
+export function getLastItemID(db: ZoteroDatabase): number {
   return lastItemIDQuery.prepared(db).all()[0]!.itemID;
 }

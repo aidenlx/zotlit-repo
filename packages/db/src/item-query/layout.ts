@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type {
   DatabaseLayout,
   LayoutGap,
@@ -54,9 +54,7 @@ export function layoutErrorOf(
  * {@link NotZoteroDatabaseError} instead; a failed statement throws the driver
  * error.
  */
-export function checkDatabaseLayout(
-  client: NodeDatabaseClient,
-): DatabaseLayout {
+export function checkDatabaseLayout(client: ZoteroDatabase): DatabaseLayout {
   const layout = readDatabaseLayout(client);
   if (!layout.isZoteroDatabase) throw new NotZoteroDatabaseError();
   const error = layoutErrorOf(layout);

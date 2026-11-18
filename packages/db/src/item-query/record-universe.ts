@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { AnyColumn } from "drizzle-orm";
 import { eq, inArray, notExists, notInArray } from "drizzle-orm";
 
@@ -11,7 +11,7 @@ import {
 import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 
 export function recordUniverse(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   records: readonly { itemID: AnyColumn }[],
   attachment: boolean,
 ) {

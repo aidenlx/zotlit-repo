@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { Annotation } from "#lib/zt-annot.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
@@ -142,7 +142,7 @@ const annotationParentsQuery = defineKeyedQuery<
 
 /** @returns Top-level parent keys, or standalone Attachment keys, for live Annotations in request order. */
 export function getAnnotationParentKeys(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   keys: readonly string[],
   libraryID: number,
 ): { key: string; parentKey: string }[] {
@@ -157,7 +157,7 @@ export function getAnnotationParentKeys(
 }
 
 export function getAnnotationsByParent(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   parentItemID: number,
   opts?: { memo?: GroupIDMemo },
 ): Annotation[] {
@@ -176,7 +176,7 @@ export function getAnnotationsByParent(
  * repeated key repeats its annotation.
  */
 export function getAnnotationsByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   keys: readonly string[],
   libraryID: number,
 ): Annotation[] {

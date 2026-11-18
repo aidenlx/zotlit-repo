@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import { and, asc, desc, eq, isNull, notInArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
@@ -73,7 +73,7 @@ const collectionIDByKeyQuery = defineQuery<CollectionScope>()(
  * link apart from an empty collection. A trashed collection reads as absent.
  */
 export function getCollectionIDByKey(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   scope: CollectionScope,
 ): number | undefined {
   return collectionIDByKeyQuery.prepared(db).all(scope)[0]?.collectionID;
@@ -100,7 +100,7 @@ const indexedItemIDsByCollectionQuery = defineQuery<CollectionScope>()(
  * and its descendants. An unknown key yields an empty list.
  */
 export function getIndexedItemIDsByCollection(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   scope: CollectionScope,
 ): number[] {
   return indexedItemIDsByCollectionQuery
@@ -132,7 +132,7 @@ const noteItemIDsByCollectionQuery = defineQuery<CollectionScope>()(
  * unknown key yields an empty list.
  */
 export function getNoteItemIDsByCollection(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   scope: CollectionScope,
 ): number[] {
   return noteItemIDsByCollectionQuery
@@ -164,7 +164,7 @@ const noteItemIDsByLibraryQuery = defineQuery<{ libraryID: number }>()(
  * item sits in the trash is excluded along with it.
  */
 export function getNoteItemIDsByLibrary(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): number[] {
   return noteItemIDsByLibraryQuery

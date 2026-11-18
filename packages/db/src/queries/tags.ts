@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 import type { ItemTag, Tag } from "#lib/zt-tag.ts";
 import { distinct } from "@std/collections";
 
@@ -39,7 +39,7 @@ function tagName(row: { tagID: number; tag: Tag | null }): string {
  * {@link Tag} object.
  */
 export function getTagsByItemIDs(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
 ): ItemTag[] {
   const rows = itemTagsByItemsQuery(db, itemIDs);
@@ -63,7 +63,7 @@ export type TagMemo = Map<number, readonly ItemTag[]>;
 
 /** Resolve one item's tags, memoized per itemID within `memo`. */
 export function resolveItemTags(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
   memo: TagMemo,
 ): readonly ItemTag[] {
@@ -72,7 +72,7 @@ export function resolveItemTags(
 
 /** Resolve each item's tags keyed by itemID, filling `memo`. */
 export function resolveItemTagsByIDs(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
   memo: TagMemo,
 ): ReadonlyMap<number, readonly ItemTag[]> {
@@ -108,7 +108,7 @@ const allTagNamesQuery = defineQuery<void>()((db) =>
  * Every Tag name across the database, each name once, in name order. A name
  * counts while the `tags` table holds it, whether or not an item carries it.
  */
-export function getAllTagNames(db: NodeDatabaseClient): string[] {
+export function getAllTagNames(db: ZoteroDatabase): string[] {
   return distinct(
     allTagNamesQuery
       .prepared(db)
@@ -134,7 +134,7 @@ const libraryTagNamesQuery = defineQuery<{ libraryID: number }>()(
  * while an item there carries it.
  */
 export function getLibraryTagNames(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   libraryID: number,
 ): string[] {
   return distinct(

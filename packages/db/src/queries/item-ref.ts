@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { ZoteroDatabase } from "#client/database.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
@@ -33,7 +33,7 @@ const itemRefByIdQuery = defineQuery<{ itemID: number }>()(
  * @returns the {@link ItemRef}, or `null` when no live item has that id.
  */
 export function getItemRefByID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
 ): ItemRef | null {
   const row = itemRefByIdQuery.prepared(db).all({ itemID })[0];
@@ -87,7 +87,7 @@ const itemDisplayRefByIdQuery = defineQuery<{ itemID: number }>()(
  * @returns the {@link ItemDisplayRef}, or `null` when no live item has that id.
  */
 export function getItemDisplayRefByID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
   opts?: { memo?: GroupIDMemo },
 ): ItemDisplayRef | null {
@@ -137,7 +137,7 @@ const itemDisplayRefsByIdsQuery = defineKeyedQuery<number>()(
  *   live item is absent.
  */
 export function getItemDisplayRefsByIDs(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemIDs: readonly number[],
   opts?: { memo?: GroupIDMemo },
 ): Map<number, ItemDisplayRef> {
@@ -220,7 +220,7 @@ const itemDisplayInfoQuery = defineQuery<{ itemID: number }>()(
 );
 
 export function getItemDisplayInfoByID(
-  db: NodeDatabaseClient,
+  db: ZoteroDatabase,
   itemID: number,
 ): ItemDisplayInfo | null {
   const row = itemDisplayInfoQuery.prepared(db).all({ itemID })[0];
