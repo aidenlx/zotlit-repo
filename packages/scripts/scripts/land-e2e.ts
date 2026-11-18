@@ -13,11 +13,16 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { stripVTControlCharacters } from "node:util";
 
-import { EXIT_ADMISSION_BLOCKED } from "#desktop-slot";
+import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
 import { runLandE2e } from "#land-e2e";
 
 /** How long `pnpm e2e` waits for its Desktop Slot. */
 const DESKTOP_WAIT = "1h";
+/**
+ * The Lease of the run. The full suite takes about 20 min, the default Lease
+ * of `pnpm e2e`, so a run after a land needs room above it.
+ */
+const DESKTOP_LEASE = "45m";
 const EXCERPT_LINES = 80;
 
 function command(
@@ -112,13 +117,23 @@ async function run({
     const e2e = await command(log, {
       cwd: checkout,
       argv: ["pnpm", "e2e"],
-      env: { ZOTLIT_E2E_REQUIRED: "1", ZOTLIT_DESKTOP_WAIT: DESKTOP_WAIT },
+      env: {
+        ZOTLIT_E2E_REQUIRED: "1",
+        ZOTLIT_DESKTOP_WAIT: DESKTOP_WAIT,
+        ZOTLIT_DESKTOP_LEASE: DESKTOP_LEASE,
+      },
     });
     if (e2e.code === 0) return { outcome: "passed" };
     if (e2e.code === EXIT_ADMISSION_BLOCKED) {
       return {
         outcome: "blocked",
         reason: `no Desktop Slot within ${DESKTOP_WAIT}`,
+      };
+    }
+    if (e2e.code === EXIT_LEASE_ENDED) {
+      return {
+        outcome: "failed",
+        stage: `End-to-end Run (not finished within its Lease of ${DESKTOP_LEASE})`,
       };
     }
     return { outcome: "failed", stage: "End-to-end Run" };
