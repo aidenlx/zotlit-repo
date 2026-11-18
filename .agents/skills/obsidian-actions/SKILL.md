@@ -13,7 +13,7 @@ Every feature owns its commands and menu entries, colocated in `services/<domain
 
 ## Commands
 
-A feature exports `add<Feature>Actions(plugin, deps)`, with `plugin` narrowed to the members it uses (`Pick<Plugin, "addCommand">`). `services/database/actions.ts` is the reference shape:
+A feature exports `add<Feature>Actions(plugin, deps)`, with `plugin` narrowed to the members it uses (`Pick<Plugin, "addCommand">`). `packages/plugin-services/src/obsidian/database/actions.ts` is the reference shape:
 
 ```ts
 export function addDatabaseActions(
@@ -67,7 +67,7 @@ menu.addItem((item) =>
 
 ## File menu entries
 
-ZotLit has one `file-menu` listener: `registerFileMenu` in `services/file-menu.ts`. A feature exports a **segment** factory and adds it to the ordered list in `zt-main.ts`, whose order is the row order inside each section.
+ZotLit has one `file-menu` listener: `registerFileMenu` in `packages/plugin-services/src/obsidian/file-menu.ts`. A feature exports a **segment** factory and adds it to the ordered list in `zt-main.ts`, whose order is the row order inside each section.
 
 ```ts
 /** "Copy item key" on a Literature Note's file menu. */

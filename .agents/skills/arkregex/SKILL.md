@@ -48,7 +48,7 @@ const ANNOT_KEY = regex(
 // names: { itemKey: string; groupID: string | undefined }
 ```
 
-The parser handles template literals with interpolated source fragments — see `apps/obsidian/src/services/note-index/parse.ts` for a real example.
+The parser handles template literals with interpolated source fragments — see `packages/plugin-services/src/obsidian/note-index/parse.ts` for a real example.
 
 Reach for `regex.as<Pattern, { captures: [...] } | { names: {...} }>("…")` **only** when inference genuinely fails or the type errors out with `Type is excessively deep…`. Don't pre-emptively annotate; let inference do the work.
 

@@ -61,7 +61,7 @@ Effect.logWarning("Could not read the saved Uses; starting empty").pipe(
 
 `getLogger` from `@zotlit/plugin-kernel/log.ts` is the legacy LogTape logger, for files that have no Effect in them yet. A type-only import of `EffectBridge` does not count: a legacy file that holds the bridge keeps LogTape until it converts (`policies/services.md` → Bridge).
 
-`layerLogging` in `src/services/log/service.ts` owns LogTape's configuration; the dev-only `enableStartupLogging` is the one other caller. The ZoteroReads worker logs through Effect and posts each record over a port (`lib/effect-log-port.ts`); the host re-emits it into the renderer's Effect logger at the plugin's log level. The citation-parse worker has no logger.
+`layerLogging` in `packages/plugin-services/src/obsidian/log/service.ts` owns LogTape's configuration; the dev-only `enableStartupLogging` is the one other caller. The ZoteroReads worker logs through Effect and posts each record over a port (`lib/effect-log-port.ts`); the host re-emits it into the renderer's Effect logger at the plugin's log level. The citation-parse worker has no logger.
 
 ## View state and menus
 

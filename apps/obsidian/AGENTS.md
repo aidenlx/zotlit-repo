@@ -6,6 +6,7 @@ The Obsidian plugin. Its shared base lives in packages, which the app imports by
 - `@zotlit/obsidian-kit` — code over the `obsidian` API that loads on Obsidian Mobile: the capability tags (`obsidian-*.ts`), shared components (`components/`), view atoms and runners, notices, the Obsidian test mock.
 - `@zotlit/obsidian-desktop` — code that needs `node:*` or `electron`.
 - `@zotlit/plugin-messages` — the generated Message facade.
+- `@zotlit/plugin-services` — the platform services the features stand on: settings, logging, the Language Pack, the Zotero preferences, the Local Server and Zotero Local API, the Held Read client, Library Scope, item search, the Note Index, the Use Ledger, Managed Binaries, attachments. The app keeps the host composition: the settings it keeps and the migrations of its `data.json` (`src/services/settings/`), the Release check, the `obsidian://` handlers (`src/services/protocol/`), the menu events, and the plugin graph.
 - `@zotlit/zotero-reads` — ZoteroReads: its contract, the Worker's handlers, the renderer's client, and the desktop database source. The app keeps the host side: the Worker entry (`src/services/zotero-reads/worker.ts`) and the client's wiring to settings (`worker-client.ts`).
 
 Code that only one unit of the app uses lives in that unit. A base package imports no service or view of the app; the app fills open registries such as `ViewServiceRegistry` by declaration merging (`src/typings/view-services.d.ts`).
@@ -38,11 +39,11 @@ The Annotation Marks and the Creation Toolbar inside Obsidian's PDF reader are v
 
 Run `/obsidian-settings` for the declarative 1.13 `getSettingDefinitions()` API (controls, sub-pages, migration); build the tab from those definitions alone. Tab lives in `src/setting-tab/index.ts`.
 
-Project-specific: settings live in `SettingsService` under flat dot-notation keys, not `plugin.settings`; the tab bridges `control` keys through `getControlValue`/`setControlValue`.
+Project-specific: settings live in `PluginSettings` (`@zotlit/plugin-services/obsidian/settings/service.ts`) under flat dot-notation keys, not `plugin.settings`; the tab bridges `control` keys through `getControlValue`/`setControlValue`. A key lives in the settings slice of the feature that owns it (such as `src/services/citation-index/settings.ts`); `src/typings/settings.d.ts` registers each slice, and `src/services/settings/schema.ts` composes them.
 
 ## Logging
 
-Log through Effect, filed under a category with `withLogCategory` from `packages/plugin-kernel/src/effect-log.ts`. Every renderer Effect run entry point writes Effect's records to LogTape, where `layerLogging` (`src/services/log/service.ts`) owns the sinks and levels. `getLogger` from `packages/plugin-kernel/src/log.ts` is the legacy LogTape logger.
+Log through Effect, filed under a category with `withLogCategory` from `packages/plugin-kernel/src/effect-log.ts`. Every renderer Effect run entry point writes Effect's records to LogTape, where `layerLogging` (`packages/plugin-services/src/obsidian/log/service.ts`) owns the sinks and levels. `getLogger` from `packages/plugin-kernel/src/log.ts` is the legacy LogTape logger.
 
 ## UI text (JSON Language Packs)
 
@@ -91,7 +92,7 @@ Vitest runs in Node with `"obsidian"` resolved to the mock in `packages/obsidian
 
 App-local `tsc` and `vitest` read workspace packages (`@zotlit/db`, `@zotlit/templates`, …) from their source, so a change in `packages/*` reaches them with no build. They do need the generated files: run `pnpm exec turbo run generate:language-packs generate:message-types` once before a direct run.
 
-Write an Effect case with `it.effect` from `@effect/vitest`; vitest.config.ts resolves it through `effectEntry` to `packages/plugin-kernel/src/effect-vitest.ts`, which adds the plugin's runtime services (browser scheduler, LogTape logger) to `@effect/vitest`'s TestClock and TestConsole. Provide a `Logger.layer` to capture logs (`src/services/use-ledger/service.test.ts`).
+Write an Effect case with `it.effect` from `@effect/vitest`; vitest.config.ts resolves it through `effectEntry` to `packages/plugin-kernel/src/effect-vitest.ts`, which adds the plugin's runtime services (browser scheduler, LogTape logger) to `@effect/vitest`'s TestClock and TestConsole. Provide a `Logger.layer` to capture logs (`packages/plugin-services/src/obsidian/use-ledger/service.test.ts`).
 
 `sleep` is an Obsidian global that doesn't exist in Node. Use `delay` from `@std/async` instead.
 

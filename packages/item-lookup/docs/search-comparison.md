@@ -1,6 +1,6 @@
 # Search Implementation Analysis: Zotero vs. ZotLit v2 `item-lookup`
 
-This report compares the search architectures of upstream **Zotero** (the desktop client at `../zotero/`) and ZotLit v2's **`apps/obsidian/src/services/item-lookup/`** module that powers the in-editor citation suggester and quick-switch modal.
+This report compares the search architectures of upstream **Zotero** (the desktop client at `../zotero/`) and ZotLit v2's **`packages/plugin-services/src/obsidian/item-lookup/`** module that powers the in-editor citation suggester and quick-switch modal.
 
 Both systems answer "given a user query, return the most relevant items from a Zotero library", but they sit in very different runtimes (Mozilla XULRunner + SQLite vs. Obsidian/Electron + Drizzle-on-better-sqlite3) and they were designed to optimise very different things.
 
