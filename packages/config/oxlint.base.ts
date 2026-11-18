@@ -225,6 +225,7 @@ export default defineConfig({
   ],
   rules: {
     "zotlit-build/no-undeclared-env": "error",
+    "zotlit-build/no-app-path": "error",
     "zotlit-comments/no-tracker-reference": "error",
     // Node runs workspace TypeScript by stripping its types, and Node
     // resolves no import without its file extension.

@@ -1,10 +1,11 @@
 // zotlit-build: keeps the Obsidian plugin's build honest about its inputs.
 // no-undeclared-env follows the modules vite.config.ts loads and requires
-// every process.env it reads to be declared for Turbo. Rule tests:
-// oxlint-plugin-build.test.ts.
+// every process.env it reads to be declared for Turbo. no-app-path keeps a
+// package's modules and stylesheets from naming a path inside `apps/`. Rule
+// tests: oxlint-plugin-build.test.ts.
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join, matchesGlob, resolve } from "node:path";
+import { dirname, join, matchesGlob, resolve, sep } from "node:path";
 import { parseSync } from "oxc-parser";
 import type { Expression } from "oxc-parser";
 import type { RuleTester } from "oxlint/plugins-dev";
@@ -223,6 +224,74 @@ export function undeclaredEnvRule(policy: BuildPolicy): Rule {
   };
 }
 
+/**
+ * A file of a package names no path inside `apps/`: a package builds and tests
+ * from its own source and its dependencies, and a host composes it. The rule
+ * resolves each relative module specifier of a file under `<root>/packages/`,
+ * and the `@import`, `@reference` and `@source` paths of each stylesheet that
+ * file imports, and reports one that lands under `<root>/apps/`.
+ */
+export function appPathRule({ root }: { root: string }): Rule {
+  const packages = join(root, "packages") + sep;
+  const apps = join(root, "apps") + sep;
+  const inApps = (path: string) => path.startsWith(apps);
+  const STYLESHEET_PATH =
+    /@(?:import|reference|source)\s+(?:url\()?["']([^"']+)["']/g;
+  return {
+    meta: {
+      type: "problem",
+      docs: {
+        description:
+          "Forbid a package path into `apps/`; a host composes the package.",
+      },
+      messages: {
+        module:
+          "A package names no path inside apps/ ({{path}}): move the shared code down into a package, and let the host compose it.",
+        stylesheet:
+          "This stylesheet names a path inside apps/ ({{path}}): reference the theme of @zotlit/obsidian-kit/theme.css, and let the host name its sources.",
+      },
+      schema: [],
+    },
+    create(context) {
+      const filename = resolve(context.filename);
+      if (!filename.startsWith(packages)) return {};
+      const check = (node: unknown, specifier: unknown) => {
+        if (typeof specifier !== "string" || !specifier.startsWith(".")) return;
+        const target = resolve(dirname(filename), specifier.split("?")[0]!);
+        if (inApps(target)) {
+          context.report({
+            node: node as never,
+            messageId: "module",
+            data: { path: specifier },
+          });
+          return;
+        }
+        if (!target.endsWith(".css") || !existsSync(target)) return;
+        for (const [, path] of readFileSync(target, "utf8").matchAll(
+          STYLESHEET_PATH,
+        )) {
+          if (path!.startsWith(".") && inApps(resolve(dirname(target), path!)))
+            context.report({
+              node: node as never,
+              messageId: "stylesheet",
+              data: { path: path! },
+            });
+        }
+      };
+      const fromSource = (node: unknown) => {
+        const source = (node as { source?: { value?: unknown } | null }).source;
+        check(node, source?.value);
+      };
+      return {
+        ImportDeclaration: fromSource,
+        ExportNamedDeclaration: fromSource,
+        ExportAllDeclaration: fromSource,
+        ImportExpression: fromSource,
+      };
+    },
+  };
+}
+
 const root = resolve(import.meta.dirname, "../..");
 const obsidian = join(root, "apps/obsidian");
 const turbo = JSON.parse(
@@ -249,5 +318,8 @@ export const noUndeclaredEnv = undeclaredEnvRule({
 
 export default {
   meta: { name: "zotlit-build" },
-  rules: { "no-undeclared-env": noUndeclaredEnv },
+  rules: {
+    "no-undeclared-env": noUndeclaredEnv,
+    "no-app-path": appPathRule({ root }),
+  },
 };

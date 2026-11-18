@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { RuleTester } from "oxlint/plugins-dev";
 
-import { undeclaredEnvRule } from "./oxlint-plugin-build.ts";
+import { appPathRule, undeclaredEnvRule } from "./oxlint-plugin-build.ts";
 
 RuleTester.describe = (name, fn) => {
   void describe(name, fn);
@@ -82,3 +82,44 @@ tester.run(
     ],
   },
 );
+
+const workspace = join(import.meta.dirname, "__fixtures__/build/workspace");
+const packageFile = join(workspace, "packages/kit/src/module.ts");
+// Failure modes: a module of the host, by import, re-export or dynamic
+// import, and a stylesheet that references the host's; a host file and a
+// package's own stylesheet pass.
+tester.run("no-app-path", appPathRule({ root: workspace }), {
+  valid: [
+    { filename: packageFile, code: 'import "./own.css";' },
+    {
+      filename: packageFile,
+      code: 'import { theme } from "@zotlit/kit/theme.ts";',
+    },
+    {
+      filename: join(workspace, "apps/host/src/main.ts"),
+      code: 'import "../../../packages/kit/src/host.css";',
+    },
+  ],
+  invalid: [
+    {
+      filename: packageFile,
+      code: 'import { main } from "../../../apps/host/src/main.ts";',
+      errors: [{ messageId: "module" }],
+    },
+    {
+      filename: packageFile,
+      code: 'export * from "../../../apps/host/src/main.ts";',
+      errors: [{ messageId: "module" }],
+    },
+    {
+      filename: packageFile,
+      code: 'await import("../../../apps/host/src/main.ts");',
+      errors: [{ messageId: "module" }],
+    },
+    {
+      filename: packageFile,
+      code: 'import "./host.css";',
+      errors: [{ messageId: "stylesheet" }],
+    },
+  ],
+});
