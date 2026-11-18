@@ -187,7 +187,11 @@ export class MockVault implements VaultSource {
   readonly #held = new Map<string, PromiseWithResolvers<void>>();
   readonly #failures = new Map<string, Error>();
 
-  constructor(readonly metadataCache: MockMetadataCache) {
+  readonly metadataCache: MockMetadataCache;
+
+  constructor(metadataCache: MockMetadataCache) {
+    this.metadataCache = metadataCache;
+
     metadataCache.vault = this;
   }
 

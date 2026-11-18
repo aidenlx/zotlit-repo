@@ -91,7 +91,11 @@ export const popoverTooltips: Extension = ViewPlugin.fromClass(
     #parent: HTMLElement | null = null;
     #destroyed = false;
     readonly #released: () => void;
-    constructor(readonly view: EditorView) {
+    readonly view: EditorView;
+
+    constructor(view: EditorView) {
+      this.view = view;
+
       // A plugin cannot dispatch while the view makes it or updates.
       queueMicrotask(() => this.place());
       this.#released = onEditorWindowMigrated(view, () =>

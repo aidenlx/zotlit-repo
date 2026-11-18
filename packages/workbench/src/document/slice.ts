@@ -99,11 +99,19 @@ class SliceSync implements PluginValue {
   readonly #unsubscribe: () => void;
   readonly #unregister: () => void;
 
+  readonly view: EditorView;
+  readonly controller: WorkbenchDocumentController;
+  readonly id: WorkbenchSliceId;
+
   constructor(
-    readonly view: EditorView,
-    readonly controller: WorkbenchDocumentController,
-    readonly id: WorkbenchSliceId,
+    view: EditorView,
+    controller: WorkbenchDocumentController,
+    id: WorkbenchSliceId,
   ) {
+    this.view = view;
+    this.controller = controller;
+    this.id = id;
+
     this.#range = controller.sliceRange(id);
     this.#unsubscribe = controller.subscribe((update) => {
       if (

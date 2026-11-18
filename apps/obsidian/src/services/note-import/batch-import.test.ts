@@ -95,10 +95,18 @@ const confirmMock = vi.fn();
 // mechanics (imported from @/services/batch-run, left unmocked) headlessly.
 vi.mock("@/views/batch-modal", () => {
   class FlatManifest {
-    constructor(readonly options: unknown) {}
+    readonly options: unknown;
+
+    constructor(options: unknown) {
+      this.options = options;
+    }
   }
   class HierarchyManifest {
-    constructor(readonly options: unknown) {}
+    readonly options: unknown;
+
+    constructor(options: unknown) {
+      this.options = options;
+    }
   }
   return { FlatManifest, HierarchyManifest };
 });

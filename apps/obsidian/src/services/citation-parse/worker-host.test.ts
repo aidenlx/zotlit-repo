@@ -14,8 +14,11 @@ vi.mock("virtual:citation-parse-worker", () => ({ default: "" }));
 class WorkerPort extends EventTarget {
   terminated = false;
 
-  constructor(readonly sent: Queue.Queue<RpcMessage.FromClientEncoded>) {
+  readonly sent: Queue.Queue<RpcMessage.FromClientEncoded>;
+
+  constructor(sent: Queue.Queue<RpcMessage.FromClientEncoded>) {
     super();
+    this.sent = sent;
   }
 
   postMessage(message: [number, RpcMessage.FromClientEncoded?]) {

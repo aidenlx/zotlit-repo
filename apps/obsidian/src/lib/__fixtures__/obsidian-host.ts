@@ -219,10 +219,16 @@ export class MockVault implements VaultSource {
 }
 
 export class PluginStub {
+  readonly app: App;
+  public data: unknown;
+
   constructor(
-    readonly app: App,
-    public data: unknown,
-  ) {}
+    app: App,
+    data: unknown,
+  ) {
+this.app = app;
+this.data = data;
+}
 
   loadData(): Promise<unknown> {
     return Promise.resolve(this.data);
@@ -244,9 +250,12 @@ export class HostTextView extends TextFileView {
   saving = false;
   #saveAgain = false;
 
+  readonly host: ObsidianHost;
+  readonly lineEndings: "keep" | "lf";
+
   constructor(
-    readonly host: ObsidianHost,
-    readonly lineEndings: "keep" | "lf",
+    host: ObsidianHost,
+    lineEndings: "keep" | "lf",
   ) {
     super(
       Object.assign(
@@ -256,6 +265,9 @@ export class HostTextView extends TextFileView {
         { app: host.app },
       ),
     );
+this.host = host;
+this.lineEndings = lineEndings;
+
   }
 
   /** Type into the editor: the view holds `text` as an unsaved edit. */
@@ -367,7 +379,11 @@ class HostMetadataCache implements MetadataCacheSource {
   readonly #listeners = new Set<MetadataCallback>();
   #held = false;
 
-  constructor(readonly vault: MockVault) {}
+  readonly vault: MockVault;
+
+  constructor(vault: MockVault) {
+this.vault = vault;
+}
 
   /** No note in this host links to another. */
   readonly resolvedLinks: Record<string, Record<string, number>> = {};

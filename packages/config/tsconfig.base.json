@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "isolatedDeclarations": true
+    "isolatedDeclarations": true,
+    // Node runs workspace TypeScript by stripping its types, so every
+    // construct must erase to JavaScript.
+    "erasableSyntaxOnly": true
   }
 }

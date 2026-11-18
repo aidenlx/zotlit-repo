@@ -121,7 +121,11 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
         timer: number;
         win: Window;
       } | null = null;
-      constructor(readonly view: EditorView) {
+      readonly view: EditorView;
+
+      constructor(view: EditorView) {
+        this.view = view;
+
         view.contentDOM.addEventListener("mouseout", this.#handoff, true);
       }
 

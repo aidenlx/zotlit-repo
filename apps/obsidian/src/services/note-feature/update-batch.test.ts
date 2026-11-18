@@ -115,7 +115,11 @@ const chooseProfile = vi.fn<NoteImportView["chooseProfile"]>();
 // opens here.
 vi.mock("@/views/batch-modal", () => {
   class FlatManifest {
-    constructor(readonly options: any) {}
+    readonly options: any;
+
+    constructor(options: any) {
+      this.options = options;
+    }
     get counts() {
       return {
         actionable: this.options.tasks.length,

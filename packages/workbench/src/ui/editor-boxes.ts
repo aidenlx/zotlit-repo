@@ -18,11 +18,13 @@ import type { DecorationSet } from "@codemirror/view";
 
 /** The place one box is painted into, held across every redraw. */
 export class BoxWidget extends WidgetType {
-  constructor(
-    readonly box: HTMLElement,
-    readonly range: WorkbenchSliceRange,
-  ) {
+  readonly box: HTMLElement;
+  readonly range: WorkbenchSliceRange;
+
+  constructor(box: HTMLElement, range: WorkbenchSliceRange) {
     super();
+    this.box = box;
+    this.range = range;
   }
 
   eq(other: BoxWidget): boolean {
@@ -41,8 +43,11 @@ export class BoxWidget extends WidgetType {
 
 /** One full-width block, placed after the line containing the open call. */
 export class PreviewWidget extends WidgetType {
-  constructor(readonly host: HTMLElement) {
+  readonly host: HTMLElement;
+
+  constructor(host: HTMLElement) {
     super();
+    this.host = host;
   }
 
   eq(other: PreviewWidget): boolean {

@@ -277,11 +277,15 @@ class NodeStand implements Disposable {
    */
   #holdWin: Window | null = null;
 
+  readonly bridge: Pick<PopoverBridge, "runSync">;
+
   constructor(
     members: GraphLeafMembers,
     citationPopover: Pick<CitationPopover["Service"], "hide">,
-    readonly bridge: Pick<PopoverBridge, "runSync">,
+    bridge: Pick<PopoverBridge, "runSync">,
   ) {
+    this.bridge = bridge;
+
     this.#members = members;
     this.#citationPopover = citationPopover;
   }

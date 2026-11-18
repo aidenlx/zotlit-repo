@@ -20,7 +20,11 @@ export function webHover(read: SuggestionSource) {
       #open = false;
       #timer: ReturnType<typeof setTimeout> | undefined;
 
-      constructor(readonly view: EditorView) {}
+      readonly view: EditorView;
+
+      constructor(view: EditorView) {
+        this.view = view;
+      }
 
       update(update: ViewUpdate) {
         if (

@@ -5170,7 +5170,11 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       const other = {
         ResizeObserver: class {
           readonly observed: Element[] = [];
-          constructor(readonly listener: () => void) {
+          readonly listener: () => void;
+
+          constructor(listener: () => void) {
+            this.listener = listener;
+
             observers.push(this);
           }
           observe(el: Element) {

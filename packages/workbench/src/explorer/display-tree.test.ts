@@ -381,7 +381,11 @@ describe("findAnnotationRoot — refetch scenarios", () => {
 
 describe("buildDisplayTree — opaque non-plain objects", () => {
   class Stamp {
-    constructor(readonly iso: string) {}
+    readonly iso: string;
+
+    constructor(iso: string) {
+      this.iso = iso;
+    }
     toString() {
       return this.iso;
     }

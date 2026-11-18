@@ -27,7 +27,11 @@ export function webCompletion(read: SuggestionSource) {
       readonly #root = createRoot(this.#host);
       #result: SuggestionResult | null = null;
       #active = 0;
-      constructor(readonly view: EditorView) {}
+      readonly view: EditorView;
+
+      constructor(view: EditorView) {
+        this.view = view;
+      }
 
       update(update: ViewUpdate) {
         if (

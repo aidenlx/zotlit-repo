@@ -125,8 +125,11 @@ export function sourceProblemGutter(
   label: () => string,
 ) {
   class ProblemMarker extends GutterMarker {
-    constructor(readonly id: string) {
+    readonly id: string;
+
+    constructor(id: string) {
       super();
+      this.id = id;
     }
     eq(other: ProblemMarker) {
       return this.id === other.id;

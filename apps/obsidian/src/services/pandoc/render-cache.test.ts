@@ -474,7 +474,11 @@ class DatabaseStub {
 class ZoteroPrefStub {
   readonly #events = testEvent<void>();
   readonly moves = this.#events.stream;
-  constructor(readonly dataDir = "/nowhere/zotlit-render-cache") {}
+  readonly dataDir: string;
+
+  constructor(dataDir = "/nowhere/zotlit-render-cache") {
+    this.dataDir = dataDir;
+  }
   resolvedChanged() {
     this.#events.emit();
   }

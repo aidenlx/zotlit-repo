@@ -34,10 +34,13 @@ export function renderParsedCitation(
 }
 
 export class ParsedNote {
-  constructor(
-    readonly source: string,
-    readonly record: NoteScanRecord,
-  ) {}
+  readonly source: string;
+  readonly record: NoteScanRecord;
+
+  constructor(source: string, record: NoteScanRecord) {
+    this.source = source;
+    this.record = record;
+  }
 
   exportInput(): {
     markdown: string;

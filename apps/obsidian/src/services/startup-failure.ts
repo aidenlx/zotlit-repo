@@ -8,11 +8,13 @@ import { Cause, Effect, Layer } from "effect";
 export class ServiceStartupFailed extends Error {
   override readonly name = "ServiceStartupFailed";
 
-  constructor(
-    readonly service: string,
-    override readonly cause: Cause.Cause<unknown>,
-  ) {
+  readonly service: string;
+  override readonly cause: Cause.Cause<unknown>;
+
+  constructor(service: string, cause: Cause.Cause<unknown>) {
     super(`${service} failed to start`);
+    this.service = service;
+    this.cause = cause;
   }
 }
 

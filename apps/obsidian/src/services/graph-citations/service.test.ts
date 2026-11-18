@@ -460,10 +460,13 @@ class FakeLink {
   readonly sprite: GraphLinkSprite = new FakeSprite();
   line: GraphLinkSprite | null = null;
 
-  constructor(
-    readonly source: GraphDrawnNode,
-    readonly target: GraphDrawnNode,
-  ) {}
+  readonly source: GraphDrawnNode;
+  readonly target: GraphDrawnNode;
+
+  constructor(source: GraphDrawnNode, target: GraphDrawnNode) {
+    this.source = source;
+    this.target = target;
+  }
 
   initGraphics(): void {
     this.line = this.sprite;
@@ -3632,11 +3635,13 @@ class FakeLabelText extends FakeLabelContainer {
     },
   };
   resolution = 1;
-  constructor(
-    public text: string,
-    public style: GraphTextStyle,
-  ) {
+  public text: string;
+  public style: GraphTextStyle;
+
+  constructor(text: string, style: GraphTextStyle) {
     super();
+    this.text = text;
+    this.style = style;
   }
   get width(): number {
     return Array.from(this.text).reduce(
@@ -3651,7 +3656,11 @@ class FakeLabelText extends FakeLabelContainer {
 class FakeLabelNode implements GraphDrawnNode {
   text: GraphTextDisplay | null = null;
   hanger = new FakeLabelContainer();
-  constructor(public id: string) {}
+  public id: string;
+
+  constructor(id: string) {
+    this.id = id;
+  }
   getTextStyle(): GraphTextStyle {
     return {
       fontFamily: "Arial",

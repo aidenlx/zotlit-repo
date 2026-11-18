@@ -341,12 +341,15 @@ function noteBoxes(
 
 /** A beginner name in place of a raw tag the reader does not have to read. */
 class LabelWidget extends WidgetType {
-  constructor(
-    readonly label: string,
-    readonly range: WorkbenchSliceRange,
-    readonly part: PartAttributes,
-  ) {
+  readonly label: string;
+  readonly range: WorkbenchSliceRange;
+  readonly part: PartAttributes;
+
+  constructor(label: string, range: WorkbenchSliceRange, part: PartAttributes) {
     super();
+    this.label = label;
+    this.range = range;
+    this.part = part;
   }
 
   eq(other: LabelWidget): boolean {

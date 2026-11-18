@@ -95,7 +95,11 @@ const popupKeymap = Prec.highest(
 const hostHold = ViewPlugin.fromClass(
   class {
     #release: FieldPopupRelease | null = null;
-    constructor(readonly view: EditorView) {
+    readonly view: EditorView;
+
+    constructor(view: EditorView) {
+      this.view = view;
+
       this.sync();
     }
     update() {

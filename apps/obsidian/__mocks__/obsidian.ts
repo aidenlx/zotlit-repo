@@ -213,27 +213,33 @@ export class Component {
 
 /** Stand-in for `Plugin`: a component over the app and its manifest. */
 export class Plugin extends Component {
-  constructor(
-    readonly app: App,
-    readonly manifest: PluginManifest,
-  ) {
+  readonly app: App;
+  readonly manifest: PluginManifest;
+
+  constructor(app: App, manifest: PluginManifest) {
     super();
+    this.app = app;
+    this.manifest = manifest;
   }
 }
 
 /** Stand-in for `MarkdownRenderChild`: a component bound to one element. */
 export class MarkdownRenderChild extends Component {
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
     super();
+    this.containerEl = containerEl;
   }
 }
 
-export enum PopoverState {
-  Showing,
-  Shown,
-  Hiding,
-  Hidden,
-}
+export const PopoverState = {
+  Showing: 0,
+  Shown: 1,
+  Hiding: 2,
+  Hidden: 3,
+} as const;
+export type PopoverState = (typeof PopoverState)[keyof typeof PopoverState];
 
 /**
  * The popovers still waiting on their show timer. Obsidian's global click
@@ -281,7 +287,7 @@ export class HoverPopover {
    * last pointer move, which no test drives, so it stays where it was put.
    */
   staticPos: Point | null;
-  state = PopoverState.Showing;
+  state: PopoverState = PopoverState.Showing;
   readonly waitTime: number;
   hidden = false;
   readonly #parent: HoverParent;
@@ -493,7 +499,11 @@ export class ItemView {
   /** The leaf's App, as Obsidian's `View` keeps it. */
   app: App;
 
-  constructor(readonly leaf: ObsidianWorkspaceLeaf) {
+  readonly leaf: ObsidianWorkspaceLeaf;
+
+  constructor(leaf: ObsidianWorkspaceLeaf) {
+    this.leaf = leaf;
+
     this.app = Reflect.get(leaf, "app") as App;
     if (typeof Reflect.get(leaf, "updateHeader") !== "function")
       leaf.updateHeader = () => {};
@@ -646,7 +656,11 @@ export class Vault {
 }
 
 export class FileSystemAdapter {
-  constructor(readonly basePath = "/vault") {}
+  readonly basePath: string;
+
+  constructor(basePath = "/vault") {
+    this.basePath = basePath;
+  }
 
   getFullPath(normalizedPath: string): string {
     return `${this.basePath}/${normalizedPath}`;
@@ -964,8 +978,12 @@ export class Scope {
     func: (evt: KeyboardEvent) => boolean | void;
   }[] = [];
 
+  readonly parent?: Scope;
+
   /** The Scope a key no registration here ended goes on to. */
-  constructor(readonly parent?: Scope) {}
+  constructor(parent?: Scope) {
+    this.parent = parent;
+  }
 
   register(
     modifiers: Modifier[] | null,
@@ -994,7 +1012,11 @@ function openingWindow(): Window | null {
 }
 
 export abstract class FuzzySuggestModal<T> {
-  constructor(readonly app: App) {}
+  readonly app: App;
+
+  constructor(app: App) {
+    this.app = app;
+  }
   setPlaceholder(_placeholder: string): void {}
   open(): void {}
   abstract getItems(): T[];
@@ -1435,7 +1457,11 @@ export class Modal {
 
   #closed: (() => unknown) | null = null;
 
-  constructor(readonly app: App) {
+  readonly app: App;
+
+  constructor(app: App) {
+    this.app = app;
+
     Modal.instances.push(this);
   }
 
@@ -1538,7 +1564,11 @@ export class Setting {
   readonly classes: string[] = [];
   errorMessage: string | null = null;
 
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+
     const rows = settingRows.get(containerEl) ?? [];
     rows.push(this);
     settingRows.set(containerEl, rows);
@@ -1653,7 +1683,11 @@ export class DropdownComponent {
   #value = "";
   #changed: ((value: string) => unknown) | null = null;
 
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+
     registerControl(containerEl, this);
   }
 
@@ -1720,7 +1754,11 @@ export class TextComponent {
 
   #changed: ((value: string) => unknown) | null = null;
 
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+
     registerControl(containerEl, this);
   }
 
@@ -1762,7 +1800,11 @@ export class ToggleComponent {
   #changed: ((value: boolean) => unknown) | undefined;
   readonly toggleEl: HTMLElement;
   disabled = false;
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+
     registerControl(containerEl, this);
     this.toggleEl = containerEl.createEl("label");
   }
@@ -1818,7 +1860,11 @@ export class ExtraButtonComponent {
 
   #clicked: ((evt: MouseEvent) => unknown) | null = null;
 
-  constructor(readonly containerEl: HTMLElement) {}
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+  }
 
   setIcon(icon: string): this {
     this.icon = icon;
@@ -1876,7 +1922,11 @@ export class ButtonComponent {
 
   #clicked: ((evt: MouseEvent) => unknown) | null = null;
 
-  constructor(readonly containerEl: HTMLElement) {
+  readonly containerEl: HTMLElement;
+
+  constructor(containerEl: HTMLElement) {
+    this.containerEl = containerEl;
+
     registerControl(containerEl, this);
   }
 

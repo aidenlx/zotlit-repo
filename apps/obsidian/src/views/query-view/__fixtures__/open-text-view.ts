@@ -7,12 +7,18 @@ import { stubService } from "@/lib/__fixtures__/service-stub";
 class OpenTextView extends TextFileView {
   data = "";
 
+  readonly file: TFile;
+  readonly host: ObsidianHost;
+
   constructor(
     leaf: WorkspaceLeaf,
-    readonly file: TFile,
-    readonly host: ObsidianHost,
+    file: TFile,
+    host: ObsidianHost,
   ) {
     super(leaf);
+this.file = file;
+this.host = host;
+
     this.lastSavedData = host.text(file.path) ?? "";
     this.setViewData(this.lastSavedData);
   }

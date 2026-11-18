@@ -212,8 +212,11 @@ export type FilterProblem =
   | Extract<Fault, { readonly kind: "syntax" }>;
 
 class Invalid extends Error {
-  constructor(readonly problem: FilterFailure | FaultedFormulaRead) {
+  readonly problem: FilterFailure | FaultedFormulaRead;
+
+  constructor(problem: FilterFailure | FaultedFormulaRead) {
     super(problem.kind);
+    this.problem = problem;
   }
 }
 
@@ -629,6 +632,8 @@ class Validator<Item, Needs> {
     };
   }
 
+  readonly registry: FilterRegistry<Item, Needs>;
+
   constructor(
     {
       needs,
@@ -639,7 +644,7 @@ class Validator<Item, Needs> {
       customFields: FilterCustomFieldUse[];
       warnings: Extract<Fault, { kind: "constant" }>[];
     },
-    readonly registry: FilterRegistry<Item, Needs>,
+    registry: FilterRegistry<Item, Needs>,
     {
       context,
       formula,
@@ -651,6 +656,8 @@ class Validator<Item, Needs> {
       observe?: (ast: ExpressionNode, node: FilterNode<Item>) => void;
     },
   ) {
+    this.registry = registry;
+
     this.context = context;
     this.formula = formula;
     this.#needs = needs;
