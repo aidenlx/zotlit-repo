@@ -6,7 +6,8 @@ The Obsidian plugin. Its shared base lives in packages, which the app imports by
 - `@zotlit/obsidian-kit` — code over the `obsidian` API that loads on Obsidian Mobile: the capability tags (`obsidian-*.ts`), shared components (`components/`), view atoms and runners, notices, the Obsidian test mock.
 - `@zotlit/obsidian-desktop` — code that needs `node:*` or `electron`.
 - `@zotlit/plugin-messages` — the generated Message facade.
-- `@zotlit/plugin-services` — the platform services the features stand on: settings, logging, the Language Pack, the Zotero preferences, the Local Server and Zotero Local API, the Held Read client, Library Scope, item search, the Note Index, the Use Ledger, Managed Binaries, attachments. The app keeps the host composition: the settings definition it composes from the slices and the migrations of its `data.json` (`src/services/settings/`), the `obsidian://` handlers (`src/services/protocol/`), and the plugin graph.
+- `@zotlit/plugin-services` — the platform services the features stand on: settings, logging, the Language Pack, the Zotero preferences, the Local Server and Zotero Local API, the Held Read client, Library Scope, item search, the Note Index, the Use Ledger, Managed Binaries, attachments.
+- `@zotlit/plugin-shell` — the plugin shell: the plugin class, the lifecycle, the runtime, start-up failure handling, the setting tab shell, and the platform services as the `platform` and `desktopPlatform` features. It derives the Layer graph, the settings definition, the tab and the registrations from the features ([its AGENTS.md](../../packages/plugin-shell/AGENTS.md)).
 - `@zotlit/annotations` — reading and annotating: the Annotation Repository and the annotation model, the surfaces in Obsidian's PDF reader (Annotation Marks, the Mark Popup, the Creation Toolbar), Excerpt Images, the Annotation View's cards and Annotations Layout, Reader Sessions and Open Targets.
 - `@zotlit/citations` — citations: the Citation Index and citation parsing, the Citation Suggester, the Document Citation Text, citekey navigation, the Citation and Annotation Popovers, Graph Citations, the References Sidebar and the Cited By Sidebar, the Citation Presentation, and the Pandoc Engine with Pandoc export. The app keeps the citation parse Worker entry (`src/services/citation-parse/worker.ts`), the Citations settings page, which names the notes feature's Profiles, and the tests that read the notes feature's Profiles (`src/services/citations/`).
 - `@zotlit/notes` — the notes: Literature Notes and the Note Feature, the note import, the Profiles with their dialogs and picker, Profile selection, the Templates with template data and the template conversion, and the batch runs. It fills the ports of `@zotlit/annotations` and `@zotlit/citations`. `@zotlit/query-views` fills its `ItemMatchQuery` port; the app keeps the tests that run Profile selection over ZotLit Query (`src/services/notes/`).
@@ -15,7 +16,16 @@ The Obsidian plugin. Its shared base lives in packages, which the app imports by
 - `@zotlit/library-view` — the Library View, the Welcome View, the Release check and the quick switcher.
 - `@zotlit/zotero-reads` — ZoteroReads: its contract, the Worker's handlers, the renderer's client, and the desktop database source. The app keeps the host side: the Worker entry (`src/services/zotero-reads/worker.ts`) and the client's wiring to settings (`worker-client.ts`).
 
-The app holds host composition only: the plugin entry and lifecycle, the Layer graph, registration, the settings composition and `data.json` migrations, the Worker entries, the `obsidian://` handlers, the setting tab's shell with its page order and the pages that name several features, and host tests that run several packages together. No package imports the app; each service and settings slice registers itself in the open registries (`ViewServiceRegistry`, `SettingsRegistry`, `SettingTabServiceRegistry`) by declaration merging.
+The app is the first host: it declares what differs per host, and the shell does the rest. It holds:
+
+- `src/features.ts` — the feature list, in the order registrations and start-up hooks run.
+- `src/host.ts` — the host declaration: the setting tab's page order, the file and folder menu order, and the settings history (`withHost`, the `data.json` migrations in `src/services/settings/`).
+- `src/capabilities.ts` — the Worker-backed capabilities (ZoteroReads, citation parsing) over the Worker entries.
+- `src/zt-main.ts` — the plugin class: `shellPlugin(host)` with the Electron preflight and the installer notice.
+- `src/setting-tab/pages.ts` — a host feature with the setting pages that name several features and the `obsidian://` handlers (`src/services/protocol/`), until each moves to an owner.
+- The build config and the host tests that run several packages together.
+
+No package imports the app; each service and settings slice registers itself in the open registries (`ViewServiceRegistry`, `SettingsRegistry`, `SettingTabServiceRegistry`, `SettingTabSlots`) by declaration merging. To add a service or a feature, run `/obsidian-services`; to add a setting or a settings page, run `/obsidian-settings`.
 
 ## Commands
 
@@ -42,9 +52,9 @@ The Annotation Marks and the Creation Toolbar inside Obsidian's PDF reader are v
 
 ## Setting tab
 
-Run `/obsidian-settings` for the declarative 1.13 `getSettingDefinitions()` API (controls, sub-pages, migration); build the tab from those definitions alone. The tab shell and its page order live in `src/setting-tab/index.ts`; a page or row with one owner lives with its feature and runs through `@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts`.
+Run `/obsidian-settings` for the declarative 1.13 `getSettingDefinitions()` API (controls, sub-pages, migration); build the tab from those definitions alone. The tab shell lives in `@zotlit/plugin-shell/obsidian/setting-tab/`, and the page order in `src/host.ts`; a page or row with one owner lives with its feature, which contributes it through its `settingTab.entries`, and runs through `@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts`.
 
-Project-specific: settings live in `PluginSettings` (`@zotlit/plugin-services/obsidian/settings/service.ts`) under flat dot-notation keys, not `plugin.settings`; the tab bridges `control` keys through `getControlValue`/`setControlValue`. A key lives in the settings slice of the feature that owns it (such as `packages/notes/src/core/note-import/settings.ts`); each slice registers itself in `SettingsRegistry`, and `src/services/settings/schema.ts` composes them.
+Project-specific: settings live in `PluginSettings` (`@zotlit/plugin-services/obsidian/settings/service.ts`) under flat dot-notation keys, not `plugin.settings`; the tab bridges `control` keys through `getControlValue`/`setControlValue` and the features' control codecs. A key lives in the settings slice of the feature that owns it (such as `packages/notes/src/core/note-import/settings.ts`); each slice registers itself in `SettingsRegistry`, the feature lists it in its `settings`, and `src/services/settings/schema.ts` composes them from the features (`settingsDefinitionOf`).
 
 ## Logging
 

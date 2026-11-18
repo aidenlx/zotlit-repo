@@ -5,7 +5,7 @@ description: |
   Use when creating or editing a PluginSettingTab, adding settings controls (toggle, text, number,
   dropdown, slider, file, folder, color), building settings groups/lists/sub-pages, wiring
   conditional visibility or validation, migrating from the imperative display() approach, or
-  touching apps/obsidian/src/setting-tab/ or a feature package's settings page or rows. Also use when opening the
+  touching apps/obsidian/src/setting-tab/, packages/plugin-shell/src/obsidian/setting-tab/, or a feature package's settings page or rows. Also use when opening the
   settings modal from code, deep-linking to a settings sub-page, or revealing/highlighting one
   setting row. Also use when the user mentions "setting tab", "plugin settings",
   "getSettingDefinitions", "SettingControl", "SettingDefinitionItem", "app.setting", or
@@ -547,14 +547,31 @@ the tab service in `@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts` 
 - A page or row with one owner lives with its feature, beside the settings slice it shows (for
   example `packages/annotations/src/obsidian/pdf-annotation-editor/settings-page.ts`). The file adds
   the services its rows read to `SettingTabServiceRegistry` by declaration merging.
-- The host keeps the tab shell and the page order (`apps/obsidian/src/setting-tab/index.ts`), the
-  declarative control store (`controls.ts`), and each page that names several features.
+- The feature contributes the page through its `settingTab.entries` in its `feature.ts`, by id. The
+  host places each id in `apps/obsidian/src/host.ts` → `settingTab` (`top` for top-level items,
+  `pages` for sub-pages, in order). The shell builds the tab (`packages/plugin-shell/src/obsidian/setting-tab/`).
+- A page that shows rows of several features holds a slot (`ctx.slot(id)`, with the id added to
+  `SettingTabSlots` by declaration merging), and each feature gives its rows in `settingTab.slots`.
+  The host's `apps/obsidian/src/setting-tab/pages.ts` still holds the pages that name several
+  features and have no slots yet.
+- A row whose presence depends on state adds a stream to `settingTab.rebuild`; each element
+  rebuilds the tab.
 
 When adding a setting:
-1. Add the key to the owner's settings slice.
-2. Add the row to the owner's settings page, or to the host page that lists it.
-3. Bind a declarative `control` through the host's control store, or read and write the setting in
-   the row's own handlers.
+1. Add the key to the owner's settings slice, and the slice to the owner's `settings` in its
+   `feature.ts` when it is new.
+2. Add the row to the owner's settings page, or to a slot of the page that lists it.
+3. Bind a declarative `control` to the key; the shell's control store reads and writes the
+   settings store. A control key that is not a stored key (such as a Profile binding) needs a
+   `ControlCodec` in the owner's `settingTab.controls`.
+
+When adding a settings page:
+1. Write the page builder (`(ctx: SettingTabContext) => SettingDefinitionItem[]`) in the owner's
+   package, beside its slice.
+2. Add it to the owner's `settingTab.entries` under a new id.
+3. Place the id in `host.ts` → `settingTab.pages`.
+4. A new key in a slice that the host has stored before needs no migration; a renamed or moved key
+   needs one in `apps/obsidian/src/services/settings/migrate.ts`.
 
 ## Further reading
 

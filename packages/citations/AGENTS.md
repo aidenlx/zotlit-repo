@@ -30,3 +30,7 @@ The package exports its TypeScript source as `@zotlit/citations/<layer>/<unit>/<
 `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
 
 `pnpm --filter @zotlit/citations test:lua-filter` drives a native Pandoc (3.1.1 or newer) over fixture Markdown to check both `zotlit-cite.lua` variants. It needs `pandoc` on PATH; set `PANDOC_BIN` to check another Pandoc version. `pnpm test` runs it too, and skips it where no `pandoc` is on PATH.
+
+## Feature
+
+`src/desktop/feature.ts` exports `citations`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. The notes feature fills its `CitekeyNoteActions` port.

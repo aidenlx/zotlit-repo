@@ -28,3 +28,7 @@ The package exports its TypeScript source as `@zotlit/query-views/<layer>/<unit>
 ## Tests
 
 `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest` and `@chenglou/pretext` resolved to `__mocks__/pretext.ts`. `pnpm bench` runs the Query View benchmarks (`vitest.bench.config.ts`); `desktop/query-view/mixed-query.bench.ts` reads a local Zotero database.
+
+## Feature
+
+`src/desktop/feature.ts` exports `queryViews`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. It fills the notes' `ItemMatchQuery` port and the annotations' `AnnotationViewReveal` and `PdfTargetReader` ports, and registers the Annotation History commands, which name its views.

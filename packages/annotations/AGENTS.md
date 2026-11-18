@@ -22,3 +22,7 @@ The package exports its TypeScript source as `@zotlit/annotations/<layer>/<unit>
 ## Tests
 
 `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The browser trials of the excerpt images (`*.browser-test.ts`) run in an Electron renderer when `ZOTLIT_TEST_ELECTRON_PATH` names one, and skip otherwise.
+
+## Feature
+
+`src/desktop/feature.ts` exports `annotations`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. It reads ports that other features fill: `AnnotationNoteActions` (notes), `AnnotationViewReveal` and `PdfTargetReader` (query views), and `ShowInLibrary` (library view). `desktop/__fixtures__/reader-host.ts` composes it with the platform alone, over stubs for those ports, and `desktop/reader-host.test.ts` builds that graph.

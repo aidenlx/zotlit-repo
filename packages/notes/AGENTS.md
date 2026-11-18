@@ -34,3 +34,7 @@ The package exports its TypeScript source as `@zotlit/notes/<layer>/<unit>/<file
 ## Tests
 
 `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. A test that runs Profile selection over the host's ZotLit Query service, or the citations over the host's settings, stays in the app (`apps/obsidian/src/services/notes/`, `src/services/citations/`).
+
+## Feature
+
+`src/desktop/feature.ts` exports `notes`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. It fills the `AnnotationNoteActions` and `CitekeyNoteActions` ports, and registers the Citation Suggester, which reads the notes. The template workbench fills its `TemplateWorkbenchLauncher` port, the query views its `ItemMatchQuery` port, and the library view its `TemplateMigrationPrompt` port.

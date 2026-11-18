@@ -30,3 +30,7 @@ The package exports its TypeScript source as `@zotlit/template-workbench/<layer>
 ## Tests
 
 `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The Match test of a real Item over the host's ZotLit Query service stays in the app (`apps/obsidian/src/services/template-workbench/match-data.test.ts`).
+
+## Feature
+
+`src/desktop/feature.ts` exports `templateWorkbench`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. It fills the notes' `TemplateWorkbenchLauncher` port.
