@@ -22,4 +22,16 @@ After ADR 0093 every feature lives in a package, but `apps/obsidian` still wrote
 - A new service is one `serviceGroup` in its owner's feature. A new feature is one entry in `features.ts` plus its tab and menu ids in `host.ts`.
 - The service start order is now derived from the tags, not the hand-written strata. Registrations run in feature order. Menu rows, tab pages and editor-suggest order stay as the host declares them.
 - A second host composes the platform and the features it needs, and supplies the ports they leave open. The annotations test fixture `reader-host.ts` is that composition for a reader, with stubs: ZoteroReads, FileSystem, ZoteroPref, ZoteroHttp, LocalServer, AnnotationNoteActions, AnnotationViewReveal, PdfTargetReader and ShowInLibrary.
-- The app still holds the setting pages that name several features and the `obsidian://` handlers, as one host feature, until each moves to an owner.
+
+## Update: pages, handlers and Node-free values (2026-11-19)
+
+The first version of this decision left the setting pages that name several features and the `obsidian://` handlers in the app, as one host feature. They now have owners, and each feature has a value for a host without Node.
+
+- **Two values per feature.** A feature package exports a Node-free value (`src/obsidian/feature.ts`, `defineFeature`) and a desktop value (`src/desktop/feature.ts`, `extendFeature(base, parts)`). A host lists one of them. `extendFeature` keeps the base's parts first, concatenates a slot both fill, merges handles and menus; `handlesOf(base)` reads the extended feature's handles. Chosen over listing two values side by side: the host keeps one entry per feature, so `defineHost`'s missing-port check, registration order and handle lookup see one feature, and a host cannot list the desktop half without its base.
+- **Every page has an owner.** A page that shows rows of several features belongs to one of them and holds slots; the owner exports the slot ids as a constant so a filler's program reads their declaration. The Zotero and Advanced pages belong to the platform (`plugin-shell/src/obsidian/setting-pages/`).
+- **Every `obsidian://` action has an owner.** Each is a `protocolHandler` of the feature it acts on; the shared checks, outcomes and notices live in `@zotlit/plugin-services/obsidian/protocol/`. A handler may read the registration's Scope.
+
+Consequences:
+
+- The app holds no page and no handler. A Node-free host (`apps/obsidian/src/__fixtures__/mobile-host/`) composes the platform and every Obsidian value over 18 stub ports; `tsconfig.mobile.json` and `scripts/check-mobile-host.ts` check it in `typecheck`. The check proves the composition's ports and that its program reads no desktop file; it does not prove the absence of Node globals, because liquidjs's and undici's typings load `@types/node` into every program.
+- Service ties now break base-first inside a feature: AnnotationRepository builds before ExcerptPreparation/ExcerptDisplays, GraphCitations before AnnotationPopover (independent groups).
