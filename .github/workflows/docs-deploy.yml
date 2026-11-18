@@ -104,11 +104,6 @@ jobs:
         with:
           bootstrap: "false"
 
-      # zotero-types copies this schema into its package output. The other two
-      # repository submodules are outside the docs dependency closure.
-      - name: Initialize Zotero schema
-        run: git submodule update --init --depth 1 --single-branch packages/zotero-types/zotero-schema
-
       - name: Install docs dependencies
         run: pnpm install --frozen-lockfile --filter @zotlit/docs...
 

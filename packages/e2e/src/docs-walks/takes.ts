@@ -1,5 +1,5 @@
 // The take record of the docs-walk clips: how each clip was recorded, kept
-// in the private `video/` submodule, while the footage stays out of git.
+// in the private `video/` clone, while the footage stays out of git.
 // A take holds what a new encode or a longer edit needs: the logged actions,
 // the camera track the clip was cut with, the recorder's commit, the app
 // versions, the command, and the clip's length and output sizes.

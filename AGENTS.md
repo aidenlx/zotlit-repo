@@ -10,15 +10,16 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/config` — consumed via `@zotlit/config` exports map.
 - `packages/db` — Drizzle ORM client for Zotero database.
 - `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
+- `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/templates` — Eta-based template rendering.
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema.
-- `video/` — **private, opt-in git submodule**: the workbench for product videos. Check it out with `git submodule update --init --checkout video`, then follow `video/AGENTS.md`.
+- `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
 
 ## Bootstrap & toolchain
 
 - `mise` pins to Node 26 version (see `mise.toml`). Its `idiomatic_version_file_enable_tools = ["pnpm"]` setting also activates pnpm at the version declared in root `package.json`'s `packageManager` field.
-- `mise run init` initializes git submodules, including `packages/pdfjs-dist` and `packages/zotero-types/zotero-schema`.
+- A plain `git clone` plus `mise run init` gives a complete workspace: `init` installs dependencies and builds the workspace packages. Upstream copies (`packages/zotero-types/zotero-schema`, `packages/pdfjs-dist`) are committed files; `node packages/scripts/scripts/vendor-upstream.ts <source> [ref]` refreshes one and records the upstream commit in its `provenance.json`.
 - Resolve tool availability from the current workspace environment. Use `pnpm exec` for workspace binaries; use the Mise-managed toolchain defined by `mise.toml`.
 - `agent-browser` (>= 0.31.1) — browser automation via CDP. Run `agent-browser skills get core` once per session for the version-matched usage guide. Session conventions and gotchas: [`docs/agents/agent-browser.md`](docs/agents/agent-browser.md).
 
@@ -101,12 +102,12 @@ Choose the destination by purpose:
 
 ## Worktrees
 
-Worktrunk (`wt`) creates and removes every worktree. Its hooks place the worktree at the user's path template, bootstrap it through the `pre-start` hook in `.config/wt.toml`, and deinit submodules on removal.
+Worktrunk (`wt`) creates and removes every worktree. Its hooks place the worktree at the user's path template and bootstrap it through the `pre-start` hook in `.config/wt.toml`.
 
 - **Create:** `wt switch --create <branch> --base <base>`; add `--no-cd` when the worktree is for another agent, and name the printed path in that agent's prompt. Name the branch by its change type, such as `feat/<topic>` or `fix/<topic>`.
 - **Remove:** `wt remove <branch>`.
 
-A plain `git worktree add` runs none of these hooks: the worktree has no dependencies or submodules and sits outside the path template.
+A plain `git worktree add` runs none of these hooks: the worktree has no dependencies and sits outside the path template.
 
 ## Agent skills
 

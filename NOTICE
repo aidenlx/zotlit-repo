@@ -69,6 +69,21 @@ PDF.js, pinned to zotero/pdf.js f57fc80d1c07e4cdc50a767ae0b500b5272123b4
 
 =========================================================================
 
+This project contains two unmodified upstream copies. Each folder's
+provenance.json records the upstream commit.
+
+  packages/zotero-types/zotero-schema/schema.json
+    from zotero/zotero-schema — https://github.com/zotero/zotero-schema
+    Copyright (C) Corporation for Digital Scholarship
+
+  packages/pdfjs-dist/types/
+    type definitions generated from Zotero's fork of PDF.js, from
+    zotero-plugin-dev/zotero-pdfjs-types —
+    https://github.com/zotero-plugin-dev/zotero-pdfjs-types
+    PDF.js is licensed under the Apache License, Version 2.0.
+
+=========================================================================
+
 This project also contains code derived from Mozilla web-ext:
 
   apps/zotero/scripts/dev-server/remote-firefox.ts

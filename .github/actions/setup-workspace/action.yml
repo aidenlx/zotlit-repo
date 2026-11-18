@@ -37,4 +37,4 @@ runs:
     - name: Bootstrap workspace
       if: inputs.bootstrap == 'true'
       shell: bash
-      run: mise run init --no-submodules
+      run: mise run init
