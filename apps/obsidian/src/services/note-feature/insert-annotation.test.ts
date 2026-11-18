@@ -15,8 +15,8 @@ import type { TFile } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Annotation } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,

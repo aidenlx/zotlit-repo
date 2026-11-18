@@ -2,6 +2,14 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import {
+  BULK_LIBRARY,
+  bulkItemKey,
+  openScenarioDatabase,
+  seedBulkAnnotations,
+  seedBulkLibrary,
+} from "@zotlit/db-testing/scenario";
+
+import {
   ItemQueryDatabase,
   readItemAttachments,
   readItemAnnotations,
@@ -10,16 +18,10 @@ import {
 } from "./index.ts";
 import type { AnnotationScanRow } from "./index.ts";
 
-import {
-  BULK_LIBRARY,
-  bulkItemKey,
-  openScenarioDatabase,
-  seedBulkAnnotations,
-  seedBulkLibrary,
-} from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 it("reads a paper's files and marks in source order, excluding trash and standalone files", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -56,7 +58,7 @@ it("reads a paper's files and marks in source order, excluding trash and standal
 });
 
 it("reads a long Relation List in keyset pages of 500 rows", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { sqlite } = scenario;
   seedBulkLibrary(sqlite, 1);
   seedBulkAnnotations(sqlite, 1_001);
@@ -128,7 +130,7 @@ it("reads a long Relation List in keyset pages of 500 rows", () => {
 });
 
 it("reads a paper's Child Notes in keyset pages of 500 rows", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { sqlite } = scenario;
   seedBulkLibrary(sqlite, 1);
   const paper = (

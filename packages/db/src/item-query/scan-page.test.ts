@@ -1,7 +1,13 @@
-import type { ScenarioDatabase } from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
+
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
 
 import { checkLayout } from "./database.ts";
 import {
@@ -15,14 +21,11 @@ import {
 } from "./index.ts";
 import type { ScanRow } from "./index.ts";
 
+import { connectClient } from "#client/node.ts";
 import { relations } from "#drizzle/relations.ts";
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
 
 function run<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ) {
   return Effect.runSyncExit(
@@ -31,7 +34,7 @@ function run<A, E>(
 }
 
 function runOk<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ): A {
   const exit = run(scenario, effect);
@@ -43,7 +46,7 @@ const { personal, group } = SCENARIO_LIBRARIES;
 
 describe("readScanPage", () => {
   it("reads the live top-level Items of one Library in Item ID order", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const rows = runOk(
       scenario,
       readScanPage({ libraryID: personal.libraryID, afterItemID: 0 }),
@@ -70,7 +73,7 @@ describe("readScanPage", () => {
   });
 
   it("gives each row its item type and its two timestamps", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const rows = runOk(
       scenario,
       readScanPage({
@@ -94,7 +97,7 @@ describe("readScanPage", () => {
   });
 
   it("continues after an Item ID, so pages cover the Library without overlap", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const keys: string[] = [];
     let afterItemID = 0;
     for (;;) {
@@ -122,7 +125,7 @@ describe("readScanPage", () => {
   });
 
   it("reads at most 500 Items in one page, whatever size the caller asks for", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const insert = scenario.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key) select itemTypeID, ?, ? from itemTypesCombined where typeName = 'book'",
     );
@@ -150,7 +153,7 @@ describe("readScanPage", () => {
   });
 
   it("fails with the tagged database error that carries the statement", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // The copy passes the layout check first, so the statement itself fails.
     runOk(scenario, checkLayout());
     scenario.sqlite.exec("alter table items rename column dateAdded to added");
@@ -178,7 +181,7 @@ describe("readScanPage", () => {
 describe("readUniverseRows", () => {
   /** The ID of the `items` row with a key in a Library. */
   function idOf(
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     key: string,
     library: { libraryID: number } = personal,
   ) {
@@ -190,7 +193,7 @@ describe("readUniverseRows", () => {
   }
 
   it("keeps the IDs that are live top-level Items of the Target Library, as scan rows in Item ID order", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const rows = runOk(
       scenario,
       readUniverseRows({
@@ -228,7 +231,7 @@ describe("readUniverseRows", () => {
   });
 
   it("gives the same row as the scan for each Item", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const scanned = runOk(
       scenario,
       readScanPage({ libraryID: personal.libraryID, afterItemID: 0 }),
@@ -246,7 +249,7 @@ describe("readUniverseRows", () => {
   });
 
   it("gives one row for an ID that the chunk names twice, and no row for no IDs", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const id = idOf(scenario, "ART2FULL", group);
 
     expect(
@@ -264,7 +267,7 @@ describe("readUniverseRows", () => {
   });
 
   it("takes at most 500 IDs in one chunk", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const id = idOf(scenario, "ART2FULL");
 
     expect(
@@ -295,7 +298,7 @@ it.each([
   ["Attachments", readAttachmentScanPage],
   ["Annotations", readAnnotationScanPage],
 ] as const)("scans %s without a temporary ORDER BY B-tree", (_, readPage) => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const queries: { sql: string; params: unknown[] }[] = [];
   scenario.db = drizzle({
     client: scenario.sqlite,

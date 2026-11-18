@@ -4,13 +4,15 @@ import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
+import { rowInstant } from "@zotlit/db-testing";
 import {
   BULK_LIBRARY,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
-import { rowInstant } from "@zotlit/db/test-utils";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
 import { workerQuery } from "@/services/item-query/__fixtures__/worker-query.ts";
@@ -93,7 +95,10 @@ function jobOf(
 }
 
 /** An export of the bulk Library to the directory of the scenario. */
-function bulkExport(scenario: ScenarioDatabase, id: string): QueryJob {
+function bulkExport(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  id: string,
+): QueryJob {
   const directory = dirname(scenario.path);
   return jobOf(
     id,
@@ -106,7 +111,7 @@ function bulkExport(scenario: ScenarioDatabase, id: string): QueryJob {
  * The in-process client over the scenario, with a count of the connection
  * borrows that are open.
  */
-function clientOf(scenario: ScenarioDatabase) {
+function clientOf(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   let borrows = 0;
   const counted = Layer.effect(Connection)(
     Effect.gen(function* () {
@@ -143,7 +148,7 @@ const writing = (job: QueryJob) =>
 
 describe("ZoteroReads ItemQuery", () => {
   it("answers the envelope of a job with its receipt", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { client, borrows } = clientOf(scenario);
 
     const answer = await Effect.runPromise(
@@ -165,7 +170,9 @@ describe("ZoteroReads ItemQuery", () => {
   });
 
   it("cancels a job while it waits for a slot, and then the running jobs", async () => {
-    using scenario = openScenarioDatabase({ storage: "temp-directory" });
+    using scenario = openScenarioDatabase(connectClient, {
+      storage: "temp-directory",
+    });
     seedBulkLibrary(scenario.sqlite, 20000);
     const { client, borrows } = clientOf(scenario);
     const first = bulkExport(scenario, "first");
@@ -215,7 +222,9 @@ describe("ZoteroReads ItemQuery", () => {
   });
 
   it("ends the job of a request that the client interrupts, and releases its borrow", async () => {
-    using scenario = openScenarioDatabase({ storage: "temp-directory" });
+    using scenario = openScenarioDatabase(connectClient, {
+      storage: "temp-directory",
+    });
     seedBulkLibrary(scenario.sqlite, 20000);
     const { client, borrows } = clientOf(scenario);
     const job = bulkExport(scenario, "abandoned");
@@ -251,7 +260,9 @@ describe("ZoteroReads ItemQuery", () => {
 
 describe("ZoteroReads Attachment files", () => {
   it("resolves and probes each Attachment once within one query", async () => {
-    using scenario = openScenarioDatabase({ storage: "temp-directory" });
+    using scenario = openScenarioDatabase(connectClient, {
+      storage: "temp-directory",
+    });
     const dataDir = dirname(scenario.path);
     const baseAttachmentPath = join(dataDir, "linked");
     const importedPath = join(dataDir, "storage", "IMPRT223", "paper.pdf");

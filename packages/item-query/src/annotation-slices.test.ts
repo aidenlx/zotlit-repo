@@ -6,7 +6,8 @@ import {
   openScenarioDatabase,
   seedBulkAnnotations,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { ANNOTATIONS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler, SLICE_BUDGET_MS } from "./scheduler.ts";
@@ -22,7 +23,7 @@ it.each([
 ])(
   "checks the slice budget between $reader statements",
   async ({ dataset, reader }) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 3_000);
     seedBulkAnnotations(scenario.sqlite, 3_000);
     let clock = 0;

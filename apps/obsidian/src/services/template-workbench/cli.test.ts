@@ -2,7 +2,7 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, vi } from "vitest";
 
-import { rowInstant } from "@zotlit/db/test-utils";
+import { rowInstant } from "@zotlit/db-testing";
 import {
   ContractMetadataError,
   markInertPlaceholder,

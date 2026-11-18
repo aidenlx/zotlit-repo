@@ -3,13 +3,14 @@ import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
+
 import {
   getAnnotViewAttachments,
   getAttachmentAnnotationCount,
 } from "./annot-view.ts";
 
 import { relations } from "#drizzle/relations.ts";
-import { createFixtureSchema } from "#test-utils.ts";
 
 const INSERTS = `
   insert into libraries (libraryID, type) values (1, 'user');

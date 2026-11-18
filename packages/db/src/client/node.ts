@@ -11,10 +11,20 @@ export interface DatabaseOptions {
   logger?: boolean | Logger;
 }
 
-export type NodeDatabaseClient = ReturnType<typeof createClient>;
+export type NodeDatabaseClient = ReturnType<typeof connectClient>;
 
 export function createClient(url: string, options?: DatabaseOptions) {
-  const sqlite = new DatabaseSync(url, options?.connection ?? {});
+  return connectClient(
+    new DatabaseSync(url, options?.connection ?? {}),
+    options,
+  );
+}
+
+/** A client on a database that is already open. */
+export function connectClient(
+  sqlite: DatabaseSync,
+  options?: Omit<DatabaseOptions, "connection">,
+) {
   return drizzle({
     client: sqlite,
     relations,

@@ -1,9 +1,15 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
+import { Effect } from "effect";
+import { describe, expect, it } from "vitest";
+
 import type {
   ScenarioDatabase,
   ScenarioItemName,
-} from "#test-scenario/index.ts";
-import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+} from "@zotlit/db-testing/scenario";
+import {
+  openScenarioDatabase,
+  SCENARIO_ITEMS,
+} from "@zotlit/db-testing/scenario";
 
 import { readItemAttachments } from "./attachments.ts";
 import {
@@ -16,10 +22,10 @@ import {
 } from "./index.ts";
 import type { HydrateFields, HydratedItem, HydrateRelation } from "./index.ts";
 
-import { openScenarioDatabase, SCENARIO_ITEMS } from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 function runOk<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ): A {
   const exit = Effect.runSyncExit(
@@ -29,7 +35,10 @@ function runOk<A, E>(
   return exit.value;
 }
 
-function itemID(scenario: ScenarioDatabase, name: ScenarioItemName): number {
+function itemID(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  name: ScenarioItemName,
+): number {
   const { key, library } = SCENARIO_ITEMS[name];
   const row = scenario.sqlite
     .prepare("select itemID from items where key = ? and libraryID = ?")
@@ -38,7 +47,7 @@ function itemID(scenario: ScenarioDatabase, name: ScenarioItemName): number {
 }
 
 function hydrate(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   names: readonly ScenarioItemName[],
   fields: HydrateFields,
 ): Map<ScenarioItemName, HydratedItem> {
@@ -53,7 +62,7 @@ function hydrate(
 }
 
 function hydrateRelations(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   names: readonly ScenarioItemName[],
   relations: readonly HydrateRelation[],
 ): Map<ScenarioItemName, HydratedItem> {
@@ -83,7 +92,7 @@ const plain = (item: HydratedItem | undefined) =>
 
 describe("readFieldVocabulary", () => {
   it("lists the custom fields of the source by exact name", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const vocabulary = runOk(scenario, readFieldVocabulary());
 
     expect(vocabulary.customFieldNames).toEqual([
@@ -97,7 +106,7 @@ describe("readFieldVocabulary", () => {
 
 describe("readCollectionPaths", () => {
   it("gives the root-first path of each live Collection of one Library", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const personalPaths = runOk(
       scenario,
       readCollectionPaths({ libraryID: 1 }),
@@ -120,7 +129,7 @@ describe("readCollectionPaths", () => {
 
 describe("readHydrateChunk", () => {
   it("loads only the requested built-in and custom fields of each Item", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrate(scenario, ["fullDateArticle", "missingDateReport"], {
       builtIn: ["title", "DOI"],
       custom: ["review.status"],
@@ -140,7 +149,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("reads the stored values of the requested fields only", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const rows: unknown[] = [];
     const id = itemID(scenario, "yearOnlyChapter");
 
@@ -167,7 +176,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("resolves a base field through the type-specific field of the item type", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrate(
       scenario,
       ["yearOnlyChapter", "textDateConference", "missingDateReport"],
@@ -187,7 +196,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("prefers the type-specific field in an alias conflict and keeps custom fields apart", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrate(scenario, ["aliasConflictChapter"], {
       builtIn: ["publicationTitle", "bookTitle"],
       custom: ["publicationTitle"],
@@ -203,7 +212,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("gives a value stored as an integer as a string", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrate(scenario, ["tieFirst", "tieSecond"], {
       builtIn: ["volume"],
       custom: [],
@@ -214,7 +223,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("gives an entry for every Item of the chunk, also one with no values", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrate(scenario, ["tieUntitled"], {
       builtIn: ["title"],
       custom: [],
@@ -224,7 +233,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("loads the Creators of each Item in Zotero's creator order, one for each row", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrateRelations(
       scenario,
       ["yearMonthBook", "fullDateArticle", "missingDateReport"],
@@ -267,7 +276,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("loads every Tag of each Item with its type", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrateRelations(
       scenario,
       ["fullDateArticle", "missingDateReport"],
@@ -286,7 +295,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("loads the root-first path of each live Collection an Item is filed in", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const items = hydrateRelations(
       scenario,
       ["fullDateArticle", "yearMonthBook", "yearOnlyChapter", "tieFirst"],
@@ -309,7 +318,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("reports whether an Item has a live child Attachment", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const rows = runOk(
       scenario,
       readItemAttachments([
@@ -322,7 +331,7 @@ describe("readHydrateChunk", () => {
 
   it("ignores a trashed Attachment", () => {
     // ART2FULL keeps only its trashed Attachment.
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite
       .prepare(
         "insert into deletedItems (itemID, dateDeleted) values (?, '2024-01-01 00:00:00')",
@@ -338,7 +347,7 @@ describe("readHydrateChunk", () => {
   });
 
   it("rejects a chunk larger than the chunk size", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(HYDRATE_CHUNK_SIZE).toBe(250);
     const ids = Array.from({ length: 251 }, (_, i) => i + 1);
 

@@ -22,9 +22,9 @@ import {
   getIndexSignatureRange,
 } from "@zotlit/db";
 import type { NoteResolvers } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 
 import { layerRcRef } from "./connection.ts";

@@ -8,9 +8,9 @@ import type { Mock } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { ChildNote, Library, Note } from "@zotlit/db";
+import { createFixtureSchema, rowInstant } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema, rowInstant } from "@zotlit/db/test-utils";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";

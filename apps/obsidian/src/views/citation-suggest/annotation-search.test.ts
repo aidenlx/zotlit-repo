@@ -3,8 +3,10 @@
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { buildQueryService } from "@/services/item-query/__fixtures__.ts";
 import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
@@ -20,7 +22,9 @@ import { searchAnnotations } from "./annotation-search.ts";
  * date the scenario gives: "Ten Simple Rules" (`RULES222`), its PDF
  * `RULESPDF`, and one highlight `RULESANN`.
  */
-function addOlderPaper(sqlite: ScenarioDatabase["sqlite"]): void {
+function addOlderPaper(
+  sqlite: ScenarioDatabase<NodeDatabaseClient>["sqlite"],
+): void {
   sqlite.exec(`
     insert into itemDataValues (value) values ('Ten Simple Rules');
     insert into items (itemTypeID, dateAdded, dateModified, clientDateModified, libraryID, key) values
@@ -41,7 +45,7 @@ function addOlderPaper(sqlite: ScenarioDatabase["sqlite"]): void {
 async function setup(uses: Record<string, number> = {}) {
   await using stack = new AsyncDisposableStack();
   const scenario = stack.use(
-    openScenarioDatabase({
+    openScenarioDatabase(connectClient, {
       storage: "temp-directory",
       annotations: true,
     }),

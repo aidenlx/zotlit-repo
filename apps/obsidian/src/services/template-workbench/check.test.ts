@@ -9,9 +9,9 @@ import { parse } from "yaml";
 
 import { withAnnotationCitation } from "@zotlit/db";
 import type { TemplateAnnotation } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { TemplateError } from "@zotlit/templates/facade";
 

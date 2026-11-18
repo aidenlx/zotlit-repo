@@ -3,7 +3,8 @@ import { expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
@@ -45,7 +46,7 @@ it.each([
     returnedCount: 1,
   },
 ])("reads candidates for $filter", async ({ filter, returnedCount }) => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const query = collectQuery(ITEMS, {
     libraries: [SCENARIO_LIBRARIES.personal],
     filter,
@@ -81,7 +82,7 @@ it.each([
 it.each(["containsAny", "containsAll"])(
   "plans tags.%s with 10,000 values",
   async (method) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const values = Array.from(
       { length: 10_000 },
       (_, index) => `"tag ${index}"`,
@@ -111,7 +112,7 @@ it.each(["containsAny", "containsAll"])(
 );
 
 it('scans text title.containsAny("a")', async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const actual = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -215,7 +216,7 @@ it.each(
 )(
   "$dataset.id reads candidates for $filter",
   async ({ dataset, filter, returnedCount }) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const query = collectQuery(dataset, {
       libraries: [SCENARIO_LIBRARIES.personal],
       filter,
@@ -258,7 +259,7 @@ it.each([
   { filter: "tags.containsAny([])", returnedCount: 0 },
   { filter: "tags.containsAll([])", returnedCount: 10 },
 ])("scans $filter", async ({ filter, returnedCount }) => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const actual = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal],

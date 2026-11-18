@@ -1,15 +1,17 @@
 import { Cause, Clock, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { ItemQueryDatabase, ItemQueryLayoutError } from "@zotlit/db/item-query";
-import type { StatementRun } from "@zotlit/db/item-query";
 import {
   BULK_TAG,
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { ItemQueryDatabase, ItemQueryLayoutError } from "@zotlit/db/item-query";
+import type { StatementRun } from "@zotlit/db/item-query";
 
 import {
   ANNOTATIONS,
@@ -33,12 +35,15 @@ import type { RunEvent, RunOptions } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 
-function run(scenario: ScenarioDatabase, request: ItemQueryRequest) {
+function run(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  request: ItemQueryRequest,
+) {
   return runEffect(collectQuery(ITEMS, request), { client: scenario.db });
 }
 
 async function result(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: ItemQueryRequest,
 ): Promise<QueryResult> {
   const { exit } = await run(scenario, request);
@@ -47,7 +52,10 @@ async function result(
 }
 
 /** The typed failure of a run; a defect or an interruption fails the test. */
-async function failure(scenario: ScenarioDatabase, request: ItemQueryRequest) {
+async function failure(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  request: ItemQueryRequest,
+) {
   const { exit } = await run(scenario, request);
   if (!Exit.isFailure(exit)) throw new Error("the query did not fail.");
   const error = Cause.findErrorOption(exit.cause);
@@ -58,7 +66,7 @@ async function failure(scenario: ScenarioDatabase, request: ItemQueryRequest) {
 const keys = (found: QueryResult) => found.rows!.map((row) => row.indexedKey);
 
 it("reads a title text sweep without a scan page", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit, events } = await run(scenario, {
     libraries: [personal],
     filter: 'title.icontains("exact")',
@@ -111,7 +119,7 @@ function itemIDsBound(statement: StatementRun): number[] {
 
 /** Store a built-in field value on a personal Item of the scenario. */
 function setField(
-  database: ScenarioDatabase,
+  database: ScenarioDatabase<NodeDatabaseClient>,
   key: string,
   [field, value]: readonly [string, string | number | bigint],
 ): void {
@@ -126,7 +134,10 @@ function setField(
     .run(key, field, value);
 }
 
-function itemIDsOf(database: ScenarioDatabase, keys: string[]): number[] {
+function itemIDsOf(
+  database: ScenarioDatabase<NodeDatabaseClient>,
+  keys: string[],
+): number[] {
   return keys.map(
     (key) =>
       (
@@ -161,7 +172,7 @@ const BOTH_BY_MODIFIED = [
 
 describe("collectQuery(ITEMS) without a filter", () => {
   it("returns the live top-level Items of the Library, most recently modified first", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, { libraries: [personal] });
 
     expect(keys(found)).toEqual(PERSONAL_BY_MODIFIED);
@@ -170,14 +181,14 @@ describe("collectQuery(ITEMS) without a filter", () => {
   });
 
   it("keeps the two Libraries apart and gives group Items their group Indexed Key", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, { libraries: [group] });
 
     expect(keys(found)).toEqual(["ART2FULLg4815", "GRP2BK22g4815"]);
   });
 
   it("reads a Library that is larger than one scan page", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const insert = scenario.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key, dateModified) select itemTypeID, ?, ?, ? from itemTypesCombined where typeName = 'book'",
     );
@@ -206,7 +217,7 @@ describe("collectQuery(ITEMS) without a filter", () => {
 
 describe("collectQuery(ITEMS) with a limit", () => {
   it("breaks a tie inside the limit by Indexed Key", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, { libraries: [personal], limit: 5 });
 
     expect(keys(found).slice(3)).toEqual(["TIE2AAAA", "TIE2BBBB"]);
@@ -216,7 +227,7 @@ describe("collectQuery(ITEMS) with a limit", () => {
 
 describe("collectQuery(ITEMS) projection", () => {
   it("projects the item type, title, creators, date, and modification time when the caller names no fields", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, { libraries: [personal], limit: 1 });
 
     expect(found.rows!).toEqual([
@@ -263,7 +274,7 @@ const valuesByKey = (found: QueryResult) =>
 
 describe("collectQuery(ITEMS) Projection Paths", () => {
   it("projects full, partial, text, and missing dates as structured values", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["date", "date.year", "date.month", "date.day", "date.raw"],
@@ -325,7 +336,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("resolves an alias conflict to the type-specific field and keeps the custom field apart", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: [
@@ -354,7 +365,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("resolves a base field through the type-specific field of each item type", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["publicationTitle", "publisher", "institution"],
@@ -377,7 +388,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("gives a field value as a string whether SQLite stores it as text or as a number", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["volume"],
@@ -398,7 +409,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   ])(
     "preserves the stored number %s in projection and both filter plans",
     async (value) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       setField(scenario, "ART2FULL", ["volume", value]);
       const request = {
         libraries: [personal],
@@ -423,7 +434,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   );
 
   it("reaches custom fields by exact source name, in bracket or dotted form", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ['custom["review.status"]', "custom.mood", "custom"],
@@ -457,7 +468,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("puts every requested path in every row, with null for a missing value", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["title", "DOI", "date.year"],
@@ -474,7 +485,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("hydrates the projection only for the rows a limited query returns", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await run(scenario, {
       libraries: [personal],
       fields: ["title"],
@@ -490,7 +501,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
   });
 
   it("reads Items of a Library larger than one hydrate chunk", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const insertItem = scenario.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key, dateModified) select itemTypeID, ?, ?, '2000-01-01 00:00:00' from itemTypesCombined where typeName = 'book'",
     );
@@ -519,7 +530,7 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
 
 describe("collectQuery(ITEMS) relation lists", () => {
   it("projects each Relation List element in source order and keeps null positions", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: [
@@ -555,7 +566,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("projects Creators in Zotero's creator order, one element for each row", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["creators"],
@@ -603,7 +614,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("projects Tags in the Item Query string order, with their type", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["tags", "tags[0].name"],
@@ -627,7 +638,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("projects each live Collection as its root-first path, in the Item Query string order", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["collections", "collections[1]"],
@@ -649,7 +660,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("gives the Collection paths of the Target Library", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [group],
       fields: ["collections"],
@@ -662,7 +673,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("projects the file summary for a paper with a live Attachment", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["attachments"],
@@ -684,7 +695,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("projects an empty list for a paper with only trashed Attachments", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // ART2FULL keeps only its already trashed Attachment.
     scenario.sqlite.exec(
       "insert into deletedItems (itemID, dateDeleted) select itemID, '2024-01-01 00:00:00' from items where key = 'PDF2LIVE'",
@@ -699,7 +710,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("loads each relation only for the rows a limited query returns", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await run(scenario, {
       libraries: [personal],
       fields: ["creators", "tags", "collections", "attachments"],
@@ -724,7 +735,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("loads no relation that the query does not read", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await run(scenario, {
       libraries: [personal],
       fields: ["title", "attachments"],
@@ -742,7 +753,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
   });
 
   it("reaches one Creator by index, with null past the end", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       fields: ["creators[0].fullName", "creators[1].role", "creators[2]"],
@@ -764,7 +775,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
 
 describe("collectQuery(ITEMS) first author", () => {
   /** Put the editor of the book chapter before its author. */
-  function editorFirst(database: ScenarioDatabase): void {
+  function editorFirst(database: ScenarioDatabase<NodeDatabaseClient>): void {
     const itemID = itemIDsOf(database, ["CHP2YEAR"])[0]!;
     const reorder = database.sqlite.prepare(
       "update itemCreators set orderIndex = ? where itemID = ? and orderIndex = ?",
@@ -775,7 +786,7 @@ describe("collectQuery(ITEMS) first author", () => {
   }
 
   it("projects the first Primary Creator, not the first creator", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     editorFirst(scenario);
     const found = await result(scenario, {
       libraries: [personal],
@@ -800,7 +811,7 @@ describe("collectQuery(ITEMS) first author", () => {
   });
 
   it("filters and sorts by the first author", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     editorFirst(scenario);
     const filtered = await result(scenario, {
       libraries: [personal],
@@ -832,7 +843,7 @@ describe("collectQuery(ITEMS) first author", () => {
 
 describe("collectQuery(ITEMS) failures", () => {
   it("fails a custom field that the source does not define", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const error = await failure(scenario, {
       libraries: [personal],
       fields: ['custom["Review.Status"]'],
@@ -846,7 +857,7 @@ describe("collectQuery(ITEMS) failures", () => {
   });
 
   it("fails with the tagged database error when a statement fails", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // The copy passes the layout check first, so the statement itself fails.
     await result(scenario, { libraries: [personal], limit: 1 });
     scenario.sqlite.exec("drop table deletedItems");
@@ -865,7 +876,7 @@ describe("collectQuery(ITEMS) failures", () => {
 
 describe("collectQuery(ITEMS) on the layout of the Zotero database", () => {
   function stamp(
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     versions: { userdata: number; compatibility: number },
   ) {
     const update = scenario.sqlite.prepare(
@@ -876,7 +887,7 @@ describe("collectQuery(ITEMS) on the layout of the Zotero database", () => {
   }
 
   it("fails with ItemQueryLayoutError when a copy stamped inside the supported range lacks a manifest column", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     stamp(scenario, { userdata: 129, compatibility: 9 });
     scenario.sqlite.exec('alter table "fieldsCombined" drop column "custom"');
 
@@ -894,7 +905,7 @@ describe("collectQuery(ITEMS) on the layout of the Zotero database", () => {
   });
 
   it("gives the oracle result on a copy stamped outside the supported range with the full layout", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     stamp(scenario, { userdata: 140, compatibility: 12 });
 
     const found = await result(scenario, {
@@ -911,7 +922,7 @@ describe("collectQuery(ITEMS) on the layout of the Zotero database", () => {
 
 describe("collectQuery(ITEMS) under a scheduler", () => {
   it("pauses between operations and gives the result of the exported scheduler", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const request: ItemQueryRequest = { libraries: [personal], limit: 4 };
 
     const stepped = await run(scenario, request);
@@ -930,7 +941,7 @@ describe("collectQuery(ITEMS) under a scheduler", () => {
 
 describe("collectQuery(ITEMS) sort", () => {
   const sortedKeys = async (
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     sort: ItemQueryRequest["sort"],
     limit?: number,
   ): Promise<string[]> =>
@@ -944,7 +955,7 @@ describe("collectQuery(ITEMS) sort", () => {
     );
 
   it("orders by a string field in ascending order, with a missing value last and a tie in Indexed Key order", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       await sortedKeys(scenario, [{ field: "title", direction: "asc" }]),
     ).toEqual([
@@ -962,7 +973,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("orders in descending order, still with a missing value last and a tie in Indexed Key order", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       await sortedKeys(scenario, [{ field: "title", direction: "desc" }]),
     ).toEqual([
@@ -980,7 +991,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("orders a null-heavy field by the next Sortable Field inside each tie group", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       await sortedKeys(scenario, [
         { field: "volume", direction: "asc" },
@@ -1001,7 +1012,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("orders the Items without a value by Indexed Key in both directions", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const missing = [
       "ALS2CNFL",
       "BK2MNTH2",
@@ -1022,14 +1033,14 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("orders by Indexed Key alone for an empty sort list", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(await sortedKeys(scenario, [])).toEqual(
       PERSONAL_BY_MODIFIED.toSorted(),
     );
   });
 
   it("orders a date field by the first day each date can mean, with a text date and a missing date last", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       await sortedKeys(scenario, [{ field: "date", direction: "asc" }]),
     ).toEqual([
@@ -1047,7 +1058,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("orders by a field of the scan row", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       await sortedKeys(scenario, [
         { field: "itemType", direction: "asc" },
@@ -1068,7 +1079,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("sorts strings in the pinned collation order: digits lexically, then letters with case and accents as the last difference", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { sqlite } = scenario;
     const insertItem = sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key) select itemTypeID, 2, ? from itemTypesCombined where typeName = 'book'",
@@ -1100,7 +1111,7 @@ describe("collectQuery(ITEMS) sort", () => {
   });
 
   it("hydrates the sort field for every Item and the projection for the returned rows only", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { sqlite } = scenario;
     const fieldID = (name: string) =>
       (
@@ -1163,7 +1174,7 @@ describe("collectQuery(ITEMS) sort with a limit", () => {
   ])(
     "returns the first rows of the sort when %s",
     async (_, limit, truncated) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const found = await result(scenario, {
         libraries: [personal],
         sort: byTitle,
@@ -1177,7 +1188,7 @@ describe("collectQuery(ITEMS) sort with a limit", () => {
   );
 
   it("cuts a tie group at the limit in Indexed Key order", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       sort: byTitle,
@@ -1189,7 +1200,7 @@ describe("collectQuery(ITEMS) sort with a limit", () => {
   });
 
   it("cuts the Items without a value at the limit in Indexed Key order", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       sort: [{ field: "volume", direction: "desc" }],
@@ -1209,7 +1220,7 @@ describe("collectQuery(ITEMS) sort with a limit", () => {
 
 describe("collectQuery(ITEMS) sort of a large Library", () => {
   /** 1,200 more Items whose titles run against their key order. */
-  function seedLargeLibrary(database: ScenarioDatabase) {
+  function seedLargeLibrary(database: ScenarioDatabase<NodeDatabaseClient>) {
     const insertItem = database.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key) select itemTypeID, ?, ? from itemTypesCombined where typeName = 'book'",
     );
@@ -1241,7 +1252,7 @@ describe("collectQuery(ITEMS) sort of a large Library", () => {
   const byTitle = [{ field: "title", direction: "asc" }] as const;
 
   it("orders every match of an unlimited query across scan pages and hydrate chunks", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedLargeLibrary(scenario);
 
     const found = await result(scenario, {
@@ -1299,13 +1310,15 @@ describe("collectQuery(ITEMS) accessDate", () => {
   ];
 
   /** A later timestamp and an impossible date beside the scenario values. */
-  function withAccessDates(scenario: ScenarioDatabase): void {
+  function withAccessDates(
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
+  ): void {
     setField(scenario, "TIE2BBBB", ["accessDate", "2020-01-07 05:30:00"]);
     setField(scenario, "BK2MNTH2", ["accessDate", "2021-02-30 10:00:00"]);
   }
 
   async function query(
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     request: Omit<ItemQueryRequest, "libraries">,
     clock: { now: string; timeZone: string } = NEW_YORK,
   ): Promise<QueryResult> {
@@ -1318,7 +1331,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   }
 
   const sorted = async (
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     direction: "asc" | "desc",
     clock?: { now: string; timeZone: string },
   ) =>
@@ -1331,7 +1344,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
     );
 
   it("projects the value the filter reads: a timestamp, a calendar day, or null", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     withAccessDates(scenario);
     const found = await query(scenario, {
       filter: 'key != "TIE2AAAA" && key != "TIE2CCCC"',
@@ -1352,7 +1365,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   });
 
   it("orders by time, a calendar day from its start in the query time zone, with a value that does not parse last", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     withAccessDates(scenario);
 
     // 04:00Z is 23:00 on 6 January in New York, before 7 January starts.
@@ -1371,7 +1384,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   });
 
   it("keeps the time order under a limit", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     withAccessDates(scenario);
     const limited = await query(scenario, {
       fields: [],
@@ -1384,7 +1397,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   });
 
   it("starts a calendar day before a timestamp of the same date in a zone east of UTC", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // 7 January starts at 15:00Z on 6 January in Tokyo (UTC+9).
     const tokyo = { now: "2020-01-08T02:00:00Z", timeZone: "Asia/Tokyo" };
 
@@ -1403,7 +1416,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   });
 
   it("starts a calendar day after a daylight-saving change at the offset of that day", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // Daylight-saving time starts in New York on 8 March 2020: 9 March starts
     // at 04:00Z (UTC-4), 8 March at 05:00Z (UTC-5).
     setField(scenario, "TIE2AAAA", ["accessDate", "2020-03-09"]);
@@ -1431,7 +1444,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
   });
 
   it("reads a value that does not parse as null in a filter", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     withAccessDates(scenario);
     const found = await query(scenario, {
       filter: "accessDate == null",
@@ -1446,7 +1459,7 @@ describe("collectQuery(ITEMS) accessDate", () => {
 describe("collectQuery(ITEMS) with a filter", () => {
   /** The Indexed Keys the filter selects, in key order. */
   const matching = async (
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     filter: string,
     libraries: ItemQueryRequest["libraries"] = [personal],
   ) =>
@@ -1455,7 +1468,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
   const EVERY_PERSONAL_ITEM = PERSONAL_BY_MODIFIED.toSorted();
 
   it("returns only the Items the Filter Expression selects", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(await matching(scenario, 'itemType == "book"')).toEqual([
       "BK2MNTH2",
     ]);
@@ -1464,7 +1477,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
   });
 
   it("reports the filter in the normalized request", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const filter = ' itemType == "book" ';
     const found = await result(scenario, {
       libraries: [personal],
@@ -1476,7 +1489,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
   });
 
   it("orders and limits the matches, and projects them", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       filter: 'tags.contains("tie")',
@@ -1500,7 +1513,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
   });
 
   it("does not report truncation when the limit equals the matches", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       filter: 'tags.contains("tie")',
@@ -1513,7 +1526,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
   describe("exact matching", () => {
     it("matches a Tag by its exact name and keeps the Libraries apart", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'tags.contains("to-read")')).toEqual([
         "ART2FULL",
         "BK2MNTH2",
@@ -1531,7 +1544,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("matches text with its case, and folds case only with lower()", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'title.contains("Exact")')).toEqual([
         "ART2FULL",
       ]);
@@ -1551,7 +1564,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("does not normalize Unicode and reads SQL wildcard characters as text", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // The scenario stores the Tag in its composed form.
       expect(await matching(scenario, 'tags.contains("Éclair")')).toEqual([
         "UNI2CDE2",
@@ -1586,7 +1599,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("compares a field value as a string, whether SQLite stores it as text or as a number", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'volume == "12"')).toEqual([
         "ART2FULL",
         "TIE2AAAA",
@@ -1604,7 +1617,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
   describe("null", () => {
     it("gives a known field that an Item lacks the value null", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, "title == null")).toEqual(["TIE2CCCC"]);
       expect(await matching(scenario, 'title != "Same Title"')).toEqual(
         EVERY_PERSONAL_ITEM.filter(
@@ -1619,7 +1632,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("treats a null result as no match, and its negation as a match", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // Null for every Item without a volume.
       expect(await matching(scenario, 'volume < "2"')).toEqual([
         "ART2FULL",
@@ -1637,7 +1650,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("gives null for a value that one Item cannot convert, and does not fail the query", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const { sqlite } = scenario;
       sqlite
         .prepare("insert or ignore into itemDataValues (value) values ('abc')")
@@ -1663,7 +1676,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("gives null for a timestamp that cannot be parsed, in projection, filter, and sort", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       scenario.sqlite.exec(
         "update items set dateAdded = 'garbage', dateModified = 'garbage' where key = 'RPT2NDTE' and libraryID = 1",
       );
@@ -1695,7 +1708,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
   describe("dates and the Query Clock", () => {
     /** The keys the filter selects at one instant in one time zone. */
     const matchingAt = async (
-      scenario: ScenarioDatabase,
+      scenario: ScenarioDatabase<NodeDatabaseClient>,
       filter: string,
       clock: { now: string; timeZone: string },
     ) => {
@@ -1719,7 +1732,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     };
 
     it("compares a timestamp with today() on the calendar day of the query time zone", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // BK2MNTH2 was added at 06:00Z (01:00 local on 7 January), CNF2TEXT at
       // 04:00Z (23:00 local on 6 January).
       expect(
@@ -1740,7 +1753,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("gives every call in one query the same instant", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // A clock that moves one day forward at every read.
       let reads = 0;
       const start = Temporal.Instant.from(NEW_YORK.now).epochMilliseconds;
@@ -1775,7 +1788,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("takes the instant from the Effect Clock", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const filter = "dateAdded >= today()";
 
       expect(
@@ -1793,7 +1806,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("gives .date() of a timestamp the calendar day of the query time zone", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(
         await matchingAt(
           scenario,
@@ -1810,7 +1823,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("computes a window from now() with a duration", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(
         await matchingAt(
           scenario,
@@ -1821,7 +1834,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("compares partial dates as the interval of days each one covers", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // ART2FULL 2020-03-15, ALS2CNFL 2021-06-30, UNI2CDE2 2024-02-29,
       // TIE2* 2021, BK2MNTH2 2019-11, CHP2YEAR 2018; CNF2TEXT has a text date
       // without a year and RPT2NDTE no date.
@@ -1865,7 +1878,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("reads a text date by the year in its text, and accessDate as a UTC timestamp", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       setField(scenario, "RPT2NDTE", ["date", "0000-00-00 circa 1850"]);
       // 03:00Z on 16 March is 23:00 on 15 March in New York.
       setField(scenario, "ART2FULL", ["accessDate", "2020-03-16 03:00:00"]);
@@ -1892,7 +1905,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
   describe("names", () => {
     it("resolves a base field through the type-specific field of each item type", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(
         await matching(scenario, 'publicationTitle == "Handbook of Methods"'),
       ).toEqual(["CHP2YEAR"]);
@@ -1914,7 +1927,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("reads the built-in field for a bare name that a custom field also has", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       // The type-specific field wins over the stored base field; the custom
       // field of the same name is reached only through custom[...].
       expect(
@@ -1935,7 +1948,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("reaches a custom field by its exact name and by an eligible bare name", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(
         await matching(scenario, 'custom["review.status"] == "done"'),
       ).toEqual(["ART2FULL"]);
@@ -1958,7 +1971,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
       ['Title == "x"', [0, 5]],
       ['true && noSuchField == "x"', [8, 19]],
     ])("fails the unknown bare name in %j", async (filter, [from, to]) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const error = await failure(scenario, {
         libraries: [personal],
         filter,
@@ -1972,7 +1985,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("fails a custom field that the source does not define", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const error = await failure(scenario, {
         libraries: [personal],
         filter: 'itemType == "book" || custom["Review.Status"] == "done"',
@@ -1988,7 +2001,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
   describe("relation lists", () => {
     it("keeps one creator element for each source row", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, "creators.length == 2")).toEqual([
         "ART2FULL",
         "BK2MNTH2",
@@ -2024,7 +2037,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("matches a Collection by its root-first path", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(
         await matching(scenario, 'collections.contains("Thesis/Methods")'),
       ).toEqual(["ART2FULL", "CHP2YEAR"]);
@@ -2047,7 +2060,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("matches a subtree with within", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'collections.within("Thesis")')).toEqual([
         "ART2FULL",
         "CHP2YEAR",
@@ -2067,7 +2080,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("leaves out a trashed Collection and every Collection below it", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'collections.within("Archive")')).toEqual(
         [],
       );
@@ -2080,7 +2093,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("uses the truth value of an Attachment Relation List", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, "attachments")).toEqual(["ART2FULL"]);
       expect(await matching(scenario, "!attachments")).toEqual(
         EVERY_PERSONAL_ITEM.filter((key) => key !== "ART2FULL"),
@@ -2088,7 +2101,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it("matches the Zotero Key inside the Target Library", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await matching(scenario, 'key == "ART2FULL"')).toEqual([
         "ART2FULL",
       ]);
@@ -2102,7 +2115,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
   describe("validation", () => {
     it("fails the regression case title.startsWith(1) on an empty Library", async () => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       scenario.sqlite.exec("delete from items where libraryID = 2");
 
       const error = await failure(scenario, {
@@ -2125,7 +2138,7 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   const hydratedReads =
     (kind: "fields" | "relation") =>
     async (filter: string, tuning?: RunOptions["tuning"]) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const { exit, events } = await runEffect(
         collectQuery(ITEMS, {
           libraries: [personal],
@@ -2358,7 +2371,7 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("uses the side of && within the cap when the other side is above it", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // The Tag `methods` on four more Items: five in total, above the cap of 3.
     scenario.sqlite.exec(
       `insert into itemTags (itemID, tagID, type)
@@ -2399,9 +2412,9 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("keeps a Tag and a Zotero Key of the other Library out of the result", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const matching = async (
-      scenario: ScenarioDatabase,
+      scenario: ScenarioDatabase<NodeDatabaseClient>,
       filter: string,
       libraries: ItemQueryRequest["libraries"],
     ) =>
@@ -2434,7 +2447,7 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("reads a candidate set that is larger than one universe chunk and one hydrate chunk", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const insert = scenario.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key) select itemTypeID, ?, ? from itemTypesCombined where typeName = 'book'",
     );
@@ -2469,14 +2482,16 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   const both = [personal, group];
   /** The Indexed Keys the filter selects in the Libraries, in key order. */
   const matching = async (
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     filter: string,
     libraries: ItemQueryRequest["libraries"] = both,
   ) =>
     keys(await result(scenario, { libraries, filter, fields: [], sort: [] }));
 
   /** File the personal Item RPT2NDTE in a top-level Collection `Methods`. */
-  function filePersonalMethods(scenario: ScenarioDatabase): void {
+  function filePersonalMethods(
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
+  ): void {
     scenario.sqlite.exec(
       `insert into collections (collectionName, parentCollectionID, clientDateModified, libraryID, key)
        values ('Methods', null, '2024-01-01 00:00:00', 1, 'CL2PRMTH');
@@ -2487,7 +2502,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   }
 
   it("orders the Items of the Libraries as one result set", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, { libraries: both });
 
     expect(keys(found)).toEqual(BOTH_BY_MODIFIED);
@@ -2496,7 +2511,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("gives the same result for each order of the Libraries in the request", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const request = { fields: ["title", "collections"], limit: 5 };
 
     expect(
@@ -2505,7 +2520,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("breaks a tie between two Libraries by the Indexed Key", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const inKeyOrder = await result(scenario, {
       libraries: [group, personal],
       fields: [],
@@ -2546,7 +2561,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   ])(
     "takes the first %i rows of the one result set and reports truncated %j",
     async (limit, truncated) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const found = await result(scenario, { libraries: both, limit });
 
       expect(keys(found)).toEqual(BOTH_BY_MODIFIED.slice(0, limit));
@@ -2556,7 +2571,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   );
 
   it("filters and projects the Library selector of Items with the same bare key", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const request = {
       libraries: both,
       fields: ["title", "library"],
@@ -2598,7 +2613,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("matches a Zotero Key in each Library that holds it", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
 
     expect(await matching(scenario, 'key == "ART2FULL"')).toEqual([
       "ART2FULL",
@@ -2610,7 +2625,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("matches a Tag in each Library that holds it", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
 
     expect(await matching(scenario, 'tags.contains("to-read")')).toEqual([
       "ART2FULL",
@@ -2623,7 +2638,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("matches a Collection path in each Library that holds it", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     filePersonalMethods(scenario);
     const filter = 'collections.contains("Methods")';
 
@@ -2643,7 +2658,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("projects the Collections of each Item from its own Library", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     filePersonalMethods(scenario);
     const found = await result(scenario, {
       libraries: both,
@@ -2689,7 +2704,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("measures a candidate set against the cap of its own Library", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // `to-read`: 3 of the 15 personal `items` rows, within the cap of 3; 1 of
     // the 3 group rows, above the cap of 0.
     const { exit, events } = await run(scenario, {
@@ -2716,7 +2731,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("orders the same Zotero Key of two groups by the text of the Indexed Key", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // Two more groups that hold ART2FULL: the group IDs 9 and 10.
     const groups = [9, 10].map((groupID) => {
       const libraryID = 100 + groupID;
@@ -2735,7 +2750,7 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 
   it("reads no Item of a Library outside the request", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 3);
 
     expect(await matching(scenario, "true")).toHaveLength(12);
@@ -2770,7 +2785,7 @@ describe("incremental query consumption", () => {
   ])(
     "gives the rows and counts for $request on every execution",
     async ({ request, expectedKeys, returnedCount, truncated }) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const operation = consumeQuery(ITEMS, request, (summary) =>
         Effect.sync(() => {
           // The complete result leaves out the count of every match.
@@ -2801,7 +2816,7 @@ describe("incremental query consumption", () => {
   );
 
   it("awaits a write and stops projection when that write fails", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // The Item IDs of the field-value statements, when each one runs.
     const ids: number[] = [];
     const hydrated = () => [...ids];
@@ -2948,14 +2963,14 @@ const DATASETS: readonly DatasetCase[] = [
 describe.each(DATASETS)(
   "$dataset.family request",
   ({ dataset, scenario: options, defaults, fields, sort, bySort }) => {
-    const open = () => openScenarioDatabase(options);
+    const open = () => openScenarioDatabase(connectClient, options);
     const request = (rest: Omit<ItemQueryRequest, "libraries"> = {}) => ({
       libraries: [personal],
       ...rest,
     });
 
     async function datasetResult(
-      scenario: ScenarioDatabase,
+      scenario: ScenarioDatabase<NodeDatabaseClient>,
       query: ItemQueryRequest,
     ): Promise<QueryResult> {
       const { exit } = await runEffect(collectQuery(dataset, query), {
@@ -3113,7 +3128,7 @@ describe.each(DATASETS)(
 it.each([false, true])(
   "warns for an Indexed Key outside the Target Libraries (matching branch: %s)",
   async (matching) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal],
       filter: `indexedKey == "ART2FULLg4815"${matching ? ' || indexedKey == "ART2FULL"' : ""}`,
@@ -3145,7 +3160,7 @@ it.each([
 ] as const)(
   "selects Items across two Libraries with %s",
   async (filter, expected) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal, group],
       filter,
@@ -3157,7 +3172,7 @@ it.each([
   },
 );
 it("warns that a bare Indexed Key names My Library under a group-only scope", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const found = await result(scenario, {
     libraries: [group],
     filter: 'indexedKey == "ART2FULL"',
@@ -3175,7 +3190,7 @@ it("warns that a bare Indexed Key names My Library under a group-only scope", as
 
 describe("grouped Item Query", () => {
   it("counts filtered matches per Library and applies the limit inside each group", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const found = await result(scenario, {
       libraries: [personal, group],
       group: "library",
@@ -3205,7 +3220,7 @@ describe("grouped Item Query", () => {
 });
 
 it("groups years numerically with null last and counts only filtered matches", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const found = await result(scenario, {
     libraries: [personal],
     filter:
@@ -3234,7 +3249,7 @@ it("groups years numerically with null last and counts only filtered matches", a
 });
 
 it("groups custom scalar values including empty text and null", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const found = await result(scenario, {
     libraries: [personal],
     group: 'custom["review.status"]',
@@ -3254,7 +3269,7 @@ it("groups custom scalar values including empty text and null", async () => {
 });
 
 it("orders group values with the sort collation and keeps the request sort inside groups", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   setField(scenario, "TIE2AAAA", ["title", "éclair"]);
   setField(scenario, "TIE2BBBB", ["title", "Zebra"]);
   setField(scenario, "TIE2CCCC", ["title", "eclair"]);
@@ -3285,7 +3300,7 @@ it("orders group values with the sort collation and keeps the request sort insid
 });
 
 it("normalizes date group values to their projected wire strings", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const found = await result(scenario, {
     libraries: [personal],
     filter: 'tags.contains("tie")',
@@ -3300,7 +3315,7 @@ it("normalizes date group values to their projected wire strings", async () => {
 });
 
 it("reports the group argument for an unknown custom field", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const error = await failure(scenario, {
     libraries: [personal],
     group: 'custom["missing"]',
@@ -3312,7 +3327,7 @@ it("reports the group argument for an unknown custom field", async () => {
 });
 
 it("returns empty groups and exact zero counts when no rows match", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const found = await result(scenario, {
     libraries: [personal],
     filter: "false",
@@ -3328,7 +3343,7 @@ it("returns empty groups and exact zero counts when no rows match", async () => 
 });
 
 it("keeps invalid group paths and corrections on the group argument", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   for (const group of ["titl", 'custom["review.statu"]']) {
     const error = await failure(scenario, { libraries: [personal], group });
     if (!(error instanceof ItemQueryError)) throw error;
@@ -3345,7 +3360,7 @@ it("keeps invalid group paths and corrections on the group argument", async () =
 });
 
 it("reads the newest live Attachment lastRead for each Item, including group Items", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite.exec(`UPDATE itemAttachments SET lastRead = CASE
     WHEN itemID = (SELECT itemID FROM items WHERE key = 'PDF2LIVE') THEN 1704067200
     WHEN itemID = (SELECT itemID FROM items WHERE key = 'PDF2LINK') THEN 1704153600
@@ -3378,7 +3393,7 @@ it("reads the newest live Attachment lastRead for each Item, including group Ite
 });
 
 it("orders Last Activity by Zotero work and request Uses before applying the limit", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .exec(`UPDATE items SET dateAdded = '2024-01-01 00:00:00', dateModified = '2030-01-01 00:00:00';
     UPDATE itemAttachments SET lastRead = NULL;
@@ -3411,7 +3426,7 @@ it("orders Last Activity by Zotero work and request Uses before applying the lim
 });
 
 it("Last Activity follows child edits and additions and names its signal, with nulls last and stable ties", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .exec(`UPDATE items SET dateAdded = 'invalid', dateModified = '2030-01-01 00:00:00';
     UPDATE itemAttachments SET lastRead = NULL;
@@ -3492,7 +3507,7 @@ it("Last Activity follows child edits and additions and names its signal, with n
 });
 
 it("offers Last Activity on Item Query only", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   for (const dataset of [ATTACHMENTS, ANNOTATIONS])
     for (const field of ["item.lastActivity", "item.lastActivitySource"]) {
       const { exit } = await runEffect(

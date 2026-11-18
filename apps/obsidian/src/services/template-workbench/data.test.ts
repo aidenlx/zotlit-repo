@@ -7,12 +7,12 @@ import { describe, expect } from "vitest";
 
 import { citekeysToCiteTemplateData } from "@zotlit/db";
 import type { ContractRoot } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json";
 import citationSchema from "@zotlit/db/contract/citation.schema.json";
 import filenameSchema from "@zotlit/db/contract/filename.schema.json";
 import noteSchema from "@zotlit/db/contract/note.schema.json";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { TemplateEngine } from "@zotlit/templates";
 import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
 import type { CitationExampleId } from "@zotlit/workbench/render";

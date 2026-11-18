@@ -3,6 +3,8 @@ import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
+
 import {
   getAccountUserID,
   getZoteroDatabaseIdentity,
@@ -10,7 +12,6 @@ import {
 } from "./account.ts";
 
 import { relations } from "#drizzle/relations.ts";
-import { createFixtureSchema } from "#test-utils.ts";
 
 function withFixture(
   test: (sqlite: DatabaseSync, db: NodeDatabaseClient) => void,

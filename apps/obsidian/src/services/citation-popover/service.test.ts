@@ -8,8 +8,8 @@ import type { ReactElement, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { testEvents } from "@/lib/__fixtures__/event-stream.ts";
 import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.ts";

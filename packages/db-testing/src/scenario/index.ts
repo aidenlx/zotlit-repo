@@ -1,5 +1,3 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
-import { drizzle } from "drizzle-orm/node-sqlite";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -10,9 +8,8 @@ import { gunzipSync } from "node:zlib";
 import { seedScenario } from "./seed.ts";
 
 // Test helper: the Item Query scenario on a copy of the Fixture's pristine
-// Zotero 10 database. Separate from `createFixtureSchema` in `test-utils.ts`,
+// Zotero 10 database. Separate from `createFixtureSchema` in `../fixtures.ts`,
 // which hand-writes a table subset for the existing query tests.
-import { relations } from "#drizzle/relations.ts";
 
 export {
   BULK_FIFTH_TAG,
@@ -51,8 +48,13 @@ export interface ScenarioDatabaseOptions {
   layout?: ScenarioLayout;
 }
 
-export interface ScenarioDatabase extends Disposable {
-  db: NodeDatabaseClient;
+/**
+ * An open scenario copy. `db` is the client that the `connect` argument of
+ * {@link openScenarioDatabase} made on `sqlite`, so a test reads the copy
+ * through the driver it tests.
+ */
+export interface ScenarioDatabase<Client> extends Disposable {
+  db: Client;
   sqlite: DatabaseSync;
   /** `":memory:"`, or the file path of the copy. */
   path: string;
@@ -85,11 +87,14 @@ let pristineBytes: Buffer | undefined;
 /**
  * Open a copy of the Fixture's pristine Zotero 10 database with the Item Query
  * scenario inserted. Zotero's lookup tables, triggers, and foreign keys are the
- * ones Zotero made; address scenario rows through `SCENARIO_ITEMS`.
+ * ones Zotero made; address scenario rows through `SCENARIO_ITEMS`. `connect`
+ * makes the client of the copy, such as `connectClient` from
+ * `@zotlit/db/client/node`.
  */
-export function openScenarioDatabase(
+export function openScenarioDatabase<Client>(
+  connect: (sqlite: DatabaseSync) => Client,
   options: ScenarioDatabaseOptions = {},
-): ScenarioDatabase {
+): ScenarioDatabase<Client> {
   const pristine = (pristineBytes ??= gunzipSync(
     readFileSync(pristineTemplatePath()),
   ));
@@ -125,7 +130,7 @@ export function openScenarioDatabase(
     if (directory) rmSync(directory, { recursive: true, force: true });
   };
   return {
-    db: drizzle({ client: sqlite, relations }),
+    db: connect(sqlite),
     sqlite,
     path,
     close,
@@ -146,12 +151,12 @@ function toLowestLayout(sqlite: DatabaseSync): void {
 
 /**
  * The committed template the Fixture build copies (ADR 0022). It lives in
- * `@zotlit/scripts`, which depends on this package, so the path resolves from
+ * `@zotlit/scripts`, which depends on `@zotlit/db`, so the path resolves from
  * this package's root instead of through an import.
  */
 function pristineTemplatePath(): string {
   const packageRoot = dirname(
-    createRequire(import.meta.url).resolve("@zotlit/db/package.json"),
+    createRequire(import.meta.url).resolve("@zotlit/db-testing/package.json"),
   );
   return join(
     packageRoot,

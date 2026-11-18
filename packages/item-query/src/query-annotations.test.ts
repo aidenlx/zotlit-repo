@@ -4,8 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ANNOTATION_SCENARIO_QUERIES } from "./annotation-scenario-queries.ts";
 import { ItemQueryError } from "./error.ts";
@@ -22,9 +24,9 @@ import type { RunOptions } from "./test-helpers.ts";
 import { runEffect } from "./test-helpers.ts";
 
 // Read-only tests share one scenario; a test that writes opens its own.
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {
-  scenario = openScenarioDatabase({ annotations: true });
+  scenario = openScenarioDatabase(connectClient, { annotations: true });
 });
 afterAll(() => scenario.close());
 
@@ -107,7 +109,7 @@ it("returns the reading record of one Item, with three identities and default fi
 });
 
 it("filters and projects the Library selector of Annotations with the same bare key", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .prepare(
       "update items set key = 'ANN2HGHT' where key = 'ANN2GRUP' and libraryID = ?",
@@ -898,7 +900,7 @@ it.each([
 ])(
   "keeps Annotation Parent Records outside Attachment Query: %s",
   async (filter, keys) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     scenario.sqlite
       .prepare(
         "update itemAttachments set linkMode = 4 where itemID in (select itemID from items where key = 'PDF2LINK')",

@@ -23,7 +23,7 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { Item } from "@zotlit/db";
-import { makeItem } from "@zotlit/db/test-utils";
+import { makeItem } from "@zotlit/db/item-fixture";
 import { testItemSeed } from "@zotlit/item-query";
 import { createNanoEvents } from "@zotlit/shared/nanoevents";
 

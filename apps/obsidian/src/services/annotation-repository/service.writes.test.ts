@@ -3,8 +3,8 @@ import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { expect, vi } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { AbortError } from "@/lib/abort-error.ts";
 import {

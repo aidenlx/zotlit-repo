@@ -1,6 +1,8 @@
 import { Effect } from "effect";
 import { expect, it } from "vitest";
 
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+
 import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
@@ -10,10 +12,10 @@ import {
   readAttachmentUniverseRows,
 } from "./index.ts";
 
-import { openScenarioDatabase } from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 it("maps element candidates to live parents in one statement per chunk", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const statements: string[] = [];
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
@@ -72,7 +74,7 @@ it.each([
 ] as const)(
   "bounds the composed Parent Record selection %s within its Target Library",
   (relation) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
       Effect.runSync(
         Effect.provideService(effect, ItemQueryDatabase, {

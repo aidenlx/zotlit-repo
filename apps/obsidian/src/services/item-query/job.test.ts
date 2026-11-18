@@ -9,8 +9,10 @@ import {
   BULK_LIBRARY,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
 
 import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
@@ -73,7 +75,7 @@ function jobOf(params: CliData, stagePath?: string): QueryJob {
   };
 }
 
-const run = (scenario: ScenarioDatabase, job: QueryJob) =>
+const run = (scenario: ScenarioDatabase<NodeDatabaseClient>, job: QueryJob) =>
   Effect.gen(function* () {
     return yield* runQueryJob(job, {
       client: scenario.db,
@@ -83,14 +85,16 @@ const run = (scenario: ScenarioDatabase, job: QueryJob) =>
   }).pipe(Effect.provide(testFileSystem));
 
 /** The scenario database, held for the case's scope. */
-const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[0]) =>
-  Effect.acquireDisposable(Effect.sync(() => openScenarioDatabase(options)));
+const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
+  Effect.acquireDisposable(
+    Effect.sync(() => openScenarioDatabase(connectClient, options)),
+  );
 
 /** The text of the file at `path`. */
 const textOf = (path: string) => Effect.promise(() => readFile(path, "utf8"));
 
 /** The paths of an export from a scenario in a temporary directory. */
-function exportPaths(scenario: ScenarioDatabase) {
+function exportPaths(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   const directory = dirname(scenario.path);
   return {
     output: join(directory, "items.json"),

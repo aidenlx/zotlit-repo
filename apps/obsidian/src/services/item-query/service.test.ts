@@ -20,8 +20,10 @@ import {
   bulkItemKey,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { valueText } from "@zotlit/item-query";
 import type { ProjectionJson } from "@zotlit/item-query";
 import { delimited } from "@zotlit/shared/delimited";
@@ -49,10 +51,12 @@ import { QueryService } from "./service.ts";
 import type { QueryJob } from "./worker-protocol.ts";
 
 /** The scenario database, held for the case's scope. */
-const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[0]) =>
-  Effect.acquireDisposable(Effect.sync(() => openScenarioDatabase(options)));
+const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
+  Effect.acquireDisposable(
+    Effect.sync(() => openScenarioDatabase(connectClient, options)),
+  );
 
-const SOURCE = (scenario: ScenarioDatabase) => ({
+const SOURCE = (scenario: ScenarioDatabase<NodeDatabaseClient>) => ({
   sourceId: "captured-source",
   databasePath: scenario.path,
   dataDir: dirname(scenario.path),
@@ -90,7 +94,7 @@ function counter() {
  * service as the plugin's unload does.
  */
 const harness = Effect.fnUntraced(function* (
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   opener: ConnectionOpener = sharedClientOpener(scenario.db),
 ) {
   const { state, wrap } = counter();
@@ -1390,7 +1394,7 @@ describe("QueryHandle", () => {
     fields: ["title", "tags", "dateModified"],
   } as const;
 
-  async function handleOver(scenario: ScenarioDatabase) {
+  async function handleOver(scenario: ScenarioDatabase<NodeDatabaseClient>) {
     await using stack = new AsyncDisposableStack();
     const { state, wrap } = counter();
     const reads = stack.use(
@@ -1414,7 +1418,9 @@ describe("QueryHandle", () => {
   }
 
   it("stops an aborted call with a cancelled outcome and keeps other queries running", async () => {
-    using scenario = openScenarioDatabase({ storage: "temp-directory" });
+    using scenario = openScenarioDatabase(connectClient, {
+      storage: "temp-directory",
+    });
     seedBulkLibrary(scenario.sqlite, 20000);
     await using h = await handleOver(scenario);
     const signal = () => new AbortController().signal;
@@ -1443,7 +1449,9 @@ describe("QueryHandle", () => {
   });
 
   it("answers a call after the unload with a cancelled outcome and no custom fields", async () => {
-    using scenario = openScenarioDatabase({ storage: "temp-directory" });
+    using scenario = openScenarioDatabase(connectClient, {
+      storage: "temp-directory",
+    });
     const h = await handleOver(scenario);
     await h[Symbol.asyncDispose]();
     const signal = new AbortController().signal;

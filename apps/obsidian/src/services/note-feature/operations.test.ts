@@ -34,9 +34,9 @@ import type {
   TemplateFilenameItemData,
   TemplateItemData,
 } from "@zotlit/db";
+import { createFixtureSchema, rowInstant } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema, rowInstant } from "@zotlit/db/test-utils";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { filenameSuffix, TemplateEngine } from "@zotlit/templates";
 import { MissingTemplateError, TemplateFacade } from "@zotlit/templates/facade";

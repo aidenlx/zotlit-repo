@@ -6,6 +6,8 @@ import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
+
 import {
   buildAnnotationParents,
   buildAnnotationsTemplateData,
@@ -25,7 +27,6 @@ import { getAnnotationsByParent } from "#queries/annotations.ts";
 import { getAttachmentByItemId } from "#queries/attachments.ts";
 import { getItemsByKey } from "#queries/items.ts";
 import { resolveItemTagsByIDs } from "#queries/tags.ts";
-import { createFixtureSchema } from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

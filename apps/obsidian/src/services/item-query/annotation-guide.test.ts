@@ -3,9 +3,11 @@ import { Effect, Scheduler } from "effect";
 import type { CliData } from "obsidian";
 import { describe, expect } from "vitest";
 
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
 import { MY_LIBRARY_SCOPE } from "@/services/library-scope/scope.ts";
@@ -24,7 +26,10 @@ const IDENTITY = {
 };
 
 /** The parsed answer of an Annotation query; a malformed one fails with its rejection. */
-function runAnnotationQuery(scenario: ScenarioDatabase, params: CliData) {
+function runAnnotationQuery(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  params: CliData,
+) {
   return decodeQuery({ ...params, from: "annotations" }).pipe(
     Effect.flatMap((decoded) =>
       answer(
@@ -51,7 +56,9 @@ describe("zotlit:query-guide", () => {
     () =>
       Effect.gen(function* () {
         const scenario = yield* Effect.acquireDisposable(
-          Effect.sync(() => openScenarioDatabase({ annotations: true })),
+          Effect.sync(() =>
+            openScenarioDatabase(connectClient, { annotations: true }),
+          ),
         );
         const failures: object[] = [];
 

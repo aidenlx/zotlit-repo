@@ -5,7 +5,7 @@ import {
   resolveCitedItem,
 } from "./zt-template-cite.ts";
 
-import { makeItem } from "#test-utils.ts";
+import { makeItem } from "#item-fixture.ts";
 
 describe("citekeysToCiteTemplateData", () => {
   it("wraps each citekey in a citekey-only stub item at default citation props", () => {

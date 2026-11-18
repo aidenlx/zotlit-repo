@@ -5,8 +5,8 @@ import { Cause, Context, Effect, Exit, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
 import { getAnnotationsByKey } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";

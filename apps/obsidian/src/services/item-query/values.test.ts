@@ -3,9 +3,11 @@ import { Effect } from "effect";
 import type { CliData } from "obsidian";
 import { expect } from "vitest";
 
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
 import { CliRejection } from "@/lib/cli-params.ts";
 import type { LibraryScope } from "@/services/library-scope/scope.ts";
@@ -70,7 +72,7 @@ it.effect.each<CliData>([
  * malformed listing fails with its rejection.
  */
 const listingOf = (
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   params: CliData,
   scope: LibraryScope = MY_LIBRARY_SCOPE,
 ) =>
@@ -88,7 +90,7 @@ const listingOf = (
 
 /** The scenario database, held for the case's scope. */
 const scenarioOf = Effect.acquireDisposable(
-  Effect.sync(() => openScenarioDatabase()),
+  Effect.sync(() => openScenarioDatabase(connectClient)),
 );
 
 it.effect(

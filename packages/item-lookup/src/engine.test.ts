@@ -7,7 +7,8 @@ import {
   USER_LIBRARY_ID,
 } from "@zotlit/db";
 import type { IndexedItem } from "@zotlit/db";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine.ts";
 import type { ItemHit } from "./engine.ts";
@@ -99,7 +100,7 @@ describe("item search engine", () => {
   );
 
   it("orders a seeded Zotero library by reads, child notes and Annotations", async () => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     scenario.sqlite
       .exec(`UPDATE items SET dateAdded = '2024-01-01 00:00:00', dateModified = '2030-01-01 00:00:00';
       UPDATE itemAttachments SET lastRead = NULL;

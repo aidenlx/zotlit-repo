@@ -3,11 +3,11 @@ import type { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
 import { CONTRACT_VERSION } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json";
 import filenameSchema from "@zotlit/db/contract/filename.schema.json";
 import noteSchema from "@zotlit/db/contract/note.schema.json";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { planItemFilter, queryItemFrom } from "@zotlit/item-query";
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 

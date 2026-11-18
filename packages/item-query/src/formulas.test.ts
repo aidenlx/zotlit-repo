@@ -6,8 +6,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ItemQueryError } from "./error.ts";
 import {
@@ -21,12 +23,14 @@ import type { ItemQueryRequest, QueryDataset, QueryResult } from "./index.ts";
 import { runEffect } from "./test-helpers.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
-let scenario: ScenarioDatabase;
-let annotatedScenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
+let annotatedScenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  scenario = openScenarioDatabase();
-  annotatedScenario = openScenarioDatabase({ annotations: true });
+  scenario = openScenarioDatabase(connectClient);
+  annotatedScenario = openScenarioDatabase(connectClient, {
+    annotations: true,
+  });
 });
 afterAll(() => {
   scenario.close();
@@ -34,7 +38,7 @@ afterAll(() => {
 });
 
 async function run(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: Omit<ItemQueryRequest, "libraries">,
   dataset: QueryDataset = ITEMS,
 ): Promise<QueryResult> {
@@ -157,7 +161,7 @@ it("excludes a record whose filter reads an Error Value of a Formula", async () 
 });
 
 async function failure(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: Omit<ItemQueryRequest, "libraries">,
 ): Promise<ItemQueryError> {
   const { exit } = await runEffect(

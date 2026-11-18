@@ -4,6 +4,12 @@ import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  countCompiles,
+  countStatements,
+  createFixtureSchema,
+} from "@zotlit/db-testing";
+
+import {
   getAttachmentPage,
   getAttachmentByKey,
   getAttachmentsByKey,
@@ -12,11 +18,6 @@ import {
 
 import { relations } from "#drizzle/relations.ts";
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
-import {
-  countCompiles,
-  countStatements,
-  createFixtureSchema,
-} from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { afterEach, describe, expect } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
-import { rowInstant } from "@zotlit/db/test-utils";
+import { rowInstant } from "@zotlit/db-testing";
 
 import type { TestReads } from "@/services/zotero-reads/__fixtures__.ts";
 import { DbUnavailable } from "@/services/zotero-reads/rpc.ts";

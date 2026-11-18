@@ -1,0 +1,26 @@
+{
+  "name": "@zotlit/db-testing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Node-only Zotero SQLite fixtures for the tests of @zotlit/db and its consumers",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/fixtures.ts",
+    "./scenario": "./src/scenario/index.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@zotlit/zotero-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "oxlint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

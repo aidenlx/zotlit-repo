@@ -11,8 +11,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import type { FormulaResolver } from "./filter-plan.ts";
 import {
@@ -421,10 +423,10 @@ function failOracle(request: Request): {
 
 // --- The runs -------------------------------------------------------------
 
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  scenario = openScenarioDatabase();
+  scenario = openScenarioDatabase(connectClient);
 });
 
 afterAll(() => {

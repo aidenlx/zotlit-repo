@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
 import fixture from "@zotlit/zotero-types/fixtures/item-to-csl.json" with { type: "json" };
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
@@ -28,7 +29,6 @@ import {
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 import { getItemsByLibrary } from "#queries/items.ts";
-import { createFixtureSchema } from "#test-utils.ts";
 
 interface NativeCreator {
   creatorType: string;

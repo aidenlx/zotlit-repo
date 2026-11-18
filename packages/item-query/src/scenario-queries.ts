@@ -1,8 +1,8 @@
 // The query list of the scenario: the one place the parity suite reads. Every
-// query runs on the scenario database (`@zotlit/db/test-scenario`) with each
-// plan and chunk size, and each run must give the Query Result of the forced
-// scan. Add an entry for each new scenario query, leaf, or function.
-import type { ScenarioLibraryName } from "@zotlit/db/test-scenario";
+// query runs on the scenario database (`@zotlit/db-testing/scenario`) with
+// each plan and chunk size, and each run must give the Query Result of the
+// forced scan. Add an entry for each new scenario query, leaf, or function.
+import type { ScenarioLibraryName } from "@zotlit/db-testing/scenario";
 
 import type { ItemQueryRequest, SortSpec } from "./request.ts";
 
@@ -414,7 +414,7 @@ const FILTERS: readonly string[] = [
 
 /**
  * The Items that a subset of {@link FILTERS} matches, by Indexed Key, worked
- * out from the seed of `@zotlit/db/test-scenario`. The live top-level Items
+ * out from the seed of `@zotlit/db-testing/scenario`. The live top-level Items
  * are ten in the personal Library (ART2FULL, BK2MNTH2, CHP2YEAR, CNF2TEXT,
  * RPT2NDTE, ALS2CNFL, UNI2CDE2, TIE2AAAA, TIE2BBBB, TIE2CCCC) and two in the
  * group Library (ART2FULLg4815, GRP2BK22g4815). TRS2SHED and GRP2TRSH are in

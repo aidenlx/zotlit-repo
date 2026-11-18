@@ -2,7 +2,7 @@
 import { Cause, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { SCENARIO_LIBRARIES } from "@zotlit/db/test-scenario";
+import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 
 import { ANNOTATIONS, collectQuery, ITEMS, ItemQueryError } from "./index.ts";
 import type {

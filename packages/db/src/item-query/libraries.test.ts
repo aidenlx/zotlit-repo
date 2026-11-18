@@ -1,17 +1,20 @@
-import type { ScenarioDatabase } from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { ItemQueryDatabase, readLibraries } from "./index.ts";
-
-import { getLibraries } from "#queries/libraries.ts";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import {
   BULK_LIBRARY,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "#test-scenario/index.ts";
+} from "@zotlit/db-testing/scenario";
 
-function read(scenario: ScenarioDatabase) {
+import { ItemQueryDatabase, readLibraries } from "./index.ts";
+
+import { connectClient } from "#client/node.ts";
+import { getLibraries } from "#queries/libraries.ts";
+
+function read(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   return Effect.runSync(
     Effect.provideService(readLibraries(), ItemQueryDatabase, {
       client: scenario.db,
@@ -38,13 +41,13 @@ const METHODS_GROUP = {
 
 describe("readLibraries", () => {
   it("gives the personal Library and each group Library with its group ID and name", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
 
     expect(read(scenario)).toEqual([PERSONAL, METHODS_GROUP]);
   });
 
   it("gives the rows of getLibraries", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 1);
 
     expect(read(scenario)).toEqual(getLibraries(scenario.db));
@@ -54,7 +57,7 @@ describe("readLibraries", () => {
   });
 
   it("leaves out a Library that is no personal or group Library", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite.exec(
       "insert into libraries (libraryID, type, editable, filesEditable) values (7, 'feed', 0, 0)",
     );
@@ -63,7 +66,7 @@ describe("readLibraries", () => {
   });
 
   it("reads the lowest layout with a version stamp outside the supported range", () => {
-    using scenario = openScenarioDatabase({ layout: "lowest" });
+    using scenario = openScenarioDatabase(connectClient, { layout: "lowest" });
     scenario.sqlite.exec(
       "update version set version = 999 where schema = 'userdata'",
     );

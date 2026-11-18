@@ -4,9 +4,9 @@ import { Deferred, Effect, Exit } from "effect";
 import { join } from "node:path";
 import { describe, expect, vi } from "vitest";
 
-import { createClient } from "@zotlit/db/client/node";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
+import { createFixtureSchema } from "@zotlit/db-testing";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { createClient, connectClient } from "@zotlit/db/client/node";
 
 import { openTestBridge } from "@/lib/__fixtures__/effect-bridge.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
@@ -532,7 +532,9 @@ describe("Excerpt request for an Indexed Key", () => {
     Effect.acquireDisposable(
       Effect.tryPromise(async () => {
         await using stack = new AsyncDisposableStack();
-        const scenario = stack.use(openScenarioDatabase({ annotations: true }));
+        const scenario = stack.use(
+          openScenarioDatabase(connectClient, { annotations: true }),
+        );
         const zoteroReads = stack.use(
           inProcessReadsService(sharedClientOpener(scenario.db), { wrap }),
         );

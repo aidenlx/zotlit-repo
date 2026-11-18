@@ -5,14 +5,15 @@ import { StatementSync } from "node:sqlite";
 import type { CliData } from "obsidian";
 import { afterEach, describe, expect, vi } from "vitest";
 
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import {
   BULK_LIBRARY,
   openScenarioDatabase,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { connectClient } from "@zotlit/db/client/node";
+import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
 import {
@@ -81,7 +82,7 @@ function onJob<A>(
 
 /** The query answer on `scenario`, as an Effect of the envelope text. */
 function queryOf(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   {
     client = scenario.db,
     scope = MY_LIBRARY_SCOPE,
@@ -105,7 +106,10 @@ function queryOf(
     ).pipe(Effect.map((reply: QueryReply) => reply.answer));
 }
 
-function setup(scenario: ScenarioDatabase, overrides: TestDeps = {}) {
+function setup(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  overrides: TestDeps = {},
+) {
   const read = vi.spyOn(StatementSync.prototype, "all");
   const query = queryOf(scenario, overrides);
   return {
@@ -158,8 +162,10 @@ function exitOf<A>(
 }
 
 /** The scenario database, held for the case's scope. */
-const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[0]) =>
-  Effect.acquireDisposable(Effect.sync(() => openScenarioDatabase(options)));
+const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
+  Effect.acquireDisposable(
+    Effect.sync(() => openScenarioDatabase(connectClient, options)),
+  );
 
 /** The run ended by interruption alone. */
 function expectInterrupted<A, E>(exit: Exit.Exit<A, E>): void {
@@ -848,7 +854,7 @@ describe("zotlit:query borrowed source", () => {
     () =>
       Effect.gen(function* () {
         const scenario = yield* scenarioOf();
-        const closed = openScenarioDatabase();
+        const closed = openScenarioDatabase(connectClient);
         const client = closed.db;
         closed.close();
         const { run } = setup(scenario, {
@@ -1008,7 +1014,7 @@ describe("zotlit:query cancellation", () => {
 });
 
 function setupSchema(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   dataset: "items" | "attachments" | "annotations" = "items",
 ) {
   const text = onJob(
@@ -1173,7 +1179,7 @@ describe("zotlit:query export writer", () => {
    * the scope.
    */
   function memoryExport(
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     write: (count: number) => Effect.Effect<void, QueryOutputError>,
   ) {
     const events: string[] = [];

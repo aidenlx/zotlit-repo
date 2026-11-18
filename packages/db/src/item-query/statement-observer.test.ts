@@ -1,6 +1,12 @@
-import type { ScenarioDatabase } from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
+
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
 
 import {
   ItemQueryDatabase,
@@ -16,16 +22,13 @@ import {
 } from "./index.ts";
 import type { StatementRun } from "./index.ts";
 
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 
 /** Run a reader and collect the statements it runs. */
 function observe<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ) {
   const runs: StatementRun[] = [];
@@ -43,7 +46,7 @@ function observe<A, E>(
 
 describe("ItemQueryStatementObserver", () => {
   it("reports each statement with its reader and the rows it read", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { value, runs } = observe(
       scenario,
       readScanPage({ libraryID: personal.libraryID, afterItemID: 0, size: 4 }),
@@ -61,7 +64,7 @@ describe("ItemQueryStatementObserver", () => {
   });
 
   it("names the reader of every statement", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { runs } = observe(
       scenario,
       Effect.gen(function* () {
@@ -107,7 +110,7 @@ describe("ItemQueryStatementObserver", () => {
   });
 
   it("reports nothing for a statement that fails", () => {
-    const closed = openScenarioDatabase();
+    const closed = openScenarioDatabase(connectClient);
     const client = closed.db;
     closed.close();
     const runs: StatementRun[] = [];

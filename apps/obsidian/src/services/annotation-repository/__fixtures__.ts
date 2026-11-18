@@ -14,14 +14,14 @@ import type { Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { vi } from "vitest";
 
-import { createClient } from "@zotlit/db/client/node";
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 // The Annotation Repository over a real query client and a real Zotero Local
 // API client, with a fake transport under it: the seam every surface reads and
 // writes through. The repository's own suite and the reader suites build on it,
 // so a reader test sees the pending, failed and conflicted states the
 // repository itself produces.
-import { createFixtureSchema } from "@zotlit/db/test-utils";
+import { createFixtureSchema } from "@zotlit/db-testing";
+import { createClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { effectBridge } from "@/lib/effect-bridge.ts";

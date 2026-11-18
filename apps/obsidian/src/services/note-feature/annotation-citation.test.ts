@@ -5,8 +5,8 @@ import { describe, expect, vi } from "vitest";
 
 import { citekeysToCiteTemplateData } from "@zotlit/db";
 import type { CiteRef } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";

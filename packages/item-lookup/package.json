@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
     "jieba-wasm": "catalog:",
     "oxlint": "catalog:",
     "typescript": "catalog:",

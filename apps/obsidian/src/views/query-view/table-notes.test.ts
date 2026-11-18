@@ -6,7 +6,7 @@ import { Effect } from "effect";
 import type { App, EventRef, TFile } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { makeItem } from "@zotlit/db/test-utils";
+import { makeItem } from "@zotlit/db/item-fixture";
 
 import { testEvent } from "@/lib/__fixtures__/event-stream.ts";
 import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";

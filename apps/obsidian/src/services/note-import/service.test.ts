@@ -6,7 +6,7 @@ import { afterAll, beforeEach, describe, expect, vi } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { AnnotationTemplateContext } from "@zotlit/db";
-import { rowInstant } from "@zotlit/db/test-utils";
+import { rowInstant } from "@zotlit/db-testing";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";

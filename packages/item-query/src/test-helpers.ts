@@ -10,6 +10,7 @@ import {
 import type { Scheduler } from "effect";
 import { expect } from "vitest";
 
+import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 // The test helper of the package.
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import {
@@ -17,7 +18,6 @@ import {
   ItemQueryStatementObserver,
 } from "@zotlit/db/item-query";
 import type { StatementRun } from "@zotlit/db/item-query";
-import { SCENARIO_LIBRARIES } from "@zotlit/db/test-scenario";
 import { LogCategory } from "@zotlit/shared/logging";
 
 import type { QueryDataset } from "./dataset.ts";

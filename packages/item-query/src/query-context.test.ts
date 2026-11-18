@@ -6,8 +6,10 @@ import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ItemQueryError } from "./error.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
@@ -15,9 +17,9 @@ import type { ItemQueryRequest, QueryDataset } from "./index.ts";
 import { runEffect } from "./test-helpers.ts";
 import type { CapturedLog } from "./test-helpers.ts";
 
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {
-  scenario = openScenarioDatabase({ annotations: true });
+  scenario = openScenarioDatabase(connectClient, { annotations: true });
 });
 afterAll(() => scenario.close());
 

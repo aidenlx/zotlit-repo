@@ -3,8 +3,10 @@ import { expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { collectQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
@@ -21,7 +23,7 @@ const RECORDS = [
 
 /** Keep each key's data fixed while changing its place in the Item ID scan. */
 function seedOrder(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   itemIDs: readonly number[],
   records: readonly { key: string; title: string; type: string }[] = RECORDS,
 ) {
@@ -82,8 +84,8 @@ const REQUESTS = [
 it.each(REQUESTS)(
   "keeps the complete $name Query Result when keys move between Item IDs",
   async ({ request: query, keys }) => {
-    using first = openScenarioDatabase();
-    using second = openScenarioDatabase();
+    using first = openScenarioDatabase(connectClient);
+    using second = openScenarioDatabase(connectClient);
     const itemIDs = [101, 102, 103, 1001, 1002, 1003];
     seedOrder(first, itemIDs);
     seedOrder(second, itemIDs.toReversed());
@@ -130,7 +132,7 @@ it("keeps the order of groups whose values collate as equal", async () => {
     { key: "ORD2EEEE", title: "Éclairs", type: "book" },
   ];
   const groups = async (itemIDs: readonly number[]) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedOrder(scenario, itemIDs, records);
     const result = await runEffect(
       collectQuery(ITEMS, {

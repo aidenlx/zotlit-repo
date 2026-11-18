@@ -18,7 +18,7 @@ import type {
   TemplateAnnotation,
   TemplateParentItemData,
 } from "@zotlit/db";
-import { makeItem } from "@zotlit/db/test-utils";
+import { makeItem } from "@zotlit/db/item-fixture";
 import { getPackageRoot } from "@zotlit/scripts/package-roots";
 import { inlineCitation, TemplateEngine } from "@zotlit/templates";
 import defaultCitation from "@zotlit/templates/defaults/citation.liquid?raw";

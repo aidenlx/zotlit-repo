@@ -4,13 +4,14 @@ import { expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { collectQuery, ITEMS, ATTACHMENTS, ANNOTATIONS } from "./index.ts";
 import { runEffect } from "./test-helpers.ts";
 
 it("warns about an unknown Collection path and suggests its exact case", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -55,7 +56,7 @@ it.each([
   ],
   [ITEMS, 'collections.within("thesis") || collections.contains("thesis")'],
 ])("warns once for the literal in %s: %s", async (dataset, filter) => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit } = await runEffect(
     collectQuery(dataset, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -71,7 +72,7 @@ it.each([
 });
 
 it("suggests paths by the full path and the final segment", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   scenario.sqlite
     .prepare(
       "insert into collections (collectionName, libraryID, key) values (?, ?, ?)",
@@ -95,7 +96,7 @@ it("suggests paths by the full path and the final segment", async () => {
 });
 
 it("lists other Libraries after every near path", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -123,7 +124,7 @@ it.each([
 ])(
   "does not warn when a Target Library holds the path: %j",
   async (...libraries) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await runEffect(
       collectQuery(ITEMS, {
         libraries,
@@ -145,7 +146,7 @@ it.each([
 );
 
 it("accepts a path held only by the second Target Library", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal, SCENARIO_LIBRARIES.group],
@@ -183,7 +184,7 @@ it.each([
 ])(
   "reuses Collection paths reached through Annotation Attachments in %s: %s",
   async (dataset, filter) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await runEffect(
       collectQuery(dataset, {
         libraries: [SCENARIO_LIBRARIES.personal],

@@ -2,6 +2,11 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
+
+import {
   ItemQueryDatabase,
   ItemQueryStatementObserver,
   readCollectionPaths,
@@ -13,13 +18,10 @@ import {
   readAttachmentHydrateChunk,
 } from "./index.ts";
 
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 it("reads only live Attachments of top-level live Items in the Target Library", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -71,7 +73,7 @@ it("reads only live Attachments of top-level live Items in the Target Library", 
 });
 
 it("finds bounded candidates through Attachment fields and parent Collections", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -100,7 +102,7 @@ it("finds bounded candidates through Attachment fields and parent Collections", 
 });
 
 it("reads Tags and parent Collection candidates in one statement per requested chunk", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const readers: string[] = [];
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
@@ -158,7 +160,7 @@ it("reads Tags and parent Collection candidates in one statement per requested c
 });
 
 it("reads bounded Attachment and parent key lists inside one Library", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -237,7 +239,7 @@ it.each([
 ] as const)(
   "finds fileType candidates for %s, link mode %s",
   (contentType, linkMode, expected) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     scenario.sqlite
       .prepare("update itemAttachments set contentType = ?, linkMode = ?")
       .run(contentType, linkMode);

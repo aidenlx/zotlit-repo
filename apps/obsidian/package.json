@@ -95,6 +95,7 @@
     "@types/semver": "^7.7.1",
     "@types/turndown": "^5.0.6",
     "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "ajv": "catalog:",
     "electron": "43.3.0",

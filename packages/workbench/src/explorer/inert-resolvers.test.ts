@@ -10,9 +10,9 @@ import {
   USER_LIBRARY_ID,
 } from "@zotlit/db";
 import type { Annotation, Attachment, ChildNote } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { inertPlaceholderReason } from "./inert-placeholder.ts";
 import { buildInertNoteResolvers } from "./inert-resolvers.ts";

@@ -15,8 +15,10 @@ import {
   seedBulkLibrary,
   seedBulkAnnotations,
   seedBulkAttachments,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import type { CandidateFallback } from "./candidate-plan.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
@@ -53,9 +55,9 @@ type Copy =
   | "annotations"
   | "relations";
 
-const copies = new Map<Copy, Promise<ScenarioDatabase>>();
+const copies = new Map<Copy, Promise<ScenarioDatabase<NodeDatabaseClient>>>();
 
-function database(copy: Copy): Promise<ScenarioDatabase> {
+function database(copy: Copy): Promise<ScenarioDatabase<NodeDatabaseClient>> {
   let opened = copies.get(copy);
   if (!opened) {
     opened = open(copy);
@@ -64,9 +66,9 @@ function database(copy: Copy): Promise<ScenarioDatabase> {
   return opened;
 }
 
-async function open(copy: Copy): Promise<ScenarioDatabase> {
+async function open(copy: Copy): Promise<ScenarioDatabase<NodeDatabaseClient>> {
   const opened = databases.use(
-    openScenarioDatabase({ annotations: copy === "relations" }),
+    openScenarioDatabase(connectClient, { annotations: copy === "relations" }),
   );
   const { sqlite } = opened;
   if (copy === "relations") return opened;
@@ -1515,7 +1517,7 @@ it("reads fewer Attachment rows for a selective Parent Record Tag", async () => 
 });
 
 it("reads fewer Annotation rows through a selective Parent Record Collection", async () => {
-  using source = openScenarioDatabase({ annotations: true });
+  using source = openScenarioDatabase(connectClient, { annotations: true });
   seedBulkLibrary(source.sqlite, BULK_ITEMS);
   seedBulkAnnotations(source.sqlite, BULK_ITEMS);
   // Add the bulk records to the personal Library so its candidate cap includes them.

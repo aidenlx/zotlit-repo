@@ -4,12 +4,13 @@ import { Effect, Exit } from "effect";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import type { ItemQueryDatabase } from "@zotlit/db/item-query";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { connectClient } from "@zotlit/db/client/node";
+import type { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import {
@@ -30,7 +31,7 @@ describe("readQueryItemSeed", () => {
   )(
     "keeps every value the Items filter reads, in the %s Library",
     async (name) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const library = SCENARIO_LIBRARIES[name];
       const rows = scenario.sqlite
         .prepare("select itemID from items where libraryID = ?")

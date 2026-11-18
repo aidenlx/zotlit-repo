@@ -61,7 +61,7 @@ import type { App, Events } from "obsidian";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 import type { RenderedCitation } from "@/services/pandoc/engine.ts";
 

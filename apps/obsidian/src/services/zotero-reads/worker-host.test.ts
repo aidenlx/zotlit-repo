@@ -21,8 +21,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";
 import { LogCategory } from "@/lib/effect-log.ts";

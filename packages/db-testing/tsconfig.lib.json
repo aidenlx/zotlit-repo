@@ -1,0 +1,9 @@
+{
+  "extends": ["@zotlit/config/tsconfig", "@zotlit/config/tsconfig.node26"],
+  "compilerOptions": {
+    "isolatedDeclarations": false,
+    "types": ["node"]
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["./node_modules"]
+}

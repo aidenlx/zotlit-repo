@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import type { QueryDataset, QueryResult } from "./index.ts";
@@ -23,7 +25,7 @@ const statements = (run: Run<unknown, unknown>) =>
     event.type === "statement" ? [event.statement] : [],
   );
 const query = (
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   filter: string,
   { dataset = ITEMS, ...options }: RunOptions & { dataset?: QueryDataset } = {},
 ) =>
@@ -39,7 +41,7 @@ const query = (
   );
 
 function title(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   key: string,
   value: string | number,
 ) {
@@ -201,7 +203,7 @@ it.each(
 )(
   "keeps every evaluator match for $character in the real SQLite candidates",
   async ({ upper, lower, forms }) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     title(scenario, "ART2FULL", `x${upper}z`);
     title(scenario, "BK2MNTH2", `x${lower}z`);
     for (const [term, contains, icontains] of forms) {
@@ -239,7 +241,7 @@ it.each(
 );
 
 it("finds text after a stored NUL", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   title(scenario, "ART2FULL", "before\u0000after");
   expect(
     scenario.sqlite
@@ -261,7 +263,7 @@ it("finds text after a stored NUL", async () => {
 });
 
 it("keeps a stored REAL whose JavaScript spelling differs from SQLite", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   title(scenario, "ART2FULL", 1e21);
   const run = await query(scenario, 'title.contains("1e+21")');
   expect(result(run).rows!.map((r) => r.indexedKey)).toEqual(["ART2FULL"]);
@@ -278,7 +280,7 @@ describe("seek branches before text sweeps", () => {
   ])(
     "skips a mixed subtree after a seek with the nested Tag above the cap %#",
     async (filter) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       const run = await query(scenario, filter, { tuning: { capRatio: 0.1 } });
       expect(result(run).rows!.map((row) => row.indexedKey)).toEqual([]);
       expect(
@@ -287,7 +289,7 @@ describe("seek branches before text sweeps", () => {
     },
   );
   it("orders an any plan by pure seeks, mixed branches, then pure sweeps", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const run = await query(
       scenario,
       'title.contains("Lab") || (tags.contains("tie") && title.contains("Exact")) || key == "ART2FULL"',
@@ -309,7 +311,7 @@ describe("seek branches before text sweeps", () => {
     ).toEqual(["ART2FULL", "tie", "%exact%", "%lab%"]);
   });
   it("reads both sweeps when an all plan has no complete seek set", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const run = await query(
       scenario,
       'title.contains("Exact") && title.icontains("literature")',
@@ -330,7 +332,7 @@ describe("seek branches before text sweeps", () => {
     'title.contains("Exact") && (title.contains("Literature") && tags.contains("methods"))',
     '(title.contains("Exact") || title.contains("Methods")) && tags.contains("methods")',
   ])("uses the seek alone in %s", async (filter) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const run = await query(scenario, filter);
     expect(result(run).rows!.map((row) => row.indexedKey)).toEqual([
       "ART2FULL",
@@ -344,7 +346,7 @@ describe("seek branches before text sweeps", () => {
     expect(readers).not.toContain("scan-page");
   });
   it("reads the seek first in an any plan, then every sweep", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const filter =
       'title.contains("Exact") || tags.contains("methods") || title.contains("Lab")';
     const run = await query(scenario, filter, { tuning: { capRatio: 1 } });
@@ -407,7 +409,7 @@ it.each([
 ] as const)(
   "leaves unsupported text form %# on the existing path",
   async (filter, expected) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const run = await query(scenario, filter);
     const scanned = await query(scenario, filter, {
       tuning: { forceScan: true },
@@ -422,7 +424,7 @@ it.each([
 );
 
 it("rejects a non-string text argument before candidate reads", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const run = await query(scenario, "title.contains(1)");
   if (!Exit.isFailure(run.exit)) throw new Error("expected a typed failure");
   const error = Cause.findErrorOption(run.exit.cause);
@@ -476,7 +478,7 @@ it.each([
 ] as const)(
   "keeps relation and other Dataset paths off the sweep %#",
   async (dataset, filter, expected) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const run = await query(scenario, filter, { dataset });
     expect(new Set(result(run).rows!.map((row) => row.indexedKey))).toEqual(
       new Set(expected),

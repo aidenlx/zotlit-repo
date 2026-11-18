@@ -5,12 +5,14 @@
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { HYDRATE_CHUNK_SIZE, readScanPage } from "@zotlit/db/item-query";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { HYDRATE_CHUNK_SIZE, readScanPage } from "@zotlit/db/item-query";
 
 import { ItemQueryError } from "./error.ts";
 import { ITEM_LOADING } from "./hydration.ts";
@@ -34,7 +36,10 @@ type Request = Omit<ItemQueryRequest, "libraries"> &
  * Open the Record Loader of a request and load the first scan page of the
  * personal Library through both passes.
  */
-async function open(scenario: ScenarioDatabase, request: Request) {
+async function open(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  request: Request,
+) {
   const { libraries = [personal], ...rest } = request;
   let seen = 0;
   const { exit, events } = await runEffect(
@@ -94,7 +99,10 @@ function readersOf(events: readonly RunEvent[]): string[] {
 }
 
 /** The typed failure of opening the Record Loader of a request. */
-async function failure(scenario: ScenarioDatabase, request: Request) {
+async function failure(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+  request: Request,
+) {
   const { exit } = await runEffect(
     Effect.gen(function* () {
       const plan = yield* planRequest(ITEMS, {
@@ -116,7 +124,7 @@ async function failure(scenario: ScenarioDatabase, request: Request) {
 
 describe("Record Loader", () => {
   it("reads no source and loads nothing for a filter on the scan row", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, opening, hydrates, scanned } = await open(scenario, {
       filter: 'itemType == "book" && key != "ART2FULL"',
     });
@@ -131,7 +139,7 @@ describe("Record Loader", () => {
   });
 
   it("loads only the relation the filter reads", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, hydrates, scanned } = await open(scenario, {
       filter: 'tags.contains("to-read")',
     });
@@ -146,7 +154,7 @@ describe("Record Loader", () => {
   });
 
   it("loads only the fields the filter reads, with the aliases of a base field", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, hydrates, scanned } = await open(scenario, {
       filter: 'publisher == "Sage" && custom["review.status"] == null',
     });
@@ -163,7 +171,7 @@ describe("Record Loader", () => {
   });
 
   it("loads a Formula the filter reads in the scan pass only", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, hydrates, scanned } = await open(scenario, {
       filter: "formula.marked",
       formulas: {
@@ -182,7 +190,7 @@ describe("Record Loader", () => {
   });
 
   it("loads a Formula that a projected Formula reads in the projection pass", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, projected } = await open(scenario, {
       formulas: {
         marked: "formula.tagged",
@@ -198,7 +206,7 @@ describe("Record Loader", () => {
   });
 
   it("loads the fields of a branch that does not run for an Item", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, hydrates, scanned } = await open(scenario, {
       filter: 'itemType == "report" && creators.isEmpty()',
     });
@@ -210,7 +218,7 @@ describe("Record Loader", () => {
   });
 
   it("loads the filter and sort fields in the scan pass and the projection fields in the projection pass", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, hydrates, scanned, projected } = await open(scenario, {
       filter: 'tags.contains("to-read")',
       fields: ["DOI", "custom"],
@@ -236,7 +244,7 @@ describe("Record Loader", () => {
   });
 
   it("reads the field vocabulary once and the Collection paths of each Target Library for a pass that loads Collections", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { hydration, opening, projected } = await open(scenario, {
       libraries: [personal, group],
       fields: ["collections"],
@@ -256,7 +264,7 @@ describe("Record Loader", () => {
   });
 
   it("reads no Collection paths for a request that loads no Collections", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { opening } = await open(scenario, {
       libraries: [personal, group],
       fields: ["title", "tags"],
@@ -266,7 +274,7 @@ describe("Record Loader", () => {
   });
 
   it("gives each lowering the Collection paths of its own Library", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { sources } = await open(scenario, {
       libraries: [personal, group],
       filter: 'collections.contains("Thesis/Methods")',
@@ -316,7 +324,7 @@ describe("Record Loader", () => {
   ])(
     "fails a custom field that the source does not define in $location.argument",
     async ({ request, location, fault }) => {
-      using scenario = openScenarioDatabase();
+      using scenario = openScenarioDatabase(connectClient);
       expect(await failure(scenario, request)).toMatchObject({
         code: "unknown-field",
         location,
@@ -332,7 +340,7 @@ describe("Record Loader", () => {
 it.each(["review.status", "custom.review.status"])(
   "corrects a source custom field written as %s",
   async (access) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const filter = `${access} == "include"`;
     const error = await failure(scenario, { filter });
     expect(error).toBeInstanceOf(ItemQueryError);
@@ -356,7 +364,7 @@ it.each(["review.status", "custom.review.status"])(
 );
 
 it("suggests source names for an explicit misspelling", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const filter = 'custom["reviewStatus"] == "include"';
   const error = await failure(scenario, { filter });
   if (!(error instanceof ItemQueryError))
@@ -375,7 +383,7 @@ it("suggests source names for an explicit misspelling", async () => {
 it.each(["review.status.more", "custom.review.status.more"])(
   "keeps the original property fault when the full chain %s is absent",
   async (access) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const error = await failure(scenario, { filter: access });
     const from = access.indexOf("status");
     expect(error).toMatchObject({
@@ -391,7 +399,7 @@ it.each(["review.status.more", "custom.review.status.more"])(
 );
 
 it("keeps valid custom string properties and explicit bracket access", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { scanned } = await open(scenario, {
     filter:
       'mood.length > 0 && custom.mood.lower() == "calm" && custom["review.status"].length > 0',
@@ -404,7 +412,7 @@ it("keeps valid custom string properties and explicit bracket access", async () 
 });
 
 it("keeps an explicit custom-field property failure at validation", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const error = await failure(scenario, {
     filter: 'custom["review.status"].absent',
   });
@@ -419,7 +427,7 @@ it("keeps an explicit custom-field property failure at validation", async () => 
 });
 
 it("carries source facts for a bare unknown field", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const error = await failure(scenario, { filter: "mood2" });
   expect(error).toMatchObject({
     fault: {
@@ -432,7 +440,7 @@ it("carries source facts for a bare unknown field", async () => {
 });
 
 it("carries an empty source vocabulary", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   scenario.sqlite.exec("update fieldsCombined set custom = 0");
   const error = await failure(scenario, { filter: 'custom["review.status"]' });
   expect(error).toMatchObject({
@@ -443,7 +451,7 @@ it("carries an empty source vocabulary", async () => {
 it.each(["review.status.phase", "mood.length.unit"])(
   "resolves the complete chain %s after its first property fault",
   async (name) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite
       .prepare("update fieldsCombined set fieldName = ? where fieldName = ?")
       .run(name, "review.status");
@@ -459,7 +467,7 @@ it.each(["review.status.phase", "mood.length.unit"])(
 it.each(["review.length", "custom.review.length"])(
   "corrects the complete source name %s when its prefix is absent",
   async (access) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite.exec(
       "update fieldsCombined set fieldName = 'review.length' where fieldName = 'review.status'",
     );
@@ -479,7 +487,7 @@ it.each(["review.length", "custom.review.length"])(
 
 // Failure modes: Query Group needs are omitted from the scan pass or leak into projection.
 it("loads Query Group needs in the scan pass", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { scanned, projected, hydrates } = await open(scenario, {
     group: "collections[]",
   });

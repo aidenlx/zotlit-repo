@@ -9,9 +9,9 @@ import { stringify as stringifyYaml } from "yaml";
 
 import { getLibraries } from "@zotlit/db";
 import type { Item, NoteTemplateContext } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import type { MatchTree } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";

@@ -1,8 +1,10 @@
 import { Cause, Exit } from "effect";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import type { QueryDataset } from "./dataset.ts";
 import { diagnose, diagnoseDecode, renderDiagnostic } from "./diagnose.ts";
@@ -17,12 +19,14 @@ import { describeQueryVocabulary } from "./schema.ts";
 import { runEffect } from "./test-helpers.ts";
 
 // Read-only scenarios; a test that changes the database opens its own.
-let shared: ScenarioDatabase;
-let sharedAnnotations: ScenarioDatabase;
+let shared: ScenarioDatabase<NodeDatabaseClient>;
+let sharedAnnotations: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  shared = openScenarioDatabase();
-  sharedAnnotations = openScenarioDatabase({ annotations: true });
+  shared = openScenarioDatabase(connectClient);
+  sharedAnnotations = openScenarioDatabase(connectClient, {
+    annotations: true,
+  });
 });
 
 afterAll(() => {
@@ -356,7 +360,9 @@ it.each(reports)("reports $name", async ({ request, report, ...setup }) => {
   // A case that changes the source opens its own copy.
   using changed =
     withoutCustomFields || setup.customFieldName !== undefined
-      ? openScenarioDatabase({ annotations: dataset === ANNOTATIONS })
+      ? openScenarioDatabase(connectClient, {
+          annotations: dataset === ANNOTATIONS,
+        })
       : undefined;
   if (changed && withoutCustomFields)
     changed.sqlite.exec("update fieldsCombined set custom = 0");

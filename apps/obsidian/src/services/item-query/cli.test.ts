@@ -4,9 +4,11 @@ import { isDeepStrictEqual } from "node:util";
 import type { CliData } from "obsidian";
 import { describe, expect } from "vitest";
 
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
 import { fakeCliHost } from "@/lib/__fixtures__/cli-host.ts";
@@ -39,7 +41,7 @@ const itemQueryGuideHandler = guideHandler;
  * Query Job gives it. A malformed test query fails with its rejection.
  */
 function answerTextOf(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   scope: LibraryScope = MY_LIBRARY_SCOPE,
 ) {
   return (params: CliData = {}) =>
@@ -73,7 +75,7 @@ function answerTextOf(
 
 /** The parsed answer of the Item Query of flat arguments on `scenario`. */
 function answerOf(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   scope: LibraryScope = MY_LIBRARY_SCOPE,
 ) {
   const answerText = answerTextOf(scenario, scope);
@@ -84,8 +86,10 @@ function answerOf(
 }
 
 /** The scenario database, held for the case's scope. */
-const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[0]) =>
-  Effect.acquireDisposable(Effect.sync(() => openScenarioDatabase(options)));
+const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
+  Effect.acquireDisposable(
+    Effect.sync(() => openScenarioDatabase(connectClient, options)),
+  );
 
 describe("zotlit:query-cancel", () => {
   function cancelOf(active: readonly string[]) {

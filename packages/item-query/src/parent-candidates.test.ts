@@ -1,6 +1,5 @@
 import { beforeEach, expect, it } from "vitest";
 
-import { SCAN_PAGE_SIZE } from "@zotlit/db/item-query";
 import {
   BULK_LIBRARY,
   bulkItemKey,
@@ -9,7 +8,9 @@ import {
   seedBulkAnnotations,
   seedBulkAttachments,
   seedBulkLibrary,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import { SCAN_PAGE_SIZE } from "@zotlit/db/item-query";
 
 import { ANNOTATIONS, ATTACHMENTS, collectQuery } from "./index.ts";
 import type { RunEvent } from "./test-helpers.ts";
@@ -53,7 +54,7 @@ it.each([
 ])(
   "$dataset.id keeps a selective Parent Record leaf on candidates in a large Library",
   async ({ dataset, returnedCount }) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 5_001);
     seedBulkAttachments(scenario.sqlite, 5_001);
     seedBulkAnnotations(scenario.sqlite, 10_000);
@@ -101,7 +102,7 @@ it.each([
 ])(
   "$dataset.id reads matching parents and children in each Target Library",
   async ({ dataset, returnedCount }) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     for (const filter of [
       'item.tags.contains("methods")',
       'item.collections.within("Thesis")',
@@ -131,7 +132,7 @@ it.each([
 );
 
 it("reads 100,000 tagged parents with no Attachments in one candidate statement", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   seedBulkLibrary(scenario.sqlite, 100_000);
   const query = collectQuery(ATTACHMENTS, {
     libraries: [BULK_LIBRARY],
@@ -152,7 +153,7 @@ it("reads 100,000 tagged parents with no Attachments in one candidate statement"
 });
 
 it("reads a Collection of 100,000 parents with 100 Annotations outside it in one candidate statement", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   seedBulkLibrary(scenario.sqlite, 100_001);
   seedBulkAnnotations(scenario.sqlite, 100);
   const collectionID = Number(
@@ -188,7 +189,7 @@ it("reads a Collection of 100,000 parents with 100 Annotations outside it in one
 it.each([1, 1_001])(
   "bounds parent candidate statements with %i Items",
   async (count) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, count);
     seedBulkAttachments(scenario.sqlite, count);
     seedBulkAnnotations(scenario.sqlite, 100);
@@ -234,7 +235,7 @@ it.each([1, 1_001])(
 it.each([ATTACHMENTS, ANNOTATIONS])(
   "$id bounds a dominant Parent Record candidate read",
   async (dataset) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 10_000);
     seedBulkAttachments(scenario.sqlite, 10_000);
     seedBulkAnnotations(scenario.sqlite, 10_000);
@@ -280,7 +281,7 @@ it.each([ATTACHMENTS, ANNOTATIONS])(
 
 // Failure mode: children of another Library make a complete candidate set fall back.
 it("keeps other-Library children outside the Parent Record budget", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   seedBulkLibrary(scenario.sqlite, 4_000);
   seedBulkAttachments(scenario.sqlite, 4_000);
   const query = collectQuery(ATTACHMENTS, {

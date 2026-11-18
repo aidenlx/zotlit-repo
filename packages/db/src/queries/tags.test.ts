@@ -4,6 +4,12 @@ import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  countCompiles,
+  countStatements,
+  createFixtureSchema,
+} from "@zotlit/db-testing";
+
+import {
   getAllTagNames,
   getLibraryTagNames,
   getTagsByItemIDs,
@@ -14,11 +20,6 @@ import type { TagMemo } from "./tags.ts";
 
 import { relations } from "#drizzle/relations.ts";
 import { tagTypeToName } from "#lib/zt-tag.ts";
-import {
-  countCompiles,
-  countStatements,
-  createFixtureSchema,
-} from "#test-utils.ts";
 
 let sqlite: DatabaseSync;
 let db: NodeDatabaseClient;

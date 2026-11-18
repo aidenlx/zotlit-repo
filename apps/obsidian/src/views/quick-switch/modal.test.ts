@@ -4,7 +4,7 @@ import type { App, Instruction, Modifier, WorkspaceLeaf } from "obsidian";
 import { afterEach } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { makeItem } from "@zotlit/db/test-utils";
+import { makeItem } from "@zotlit/db/item-fixture";
 
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";

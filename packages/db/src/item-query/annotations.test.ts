@@ -2,6 +2,11 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
+
+import {
   ItemQueryDatabase,
   readAnnotationScanPage,
   readAnnotationRowCount,
@@ -12,13 +17,10 @@ import {
   ItemQueryStatementObserver,
 } from "./index.ts";
 
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 it("scans only live annotations of live attached Items, across keyset pages", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -93,7 +95,7 @@ it("scans only live annotations of live attached Items, across keyset pages", ()
 });
 
 it("runs one statement for each load the caller names, and none for an unnamed load", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const readers: string[] = [];
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
@@ -131,7 +133,7 @@ it("runs one statement for each load the caller names, and none for an unnamed l
 });
 
 it("counts the live Annotation universe and applies a candidate limit after the parent join", () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
     Effect.runSync(
       Effect.provideService(effect, ItemQueryDatabase, { client: scenario.db }),
@@ -176,7 +178,7 @@ it.each([
 ] as const)(
   "reads bounded Annotation key candidates through %s",
   (target, keys, count) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const run = <A, E>(effect: Effect.Effect<A, E, ItemQueryDatabase>) =>
       Effect.runSync(
         Effect.provideService(effect, ItemQueryDatabase, {

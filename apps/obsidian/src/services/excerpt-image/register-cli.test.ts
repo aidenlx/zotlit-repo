@@ -5,7 +5,8 @@ import type { Scope } from "effect";
 import { join } from "node:path";
 import { describe, expect } from "vitest";
 
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import type { CliCommand } from "@/lib/cli-command.ts";
@@ -75,7 +76,7 @@ const registered = (
 
 /** The real ZoteroReads over the annotations scenario database. */
 const scenarioReads = Effect.acquireDisposable(
-  Effect.sync(() => openScenarioDatabase({ annotations: true })),
+  Effect.sync(() => openScenarioDatabase(connectClient, { annotations: true })),
 ).pipe(
   Effect.map((scenario) =>
     layerZoteroReads(

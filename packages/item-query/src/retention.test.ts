@@ -19,8 +19,10 @@ import {
   SCENARIO_LIBRARIES,
   seedBulkLibrary,
   seedBulkAttachments,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ATTACHMENTS, collectQuery, consumeQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
@@ -37,13 +39,13 @@ const BULK_ITEMS = 2600;
 const PERSONAL_ITEMS = 10;
 
 const databases = new DisposableStack();
-let scenario: ScenarioDatabase;
-let attachments: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
+let attachments: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  scenario = databases.use(openScenarioDatabase());
+  scenario = databases.use(openScenarioDatabase(connectClient));
   seedBulkLibrary(scenario.sqlite, BULK_ITEMS);
-  attachments = databases.use(openScenarioDatabase());
+  attachments = databases.use(openScenarioDatabase(connectClient));
   seedBulkLibrary(attachments.sqlite, BULK_ITEMS);
   seedBulkAttachments(attachments.sqlite, BULK_ITEMS);
 });
@@ -359,7 +361,7 @@ it("keeps the limit plus one row per group when papers fan out to many Tag group
   // Each bulk paper has the Tags "bulk" and "bulk-fifth" of the seed, and two
   // of 300 Tags: paper i has t<i % 300> and t<(i + 1) % 300>.
   const TAGS = 300;
-  using source = openScenarioDatabase();
+  using source = openScenarioDatabase(connectClient);
   seedBulkLibrary(source.sqlite, BULK_ITEMS);
   const itemIDs = source.sqlite
     .prepare("select itemID from items where libraryID = ? order by itemID")

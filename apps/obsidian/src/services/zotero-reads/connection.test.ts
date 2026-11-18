@@ -3,11 +3,11 @@ import type { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
 import { getLibraries, getSchemaVersions } from "@zotlit/db";
-import { createClient } from "@zotlit/db/client/node";
+import { countStatements } from "@zotlit/db-testing";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabaseOptions } from "@zotlit/db-testing/scenario";
+import { createClient, connectClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase, readLibraries } from "@zotlit/db/item-query";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabaseOptions } from "@zotlit/db/test-scenario";
-import { countStatements } from "@zotlit/db/test-utils";
 import { collectQuery, ITEMS } from "@zotlit/item-query";
 
 import { validateClient } from "./connection.ts";
@@ -81,7 +81,7 @@ function open({ options, alter, ddl }: Copy) {
     };
     return { db, sqlite: db.$client, [Symbol.dispose]: close };
   }
-  const copy = openScenarioDatabase(options);
+  const copy = openScenarioDatabase(connectClient, options);
   alter?.(copy.sqlite);
   return copy;
 }
@@ -151,7 +151,7 @@ describe("validateClient and Item Query", () => {
   });
 
   it("reads the layout of a copy once for validation, the stamps, and the Library readers", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const statements = countStatements(scenario.sqlite);
 
     Effect.runSync(validateClient(scenario.db));

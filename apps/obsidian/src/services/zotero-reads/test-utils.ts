@@ -3,9 +3,9 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 import type { Scope } from "effect";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { testReads } from "./__fixtures__.ts";
 import type { TestReads } from "./__fixtures__.ts";

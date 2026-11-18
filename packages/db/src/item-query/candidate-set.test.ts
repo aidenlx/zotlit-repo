@@ -1,7 +1,13 @@
-import type { ScenarioDatabase } from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
+
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
 
 import {
   ItemQueryDatabase,
@@ -12,14 +18,11 @@ import {
   readLibraryRowCount,
 } from "./index.ts";
 
+import { connectClient } from "#client/node.ts";
 import { relations } from "#drizzle/relations.ts";
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
 
 function runOk<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ): A {
   const exit = Effect.runSyncExit(
@@ -32,7 +35,7 @@ function runOk<A, E>(
 const { personal, group } = SCENARIO_LIBRARIES;
 
 it("rejects a 60,000-character LIKE pattern on the real database", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   expect(() =>
     scenario.sqlite.prepare("select 'value' LIKE ?").get("a".repeat(60_000)),
   ).toThrow("LIKE or GLOB pattern too complex");
@@ -40,7 +43,7 @@ it("rejects a 60,000-character LIKE pattern on the real database", () => {
 
 /** The keys of the `items` rows with these IDs, in key order. */
 function keysOf(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   itemIDs: readonly number[],
 ): string[] {
   const key = scenario.sqlite.prepare("select key from items where itemID = ?");
@@ -51,7 +54,7 @@ function keysOf(
 
 describe("readLibraryRowCount", () => {
   it("counts every `items` row of one Library: top-level, child, and trashed", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // 10 live top-level Items, 1 trashed Item, 2 Attachments, 1 Annotation,
     // and 1 Child Note.
     expect(runOk(scenario, readLibraryRowCount(personal.libraryID))).toBe(15);
@@ -60,14 +63,14 @@ describe("readLibraryRowCount", () => {
   });
 
   it("gives zero for a Library without Items", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(runOk(scenario, readLibraryRowCount(987))).toBe(0);
   });
 });
 
 describe("readCandidateSet", () => {
   const candidates =
-    (scenario: ScenarioDatabase) =>
+    (scenario: ScenarioDatabase<NodeDatabaseClient>) =>
     (
       library: { libraryID: number },
       leaf: Parameters<typeof readCandidateSet>[0]["leaf"],
@@ -82,7 +85,7 @@ describe("readCandidateSet", () => {
       );
 
   it("gives the Items of the Target Library that carry a Tag, trashed Items included", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       candidates(scenario)(personal, { kind: "tag", value: "to-read" }),
     ).toEqual(["ART2FULL", "BK2MNTH2", "TRS2SHED"]);
@@ -95,7 +98,7 @@ describe("readCandidateSet", () => {
   });
 
   it("gives the Item IDs of the Target Library, not those of the other Library", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const ids = (library: { libraryID: number }) =>
       runOk(
         scenario,
@@ -110,7 +113,7 @@ describe("readCandidateSet", () => {
   });
 
   it("matches a Tag by its exact name", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       candidates(scenario)(personal, { kind: "tag", value: "To-Read" }),
     ).toEqual(["ART2FULL"]);
@@ -123,7 +126,7 @@ describe("readCandidateSet", () => {
   });
 
   it("gives the Item that has a Zotero Key inside the Target Library", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const [personalID] = runOk(
       scenario,
       readCandidateSet({
@@ -155,7 +158,7 @@ describe("readCandidateSet", () => {
 
   // Failure modes: list selection crosses Libraries, duplicates IDs, or exceeds its cap.
   it("reads a bounded set of keys inside one Target Library", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const leaf = {
       kind: "keys" as const,
       keys: ["ART2FULL", "ART2FULL", "GRP2BK22", "NOSUCHKY"],
@@ -169,7 +172,7 @@ describe("readCandidateSet", () => {
   });
 
   it("reads at most `limit` Item IDs", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       candidates(scenario)(personal, { kind: "tag", value: "to-read" }, 2),
     ).toHaveLength(2);
@@ -181,7 +184,7 @@ describe("readCandidateSet", () => {
 
 describe("readCandidateSet for a field value", () => {
   const fieldCandidates =
-    (scenario: ScenarioDatabase) =>
+    (scenario: ScenarioDatabase<NodeDatabaseClient>) =>
     (
       library: { libraryID: number },
       [name, value]: readonly [name: string, value: string],
@@ -206,7 +209,7 @@ describe("readCandidateSet for a field value", () => {
       );
 
   it("gives the Items that store the value as text and as a number", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // ART2FULL and TIE2AAAA store `volume` as the integer 12, TIE2BBBB as text.
     expect(fieldCandidates(scenario)(personal, ["volume", "12"])).toEqual([
       "ART2FULL",
@@ -219,7 +222,7 @@ describe("readCandidateSet for a field value", () => {
   });
 
   it("covers every field ID of the field's aliases", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // CHP2YEAR stores `bookTitle`, CNF2TEXT `proceedingsTitle`, and
     // RPT2NDTE `institution`.
     expect(
@@ -253,7 +256,7 @@ describe("readCandidateSet for a field value", () => {
   });
 
   it("reads only the fields of the name and its aliases, not custom fields", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     // `title` stores "Custom Title Value" as a custom field of ART2FULL.
     expect(
       fieldCandidates(scenario)(personal, ["title", "Custom Title Value"]),
@@ -267,7 +270,7 @@ describe("readCandidateSet for a field value", () => {
   });
 
   it("matches the exact value inside the Target Library, trashed Items included", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       fieldCandidates(scenario)(personal, ["title", "Same Title"]),
     ).toEqual(["TIE2AAAA", "TIE2BBBB"]);
@@ -289,7 +292,7 @@ describe("readCandidateSet for a field value", () => {
   });
 
   it("gives each Item once and reads at most `limit` Item IDs", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       fieldCandidates(scenario)(personal, ["volume", "12"], 2),
     ).toHaveLength(2);
@@ -302,7 +305,7 @@ describe("readCandidateSet for a field value", () => {
 describe("readCandidateSet for Collections", () => {
   /** The live Collection IDs of a Library whose joined path passes `test`. */
   const collectionIDs = (
-    scenario: ScenarioDatabase,
+    scenario: ScenarioDatabase<NodeDatabaseClient>,
     library: { libraryID: number },
     test: (path: string) => boolean,
   ) =>
@@ -311,7 +314,7 @@ describe("readCandidateSet for Collections", () => {
       .map(([collectionID]) => collectionID);
 
   const collectionCandidates =
-    (scenario: ScenarioDatabase) =>
+    (scenario: ScenarioDatabase<NodeDatabaseClient>) =>
     (library: { libraryID: number }, ids: readonly number[], limit = 100) =>
       keysOf(
         scenario,
@@ -326,7 +329,7 @@ describe("readCandidateSet for Collections", () => {
       );
 
   it("gives the Items filed directly in the Collections, trashed Items included", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       collectionCandidates(scenario)(
         personal,
@@ -343,7 +346,7 @@ describe("readCandidateSet for Collections", () => {
   });
 
   it("gives separate sets for two Collections with the same name", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     expect(
       collectionCandidates(scenario)(
         personal,
@@ -363,7 +366,7 @@ describe("readCandidateSet for Collections", () => {
   });
 
   it("gives each Item once, inside the Target Library, at most `limit` of them", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const thesis = collectionIDs(scenario, personal, (path) =>
       path.startsWith("Thesis"),
     );
@@ -384,7 +387,7 @@ describe("readCandidateSet for Collections", () => {
 });
 
 it("reads a text window on the itemData primary key without a temporary B-tree", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const queries: { sql: string; params: unknown[] }[] = [];
   scenario.db = drizzle({
     client: scenario.sqlite,

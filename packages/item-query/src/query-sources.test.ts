@@ -4,7 +4,8 @@ import { expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import { collectionWarnings } from "./collection-warnings.ts";
 import { ANNOTATIONS } from "./query-annotations.ts";
@@ -20,7 +21,7 @@ const { personal, group } = SCENARIO_LIBRARIES;
 // Failure modes: opening reads eagerly; repeated needs read again; equivalent
 // Target Library objects miss the cache; one query leaks sources into the next.
 it("reads Query Sources lazily and keeps completed reads for one query", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const readers: string[] = [];
   const { exit } = await runEffect(
     Effect.gen(function* () {
@@ -88,7 +89,7 @@ it.each([
 ])(
   "shares Collection paths through $dataset.id: $filter",
   async ({ dataset, fields, filter, keys }) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     for (const libraries of [[personal], [personal, group]]) {
       const reads: number[] = [];
       let vocabularyReads = 0;
@@ -131,7 +132,7 @@ it.each([
 it.each([ITEMS, ATTACHMENTS, ANNOTATIONS])(
   "reads no Collection paths when $id names none",
   async (dataset) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await runEffect(
       collectQuery(dataset, {
         libraries: [personal, group],
@@ -155,7 +156,7 @@ it.each([ITEMS, ATTACHMENTS, ANNOTATIONS])(
 // Failure modes: a Collection warning depends on opening a loader, or warning
 // lookups read paths again after another consumer has already read them.
 it("checks Collection warnings directly through Query Sources", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit, events } = await runEffect(
     Effect.gen(function* () {
       const plan = yield* planRequest(ANNOTATIONS, {
@@ -192,7 +193,7 @@ it.each([
 ])(
   "reads Collection paths once for a Query Group in $dataset.id",
   async ({ dataset, group: groupPath }) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { exit, events } = await runEffect(
       collectQuery(dataset, {
         libraries: [personal, group],

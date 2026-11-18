@@ -3,8 +3,8 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import { vi } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
 import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";

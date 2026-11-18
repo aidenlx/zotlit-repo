@@ -4,8 +4,10 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { describeAttachmentQuery } from "./describe-attachment-query.ts";
 import { ATTACHMENTS, collectQuery } from "./index.ts";
@@ -14,10 +16,10 @@ import { describeQueryVocabulary } from "./schema.ts";
 import { faultCode, runEffect } from "./test-helpers.ts";
 
 // Every test here only reads the scenario.
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  scenario = openScenarioDatabase({ annotations: true });
+  scenario = openScenarioDatabase(connectClient, { annotations: true });
 });
 
 afterAll(() => {

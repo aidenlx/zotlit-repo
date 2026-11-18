@@ -8,9 +8,11 @@ import {
   it,
 } from "vitest";
 
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryLayoutError } from "@zotlit/db/item-query";
-import { openScenarioDatabase } from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
 
 import {
   ANNOTATIONS,
@@ -44,7 +46,7 @@ import {
 import { faultCode, runEffect } from "./test-helpers.ts";
 
 it("generates field capabilities from the supplied Query Dataset descriptor", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const { exit } = await runEffect(
     describeQuery(
       {
@@ -80,7 +82,9 @@ it("generates field capabilities from the supplied Query Dataset descriptor", as
   });
 });
 
-async function schema(scenario: ScenarioDatabase): Promise<ItemQuerySchema> {
+async function schema(
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
+): Promise<ItemQuerySchema> {
   const { exit } = await runEffect(describeItemQuery(), {
     client: scenario.db,
   });
@@ -90,7 +94,7 @@ async function schema(scenario: ScenarioDatabase): Promise<ItemQuerySchema> {
 
 describe("describeItemQuery custom fields", () => {
   it("lists the custom fields of the source with their path and bare-name eligibility", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { customFields } = await schema(scenario);
 
     expect(customFields).toEqual([
@@ -182,7 +186,7 @@ describe("the static Item Query vocabulary", () => {
     );
   });
   it("matches the source-independent part of the complete schema", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const {
       fields,
       functions,
@@ -209,7 +213,7 @@ describe("the static Item Query vocabulary", () => {
 
 describe("describeItemQuery fields", () => {
   it("reports the JSON type and the capabilities of each field and Projection Path", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { fields } = await schema(scenario);
     const entry = (path: string) => fields.find((field) => field.path === path);
     expect(entry("lastActivity")).toMatchObject({
@@ -289,7 +293,7 @@ describe("describeItemQuery fields", () => {
   });
 
   it("reports the defaults of an omitted argument", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const { defaults } = await schema(scenario);
 
     expect(defaults).toEqual({
@@ -305,7 +309,7 @@ describe("describeItemQuery fields", () => {
 
 describe("describeItemQuery on the layout of the Zotero database", () => {
   it("fails with ItemQueryLayoutError when the copy lacks a manifest column", async () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite.exec('alter table "fieldsCombined" drop column "custom"');
 
     const { exit } = await runEffect(describeItemQuery(), {
@@ -366,10 +370,10 @@ function call(name: string, entry: Omit<SchemaFunction, "name">): string {
 
 describe("the Item Query Schema and collectQuery", () => {
   // Every test here only reads the scenario.
-  let scenario: ScenarioDatabase;
+  let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
   beforeAll(() => {
-    scenario = openScenarioDatabase();
+    scenario = openScenarioDatabase(connectClient);
   });
 
   afterAll(() => {
@@ -492,7 +496,7 @@ describe("the Item Query Schema and collectQuery", () => {
 });
 
 it("publishes one catalog of the executed dataset schemas and the shared language vocabulary", async () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const catalog = describeQueryVocabulary();
   const described = {
     items: describeItemQuery(),

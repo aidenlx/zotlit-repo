@@ -18,9 +18,9 @@ import { beforeEach, describe, expect, vi } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Item, Library } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 import { MemoryFileManager } from "@/lib/__fixtures__/obsidian-file-manager.ts";

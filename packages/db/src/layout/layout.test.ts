@@ -1,19 +1,21 @@
-import type {
-  ScenarioDatabase,
-  ScenarioDatabaseOptions,
-} from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { countStatements } from "@zotlit/db-testing";
+import type {
+  ScenarioDatabase,
+  ScenarioDatabaseOptions,
+} from "@zotlit/db-testing/scenario";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
 import { readDatabaseLayout } from "./index.ts";
 
+import { connectClient } from "#client/node.ts";
 import { relations } from "#drizzle/relations.ts";
-import { openScenarioDatabase } from "#test-scenario/index.ts";
-import { countStatements } from "#test-utils.ts";
 
 afterEach(() => {
   setLibraryLogSink(undefined);
@@ -23,8 +25,8 @@ afterEach(() => {
 function openCopy(
   alter: (sqlite: DatabaseSync) => void = () => {},
   options: ScenarioDatabaseOptions = {},
-): ScenarioDatabase {
-  const copy = openScenarioDatabase(options);
+): ScenarioDatabase<NodeDatabaseClient> {
+  const copy = openScenarioDatabase(connectClient, options);
   alter(copy.sqlite);
   return copy;
 }

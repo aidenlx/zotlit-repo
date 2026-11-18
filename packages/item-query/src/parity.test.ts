@@ -6,8 +6,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { ATTACHMENT_SCENARIO_QUERIES } from "./attachment-scenario-queries.ts";
 import {
@@ -114,21 +116,23 @@ const PAUSE_METHOD_TUNING: Tuning = {
 };
 
 const databases = new DisposableStack();
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
-  scenario = databases.use(openScenarioDatabase());
+  scenario = databases.use(openScenarioDatabase(connectClient));
 });
 
 afterAll(() => {
   databases.dispose();
 });
 
-let annotated: ScenarioDatabase | undefined;
+let annotated: ScenarioDatabase<NodeDatabaseClient> | undefined;
 
 /** The scenario with Annotations, opened on first use. No test writes to it. */
-const annotatedScenario = (): ScenarioDatabase =>
-  (annotated ??= databases.use(openScenarioDatabase({ annotations: true })));
+const annotatedScenario = (): ScenarioDatabase<NodeDatabaseClient> =>
+  (annotated ??= databases.use(
+    openScenarioDatabase(connectClient, { annotations: true }),
+  ));
 
 /**
  * The complete outcome of one run in its wire form: the Query Result, or the
@@ -137,7 +141,10 @@ const annotatedScenario = (): ScenarioDatabase =>
 async function outcome(
   query: ScenarioQuery,
   tuning: Tuning,
-  on: { database?: ScenarioDatabase; scheduler?: ItemQueryScheduler } = {},
+  on: {
+    database?: ScenarioDatabase<NodeDatabaseClient>;
+    scheduler?: ItemQueryScheduler;
+  } = {},
 ): Promise<unknown> {
   const {
     database = scenario,
@@ -297,10 +304,10 @@ const LEAF_INDEXES = ["itemTags_tagID", "itemData_fieldID", "itemData_valueID"];
   describe.runIf(highest)(
     "parity without the Tag and field-value indexes",
     () => {
-      let unindexed: ScenarioDatabase;
+      let unindexed: ScenarioDatabase<NodeDatabaseClient>;
 
       beforeAll(() => {
-        unindexed = openScenarioDatabase();
+        unindexed = openScenarioDatabase(connectClient);
         // `drop index` fails for a name the database does not have.
         for (const index of LEAF_INDEXES)
           unindexed.sqlite.exec(`drop index "${index}"`);
@@ -386,7 +393,7 @@ const LEAF_INDEXES = ["itemTags_tagID", "itemData_fieldID", "itemData_valueID"];
 it.each(["review.length", "custom.review.length"])(
   "preserves source-dependent property resolution for %s in every plan",
   async (access) => {
-    using database = openScenarioDatabase();
+    using database = openScenarioDatabase(connectClient);
     database.sqlite.exec(
       "update fieldsCombined set fieldName = 'review.length' where fieldName = 'review.status'; update customFields set fieldName = 'review.length' where fieldName = 'review.status'",
     );

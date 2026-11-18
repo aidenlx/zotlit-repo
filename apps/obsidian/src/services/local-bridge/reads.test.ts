@@ -11,10 +11,10 @@ import { TFile } from "obsidian";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 
 import { getZoteroDatabaseIdentity } from "@zotlit/db";
+import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import annotationSchema from "@zotlit/db/contract/annotation.schema.json" with { type: "json" };
 import noteSchema from "@zotlit/db/contract/note.schema.json" with { type: "json" };
-import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { exportLiteratureNotePack } from "@zotlit/templates/literature-note-pack";
 import type {
   LiteratureNotePackError,

@@ -19,7 +19,7 @@ import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createFixtureSchema } from "@zotlit/db/test-utils";
+import { createFixtureSchema } from "@zotlit/db-testing";
 
 import { layerNodeFileSystemWith } from "@/lib/__fixtures__/node-file-system.ts";
 import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@/lib/constants.ts";

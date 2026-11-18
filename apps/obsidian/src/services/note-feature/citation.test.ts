@@ -9,7 +9,7 @@ import {
   resolveVenue,
 } from "@zotlit/db";
 import type { CiteRef, Item } from "@zotlit/db";
-import { rowInstant } from "@zotlit/db/test-utils";
+import { rowInstant } from "@zotlit/db-testing";
 import { inlineCitation } from "@zotlit/templates";
 import { TemplateFacade } from "@zotlit/templates/facade";
 import type { ItemFields } from "@zotlit/zotero-types";

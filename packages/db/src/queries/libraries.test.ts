@@ -3,11 +3,13 @@ import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
+import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
+
 import { getLibraries, getLibraryByGroupID } from "./libraries.ts";
 
+import { connectClient } from "#client/node.ts";
 import { relations } from "#drizzle/relations.ts";
-import { openScenarioDatabase } from "#test-scenario/index.ts";
-import { createFixtureSchema } from "#test-utils.ts";
 
 const SEED = `
   insert into libraries (libraryID, type) values (1, 'user'), (4, 'group'), (5, 'group');
@@ -76,7 +78,7 @@ describe("libraries queries", () => {
   });
 
   it("reads the lowest layout with a version stamp outside the supported range", () => {
-    using scenario = openScenarioDatabase({ layout: "lowest" });
+    using scenario = openScenarioDatabase(connectClient, { layout: "lowest" });
     scenario.sqlite.exec(
       "update version set version = 999 where schema = 'userdata'",
     );

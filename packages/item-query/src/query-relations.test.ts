@@ -8,8 +8,10 @@ import {
   seedBulkAnnotations,
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
-import type { ScenarioDatabase } from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
+import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import {
   collectQuery,
@@ -22,9 +24,9 @@ import { runEffect } from "./test-helpers.ts";
 import { PRODUCTION_TUNING } from "./tuning.ts";
 
 // Read-only tests share one scenario; a test that writes opens its own.
-let scenario: ScenarioDatabase;
+let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {
-  scenario = openScenarioDatabase({ annotations: true });
+  scenario = openScenarioDatabase(connectClient, { annotations: true });
 });
 afterAll(() => scenario.close());
 
@@ -684,7 +686,7 @@ it.each([
   "projects and sorts keys in %s across Target Libraries",
   async (dataset, personalKey, groupKey) => {
     const parentKey = "ART2FULL";
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     scenario.sqlite
       .prepare("update items set key = ? where key = ? and libraryID = ?")
       .run(personalKey, groupKey, SCENARIO_LIBRARIES.group.libraryID);
@@ -766,7 +768,7 @@ it("projects keys through Relation Lists and parents", async () => {
 });
 
 it("orders parent Indexed Keys as text including group suffixes", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .prepare("update items set key = 'PDF2LIVE' where key = 'PDF2GRUP'")
     .run();
@@ -1084,7 +1086,7 @@ it.each([
 ] as const)(
   "bounds Relation List candidate statements with %i elements on one paper",
   async (count, pages, scans) => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, count);
     seedBulkAttachments(scenario.sqlite, count);
     seedBulkAnnotations(scenario.sqlite, count);
@@ -1155,7 +1157,7 @@ it.each([
     ["ART2FULL"],
   ],
 ])("filters Items by their Child Notes with %s", async (filter, keys) => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal, SCENARIO_LIBRARIES.group],
@@ -1170,7 +1172,7 @@ it.each([
 });
 
 it("reports an unknown Child Note field as a typed Fault", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -1186,7 +1188,7 @@ it("reports an unknown Child Note field as a typed Fault", async () => {
 });
 
 it("lists the live Child Notes of each Item, without trashed notes", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
       libraries: [SCENARIO_LIBRARIES.personal, SCENARIO_LIBRARIES.group],

@@ -1,3 +1,4 @@
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -9,9 +10,10 @@ import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
   seedBulkLibrary,
-} from "./index.ts";
-import type { ScenarioDatabase } from "./index.ts";
+} from "@zotlit/db-testing/scenario";
+import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 
+import { connectClient } from "#client/node.ts";
 import {
   ItemQueryDatabase,
   readCandidateSet,
@@ -22,7 +24,7 @@ import {
 } from "#item-query/index.ts";
 
 function read<A, E>(
-  scenario: ScenarioDatabase,
+  scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ): A {
   return Effect.runSync(
@@ -32,7 +34,7 @@ function read<A, E>(
 
 describe("seedBulkLibrary", () => {
   it("adds one Library of top-level Items in key order, with titles and Tags", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     seedBulkLibrary(scenario.sqlite, 12);
     const { libraryID } = BULK_LIBRARY;
 
@@ -72,7 +74,7 @@ describe("seedBulkLibrary", () => {
   });
 
   it("leaves the scenario Libraries as they are", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const before = read(
       scenario,
       readLibraryRowCount(SCENARIO_LIBRARIES.personal.libraryID),

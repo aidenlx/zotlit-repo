@@ -2,18 +2,20 @@ import { Effect } from "effect";
 import { expect, it } from "vitest";
 
 import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
+
+import {
   ItemQueryDatabase,
   readCollectionPaths,
   readTagValues,
 } from "./index.ts";
 
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
+import { connectClient } from "#client/node.ts";
 
 it("reads empty Collection paths and drops trashed Collections and their subtrees per Library", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   scenario.sqlite
     .prepare(
       "insert into collections (collectionName, libraryID, key) values ('Empty', 1, 'EMPTYCL2')",
@@ -40,7 +42,7 @@ it("reads empty Collection paths and drops trashed Collections and their subtree
 });
 
 it("reads each Tag name and type once per Library, excluding trashed items", () => {
-  using scenario = openScenarioDatabase();
+  using scenario = openScenarioDatabase(connectClient);
   const read = (library: { libraryID: number }) =>
     Effect.runSync(
       readTagValues(library).pipe(

@@ -4,7 +4,8 @@ import { expect, it } from "vitest";
 import {
   openScenarioDatabase,
   SCENARIO_LIBRARIES,
-} from "@zotlit/db/test-scenario";
+} from "@zotlit/db-testing/scenario";
+import { connectClient } from "@zotlit/db/client/node";
 
 import type { ItemQueryRequest } from "./index.ts";
 import {
@@ -16,7 +17,7 @@ import {
 import { runEffect } from "./test-helpers.ts";
 
 it("returns the files of one paper with Attachment defaults and parent identity", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ATTACHMENTS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -45,7 +46,7 @@ it("returns the files of one paper with Attachment defaults and parent identity"
 });
 
 it("projects all four link modes, null file rules, Tags, and parent fields", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ATTACHMENTS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -103,7 +104,7 @@ it("projects all four link modes, null file rules, Tags, and parent fields", asy
 });
 
 it("reads only the requested relations and resolves files only for path or exists", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const resolved: string[] = [];
   const query = (fields: string[], filter?: string) =>
     runEffect(
@@ -177,7 +178,7 @@ it("reads only the requested relations and resolves files only for path or exist
 });
 
 it("sorts parent scalar fields and rejects a file path sort", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const run = (sort: ItemQueryRequest["sort"]) =>
     runEffect(
       collectQuery(ATTACHMENTS, {
@@ -224,7 +225,7 @@ it.each([
     ["PDF2LINK", "PDF2LIVE", "URL2LIVE", "WEB2LIVE"],
   ],
 ] as const)("filters Attachment fields: %s", async (filter, keys) => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const { exit } = await runEffect(
     collectQuery(ATTACHMENTS, {
       libraries: [SCENARIO_LIBRARIES.personal],
@@ -239,7 +240,7 @@ it.each([
 });
 
 it("keeps the Library and parent identity of the same Attachment key in two Libraries", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .prepare("update items set key = 'PDF2LIVE' where key = 'PDF2GRUP'")
     .run();
@@ -281,7 +282,7 @@ it.each([
 ] as const)(
   "selects Attachments across two Libraries with %s",
   async (filter, expected) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     for (const forceScan of [false, true]) {
       const { exit, events } = await runEffect(
         collectQuery(ATTACHMENTS, {
@@ -315,7 +316,7 @@ it.each([
 it.each(["indexedKey", "item.indexedKey"])(
   "warns without widening Attachment scope for %s",
   async (field) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const key = field === "indexedKey" ? "PDF2GRUPg4815" : "ART2FULLg4815";
     for (const matching of [false, true]) {
       for (const forceScan of [false, true]) {
@@ -347,7 +348,7 @@ it.each(["indexedKey", "item.indexedKey"])(
 it.each(["indexedKey", "item.indexedKey"])(
   "warns for a personal %s in a group-only Attachment list selection",
   async (field) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     const key = field === "indexedKey" ? "PDF2GRUP" : "ART2FULL";
     for (const forceScan of [false, true]) {
       const { exit } = await runEffect(
@@ -375,7 +376,7 @@ it.each(["indexedKey", "item.indexedKey"])(
 );
 
 it("caps parent Indexed Key expansion and falls back to the Attachment scan", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   const request = {
     libraries: [SCENARIO_LIBRARIES.personal],
     filter: 'item.indexedKey == "ART2FULL"',
@@ -414,7 +415,7 @@ it("caps parent Indexed Key expansion and falls back to the Attachment scan", as
 // Failure modes: counting only returned files, applying a global limit, losing
 // a parent's group, or sorting the absent group before a known value.
 it("groups Attachments by type and parent Citation Key with null last and per-group limits", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .prepare(
       "update itemAttachments set contentType = null where itemID = (select itemID from items where key = 'URL2LIVE')",
@@ -491,7 +492,7 @@ it.each([
 ] as const)(
   "classifies Attachment file type %s with link mode %s as %s",
   async (contentType, linkMode, fileType) => {
-    using scenario = openScenarioDatabase({ annotations: true });
+    using scenario = openScenarioDatabase(connectClient, { annotations: true });
     scenario.sqlite
       .prepare(
         "update itemAttachments set contentType = ?, linkMode = ? where itemID = (select itemID from items where key = 'PDF2LIVE')",
@@ -527,7 +528,7 @@ it.each([
 );
 
 it("groups and sorts Attachment file types in text order", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .prepare(
       "update itemAttachments set contentType = 'application/epub+zip' where itemID = (select itemID from items where key = 'PDF2LINK')",
@@ -568,7 +569,7 @@ it("groups and sorts Attachment file types in text order", async () => {
 });
 
 it("projects Zotero lastRead seconds as instants and sorts never-read Attachments last", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
     .exec(`UPDATE itemAttachments SET lastRead = 1704067200 WHERE itemID = (SELECT itemID FROM items WHERE key = 'PDF2LIVE');
     UPDATE itemAttachments SET lastRead = 1704153600 WHERE itemID = (SELECT itemID FROM items WHERE key = 'PDF2LINK')`);
@@ -611,7 +612,7 @@ it("projects Zotero lastRead seconds as instants and sorts never-read Attachment
 });
 
 it("filters lastRead instants and nulls on Attachments, Items, and group Attachment rows", async () => {
-  using scenario = openScenarioDatabase({ annotations: true });
+  using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite.exec(
     `UPDATE itemAttachments SET lastRead = 1704067200 WHERE itemID IN (SELECT itemID FROM items WHERE key IN ('PDF2LIVE', 'PDF2GRUP'))`,
   );

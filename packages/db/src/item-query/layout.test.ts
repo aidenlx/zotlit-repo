@@ -1,12 +1,17 @@
-import type {
-  ScenarioDatabase,
-  ScenarioDatabaseOptions,
-} from "#test-scenario/index.ts";
+import type { NodeDatabaseClient } from "#client/node.ts";
 import { Cause, Effect, Exit } from "effect";
 import { constants } from "node:sqlite";
 import type { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 
+import type {
+  ScenarioDatabase,
+  ScenarioDatabaseOptions,
+} from "@zotlit/db-testing/scenario";
+import {
+  openScenarioDatabase,
+  SCENARIO_LIBRARIES,
+} from "@zotlit/db-testing/scenario";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
@@ -19,11 +24,8 @@ import {
   readScanPage,
 } from "./index.ts";
 
+import { connectClient } from "#client/node.ts";
 import { ITEM_QUERY_LAYOUT, OPTIONAL_LAYOUT_COLUMNS } from "#layout/index.ts";
-import {
-  openScenarioDatabase,
-  SCENARIO_LIBRARIES,
-} from "#test-scenario/index.ts";
 
 afterEach(() => {
   setLibraryLogSink(undefined);
@@ -33,8 +35,8 @@ afterEach(() => {
 function openCopy(
   alter: (sqlite: DatabaseSync) => void = () => {},
   options: ScenarioDatabaseOptions = {},
-): ScenarioDatabase {
-  const copy = openScenarioDatabase(options);
+): ScenarioDatabase<NodeDatabaseClient> {
+  const copy = openScenarioDatabase(connectClient, options);
   alter(copy.sqlite);
   return copy;
 }
@@ -51,7 +53,7 @@ function stamp(
 }
 
 function run<A, E>(
-  copy: ScenarioDatabase,
+  copy: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
 ) {
   return Effect.runSyncExit(
@@ -103,7 +105,7 @@ function columnsRead(sqlite: DatabaseSync, sql: string): string[] {
 
 describe("ITEM_QUERY_LAYOUT", () => {
   it("lists every table and column that a reader statement reads", () => {
-    using scenario = openScenarioDatabase();
+    using scenario = openScenarioDatabase(connectClient);
     const statements = readerStatementSQL(scenario.db);
     const listed = new Set(
       [
