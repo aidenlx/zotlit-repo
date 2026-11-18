@@ -1,0 +1,32 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  // The one program of `pnpm review` (eslint.config.js): the host's source
+  // and the plugin packages it bundles, with the app program's options. Each
+  // package's own tsconfig would make a program of its own that holds the
+  // packages it imports again, and those programs together outgrow the
+  // default Node heap. `pnpm lint:plugin-packages` holds this list to the
+  // plugin packages.
+  "extends": "./tsconfig.app.json",
+  "include": [
+    "./src",
+    "../../packages/annotations/src",
+    "../../packages/citations/src",
+    "../../packages/library-view/src",
+    "../../packages/notes/src",
+    "../../packages/obsidian-desktop/src",
+    "../../packages/obsidian-kit/src",
+    "../../packages/plugin-kernel/src",
+    "../../packages/plugin-services/src",
+    "../../packages/plugin-shell/src",
+    "../../packages/query-views/src",
+    "../../packages/template-workbench/src",
+    "../../packages/zotero-reads/src"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./src/**/*.test.ts",
+    "./src/**/*.test.tsx",
+    "../../packages/*/src/**/*.test.ts",
+    "../../packages/*/src/**/*.test.tsx"
+  ]
+}

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// Holds the two plugin-package lists that a static file must spell out to
+// Holds the three plugin-package lists that a static file must spell out to
 // what `pluginPackages` derives from the host's dependencies: the Tailwind
-// `@source` lines of the host's stylesheet, and the inputs of the
-// `//#review:plugin` task in turbo.json. The build, test and review configs
-// read the derived list itself.
+// `@source` lines of the host's stylesheet, the inputs of the
+// `//#review:plugin` task in turbo.json, and the include list of the review
+// program's tsconfig. The build, test and review configs read the derived
+// list itself.
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -46,6 +47,14 @@ for (const source of sources) {
   if (!inputs.includes(tsconfig))
     errors.push(`turbo.json //#review:plugin inputs miss ${tsconfig}`);
 }
+
+const reviewTsconfig = join(host, "tsconfig.review.json");
+const reviewIncludes = [
+  ...readFileSync(reviewTsconfig, "utf8").matchAll(
+    /^\s*"(\.\.\/\.\.\/packages\/[^"]+\/src)",?$/gm,
+  ),
+].map(([, path]) => relative(root, join(host, path!)));
+compare(relative(root, reviewTsconfig), reviewIncludes);
 
 if (errors.length > 0) {
   for (const error of errors) console.error(error);

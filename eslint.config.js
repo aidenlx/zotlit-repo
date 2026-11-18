@@ -76,7 +76,10 @@ export default [
     files: PLUGIN_SOURCES.map((source) => `${source}/**/*.{ts,tsx}`),
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        // One program for every review target, with the host app's compiler
+        // options. The project service would open each package's own
+        // tsconfig: about 25 programs, each holding its imports' source again.
+        project: "./apps/obsidian/tsconfig.review.json",
         tsconfigRootDir: import.meta.dirname,
       },
     },
