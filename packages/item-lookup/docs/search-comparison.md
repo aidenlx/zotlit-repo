@@ -167,7 +167,7 @@ The two-pass design (score+slice first, highlight only the survivors) is deliber
 
 `ItemLookup.search` is called from exactly two surfaces:
 
-- `views/citation-suggest/editor-suggest.ts` — the inline Pandoc-citation suggester (`[@key]`).
+- `packages/citations/src/obsidian/citation-suggest/editor-suggest.ts` — the inline Pandoc-citation suggester (`[@key]`).
 - `views/quick-switch/modal.ts` — a Cmd-P-style library browser modal.
 
 `render-hit.ts` renders each `SearchHit` into a row with title (truncated to a CSS-driven `--zt-citation-title-max-chars` window centered on the first highlight), optional citation key, and a journalArticle meta line.
