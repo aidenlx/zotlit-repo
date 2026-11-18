@@ -43,9 +43,9 @@ const sh = $({ cwd: root, stdio: "inherit", env });
 
 await step("Format", () => sh`pnpm exec oxfmt --check`);
 
-// A branch that changes only agent docs stops here. Turbo `--affected` counts
-// a root file as a change to every package, so a one-line doc fix would run
-// the whole gate, and a slow gate teaches its bypass (ADR 0076).
+// A branch that changes only agent docs stops here. The root lint and
+// generated-artifact tasks run for every change, so a one-line doc fix would
+// run them in full, and a slow gate teaches its bypass (ADR 0076).
 if (base) {
   const changed = (
     await $({ cwd: root, quiet: true })`git diff --name-only ${base} HEAD`
