@@ -20,7 +20,7 @@ Use the source as the canonical reference. Do not copy service/runtime/plugin-sh
 - `packages/plugin-shell/src/obsidian/runtime.ts`: `createShellRuntime` — builds the runtime over the graph on the caller's stack, awaits acquisition, then binds the runtime's `bridge`, the CLI runner and each feature's `handles`.
 - `packages/plugin-shell/src/obsidian/plugin.ts`: `shellPlugin(host)`, the plugin class — `await using`, `stack.move()`, cleanup, and debug service access.
 - `apps/obsidian/src/features.ts` and `host.ts`: the host's feature list, tab order, menu order and settings history. `zt-main.ts` extends `shellPlugin(host)`.
-- A feature package's `src/desktop/feature.ts` (for example `packages/annotations/src/desktop/feature.ts`): its contribution.
+- A feature package's `src/obsidian/feature.ts` (the Node-free value) and `src/desktop/feature.ts` (the desktop value, `extendFeature` over it), for example `packages/annotations/src/obsidian/feature.ts`: its contribution.
 - `packages/plugin-kernel/src/effect-layer.ts` and `effect-scope.ts`: where a runtime or Scope meets an `AsyncDisposableStack`.
 - `packages/obsidian-kit/src/disposables.ts`: `Disposable` helpers for `stack.use(...)`.
 

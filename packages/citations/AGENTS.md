@@ -8,7 +8,7 @@ The package imports no other feature except `@zotlit/annotations`, whose Annotat
 - `CitekeyNoteActions` (`obsidian/citekey-editor/note-actions.ts`) picks and creates the literature note a citekey opens; `packages/notes/src/desktop/note-feature/citekey-actions.ts` fills it.
 - `ProfileStyles` (`obsidian/pandoc/profile-styles.ts`) reads the Profile a note selects and the Citation and References Style it binds, and the vault's style; `packages/notes/src/obsidian/profile/profile-styles.ts` fills it.
 
-The host keeps the citation parse Worker entry (`apps/obsidian/src/services/citation-parse/worker.ts`) and passes its bundle to `layerCitationParse`, the Citations settings page, which names the notes feature's Profiles, and the tests that read the notes feature's Profiles (`src/services/citations/`).
+The host keeps the citation parse Worker entry (`apps/obsidian/src/services/citation-parse/worker.ts`) and passes its bundle to `layerCitationParse`, and the tests that read the notes feature's Profiles (`src/services/citations/`).
 
 ## Layers
 
@@ -33,4 +33,4 @@ The package exports its TypeScript source as `@zotlit/citations/<layer>/<unit>/<
 
 ## Feature
 
-`src/desktop/feature.ts` exports `citations`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. The notes feature fills its `CitekeyNoteActions` port.
+`src/obsidian/feature.ts` exports `citations`, the part of the package's contribution that loads on every Obsidian: the service groups, registrations, settings slices, setting rows and `obsidian://` handlers whose code is in `core/` and `obsidian/`. `src/desktop/feature.ts` extends it (`extendFeature`) with the desktop parts, and a desktop host lists that value (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration, a settings page or a link to the value of the layer its code is in. The notes feature fills its `CitekeyNoteActions` port.

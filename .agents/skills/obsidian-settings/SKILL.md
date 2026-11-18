@@ -5,7 +5,7 @@ description: |
   Use when creating or editing a PluginSettingTab, adding settings controls (toggle, text, number,
   dropdown, slider, file, folder, color), building settings groups/lists/sub-pages, wiring
   conditional visibility or validation, migrating from the imperative display() approach, or
-  touching apps/obsidian/src/setting-tab/, packages/plugin-shell/src/obsidian/setting-tab/, or a feature package's settings page or rows. Also use when opening the
+  touching packages/plugin-shell/src/obsidian/setting-tab/, or a feature package's settings page or rows. Also use when opening the
   settings modal from code, deep-linking to a settings sub-page, or revealing/highlighting one
   setting row. Also use when the user mentions "setting tab", "plugin settings",
   "getSettingDefinitions", "SettingControl", "SettingDefinitionItem", "app.setting", or
@@ -552,8 +552,10 @@ the tab service in `@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts` 
   `pages` for sub-pages, in order). The shell builds the tab (`packages/plugin-shell/src/obsidian/setting-tab/`).
 - A page that shows rows of several features holds a slot (`ctx.slot(id)`, with the id added to
   `SettingTabSlots` by declaration merging), and each feature gives its rows in `settingTab.slots`.
-  The host's `apps/obsidian/src/setting-tab/pages.ts` still holds the pages that name several
-  features and have no slots yet.
+  The page's owner declares its slot ids beside the page and exports them as a constant (for
+  example `citationsPageSlots` in `packages/citations/src/obsidian/citation-index/settings-page.ts`,
+  `zoteroPageSlots` and `advancedPageSlots` in `packages/plugin-shell/src/obsidian/setting-pages/`),
+  so the filler's program reads the declaration. The host holds no page.
 - A row whose presence depends on state adds a stream to `settingTab.rebuild`; each element
   rebuilds the tab.
 

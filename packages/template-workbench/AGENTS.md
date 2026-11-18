@@ -33,4 +33,4 @@ The package exports its TypeScript source as `@zotlit/template-workbench/<layer>
 
 ## Feature
 
-`src/desktop/feature.ts` exports `templateWorkbench`, the package's contribution to a host: its service groups, registrations, settings slices, setting tab entries and start-up hook (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration or a settings page there. It fills the notes' `TemplateWorkbenchLauncher` port.
+`src/obsidian/feature.ts` exports `templateWorkbench`, the part of the package's contribution that loads on every Obsidian: the service groups, registrations, settings slices, setting rows and `obsidian://` handlers whose code is in `core/` and `obsidian/`. `src/desktop/feature.ts` extends it (`extendFeature`) with the desktop parts, and a desktop host lists that value (`packages/plugin-shell/AGENTS.md` → A feature). Add a service, a registration, a settings page or a link to the value of the layer its code is in. It fills the notes' `TemplateWorkbenchLauncher` port.
