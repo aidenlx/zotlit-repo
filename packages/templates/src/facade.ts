@@ -58,9 +58,12 @@ export { updateLiteratureNoteTemplateMatch } from "./literature-note-template-ma
 export type { TemplateLanguage } from "./constants";
 
 export {
+  DEFAULT_ANNOTATION_ETA,
+  DEFAULT_ANNOTATION_LIQUID,
+} from "./default-annotation";
+export {
   CONVERTED_DEFAULT_PROFILE_DOCUMENT,
   convertLegacyFrontmatterFields,
-  DEFAULT_ANNOTATION_LIQUID,
   LegacyTemplateConversionError,
   literatureNoteTemplateManifestRange,
   LiteratureNoteTemplateError,

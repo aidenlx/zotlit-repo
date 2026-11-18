@@ -1,7 +1,5 @@
 // In-memory parsing and validation for one Literature Note Template document.
 
-import annotationEta from "@defaults/annotation.eta?raw";
-import annotationLiquid from "@defaults/annotation.liquid?raw";
 import * as v from "valibot";
 import { stringify as stringifyYaml } from "yaml";
 
@@ -15,6 +13,10 @@ import {
   RESERVED_FRONTMATTER_KEYS,
 } from "./constants";
 import type { FrontmatterField, TemplateLanguage } from "./constants";
+import {
+  DEFAULT_ANNOTATION_ETA,
+  DEFAULT_ANNOTATION_LIQUID,
+} from "./default-annotation";
 import {
   parseManifestYaml,
   splitDocumentFrontmatter,
@@ -240,9 +242,6 @@ export class LegacyTemplateConversionError extends Error {
 
 export const CONVERTED_DEFAULT_PROFILE_DOCUMENT = "zotlit-profile.default.md";
 
-/** The default Annotation section in Liquid, which every built-in Profile shares. */
-export const DEFAULT_ANNOTATION_LIQUID: string = annotationLiquid;
-
 export interface SynthesizedLiteratureNoteTemplateManifest {
   readonly id?: string;
   readonly name?: string;
@@ -314,7 +313,9 @@ export function synthesizeLegacyLiteratureNoteTemplate(
 
   const annotationSource =
     legacy.annotation?.source ??
-    (language === "liquid" ? annotationLiquid : annotationEta);
+    (language === "liquid"
+      ? DEFAULT_ANNOTATION_LIQUID
+      : DEFAULT_ANNOTATION_ETA);
   // An indented insertion keeps the glued open tag: a line-owning open tag would
   // take the author's indentation with it and lose those bytes.
   const insertionIndex = legacy.note.source.indexOf(insertion);

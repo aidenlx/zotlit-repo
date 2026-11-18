@@ -18,8 +18,10 @@ import type { Annotation } from "@zotlit/db";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db/test-utils";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-import annotationTemplate from "@zotlit/templates/defaults/annotation.liquid?raw";
-import { TemplateFacade } from "@zotlit/templates/facade";
+import {
+  DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
+  TemplateFacade,
+} from "@zotlit/templates/facade";
 
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app";
 import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault";

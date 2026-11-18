@@ -1,8 +1,8 @@
-import annotation from "@defaults/annotation.eta?raw";
 import content from "@defaults/content.eta?raw";
 import note from "@defaults/note.eta?raw";
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation";
 import { basename, formatBlockquote, TemplateEngine } from "./index";
 import {
   formatManagedRegion,

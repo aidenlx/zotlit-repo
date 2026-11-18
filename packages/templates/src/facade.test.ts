@@ -1,6 +1,6 @@
-import annotation from "@defaults/annotation.eta?raw";
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_ANNOTATION_ETA as annotation } from "./default-annotation";
 import { TemplateError, TemplateFacade } from "./facade";
 import { managedRegionTransform, MARKER_END, MARKER_START } from "./obsidian";
 

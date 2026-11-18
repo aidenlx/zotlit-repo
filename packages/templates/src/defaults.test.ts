@@ -1,5 +1,3 @@
-import annotationEta from "@defaults/annotation.eta?raw";
-import annotationLiquid from "@defaults/annotation.liquid?raw";
 import contentEta from "@defaults/content.eta?raw";
 import contentLiquid from "@defaults/content.liquid?raw";
 import filenameEta from "@defaults/filename.eta?raw";
@@ -8,6 +6,10 @@ import noteEta from "@defaults/note.eta?raw";
 import noteLiquid from "@defaults/note.liquid?raw";
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  DEFAULT_ANNOTATION_ETA as annotationEta,
+  DEFAULT_ANNOTATION_LIQUID as annotationLiquid,
+} from "./default-annotation";
 import { TemplateFacade } from "./facade";
 import { managedRegionTransform, MARKER_END, MARKER_START } from "./obsidian";
 

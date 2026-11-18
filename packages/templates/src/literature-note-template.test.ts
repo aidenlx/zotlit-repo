@@ -1,8 +1,10 @@
-import annotationEta from "@defaults/annotation.eta?raw";
-import annotationLiquid from "@defaults/annotation.liquid?raw";
 import { describe, expect, it } from "vitest";
 
 import type { FrontmatterField } from "./constants";
+import {
+  DEFAULT_ANNOTATION_ETA as annotationEta,
+  DEFAULT_ANNOTATION_LIQUID as annotationLiquid,
+} from "./default-annotation";
 import {
   convertLegacyFrontmatterFields,
   literatureNoteTemplateManifestRange,

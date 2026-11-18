@@ -14,6 +14,8 @@ import {
 } from "@zotlit/db";
 import type { FrontmatterField } from "@zotlit/templates/constants";
 import {
+  DEFAULT_ANNOTATION_ETA,
+  DEFAULT_ANNOTATION_LIQUID,
   DEFAULT_CITATION_BRANCHES,
   formatPlainTemplateDocument,
 } from "@zotlit/templates/facade";
@@ -1495,9 +1497,10 @@ const CITATION_SLOT_VARIANTS: Partial<
 
 /**
  * The shipped default text of one Literature Note slot or 2.1.x citation
- * branch. A slot's default is a file under `@zotlit/templates/defaults`; a
- * citation branch is the one-line source the 2.1.x slot rendered with no
- * vault file, which the fold still falls back to.
+ * branch. A slot's default is a file under `@zotlit/templates/defaults`, or for
+ * the annotation slot the `DEFAULT_ANNOTATION_*` source; a citation branch is
+ * the one-line source the 2.1.x slot rendered with no vault file, which the
+ * fold still falls back to.
  */
 async function shippedDefaultSource(
   origin: FixtureLegacyTemplateOrigin,
@@ -1505,6 +1508,10 @@ async function shippedDefaultSource(
 ): Promise<string> {
   const variant = CITATION_SLOT_VARIANTS[origin];
   if (variant) return `${DEFAULT_CITATION_BRANCHES[language][variant]}\n`;
+  if (origin === "annotation")
+    return language === "liquid"
+      ? DEFAULT_ANNOTATION_LIQUID
+      : DEFAULT_ANNOTATION_ETA;
   return await readFile(
     new URL(
       import.meta.resolve(`@zotlit/templates/defaults/${origin}.${language}`),

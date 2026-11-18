@@ -1,11 +1,11 @@
 import { regex } from "arkregex";
 import { basename, dirname, join } from "node:path/posix";
 
-import annotation from "@zotlit/templates/defaults/annotation.liquid?raw";
 import citation from "@zotlit/templates/defaults/citation.liquid?raw";
 import content from "@zotlit/templates/defaults/content.liquid?raw";
 import filename from "@zotlit/templates/defaults/filename.liquid?raw";
 import note from "@zotlit/templates/defaults/note.liquid?raw";
+import { DEFAULT_ANNOTATION_LIQUID as annotation } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 
