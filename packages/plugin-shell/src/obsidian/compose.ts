@@ -123,15 +123,13 @@ export function pluginGraph<F extends readonly Feature<any, any, any>[]>(
     readonly built: Layer.Layer<GraphBuilt>;
   },
 ): Layer.Layer<ProvidesOf<F> | ShellBase | ShellProvides> {
-  const groups = host.features.flatMap((feature) => feature.services);
-  const order = buildOrder(groups.map(groupNode), shellBaseKeys);
-  const services = stackGroups(
+  const services = featureServices(
+    host.features,
     layerShellBase(plugin, {
       settings: host.settings,
       languagePack: options.languagePack,
       built: options.built,
     }),
-    order.map(({ group }) => group.layer.pipe(startingAs(group.name))),
   );
   const registrations = Layer.mergeAll(
     layerProtocolHandlers(
@@ -150,6 +148,22 @@ export function pluginGraph<F extends readonly Feature<any, any, any>[]>(
   return registrations.pipe(Layer.provideMerge(services)) as Layer.Layer<
     ProvidesOf<F> | ShellBase | ShellProvides
   >;
+}
+
+/**
+ * The service groups of `features` in build order (`buildOrder`), stacked
+ * above `base`. A defect while a group builds names it.
+ */
+export function featureServices<F extends readonly Feature<any, any, any>[]>(
+  features: F,
+  base: Layer.Layer<ShellBase>,
+): Layer.Layer<ProvidesOf<F> | ShellBase> {
+  const groups = features.flatMap((feature) => feature.services);
+  const order = buildOrder(groups.map(groupNode), shellBaseKeys);
+  return stackGroups(
+    base,
+    order.map(({ group }) => group.layer.pipe(startingAs(group.name))),
+  ) as Layer.Layer<ProvidesOf<F> | ShellBase>;
 }
 
 /** The build order of `host`'s service groups, by name, as the graph builds them. */
