@@ -14,7 +14,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/templates` — Eta-based template rendering.
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema.
-- `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, run `pnpm install`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
+- `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
 
 ## Bootstrap & toolchain
 
