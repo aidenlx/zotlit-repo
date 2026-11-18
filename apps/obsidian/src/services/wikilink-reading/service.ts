@@ -26,7 +26,6 @@ import {
   sectionRange,
 } from "@/lib/reading-view.ts";
 import {
-  WikilinkDisplaySettings,
   citationOfRun,
   citationTarget,
   wikilinkCitation,
@@ -54,6 +53,7 @@ import {
   markCitationClick,
 } from "@/services/citekey-navigation/index.ts";
 import type { CitationHover } from "@/services/citekey-navigation/index.ts";
+import { WikilinkDisplaySettings } from "@/services/citekey-navigation/wikilink-display-settings.ts";
 import {
   NoteIndex,
   literatureNoteTargetIn,

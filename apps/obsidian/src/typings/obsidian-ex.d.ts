@@ -34,10 +34,6 @@ declare module "obsidian" {
     /** Register an externally published file before an editor consumes its link (Obsidian 1.14.2). */
     reconcileInternalFile(normalizedPath: string): Promise<void>;
   }
-  /** Cold-loads the host PDF.js module and configures its worker. Internal. */
-  export function loadPdfJs(): Promise<
-    import("../services/excerpt-image/renderer.ts").ExcerptPdfJs
-  >;
   interface MarkdownPostProcessorContext {
     /**
      * A code block's own write-back: replaces the code of the block the
@@ -160,33 +156,6 @@ declare module "obsidian" {
     on(
       name: "quick-preview",
       callback: (file: TFile, source: string) => void,
-      ctx?: any,
-    ): EventRef;
-
-    on(
-      name: "zotlit:switch-profile",
-      callback: (request: { path: string }) => void,
-      ctx?: any,
-    ): EventRef;
-
-    /** A menu ZotLit built, raised before it shows so listeners add entries. */
-    on<E extends import("@/services/menu-events.ts").ZotLitMenuEvent>(
-      name: E,
-      callback: (
-        menu: Menu,
-        info: import("@/services/menu-events.ts").ZotLitMenuEvents[E],
-      ) => any,
-      ctx?: any,
-    ): EventRef;
-
-    /** `request.document` is the vault path of the Template Document holding
-     *  the call that refused, and `request.problem` the failure to explain on
-     *  arrival; the Default Profile stands in when there is no document. */
-    on(
-      name: "zotlit:open-template-workbench",
-      callback: (
-        request: import("@/lib/workbench-recovery.ts").TemplateWorkbenchRequest,
-      ) => void,
       ctx?: any,
     ): EventRef;
   }

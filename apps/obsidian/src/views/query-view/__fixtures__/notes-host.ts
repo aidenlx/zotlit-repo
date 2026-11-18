@@ -5,7 +5,7 @@ import type { TFile } from "obsidian";
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
 import { Vault } from "@/lib/obsidian-vault.ts";

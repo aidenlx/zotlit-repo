@@ -1,10 +1,10 @@
 // The attachment folder a note's imports land in, read through the FileManager tag.
 import { Effect } from "effect";
-import { dirname } from "node:path/posix";
 
 import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
 import { FileManager } from "@/lib/obsidian-file-manager.ts";
 import type { VaultError } from "@/lib/vault-errors.ts";
+import { dirname } from "@/lib/vault-path.ts";
 
 /**
  * The normalized attachment folder path, read without touching the

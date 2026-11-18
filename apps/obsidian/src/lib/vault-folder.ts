@@ -1,11 +1,11 @@
 // Folder creation over the Vault tag, for Effect code that writes into a folder.
 import { Effect } from "effect";
-import { dirname } from "node:path/posix";
 import { TFile, TFolder } from "obsidian";
 
 import { normalizeFolderPath } from "@/lib/ensure-folder.ts";
 import { Vault } from "@/lib/obsidian-vault.ts";
 import { VaultFolderBlockedError } from "@/lib/vault-errors.ts";
+import { dirname } from "@/lib/vault-path.ts";
 
 /**
  * Make sure the folder at the normalized vault path `path` exists: the vault

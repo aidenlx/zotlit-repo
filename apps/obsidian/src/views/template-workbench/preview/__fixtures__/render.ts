@@ -5,7 +5,7 @@ import { makeNativeRenderer } from "@/views/template-workbench/preview/render.ts
 import type { NativeRenderDeps, NativeRenderResult } from "@/views/template-workbench/preview/render.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import { layerHostApp } from "@/lib/__fixtures__/obsidian-host-app.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { makeViewRegistry } from "@/lib/view-atoms.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationParse } from "@/services/citation-parse/service.ts";

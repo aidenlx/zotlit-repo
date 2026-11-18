@@ -9,10 +9,10 @@ import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import { makeViewRegistry } from "@/lib/view-atoms.ts";
 import { yieldToMain } from "@/lib/yield-to-main.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { SearchHit } from "@/services/item-lookup/service.ts";
 import { TemplateDataReads } from "@/services/template-workbench/data-reads.ts";

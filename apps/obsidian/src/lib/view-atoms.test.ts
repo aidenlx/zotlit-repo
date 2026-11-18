@@ -8,7 +8,7 @@ import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms.ts";
+} from "@/services/__fixtures__/view-atoms.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";
 
 import { held, layerViewRegistry, ViewRegistry, watch } from "./view-atoms.ts";

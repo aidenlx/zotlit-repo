@@ -9,10 +9,10 @@ import { MemoryMetadataCache } from "@/lib/__fixtures__/obsidian-metadata-cache.
 import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
 import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import { vaultError } from "@/lib/vault-errors.ts";
 import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import type { CitationLookupState } from "@/services/citation-index/lookup-service.ts";
 import { CitationIndex } from "@/services/citation-index/service.ts";

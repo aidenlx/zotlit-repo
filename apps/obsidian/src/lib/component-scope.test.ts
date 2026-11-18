@@ -3,7 +3,7 @@ import { Context, Effect, Exit, Scope } from "effect";
 import { Component } from "obsidian";
 import { expect } from "vitest";
 
-import { componentScope } from "@/lib/effect-scope.ts";
+import { componentScope } from "@/lib/component-scope.ts";
 
 class Probe extends Context.Service<Probe, string>()(
   "zotlit/effect-scope/Probe",

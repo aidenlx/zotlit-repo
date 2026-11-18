@@ -11,11 +11,11 @@ import { forkEach } from "@/lib/effect-stream.ts";
 import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
 import { Workspace } from "@/lib/obsidian-workspace.ts";
 import { PluginHost } from "@/lib/plugin-host.ts";
-import { WikilinkDisplaySettings } from "@/lib/wikilink-citation.ts";
 import { CitationLookup } from "@/services/citation-index/lookup-service.ts";
 import { CitationPopover } from "@/services/citation-popover/service.tsx";
 import { CitationText } from "@/services/citation-text/service.ts";
 import { CitekeyEditor } from "@/services/citekey-editor/service.ts";
+import { WikilinkDisplaySettings } from "@/services/citekey-navigation/wikilink-display-settings.ts";
 import {
   NoteIndex,
   literatureNoteTargetIn,

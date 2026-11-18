@@ -6,7 +6,7 @@ import { onTestFinished } from "vitest";
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import type { HostSources } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { openScope } from "@/lib/effect-scope.ts";
 import { makeViewRegistry } from "@/lib/view-atoms.ts";
 import { CapabilityNotices } from "@/services/annotation-repository/notices.ts";

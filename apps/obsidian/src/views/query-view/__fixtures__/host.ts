@@ -6,7 +6,7 @@ import type { ZoteroReadsEvents, ZoteroReadLease } from "@/services/zotero-reads
 
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import { MetadataCache } from "@/lib/obsidian-metadata-cache.ts";
 import type { MetadataEvent } from "@/lib/obsidian-metadata-cache.ts";

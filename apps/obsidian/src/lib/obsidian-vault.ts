@@ -5,7 +5,6 @@
 // `MetadataCache`; policies/events.md (Capability tags) describes it.
 import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
-import { basename, dirname } from "node:path/posix";
 import { FileSystemAdapter, TFolder } from "obsidian";
 import type {
   DataAdapter,
@@ -22,6 +21,7 @@ import { obsidianEventSource } from "@/lib/obsidian-event-source.ts";
 import type { ObsidianEventEmitter } from "@/lib/obsidian-event-source.ts";
 import { FileExists, FileNotFound, vaultError } from "@/lib/vault-errors.ts";
 import type { VaultError } from "@/lib/vault-errors.ts";
+import { basename, dirname } from "@/lib/vault-path.ts";
 
 /** One vault event, tagged with its Obsidian event name. */
 export type VaultEvent =

@@ -11,7 +11,7 @@ import { MemoryWorkspace } from "@/lib/__fixtures__/obsidian-workspace.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms.ts";
+} from "@/services/__fixtures__/view-atoms.ts";
 
 import { activeCitedByAtom, citedByAtom } from "./atoms.ts";
 import { CitationIndex } from "./service.ts";

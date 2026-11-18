@@ -30,7 +30,7 @@ import { createObsidianHost } from "@/lib/__fixtures__/obsidian-host.ts";
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
 import { MemoryVault } from "@/lib/__fixtures__/obsidian-vault.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 // One vault, read at once through every Citation Presentation surface: the
 // Document Citation Text, the References Sidebar, the Citation Popover, the

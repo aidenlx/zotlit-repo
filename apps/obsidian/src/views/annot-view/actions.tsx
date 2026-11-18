@@ -7,7 +7,6 @@ import { observeExit } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
-import { buildColorMenu } from "@/lib/annotation-colors.ts";
 import { confirm } from "@/lib/confirm.ts";
 import * as m from "@/lib/i18n/generated/messages.ts";
 import { getLogger } from "@/lib/log.ts";
@@ -31,6 +30,7 @@ import type {
 import type { ExcerptRequest } from "@/services/excerpt-image/service.ts";
 import { addCopyIndexedKeyMenuItem } from "@/services/indexed-key/menu.ts";
 import { menuSections, raiseMenu } from "@/services/menu-events.ts";
+import { buildColorMenu } from "@/services/pdf-annotation-editor/color-menu.ts";
 import { viewTargetOpener } from "@/views/open-target.ts";
 
 import {

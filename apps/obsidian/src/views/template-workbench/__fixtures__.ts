@@ -14,7 +14,6 @@ import type {
 
 import { testNotifier } from "@/lib/__fixtures__/notifier.ts";
 import { stubService } from "@/lib/__fixtures__/service-stub.ts";
-import { layerUnreadViewServices } from "@/lib/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@/lib/effect-layer.ts";
 import type { SubscriptionRuntime } from "@/lib/effect-stream.ts";
 import { Notifier } from "@/lib/notifier.ts";
@@ -25,6 +24,7 @@ import { Workspace } from "@/lib/obsidian-workspace.ts";
 import { vaultError } from "@/lib/vault-errors.ts";
 import type { ViewServices } from "@/lib/view-atoms.ts";
 import { makeViewRegistry } from "@/lib/view-atoms.ts";
+import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { ItemLookup } from "@/services/item-lookup/service.ts";
 import type { SearchOptions } from "@/services/item-lookup/service.ts";
 import type { QueryHandle } from "@/services/item-query/handle.ts";

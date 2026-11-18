@@ -3,11 +3,11 @@ import { Deferred, Effect, Exit, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
 import { layerHost } from "@/lib/__fixtures__/obsidian-host-app.ts";
+import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
 import {
   layerUnreadViewServices,
   scopedViewRegistry,
-} from "@/lib/__fixtures__/view-atoms.ts";
-import { scopedViewRunner } from "@/lib/__fixtures__/view-runner.ts";
+} from "@/services/__fixtures__/view-atoms.ts";
 import { Release } from "@/services/release/service.ts";
 
 import {

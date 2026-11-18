@@ -7,10 +7,10 @@
 // is written once here and neither can drift from the other.
 import { Menu } from "obsidian";
 
-import { buildColorMenu } from "@/lib/annotation-colors.ts";
 import * as m from "@/lib/i18n/generated/messages.ts";
 import { themeHook } from "@/lib/theme-hooks.ts";
 import { menuSections } from "@/services/menu-events.ts";
+import { buildColorMenu } from "@/services/pdf-annotation-editor/color-menu.ts";
 
 import type { PdfPoint } from "./geometry-edit.ts";
 import type { PageBox, Point } from "./hit-test.ts";
