@@ -1,6 +1,6 @@
 # Continuous annotation acceptance
 
-Tested on 2026-09-20 in PR #1167, the #1157 integration build with the #1166
+Tested on 2026-09-20 in PR [#1167](https://github.com/aidenlx/zotlit/issues/1167), the [#1157](https://github.com/aidenlx/zotlit/issues/1157) integration build with the [#1166](https://github.com/aidenlx/zotlit/issues/1166)
 acceptance changes applied. The paired run used Zotero 10.0, Build ID
 `20260817111755`.
 

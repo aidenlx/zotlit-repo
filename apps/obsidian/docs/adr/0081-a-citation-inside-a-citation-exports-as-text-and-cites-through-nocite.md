@@ -6,7 +6,7 @@ status: accepted
 
 A Citation written inside another Citation's Citation Prefix or Citation Suffix, such as `[@a with [[Note]]]` or `[@a with @b]`, exports as the text it was written with, and its Item reaches the bibliography through `nocite`. The outer Citation keeps its own Items, grouping, and wording: `(Alpha 2020 with Note)`, with both works in the bibliography.
 
-Pandoc reads both forms as a `Cite` nested in the outer one's prefix or suffix, and citeproc renders the nested `Cite` in place of the outer: `[@a with [[Note]]]` exported as `(Beta 2021)`, and the outer work and the word "with" were gone. The bibliography still listed both works, so a bibliography-only check passed (issue #1699).
+Pandoc reads both forms as a `Cite` nested in the outer one's prefix or suffix, and citeproc renders the nested `Cite` in place of the outer: `[@a with [[Note]]]` exported as `(Beta 2021)`, and the outer work and the word "with" were gone. The bibliography still listed both works, so a bibliography-only check passed (issue [#1699](https://github.com/aidenlx/zotlit/issues/1699)).
 
 This settles one case of the membership ADR-0032 leaves to Pandoc's reading: a nested Citation is still a Citation of the document, so its Item stays a member, but it takes no place in the prose.
 

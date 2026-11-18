@@ -16,6 +16,6 @@ An Annotation View instance shows the Attachment its Follow Mode selects: Active
 - "Zotero reader closed" needs a Companion event the notify protocol does not carry today: `reader/inactive`, sent when the focused Zotero tab or window is no longer a reader. The Obsidian side keeps the last Reader Session target and flags it closed.
 - Mode and pin persist in the view's workspace state, so each Annotation View instance keeps its own choice across restarts; no plugin setting holds a default.
 
-## Amendment (#1552)
+## Amendment ([#1552](https://github.com/aidenlx/zotlit/issues/1552))
 
 The Reading Card's "Open in the annotation view" is a user gesture that pins the sidebar to the card's Item. The sidebar stays pinned until the researcher unpins it.

@@ -1,6 +1,6 @@
 # `zt.weblink` is the web library URL, null for unsynced personal items
 
-For issue #205 ("template helper for Zotero online url") we expose a Zotero online link to templates as `zt.weblink`. Zotero has three confusable link shapes for an item, and this decision records which one we picked and why.
+For issue [#205](https://github.com/aidenlx/zotlit/issues/205) ("template helper for Zotero online url") we expose a Zotero online link to templates as `zt.weblink`. Zotero has three confusable link shapes for an item, and this decision records which one we picked and why.
 
 ## Considered Options
 

@@ -37,11 +37,11 @@ Four interface shapes were compared on depth, locality, and seam placement befor
 - The worker holds state that is not a connection. A rebuild slice can delay a concurrent read by up to one slice; the slice size and yield strategy follow the measurement recorded below.
 - Ranking changes: citation-key prefix hits still come first; beyond that MiniSearch's score orders results and ties fall newest-first. The recency multiplier and the exact-year bonus are gone.
 - Users of `cm-chs-patch` see their Chinese titles tokenized by `Intl.Segmenter` until they install the Chinese Segmenter from ZotLit's settings.
-- Index build logs move from the plugin logger to the worker's console sink (see #1349).
+- Index build logs move from the plugin logger to the worker's console sink (see [#1349](https://github.com/aidenlx/zotlit/issues/1349)).
 
 ## Measurements
 
-Measured in Obsidian 1.14.4 on a synthetic library with Zotero's indexes, production engine and reads, plain `postMessage` probes (idle floor 16.7–17.7 ms; details in the spec #1356 measurement ticket):
+Measured in Obsidian 1.14.4 on a synthetic library with Zotero's indexes, production engine and reads, plain `postMessage` probes (idle floor 16.7–17.7 ms; details in the spec [#1356](https://github.com/aidenlx/zotlit/issues/1356) measurement ticket):
 
 | Metric                    | 10,000 items, renderer index          | 10,000 items, worker index                            | 100,000 items, renderer index        | 100,000 items, worker index                          |
 | ------------------------- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------ | ---------------------------------------------------- |

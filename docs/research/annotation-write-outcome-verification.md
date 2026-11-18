@@ -1,6 +1,6 @@
 # Annotation write outcome verification
 
-Paired Run acceptance for issue #1162 exercises the installed Obsidian plugin
+Paired Run acceptance for issue [#1162](https://github.com/aidenlx/zotlit/issues/1162) exercises the installed Obsidian plugin
 against disposable Paired Zotero data. The scenario extends the existing
 three-surface write journey and uses one Annotation whose state is also read
 independently through Zotero's Local API.

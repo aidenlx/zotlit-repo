@@ -6,7 +6,7 @@ Under the mirror, a card could be selected only while an Obsidian PDF view was b
 
 ## Considered Options
 
-- **The reader owns the selection and the view mirrors it** (the #1146/#1148 model, rejected): no selection without an Obsidian PDF view, and the Zotero Reader cannot take a selection from ZotLit ([ADR 0036](0036-local-api-enablement-is-a-guided-manual-step-in-zotero.md)), so its mode could never select.
+- **The reader owns the selection and the view mirrors it** (the [#1146](https://github.com/aidenlx/zotlit/issues/1146)/#1148 model, rejected): no selection without an Obsidian PDF view, and the Zotero Reader cannot take a selection from ZotLit ([ADR 0036](0036-local-api-enablement-is-a-guided-manual-step-in-zotero.md)), so its mode could never select.
 - **The view owns the selection with no reader link** (rejected): the PDF and the list would disagree about what is selected, and a mark click would no longer find its card.
 - **The view owns the selection; the bound reader is kept in step** (chosen): the view works alone, and a bound reader stays in step with it.
 

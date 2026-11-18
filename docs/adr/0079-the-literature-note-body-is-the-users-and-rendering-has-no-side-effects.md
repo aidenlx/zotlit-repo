@@ -29,4 +29,4 @@ The shared reason: **the body is the user's, and rendering has no side effects.*
 - A note with markers whose Profile uses the ejected or duplicated built-in document gets the "no Managed Block" notice on Update, because that document has no Managed Block. The template is now the user's, so the user adds a Managed Block if they want one.
 - The commands do not change. For a default note, Update refreshes the Properties, plus any Managed Region that the user's own template has. Overwrite replaces the whole body after confirmation.
 - Previews and the Template Workbench show the same `zotero://` link that a real render writes.
-- Out of scope: a live view of Child Notes (#1686) and annotation comments kept in Obsidian (#1685).
+- Out of scope: a live view of Child Notes ([#1686](https://github.com/aidenlx/zotlit/issues/1686)) and annotation comments kept in Obsidian ([#1685](https://github.com/aidenlx/zotlit/issues/1685)).

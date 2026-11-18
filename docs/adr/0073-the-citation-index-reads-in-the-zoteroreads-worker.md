@@ -108,6 +108,6 @@ The table records that second query. Times are milliseconds from each refresh st
 | 9   |      912.40 | 912.40–1240.10    | 913.50–1164.90 |     251.40 |     55 |         5.60 |             5.60 |
 | 10  |      897.40 | 897.40–1212.30    | 898.20–1138.30 |     240.10 |     53 |         5.50 |             5.50 |
 
-The pooled 539 engine slices had p99 **5.50 ms** and maximum **5.70 ms**, within the 16/32 ms limits. The historical two-worker Query result in ADR 0072 was 10.1 / 15.1 ms, but its unbounded-page isolation workload differs from this bounded sparse-Library workload. The #1441 baseline measured Item search and citation lookup, not ZotLit Query.
+The pooled 539 engine slices had p99 **5.50 ms** and maximum **5.70 ms**, within the 16/32 ms limits. The historical two-worker Query result in ADR 0072 was 10.1 / 15.1 ms, but its unbounded-page isolation workload differs from this bounded sparse-Library workload. The [#1441](https://github.com/aidenlx/zotlit/issues/1441) baseline measured Item search and citation lookup, not ZotLit Query.
 
 The raw slice arrays, epoch timestamps, command logs, and test reports are under `.scratch/acceptance-1443/`; the measurement summary is posted on [#1443](https://github.com/aidenlx/zotlit/issues/1443). The temporary merge branch was deleted and was never pushed.

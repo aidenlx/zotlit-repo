@@ -55,7 +55,7 @@ The merge moves the Workbench's view state to Effect Atom (`effect/reactivity`),
 
 ## Amendment (2026-11-07): the view size places the panels
 
-Spec #1952, tickets #1953 and #1954.
+Spec [#1952](https://github.com/aidenlx/zotlit/issues/1952), tickets [#1953](https://github.com/aidenlx/zotlit/issues/1953) and [#1954](https://github.com/aidenlx/zotlit/issues/1954).
 
 - The panel state (each panel's shown flag and width, and the Preview's share of the height under the editor) lives in the shared Workbench model, not in the Obsidian host model. Both hosts own it the same way; the Obsidian view saves it with its state, and the web Workbench keeps it for the page's life.
 - Where a shown panel goes is derived, never saved: a pure rule in `@zotlit/workbench/ui` places each panel from the panel state and the view size, which each host measures from its own container. A panel is a column while the editor keeps 360 px beside it, and the Preview claims the side before the Fields Panel. A Preview that does not fit goes under the editor, which keeps at least 320 px of height: its toolbar and tab rows, the tab's task line and five source lines. Each host draws the source at least five lines tall and scrolls the editor when its content needs more, so no control is cut off.
@@ -63,15 +63,15 @@ Spec #1952, tickets #1953 and #1954.
 
 ## Amendment (2026-11-07): the Fields picker, menu sizing, and shared repair commands
 
-Spec #1952, tickets #1955, #1956 and #1957, and the final fix round.
+Spec [#1952](https://github.com/aidenlx/zotlit/issues/1952), tickets [#1955](https://github.com/aidenlx/zotlit/issues/1955), [#1956](https://github.com/aidenlx/zotlit/issues/1956) and [#1957](https://github.com/aidenlx/zotlit/issues/1957), and the final fix round.
 
-- #1955: where the Fields Panel's column does not fit, the Fields action opens the Fields Picker, the panel's fields as a searchable list in a popover under the action. The picker's open state lives in the shared model beside the panel state and is never saved; it closes when the column fits again. The shared UI draws the list and owns its keys (one key table for both hosts); each host supplies the popover surface through its adapter: Obsidian's `PinnedPopover` with a `Scope`, and a Base UI popover on the web. The Fields action is a toggle for the column and a disclosure for the picker, and the view action, the Obsidian pane menu and the web View menu all press the same action. While the picker stands, a press on the action keeps focus in it, and focus that leaves it by keyboard closes it and goes to the action.
-- #1956: every handle the view draws can be sized without a drag (WCAG 2.5.7): the Obsidian pane menu and the web View menu list a size group per drawn handle, built by one shared function. A column's widest width is the one that keeps every column in its place, past the handles the host draws; menu entries, keys and drags step from the size the view draws, and a menu entry's new size is announced.
-- #1957: the commands that take the reader from a problem to its repair are one shared set (`repairCommands`) over the shared routing. Each closes the Fields Picker and changes no panel; Show problem reveals the call and announces why it fails.
+- [#1955](https://github.com/aidenlx/zotlit/issues/1955): where the Fields Panel's column does not fit, the Fields action opens the Fields Picker, the panel's fields as a searchable list in a popover under the action. The picker's open state lives in the shared model beside the panel state and is never saved; it closes when the column fits again. The shared UI draws the list and owns its keys (one key table for both hosts); each host supplies the popover surface through its adapter: Obsidian's `PinnedPopover` with a `Scope`, and a Base UI popover on the web. The Fields action is a toggle for the column and a disclosure for the picker, and the view action, the Obsidian pane menu and the web View menu all press the same action. While the picker stands, a press on the action keeps focus in it, and focus that leaves it by keyboard closes it and goes to the action.
+- [#1956](https://github.com/aidenlx/zotlit/issues/1956): every handle the view draws can be sized without a drag (WCAG 2.5.7): the Obsidian pane menu and the web View menu list a size group per drawn handle, built by one shared function. A column's widest width is the one that keeps every column in its place, past the handles the host draws; menu entries, keys and drags step from the size the view draws, and a menu entry's new size is announced.
+- [#1957](https://github.com/aidenlx/zotlit/issues/1957): the commands that take the reader from a problem to its repair are one shared set (`repairCommands`) over the shared routing. Each closes the Fields Picker and changes no panel; Show problem reveals the call and announces why it fails.
 
 ## Amendment (2026-11-07): one item row, a 56rem Preview rule, and a Help action
 
-Spec #1952, user feedback on PR #1960.
+Spec [#1952](https://github.com/aidenlx/zotlit/issues/1952), user feedback on PR [#1960](https://github.com/aidenlx/zotlit/issues/1960).
 
 - The view names the item every panel reads once: one item row above the panels, across all of them, with the one chooser (`ItemRow` in `@zotlit/workbench/ui`). The Obsidian row carries the "Choose item" button, so the view header has no "Choose item" action; the web row carries the sample chooser. Each panel head keeps what is its own. Each host measures the box under the row, which the panels and the editor share.
 - The Preview is a column in a view 896 px (56rem, Tailwind `@4xl` at the 16 px root font size) wide or wider, and goes under the editor in a narrower view. Its column grows until the editor keeps 360 px; the 40% share and the 960 px limit hold the Fields column alone. The Fields Panel keeps its rule: a column while the editor keeps 360 px beside the columns, the Fields picker otherwise. The default Preview width stays 400 px.
@@ -80,7 +80,7 @@ Spec #1952, user feedback on PR #1960.
 
 ## Amendment (2026-11-08): one Fields Panel, in the Fields popover or docked
 
-Spec #1962, tickets #1963 to #1969. This amendment replaces the Fields column of the 2026-11-07 amendments, the Fields Picker of #1955, and the collapse-all button that trailed the field search.
+Spec [#1962](https://github.com/aidenlx/zotlit/issues/1962), tickets [#1963](https://github.com/aidenlx/zotlit/issues/1963) to [#1969](https://github.com/aidenlx/zotlit/issues/1969). This amendment replaces the Fields column of the 2026-11-07 amendments, the Fields Picker of [#1955](https://github.com/aidenlx/zotlit/issues/1955), and the collapse-all button that trailed the field search.
 
 The reader had two tools for one task: a Fields column with a tree of values in a wide view, and the Fields Picker, a flat list, in a narrow one. Resizing a view turned one into the other. There is now one Fields Panel with the same content and the same action at every width, in two presentations.
 
@@ -121,7 +121,7 @@ The reader had two tools for one task: a Fields column with a tree of values in 
 
 ## Amendment (2026-11-09): every open lands in the Workbench window
 
-Spec #1962. This amendment replaces "A new view shows neither" in the Decision and the compact-editor open of ADR 0045.
+Spec [#1962](https://github.com/aidenlx/zotlit/issues/1962). This amendment replaces "A new view shows neither" in the Decision and the compact-editor open of ADR 0045.
 
 - One function, `openTemplateWorkbench` (`views/template-workbench/open.ts`), opens a Template Document in the Workbench for every route: commands, file menus, the Markdown header action, the settings rows, the recovery notice, the Customize flow's Obsidian side and the `import-profile` link. It reveals the window that already holds the document. An open that starts from a leaf in a Workbench window (Open as Markdown and back, Edit partial, Extract to partial, the citation text from the pane menu) opens in that window: in the leaf, or in a new tab or split beside it. A Workbench leaf that an older workspace saved in the main window moves into a window of its own. Otherwise the open makes a new window. Every open shows the Preview.
 - One command, "Open template workbench" (`open-template-workbench`), opens the active Profile, Citation Template, Shared Partial, or the Profile of the active Literature Note with its Item and the note to update. The file menu and the Markdown header action carry the same entry. "Switch to template workbench view", the second "Open template workbench" command (`customize-profile`), "Customize this note's template" (`customize-note-template`) and the pane menu's "Open template workbench" are gone. The pane menu's citation entry takes the command's name, "Customize citation text". The web Workbench launch and the settings' Customize chooser stay.

@@ -12,7 +12,7 @@ ADR 0077 kept a single Desktop Slot. Its reason was that two End-to-end Runs in 
 - background throttling is set per window;
 - `reload` is sent to one vault with `vault=`;
 - all input is synthetic;
-- vault windows open behind other apps (#1663).
+- vault windows open behind other apps ([#1663](https://github.com/aidenlx/zotlit/issues/1663)).
 
 Vaults, Fixtures, ports and Paired Zotero profiles were already separate per worktree. Only three things are left that runs share inside the one app:
 

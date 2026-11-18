@@ -1,10 +1,10 @@
 ---
-status: amended (#1710)
+status: amended ([#1710](https://github.com/aidenlx/zotlit/issues/1710))
 ---
 
 # Obsidian i18n is one package behind injected ports
 
-> **Amended (#1710).** The Language Pack Lifecycle moved out of the package
+> **Amended ([#1710](https://github.com/aidenlx/zotlit/issues/1710)).** The Language Pack Lifecycle moved out of the package
 > into each host. The package keeps the compiler, schema, validation,
 > interpreter, CLI, Vite integration, and the lifecycle's vocabulary: locale
 > resolution (`resolveLocale`), the Situation union, and the Pack Source and

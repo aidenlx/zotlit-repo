@@ -68,7 +68,7 @@ Code (fenced, indented, inline), math (`$…$`, `$$…$$`), `%%` comments and fr
 
 - **Lookup on demand.** `CitationLookupRequest` gains `annotationKeys`. ZoteroReads answers them against the published revision as `{parent Item Indexed Key, citekey}` or missing. Occurrences stay raw.
 - **New choice.** **Annotation Citations** joins Pandoc Citations and Wikilink Citations as a Document Citation Set choice, on by default.
-- **Export.** Pandoc export reads the worker's parse and cites exactly the worker's citations. A Pandoc `Cite` the worker did not report renders as its source text. Export drops each worker-reported `%%` comment, preserving a blank line for whole-line block comments and joining the surrounding text for inline comments. What export emits for an Annotation Citation is left to a follow-up issue linked to #1678. Until then export leaves the link untouched.
+- **Export.** Pandoc export reads the worker's parse and cites exactly the worker's citations. A Pandoc `Cite` the worker did not report renders as its source text. Export drops each worker-reported `%%` comment, preserving a blank line for whole-line block comments and joining the surrounding text for inline comments. What export emits for an Annotation Citation is left to a follow-up issue linked to [#1678](https://github.com/aidenlx/zotlit/issues/1678). Until then export leaves the link untouched.
 
 ### Evidence
 
@@ -99,4 +99,4 @@ Code (fenced, indented, inline), math (`$…$`, `$$…$$`), `%%` comments and fr
 - **The citation sidebars become async on first open.** References, Cited By and In-text Citation Rendering wait for the parse result of a document that has just changed. Persisted records cover cold start and worker restarts.
 - **Memory and bundle.** An extra worker costs about 18 MiB of baseline heap (measured in ADR 0072). The worker bundle carries lezer.
 - **Wikilink Citations change behavior.** A wikilink inside `%%` no longer counts as a citation.
-- **Annotation embeds are indexed before they render.** `![](…)` is indexed now. How it renders stays with #1678.
+- **Annotation embeds are indexed before they render.** `![](…)` is indexed now. How it renders stays with [#1678](https://github.com/aidenlx/zotlit/issues/1678).

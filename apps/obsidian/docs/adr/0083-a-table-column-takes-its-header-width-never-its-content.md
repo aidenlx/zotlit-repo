@@ -6,7 +6,7 @@ status: accepted
 
 Every property column of a Query View Table is as wide as its header cell says: the width the researcher set, else a fixed default. The first column defaults to `--bases-table-column-max-width` (300 px), the widest a Bases column grows by itself, where a title reads; every later column defaults to half of that. A body cell takes no room of its own and clips what does not fit with an ellipsis, as a column the researcher sized did before. Cells that span the columns, a group's heading and the rows under an expanded Item, clip too.
 
-A long Table mounts only the rows near the screen (PR #2023). A column that sized itself to its content took the width of the rows mounted at the moment, so it changed width while the researcher scrolled: one column went from 317 px to 222 px on a 1,000-row Table, and the header cells and resize handles moved under the pointer (issue #2024). A default that depends on nothing but the column's place is the only rule whose widths do not follow the scroll position or its history, and the browser does the least layout work for it.
+A long Table mounts only the rows near the screen (PR [#2023](https://github.com/aidenlx/zotlit/issues/2023)). A column that sized itself to its content took the width of the rows mounted at the moment, so it changed width while the researcher scrolled: one column went from 317 px to 222 px on a 1,000-row Table, and the header cells and resize handles moved under the pointer (issue [#2024](https://github.com/aidenlx/zotlit/issues/2024)). A default that depends on nothing but the column's place is the only rule whose widths do not follow the scroll position or its history, and the browser does the least layout work for it.
 
 ## Consequences
 
