@@ -1,10 +1,16 @@
 import { defineConfig } from "oxlint";
 
-import { testBaselineOverrides } from "@zotlit/config/oxlint";
+import {
+  engineBoundaryRules,
+  engineNodeOnlyOverride,
+  testBaselineOverrides,
+} from "@zotlit/config/oxlint";
 import baseConfig from "@zotlit/config/oxlint";
 
 export default defineConfig({
+  rules: engineBoundaryRules(),
   overrides: [
+    engineNodeOnlyOverride(),
     ...testBaselineOverrides("packages/templates"),
     {
       // Date adapters: LiquidJS's builtin `date` filter takes a Date

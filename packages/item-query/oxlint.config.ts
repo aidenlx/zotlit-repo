@@ -2,6 +2,8 @@ import { defineConfig } from "oxlint";
 
 import baseConfig, {
   datePattern,
+  engineNodeOnlyOverride,
+  hostModulePattern,
   itemQuerySchemaPaths,
   parentImportPattern,
   uniqueIdPaths,
@@ -10,6 +12,7 @@ import baseConfig, {
 export default defineConfig({
   extends: [baseConfig],
   rules: {
+    "import/no-nodejs-modules": "error",
     // This package's runtime entry may re-export schema types, but not values.
     "no-restricted-imports": [
       "error",
@@ -17,6 +20,7 @@ export default defineConfig({
         patterns: [
           parentImportPattern,
           datePattern,
+          hostModulePattern,
           {
             group: [
               "./schema",
@@ -38,6 +42,7 @@ export default defineConfig({
     ],
   },
   overrides: [
+    engineNodeOnlyOverride(),
     {
       // Static vocabulary generation and its direct tests own these values.
       files: [
@@ -45,6 +50,18 @@ export default defineConfig({
         "src/describe-item-query.ts",
         "src/describe-annotation-query.ts",
         "src/describe-attachment-query.ts",
+      ],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [parentImportPattern, datePattern, hostModulePattern],
+          },
+        ],
+      },
+    },
+    {
+      files: [
         "src/**/*.{test,spec}.{ts,tsx,js,jsx}",
         "*.{config,setup}.{ts,js,mjs,cjs}",
         "scripts/**",

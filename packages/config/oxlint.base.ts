@@ -1,6 +1,7 @@
 import { recommended } from "@effect/tsgo/oxlint-presets";
 import { join } from "node:path";
 import { defineConfig } from "oxlint";
+import type { DummyRuleMap, OxlintOverride } from "oxlint";
 
 import testBaseline from "./oxlint-tests-baseline.json" with { type: "json" };
 
@@ -93,6 +94,62 @@ export function testBaselineOverrides(directory?: string) {
     files,
     rules: { [rule]: "off" as const },
   }));
+}
+
+/**
+ * The engine boundary. The read engine and the packages it loads run on every
+ * host, also in a Web Worker on mobile, where Node, Obsidian and Electron are
+ * absent. Their source takes each host capability as a value: the Zotero
+ * database client from an adapter, the host's services from their caller.
+ * Only a desktop host and Node tests load `@zotlit/db/client/node`.
+ */
+export const hostModulePattern = {
+  group: [
+    "obsidian",
+    "obsidian/**",
+    "electron",
+    "electron/**",
+    "@zotlit/db/client/node",
+    "#client/node.ts",
+  ],
+  message:
+    "Engine source runs on every host. Take the host capability as a value; only a desktop host and Node tests load Obsidian, Electron or @zotlit/db/client/node.",
+};
+
+/**
+ * Top-level rules of an engine package: no Node built-in, and no host module.
+ * The base `no-restricted-imports` options hold, with the host pattern added.
+ */
+export function engineBoundaryRules(): DummyRuleMap {
+  return {
+    "import/no-nodejs-modules": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [parentImportPattern, datePattern, hostModulePattern],
+        paths: [...itemQuerySchemaPaths, ...uniqueIdPaths],
+      },
+    ],
+  };
+}
+
+/**
+ * The files of an engine package that run in Node only: tests, benchmarks,
+ * configuration and scripts, and the package's named Node adapters in
+ * `adapters`. Node built-ins are allowed there.
+ */
+export function engineNodeOnlyOverride(
+  adapters: string[] = [],
+): OxlintOverride {
+  return {
+    files: [
+      "**/*.{test,spec,bench}.{ts,tsx,js,mjs}",
+      "**/*.{config,setup}.{ts,js,mjs,cjs}",
+      "scripts/**",
+      ...adapters,
+    ],
+    rules: { "import/no-nodejs-modules": "off" },
+  };
 }
 
 /**
