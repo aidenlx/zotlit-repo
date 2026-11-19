@@ -42,6 +42,14 @@ The End-to-end Run of the new tip runs detached, in its own checkout, under a De
 
 Check out the commit of `next` to graduate (`git switch --detach origin/next`) and run `pnpm land --to main`. It checks that `main` can fast-forward to that commit, runs `pnpm verify --release` (the full End-to-end Run included, so desktop Obsidian must run), and pushes it to `main`.
 
+## Hotfix onto main
+
+A patch for the stable line lands onto `main` without `next`: make it on a task branch off `origin/main` and run `pnpm land --to main --hotfix`. It rebases onto `origin/main`, runs `pnpm verify --release`, and pushes to `main`. Then bring the fix into `next`: on a task branch off `origin/next`, `git merge origin/main`, resolve, commit, and `pnpm land`. A branch that holds a merge commit takes the newest `next` by a merge, not a rebase, so `main` stays an ancestor of `next` and the next graduation can fast-forward.
+
+## Releases
+
+`pnpm release` lands the version commit of a release through the same queue, with the release gate; the maintainer runs it. See `CONTRIBUTING.md` "Releasing".
+
 ## Commits
 
 The commits of the branch land on `next` as they are, after the rebase. Give each commit a subject that names the change, and a body that says why it was made and how it was checked: the tests run, the commands, the walkthrough in the running app.

@@ -6,7 +6,8 @@
 // rebased tree, and pushes. Then it starts the End-to-end Run of the new tip
 // in the background (lib/land-e2e.ts).
 // `pnpm land --to main` fast-forwards `main` to the checked-out commit of
-// `next` after `pnpm verify --release`.
+// `next` after `pnpm verify --release`; `pnpm land --to main --hotfix` lands a
+// task branch off `main` onto it, with the same gate.
 // `--help` prints the contract.
 
 import type { LandTarget } from "#land-queue";
@@ -28,24 +29,22 @@ import {
   readDesktopSlotStatus,
   SILENCE_LIMIT_MS,
 } from "#desktop-slot";
-import { land, LAND_ATTEMPTS, LAND_WAIT_MS } from "#land";
+import { land, LAND_ATTEMPTS, LAND_GATES, LAND_WAIT_MS } from "#land";
 import { githubRepository, landE2eDir, requestLandE2e } from "#land-e2e";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
 const EXIT_USAGE = 2;
-const GATES: Record<LandTarget, [string, ...string[]]> = {
-  next: ["pnpm", "verify"],
-  main: ["pnpm", "verify", "--release"],
-};
 /** The lines of the log a failed gate prints. */
 const GATE_TAIL = 40;
 
 const epilogue = `A land holds the Land Turn of its target branch while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches each branch on this machine, in the order the lands started. The gate cannot be skipped.
 
 Into next (the default), from a task branch with a clean tree:
-  fetch origin/next, rebase the branch onto it, run ${GATES.next.join(" ")}, push HEAD to next as a fast-forward. When next moved during the gate, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local next moves, the task branch is deleted on origin, and the End-to-end Run of the new tip starts in the background.
+  fetch origin/next, rebase the branch onto it, run ${LAND_GATES.next.join(" ")}, push HEAD to next as a fast-forward. When next moved during the gate, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local next moves, the task branch is deleted on origin, and the End-to-end Run of the new tip starts in the background.
 Into main (--to main), from a checked-out commit of next with a clean tree:
-  check that main can fast-forward to it, run ${GATES.main.join(" ")}, push HEAD to main.
+  check that main can fast-forward to it, run ${LAND_GATES.main.join(" ")}, push HEAD to main.
+A hotfix into main (--to main --hotfix), from a task branch off main with a clean tree:
+  as into next, with main in place of next and ${LAND_GATES.main.join(" ")} as the gate. The fix then reaches next through a land of a branch that merges main.
 
 On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed gate it is rebased onto the fetched next, the tree to fix.
 
@@ -63,7 +62,13 @@ function usage(message: string): never {
   process.exit(EXIT_USAGE);
 }
 
-async function landCommand(to: LandTarget, wait: string | undefined) {
+async function landCommand(
+  to: LandTarget,
+  hotfix: boolean,
+  wait: string | undefined,
+) {
+  if (hotfix && to !== "main")
+    usage("--hotfix lands into main: add --to main.");
   let waitMs: number | undefined;
   if (wait !== undefined) {
     try {
@@ -76,7 +81,8 @@ async function landCommand(to: LandTarget, wait: string | undefined) {
   const result = await land({
     cwd,
     to,
-    gate: GATES[to],
+    hotfix,
+    gate: LAND_GATES[to],
     ...(waitMs === undefined ? {} : { waitMs }),
   });
   if (!result.ok) {
@@ -154,7 +160,9 @@ async function status() {
 
 await yargs(hideBin(process.argv))
   .scriptName("land")
-  .usage("pnpm land [--to next|main] [--wait <duration>]\npnpm land status")
+  .usage(
+    "pnpm land [--to next|main [--hotfix]] [--wait <duration>]\npnpm land status",
+  )
   .command(
     "$0",
     "land the current worktree",
@@ -165,12 +173,17 @@ await yargs(hideBin(process.argv))
           default: "next" as const,
           describe: "the branch to land into",
         })
+        .option("hotfix", {
+          type: "boolean",
+          default: false,
+          describe: "with --to main: land a task branch off main onto it",
+        })
         .option("wait", {
           type: "string",
           describe: `how long to wait for the Land Turn (default ${formatDuration(LAND_WAIT_MS)})`,
         }),
     async (argv) => {
-      await landCommand(argv.to, argv.wait);
+      await landCommand(argv.to, argv.hotfix, argv.wait);
     },
   )
   .command(

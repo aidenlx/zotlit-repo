@@ -9,10 +9,18 @@
 //       update the local next ─▶ delete the task branch on the remote
 //     after the turn: request the End-to-end Run of the new tip (lib/land-e2e.ts)
 //
-//   land into main (from a commit of next, clean tree)
+//   land into main (from a commit of next, clean tree): a stable graduation
 //     preflight ─▶ wait in the Land Queue of main ─▶ the Land Turn:
 //       fetch ─▶ check HEAD is in next and main is behind it ─▶ release gate
 //       ─▶ push HEAD:main as a fast-forward ─▶ update the local main
+//
+//   land a hotfix into main (from a task branch off main, clean tree)
+//     as a land into next, with main in place of next and the release gate
+//
+// A branch that holds a merge commit, such as a merge of main into next after
+// a hotfix, takes the moved target by a merge in place of the rebase: a
+// rebase would copy main's commits, and main would no longer be an ancestor
+// of next, as a graduation needs.
 //
 // The gate runs once, in the turn, on the tree that is pushed. On a failure
 // the worktree stays on its branch with a clean tree: a rebase conflict
@@ -51,6 +59,12 @@ export const LAND_WAIT_MS = HOUR;
 /** How many times one turn fetches and gates again after `next` moved. */
 export const LAND_ATTEMPTS = 3;
 
+/** The quality gate of a land into each branch. */
+export const LAND_GATES = {
+  next: ["pnpm", "verify"],
+  main: ["pnpm", "verify", "--release"],
+} as const satisfies Record<LandTarget, readonly [string, ...string[]]>;
+
 /** The steps of a land, as a failure names them. */
 export type LandStep =
   | "preflight"
@@ -66,6 +80,11 @@ export interface LandOptions {
   /** The worktree to land from. */
   cwd: string;
   to: LandTarget;
+  /**
+   * With `to: "main"`: land the task branch onto main, a hotfix, in place of
+   * fast-forwarding main to a commit of next.
+   */
+  hotfix?: boolean;
   /** The quality gate, run in `cwd` on the tree that is pushed. */
   gate: readonly [string, ...string[]];
   /** @default "origin" */
@@ -212,6 +231,8 @@ const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 /** Land the worktree at `options.cwd` into `options.to`. */
 export async function land(options: LandOptions): Promise<LandResult> {
   const { cwd, to } = options;
+  /** The branch is rebased onto the target: every land but a graduation. */
+  const rebases = to === "next" || options.hotfix === true;
   const remote = options.remote ?? "origin";
   const silenceMs = options.silenceMs ?? SILENCE_LIMIT_MS.childOutput;
   const say = options.say ?? ((line: string) => console.error(line));
@@ -239,7 +260,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
   };
 
   try {
-    const pre = await preflight(sh, to, remote);
+    const pre = await preflight(sh, rebases, remote);
     source = pre.branch ?? pre.head.slice(0, 12);
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
     for (const signal of SIGNALS) process.on(signal, onSignal);
@@ -298,13 +319,13 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (leaseOver) throw leaseEnded(leaseOver);
       return value;
     };
-    const maxAttempts = to === "next" ? (options.attempts ?? LAND_ATTEMPTS) : 1;
+    const maxAttempts = rebases ? (options.attempts ?? LAND_ATTEMPTS) : 1;
     let previous = "";
     for (;;) {
       attempts += 1;
       previous = await step("fetch", () => fetchTarget(sh, remote, to));
-      if (to === "next") {
-        await step("rebase", () => rebaseOnto(sh, `${remote}/next`, pre.head));
+      if (rebases) {
+        await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
       } else {
         await step("check", () => checkGraduation(sh, remote));
       }
@@ -330,7 +351,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
     }
     const commit = await sh.git("push", "rev-parse", "HEAD");
     await updateLocalRef(sh, say, { to, commit });
-    if (to === "next" && pre.branch) {
+    if (rebases && pre.branch) {
       await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
     }
     await finish("landed");
@@ -396,7 +417,7 @@ function leaseEnded(reason: string): LandFailure {
 /** The checks that need no turn: a clean tree on a branch that may land. */
 async function preflight(
   sh: Shell,
-  to: LandTarget,
+  fromTaskBranch: boolean,
   remote: string,
 ): Promise<{ head: string; branch: string | undefined }> {
   const status = await sh.git("preflight", "status", "--porcelain");
@@ -410,7 +431,7 @@ async function preflight(
     (
       await sh.run("git", ["symbolic-ref", "--short", "-q", "HEAD"])
     ).stdout.trim() || undefined;
-  if (to === "next") {
+  if (fromTaskBranch) {
     if (!branch) {
       throw new LandFailure(
         "preflight",
@@ -450,6 +471,16 @@ async function rebaseOnto(
   base: string,
   original: string,
 ): Promise<void> {
+  const merges = await sh.git(
+    "rebase",
+    "rev-list",
+    "--merges",
+    `${base}..HEAD`,
+  );
+  if (merges) {
+    await mergeIn(sh, base, original);
+    return;
+  }
   const rebased = await sh.run("git", ["rebase", "--no-autostash", base]);
   if (rebased.code !== 0) {
     const conflicts = (
@@ -475,6 +506,28 @@ async function rebaseOnto(
       `The branch has no commits that ${base} lacks; there is nothing to land.`,
     );
   }
+}
+
+/**
+ * Merge `base` into a branch that holds merge commits, so its commits stay
+ * as they are. On a conflict, abort and put the branch back at `original`.
+ */
+async function mergeIn(
+  sh: Shell,
+  base: string,
+  original: string,
+): Promise<void> {
+  const merged = await sh.run("git", ["merge", "--no-edit", base]);
+  if (merged.code === 0) return;
+  const conflicts = (
+    await sh.run("git", ["diff", "--name-only", "--diff-filter=U"])
+  ).stdout.trim();
+  await sh.run("git", ["merge", "--abort"]);
+  await sh.git("rebase", "reset", "--hard", original);
+  throw new LandFailure(
+    "rebase",
+    `The branch holds a merge commit, so it takes ${base} by a merge, which conflicts in:\n${conflicts || (merged.stderr || merged.stdout).trim()}\nThe branch is as it was. Merge ${base} into it yourself, resolve the conflicts, and land again.`,
+  );
 }
 
 /** HEAD is a commit of `next`, and `main` is behind it. */

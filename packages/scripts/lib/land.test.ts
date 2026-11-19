@@ -351,6 +351,40 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
   );
 });
 
+describe("land a merge into next", () => {
+  it(
+    "keeps the commits of a merge of main, so main stays an ancestor of next for the next graduation",
+    async () => {
+      const seed = join(repos.root, "seed");
+      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
+      // A hotfix on main that next lacks.
+      const hotfix = await repos.clone("hotfix");
+      await git(hotfix, "switch", "-q", "main");
+      const fix = await repos.commit(hotfix, "fix.txt", { text: "fix\n" });
+      await git(hotfix, "push", "-q", "origin", "HEAD:refs/heads/main");
+      const cwd = await repos.clone("sync");
+      await git(cwd, "switch", "-q", "-c", "sync/main");
+      await git(
+        cwd,
+        "merge",
+        "-q",
+        "--no-ff",
+        "-m",
+        "merge main",
+        "origin/main",
+      );
+      // next moves meanwhile, so the branch must take it in.
+      await moveNext("feature.txt", "feature\n");
+
+      const result = await land({ ...quiet, cwd, to: "next", gate: ["true"] });
+
+      expect(result).toMatchObject({ ok: true });
+      await git(repos.remote, "merge-base", "--is-ancestor", fix, "next");
+    },
+    SLOW,
+  );
+});
+
 describe("land into main", () => {
   it(
     "fast-forwards main to a commit of next after the gate",
@@ -384,6 +418,60 @@ describe("land into main", () => {
       expect(await git(repos.remote, "rev-parse", "main")).toBe(
         await git(seed, "rev-parse", "HEAD"),
       );
+    },
+    SLOW,
+  );
+
+  it(
+    "lands a hotfix branch onto main, rebased onto the moved main, and deletes the branch on origin",
+    async () => {
+      const seed = join(repos.root, "seed");
+      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
+      const cwd = await repos.clone("hotfix");
+      await git(cwd, "switch", "-q", "-c", "fix/crash", "origin/main");
+      await repos.commit(cwd, "fix.txt", { text: "fix\n", message: "fix" });
+      await git(cwd, "push", "-q", "origin", "HEAD");
+      const other = await repos.clone("other-fix");
+      await git(other, "switch", "-q", "main");
+      await repos.commit(other, "other.txt", {
+        text: "other\n",
+        message: "other",
+      });
+      await git(other, "push", "-q", "origin", "HEAD:refs/heads/main");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        to: "main",
+        hotfix: true,
+        gate: ["sh", "-c", "test -e other.txt && test -e fix.txt"],
+      });
+
+      expect(result).toMatchObject({ ok: true });
+      expect(await subjects("main")).toEqual(["fix", "other", "seed"]);
+      expect(await subjects("next")).toEqual(["seed"]);
+      expect(await git(repos.remote, "branch", "--list", "fix/crash")).toBe("");
+    },
+    SLOW,
+  );
+
+  it(
+    "refuses a hotfix from a detached HEAD, which names no branch to rebase",
+    async () => {
+      const seed = join(repos.root, "seed");
+      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
+      const cwd = await repos.clone("detached");
+      await git(cwd, "switch", "-q", "--detach", "origin/main");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        to: "main",
+        hotfix: true,
+        gate: ["true"],
+      });
+
+      expect(result).toMatchObject({ ok: false, step: "preflight" });
     },
     SLOW,
   );
