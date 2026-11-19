@@ -149,11 +149,7 @@ async function openLookup(
       Layer.provideMerge(
         Layer.mergeAll(
           layerQueryClients,
-          layerZoteroReads(
-            client.pipe(
-              Effect.tap((client) => client.Libraries({}).pipe(Effect.orDie)),
-            ),
-          ),
+          layerZoteroReads(client),
           layerSettings({
             loadData: async () => ({ __VERSION__: 10 }),
             saveData: async () => {},

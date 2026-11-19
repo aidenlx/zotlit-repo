@@ -148,7 +148,7 @@ export const layerCitationLookup = Layer.effect(
         const annotationKeys = [...new Set(request.annotationKeys ?? [])];
         while (true) {
           if ((yield* current).stopped) return yield* Effect.interrupt;
-          if ((yield* reads.current).state !== "ready") {
+          if ((yield* reads.current).state === "degraded") {
             yield* setStatus("failed");
             return yield* new DbUnavailable({
               message: "ZoteroReads is unavailable",
