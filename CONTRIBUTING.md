@@ -15,6 +15,53 @@ ZotLit has two repositories:
   [ZotLit forum](https://zotlit-forum.aidenlx.site). GitHub Issues in
   `aidenlx/zotlit-repo` hold the defects a maintainer has confirmed.
 
+## Development flow
+
+```text
+mise run init                                    once per clone: dependencies, generated types
+wt switch --create fix/<topic> --base origin/main   one worktree per change
+  edit, commit                                   pre-commit: format, lint, messages
+  pnpm verify                                    format, lint (the typecheck), tests of the
+                                                 changed packages and their dependents
+pnpm land                                        rebase, verify, fast-forward main;
+                                                 then an End-to-end Run of the new tip
+wt remove fix/<topic>
+```
+
+The root [`AGENTS.md`](AGENTS.md) is the reference for each step, for people
+and agents alike:
+
+| Step                         | Read                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| Toolchain and first setup    | `AGENTS.md` "Bootstrap & toolchain"                                                              |
+| Where code goes              | `AGENTS.md` "Repo shape", then the `AGENTS.md` of the app or package: lint enforces their layers |
+| Worktrees and scratch files  | `AGENTS.md` "Worktrees" and "Working files"                                                      |
+| Checks and tests             | `AGENTS.md` "Commands" and "Testing"; `packages/e2e/AGENTS.md` for the End-to-end Run            |
+| Landing, the queue, failures | `AGENTS.md` "Landing a change"                                                                   |
+| Decisions and their reasons  | `docs/adr/`                                                                                      |
+
+GitHub runs no checks on a pull request or a push: the gate is `pnpm verify`
+on your machine, and `pnpm land` runs it again on the tree it pushes
+([ADR 0076](docs/adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),
+[ADR 0084](docs/adr/0084-changes-land-on-next-through-a-serial-queue.md)).
+
+### Branching model
+
+`main` is the one long-lived branch of `aidenlx/zotlit-repo`. Every change
+lands on it, and every release, beta or stable, is a version commit on it. The
+version picks the release line: a pre-release version (`2.3.0-beta.1`) ships
+on the beta line, any other version (`2.3.0`) on the stable line. The code of
+a release is its tag. No other branch is pushed to `aidenlx/zotlit-repo`. See
+[ADR 0097](docs/adr/0097-main-is-the-one-trunk.md).
+
+### Landing a change
+
+A change reaches `main` through `pnpm land`, run from the task worktree on its
+branch with a clean tree. Lands on one machine run one at a time, in a queue:
+each fetches `origin/main`, rebases the branch onto it, runs `pnpm verify` on
+the rebased tree, and pushes it to `main` as a fast-forward. The gate cannot be
+skipped. The pre-push hook lets only `pnpm land` push `main`.
+
 ## Releasing
 
 The source lives in `aidenlx/zotlit-repo`. Releases publish to the publish
@@ -34,23 +81,6 @@ Each app's `apps/{app}/package.json#version` is the sole version source.
 Both repositories carry each tag. In `aidenlx/zotlit-repo` it names the
 commit the release was built from; in `aidenlx/zotlit` it names the shell
 commit (plugin) or the release (Companion).
-
-### Branching model
-
-`main` is the one long-lived branch of `aidenlx/zotlit-repo`. Every change
-lands on it, and every release, beta or stable, is a version commit on it. The
-version picks the release line: a pre-release version (`2.3.0-beta.1`) ships
-on the beta line, any other version (`2.3.0`) on the stable line. The code of
-a release is its tag. No other branch is pushed to `aidenlx/zotlit-repo`. See
-[ADR 0097](docs/adr/0097-main-is-the-one-trunk.md).
-
-### Landing a change
-
-A change reaches `main` through `pnpm land`, run from the task worktree on its
-branch with a clean tree. Lands on one machine run one at a time, in a queue:
-each fetches `origin/main`, rebases the branch onto it, runs `pnpm verify` on
-the rebased tree, and pushes it to `main` as a fast-forward. The gate cannot be
-skipped. The pre-push hook lets only `pnpm land` push `main`.
 
 ### Version policy
 
