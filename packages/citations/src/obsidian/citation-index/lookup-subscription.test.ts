@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { expect } from "vitest";
 
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import {
   inProcessClient,
   memoryOpener,
@@ -45,9 +46,16 @@ it.effect(
           }),
         ),
       );
+      yield* Stream.runHead(
+        f.runtime
+          .runSync(LibraryScope)
+          .changes.pipe(Stream.filter((state) => state.current !== null)),
+      );
       yield* Effect.promise(() =>
         f.service.bridge.runPromise(f.service.whenResolved),
       );
+      const base = Number(f.service.bridge.runSync(f.service.current).revision);
+      const next = [String(base + 1), String(base + 2)];
       const seen: string[] = [];
       let notifications = 0;
       const off = subscribe(
@@ -75,14 +83,14 @@ it.effect(
       yield* Effect.promise(async () => {
         await expect.poll(() => seen.length).toBe(2);
       });
-      expect(seen).toEqual(["2", "3"]);
+      expect(seen).toEqual(next);
       expect(notifications).toBe(2);
       off();
       offEvent();
       yield* Effect.promise(() =>
         f.service.bridge.runPromise(f.service.read({})),
       );
-      expect(seen).toEqual(["2", "3"]);
+      expect(seen).toEqual(next);
       expect(notifications).toBe(2);
     }),
 );

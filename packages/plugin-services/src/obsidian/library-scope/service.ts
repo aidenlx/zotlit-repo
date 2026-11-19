@@ -16,7 +16,6 @@ import {
 import type { Library } from "@zotlit/db";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import {
   DEFAULT_LIBRARY_SCOPE,
@@ -226,12 +225,7 @@ export const layerLibraryScope = Layer.effect(
       }),
     );
 
-    // Legacy ready awaited this query, not a database-ready signal. A late
-    // answer still updates the held value after the shared startup bound.
-    yield* startupBarrier(
-      readLibraries(),
-      Effect.logWarning("Library scope startup read is still pending"),
-    );
+    yield* Effect.forkScoped(readLibraries(), { startImmediately: true });
     yield* recompute(yield* heldLibraries());
     yield* Effect.logInfo("Library scope ready").pipe(
       Effect.annotateLogs({

@@ -8,7 +8,6 @@ import {
   PubSub,
   Stream,
 } from "effect";
-import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 
 import {
@@ -27,7 +26,7 @@ import { platformSettings } from "#__fixtures__/platform-settings.ts";
 import { layerQueryClients } from "#core/query-client/service.ts";
 import { layerPluginSettings } from "#obsidian/settings/service.ts";
 
-it.effect("holds the first Libraries answer when the layer builds", () =>
+it.effect("holds the first Libraries answer after the layer builds", () =>
   Effect.gen(function* () {
     const reads = layerZoteroReads(
       inProcessClient(
@@ -56,14 +55,16 @@ it.effect("holds the first Libraries answer when the layer builds", () =>
       ),
     );
     const service = Context.get(services, LibraryScope);
+    const resolved = yield* Stream.runHead(
+      service.changes.pipe(Stream.filter((state) => state.current !== null)),
+    );
+    expect(resolved).toMatchObject({ value: { current: { mode: "all" } } });
     expect((yield* service.current)?.available).toHaveLength(1);
-    const replay = yield* Stream.runHead(service.changes);
-    expect(replay).toMatchObject({ value: { current: { mode: "all" } } });
   }),
 );
 
 it.effect(
-  "bounds the first read without waiting for database readiness and accepts its late answer",
+  "builds before the first read answers and accepts its late answer",
   () =>
     Effect.gen(function* () {
       const started = yield* Deferred.make<void>();
@@ -92,7 +93,6 @@ it.effect(
         client,
       ).pipe(Effect.forkChild);
       yield* Deferred.await(started);
-      yield* TestClock.adjust("5 seconds");
       const f = yield* Fiber.join(building);
       expect(f.bridge.runSync(f.service.current)).toBeNull();
       yield* Deferred.succeed(release, undefined);
@@ -176,7 +176,6 @@ it.effect(
         client,
       ).pipe(Effect.forkChild);
       yield* Deferred.await(started);
-      yield* TestClock.adjust("5 seconds");
       const f = yield* Fiber.join(building);
       const ended = yield* Stream.runDrain(f.service.changes).pipe(
         Effect.forkChild,
