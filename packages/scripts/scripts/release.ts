@@ -1,5 +1,3 @@
-import type { LandOptions } from "#land";
-import type { ReleaseBranch, ReleaseRoute } from "#release/bump";
 import * as p from "@clack/prompts";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -7,29 +5,22 @@ import { parseArgs } from "node:util";
 import { prerelease, valid } from "semver";
 import { $ } from "zx";
 
+import { SOURCE_BRANCH } from "@zotlit/config/repositories";
+
 import { exitUnlessDesktopPaints } from "#desktop-paint";
 import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
-import {
-  bumpOptions,
-  preidOf,
-  releaseRoute,
-  resolveVersionSpec,
-} from "#release/bump";
+import { bumpOptions, preidOf, resolveVersionSpec } from "#release/bump";
 
 /**
- * `pnpm release`: the version commit of a release, landed through the Land
- * Queue. It bumps `apps/{app}/package.json#version` (the one version source),
- * syncs the root manifest of a stable plugin release, refreshes the lockfile,
- * commits on a local release branch, and lands that commit. It tags nothing
- * and publishes nothing: `release.yml` publishes each version that its line's
- * branch gains (lib/release/plan.ts).
- *
- *   on next, pre-release   land into next with the release gate
- *   on next, stable        land into next, then graduate: main fast-forwards
- *                          to the version commit after the release gate
- *   on main, patch         land the hotfix onto main with the release gate
+ * `pnpm release`: the version commit of a release, landed onto `main` through
+ * the Land Queue. It bumps `apps/{app}/package.json#version` (the one version
+ * source), syncs the root manifest of a stable plugin release, refreshes the
+ * lockfile, commits on a local release branch, and lands that commit. It tags
+ * nothing and publishes nothing: `release.yml` publishes each version that
+ * `main` gains (lib/release/plan.ts). The version picks the line: a
+ * pre-release version is a beta, any other version a stable release.
  *
  * The release gate (`pnpm verify --release`) runs once per release, in a Land
  * Turn, on the tree that is pushed. `--obsidian <bump|version>` and
@@ -38,7 +29,7 @@ import {
  * on its branch; nothing reached the remote unless the output says so.
  *
  * @see CONTRIBUTING.md "Releasing"
- * @see docs/adr/0021-next-is-the-primary-branch.md
+ * @see docs/adr/0097-main-is-the-one-trunk.md
  */
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
@@ -87,17 +78,17 @@ const git = $({ cwd: workspaceRoot, quiet: true });
 
 p.intro(interactive ? "ZotLit release" : "ZotLit release (non-interactive)");
 
-// Every route runs the release gate, whose End-to-end Run needs a painted
+// Every release runs the release gate, whose End-to-end Run needs a painted
 // desktop window: stop now, before the version commit and the gate.
 await exitUnlessDesktopPaints();
 await assertCleanWorkingTree();
 const branch = (await git`git branch --show-current`).stdout.trim();
-if (branch !== "next" && branch !== "main") {
+if (branch !== SOURCE_BRANCH) {
   fail(
-    `Release from next (pre-releases and stable graduations) or main (hotfixes), not ${branch || "a detached HEAD"}.`,
+    `Release from ${SOURCE_BRANCH}, not ${branch || "a detached HEAD"}. A stable hotfix of a commit that ${SOURCE_BRANCH} lacks takes its own path: CONTRIBUTING.md "Stable hotfix".`,
   );
 }
-const releaseBranch: ReleaseBranch = branch;
+const releaseBranch = SOURCE_BRANCH;
 await assertInSyncWithOrigin(releaseBranch);
 
 const targets: AppMeta[] = interactive
@@ -116,29 +107,18 @@ for (const app of targets) {
   bumps.push({ app, current, next });
 }
 
-const routed = releaseRoute(
-  bumps.map((bump) => bump.next),
-  releaseBranch,
-  Object.keys(APPS).length,
-);
-if ("error" in routed) fail(routed.error);
-const { route } = routed;
-if (route === "graduation") await assertMainAncestry();
+await completeRelease();
 
-await completeRelease(route);
-
-async function completeRelease(route: ReleaseRoute): Promise<void> {
+async function completeRelease(): Promise<void> {
   const summary = bumps.map((b) => `${b.app.name}@${b.next}`).join(", ");
-  const plan = {
-    beta: "land it into next with the release gate",
-    graduation:
-      "land it into next, then fast-forward main to it after the release gate",
-    hotfix: "land it onto main with the release gate",
-  }[route];
-  if (!(await confirm(`Release ${summary}: commit the versions and ${plan}?`)))
+  if (
+    !(await confirm(
+      `Release ${summary}: commit the versions and land them onto ${releaseBranch} with the release gate?`,
+    ))
+  )
     cancel();
 
-  const releaseRef = `release/${releaseBranch}/${bumps.map((b) => `${b.app.name}-${b.next}`).join("+")}`;
+  const releaseRef = `release/${bumps.map((b) => `${b.app.name}-${b.next}`).join("+")}`;
   const stagedPaths = new Set<string>();
   const s = p.spinner();
 
@@ -167,67 +147,31 @@ async function completeRelease(route: ReleaseRoute): Promise<void> {
     throw error;
   }
 
-  const base: Omit<LandOptions, "to" | "gate"> = {
-    cwd: workspaceRoot,
-    say: (line) => p.log.message(line),
-  };
-  if (route === "beta") {
-    p.log.step("Land into next with the release gate (pnpm verify --release)");
-    await landOrFail(releaseRef, {
-      ...base,
-      to: "next",
-      gate: LAND_GATES.main,
-    });
-  } else if (route === "hotfix") {
-    p.log.step("Land onto main with the release gate (pnpm verify --release)");
-    await landOrFail(releaseRef, {
-      ...base,
-      to: "main",
-      hotfix: true,
-      gate: LAND_GATES.main,
-    });
-  } else {
-    p.log.step("Land into next (pnpm verify)");
-    await landOrFail(releaseRef, {
-      ...base,
-      to: "next",
-      gate: LAND_GATES.next,
-    });
-    p.log.step(
-      "Graduate: fast-forward main to the version commit (pnpm verify --release)",
-    );
-    await landOrFail(
-      releaseRef,
-      { ...base, to: "main", gate: LAND_GATES.main },
-      [
-        "The version commit is on next; main did not move.",
-        "Fix the failure on a task branch and land it into next, then graduate the new tip:",
-        "  git switch --detach origin/next && pnpm land --to main",
-      ],
-    );
-  }
+  p.log.step(
+    `Land onto ${releaseBranch} with the release gate (pnpm verify --release)`,
+  );
+  await landOrFail(releaseRef);
 
   await returnTo(releaseRef);
-  const publishes = route === "beta" ? "next" : "main";
+  const stable = bumps.some((bump) => prerelease(bump.next) === null);
   p.outro(
-    `Landed ${summary}. release.yml publishes it from ${publishes}: the npm package, the shell and the tag in aidenlx/zotlit, and the release tags here.`,
+    `Landed ${summary}. release.yml publishes it from ${releaseBranch}: the npm package, the shell and the tag in aidenlx/zotlit, and the release tags here.${stable ? " A stable release then deploys the production docs site from its tag." : ""}`,
   );
 }
 
 /** Lands the release branch; on a failure, explains, returns to the branch, and exits. */
-async function landOrFail(
-  releaseRef: string,
-  options: LandOptions,
-  afterFailure: readonly string[] = [],
-): Promise<void> {
-  const result = await land(options);
+async function landOrFail(releaseRef: string): Promise<void> {
+  const result = await land({
+    cwd: workspaceRoot,
+    gate: LAND_GATES.release,
+    say: (line) => p.log.message(line),
+  });
   if (result.ok) return;
   await abandon(releaseRef);
   fail(
     [
-      `The land into ${options.to} failed at the ${result.step} step: ${result.message}`,
+      `The land onto ${releaseBranch} failed at the ${result.step} step: ${result.message}`,
       `Full log: ${result.logPath}`,
-      ...afterFailure,
     ].join("\n"),
     result.exitCode,
   );
@@ -273,7 +217,7 @@ async function pickVersion(
   current: string,
 ): Promise<string | null> {
   const options = [
-    ...bumpOptions(current, releaseBranch).map(({ kind, version }) => ({
+    ...bumpOptions(current).map(({ kind, version }) => ({
       value: version,
       label: `${kind} (${version})`,
     })),
@@ -296,9 +240,9 @@ async function pickVersion(
 
 /** A command-line version spec, resolved; exits on anything else. */
 function resolveSpec(app: AppMeta, current: string, spec: string): string {
-  const next = resolveVersionSpec(current, spec, releaseBranch);
+  const next = resolveVersionSpec(current, spec);
   if (next === null) {
-    const kinds = bumpOptions(current, releaseBranch).map(({ kind }) => kind);
+    const kinds = bumpOptions(current).map(({ kind }) => kind);
     fail(
       `--${app.name} ${spec}: expected a semver version or one of ${kinds.join(", ")} (current ${current}).`,
     );
@@ -373,7 +317,7 @@ async function assertCleanWorkingTree(): Promise<void> {
  * would bump a stale version, and commits only this checkout has reach the
  * remote through `pnpm land`, not inside a release.
  */
-async function assertInSyncWithOrigin(branch: ReleaseBranch): Promise<void> {
+async function assertInSyncWithOrigin(branch: string): Promise<void> {
   await git`git fetch -q origin ${`+refs/heads/${branch}:refs/remotes/origin/${branch}`}`;
   const counts = (
     await git`git rev-list --left-right --count ${`origin/${branch}...HEAD`}`
@@ -392,22 +336,6 @@ async function assertInSyncWithOrigin(branch: ReleaseBranch): Promise<void> {
   if (ahead > 0) {
     fail(
       `${branch} has ${ahead} commit(s) that origin/${branch} lacks. Land them first: a release carries its version commit alone.`,
-    );
-  }
-}
-
-/**
- * Guards against regressing a hotfix that landed directly on `main`: a
- * graduation needs `origin/main` to be an ancestor of the commit it ships.
- */
-async function assertMainAncestry(): Promise<void> {
-  await git`git fetch -q origin +refs/heads/main:refs/remotes/origin/main`;
-  const result = await git({
-    nothrow: true,
-  })`git merge-base --is-ancestor origin/main HEAD`;
-  if (result.exitCode !== 0) {
-    fail(
-      "main has commits that next lacks. Land a branch that merges origin/main into next, then graduate.",
     );
   }
 }

@@ -2,8 +2,8 @@
 // `pnpm release:publish <obsidian|zotero>`: publishes the checked-out
 // version of one product (lib/release/obsidian.ts, lib/release/zotero.ts).
 // release.yml runs it for each product its plan job names; the lead runs the
-// same command for a first publish, or to finish a run by hand. `--help`
-// prints the contract.
+// same command for a first publish, for a stable hotfix, or to finish a run
+// by hand. `--help` prints the contract.
 import type { Product } from "#release/lines";
 import type { PublishRepoOptions } from "#release/publish-repo";
 import { readFile, writeFile } from "node:fs/promises";
@@ -12,14 +12,15 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { $ } from "zx";
 
-import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+import { RELEASE_REPOSITORY, SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 import { getWorkspaceRoot } from "#package-roots";
 import { ghReleaseHost, gitSourceTags } from "#release/github";
-import { PRODUCTS, releaseLine, SOURCE_BRANCH } from "#release/lines";
+import { PRODUCTS, releaseLine } from "#release/lines";
 import { startLocalRegistry } from "#release/local-registry";
 import { publishObsidian } from "#release/obsidian";
 import { makeOutward } from "#release/outward";
+import { parseRemoteTags } from "#release/plan";
 import {
   githubTokenConfig,
   gitConfigEnv,
@@ -27,6 +28,7 @@ import {
   releaseRefspecs,
 } from "#release/publish-repo";
 import { NPM_REGISTRY, Registry } from "#release/registry";
+import { offTrunkRelease } from "#release/source";
 import { publishZotero } from "#release/zotero";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
@@ -36,12 +38,12 @@ const STAND_IN = join(root, ".scratch/publish-remote.git");
 
 const epilogue = `Steps of obsidian: build, pack, npm, registry, shell, check, commit, push, source tag. Steps of zotero: build, release zt-<version>, update manifests, update channel, source tag. Each step skips what an earlier run finished, so a run that failed half way is run again as it is.
 
-A real run publishes the version that apps/<app>/package.json names, from a clean checkout of a commit of the line's branch (${SOURCE_BRANCH.beta} for a beta, ${SOURCE_BRANCH.stable} for a stable version). Credentials:
+A real run publishes the version that apps/<app>/package.json names, from a clean checkout of a commit of origin/${SOURCE_BRANCH}: a beta or a stable version. A stable hotfix publishes from a commit that origin/${SOURCE_BRANCH} lacks: its version is a patch of the latest stable release, greater than it, and HEAD descends from that release's tag. Credentials:
   npm             trusted publishing in GitHub Actions (provenance); elsewhere the npm login
   ${RELEASE_REPOSITORY}  RELEASE_REPO_TOKEN when set; elsewhere the Git and gh login
   source tags     the remote origin of this checkout
 
---dry-run publishes nothing: npm publish becomes pnpm pack into a local registry, the publish repository becomes the bare clone ${STAND_IN} (cloned and refreshed from ${PUBLISH_URL}, read-only), and no tag is pushed. It prints each command a real run executes.`;
+--dry-run publishes nothing: it reports the check of HEAD in place of refusing it, npm publish becomes pnpm pack into a local registry, the publish repository becomes the bare clone ${STAND_IN} (cloned and refreshed from ${PUBLISH_URL}, read-only), and no tag is pushed. It prints each command a real run executes.`;
 
 const argv = await yargs(hideBin(process.argv))
   .scriptName("release:publish")
@@ -57,11 +59,6 @@ const argv = await yargs(hideBin(process.argv))
     type: "string",
     describe:
       "with --dry-run: publish this version; package.json takes it for the run and gets its own back after",
-  })
-  .option("branch", {
-    type: "string",
-    describe:
-      "the source branch the run publishes from (default: the checked-out branch)",
   })
   .epilogue(epilogue)
   .strict()
@@ -104,34 +101,23 @@ if ((await git`git status --porcelain`).stdout.trim()) {
     "The checkout has changes that are not committed; the dry run builds them.",
   );
 }
-const branch =
-  argv.branch ?? (await git`git branch --show-current`).stdout.trim();
-if (!dryRun) {
-  if (branch !== SOURCE_BRANCH[line]) {
-    console.error(
-      `release:publish: ${version} is on the ${line} line, which publishes from ${SOURCE_BRANCH[line]}, not ${branch || "a detached HEAD"}.`,
-    );
+const source = await checkSource();
+if (!source.ok) {
+  if (!dryRun) {
+    console.error(`release:publish: ${source.reason}`);
     process.exit(1);
   }
-  await git`git fetch -q origin ${`+refs/heads/${branch}:refs/remotes/origin/${branch}`}`;
-  if (
-    (
-      await git({
-        nothrow: true,
-      })`git merge-base --is-ancestor HEAD ${`origin/${branch}`}`
-    ).exitCode !== 0
-  ) {
-    console.error(
-      `release:publish: HEAD is not a commit of origin/${branch}. A release builds a commit that its branch has.`,
-    );
-    process.exit(1);
-  }
+  say(`A real run refuses this HEAD: ${source.reason}`);
 }
 
 say(
-  `${dryRun ? "Dry run: " : ""}publish ${product} ${version} (${line} line) from ${sourceCommit.slice(0, 12)}.`,
+  `${dryRun ? "Dry run: " : ""}publish ${product} ${version} (${line} line${source.ok && source.hotfix ? ", stable hotfix" : ""}) from ${sourceCommit.slice(0, 12)}.`,
 );
-say("release.yml runs the release gate before this: pnpm verify --release.");
+say(
+  source.ok && source.hotfix
+    ? "A stable hotfix runs the release gate by hand before this: pnpm verify --release."
+    : "release.yml runs the release gate before this: pnpm verify --release.",
+);
 
 await withVersion(appPackage, argv.version, async () => {
   if (product === "obsidian") await obsidian();
@@ -142,6 +128,46 @@ say(
   `\nThe commands of the outward steps${dryRun ? " that a real run executes" : ""}:`,
 );
 for (const command of outward.commands) say(`  ${command}`);
+if (source.ok && source.hotfix) {
+  say(
+    "\nA stable hotfix publishes from this machine, so no workflow deploys its docs. Deploy the production docs site from its tag: gh workflow run docs-deploy.yml -f site=production",
+  );
+}
+
+/**
+ * Whether HEAD may publish `version`: a commit of origin/main, or a stable
+ * hotfix (lib/release/source.ts).
+ */
+async function checkSource(): Promise<
+  { ok: true; hotfix: boolean } | { ok: false; reason: string }
+> {
+  const ref = `refs/remotes/origin/${SOURCE_BRANCH}`;
+  await git`git fetch -q origin ${`+refs/heads/${SOURCE_BRANCH}:${ref}`}`;
+  const isAncestor = async (ancestor: string) =>
+    (
+      await git({
+        nothrow: true,
+      })`git merge-base --is-ancestor ${ancestor} HEAD`
+    ).exitCode === 0;
+  if (
+    (await git({ nothrow: true })`git merge-base --is-ancestor HEAD ${ref}`)
+      .exitCode === 0
+  ) {
+    return { ok: true, hotfix: false };
+  }
+  const tags = parseRemoteTags((await git`git ls-remote --tags origin`).stdout);
+  const offTrunk = offTrunkRelease({ product, version, tags });
+  if (!offTrunk.ok) return offTrunk;
+  const { baseTag } = offTrunk;
+  await git`git fetch -q --no-tags origin ${`+refs/tags/${baseTag}:refs/tags/${baseTag}`}`;
+  if (!(await isAncestor(`refs/tags/${baseTag}`))) {
+    return {
+      ok: false,
+      reason: `HEAD is not a commit of origin/${SOURCE_BRANCH}, and it does not descend from ${baseTag}, the latest stable release. Cut the hotfix branch from that tag.`,
+    };
+  }
+  return { ok: true, hotfix: true };
+}
 
 async function obsidian() {
   const token = process.env.RELEASE_REPO_TOKEN;

@@ -77,15 +77,26 @@ describe("the pre-push hook", () => {
     SLOW,
   );
 
-  it.each(["next", "main"])(
-    "refuses a person's push to %s",
-    async (branch) => {
-      const result = await push(`HEAD:refs/heads/${branch}`);
+  it(
+    "refuses a person's push to main",
+    async () => {
+      const result = await push("HEAD:refs/heads/main");
 
       expect(result.ok).toBe(false);
       expect(result.stderr).toContain("pnpm land");
-      expect(await git(repos.remote, "log", "--format=%s", "next")).toBe(
+      expect(await git(repos.remote, "log", "--format=%s", "main")).toBe(
         "seed",
+      );
+    },
+    SLOW,
+  );
+
+  it(
+    "lets a person push a release tag on a commit that main lacks, as a stable hotfix does",
+    async () => {
+      expect(await push("HEAD:refs/tags/2.3.1")).toMatchObject({ ok: true });
+      expect(await git(repos.remote, "rev-parse", "2.3.1^{commit}")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
       );
     },
     SLOW,
@@ -120,10 +131,10 @@ describe("the pre-push hook", () => {
   );
 
   it(
-    "lets a land push next from an agent session while it holds the Land Turn",
+    "lets a land push main from an agent session while it holds the Land Turn",
     async () => {
       const turn = await acquireDesktopSlot({
-        admission: landAdmission("next"),
+        admission: landAdmission(),
         silenceMs: 600_000,
         pollMs: 10,
         signals: false,
@@ -131,7 +142,7 @@ describe("the pre-push hook", () => {
       });
       const token = turn.owner.token;
       try {
-        const result = await push("HEAD:refs/heads/next", {
+        const result = await push("HEAD:refs/heads/main", {
           CLAUDECODE: "1",
           [LAND_TURN_ENV]: token,
         });
@@ -141,11 +152,11 @@ describe("the pre-push hook", () => {
       }
       // The same token, once the turn is over, is refused.
       await repos.commit(cwd, "b.txt", { text: "b\n" });
-      const late = await push("HEAD:refs/heads/next", {
+      const late = await push("HEAD:refs/heads/main", {
         [LAND_TURN_ENV]: token,
       });
       expect(late.ok).toBe(false);
-      expect(await git(repos.remote, "log", "--format=%s", "-1", "next")).toBe(
+      expect(await git(repos.remote, "log", "--format=%s", "-1", "main")).toBe(
         "change a.txt",
       );
     },

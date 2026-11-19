@@ -1,4 +1,4 @@
-// The End-to-end Run after a land. Each land into `next` writes a request for
+// The End-to-end Run after a land. Each land onto `main` writes a request for
 // its new tip and starts a detached runner; the land does not wait for it.
 //
 //   land ─▶ request.json (the newest tip; each land overwrites it)
@@ -57,10 +57,10 @@ const HOUR = 3_600_000;
 /** How long a runner waits behind the run before it. */
 export const LAND_E2E_WAIT_MS = 3 * HOUR;
 
-/** The tip of `next` to run, as the land that pushed it wrote it. */
+/** The tip of `main` to run, as the land that pushed it wrote it. */
 export interface LandE2eRequest {
   commit: string;
-  /** The tip of `next` before the land. */
+  /** The tip of `main` before the land. */
   previous: string;
   /** The primary worktree of the repository, where the checkout is made. */
   repository: string;

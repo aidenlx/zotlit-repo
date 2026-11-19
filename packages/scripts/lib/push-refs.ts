@@ -1,7 +1,9 @@
-// What the pre-push hook lets through. `next` and `main` take pushes only from
-// `pnpm land`, which pushes during its Land Turn; an agent session pushes
+// What the pre-push hook lets through. `main`, the trunk, takes pushes only
+// from `pnpm land`, which pushes during its Land Turn; an agent session pushes
 // nothing of its own, since `land` pushes for it. A person pushes any other
 // branch freely: the quality gate runs in `land`, on the rebased result.
+
+import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 /**
  * One ref line that Git hands a pre-push hook on stdin:
@@ -25,8 +27,8 @@ export function parsePushRefs(input: string): PushRef[] {
     });
 }
 
-/** The branches that only `land` pushes. */
-const LANDED_REFS = new Set(["refs/heads/next", "refs/heads/main"]);
+/** The branch that only `land` pushes. */
+const LANDED_REF = `refs/heads/${SOURCE_BRANCH}`;
 
 /**
  * Why the push may not go ahead; empty when it may.
@@ -40,13 +42,10 @@ export function pushProblems(
   if (context.land || refs.length === 0) return [];
   if (context.agent) {
     return [
-      `An agent session pushes nothing itself (${refs.map((ref) => ref.remoteRef).join(", ")}). Land the branch with pnpm land: it rebases onto next, runs the gate, and pushes.`,
+      `An agent session pushes nothing itself (${refs.map((ref) => ref.remoteRef).join(", ")}). Land the branch with pnpm land: it rebases onto ${SOURCE_BRANCH}, runs the gate, and pushes.`,
     ];
   }
   return refs
-    .filter((ref) => LANDED_REFS.has(ref.remoteRef))
-    .map(
-      (ref) =>
-        `${ref.remoteRef.slice("refs/heads/".length)} takes pushes only from pnpm land (pnpm land --to main for main).`,
-    );
+    .filter((ref) => ref.remoteRef === LANDED_REF)
+    .map(() => `${SOURCE_BRANCH} takes pushes only from pnpm land.`);
 }

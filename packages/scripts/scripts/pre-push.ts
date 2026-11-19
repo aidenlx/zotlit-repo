@@ -4,7 +4,7 @@ import type { PushRef } from "#push-refs";
 // The pre-push hook, run by Lefthook as `pre-push.ts <remote>` with the ref
 // lines on stdin. Lefthook hands stdin to one command at most, so this one
 // command makes both checks:
-//   - the push rules of `#push-refs`: `next` and `main` take pushes only from
+//   - the push rules of `#push-refs`: `main` takes pushes only from
 //     `pnpm land`, and an agent session pushes nothing itself. A push from
 //     `land` carries the token of its Land Turn, checked against the live
 //     holder.

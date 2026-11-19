@@ -27,7 +27,7 @@ commit-msg:
     ai-attribution:
       run: mise exec -- node packages/scripts/scripts/ai-attribution.ts message {1}
 
-# next and main take pushes only from `pnpm land`, which runs the quality gate
+# main takes pushes only from `pnpm land`, which runs the quality gate
 # on the rebased result; an agent session pushes nothing itself; and no pushed
 # commit credits an agent. One command makes every check, because Lefthook
 # hands stdin, where Git writes the pushed refs, to one command at most. See

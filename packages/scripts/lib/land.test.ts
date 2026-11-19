@@ -45,11 +45,11 @@ async function taskClone(name: string, branch = `feat/${name}`) {
   return cwd;
 }
 
-/** A commit on origin's next, made from a clone of its own. */
-async function moveNext(file: string, text: string, message = `next ${file}`) {
-  const other = await repos.clone(`next-${file}-${Math.random()}`);
+/** A commit on origin's main, made from a clone of its own. */
+async function moveMain(file: string, text: string, message = `main ${file}`) {
+  const other = await repos.clone(`main-${file}-${Math.random()}`);
   const sha = await repos.commit(other, file, { text, message });
-  await git(other, "push", "-q", "origin", "HEAD:refs/heads/next");
+  await git(other, "push", "-q", "origin", "HEAD:refs/heads/main");
   return sha;
 }
 
@@ -72,54 +72,53 @@ async function until(check: () => Promise<boolean>, what: string) {
   throw new Error(`Timed out waiting for ${what}\n${output.join("")}`);
 }
 
-describe("land into next", () => {
+describe("land", () => {
   it(
-    "rebases onto the moved next, gates the rebased tree, and pushes it",
+    "rebases onto the moved main, gates the rebased tree, and pushes it",
     async () => {
       const cwd = await taskClone("a");
       await git(cwd, "push", "-q", "origin", "HEAD");
-      await moveNext("upstream.txt", "upstream\n");
+      await moveMain("upstream.txt", "upstream\n");
 
       const result = await land({
         ...quiet,
         cwd,
-        to: "next",
-        // The gate sees the commit that next gained after the branch left it.
+        // The gate sees the commit that main gained after the branch left it.
         gate: ["sh", "-c", "test -e upstream.txt && test -e a.txt"],
       });
 
       expect(result).toMatchObject({ ok: true, attempts: 1 });
-      expect(await subjects("next")).toEqual([
+      expect(await subjects("main")).toEqual([
         "a",
-        "next upstream.txt",
+        "main upstream.txt",
         "seed",
       ]);
       expect(await git(cwd, "rev-parse", "HEAD")).toBe(
-        await git(repos.remote, "rev-parse", "next"),
+        await git(repos.remote, "rev-parse", "main"),
       );
-      // The local next follows, and the task branch is gone on origin.
-      expect(await git(cwd, "rev-parse", "next")).toBe(
+      // The local main follows, and the task branch is gone on origin.
+      expect(await git(cwd, "rev-parse", "main")).toBe(
         await git(cwd, "rev-parse", "HEAD"),
       );
       expect(await git(repos.remote, "branch", "--list", "feat/a")).toBe("");
       expect(await waits()).toMatchObject([
-        { target: "next", source: "feat/a", outcome: "landed", attempts: 1 },
+        { source: "feat/a", outcome: "landed", attempts: 1 },
       ]);
     },
     SLOW,
   );
 
   it(
-    "on a rebase conflict, leaves the branch as it was and next unchanged",
+    "on a rebase conflict, leaves the branch as it was and main unchanged",
     async () => {
       const cwd = await repos.clone("a");
       await git(cwd, "switch", "-q", "-c", "feat/a");
       const original = await repos.commit(cwd, "README.md", {
         text: "branch\n",
       });
-      const upstream = await moveNext("README.md", "upstream\n");
+      const upstream = await moveMain("README.md", "upstream\n");
 
-      const result = await land({ ...quiet, cwd, to: "next", gate: ["true"] });
+      const result = await land({ ...quiet, cwd, gate: ["true"] });
 
       expect(result).toMatchObject({ ok: false, step: "rebase", exitCode: 1 });
       expect(result.ok || result.message).toContain("README.md");
@@ -127,35 +126,34 @@ describe("land into next", () => {
       expect(await git(cwd, "symbolic-ref", "--short", "HEAD")).toBe("feat/a");
       expect(await git(cwd, "status", "--porcelain")).toBe("");
       expect(existsSync(join(cwd, ".git", "rebase-merge"))).toBe(false);
-      expect(await git(repos.remote, "rev-parse", "next")).toBe(upstream);
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(upstream);
     },
     SLOW,
   );
 
   it(
-    "starts again from the fetch, in the same turn, when next moved during the gate",
+    "starts again from the fetch, in the same turn, when main moved during the gate",
     async () => {
       const cwd = await taskClone("a");
       const other = await repos.clone("other");
       const marker = join(repos.root, "moved");
-      // The first gate run lands another change on next before the push.
+      // The first gate run lands another change on main before the push.
       const gate = [
         `if [ ! -e '${marker}' ]; then`,
         `  touch '${marker}' && cd '${other}' &&`,
         "  echo moved > moved.txt && git add moved.txt &&",
-        "  git commit -qm moved && git push -q origin HEAD:refs/heads/next",
+        "  git commit -qm moved && git push -q origin HEAD:refs/heads/main",
         "fi",
       ].join("\n");
 
       const result = await land({
         ...quiet,
         cwd,
-        to: "next",
         gate: ["sh", "-c", gate],
       });
 
       expect(result).toMatchObject({ ok: true, attempts: 2 });
-      expect(await subjects("next")).toEqual(["a", "moved", "seed"]);
+      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
       expect(await waits()).toMatchObject([{ outcome: "landed", attempts: 2 }]);
     },
     SLOW,
@@ -165,12 +163,11 @@ describe("land into next", () => {
     "on a failed gate, pushes nothing and names the step and the log",
     async () => {
       const cwd = await taskClone("a");
-      const upstream = await moveNext("upstream.txt", "upstream\n");
+      const upstream = await moveMain("upstream.txt", "upstream\n");
 
       const result = await land({
         ...quiet,
         cwd,
-        to: "next",
         gate: ["sh", "-c", "echo the gate says no; exit 3"],
       });
 
@@ -179,8 +176,8 @@ describe("land into next", () => {
       expect(await readFile(result.logPath, "utf8")).toContain(
         "the gate says no",
       );
-      expect(await git(repos.remote, "rev-parse", "next")).toBe(upstream);
-      // The branch stays rebased onto the fetched next: the tree to fix.
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(upstream);
+      // The branch stays rebased onto the fetched main: the tree to fix.
       expect(await git(cwd, "symbolic-ref", "--short", "HEAD")).toBe("feat/a");
       expect(await git(cwd, "status", "--porcelain")).toBe("");
       expect(await git(cwd, "rev-parse", "HEAD~1")).toBe(upstream);
@@ -198,7 +195,6 @@ describe("land into next", () => {
       const result = await land({
         ...quiet,
         cwd,
-        to: "next",
         silenceMs: 600,
         gate: [
           "sh",
@@ -218,7 +214,6 @@ describe("land into next", () => {
       const result = await land({
         ...quiet,
         cwd,
-        to: "next",
         silenceMs: 500,
         gate: ["sh", "-c", "echo starting; sleep 30"],
       });
@@ -228,7 +223,7 @@ describe("land into next", () => {
       expect(result.ok || result.message).toMatch(
         /made no progress for .*silence limit of 500 ms/,
       );
-      expect(await subjects("next")).toEqual(["seed"]);
+      expect(await subjects("main")).toEqual(["seed"]);
     },
     SLOW,
   );
@@ -237,7 +232,16 @@ describe("land into next", () => {
     const cwd = await taskClone("a");
     await writeFile(join(cwd, "loose.txt"), "loose\n");
 
-    const result = await land({ ...quiet, cwd, to: "next", gate: ["true"] });
+    const result = await land({ ...quiet, cwd, gate: ["true"] });
+
+    expect(result).toMatchObject({ ok: false, step: "preflight" });
+  });
+
+  it("refuses a detached HEAD, which names no branch to rebase", async () => {
+    const cwd = await repos.clone("detached");
+    await git(cwd, "switch", "-q", "--detach", "origin/main");
+
+    const result = await land({ ...quiet, cwd, gate: ["true"] });
 
     expect(result).toMatchObject({ ok: false, step: "preflight" });
   });
@@ -261,13 +265,13 @@ describe("the Land Queue", () => {
   function landChild(cwd: string): ChildProcess {
     return child(
       `const { land } = await import(${JSON.stringify(MODULE)});
-const result = await land({ cwd: ${JSON.stringify(cwd)}, to: "next", gate: ["true"], pollMs: 20, say: () => {} });
+const result = await land({ cwd: ${JSON.stringify(cwd)}, gate: ["true"], pollMs: 20, say: () => {} });
 console.log(JSON.stringify(result));`,
     );
   }
 
   async function tickets(): Promise<number> {
-    const dir = join(landAdmission("next").dir(), "queue");
+    const dir = join(landAdmission().dir(), "queue");
     return (await readdir(dir).catch(() => [])).filter((name) =>
       name.endsWith(".json"),
     ).length;
@@ -280,7 +284,7 @@ console.log(JSON.stringify(result));`,
       const holder = child(
         `const slot = await import(${JSON.stringify(SLOT)});
 const { landAdmission } = await import(${JSON.stringify(QUEUE)});
-const held = await slot.acquireDesktopSlot({ admission: landAdmission("next"), silenceMs: 600000, pollMs: 20, log: () => {} });
+const held = await slot.acquireDesktopSlot({ admission: landAdmission(), silenceMs: 600000, pollMs: 20, log: () => {} });
 console.log("held");
 process.stdin.resume();
 process.stdin.on("end", () => { held.release(); process.exit(0); });`,
@@ -301,7 +305,7 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
         [0, null],
         [0, null],
       ]);
-      expect(await subjects("next")).toEqual(["b", "a", "seed"]);
+      expect(await subjects("main")).toEqual(["b", "a", "seed"]);
       const [a, b] = await waits();
       expect(a).toMatchObject({ source: "feat/a", outcome: "landed" });
       expect(b).toMatchObject({ source: "feat/b", outcome: "landed" });
@@ -315,7 +319,7 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
     async () => {
       const dead = child("process.exit(0)");
       await once(dead, "exit");
-      const slot = join(landAdmission("next").dir(), "slot-0");
+      const slot = join(landAdmission().dir(), "slot-0");
       await mkdir(slot, { recursive: true });
       const now = Temporal.Now.instant();
       await writeFile(
@@ -323,7 +327,7 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
         JSON.stringify({
           token: "dead-holder",
           pid: dead.pid,
-          command: "land feat/dead into next",
+          command: "land feat/dead into main",
           worktree: join(repos.root, "dead"),
           enqueuedAt: now.toString(),
           deadline: now.toString(),
@@ -339,139 +343,12 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
         ...quiet,
         say: (line) => lines.push(line),
         cwd: await taskClone("a"),
-        to: "next",
         gate: ["true"],
       });
 
       expect(result).toMatchObject({ ok: true });
       expect(lines.join("\n")).toContain(`pid ${dead.pid}`);
-      expect(await subjects("next")).toEqual(["a", "seed"]);
-    },
-    SLOW,
-  );
-});
-
-describe("land a merge into next", () => {
-  it(
-    "keeps the commits of a merge of main, so main stays an ancestor of next for the next graduation",
-    async () => {
-      const seed = join(repos.root, "seed");
-      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
-      // A hotfix on main that next lacks.
-      const hotfix = await repos.clone("hotfix");
-      await git(hotfix, "switch", "-q", "main");
-      const fix = await repos.commit(hotfix, "fix.txt", { text: "fix\n" });
-      await git(hotfix, "push", "-q", "origin", "HEAD:refs/heads/main");
-      const cwd = await repos.clone("sync");
-      await git(cwd, "switch", "-q", "-c", "sync/main");
-      await git(
-        cwd,
-        "merge",
-        "-q",
-        "--no-ff",
-        "-m",
-        "merge main",
-        "origin/main",
-      );
-      // next moves meanwhile, so the branch must take it in.
-      await moveNext("feature.txt", "feature\n");
-
-      const result = await land({ ...quiet, cwd, to: "next", gate: ["true"] });
-
-      expect(result).toMatchObject({ ok: true });
-      await git(repos.remote, "merge-base", "--is-ancestor", fix, "next");
-    },
-    SLOW,
-  );
-});
-
-describe("land into main", () => {
-  it(
-    "fast-forwards main to a commit of next after the gate",
-    async () => {
-      const seed = join(repos.root, "seed");
-      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
-      const tip = await moveNext("feature.txt", "feature\n");
-      const cwd = await repos.clone("release");
-      await git(cwd, "switch", "-q", "--detach", "origin/next");
-
-      const result = await land({ ...quiet, cwd, to: "main", gate: ["true"] });
-
-      expect(result).toMatchObject({ ok: true, commit: tip });
-      expect(await git(repos.remote, "rev-parse", "main")).toBe(tip);
-    },
-    SLOW,
-  );
-
-  it(
-    "refuses a commit that next does not have",
-    async () => {
-      const seed = join(repos.root, "seed");
-      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
-      const cwd = await repos.clone("release");
-      await git(cwd, "switch", "-q", "--detach");
-      await repos.commit(cwd, "local.txt", { text: "local\n" });
-
-      const result = await land({ ...quiet, cwd, to: "main", gate: ["true"] });
-
-      expect(result).toMatchObject({ ok: false, step: "check" });
-      expect(await git(repos.remote, "rev-parse", "main")).toBe(
-        await git(seed, "rev-parse", "HEAD"),
-      );
-    },
-    SLOW,
-  );
-
-  it(
-    "lands a hotfix branch onto main, rebased onto the moved main, and deletes the branch on origin",
-    async () => {
-      const seed = join(repos.root, "seed");
-      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
-      const cwd = await repos.clone("hotfix");
-      await git(cwd, "switch", "-q", "-c", "fix/crash", "origin/main");
-      await repos.commit(cwd, "fix.txt", { text: "fix\n", message: "fix" });
-      await git(cwd, "push", "-q", "origin", "HEAD");
-      const other = await repos.clone("other-fix");
-      await git(other, "switch", "-q", "main");
-      await repos.commit(other, "other.txt", {
-        text: "other\n",
-        message: "other",
-      });
-      await git(other, "push", "-q", "origin", "HEAD:refs/heads/main");
-
-      const result = await land({
-        ...quiet,
-        cwd,
-        to: "main",
-        hotfix: true,
-        gate: ["sh", "-c", "test -e other.txt && test -e fix.txt"],
-      });
-
-      expect(result).toMatchObject({ ok: true });
-      expect(await subjects("main")).toEqual(["fix", "other", "seed"]);
-      expect(await subjects("next")).toEqual(["seed"]);
-      expect(await git(repos.remote, "branch", "--list", "fix/crash")).toBe("");
-    },
-    SLOW,
-  );
-
-  it(
-    "refuses a hotfix from a detached HEAD, which names no branch to rebase",
-    async () => {
-      const seed = join(repos.root, "seed");
-      await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
-      const cwd = await repos.clone("detached");
-      await git(cwd, "switch", "-q", "--detach", "origin/main");
-
-      const result = await land({
-        ...quiet,
-        cwd,
-        to: "main",
-        hotfix: true,
-        gate: ["true"],
-      });
-
-      expect(result).toMatchObject({ ok: false, step: "preflight" });
+      expect(await subjects("main")).toEqual(["a", "seed"]);
     },
     SLOW,
   );

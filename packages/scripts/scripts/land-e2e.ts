@@ -2,7 +2,7 @@
 
 // The detached runner of the End-to-end Run after a land (lib/land-e2e.ts).
 // `pnpm land` starts it; it waits for the End-to-end Turn, then runs the
-// newest tip of `next` in its own checkout, so later work in any worktree
+// newest tip of `main` in its own checkout, so later work in any worktree
 // leaves that run alone. It runs from the shared state directory, since the
 // worktree that landed may be removed before the run ends.
 
@@ -198,7 +198,7 @@ const report: LandE2eDeps["report"] = async ({ run, range, stage }) => {
     .join("\n");
   const short = request.commit.slice(0, 12);
   const body = [
-    `The End-to-end Run after a land failed at the ${stage} stage, on \`next\` at ${request.commit}.`,
+    `The End-to-end Run after a land failed at the ${stage} stage, on \`main\` at ${request.commit}.`,
     "",
     `Commit range: \`${range}\` (from the last tip that passed).`,
     "",
@@ -225,7 +225,7 @@ const report: LandE2eDeps["report"] = async ({ run, range, stage }) => {
       "--label",
       "needs-triage",
       "--title",
-      `End-to-end Run fails on next at ${short}`,
+      `End-to-end Run fails on main at ${short}`,
       "--body-file",
       bodyPath,
     ],

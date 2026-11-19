@@ -1,5 +1,5 @@
 // Real Git repositories in a temporary folder for the land and push tests: a
-// bare `origin` whose default branch is `next`, and clones of it. Git reads
+// bare `origin` whose default branch is `main`, and clones of it. Git reads
 // only the test's own global config, so the developer's hooks, signing, and
 // identity stay out, and a test that runs inside a Git hook or a land sees no
 // outer repository or Land Turn.
@@ -38,7 +38,7 @@ export interface GitRepos {
   root: string;
   /** The bare `origin`. */
   remote: string;
-  /** A new clone of `origin`, checked out at `next`. */
+  /** A new clone of `origin`, checked out at `main`. */
   clone: (name: string) => Promise<string>;
   /** Commit `file` with `text` in `cwd`; returns the new commit. */
   commit: (cwd: string, file: string, change: Change) => Promise<string>;
@@ -64,7 +64,7 @@ export async function makeGitRepos(): Promise<GitRepos> {
       "  name = Test",
       "  email = test@example.com",
       "[init]",
-      "  defaultBranch = next",
+      "  defaultBranch = main",
       "[commit]",
       "  gpgsign = false",
       "[core]",
@@ -79,7 +79,7 @@ export async function makeGitRepos(): Promise<GitRepos> {
   process.env.ZOTLIT_DESKTOP_DIR = join(root, "state");
 
   const remote = join(root, "origin.git");
-  await run("git", ["init", "-q", "--bare", "-b", "next", remote]);
+  await run("git", ["init", "-q", "--bare", "-b", "main", remote]);
   const clone = async (name: string) => {
     const path = join(root, name);
     await run("git", ["clone", "-q", remote, path]);
@@ -97,7 +97,7 @@ export async function makeGitRepos(): Promise<GitRepos> {
   };
   const seed = await clone("seed");
   await commit(seed, "README.md", { text: "seed\n", message: "seed" });
-  await git(seed, "push", "-q", "origin", "HEAD:refs/heads/next");
+  await git(seed, "push", "-q", "origin", "HEAD:refs/heads/main");
 
   return {
     root,

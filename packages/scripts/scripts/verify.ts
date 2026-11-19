@@ -3,14 +3,14 @@
 import { Effect } from "effect";
 // The one quality gate. `pnpm land` runs it on the rebased result before it
 // pushes; GitHub runs no checks of its own (ADR 0076).
-//   (no flag)   the packages the branch changed since it left `next` or
-//               `main`, and their dependents.
+//   (no flag)   the packages the branch changed since it left `main`, and
+//               their dependents.
 //   --release   every package, the desktop End-to-end Run and worker check,
 //               plus the Obsidian guideline review (ADR 0020) and the check
 //               of the publish repository's shell (check-shell.ts).
-//               `pnpm land --to main` runs it before it moves `main`,
-//               `release.ts` in the Land Turn of the version commit, and
-//               `release.yml` before it publishes (desktop checks skip there).
+//               `release.ts` runs it in the Land Turn of the version commit,
+//               a stable hotfix before its publish, and `release.yml` before
+//               it publishes (desktop checks skip there).
 // A branch that changes only agent docs (lib/agent-docs.ts) runs Format only.
 // Format, lint and the generated-artifact checks always cover the whole tree.
 import { $ } from "zx";

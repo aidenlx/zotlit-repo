@@ -1,15 +1,18 @@
 name: Release
 
-# Publishes each product whose version on its line's branch has no release
-# tag yet: a pre-release from `next`, a stable version from `main`. The
-# products publish to the publish repository, aidenlx/zotlit
-# (RELEASE_REPOSITORY in packages/config/repositories.ts):
+# Publishes each product whose version on `main`, the one trunk, has no
+# release tag yet. The version picks the line: a pre-release is a beta, any
+# other version a stable release (ADR 0097). The products publish to the
+# publish repository, aidenlx/zotlit (RELEASE_REPOSITORY in
+# packages/config/repositories.ts):
 #
 #   obsidian  the npm bundle package, then the shell commit and the version
 #             tag in aidenlx/zotlit, whose own workflow builds and releases
 #             the plugin; then the same tag here
 #   zotero    the zt-<version> release and the rolling update channel in
 #             aidenlx/zotlit; then the same tag here
+#   docs      after a stable version, the production docs site from its tag
+#             (docs-deploy.yml)
 #
 # The steps live in packages/scripts/lib/release/ and run the same way from
 # a machine (`pnpm release:publish`). Each skips what an earlier run did, so
@@ -17,7 +20,7 @@ name: Release
 # CONTRIBUTING.md "Releasing".
 on:
   push:
-    branches: [main, next]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -28,13 +31,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # The release tags of this repository are the gate: a pushed branch whose
-  # versions are tagged stops here, before any dependency is installed.
+  # The release tags of this repository are the gate: a push whose versions
+  # are tagged stops here, before any dependency is installed. A dispatch
+  # publishes from main alone; a stable hotfix publishes from a machine.
   plan:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       obsidian: ${{ steps.plan.outputs.obsidian }}
       zotero: ${{ steps.plan.outputs.zotero }}
+      docs-tag: ${{ steps.plan.outputs.docs-tag }}
     steps:
       - uses: actions/checkout@v7
 
@@ -44,7 +50,7 @@ jobs:
 
       - name: Find unreleased versions
         id: plan
-        run: node packages/scripts/scripts/release-plan.ts --branch "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+        run: node packages/scripts/scripts/release-plan.ts >> "$GITHUB_OUTPUT"
 
   # The release gate on the tree that ships. Its desktop checks skip here;
   # `pnpm release` ran them in its Land Turn.
@@ -73,7 +79,7 @@ jobs:
       # npm trusted publishing and its provenance statement.
       id-token: write
     steps:
-      # The full history: the run checks that it builds a commit of its branch.
+      # The full history: the run checks that it builds a commit of main.
       - uses: actions/checkout@v7
         with:
           lfs: true
@@ -82,7 +88,7 @@ jobs:
       - uses: ./.github/actions/setup-workspace
 
       - name: Publish
-        run: pnpm release:publish obsidian --branch "$GITHUB_REF_NAME"
+        run: pnpm release:publish obsidian
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
@@ -105,7 +111,7 @@ jobs:
 
       - name: Publish
         id: publish
-        run: pnpm release:publish zotero --branch "$GITHUB_REF_NAME"
+        run: pnpm release:publish zotero
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
@@ -115,3 +121,20 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: ${{ steps.publish.outputs.attest }}
+
+  # A stable release deploys the production docs site from its release tag,
+  # once every product of the run published. A tag pushed with GITHUB_TOKEN
+  # starts no workflow, so this job calls the deploy itself.
+  docs:
+    needs: [plan, obsidian, zotero]
+    if: >-
+      always() && needs.plan.outputs.docs-tag != '' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docs-deploy.yml
+    with:
+      site: production
+      ref: ${{ needs.plan.outputs.docs-tag }}
+    secrets: inherit

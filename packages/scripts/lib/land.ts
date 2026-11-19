@@ -1,40 +1,31 @@
-// One land: the only path by which a change reaches `next`, and by which
-// `main` takes a stable graduation from `next`.
+// One land: the only path by which a change reaches `main`, the trunk
+// (ADR 0097).
 //
-//   land into next (from a task branch, clean tree)
-//     preflight ─▶ wait in the Land Queue of next ─▶ the Land Turn:
-//       fetch origin/next ─▶ rebase the branch onto it ─▶ gate ─▶ push HEAD:next
-//         ▲                                                       │ next moved
+//   land (from a task branch, clean tree)
+//     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
+//       fetch origin/main ─▶ rebase the branch onto it ─▶ gate ─▶ push HEAD:main
+//         ▲                                                       │ main moved
 //         └───────────────────────────────────────────────────────┘
-//       update the local next ─▶ delete the task branch on the remote
+//       update the local main ─▶ delete the task branch on the remote
 //     after the turn: request the End-to-end Run of the new tip (lib/land-e2e.ts)
 //
-//   land into main (from a commit of next, clean tree): a stable graduation
-//     preflight ─▶ wait in the Land Queue of main ─▶ the Land Turn:
-//       fetch ─▶ check HEAD is in next and main is behind it ─▶ release gate
-//       ─▶ push HEAD:main as a fast-forward ─▶ update the local main
-//
-//   land a hotfix into main (from a task branch off main, clean tree)
-//     as a land into next, with main in place of next and the release gate
-//
-// A branch that holds a merge commit, such as a merge of main into next after
-// a hotfix, takes the moved target by a merge in place of the rebase: a
-// rebase would copy main's commits, and main would no longer be an ancestor
-// of next, as a graduation needs.
+// A change lands with `pnpm verify` as its gate; the version commit of a
+// release (`pnpm release`) lands with the release gate.
 //
 // The gate runs once, in the turn, on the tree that is pushed. On a failure
 // the worktree stays on its branch with a clean tree: a rebase conflict
 // restores the branch as it was, and a gate or push failure leaves it rebased
-// onto the fetched `next`, which is the tree to fix.
+// onto the fetched `main`, which is the tree to fix.
 
 import type { DesktopSlot } from "#desktop-slot";
-import type { LandTarget } from "#land-queue";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
+
+import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 import {
   acquireDesktopSlot,
@@ -56,14 +47,17 @@ const HOUR = 60 * MINUTE;
 
 /** How long a land waits for its turn by default. */
 export const LAND_WAIT_MS = HOUR;
-/** How many times one turn fetches and gates again after `next` moved. */
+/** How many times one turn fetches and gates again after `main` moved. */
 export const LAND_ATTEMPTS = 3;
 
-/** The quality gate of a land into each branch. */
+/** The branch every land pushes to. */
+const TRUNK = SOURCE_BRANCH;
+
+/** The quality gate of a change, and of the version commit of a release. */
 export const LAND_GATES = {
-  next: ["pnpm", "verify"],
-  main: ["pnpm", "verify", "--release"],
-} as const satisfies Record<LandTarget, readonly [string, ...string[]]>;
+  change: ["pnpm", "verify"],
+  release: ["pnpm", "verify", "--release"],
+} as const satisfies Record<string, readonly [string, ...string[]]>;
 
 /** The steps of a land, as a failure names them. */
 export type LandStep =
@@ -71,7 +65,6 @@ export type LandStep =
   | "queue"
   | "fetch"
   | "rebase"
-  | "check"
   | "gate"
   | "push"
   | "lease";
@@ -79,17 +72,11 @@ export type LandStep =
 export interface LandOptions {
   /** The worktree to land from. */
   cwd: string;
-  to: LandTarget;
-  /**
-   * With `to: "main"`: land the task branch onto main, a hotfix, in place of
-   * fast-forwarding main to a commit of next.
-   */
-  hotfix?: boolean;
   /** The quality gate, run in `cwd` on the tree that is pushed. */
   gate: readonly [string, ...string[]];
   /** @default "origin" */
   remote?: string;
-  /** @default the Land Queue of `to` */
+  /** @default the Land Queue */
   queueDir?: string;
   /** @default `logs/` in landStateDir() */
   logDir?: string;
@@ -114,7 +101,7 @@ export type LandResult =
       ok: true;
       /** The tip that was pushed. */
       commit: string;
-      /** The tip of the target before the push. */
+      /** The tip of the trunk before the push. */
       previous: string;
       attempts: number;
       waitMs: number;
@@ -228,18 +215,17 @@ class Shell {
 
 const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 
-/** Land the worktree at `options.cwd` into `options.to`. */
+/** Land the worktree at `options.cwd` onto the trunk. */
 export async function land(options: LandOptions): Promise<LandResult> {
-  const { cwd, to } = options;
-  /** The branch is rebased onto the target: every land but a graduation. */
-  const rebases = to === "next" || options.hotfix === true;
+  const { cwd } = options;
+  const to = TRUNK;
   const remote = options.remote ?? "origin";
   const silenceMs = options.silenceMs ?? SILENCE_LIMIT_MS.childOutput;
   const say = options.say ?? ((line: string) => console.error(line));
   const logDir = options.logDir ?? join(landStateDir(), "logs");
   await mkdir(logDir, { recursive: true });
   const stamp = Temporal.Now.instant().toString().replaceAll(":", "-");
-  const logPath = join(logDir, `${stamp}-${to}-${process.pid}.log`);
+  const logPath = join(logDir, `${stamp}-${process.pid}.log`);
   const log = createWriteStream(logPath, { flags: "a" });
   const sh = new Shell(cwd, log);
   say(`Land log: ${logPath}`);
@@ -260,15 +246,15 @@ export async function land(options: LandOptions): Promise<LandResult> {
   };
 
   try {
-    const pre = await preflight(sh, rebases, remote);
-    source = pre.branch ?? pre.head.slice(0, 12);
+    const pre = await preflight(sh, remote);
+    source = pre.branch;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
     for (const signal of SIGNALS) process.on(signal, onSignal);
     current = "queue";
     enqueuedAt = Temporal.Now.instant();
     try {
       slot = await acquireDesktopSlot({
-        admission: landAdmission(to),
+        admission: landAdmission(),
         ...(options.queueDir ? { dir: options.queueDir } : {}),
         cwd,
         command: `land ${source} into ${to}`,
@@ -319,16 +305,12 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (leaseOver) throw leaseEnded(leaseOver);
       return value;
     };
-    const maxAttempts = rebases ? (options.attempts ?? LAND_ATTEMPTS) : 1;
+    const maxAttempts = options.attempts ?? LAND_ATTEMPTS;
     let previous = "";
     for (;;) {
       attempts += 1;
       previous = await step("fetch", () => fetchTarget(sh, remote, to));
-      if (rebases) {
-        await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
-      } else {
-        await step("check", () => checkGraduation(sh, remote));
-      }
+      await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
       await step("gate", async () => {
         const [command, ...args] = options.gate;
         const result = await sh.run(command, args);
@@ -351,9 +333,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
     }
     const commit = await sh.git("push", "rev-parse", "HEAD");
     await updateLocalRef(sh, say, { to, commit });
-    if (rebases && pre.branch) {
-      await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
-    }
+    await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
     await finish("landed");
     say(`Landed ${source} into ${to} at ${commit.slice(0, 12)}.`);
     return { ok: true, commit, previous, attempts, waitMs, logPath };
@@ -391,7 +371,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
       : undefined;
     await recordLandWait(
       {
-        target: to,
         source,
         worktree: slot?.owner.worktree ?? cwd,
         enqueuedAt: enqueuedAt.toString(),
@@ -414,12 +393,11 @@ function leaseEnded(reason: string): LandFailure {
   );
 }
 
-/** The checks that need no turn: a clean tree on a branch that may land. */
+/** The checks that need no turn: a clean tree on a task branch. */
 async function preflight(
   sh: Shell,
-  fromTaskBranch: boolean,
   remote: string,
-): Promise<{ head: string; branch: string | undefined }> {
+): Promise<{ head: string; branch: string }> {
   const status = await sh.git("preflight", "status", "--porcelain");
   if (status) {
     throw new LandFailure(
@@ -431,34 +409,35 @@ async function preflight(
     (
       await sh.run("git", ["symbolic-ref", "--short", "-q", "HEAD"])
     ).stdout.trim() || undefined;
-  if (fromTaskBranch) {
-    if (!branch) {
-      throw new LandFailure(
-        "preflight",
-        "HEAD is detached. Land from the task branch.",
-      );
-    }
-    if (branch === "next" || branch === "main") {
-      throw new LandFailure(
-        "preflight",
-        `Land from a task branch, not from ${branch}.`,
-      );
-    }
+  if (!branch) {
+    throw new LandFailure(
+      "preflight",
+      "HEAD is detached. Land from the task branch.",
+    );
+  }
+  if (branch === TRUNK) {
+    throw new LandFailure(
+      "preflight",
+      `Land from a task branch, not from ${TRUNK}.`,
+    );
   }
   await sh.git("preflight", "remote", "get-url", remote);
   return { head: await sh.git("preflight", "rev-parse", "HEAD"), branch };
 }
 
-/** Fetch the target (and `next`, for a graduation); returns the target's tip. */
+/** Fetch the trunk; returns its tip. */
 async function fetchTarget(
   sh: Shell,
   remote: string,
-  to: LandTarget,
+  to: string,
 ): Promise<string> {
-  const refs = [...new Set(["next", to])].map(
-    (branch) => `+refs/heads/${branch}:refs/remotes/${remote}/${branch}`,
+  await sh.git(
+    "fetch",
+    "fetch",
+    "--no-tags",
+    remote,
+    `+refs/heads/${to}:refs/remotes/${remote}/${to}`,
   );
-  await sh.git("fetch", "fetch", "--no-tags", remote, ...refs);
   return await sh.git("fetch", "rev-parse", `${remote}/${to}`);
 }
 
@@ -471,16 +450,6 @@ async function rebaseOnto(
   base: string,
   original: string,
 ): Promise<void> {
-  const merges = await sh.git(
-    "rebase",
-    "rev-list",
-    "--merges",
-    `${base}..HEAD`,
-  );
-  if (merges) {
-    await mergeIn(sh, base, original);
-    return;
-  }
   const rebased = await sh.run("git", ["rebase", "--no-autostash", base]);
   if (rebased.code !== 0) {
     const conflicts = (
@@ -509,62 +478,10 @@ async function rebaseOnto(
 }
 
 /**
- * Merge `base` into a branch that holds merge commits, so its commits stay
- * as they are. On a conflict, abort and put the branch back at `original`.
+ * Push HEAD to the trunk as a fast-forward.
+ * @returns false when the trunk moved since the fetch.
  */
-async function mergeIn(
-  sh: Shell,
-  base: string,
-  original: string,
-): Promise<void> {
-  const merged = await sh.run("git", ["merge", "--no-edit", base]);
-  if (merged.code === 0) return;
-  const conflicts = (
-    await sh.run("git", ["diff", "--name-only", "--diff-filter=U"])
-  ).stdout.trim();
-  await sh.run("git", ["merge", "--abort"]);
-  await sh.git("rebase", "reset", "--hard", original);
-  throw new LandFailure(
-    "rebase",
-    `The branch holds a merge commit, so it takes ${base} by a merge, which conflicts in:\n${conflicts || (merged.stderr || merged.stdout).trim()}\nThe branch is as it was. Merge ${base} into it yourself, resolve the conflicts, and land again.`,
-  );
-}
-
-/** HEAD is a commit of `next`, and `main` is behind it. */
-async function checkGraduation(sh: Shell, remote: string): Promise<void> {
-  if (
-    !(await sh.test("merge-base", "--is-ancestor", "HEAD", `${remote}/next`))
-  ) {
-    throw new LandFailure(
-      "check",
-      `HEAD is not a commit of ${remote}/next. Check out the commit of next to graduate, such as with git switch --detach ${remote}/next.`,
-    );
-  }
-  if (
-    !(await sh.test("merge-base", "--is-ancestor", `${remote}/main`, "HEAD"))
-  ) {
-    throw new LandFailure(
-      "check",
-      `${remote}/main has commits that HEAD lacks, so main cannot fast-forward to it. Bring those commits into next first.`,
-    );
-  }
-  if (
-    (await sh.git("check", "rev-parse", "HEAD")) ===
-    (await sh.git("check", "rev-parse", `${remote}/main`))
-  ) {
-    throw new LandFailure("check", "main is at HEAD already.");
-  }
-}
-
-/**
- * Push HEAD to the target as a fast-forward.
- * @returns false when the target moved since the fetch.
- */
-async function push(
-  sh: Shell,
-  remote: string,
-  to: LandTarget,
-): Promise<boolean> {
+async function push(sh: Shell, remote: string, to: string): Promise<boolean> {
   const result = await sh.run("git", [
     "push",
     "--porcelain",
@@ -594,7 +511,7 @@ async function push(
 async function updateLocalRef(
   sh: Shell,
   say: (line: string) => void,
-  { to, commit }: { to: LandTarget; commit: string },
+  { to, commit }: { to: string; commit: string },
 ): Promise<void> {
   const ref = `refs/heads/${to}`;
   const list = (await sh.run("git", ["worktree", "list", "--porcelain"]))

@@ -6,7 +6,7 @@
 //
 // The state lives beside the desktop state, in `landStateDir()`:
 //
-//   queue-<target>/     the queue and the one turn of each target branch
+//   queue/              the queue and the one Land Turn
 //   waits.jsonl         one line per land: its wait in the queue and outcome
 //   logs/               the full log of each land
 //   e2e/                the End-to-end Run after each land (lib/land-e2e.ts)
@@ -19,9 +19,6 @@ import { desktopStateDir } from "@zotlit/config/memory-gate";
 
 import { findLiveHolder } from "#desktop-slot";
 
-/** The branches `land` pushes to. */
-export type LandTarget = "next" | "main";
-
 /** Holds the token of the Land Turn; the pre-push hook reads it. */
 export const LAND_TURN_ENV = "ZOTLIT_LAND_TURN";
 
@@ -30,36 +27,30 @@ export function landStateDir(): string {
   return join(desktopStateDir(), "land");
 }
 
-/**
- * The admission of `target`. Each target branch has its own queue, so a
- * release gate of `main` does not hold up the lands into `next`.
- */
-export function landAdmission(target: LandTarget): Admission {
+/** The admission of the Land Queue: one turn for every land into the trunk. */
+export function landAdmission(): Admission {
   return {
-    dir: () => join(landStateDir(), `queue-${target}`),
+    dir: () => join(landStateDir(), "queue"),
     slots: () => 1,
     tokenEnv: LAND_TURN_ENV,
     memoryGate: false,
     display: false,
     slotName: "Land Turn",
-    queueName: `Land Queue of ${target}`,
+    queueName: "Land Queue",
   };
 }
 
-/** Whether `token` names a land that holds its turn now, for either target. */
+/** Whether `token` names a land that holds its turn now. */
 export async function isLandTurn(token: string | undefined): Promise<boolean> {
   if (!token) return false;
-  for (const target of ["next", "main"] as const) {
-    const dir = landAdmission(target).dir();
-    if (await findLiveHolder(token, { dir })) return true;
-  }
-  return false;
+  return (
+    (await findLiveHolder(token, { dir: landAdmission().dir() })) !== undefined
+  );
 }
 
 /** One line of the wait log. */
 export interface LandWaitRecord {
-  target: LandTarget;
-  /** The task branch, or the commit for a land into `main`. */
+  /** The task branch. */
   source: string;
   worktree: string;
   enqueuedAt: string;

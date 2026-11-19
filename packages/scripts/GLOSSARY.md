@@ -117,30 +117,33 @@ _Avoid_: memory lock, memory slot
 
 ## Landing
 
+**Trunk**:
+`main`, the one long-lived branch of the source repository. Every change and
+every Version Commit lands on it; no other branch is pushed to the source
+repository.
+_Avoid_: next, primary branch, stable branch
+
 **Land**:
-The one way a change reaches `next`: rebase the task branch onto the newest
-`next`, pass the quality gate on the rebased tree, and push it as a
-fast-forward. A land into `main` fast-forwards it to a commit of `next` after
-the release gate (a graduation); a hotfix land rebases a task branch onto
-`main` and passes the release gate. A branch that holds a merge commit takes
-the newest target by a merge, so the merged commits stay as they are.
-_Avoid_: merge, PR merge
+The one way a change reaches the Trunk: rebase the task branch onto the newest
+`main`, pass the quality gate on the rebased tree, and push it as a
+fast-forward.
+_Avoid_: merge, PR merge, graduation
 
 **Land Queue**:
-The machine-wide, first-come-first-served line of lands into one branch. It is
+The machine-wide, first-come-first-served line of lands onto the Trunk. It is
 a Desktop Queue with one slot and no Memory Gate, so a land that dies leaves a
 turn the next land takes over.
 _Avoid_: merge queue, land lock
 
 **Land Turn**:
 The one slot of a Land Queue. Its holder alone fetches, rebases, gates, and
-pushes, and the pre-push hook lets only a push from the Land Turn reach `next`
-or `main`.
+pushes, and the pre-push hook lets only a push from the Land Turn reach
+`main`.
 _Avoid_: land lock, push lock
 
 **End-to-end Queue**:
 The line of End-to-end Runs after lands. Each land asks for a run of its new
-`next` tip; a run that waited takes the newest tip, so runs coalesce.
+`main` tip; a run that waited takes the newest tip, so runs coalesce.
 _Avoid_: post-merge CI
 
 ## Releasing
@@ -148,12 +151,20 @@ _Avoid_: post-merge CI
 **Version Commit**:
 The commit that `pnpm release` makes and lands: the new app versions, the
 lockfile, and for a stable plugin release the root `manifest.json` and
-`versions.json`. It reaches `next` (a beta), `next` and then `main` (a
-graduation), or `main` (a hotfix) through the Land Queue.
+`versions.json`. It reaches the Trunk through the Land Queue, a beta and a
+stable release alike; its version picks the line.
 _Avoid_: release PR, release branch
 
+**Stable Hotfix**:
+A stable patch release built from a local branch cut from the latest stable
+release tag, for when the Trunk holds work that must not ship. Its Version
+Commit stays off the Trunk: `pnpm release:publish` publishes it from the
+machine, and the release tag carries its commits to the source repository.
+The fix itself lands on the Trunk separately.
+_Avoid_: hotfix land, hotfix branch on the remote
+
 **Publish**:
-What `release.yml` does for a product whose version its line's branch gained:
+What `release.yml` does for a product whose version the Trunk gained:
 the steps of `pnpm release:publish`, which end with the release tag in the
 source repository. Each step skips what an earlier publish of the same
 version finished.

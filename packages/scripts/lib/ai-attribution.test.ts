@@ -60,7 +60,7 @@ describe("isAgentBranch", () => {
     },
   );
 
-  it.each(["feat/claude-md", "next", "release/codex-notes"])(
+  it.each(["feat/claude-md", "main", "release/codex-notes"])(
     "allows refs/heads/%s",
     (branch) => {
       expect(isAgentBranch(`refs/heads/${branch}`)).toBe(false);

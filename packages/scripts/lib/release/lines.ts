@@ -1,7 +1,7 @@
 // The two release lines and the facts that follow from a version's line. A
-// pre-release version (`2.3.0-beta.0`) is on the beta line and ships from
-// `next`; any other version is on the stable line and ships from `main`
-// (ADR 0021).
+// pre-release version (`2.3.0-beta.0`) is on the beta line; any other version
+// is on the stable line. Both lines ship from version commits on `main`, the
+// one trunk; the version alone picks the line (ADR 0097).
 //
 // This module and `plan.ts` import Node builtins only: the plan job of
 // release.yml runs them before any dependency is installed.
@@ -16,12 +16,6 @@ export type ReleaseLine = "beta" | "stable";
 export function releaseLine(version: string): ReleaseLine {
   return version.split("+")[0]!.includes("-") ? "beta" : "stable";
 }
-
-/** The branch of the source repository that publishes each line. */
-export const SOURCE_BRANCH = {
-  beta: "next",
-  stable: "main",
-} as const satisfies Record<ReleaseLine, string>;
 
 /**
  * The branch of the publish repository that holds each line's shell. The
