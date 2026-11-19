@@ -1,36 +1,42 @@
+import type { LandOptions } from "#land";
+import type { ReleaseBranch, ReleaseRoute } from "#release/bump";
 import * as p from "@clack/prompts";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { inc, prerelease, valid } from "semver";
+import { prerelease, valid } from "semver";
 import { $ } from "zx";
 
+import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
+import {
+  bumpOptions,
+  preidOf,
+  releaseRoute,
+  resolveVersionSpec,
+} from "#release/bump";
 
 /**
- * Phase 1 of the release pipeline: local, interactive version bump.
+ * `pnpm release`: the version commit of a release, landed through the Land
+ * Queue. It bumps `apps/{app}/package.json#version` (the one version source),
+ * syncs the root manifest of a stable plugin release, refreshes the lockfile,
+ * commits on a local release branch, and lands that commit. It tags nothing
+ * and publishes nothing: `release.yml` publishes each version that its line's
+ * branch gains (lib/release/plan.ts).
  *
- * Bumps `apps/{app}/package.json#version` (the sole version source), runs the
- * derived sync side-effects, refreshes the lockfile, gates on
- * `pnpm verify --release`, and lands a single release commit on a release
- * branch, then pushes it, opens the PR and offers to merge it. It performs
- * **no tagging, no GitHub release** — CI (`release.yml`) verifies and cuts
- * tags/releases on merge to the line the PR targets (`main` = stable,
- * `next` = beta), keyed on package version.
+ *   on next, pre-release   land into next with the release gate
+ *   on next, stable        land into next, then graduate: main fast-forwards
+ *                          to the version commit after the release gate
+ *   on main, patch         land the hotfix onto main with the release gate
  *
- * The release line is inferred from the **version** picked, not the branch:
- * a non-prerelease version targets `main` (stable graduation), a prerelease
- * targets `next`. Primary development happens on `next`; `main` receives
- * stable graduations and emergency hotfixes (patch-only).
+ * The release gate (`pnpm verify --release`) runs once per release, in a Land
+ * Turn, on the tree that is pushed. `--obsidian <bump|version>` and
+ * `--zotero <bump|version>` name the apps and versions and run without
+ * prompts. On a failure the release branch goes away and the checkout is back
+ * on its branch; nothing reached the remote unless the output says so.
  *
- * `--obsidian <bump|version>` and `--zotero <bump|version>` name the apps and
- * their versions on the command line and run without prompts: every
- * confirmation is taken as yes, and the release PR merges only with `--merge`.
- * A bump is one the interactive picker offers on this branch (e.g.
- * `prerelease`); a version is any semver.
- *
- * @see CONTRIBUTING.md "Branching model"
+ * @see CONTRIBUTING.md "Releasing"
  * @see docs/adr/0021-next-is-the-primary-branch.md
  */
 
@@ -67,7 +73,6 @@ const { values: flags } = parseArgs({
   options: {
     obsidian: { type: "string" },
     zotero: { type: "string" },
-    merge: { type: "boolean", default: false },
   },
 });
 
@@ -77,27 +82,19 @@ const requested: Partial<Record<AppName, string>> = {
   ...(flags.zotero !== undefined && { zotero: flags.zotero }),
 };
 const interactive = Object.keys(requested).length === 0;
+const git = $({ cwd: workspaceRoot, quiet: true });
 
 p.intro(interactive ? "ZotLit release" : "ZotLit release (non-interactive)");
 
 await assertCleanWorkingTree();
-
-const currentBranch = (
-  await $({ cwd: workspaceRoot })`git rev-parse --abbrev-ref HEAD`
-).stdout.trim();
-
-if (currentBranch !== "main" && currentBranch !== "next") {
-  p.log.warn(
-    `Releasing from "${currentBranch}" (not main/next): the PR base will target this branch.`,
+const branch = (await git`git branch --show-current`).stdout.trim();
+if (branch !== "next" && branch !== "main") {
+  fail(
+    `Release from next (pre-releases and stable graduations) or main (hotfixes), not ${branch || "a detached HEAD"}.`,
   );
 }
-
-// Sync the current branch with origin before bumping. For pre-releases and
-// hotfixes, basing the release branch on `origin/${currentBranch}` keeps only the
-// version-bump commit in the PR. For stable graduations from next, the PR carries
-// all of next's changes to main (the promotion). `resolveBaseRef` picks that base
-// and reconciles a branch that runs ahead of origin.
-const baseRef = await resolveBaseRef(currentBranch);
+const releaseBranch: ReleaseBranch = branch;
+await assertInSyncWithOrigin(releaseBranch);
 
 const targets: AppMeta[] = interactive
   ? await pickApps()
@@ -110,200 +107,140 @@ for (const app of targets) {
   const next =
     spec === undefined
       ? await pickVersion(app, current)
-      : resolveVersion(app, current, spec);
+      : resolveSpec(app, current, spec);
   if (next === null) cancel();
   bumps.push({ app, current, next });
 }
 
-// Determine the PR target. On `next`, the version picked decides the target:
-// non-prerelease → stable graduation targeting `main`; prerelease → stays on
-// `next`. On `main` (hotfix path) and other branches, the target is the branch
-// itself.
-let prTarget: string;
-const hasStable = bumps.some((b) => prerelease(b.next) === null);
-const hasPre = bumps.some((b) => prerelease(b.next) !== null);
-const isStableGraduation = currentBranch === "next" && hasStable && !hasPre;
+const routed = releaseRoute(
+  bumps.map((bump) => bump.next),
+  releaseBranch,
+  Object.keys(APPS).length,
+);
+if ("error" in routed) fail(routed.error);
+const { route } = routed;
+if (route === "graduation") await assertMainAncestry();
 
-if (currentBranch === "next") {
-  if (hasStable && hasPre) {
-    p.cancel(
-      "Cannot mix stable and pre-release versions from next — all apps must graduate together or all must stay on pre-release.",
-    );
-    process.exit(1);
-  }
+await completeRelease(route);
 
-  if (isStableGraduation) {
-    if (bumps.length < Object.keys(APPS).length) {
-      p.cancel(
-        "Stable releases from next must include all apps — select Both, or pass both --obsidian and --zotero.",
-      );
-      process.exit(1);
-    }
-    await assertMainAncestry();
-    prTarget = "main";
-  } else {
-    prTarget = "next";
-  }
-} else {
-  prTarget = currentBranch;
-}
-
-await completeRelease();
-
-async function completeRelease(): Promise<void> {
+async function completeRelease(route: ReleaseRoute): Promise<void> {
   const summary = bumps.map((b) => `${b.app.name}@${b.next}`).join(", ");
-  const confirmMsg = isStableGraduation
-    ? `Stable release ${summary} (PR targets main). Proceed?`
-    : `Release ${summary}?`;
-  if (!(await confirm(confirmMsg))) cancel();
+  const plan = {
+    beta: "land it into next with the release gate",
+    graduation:
+      "land it into next, then fast-forward main to it after the release gate",
+    hotfix: "land it onto main with the release gate",
+  }[route];
+  if (!(await confirm(`Release ${summary}: commit the versions and ${plan}?`)))
+    cancel();
 
+  const releaseRef = `release/${releaseBranch}/${bumps.map((b) => `${b.app.name}-${b.next}`).join("+")}`;
   const stagedPaths = new Set<string>();
   const s = p.spinner();
 
-  s.start("Bumping versions");
-  for (const { app, next } of bumps) {
-    await writePackageVersion(app.pkgPath, next);
-    stagedPaths.add(app.pkgPath);
-  }
-  s.stop("Versions bumped");
-
-  await syncObsidian(bumps, stagedPaths);
-
-  s.start("Refreshing lockfile");
-  await $({ cwd: workspaceRoot })`pnpm install --lockfile-only`;
-  stagedPaths.add(join(workspaceRoot, "pnpm-lock.yaml"));
-  s.stop("Lockfile refreshed");
-
-  // The full gate, Obsidian guideline review included, runs before the version
-  // commit exists. `release.yml` runs it again on the merged tree before it
-  // publishes. See ADR 0076.
-  p.log.step("Release gate (pnpm verify --release)");
-  const verify = await $({
-    cwd: workspaceRoot,
-    nothrow: true,
-    stdio: "inherit",
-  })`pnpm verify --release`;
-  if (verify.exitCode !== 0) {
-    p.cancel("Release gate failed — fix the errors above before releasing.");
-    process.exit(1);
-  }
-
-  const branchName = `release/${prTarget}/${bumps.map((b) => `${b.app.name}-${b.next}`).join("+")}`;
-  const commitMsg = `chore: release ${summary}`;
-
-  if (
-    !(await confirm(
-      `Create branch ${branchName}, commit, push to origin, and open a PR?`,
-    ))
-  ) {
-    p.outro(
-      [
-        "Version files updated but not committed.",
-        `To finish manually: git checkout -b ${branchName} ${baseRef} && git add -A && git commit -m "${commitMsg}" && git push -u origin ${branchName}`,
-      ].join("\n"),
-    );
-    process.exit(0);
-  }
-
-  s.start(`Creating branch ${branchName}`);
-  await $({ cwd: workspaceRoot })`git checkout -b ${branchName} ${baseRef}`;
-  s.stop(`On branch ${branchName}`);
-
-  s.start("Committing");
-  await $({ cwd: workspaceRoot })`git add ${[...stagedPaths]}`;
-  await $({ cwd: workspaceRoot })`git commit -m ${commitMsg}`;
-  s.stop("Committed");
-
-  s.start("Pushing");
-  await $({ cwd: workspaceRoot })`git push -u origin ${branchName}`;
-  s.stop("Pushed");
-
-  const prUrl = (await confirm(`Open a PR to ${prTarget}?`))
-    ? await openPR(branchName, commitMsg, prTarget)
-    : undefined;
-
-  // Pull requests run no checks (ADR 0076), so the PR is ready to merge as
-  // soon as it exists. Merging starts `release.yml`, so without prompts it
-  // takes `--merge`.
-  let merged = false;
-  if (prUrl) {
-    const merge = interactive
-      ? await confirm(
-          `Merge the PR into ${prTarget} now? release.yml then verifies and publishes.`,
-        )
-      : flags.merge;
-    if (merge) {
-      s.start("Merging");
-      await $({ cwd: workspaceRoot })`gh pr merge ${prUrl} --merge`;
-      // The API call leaves the local checkout and the pre-push hook alone.
-      await $({
-        cwd: workspaceRoot,
-      })`gh api -X DELETE repos/{owner}/{repo}/git/refs/heads/${branchName}`;
-      s.stop(`Merged into ${prTarget}, removed origin/${branchName}`);
-      merged = true;
+  await git`git switch -q -c ${releaseRef}`;
+  try {
+    s.start("Bumping versions");
+    for (const { app, next } of bumps) {
+      await writePackageVersion(app.pkgPath, next);
+      stagedPaths.add(app.pkgPath);
     }
+    await syncObsidian(bumps, stagedPaths);
+    s.stop("Versions bumped");
+
+    s.start("Refreshing lockfile");
+    await $({ cwd: workspaceRoot, quiet: true })`pnpm install --lockfile-only`;
+    stagedPaths.add(join(workspaceRoot, "pnpm-lock.yaml"));
+    s.stop("Lockfile refreshed");
+
+    await git`git add ${[...stagedPaths]}`;
+    await $({
+      cwd: workspaceRoot,
+      stdio: "inherit",
+    })`git commit -q -m ${`chore: release ${summary}`}`;
+  } catch (error) {
+    await abandon(releaseRef);
+    throw error;
   }
 
-  // The release branch now lives on origin (the PR references it); drop the local
-  // copy and return to the working branch. `-D` because its release commit is not
-  // merged into `${currentBranch}` locally.
-  s.start(`Returning to ${currentBranch}`);
-  await $({ cwd: workspaceRoot })`git checkout ${currentBranch}`;
-  await $({ cwd: workspaceRoot })`git branch -D ${branchName}`;
-  s.stop(`Back on ${currentBranch}, removed local ${branchName}`);
+  const base: Omit<LandOptions, "to" | "gate"> = {
+    cwd: workspaceRoot,
+    say: (line) => p.log.message(line),
+  };
+  if (route === "beta") {
+    p.log.step("Land into next with the release gate (pnpm verify --release)");
+    await landOrFail(releaseRef, {
+      ...base,
+      to: "next",
+      gate: LAND_GATES.main,
+    });
+  } else if (route === "hotfix") {
+    p.log.step("Land onto main with the release gate (pnpm verify --release)");
+    await landOrFail(releaseRef, {
+      ...base,
+      to: "main",
+      hotfix: true,
+      gate: LAND_GATES.main,
+    });
+  } else {
+    p.log.step("Land into next (pnpm verify)");
+    await landOrFail(releaseRef, {
+      ...base,
+      to: "next",
+      gate: LAND_GATES.next,
+    });
+    p.log.step(
+      "Graduate: fast-forward main to the version commit (pnpm verify --release)",
+    );
+    await landOrFail(
+      releaseRef,
+      { ...base, to: "main", gate: LAND_GATES.main },
+      [
+        "The version commit is on next; main did not move.",
+        "Fix the failure on a task branch and land it into next, then graduate the new tip:",
+        "  git switch --detach origin/next && pnpm land --to main",
+      ],
+    );
+  }
 
+  await returnTo(releaseRef);
+  const publishes = route === "beta" ? "next" : "main";
   p.outro(
-    [
-      merged
-        ? `Merged ${summary} into ${prTarget}. release.yml verifies the merged tree, then cuts the tag(s) and GitHub release(s).`
-        : `Released ${summary} on branch ${branchName}. On merge to ${prTarget}, release.yml verifies the merged tree, then cuts the tag(s) and GitHub release(s).`,
-      ...(isStableGraduation
-        ? [
-            "",
-            `${merged ? "Now" : "After the PR merges to main,"} sync back:`,
-            "  git checkout next && git pull && git merge main",
-            "  pnpm release  # pick preminor to start the next beta cycle",
-          ]
-        : []),
-    ].join("\n"),
+    `Landed ${summary}. release.yml publishes it from ${publishes}: the npm package, the shell and the tag in aidenlx/zotlit, and the release tags here.`,
   );
 }
 
-/** @returns the new PR's URL when `gh` created it. */
-async function openPR(
-  branch: string,
-  title: string,
-  base: string,
-): Promise<string | undefined> {
-  const hasGh = await $({
-    cwd: workspaceRoot,
-    nothrow: true,
-  })`gh --version`.then((r) => r.exitCode === 0);
+/** Lands the release branch; on a failure, explains, returns to the branch, and exits. */
+async function landOrFail(
+  releaseRef: string,
+  options: LandOptions,
+  afterFailure: readonly string[] = [],
+): Promise<void> {
+  const result = await land(options);
+  if (result.ok) return;
+  await abandon(releaseRef);
+  fail(
+    [
+      `The land into ${options.to} failed at the ${result.step} step: ${result.message}`,
+      `Full log: ${result.logPath}`,
+      ...afterFailure,
+    ].join("\n"),
+    result.exitCode,
+  );
+}
 
-  if (hasGh) {
-    const s = p.spinner();
-    s.start("Creating PR via gh");
-    // `gh pr create` prints the new PR's URL to stdout.
-    const created = await $({
-      cwd: workspaceRoot,
-    })`gh pr create --title ${title} --body "" --head ${branch} --base ${base}`;
-    s.stop("PR created");
-    const prUrl = created.stdout.trim();
-    if (prUrl) p.log.info(`PR: ${prUrl}`);
-    return prUrl || undefined;
-  }
-  const rootPkg = JSON.parse(
-    await readFile(join(workspaceRoot, "package.json"), "utf-8"),
-  ) as { repository?: { url?: string } | string };
-  const repoUrl =
-    typeof rootPkg.repository === "string"
-      ? rootPkg.repository
-      : rootPkg.repository?.url?.replace(/^git\+/, "").replace(/\.git$/, "");
-  const prUrl = repoUrl
-    ? `${repoUrl}/compare/${base}...${branch}?expand=1`
-    : `https://github.com — open a PR from ${branch} to ${base}`;
-  p.log.info(`Open a PR: ${prUrl}`);
-  return undefined;
+/** Back to the branch the release started on, which the land moved; the release branch goes. */
+async function returnTo(releaseRef: string): Promise<void> {
+  await git`git switch -q ${releaseBranch}`;
+  await git`git merge -q --ff-only ${`origin/${releaseBranch}`}`;
+  await git`git branch -q -D ${releaseRef}`;
+}
+
+/** Drops the release branch and its version commit; the checkout is clean on its branch. */
+async function abandon(releaseRef: string): Promise<void> {
+  await git({ nothrow: true })`git reset -q --hard`;
+  await git({ nothrow: true })`git switch -q ${releaseBranch}`;
+  await git({ nothrow: true })`git branch -q -D ${releaseRef}`;
 }
 
 async function pickApps(): Promise<AppMeta[]> {
@@ -321,67 +258,9 @@ async function pickApps(): Promise<AppMeta[]> {
     : [APPS[selection as AppName]];
 }
 
-type BumpKind =
-  | "patch"
-  | "minor"
-  | "major"
-  | "prepatch"
-  | "preminor"
-  | "premajor"
-  | "prerelease"
-  | "custom";
-
-function preidOf(current: string): string {
-  return prerelease(current)?.[0]?.toString() ?? "beta";
-}
-
 /**
- * The bumps offered for `current` on this branch: on `main`, only `patch` and
- * `custom` (hotfix path). On `next` with a prerelease current version, `patch`
- * and `prepatch` are left out (they produce nonsensical versions from a
- * prerelease base). `custom` is always available as an escape hatch.
- */
-function bumpOptions(current: string): { value: BumpKind; label: string }[] {
-  const preid = preidOf(current);
-  const currentIsPrerelease = prerelease(current) !== null;
-
-  const allOptions: { value: BumpKind; label: string }[] = [
-    { value: "patch", label: `patch (${inc(current, "patch")})` },
-    { value: "minor", label: `minor (${inc(current, "minor")})` },
-    { value: "major", label: `major (${inc(current, "major")})` },
-    {
-      value: "prepatch",
-      label: `prepatch (${inc(current, "prepatch", preid)})`,
-    },
-    {
-      value: "preminor",
-      label: `preminor (${inc(current, "preminor", preid)})`,
-    },
-    {
-      value: "premajor",
-      label: `premajor (${inc(current, "premajor", preid)})`,
-    },
-    {
-      value: "prerelease",
-      label: `prerelease (${inc(current, "prerelease", preid)})`,
-    },
-    { value: "custom", label: "custom…" },
-  ];
-
-  const hidden = new Set<BumpKind>(
-    currentBranch === "main"
-      ? // Hotfix path: patch + custom only.
-        ["minor", "major", "prepatch", "preminor", "premajor", "prerelease"]
-      : currentIsPrerelease
-        ? // On next with prerelease: patch/prepatch produce nonsensical versions.
-          ["patch", "prepatch"]
-        : [],
-  );
-  return allOptions.filter((o) => !hidden.has(o.value));
-}
-
-/**
- * Interactive semver picker over {@link bumpOptions}.
+ * Interactive semver picker over {@link bumpOptions}, with `custom` as the
+ * escape hatch.
  *
  * @returns the chosen version, or `null` if cancelled.
  */
@@ -389,53 +268,36 @@ async function pickVersion(
   app: AppMeta,
   current: string,
 ): Promise<string | null> {
-  const preid = preidOf(current);
-  const options = bumpOptions(current);
-
-  while (true) {
-    const kind = await p.select({
-      message: `New version for ${app.display} (current ${current})`,
-      options,
-    });
-    if (p.isCancel(kind)) return null;
-
-    let next: string | null;
-    if (kind === "custom") {
-      const custom = await p.text({
-        message: "Enter custom version",
-        validate: (val) => (valid(val) ? undefined : "Invalid semver version"),
-      });
-      if (p.isCancel(custom)) return null;
-      // Normalize: `valid()` also accepts noncanonical input like `v2.0.0`.
-      next = valid(custom);
-    } else {
-      next = inc(current, kind, preid);
-    }
-    if (next === null) {
-      p.log.error("Could not compute the next version; pick another.");
-      continue;
-    }
-    return next;
-  }
+  const options = [
+    ...bumpOptions(current, releaseBranch).map(({ kind, version }) => ({
+      value: version,
+      label: `${kind} (${version})`,
+    })),
+    { value: "custom", label: "custom…" },
+  ];
+  const picked = await p.select({
+    message: `New version for ${app.display} (current ${current}, pre-release id ${preidOf(current)})`,
+    options,
+  });
+  if (p.isCancel(picked)) return null;
+  if (picked !== "custom") return picked;
+  const custom = await p.text({
+    message: "Enter custom version",
+    validate: (val) => (valid(val) ? undefined : "Invalid semver version"),
+  });
+  if (p.isCancel(custom)) return null;
+  // Normalize: `valid()` also accepts noncanonical input like `v2.0.0`.
+  return valid(custom);
 }
 
-/**
- * Resolves a command-line version spec: a bump {@link bumpOptions} offers on
- * this branch, or an explicit semver version. Exits on anything else.
- */
-function resolveVersion(app: AppMeta, current: string, spec: string): string {
-  const kinds = bumpOptions(current)
-    .map((o) => o.value)
-    .filter((kind) => kind !== "custom");
-  const next = (kinds as string[]).includes(spec)
-    ? inc(current, spec as Exclude<BumpKind, "custom">, preidOf(current))
-    : // Normalize: `valid()` also accepts noncanonical input like `v2.0.0`.
-      valid(spec);
+/** A command-line version spec, resolved; exits on anything else. */
+function resolveSpec(app: AppMeta, current: string, spec: string): string {
+  const next = resolveVersionSpec(current, spec, releaseBranch);
   if (next === null) {
-    p.cancel(
+    const kinds = bumpOptions(current, releaseBranch).map(({ kind }) => kind);
+    fail(
       `--${app.name} ${spec}: expected a semver version or one of ${kinds.join(", ")} (current ${current}).`,
     );
-    process.exit(1);
   }
   p.log.info(`${app.display}: ${current} → ${next}`);
   return next;
@@ -452,9 +314,9 @@ async function confirm(message: string): Promise<boolean> {
 }
 
 /**
- * Obsidian community-store sync, applied on **stable** Obsidian releases only.
- * Prereleases ship via BRAT straight from release assets, so the root
- * `manifest.json` / `versions.json` are untouched.
+ * Obsidian community-store sync, applied on **stable** Obsidian releases only:
+ * the root `manifest.json` and `versions.json`, which the shell generator
+ * reads. Pre-releases leave both as they are.
  */
 async function syncObsidian(
   releases: Bump[],
@@ -497,106 +359,58 @@ async function writePackageVersion(
 }
 
 async function assertCleanWorkingTree(): Promise<void> {
-  const status = (
-    await $({ cwd: workspaceRoot })`git status --porcelain`
-  ).stdout.trim();
+  const status = (await git`git status --porcelain`).stdout.trim();
   if (status.length === 0) return;
-  p.cancel(
-    `Working tree is not clean. Commit or stash changes first:\n${status}`,
-  );
-  process.exit(1);
+  fail(`Working tree is not clean. Commit or stash changes first:\n${status}`);
 }
 
 /**
- * Fetches `origin/${branch}` and resolves the ref the release branch is cut from,
- * so that branch (cut from the remote tip) carries only the version bump. Aborts
- * on behind/diverged since the base would be stale.
- *
- * A branch that is merely ahead is reconciled per branch. `main` accepts commits
- * through pull requests only — a repository ruleset restricts it to merge commits
- * and rejects direct pushes — so its unpushed commits ride along in the release PR
- * from a `HEAD` base. Other branches offer a push, which keeps the PR down to the
- * version-bump commit.
- *
- * @returns the git ref to cut the release branch from — `HEAD` for a local-only
- *   branch, or for `main` carrying unpushed commits.
+ * The release starts from the tip of `origin/${branch}`: a branch behind it
+ * would bump a stale version, and commits only this checkout has reach the
+ * remote through `pnpm land`, not inside a release.
  */
-async function resolveBaseRef(branch: string): Promise<string> {
-  const fetched = await $({
-    cwd: workspaceRoot,
-    nothrow: true,
-  })`git fetch origin ${branch}`;
-  if (fetched.exitCode !== 0) {
-    p.log.warn(`No origin/${branch}: basing the release branch on local HEAD.`);
-    return "HEAD";
-  }
-
+async function assertInSyncWithOrigin(branch: ReleaseBranch): Promise<void> {
+  await git`git fetch -q origin ${`+refs/heads/${branch}:refs/remotes/origin/${branch}`}`;
   const counts = (
-    await $({
-      cwd: workspaceRoot,
-    })`git rev-list --left-right --count origin/${branch}...HEAD`
+    await git`git rev-list --left-right --count ${`origin/${branch}...HEAD`}`
   ).stdout.trim();
   const [behind, ahead] = counts.split(/\s+/).map(Number) as [number, number];
-
   if (behind > 0 && ahead > 0) {
-    p.cancel(
-      `"${branch}" has diverged from origin/${branch} (${ahead} ahead, ${behind} behind). Reconcile before releasing.`,
+    fail(
+      `${branch} has diverged from origin/${branch} (${ahead} ahead, ${behind} behind). Reconcile before releasing.`,
     );
-    process.exit(1);
   }
   if (behind > 0) {
-    p.cancel(
-      `"${branch}" is ${behind} commit(s) behind origin/${branch}. Pull before releasing.`,
+    fail(
+      `${branch} is ${behind} commit(s) behind origin/${branch}. Pull before releasing.`,
     );
-    process.exit(1);
   }
-  if (ahead === 0) return `origin/${branch}`;
-
-  if (branch === "main") {
-    p.log.info(
-      `"${branch}" has ${ahead} commit(s) not on origin/${branch}: they ride along in the release PR.`,
+  if (ahead > 0) {
+    fail(
+      `${branch} has ${ahead} commit(s) that origin/${branch} lacks. Land them first: a release carries its version commit alone.`,
     );
-    return "HEAD";
   }
-
-  // Without prompts, a push of commits the command line never named stays a
-  // decision for the maintainer.
-  if (!interactive) {
-    p.cancel(
-      `"${branch}" has ${ahead} commit(s) not on origin/${branch}. Push them, then release again.`,
-    );
-    process.exit(1);
-  }
-  const push = await p.confirm({
-    message: `"${branch}" has ${ahead} commit(s) not on origin/${branch}. Push them before bumping the version?`,
-  });
-  if (p.isCancel(push) || !push) cancel();
-  const s = p.spinner();
-  s.start(`Pushing ${branch} to origin`);
-  await $({ cwd: workspaceRoot })`git push origin ${branch}`;
-  s.stop(`Pushed ${branch}`);
-
-  return `origin/${branch}`;
 }
 
 /**
- * Guards against regressing a hotfix that landed directly on `main`: aborts if
- * `origin/main` is not an ancestor of the current `HEAD`.
+ * Guards against regressing a hotfix that landed directly on `main`: a
+ * graduation needs `origin/main` to be an ancestor of the commit it ships.
  */
 async function assertMainAncestry(): Promise<void> {
-  await $({ cwd: workspaceRoot, nothrow: true })`git fetch origin main`;
-
-  const result = await $({
-    cwd: workspaceRoot,
+  await git`git fetch -q origin +refs/heads/main:refs/remotes/origin/main`;
+  const result = await git({
     nothrow: true,
   })`git merge-base --is-ancestor origin/main HEAD`;
-
   if (result.exitCode !== 0) {
-    p.cancel(
-      "main has commits not on next — merge main into next before graduating to stable.",
+    fail(
+      "main has commits that next lacks. Land a branch that merges origin/main into next, then graduate.",
     );
-    process.exit(1);
   }
+}
+
+function fail(message: string, exitCode = 1): never {
+  p.cancel(message);
+  process.exit(exitCode);
 }
 
 function cancel(): never {

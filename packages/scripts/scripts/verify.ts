@@ -9,7 +9,7 @@ import { Effect } from "effect";
 //               plus the Obsidian guideline review (ADR 0020) and the check
 //               of the publish repository's shell (check-shell.ts).
 //               `pnpm land --to main` runs it before it moves `main`,
-//               `release.ts` before the version commit, and
+//               `release.ts` in the Land Turn of the version commit, and
 //               `release.yml` before it publishes (desktop checks skip there).
 // A branch that changes only agent docs (lib/agent-docs.ts) runs Format only.
 // Format, lint and the generated-artifact checks always cover the whole tree.
