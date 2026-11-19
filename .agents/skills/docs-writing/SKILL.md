@@ -36,7 +36,7 @@ An explanation lives in one of three places: one or two sentences beside the act
 Keep every working file under `apps/docs/.scratch/<page-slug>/`.
 
 1. **Place the page.** Name its job, its kind, and its search intent.
-2. **Collect the facts from the product.** Every fact comes from the product, an existing docs page on `next`, or a source you opened.
+2. **Collect the facts from the product.** Every fact comes from the product, an existing docs page on `main`, or a source you opened.
    - A lesson's steps are its **docs walk**, `packages/e2e/src/docs-walks/<slug>.walk.ts` (on branch `docs/learn-walks` until it merges): one `it` per step, run through the real apps. The walk also takes the step stills and recordings; read "Docs walks" in `packages/e2e/AGENTS.md`. A step the walk does not assert is a step to add to the walk first.
    - A recipe or answer page takes its facts from the running apps (`obsidian-debug`, `zotero-rdp-debug`), the source, and the existing page. Its screenshots come from `docs-screenshot`.
    - A ZotLit label is the exact string in `messages/en.json`; note its message key beside it. A label of Obsidian or Zotero is the string you read in the running app.

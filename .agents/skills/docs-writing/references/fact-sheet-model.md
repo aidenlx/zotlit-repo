@@ -1,7 +1,7 @@
 # Fact sheet — Lesson 1
 
 Checked against the running apps: Obsidian 1.14.5, Zotero 10.0, ZotLit on
-`next` (walk `connect-zotero-to-obsidian` on branch `docs/learn-walks`).
+`main` (walk `connect-zotero-to-obsidian` on branch `docs/learn-walks`).
 On-screen labels are in **bold** and are exact.
 
 ## The lesson

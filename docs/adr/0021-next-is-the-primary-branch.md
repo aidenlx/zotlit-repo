@@ -1,4 +1,10 @@
+---
+status: superseded by ADR-0097
+---
+
 # next is the primary branch
+
+> **Superseded by [ADR 0097](0097-main-is-the-one-trunk.md).** `main` is the one trunk: every change and every release, beta or stable, lands on it, and `next` is gone. A stable hotfix publishes from a local branch cut from the latest stable release tag.
 
 Supersedes [ADR 0011](0011-stable-ships-from-main-betas-ship-from-next.md).
 

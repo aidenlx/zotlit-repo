@@ -23,28 +23,33 @@ tasks even when package source files are unchanged.
 ## Release workflow
 
 The checks of a change run in `pnpm land`: it runs `pnpm verify` on the
-rebased result before it pushes to `next`, and the Lefthook pre-push hook lets
-only `pnpm land` push `next` and `main`
-([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md)).
-`pnpm release` lands the version commit with the release gate.
+rebased result before it pushes to `main`, the one long-lived branch, and the
+Lefthook pre-push hook lets only `pnpm land` push `main`
+([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),
+[ADR 0097](adr/0097-main-is-the-one-trunk.md)). `pnpm release` lands the
+version commit with the release gate.
 
-`.github/workflows/release.yml` runs on every push to `main` and `next`, and on
-manual dispatch. It publishes to the publish repository, `aidenlx/zotlit`
+`.github/workflows/release.yml` runs on every push to `main`, and on manual
+dispatch on `main`. It publishes to the publish repository, `aidenlx/zotlit`
 (`RELEASE_REPOSITORY`), and keeps its steps in `packages/scripts/lib/release/`:
 
-| Job        | Runs                                                      | Credential                                                                                                         |
-| ---------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `plan`     | `release-plan.ts`: which products the pushed branch ships | none (reads the tags of `origin`)                                                                                  |
-| `verify`   | `pnpm verify --release`, the desktop checks skipped       | none                                                                                                               |
-| `obsidian` | `pnpm release:publish obsidian`                           | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
-| `zotero`   | `pnpm release:publish zotero`, then the attestation       | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
+| Job        | Runs                                                     | Credential                                                                                                         |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `plan`     | `release-plan.ts`: which products the push ships         | none (reads the tags of `origin`)                                                                                  |
+| `verify`   | `pnpm verify --release`, the desktop checks skipped      | none                                                                                                               |
+| `obsidian` | `pnpm release:publish obsidian`                          | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
+| `zotero`   | `pnpm release:publish zotero`, then the attestation      | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
+| `docs`     | `docs-deploy.yml` for production, after a stable version | the Cloudflare secrets (`secrets: inherit`)                                                                        |
 
-The `plan` job installs no dependencies. A product publishes when its version
-is on the line of the pushed branch (a pre-release on `next`, a stable version
-on `main`) and `aidenlx/zotlit-repo` has no release tag for it. That tag is the
+The `plan` job installs no dependencies. A product publishes when
+`aidenlx/zotlit-repo` has no release tag for its version; the version picks the
+line, a pre-release for the beta line and any other version for the stable
+line. That tag is the
 last step of each publish, so a run that failed half way publishes again, and
 each earlier step skips what is done. Workflow permissions are read-only; each
-publish job grants itself the write permissions it needs.
+publish job grants itself the write permissions it needs. When the push
+publishes a stable version, the `docs` job deploys the production docs site
+from its release tag, after every publish job of the run passed.
 
 The `obsidian` job pushes the shell commit and the version tag to
 `aidenlx/zotlit` with `RELEASE_REPO_TOKEN`. A tag pushed with a token, not with
@@ -88,16 +93,32 @@ the commands a real run executes.
 
 ## Docs deployment
 
-`.github/workflows/docs-deploy.yml` deploys Stable Docs from `main` and
-Pre-release Docs from `next`. Manual dispatch always deploys. For a push, the
-gate job asks Turbo whether the push changed `@zotlit/docs` or its dependency
+`.github/workflows/docs-deploy.yml` deploys two sites
+([ADR 0097](adr/0097-main-is-the-one-trunk.md)):
+
+| Site        | Wrangler environment | Deploys                                                                                  |
+| ----------- | -------------------- | ---------------------------------------------------------------------------------------- |
+| pre-release | `beta`               | each push to `main` that changes the docs; a dispatch with `site: pre-release`           |
+| production  | top-level config     | the tag of a stable release, called by `release.yml`; a dispatch with `site: production` |
+
+A dispatch takes `site` and `ref`. Without a `ref`, production builds the
+latest stable release tag and pre-release builds `main`:
+
+```sh
+gh workflow run docs-deploy.yml -f site=production            # latest stable release tag
+gh workflow run docs-deploy.yml -f site=production -f ref=2.3.1
+gh workflow run docs-deploy.yml -f site=pre-release
+```
+
+A call or a dispatch always deploys. For a push, the gate job asks Turbo whether the push changed `@zotlit/docs` or its dependency
 closure. An unavailable base commit, a force push, a change to the deploy
 workflow or to the setup action, or a failed Turbo query deploys instead of
 skipping.
 
 The gate job checks out the full history, which the base-commit comparison
-needs, and stops before dependency installation. The deploy job runs only when
-the gate reports a deployment, and starts from its own checkout.
+and the latest stable release tag need, and stops before dependency
+installation. The deploy job runs only when the gate reports a deployment, and
+starts from its own checkout of the ref the gate picked.
 
 The deploy job installs
 `@zotlit/docs` and its dependency closure with a pnpm filter, then runs

@@ -28,81 +28,66 @@ commit (plugin) or the release (Companion).
 
 ### Branching model
 
-- **`next`** = primary working branch. All features and fixes land here.
-  Pre-releases (`2.1.0-beta.N`) ship from `next`.
-- **`main`** = stable. It takes stable graduations (a fast-forward to a commit
-  of `next`) and emergency hotfixes (patch-only).
-
-See [ADR 0021](docs/adr/0021-next-is-the-primary-branch.md).
+`main` is the one long-lived branch of `aidenlx/zotlit-repo`. Every change
+lands on it, and every release, beta or stable, is a version commit on it. The
+version picks the release line: a pre-release version (`2.3.0-beta.1`) ships
+on the beta line, any other version (`2.3.0`) on the stable line. The code of
+a release is its tag. No other branch is pushed to `aidenlx/zotlit-repo`. See
+[ADR 0097](docs/adr/0097-main-is-the-one-trunk.md).
 
 ### Landing a change
 
-A change reaches `next` through `pnpm land`, run from the task worktree on its
+A change reaches `main` through `pnpm land`, run from the task worktree on its
 branch with a clean tree. Lands on one machine run one at a time, in a queue:
-each fetches `origin/next`, rebases the branch onto it, runs `pnpm verify` on
-the rebased tree, and pushes it to `next` as a fast-forward. The gate cannot be
-skipped. The pre-push hook lets only `pnpm land` push `next` and `main`.
-
-`pnpm land --to main` graduates: from a checked-out commit of `next`, it
-checks that `main` can fast-forward to it, runs `pnpm verify --release`, and
-pushes it. `pnpm land --to main --hotfix` lands a task branch off `main` onto
-`main` with the same gate.
+each fetches `origin/main`, rebases the branch onto it, runs `pnpm verify` on
+the rebased tree, and pushes it to `main` as a fast-forward. The gate cannot be
+skipped. The pre-push hook lets only `pnpm land` push `main`.
 
 ### Version policy
 
-Keep the **beta line strictly ahead of stable**: every `next` version must be
-greater than the current `main` version, and `main` stays on patch bumps
-(`2.0.x`) until the in-flight beta graduates.
-
-This is a **maintainer convention** — `pnpm release` does not block
-out-of-policy bumps. Check the chosen version against the counterpart line
-before you confirm the release.
+Each version is greater than the version before it on `main`. A stable
+release (`2.3.0`) follows the betas of its version (`2.3.0-beta.N`); the next
+beta cycle starts from it (`2.4.0-beta.0`). A stable hotfix (`2.3.1`) is a
+patch of the latest stable release; `release:publish` refuses any other
+version from a commit that `main` lacks.
 
 ### How to release
 
 ```text
-person          pnpm release ─▶ version commit ─▶ Land Queue ─▶ next / main
+person          pnpm release ─▶ version commit ─▶ Land Queue ─▶ main
                                 (release gate in the Land Turn)
-aidenlx/zotlit-repo  release.yml on the push:
+aidenlx/zotlit-repo  release.yml on the push to main:
                 plan ─▶ verify ─▶ obsidian: npm ─▶ shell commit + tag ─▶ tag here
                                └▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
+                stable version ─▶ docs: production docs site from the tag
 aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
                 official Obsidian action ─▶ res-<v> ─▶ publish the release
 ```
 
-1. Check out `next` (pre-releases and stable graduations) or `main`
-   (hotfixes), at the tip of its origin branch, with a clean tree.
+1. Check out `main` at the tip of `origin/main`, with a clean tree.
 2. Run `pnpm release`. The interactive script bumps the versions, syncs the
    root `manifest.json` and `versions.json` for a stable plugin release,
    refreshes the lockfile, commits on a local release branch, and lands that
-   commit through the Land Queue. The release gate (`pnpm verify --release`,
-   which includes the End-to-end Run, so desktop Obsidian must be running)
-   runs once, in a Land Turn, on the tree that is pushed:
+   commit onto `main` through the Land Queue. The release gate
+   (`pnpm verify --release`, which includes the End-to-end Run, so desktop
+   Obsidian must be running) runs once, in a Land Turn, on the tree that is
+   pushed.
 
-   | Versions picked        | Route                                                           |
-   | ---------------------- | --------------------------------------------------------------- |
-   | pre-release, on `next` | land into `next` with the release gate                          |
-   | stable, on `next`      | land into `next`, then fast-forward `main` to it (release gate) |
-   | patch, on `main`       | land onto `main` with the release gate (hotfix)                 |
-
-   To release without prompts, name each app and its version: a bump the
-   picker offers on that branch, or an explicit version.
+   To release without prompts, name each app and its version: a bump that the
+   current version offers, or an explicit version.
 
    ```sh
-   pnpm release --obsidian prerelease
+   pnpm release --obsidian prerelease --zotero prerelease   # the next beta
    pnpm release --obsidian 2.3.0-beta.0 --zotero 2.3.0-beta.0
-   pnpm release --obsidian minor --zotero minor   # stable graduation from next
+   pnpm release --obsidian minor --zotero minor             # a stable release
    ```
 
-   On a failure the script deletes its release branch and returns to the
-   branch it started on. A failed graduation leaves the version commit on
-   `next`; the output says how to graduate after the fix.
+   On a failure the script deletes its release branch and returns to `main`.
 
 3. `release.yml` in `aidenlx/zotlit-repo` runs on the push. Its `plan` job
-   publishes each product whose version is on the line of the pushed branch
-   (a pre-release on `next`, a stable version on `main`) and has no release
-   tag in `aidenlx/zotlit-repo` yet. The `verify` job runs the release gate on
-   the pushed tree (the desktop checks skip there). Then each product runs
+   publishes each product whose version has no release tag in
+   `aidenlx/zotlit-repo` yet. The `verify` job runs the release gate on the
+   pushed tree (the desktop checks skip there). Then each product runs
    `pnpm release:publish <product>`:
    - **Obsidian:** production build with the docs site of the line, the npm
      bundle package (dist-tag `beta` or `latest`, with provenance), the shell
@@ -112,6 +97,8 @@ aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
      tag (one atomic push), and the tag in `aidenlx/zotlit-repo`.
    - **Companion:** the XPI on the release `zt-<version>`, the update
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
+   - **Docs:** after a stable version, the `docs` job deploys the production
+     docs site from the release tag (`docs-deploy.yml`).
 4. The tag starts the shell's own `plugin-release.yml` in `aidenlx/zotlit`. It runs
    the official Obsidian action (scanner lint, attestation, draft release),
    creates and checks the Resource Release `res-<version>`, and publishes the
@@ -121,30 +108,62 @@ aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
 `pnpm release:publish <product> --dry-run [--version <v>]` runs the whole
 publish with local stand-ins and prints the commands a real run executes.
 
-### Pre-release cycle
+### Release cycle
 
-1. **Start the beta.** On `next`, run `pnpm release`, pick
-   `preminor`/`prerelease` → `2.1.0-beta.0`.
-2. **Iterate.** Land changes into `next` with `pnpm land`. Run `pnpm release`
-   with `prerelease` → `2.1.0-beta.1`, `.2`, …
-3. **Ship stable.** On `next`, run `pnpm release` and pick `minor` → `2.1.0`
-   for both apps; they graduate together. `main` fast-forwards to the version
-   commit, so `next` and `main` are the same commit after it.
-4. **Start the next beta.** Run `pnpm release` on `next` with `preminor` →
-   `2.2.0-beta.0`.
+1. **Start the beta.** On `main`, run `pnpm release`, pick
+   `preminor` → `2.4.0-beta.0`.
+2. **Iterate.** Land changes onto `main` with `pnpm land`. Run `pnpm release`
+   with `prerelease` → `2.4.0-beta.1`, `.2`, …
+3. **Ship stable.** On `main`, run `pnpm release` and pick `minor` → `2.4.0`.
+   `release.yml` publishes it on the stable line and deploys the production
+   docs site from the tag `2.4.0`.
+4. **Start the next beta.** Run `pnpm release` on `main` with `preminor` →
+   `2.5.0-beta.0`.
 
-### Hotfix path
+### Stable hotfix
 
-For urgent stable patches (security fixes, regressions) while `next` has
-unreleased features:
+A stable patch (a security fix, a regression) normally ships as a stable
+release from `main`. When `main` holds unfinished work that must not ship, cut
+the fix from the latest stable release instead. The hotfix commits reach
+`aidenlx/zotlit-repo` through the release tag alone; no branch other than
+`main` is pushed there.
 
-1. Make the fix on a task branch off `origin/main` and land it with
-   `pnpm land --to main --hotfix`.
-2. On `main`, run `pnpm release` with `patch` → `2.0.2`.
-3. Bring the fix into `next`: on a task branch off `origin/next`, run
-   `git merge origin/main` (resolve version conflicts toward the next
-   prerelease), commit, and `pnpm land`. The land keeps the merge, so `main`
-   stays an ancestor of `next` and the next graduation can fast-forward.
+1. Cut a local branch from the latest stable release tag, and make the fix:
+
+   ```sh
+   git fetch origin --tags
+   wt switch --create hotfix/2.3.1 --base 2.3.0
+   # commit the fix
+   ```
+
+2. Commit the version on the same branch: set `version` in
+   `apps/obsidian/package.json` (and `apps/zotero/package.json` when the
+   Companion ships too) to the patch version, set the same `version` in the
+   root `manifest.json`, add it to the root `versions.json` with the
+   manifest's `minAppVersion`, run `pnpm install --lockfile-only`, and commit
+   `chore: release obsidian@2.3.1`.
+3. Run the release gate on that commit: `pnpm verify --release`.
+4. With a clean tree on that commit, publish each product:
+
+   ```sh
+   pnpm release:publish obsidian --dry-run   # read its output
+   pnpm release:publish obsidian
+   pnpm release:publish zotero               # when the Companion ships too
+   ```
+
+   `release:publish` takes a commit that `origin/main` lacks only for a
+   stable version that is a patch of the latest stable release, greater than
+   it, on a commit that descends from that release's tag. The release tag it
+   pushes to `aidenlx/zotlit-repo` carries the hotfix commits.
+
+5. Deploy the production docs site from the new tag; no workflow runs for a
+   publish from a machine:
+   `gh workflow run docs-deploy.yml -f site=production`.
+6. Land the fix onto `main` separately: on a task branch off `origin/main`,
+   cherry-pick the fix commits (not the version commit), add the hotfix
+   version to the root `versions.json`, so the next stable shell lists it, and
+   run `pnpm land`. Then remove the hotfix worktree with
+   `wt remove hotfix/2.3.1`.
 
 ### Distribution channels
 
@@ -161,27 +180,28 @@ publishing cannot be set for it yet, and its first publish runs from the
 lead's machine, logged in to npm as the owner of the scope.
 
 1. Do the settings in [docs/CI_SETUP.md](docs/CI_SETUP.md#settings-outside-the-repository)
-   that come before the first publish. Keep Actions off in `aidenlx/zotlit-repo`.
-2. On `next`: `pnpm release --obsidian 2.3.0-beta.0 --zotero 2.3.0-beta.0`.
-3. On the landed commit of `next`, with a clean tree:
-   `pnpm release:publish obsidian --dry-run`, read its output, then
+   that come before the first publish.
+2. On a commit of `origin/main` that holds the version commit
+   `chore: release obsidian@2.3.0-beta.0, zotero@2.3.0-beta.0`, with a clean
+   tree: `pnpm release:publish obsidian --dry-run`, read its output, then
    `pnpm release:publish obsidian`. It publishes the npm package without
    provenance, pushes the first shell commit onto a new `beta` branch on top
    of the `main` history of `aidenlx/zotlit` with the tag `2.3.0-beta.0`, and
    pushes the same tag here. Use the Git and `gh` login of the lead, or set
    `RELEASE_REPO_TOKEN`.
+3. Run `pnpm release:publish zotero` on the same commit; it publishes
+   `zt-2.3.0-beta.0`.
 4. Watch the shell's `plugin-release.yml` in `aidenlx/zotlit` publish `2.3.0-beta.0`
    and `res-2.3.0-beta.0`.
-5. Set trusted publishing for the npm package (docs/CI_SETUP.md).
-6. Enable Actions in `aidenlx/zotlit-repo` and run `release.yml` with
-   `workflow_dispatch` on `next`. Its plan skips the plugin (the tag exists)
-   and publishes `zt-2.3.0-beta.0`.
+5. Set trusted publishing for the npm package (docs/CI_SETUP.md). Later
+   releases publish from `release.yml`.
 
 ### A step failed half way
 
 Every step of `pnpm release:publish` finds what an earlier run did, so the
 first action is to run the same publish again: re-run the failed job, or run
-`release.yml` with `workflow_dispatch` on the branch.
+`release.yml` with `workflow_dispatch` on `main`. A stable hotfix runs
+`pnpm release:publish` again on its commit.
 
 | Step that failed                      | State                                                    | Action                                                                                                                |
 | ------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |

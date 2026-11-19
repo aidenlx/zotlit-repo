@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: superseded in part by ADR-0097
 ---
 
 # Releases land without pull requests and publish across two repositories
+
+> **Superseded in part by [ADR 0097](0097-main-is-the-one-trunk.md).** Every release is a version commit on `main`, and the version alone picks the line. The graduation, `pnpm land --to main --hotfix`, the merge path of the Land Queue, the version rules that kept two branches in order, and "the line decides the branch" are gone; a stable hotfix publishes from a local branch cut from the latest stable release tag. The publish across two repositories, the source tag as the gate, and the history of the publish repository remain.
 
 Replaces the pull-request parts of [ADR 0021](0021-next-is-the-primary-branch.md) and [ADR 0076](0076-checks-run-before-push-and-ci-runs-only-to-release.md). Amends [ADR 0084](0084-changes-land-on-next-through-a-serial-queue.md) (a hotfix land onto `main`; a branch with a merge commit takes its target by a merge) and [ADR 0095](0095-the-publish-repository-is-a-thin-generated-shell.md) (the release flow that uses the shell).
 
