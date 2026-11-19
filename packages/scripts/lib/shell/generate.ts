@@ -85,8 +85,7 @@ at the version that \`package.json\` names: \`pnpm install\`, then
 \`pnpm run build\` writes \`main.js\` and \`styles.css\`. The source code, the
 issue tracker and the development history are in
 [${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}). This tree is
-generated at each release, so pull requests are closed here: send a change to
-the source repository.
+generated at each release: send changes to the source repository.
 
 `;
   const footer = resolved.lastIndexOf("\n---\n");

@@ -30,16 +30,8 @@ export const LEGAL_FILES = ["LICENSE", "NOTICE"] as const;
 
 /** `src/main.ts` of the publish repository: the plugin class, from the bundle package. */
 function shellEntrySource(plugin: PublishedPlugin): string {
-  return `// The entry module of this Obsidian plugin in its publish repository,
-// ${plugin.repository}. The repository carries the plugin's releases. Its
-// tree is generated at each release from the source repository,
-// ${SOURCE_REPOSITORY}, which holds the code, its history and the issue
-// tracker: a change to the plugin goes there, and a commit made here is
-// replaced by the next release.
-//
-// The plugin's code is the npm package below, built from that source. This
-// module re-exports its default export, the plugin class Obsidian loads, and
-// scripts/build.mjs bundles the two into main.js.
+  return `// Entry module of the plugin: re-exports the plugin class from the npm package that holds the plugin's code.
+// Generated at each release from ${SOURCE_REPOSITORY}, where changes to the plugin go.
 export { default } from "${plugin.bundlePackage}";
 `;
 }
