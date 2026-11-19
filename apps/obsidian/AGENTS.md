@@ -34,7 +34,7 @@ Run `build` / `test` / `lint` via turbo (see root AGENTS.md → Commands). Packa
 - `pnpm --filter @zotlit/obsidian dev` — Vite watch build.
 - `I18N_DEV_SERVER=true pnpm --filter @zotlit/obsidian dev` — the Language Pack source for a dev build in any non-English locale: serves the generated Language Pack JSONs at `http://127.0.0.1:9092` (or pass a port number) and points the dev build's pack download URL there. A dev build's manifest carries a Dev Build version (`2.2.0-beta.1.dev`, from `scripts/dev-version.ts`) that has no Resource Release, so without this server the pack download fails and the build stays on the bundled English pack.
 - `pnpm --filter @zotlit/plugin-messages generate:language-packs` — regenerate the typed message facade and bundled English pack. Only needed when bypassing turbo; turbo `typecheck`/`test` depend on it.
-- Production build (`turbo run build`): Vite writes the bundle package `@zotlit/obsidian-plugin` into `dist/package/` (unminified ES module, `styles.css`, `resources/`), then `scripts/build.mjs` of the publish repository's shell (`packages/scripts/lib/shell/templates/`) builds `dist/main.js` and `dist/styles.css` from it. A development build writes `dist-dev/main.js` directly.
+- Production build (`turbo run build`): Vite writes the bundle package (its name is in `PUBLISHED_PLUGINS`, `packages/scripts/lib/shell/plugins.ts`) into `dist/package/` (unminified ES module, `styles.css`, `resources/`), then `scripts/build.mjs` of the publish repository's shell (`packages/scripts/lib/shell/templates/`) builds `dist/main.js` and `dist/styles.css` from it. A development build writes `dist-dev/main.js` directly.
 - `pnpm --filter @zotlit/obsidian analyze` — production build with an interactive bundle-size report at `bundle-stats.html`. Set `ANALYZE=json` for a machine-readable `bundle-stats.json` instead.
 
 ## UI stack
@@ -79,7 +79,7 @@ When adding or changing a `zotlit:*` command, register its Effect handler with `
 
 ## CLI schemas and resources
 
-When adding or changing a CLI schema or downloadable resource, inspect `packages/template-workbench/src/core/cli/schema.ts`, [ADR 0019](../../docs/adr/0019-runtime-assets-ship-on-a-parallel-resource-release.md), and `.github/workflows/release.yml` at the repository root. They own the version-pinned Resource Release pattern.
+When adding or changing a CLI schema or downloadable resource, inspect `packages/template-workbench/src/core/cli/schema.ts`, [ADR 0019](../../docs/adr/0019-runtime-assets-ship-on-a-parallel-resource-release.md), and the publish repository's workflow template `packages/scripts/lib/shell/templates/.github/workflows/release.yml`. They own the version-pinned Resource Release pattern.
 
 ## Effect
 

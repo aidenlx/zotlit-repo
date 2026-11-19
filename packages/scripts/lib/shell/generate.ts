@@ -195,15 +195,34 @@ overrides:
 }
 
 /**
+ * The `.npmrc` that routes the bundle package's scope to `registry`, for an
+ * install from a registry other than npm's. The shell commits no `.npmrc`:
+ * the publish repository installs from the public registry.
+ */
+export function scopeRegistryNpmrc(
+  plugin: PublishedPluginName,
+  registry: string,
+): string {
+  const scope = PUBLISHED_PLUGINS[plugin].bundlePackage.split("/")[0];
+  return `${scope}:registry=${registry}\n`;
+}
+
+/**
  * Writes the shell's `pnpm-lock.yaml`. Without `bundleTarball`, pnpm resolves
  * the bundle package from the npm registry, as a release does after it
  * publishes the package. With it, an override installs that local tarball in
  * place of the registry version, as the local check does before anything is
- * published; the override then stays in `pnpm-workspace.yaml`.
+ * published; the override then stays in `pnpm-workspace.yaml`. With
+ * `registry`, the bundle package resolves from that registry, and the lockfile
+ * keeps no URL of it, so it is the lockfile a resolve from npm writes.
  */
 export async function lockShell(
   outDir: string,
-  options: { plugin: PublishedPluginName; bundleTarball?: string },
+  options: {
+    plugin: PublishedPluginName;
+    bundleTarball?: string;
+    registry?: string;
+  },
 ): Promise<void> {
   if (options.bundleTarball) {
     const { bundlePackage } = PUBLISHED_PLUGINS[options.plugin];
@@ -214,5 +233,27 @@ export async function lockShell(
       `${text}  "${bundlePackage}": "file:${options.bundleTarball}"\n`,
     );
   }
-  await $({ cwd: outDir, stdio: "inherit" })`pnpm install --lockfile-only`;
+  const { registry } = options;
+  if (!registry) {
+    await $({ cwd: outDir, stdio: "inherit" })`pnpm install --lockfile-only`;
+    return;
+  }
+  const npmrc = join(outDir, ".npmrc");
+  await writeFile(npmrc, scopeRegistryNpmrc(options.plugin, registry));
+  try {
+    await $({ cwd: outDir, stdio: "inherit" })`pnpm install --lockfile-only`;
+  } finally {
+    await rm(npmrc, { force: true });
+  }
+  // pnpm records the tarball URL of a package from a registry other than its
+  // default one. The URL of the stand-in registry has no place in the shell.
+  const lockfile = join(outDir, "pnpm-lock.yaml");
+  const marker = `, tarball: ${registry}`;
+  const lines = (await readFile(lockfile, "utf8")).split("\n").map((line) => {
+    const at = line.indexOf(marker);
+    return at === -1
+      ? line
+      : line.slice(0, at) + line.slice(line.indexOf("}", at));
+  });
+  await writeFile(lockfile, lines.join("\n"));
 }

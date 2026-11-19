@@ -3,7 +3,8 @@
 
 /**
  * The source repository: this monorepo, its issues and its pull requests.
- * Root `package.json#repository` names it for npm and `pnpm release`.
+ * Root `package.json#repository` names it for npm, and the bundle package's
+ * `repository` names it for npm provenance.
  */
 export const SOURCE_REPOSITORY = "aidenlx/zotlit-repo";
 

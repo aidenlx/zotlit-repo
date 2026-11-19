@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { generateShell } from "./generate.ts";
+import { PUBLISHED_PLUGINS } from "./plugins.ts";
 
 import { getWorkspaceRoot } from "#package-roots";
 
@@ -26,7 +27,7 @@ describe("generateShell", () => {
     const { json } = await shell("2.3.0-beta.0");
     const manifest = await json("package.json");
     expect(manifest.dependencies).toEqual({
-      "@zotlit/obsidian-plugin": "2.3.0-beta.0",
+      [PUBLISHED_PLUGINS.desktop.bundlePackage]: "2.3.0-beta.0",
     });
     expect(manifest.scripts.build).toBe("node scripts/build.mjs");
     expect((await json("manifest.json")).version).toBe("2.3.0-beta.0");

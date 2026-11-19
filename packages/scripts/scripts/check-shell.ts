@@ -14,13 +14,17 @@
 //      root, and the manifest rule on its manifest.json.
 // `pnpm verify --release` runs it after the Obsidian guideline review.
 import type { PublishedPluginName } from "#shell/plugins";
-import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { $ } from "zx";
 
 import { getWorkspaceRoot } from "#package-roots";
+import {
+  compareBuilds,
+  describeBuilds,
+  installAndBuild,
+} from "#shell/build-check";
 import { generateShell, lockShell } from "#shell/generate";
 import { BUNDLE_PACKAGE_DIR, PUBLISHED_PLUGINS } from "#shell/plugins";
 
@@ -66,28 +70,12 @@ await lockShell(shellDir, {
 });
 
 console.log("\n▸ Install and build the shell");
-const inShell = $({ cwd: shellDir, stdio: "inherit" });
-await inShell`pnpm install --frozen-lockfile`;
-await inShell`npm run build`;
+await installAndBuild(shellDir);
 
 console.log("\n▸ Compare with the host app's build");
-const sha256 = async (path: string) =>
-  createHash("sha256")
-    .update(await readFile(path))
-    .digest("hex");
-let mismatches = 0;
-for (const file of ["main.js", "styles.css"]) {
-  const [ours, shells] = await Promise.all([
-    sha256(join(appDir, "dist", file)),
-    sha256(join(shellDir, file)),
-  ]);
-  const same = ours === shells;
-  if (!same) mismatches++;
-  console.log(
-    `${same ? "same" : "DIFFERENT"}  ${file}  ${ours}${same ? "" : ` / shell ${shells}`}`,
-  );
-}
-if (mismatches > 0) {
+const builds = await compareBuilds(join(appDir, "dist"), shellDir);
+console.log(describeBuilds(builds));
+if (builds.some(({ app, shell }) => app !== shell)) {
   console.error(
     "\nThe shell does not reproduce the host app's build. Compare the two files above.",
   );

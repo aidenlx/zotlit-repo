@@ -31,7 +31,9 @@
     "#message-usage": "./lib/message-usage.ts",
     "#plugin-packages": "./lib/plugin-packages.ts",
     "#scanner-eslint": "./lib/scanner-eslint.ts",
-    "#shell/*": "./lib/shell/*.ts"
+    "#shell/*": "./lib/shell/*.ts",
+    "#release/*": "./lib/release/*.ts",
+    "#git-repos": "./lib/__fixtures__/git-repos.ts"
   },
   "exports": {
     "./desktop-slot": "./lib/desktop-slot.ts",

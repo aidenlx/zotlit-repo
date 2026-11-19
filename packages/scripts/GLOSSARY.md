@@ -115,7 +115,9 @@ _Avoid_: memory lock, memory slot
 The one way a change reaches `next`: rebase the task branch onto the newest
 `next`, pass the quality gate on the rebased tree, and push it as a
 fast-forward. A land into `main` fast-forwards it to a commit of `next` after
-the release gate.
+the release gate (a graduation); a hotfix land rebases a task branch onto
+`main` and passes the release gate. A branch that holds a merge commit takes
+the newest target by a merge, so the merged commits stay as they are.
 _Avoid_: merge, PR merge
 
 **Land Queue**:
@@ -134,3 +136,25 @@ _Avoid_: land lock, push lock
 The line of End-to-end Runs after lands. Each land asks for a run of its new
 `next` tip; a run that waited takes the newest tip, so runs coalesce.
 _Avoid_: post-merge CI
+
+## Releasing
+
+**Version Commit**:
+The commit that `pnpm release` makes and lands: the new app versions, the
+lockfile, and for a stable plugin release the root `manifest.json` and
+`versions.json`. It reaches `next` (a beta), `next` and then `main` (a
+graduation), or `main` (a hotfix) through the Land Queue.
+_Avoid_: release PR, release branch
+
+**Publish**:
+What `release.yml` does for a product whose version its line's branch gained:
+the steps of `pnpm release:publish`, which end with the release tag in the
+source repository. Each step skips what an earlier publish of the same
+version finished.
+_Avoid_: deploy, cut a release
+
+**Shell Commit**:
+The commit of a generated shell on the line's branch of the publish
+repository (`beta` or `main`), pushed with the version tag in one atomic
+push. The tag starts the publish repository's release workflow.
+_Avoid_: release commit, publish commit
