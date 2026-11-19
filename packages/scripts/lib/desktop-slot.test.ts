@@ -20,6 +20,7 @@ import {
   MEMORY_GATE_ENV,
 } from "@zotlit/config/memory-gate";
 
+import { DESKTOP_PAINT_ENV } from "./desktop-paint.ts";
 import {
   acquireDesktopSlot,
   ADMISSION_DEADLINE_MS,
@@ -46,6 +47,7 @@ const ENV_KEYS = [
   DESKTOP_SLOTS_ENV,
   MEMORY_GATE_ENV,
   MEMORY_GATE_ADMITTED_ENV,
+  DESKTOP_PAINT_ENV,
 ];
 const saved = Object.fromEntries(
   ENV_KEYS.map((key) => [key, process.env[key]]),
@@ -94,6 +96,9 @@ beforeEach(async () => {
   process.env[DESKTOP_DIR_ENV] = dir;
   // The Memory Gate has its own tests; these cases isolate Desktop Slots.
   process.env[MEMORY_GATE_ENV] = "off";
+  // So does the paint probe (desktop-paint.test.ts): these cases must pass
+  // whatever the real display of the machine shows.
+  process.env[DESKTOP_PAINT_ENV] = "off";
   // One slot, unless a test says otherwise; children inherit it.
   process.env[DESKTOP_SLOTS_ENV] = "1";
   delete process.env[DESKTOP_SLOT_ENV];

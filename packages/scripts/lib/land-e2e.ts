@@ -5,6 +5,7 @@
 //        └▶ runner process ─▶ waits in the End-to-end Queue (one turn)
 //                              └▶ at its turn: reads the newest request
 //                                   already run? ─▶ exit
+//                                   desktop cannot paint? ─▶ record "not-run"
 //                                   else check out the tip in its own
 //                                   checkout, bootstrap, run `pnpm e2e`
 //                                   under a Desktop Slot, record the result
@@ -15,6 +16,11 @@
 // failure starts at the last tip that passed. A failure opens an issue and
 // reverts nothing.
 //
+// A run needs a painted desktop window (lib/desktop-paint.ts). When the
+// desktop cannot paint, before the run or at the end of a run that failed, the
+// tip is recorded as "not-run" with the machine state: nothing was tested, so
+// no issue opens, and the next land's run covers the newer tip.
+//
 // The state lives in `landE2eDir()`:
 //
 //   queue/          the End-to-end Queue
@@ -24,6 +30,7 @@
 //   logs/           the full log of each run
 //   checkout/       the runner's own worktree, detached at the tip it runs
 
+import type { DesktopPaint } from "#desktop-paint";
 import type { Admission } from "#desktop-slot";
 import { regex } from "arkregex";
 import { randomUUID } from "node:crypto";
@@ -62,11 +69,15 @@ export interface LandE2eRequest {
   requestedAt: string;
 }
 
-/** How one run ended. `failed` names the stage that failed. */
+/**
+ * How one run ended. `failed` names the stage that failed. `not-run` says
+ * why the desktop could not paint a window, so nothing was tested.
+ */
 export type LandE2eOutcome =
   | { outcome: "passed" }
   | { outcome: "skipped"; reason: string }
   | { outcome: "blocked"; reason: string }
+  | { outcome: "not-run"; reason: string }
   | { outcome: "failed"; stage: string };
 
 export interface LandE2eRecord {
@@ -104,6 +115,8 @@ export interface LandE2eRun {
 export interface LandE2eDeps {
   /** Check out, bootstrap, and run the End-to-end Run of the request. */
   run: (run: LandE2eRun) => Promise<LandE2eOutcome>;
+  /** Whether the desktop can paint a window now (`readDesktopPaint`). */
+  paint: () => Promise<DesktopPaint>;
   /** Open the issue for a failed run; returns its URL. */
   report: (failure: {
     run: LandE2eRun;
@@ -131,6 +144,7 @@ function landE2eAdmission(dir: string): Admission {
     slots: () => 1,
     tokenEnv: "ZOTLIT_LAND_E2E_TURN",
     memoryGate: false,
+    display: false,
     slotName: "End-to-end Turn",
     queueName: "End-to-end Queue",
   };
@@ -213,12 +227,7 @@ export async function runLandE2e(
     const base = state.lastPassed ?? request.previous;
     const range = base ? `${base}..${request.commit}` : request.commit;
     log(`End-to-end Run of ${request.commit.slice(0, 12)}: log ${logPath}`);
-    const result = await deps
-      .run(run)
-      .catch((error: unknown): LandE2eOutcome => ({
-        outcome: "failed",
-        stage: `runner: ${(error as Error).message}`,
-      }));
+    const result = await runUnlessDesktopIsDark(deps, run);
     const issue =
       result.outcome === "failed"
         ? await deps.report({ run, range, stage: result.stage })
@@ -233,19 +242,69 @@ export async function runLandE2e(
       result,
     };
     await appendFile(join(dir, "runs.jsonl"), `${JSON.stringify(record)}\n`);
-    // A blocked run leaves the tip to the next runner.
-    if (result.outcome !== "blocked") {
+    // A blocked run and a run that did not run leave the tip to the next
+    // runner.
+    if (result.outcome !== "blocked" && result.outcome !== "not-run") {
       await writeJsonAtomic(join(dir, "state.json"), {
         lastRun: request.commit,
         lastPassed:
           result.outcome === "passed" ? request.commit : state.lastPassed,
       } satisfies LandE2eState);
     }
-    log(`End-to-end Run of ${request.commit.slice(0, 12)}: ${result.outcome}.`);
+    log(
+      `End-to-end Run of ${request.commit.slice(0, 12)}: ${result.outcome}${result.outcome === "not-run" ? `: ${result.reason}` : ""}.`,
+    );
     return record;
   } finally {
     slot.release();
   }
+}
+
+/**
+ * Run the request unless the desktop cannot paint. A run that failed or was
+ * blocked while the desktop cannot paint at its end did not test the code:
+ * it is recorded as not run, and its log keeps the test output.
+ */
+async function runUnlessDesktopIsDark(
+  deps: LandE2eDeps,
+  run: LandE2eRun,
+): Promise<LandE2eOutcome> {
+  const before = await deps.paint();
+  if (before.state === "cannot paint") {
+    return {
+      outcome: "not-run",
+      reason: `the desktop cannot paint a window: ${before.machine}`,
+    };
+  }
+  const result = await deps
+    .run(run)
+    .catch((error: unknown): LandE2eOutcome => ({
+      outcome: "failed",
+      stage: `runner: ${(error as Error).message}`,
+    }));
+  if (result.outcome !== "failed" && result.outcome !== "blocked") {
+    return result;
+  }
+  const after = await deps.paint();
+  return after.state === "cannot paint"
+    ? {
+        outcome: "not-run",
+        reason: `the desktop stopped painting during the run: ${after.machine}`,
+      }
+    : result;
+}
+
+/** The last `limit` records of `runs.jsonl`, oldest first. */
+export async function readLandE2eRecords(
+  limit: number,
+  dir: string = landE2eDir(),
+): Promise<LandE2eRecord[]> {
+  const text = await readFile(join(dir, "runs.jsonl"), "utf8").catch(() => "");
+  return text
+    .split("\n")
+    .filter(Boolean)
+    .slice(-limit)
+    .map((line) => JSON.parse(line) as LandE2eRecord);
 }
 
 async function readJson<T>(path: string): Promise<T | undefined> {

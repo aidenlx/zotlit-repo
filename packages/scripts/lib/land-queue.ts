@@ -40,6 +40,7 @@ export function landAdmission(target: LandTarget): Admission {
     slots: () => 1,
     tokenEnv: LAND_TURN_ENV,
     memoryGate: false,
+    display: false,
     slotName: "Land Turn",
     queueName: `Land Queue of ${target}`,
   };

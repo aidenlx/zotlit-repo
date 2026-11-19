@@ -7,6 +7,7 @@ import { parseArgs } from "node:util";
 import { prerelease, valid } from "semver";
 import { $ } from "zx";
 
+import { exitUnlessDesktopPaints } from "#desktop-paint";
 import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
@@ -86,6 +87,9 @@ const git = $({ cwd: workspaceRoot, quiet: true });
 
 p.intro(interactive ? "ZotLit release" : "ZotLit release (non-interactive)");
 
+// Every route runs the release gate, whose End-to-end Run needs a painted
+// desktop window: stop now, before the version commit and the gate.
+await exitUnlessDesktopPaints();
 await assertCleanWorkingTree();
 const branch = (await git`git branch --show-current`).stdout.trim();
 if (branch !== "next" && branch !== "main") {

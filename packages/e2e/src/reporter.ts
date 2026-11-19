@@ -14,9 +14,13 @@ import type {
   TestCase,
   TestModule,
   TestModuleState,
+  TestRunEndReason,
 } from "vitest/node";
 
-import { reportDesktopProgress } from "@zotlit/scripts/desktop-slot";
+import {
+  paintAfterFailure,
+  reportDesktopProgress,
+} from "@zotlit/scripts/desktop-slot";
 
 import { E2E_RESULTS_ROOT, e2eResultsDir } from "./results-dir.ts";
 
@@ -26,7 +30,8 @@ const KEPT_RUNS = 10;
 /**
  * Keep console evidence on disk while terminal output follows suite progress.
  * Each test file, test case, and hook that starts or ends renews the Lease of
- * the run's Desktop Slot.
+ * the run's Desktop Slot. A failed run whose desktop cannot paint at its end
+ * says so after the summary.
  */
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
@@ -106,6 +111,20 @@ export default class E2eReporter extends DefaultReporter {
   override onHookEnd(hook: ReportedHookContext): void {
     super.onHookEnd(hook);
     reportDesktopProgress(`finished ${hook.name} of ${describeEntity(hook)}`);
+  }
+
+  // oxlint-disable-next-line typescript/no-misused-promises -- Vitest awaits each reporter's onTestRunEnd (Reporter.onTestRunEnd returns Awaitable<void>), so the line prints before the run exits
+  override async onTestRunEnd(
+    testModules: Parameters<DefaultReporter["onTestRunEnd"]>[0],
+    unhandledErrors: Parameters<DefaultReporter["onTestRunEnd"]>[1],
+    reason: TestRunEndReason,
+  ) {
+    super.onTestRunEnd(testModules, unhandledErrors, reason);
+    if (reason !== "failed") return;
+    // A display that slept or a screen that locked during the run fails the
+    // cases that read a painted window.
+    const line = await paintAfterFailure();
+    if (line) this.error(line);
   }
 
   protected override printTestCase(

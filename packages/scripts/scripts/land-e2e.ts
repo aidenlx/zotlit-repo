@@ -13,6 +13,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { stripVTControlCharacters } from "node:util";
 
+import { readDesktopPaint } from "#desktop-paint";
 import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
 import { runLandE2e } from "#land-e2e";
 
@@ -233,4 +234,4 @@ const report: LandE2eDeps["report"] = async ({ run, range, stage }) => {
   return created.code === 0 ? created.stdout.trim() : undefined;
 };
 
-await runLandE2e({ run, report });
+await runLandE2e({ run, report, paint: readDesktopPaint });

@@ -1,13 +1,20 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { githubRepository, requestLandE2e, runLandE2e } from "./land-e2e.ts";
-import type { LandE2eDeps, LandE2eOutcome, LandE2eRecord } from "./land-e2e.ts";
+import type { DesktopPaint } from "./desktop-paint.ts";
+import {
+  githubRepository,
+  readLandE2eRecords,
+  requestLandE2e,
+  runLandE2e,
+} from "./land-e2e.ts";
+import type { LandE2eDeps, LandE2eOutcome } from "./land-e2e.ts";
 
-// The runner's run and report are the process and network boundaries: the
-// real ones check out, bootstrap, drive the desktop, and call `gh`.
+// The runner's run, report, and paint probe are the process, network, and OS
+// boundaries: the real ones check out, bootstrap, drive the desktop, call
+// `gh`, and ask macOS whether the desktop can paint.
 let dir: string;
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), "land-e2e-"));
@@ -28,7 +35,20 @@ const request = (commit: string, previous = "p0") =>
     dir,
   );
 
-function deps(outcomes: Record<string, LandE2eOutcome> = {}) {
+const PAINTS: DesktopPaint = { state: "paints" };
+const LID_CLOSED: DesktopPaint = {
+  state: "cannot paint",
+  machine: "no display is awake (Color LCD: asleep), and the screen is locked",
+};
+
+/**
+ * Fakes of the runner's boundaries. `paints` answers the probes in order;
+ * the last answer repeats.
+ */
+function deps(
+  outcomes: Record<string, LandE2eOutcome> = {},
+  paints: DesktopPaint[] = [PAINTS],
+) {
   const ran: string[] = [];
   const reported: { range: string; stage: string }[] = [];
   const fake: LandE2eDeps = {
@@ -42,6 +62,8 @@ function deps(outcomes: Record<string, LandE2eOutcome> = {}) {
         `https://github.com/owner/repo/issues/${reported.length}`,
       );
     },
+    paint: () =>
+      Promise.resolve(paints.length > 1 ? paints.shift()! : paints[0]!),
   };
   return { fake, ran, reported };
 }
@@ -49,12 +71,7 @@ function deps(outcomes: Record<string, LandE2eOutcome> = {}) {
 const runner = (fake: LandE2eDeps) =>
   runLandE2e(fake, { dir, pollMs: 10, log: () => {} });
 
-async function records(): Promise<LandE2eRecord[]> {
-  return (await readFile(join(dir, "runs.jsonl"), "utf8"))
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => JSON.parse(line) as LandE2eRecord);
-}
+const records = () => readLandE2eRecords(100, dir);
 
 describe("the End-to-end Run after a land", () => {
   it("runs only the newest tip when several lands requested runs", async () => {
@@ -103,6 +120,56 @@ describe("the End-to-end Run after a land", () => {
     expect(reported).toEqual([]);
     expect(await records()).toMatchObject([
       { commit: "c1", result: { outcome: "skipped", reason: "no desktop" } },
+    ]);
+  });
+});
+
+describe("the End-to-end Run after a land on a desktop that cannot paint", () => {
+  it("records the tip as not run with the machine state, opens no issue, and runs the newer tip next", async () => {
+    const { fake, ran, reported } = deps({}, [PAINTS, LID_CLOSED, PAINTS]);
+    await request("c0");
+    await runner(fake);
+    await request("c1", "c0");
+    await runner(fake);
+    await request("c2", "c1");
+    await runner(fake);
+
+    expect(ran).toEqual(["c0", "c2"]);
+    expect(reported).toEqual([]);
+    expect(await records()).toMatchObject([
+      { commit: "c0", result: { outcome: "passed" } },
+      {
+        commit: "c1",
+        result: {
+          outcome: "not-run",
+          reason: `the desktop cannot paint a window: ${LID_CLOSED.machine}`,
+        },
+      },
+      // The range of the newer tip starts at the last tip that passed, so it
+      // holds the commits of the tip that did not run.
+      { commit: "c2", range: "c0..c2", result: { outcome: "passed" } },
+    ]);
+  });
+
+  it("records a failed run as not run when the desktop stopped painting during it", async () => {
+    const { fake, ran, reported } = deps(
+      { c1: { outcome: "failed", stage: "End-to-end Run" } },
+      [PAINTS, LID_CLOSED],
+    );
+    await request("c1");
+
+    await runner(fake);
+
+    expect(ran).toEqual(["c1"]);
+    expect(reported).toEqual([]);
+    expect(await records()).toMatchObject([
+      {
+        commit: "c1",
+        result: {
+          outcome: "not-run",
+          reason: `the desktop stopped painting during the run: ${LID_CLOSED.machine}`,
+        },
+      },
     ]);
   });
 });

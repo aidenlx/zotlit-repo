@@ -99,6 +99,12 @@ The period a manual hold keeps its Desktop Slot after a waiter that needs the
 slot asks for it; the hold prints who waits and when it ends, then ends.
 _Avoid_: preemption warning, grace period
 
+**Paint Check**:
+The admission check that the desktop can paint a window now: one display is
+awake and the user's session is not locked. A run that needs a painted window
+does not start without it, and is blocked at admission, not failed.
+_Avoid_: display check, screen check
+
 **Admission Deadline**:
 How long a waiter will wait, at the Desktop Queue and the Memory Gate combined,
 before giving up and reporting who is ahead of it.

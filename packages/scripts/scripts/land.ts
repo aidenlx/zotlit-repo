@@ -30,12 +30,19 @@ import {
   SILENCE_LIMIT_MS,
 } from "#desktop-slot";
 import { land, LAND_ATTEMPTS, LAND_GATES, LAND_WAIT_MS } from "#land";
-import { githubRepository, landE2eDir, requestLandE2e } from "#land-e2e";
+import {
+  githubRepository,
+  landE2eDir,
+  readLandE2eRecords,
+  requestLandE2e,
+} from "#land-e2e";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
 const EXIT_USAGE = 2;
 /** The lines of the log a failed gate prints. */
 const GATE_TAIL = 40;
+/** The End-to-end Runs after lands that `pnpm land status` lists. */
+const STATUS_RUNS = 5;
 
 const epilogue = `A land holds the Land Turn of its target branch while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches each branch on this machine, in the order the lands started. The gate cannot be skipped.
 
@@ -156,6 +163,23 @@ async function status() {
         : `Land Queue of ${target}: empty.`,
     );
   }
+  // A tip the desktop could not run shows as "not-run" with the machine state.
+  const runs = await readLandE2eRecords(STATUS_RUNS);
+  console.log(
+    runs.length > 0
+      ? `End-to-end Runs after lands, newest last:\n${runs
+          .map(({ commit, finishedAt, result }) => {
+            const detail =
+              "reason" in result
+                ? `: ${result.reason}`
+                : "stage" in result
+                  ? ` at the ${result.stage} stage`
+                  : "";
+            return `  ${commit.slice(0, 12)} ${result.outcome}${detail} (${finishedAt})`;
+          })
+          .join("\n")}`
+      : "End-to-end Runs after lands: none recorded.",
+  );
 }
 
 await yargs(hideBin(process.argv))
@@ -188,7 +212,7 @@ await yargs(hideBin(process.argv))
   )
   .command(
     "status",
-    "show the holder of each Land Turn and the lands that wait",
+    "show the holder of each Land Turn, the lands that wait, and the last End-to-end Runs after lands",
     () => {},
     async () => {
       await status();

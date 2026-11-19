@@ -23,6 +23,7 @@ import {
 
 import { affectedBase } from "#affected-base";
 import { isAgentDocsOnly } from "#agent-docs";
+import { exitUnlessDesktopPaints } from "#desktop-paint";
 import {
   acquireDesktopSlotOrExit,
   EXIT_LEASE_ENDED,
@@ -41,6 +42,10 @@ const base = release ? undefined : await affectedBase(root);
 const scope = base ? ["--affected"] : [];
 const env = base ? { ...process.env, TURBO_SCM_BASE: base } : process.env;
 const sh = $({ cwd: root, stdio: "inherit", env });
+
+// The desktop runs come last and need a painted window: a desktop that cannot
+// paint stops the release gate now (exit 75), not after the other steps.
+if (release && !ci) await exitUnlessDesktopPaints();
 
 await step("Format", () => sh`pnpm exec oxfmt --check`);
 

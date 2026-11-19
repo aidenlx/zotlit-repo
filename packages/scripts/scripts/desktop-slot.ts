@@ -16,6 +16,7 @@ import {
   MEMORY_GATE_ENV,
 } from "@zotlit/config/memory-gate";
 
+import { DESKTOP_PAINT_ENV } from "#desktop-paint";
 import {
   acquireDesktopSlotOrExit,
   ADMISSION_DEADLINE_MS,
@@ -45,6 +46,8 @@ const EXIT_USAGE = 2;
 
 const epilogue = `The one desktop Obsidian app has a pool of Desktop Slots, ${DEFAULT_DESKTOP_SLOTS} by default, shared by every clone and session on this machine (ADR 0077, ADR 0078). Each holder drives its own vault. A holder joins the Desktop Queue (first in, first out, no overtaking) and claims a slot at its head, once a slot is free and no holder from its own worktree (git toplevel) has one. An Exclusive Hold (run --exclusive; measure:query) claims every slot, once all are free, for work that needs the whole app, such as a screen capture. The holder then passes the Memory Gate, and its Lease starts.
 
+Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated run (pnpm e2e, e2e:worker, pnpm verify --release, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
+
 Exit codes:
   ${EXIT_ADMISSION_BLOCKED}   the Admission Deadline passed; blocked at admission, not a failure.
        The message names every holder and the waiters ahead.
@@ -63,7 +66,8 @@ Environment:
   ${DESKTOP_SLOTS_ENV}    the number of Desktop Slots, a positive integer (default ${DEFAULT_DESKTOP_SLOTS})
   ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (pnpm e2e, e2e:worker, measure:query)
   ${DESKTOP_DIR_ENV}      the state directory (now ${desktopStateDir()})
-  ${MEMORY_GATE_ENV}=off  skip the Memory Gate`;
+  ${MEMORY_GATE_ENV}=off  skip the Memory Gate
+  ${DESKTOP_PAINT_ENV}=off  skip the Paint Check and the display assertion`;
 
 function usage(message: string): never {
   console.error(`desktop-slot: ${message}`);

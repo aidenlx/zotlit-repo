@@ -32,8 +32,15 @@
 //
 // The same machinery admits other machine-wide serial work through an
 // `Admission` of its own: its state directory, slot count, token variable and
-// names, and whether a holder passes the Memory Gate. The Land Queue
-// (lib/land-queue.ts) is one such admission, with one slot and no gate.
+// names, whether a holder passes the Memory Gate, and whether it drives the
+// desktop apps. The Land Queue (lib/land-queue.ts) is one such admission,
+// with one slot, no gate, and no desktop.
+//
+// A holder of the desktop asks first whether the desktop can paint a window
+// (lib/desktop-paint.ts). An automated run that cannot get a painted window
+// tests nothing, so it does not start and exits EXIT_ADMISSION_BLOCKED; a
+// manual hold starts with a warning, since its command may need no window.
+// While the hold lasts, the display stays awake.
 
 import { regex } from "arkregex";
 import { Effect } from "effect";
@@ -69,6 +76,14 @@ import {
   passMemoryGate,
 } from "@zotlit/config/memory-gate";
 
+import {
+  cannotPaintMessage,
+  cannotPaintWarning,
+  holdDisplayAwake,
+  readDesktopPaint,
+} from "#desktop-paint";
+
+export { paintAfterFailure } from "#desktop-paint";
 export {
   ADMISSION_DEADLINE_MS,
   DESKTOP_WAIT_ENV,
@@ -96,6 +111,11 @@ export interface Admission {
   tokenEnv: string;
   /** Whether a holder passes the Memory Gate before its Lease starts. */
   memoryGate: boolean;
+  /**
+   * Whether a holder drives the desktop apps: admission first asks whether
+   * the desktop can paint a window, and the hold keeps the display awake.
+   */
+  display: boolean;
   /** The name of one slot in messages, such as "Desktop Slot". */
   slotName: string;
   /** The name of the queue in messages, such as "Desktop Queue". */
@@ -143,6 +163,7 @@ export const DESKTOP_ADMISSION: Admission = {
   slots: desktopSlotCount,
   tokenEnv: DESKTOP_SLOT_ENV,
   memoryGate: true,
+  display: true,
   slotName: "Desktop Slot",
   queueName: "Desktop Queue",
 };
@@ -265,6 +286,12 @@ export class DesktopSlotBlockedError extends Error {
   readonly exitCode = EXIT_ADMISSION_BLOCKED;
 }
 
+/**
+ * The desktop cannot paint a window, so an automated run does not start: it
+ * would test nothing. Blocked at admission, as at the Admission Deadline.
+ */
+export class DesktopCannotPaintError extends DesktopSlotBlockedError {}
+
 /** An automated holder states its silence limit; a manual hold states none. */
 type HoldKind =
   | {
@@ -356,6 +383,16 @@ export async function acquireDesktopSlot(
   if (inherited) {
     const holder = await findLiveHolder(inherited, { dir, now });
     if (holder) return reusedSlot(watch, holder);
+  }
+
+  if (admission.display) {
+    const paint = await readDesktopPaint();
+    if (paint.state === "cannot paint") {
+      if (!options.manual) {
+        throw new DesktopCannotPaintError(cannotPaintMessage(paint.machine));
+      }
+      log(cannotPaintWarning(paint.machine));
+    }
   }
 
   await mkdir(join(dir, QUEUE), { recursive: true });
@@ -544,6 +581,7 @@ export async function acquireDesktopSlot(
     signals: options.signals ?? true,
     gateAdmitted,
     tokenEnv: admission.tokenEnv,
+    display: admission.display,
   });
 }
 
@@ -1477,11 +1515,19 @@ function heldSlot(
     signals,
     gateAdmitted,
     tokenEnv,
-  }: { signals: boolean; gateAdmitted: boolean; tokenEnv: string },
+    display,
+  }: {
+    signals: boolean;
+    gateAdmitted: boolean;
+    tokenEnv: string;
+    display: boolean;
+  },
 ): DesktopSlot {
   const { dir } = watch;
   let released = false;
   const stopLease = watchLease(watch, owner, { reused: false });
+  // An idle timer must not put the display to sleep in the middle of a run.
+  const awake = display ? holdDisplayAwake() : undefined;
   const onSignal = (signal: NodeJS.Signals) => {
     release();
     // Keep the default exit for a signal no one else handles.
@@ -1491,6 +1537,7 @@ function heldSlot(
     if (released) return;
     released = true;
     stopLease();
+    awake?.release();
     process.off("exit", release);
     for (const signal of SIGNALS) process.off(signal, onSignal);
     if (process.env[tokenEnv] === owner.token) delete process.env[tokenEnv];

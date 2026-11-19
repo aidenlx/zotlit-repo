@@ -9,6 +9,7 @@
     "#agent-docs": "./lib/agent-docs.ts",
     "#ai-attribution": "./lib/ai-attribution.ts",
     "#commit-tree": "./lib/commit-tree.ts",
+    "#desktop-paint": "./lib/desktop-paint.ts",
     "#desktop-slot": "./lib/desktop-slot.ts",
     "#fixture": "./lib/fixture/build.ts",
     "#fixture/*": "./lib/fixture/*.ts",
