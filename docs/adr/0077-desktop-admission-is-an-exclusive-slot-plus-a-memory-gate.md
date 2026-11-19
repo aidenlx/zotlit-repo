@@ -123,3 +123,40 @@ guess `--for`: too short, and its session was killed in the middle of the
 work; too long, and other runs waited behind an idle hold. A healthy End-to-end
 Run of 20 min 22 s was killed at its fixed Lease of 20 min, and the runner
 reported a failed run.
+
+## Paint Check update (2026-11-19)
+
+Desktop admission has a third part: the Paint Check. Before an automated
+holder joins the Desktop Queue, it asks macOS whether the desktop can paint
+a window now: one display is awake (`system_profiler SPDisplaysDataType
+-json`) and the screen of the user's session is not locked (`IOConsoleUsers`
+from `ioreg -n Root -d1 -a`). Without both, the run does not start. It
+prints the machine state and what to do (open the lid or connect a display,
+wake the display, and unlock the session) and exits 75, as at the Admission
+Deadline: the run tested nothing, so it is blocked, not failed. A manual hold
+starts with a warning, since its command, such as a series of commits, may
+need no window. Other platforms have no probe, and a probe that fails answers
+"unknown"; both let the run go on.
+
+- `pnpm verify --release` and `pnpm release` run the check before their
+  first step, so a release gate stops in seconds, not after its other steps.
+- The End-to-end Run after a land checks before its checkout and again after
+  a run that failed or was blocked. A tip that the desktop could not run is
+  recorded as `not-run` with the machine state, opens no issue, and leaves
+  the last run tip as it was, so the next land's run covers the newer tip.
+  `pnpm land status` lists the last runs with their outcomes.
+- A failed `pnpm e2e` run checks again at its end and prints one line after
+  the summary when the desktop cannot paint then.
+- While a desktop holder holds its slot, `caffeinate -d -i -w <pid>` keeps
+  the display and the system awake, so an idle timer cannot put the display
+  to sleep in the middle of a run. The assertion ends with the hold, or with
+  the holder's process. No assertion opens a lid or unlocks a session: with
+  the lid closed and no external display, `caffeinate -u` leaves the display
+  asleep and the screen locked. The advice to callers to prevent sleep
+  themselves is gone.
+
+The failure that caused the change: with the lid closed and no external
+display, macOS had no awake display and locked the screen. Desktop Obsidian
+painted nothing, and three End-to-end Runs and one release gate each ran for
+about 20 min and failed 30 or more cases that read a painted PDF page. The
+runner after a land opened a `needs-triage` issue for each run.

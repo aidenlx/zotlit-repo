@@ -36,7 +36,7 @@ The worktree stays on its branch with a clean tree.
 
 ## After the land
 
-The End-to-end Run of the new tip runs detached, in its own checkout, under a Desktop Slot. A later run takes the newest tip. A failure opens one `needs-triage` issue in `aidenlx/zotlit-repo` with the commit range since the last passing tip and a log excerpt. The results are in `runs.jsonl` under the state directory that `pnpm land --help` prints.
+The End-to-end Run of the new tip runs detached, in its own checkout, under a Desktop Slot. A later run takes the newest tip. A failure opens one `needs-triage` issue in `aidenlx/zotlit-repo` with the commit range since the last passing tip and a log excerpt. When the desktop cannot paint a window (the lid closed without an external display, a sleeping display, or a locked screen) before the run or at the end of a failed run, the tip is recorded as `not-run` with the machine state, no issue opens, and the next land's run covers the newer tip. `pnpm land status` lists the last runs with their outcome; the results are in `runs.jsonl` under the state directory that `pnpm land --help` prints.
 
 ## Graduate next to main
 
