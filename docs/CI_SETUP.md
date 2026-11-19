@@ -155,14 +155,14 @@ changes a channel.
 
 ## Settings outside the repository
 
-Before the first release of the two-repository flow:
+Before the first release of a plugin. For the desktop plugin they are done:
 
 - [ ] **npm scope.** Create the npm organization of the scope in the bundle
       package's name (`PUBLISHED_PLUGINS` in
       `packages/scripts/lib/shell/plugins.ts`), or change that one value to a
       scope the lead owns. The lead logs in with `npm login` as its owner.
 - [ ] **First npm publish** from the lead's machine
-      (CONTRIBUTING.md "First release from the new flow"); a package must
+      (CONTRIBUTING.md "First release of a new plugin"); a package must
       exist before trusted publishing can be set for it.
 - [ ] **Trusted publishing**, after that first publish: on npmjs.com, package
       settings → Trusted publishing → GitHub Actions, organization or user

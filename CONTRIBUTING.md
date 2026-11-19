@@ -211,29 +211,31 @@ the fix from the latest stable release instead. The hotfix commits reach
 | Pre-release | [BRAT](https://github.com/TfTHacker/obsidian42-brat) | `update-beta.json` on the `zotero-release` tag |
 | Stable      | Community plugin store + BRAT                        | `update.json` on the `zotero-release` tag      |
 
-### First release from the new flow
+### First release of a new plugin
 
-The first release of the two-repository flow is `2.3.0-beta.0` for the plugin
-and the Companion. The npm package does not exist before it, so trusted
-publishing cannot be set for it yet, and its first publish runs from the
-lead's machine, logged in to npm as the owner of the scope.
+A plugin's npm bundle package does not exist before its first release, so
+trusted publishing cannot be set for it yet. That one release publishes from
+the lead's machine, logged in to npm as the owner of the scope. The desktop
+plugin's first release in this flow was `2.3.0-beta.0`.
 
-1. Do the settings in [docs/CI_SETUP.md](docs/CI_SETUP.md#settings-outside-the-repository)
-   that come before the first publish.
-2. On a commit of `origin/main` that holds the version commit
-   `chore: release obsidian@2.3.0-beta.0, zotero@2.3.0-beta.0`, with a clean
-   tree: `pnpm release:publish obsidian --dry-run`, read its output, then
-   `pnpm release:publish obsidian`. It publishes the npm package without
-   provenance, pushes the first shell commit onto a new `beta` branch on top
-   of the `main` history of `aidenlx/zotlit` with the tag `2.3.0-beta.0`, and
-   pushes the same tag here. Use the Git and `gh` login of the lead, or set
-   `RELEASE_REPO_TOKEN`.
-3. Run `pnpm release:publish zotero` on the same commit; it publishes
-   `zt-2.3.0-beta.0`.
-4. Watch the shell's `plugin-release.yml` in `aidenlx/zotlit` publish `2.3.0-beta.0`
-   and `res-2.3.0-beta.0`.
-5. Set trusted publishing for the npm package (docs/CI_SETUP.md). Later
-   releases publish from `release.yml`.
+1. Add the plugin to `PUBLISHED_PLUGINS`
+   (`packages/scripts/lib/shell/plugins.ts`) and do the settings in
+   [docs/CI_SETUP.md](docs/CI_SETUP.md#settings-outside-the-repository) that
+   come before a first publish.
+2. Disable the `Release` workflow in `aidenlx/zotlit-repo`, so that the push
+   of the version commit starts no publish from CI. Then land the version
+   commit with `pnpm release`.
+3. On that commit of `origin/main`, with a clean tree, run
+   `pnpm release:publish <product> --dry-run`, read its output, then
+   `pnpm release:publish <product>`. npm asks for a one-time password: pass
+   the code as `npm_config_otp=<code>` in front of the command, or run it in
+   a terminal that npm can prompt in. The run publishes the npm package
+   without provenance, pushes the shell commit and the version tag to the
+   publish repository, and pushes the same tag here.
+4. Watch the shell's `plugin-release.yml` in the publish repository publish
+   the release and its Resource Release.
+5. Set trusted publishing for the npm package (docs/CI_SETUP.md) and enable
+   the `Release` workflow again. Later releases publish from `release.yml`.
 
 ### A step failed half way
 

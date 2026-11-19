@@ -4,19 +4,29 @@
 
 Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zotero. Workspaces are `apps/*` and `packages/*` (declared in `pnpm-workspace.yaml`).
 
-- `apps/obsidian` — the Obsidian plugin (`@zotlit/obsidian`).
+- `apps/obsidian` — the desktop Obsidian plugin (`@zotlit/obsidian`): a thin host that composes the feature packages on `@zotlit/plugin-shell`.
 - `apps/zotero` — Zotero-side companion.
 - `apps/docs` — documentation and landing sites.
+- `packages/annotations`, `packages/citations`, `packages/notes`, `packages/template-workbench`, `packages/query-views`, `packages/library-view` — the plugin's features, one package each, in layers (`core/` host-free, `obsidian/` without Node, `desktop/` with Node and Electron) that lint enforces. Each package's `AGENTS.md` names what it owns.
 - `packages/config` — consumed via `@zotlit/config` exports map.
 - `packages/db` — Drizzle ORM client for Zotero database.
 - `packages/db-testing` — test fixtures for `@zotlit/db` and its consumers: the Node fixture schema, statement counters, and scenario database, and the driver conformance suite (`./conformance`) that each client adapter runs. Tests depend on it as a dev dependency.
+- `packages/e2e` — the End-to-end Run suite against a running desktop Obsidian.
+- `packages/filter-expression` — the expression language of filters and formulas.
 - `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
+- `packages/item-query` — Item Query over the Items of the Target Libraries; its SQL lives in `@zotlit/db/item-query`.
+- `packages/obsidian-i18n`, `packages/paraglide-vite` — the Message compiler and Language Pack runtime, and the Vite plugin that compiles the messages.
+- `packages/pdf-structure` — pinned port of Zotero's PDF text structure, with the Sort Index and Page Label.
 - `packages/plugin-kernel`, `packages/obsidian-kit`, `packages/obsidian-desktop` — the shared base of the Obsidian plugin, in three layers by what the host provides: host-free code (no `obsidian`, `electron` or `node:*`), code over the Obsidian API that loads on Obsidian Mobile, and desktop-only code over Node and Electron. A layer imports only the layers below it. See each package's `AGENTS.md`.
 - `packages/plugin-services` — the platform services the plugin's features stand on (settings, logging, the Language Pack, the Zotero preferences and connections, the database and query clients, item search, the Note Index, attachments), in three layers with their own lint boundaries: host-free, Obsidian, desktop (see its `AGENTS.md`).
+- `packages/plugin-shell` — the plugin shell: `defineFeature`, `defineHost`, `shellPlugin`, the lifecycle, the runtime, and the setting tab shell. A host gives it a feature list.
 - `packages/plugin-messages` — the generated Message facade and Language Packs of the Obsidian plugin (`@zotlit/plugin-messages/messages.ts`).
 - `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
+- `packages/scripts` — the repository's tooling: `verify`, `land`, the Desktop Slot, the Fixture, and the release and shell generator scripts.
+- `packages/shared`, `packages/ui` — app-agnostic utilities and UI components that several packages use.
 - `packages/templates` — Eta-based template rendering.
+- `packages/workbench` — the Workbench core shared by the web Template Workbench and the plugin.
 - `packages/zotero-reads` — ZoteroReads, the RPC between the Obsidian plugin and the Web Worker that owns the Zotero database: its contract, the Worker's handlers, the renderer's client, and the desktop database source, each a layer with its own lint boundary (see its `AGENTS.md`).
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema, plus the Zotero key grammar (`./keys`) and key-only `zotero://` links (`./uri`).
 - `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
