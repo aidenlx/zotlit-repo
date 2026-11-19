@@ -1,6 +1,6 @@
 // The pure half of the ZotLit Query measurement script: the thresholds of the
 // performance acceptance criteria, their evaluation, and the
-// summary for the release pull request. `query-measure.ts` produces the measurements.
+// summary to read before a release. `query-measure.ts` produces the measurements.
 
 /** The thresholds of the reference machine: macOS arm64, a visible window. */
 export const THRESHOLDS = {
@@ -557,7 +557,7 @@ function tierSection(tier: TierMeasurement): string {
   return parts.join("\n\n");
 }
 
-/** The summary of one record, as a comment on the release pull request. */
+/** The summary of one record, to read before a release. */
 export function formatSummary(record: MeasurementRecord): string {
   const checks = record.tiers.flatMap((tier) => evaluateTier(tier));
   const failed = checks.filter((check) => check.status === "failed");

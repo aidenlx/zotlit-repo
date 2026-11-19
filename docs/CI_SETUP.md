@@ -26,15 +26,65 @@ The checks of a change run in `pnpm land`: it runs `pnpm verify` on the
 rebased result before it pushes to `next`, and the Lefthook pre-push hook lets
 only `pnpm land` push `next` and `main`
 ([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md)).
+`pnpm release` lands the version commit with the release gate.
 
 `.github/workflows/release.yml` runs on every push to `main` and `next`, and on
-manual dispatch. The `plan` job reads both app versions and asks GitHub whether
-each tag has a release; it installs no toolchain. When both versions are
-released, the run stops there. Otherwise the `verify` job checks out
-Git LFS files, sets up the workspace, and runs
-`pnpm verify --release`. The publish jobs start only after it passes, and only
-for the app whose version is new. Workflow permissions are read-only; each
+manual dispatch. It publishes to the publish repository, `aidenlx/zotlit`
+(`RELEASE_REPOSITORY`), and keeps its steps in `packages/scripts/lib/release/`:
+
+| Job        | Runs                                                      | Credential                                                                                                         |
+| ---------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `plan`     | `release-plan.ts`: which products the pushed branch ships | none (reads the tags of `origin`)                                                                                  |
+| `verify`   | `pnpm verify --release`, the desktop checks skipped       | none                                                                                                               |
+| `obsidian` | `pnpm release:publish obsidian`                           | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
+| `zotero`   | `pnpm release:publish zotero`, then the attestation       | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
+
+The `plan` job installs no dependencies. A product publishes when its version
+is on the line of the pushed branch (a pre-release on `next`, a stable version
+on `main`) and `aidenlx/zotlit-repo` has no release tag for it. That tag is the
+last step of each publish, so a run that failed half way publishes again, and
+each earlier step skips what is done. Workflow permissions are read-only; each
 publish job grants itself the write permissions it needs.
+
+The `obsidian` job pushes the shell commit and the version tag to
+`aidenlx/zotlit` with `RELEASE_REPO_TOKEN`. A tag pushed with a token, not with
+that repository's own `GITHUB_TOKEN`, starts the shell's `release.yml` there,
+which runs with its own `GITHUB_TOKEN`: the official Obsidian action
+(`mode: release`, `strict: true`), the Resource Release `res-<version>`, an
+anonymous download check, the attestation of the resources, and the release.
+
+### The steps and a second run
+
+| Step (obsidian) | Does                                                                | On a second run                                                 |
+| --------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| build           | `turbo run build --filter=@zotlit/obsidian` with `DOCS_SITE_URL`    | builds again                                                    |
+| pack            | `pnpm pack` of `apps/obsidian/dist/package/`                        | packs again                                                     |
+| npm             | `npm publish <tgz> --access public --tag beta\|latest --provenance` | the version on npm with the same files: skip; other files: stop |
+| registry        | waits until the registry serves the version (10 min)                | returns at once                                                 |
+| shell           | generates the shell; `pnpm install --lockfile-only` (3 attempts)    | the same tree                                                   |
+| check           | frozen install and build in a clean folder; byte compare            | checks again                                                    |
+| commit          | the shell commit on `beta` (beta) or `main` (stable)                | the tag on the same tree: skip the push; on another tree: stop  |
+| push            | `git push --atomic` of the branch and the tag                       | skipped when the tag exists                                     |
+| source tag      | `git push origin <sha>:refs/tags/<version>`                         | the tag on this commit: skip; on another commit: stop           |
+
+The first beta, and a beta after a stable release that `beta` lacks, takes the
+tip of `main` as a second parent, so `beta` always moves as a fast-forward and
+no push needs force. `main` of `aidenlx/zotlit` changes only at a stable
+release, so the community directory reads the stable `manifest.json` there.
+
+| Step (zotero)    | Does                                                                  | On a second run                                                |
+| ---------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| build            | `turbo run build --filter=@zotlit/zotero`                             | builds again                                                   |
+| release          | `gh release create zt-<v>` with the XPI                               | the release has the XPI: download it, so the manifests hash it |
+| update manifests | download `update*.json` from `zotero-release`, `build-update-json.ts` | the same version is not newer: the manifests stay              |
+| update channel   | `gh release edit` and `upload --clobber` on `zotero-release`          | uploads the same files                                         |
+| source tag       | `git push origin <sha>:refs/tags/zt-<v>`                              | as for the plugin                                              |
+
+`pnpm release:publish <product>` runs the same steps on a machine, with the npm
+login and the Git and `gh` login (or `RELEASE_REPO_TOKEN`). Its `--dry-run`
+packs into a local registry, commits into the bare clone
+`.scratch/publish-remote.git` of `aidenlx/zotlit`, pushes no tag, and prints
+the commands a real run executes.
 
 ## Docs deployment
 
@@ -60,10 +110,13 @@ generated URLs correct when an earlier `.turbo` directory is restored.
 
 ## Cloudflare configuration
 
-The docs deployment needs these repository values:
+The docs deployment needs these values in `aidenlx/zotlit-repo`, the repository
+that runs it:
 
-- Secret `CLOUDFLARE_API_TOKEN`
-- Secret `CLOUDFLARE_ACCOUNT_ID`
+- Secret `CLOUDFLARE_API_TOKEN` — `wrangler deploy`
+- Secret `CLOUDFLARE_ACCOUNT_ID` — `wrangler deploy` and the media upload
+- Secrets `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` — the S3 key pair of
+  the media upload (`pnpm --filter @zotlit/docs upload:media`)
 - Variable `CF_BEACON_TOKEN` — the production line's Web Analytics site token
 - Variable `CF_BEACON_TOKEN_BETA` — the Pre-release Docs line's site token
 
@@ -74,10 +127,50 @@ environment with `wrangler secret put GITHUB_TOKEN`.
 
 The release workflow expects a permanent prerelease named `zotero-release` in
 the publish repository (`RELEASE_REPOSITORY` in
-`packages/config/repositories.ts`).
-Create it once with `update.json` and `update-beta.json` assets. The workflow
-downloads those files before it updates a release channel, and a missing host
-fails the release before it publishes a new Zotero add-on.
+`packages/config/repositories.ts`). It exists, with `update.json` and
+`update-beta.json` assets. The workflow downloads those files before it
+updates a release channel, and a missing host fails the release before it
+changes a channel.
+
+## Settings outside the repository
+
+Before the first release of the two-repository flow:
+
+- [ ] **npm scope.** Create the npm organization of the scope in the bundle
+      package's name (`PUBLISHED_PLUGINS` in
+      `packages/scripts/lib/shell/plugins.ts`), or change that one value to a
+      scope the lead owns. The lead logs in with `npm login` as its owner.
+- [ ] **First npm publish** from the lead's machine
+      (CONTRIBUTING.md "First release from the new flow"); a package must
+      exist before trusted publishing can be set for it.
+- [ ] **Trusted publishing**, after that first publish: on npmjs.com, package
+      settings → Trusted publishing → GitHub Actions, organization or user
+      `aidenlx`, repository `zotlit-repo`, workflow `release.yml`, no
+      environment. Then set "Require two-factor authentication and disallow
+      tokens" for the package. The workflow needs npm 11.5.1 or later; the
+      Node of `mise.toml` brings it.
+- [ ] **`RELEASE_REPO_TOKEN`**: the fine-grained token needs **Contents: read
+      and write** and **Workflows: read and write** on `aidenlx/zotlit`. Git
+      refuses a push of a commit that adds or changes
+      `.github/workflows/*.yml` without the Workflows permission, and every
+      shell commit carries the shell's `release.yml`. It also needs Metadata:
+      read (always on).
+- [ ] **Actions in `aidenlx/zotlit-repo`**: enable Actions; keep workflow
+      permissions read-only (each job grants its own). `id-token: write` is
+      granted in the job, which needs no repository setting.
+- [ ] **Actions in `aidenlx/zotlit`**: Actions stay enabled for the shell's
+      `release.yml`. Its old monorepo workflows run from the branch they are
+      on: disable `Docs Deploy` and `Release` there
+      (`gh workflow disable -R aidenlx/zotlit`), since a push to its old
+      `next` would deploy the old docs. `Issue triage gate` runs on issues
+      from the default branch until the first stable shell replaces `main`;
+      keep or disable it by choice.
+- [ ] **Branches of `aidenlx/zotlit`**: the default branch stays `main`. Its
+      ruleset "no force push, no deletion" fits the flow, which pushes
+      fast-forwards only. Leave `beta` without a ruleset, or give it the same
+      one. Delete or archive the old `next` when it is no longer needed.
+- [ ] **Directory pre-scan**: run the community directory's "Review branch"
+      pre-scan on `beta` of `aidenlx/zotlit` after the first shell commit.
 
 ## Verification
 

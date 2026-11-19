@@ -13,7 +13,7 @@ The End-to-end Run suite — the plugin running in a real desktop Obsidian windo
 - `pnpm --filter @zotlit/e2e measure:query` — the release-time measurement of ZotLit Query (see below).
 - `pnpm --filter @zotlit/e2e test` — unit tests of the measurement record (`src/**/*.test.ts`, `vitest.unit.config.ts`). They touch no Obsidian.
 
-The End-to-end Run and the measurement drive a real Electron app. The `test` script runs the unit tests alone. `pnpm verify --release` requires the full End-to-end Run, including the Paired Run, followed by worker responsiveness on the desktop. GitHub Actions skips the desktop checks; `pnpm release` runs them before the version commit.
+The End-to-end Run and the measurement drive a real Electron app. The `test` script runs the unit tests alone. `pnpm verify --release` requires the full End-to-end Run, including the Paired Run, followed by worker responsiveness on the desktop. GitHub Actions skips the desktop checks; `pnpm release` runs them in the Land Turn of the version commit.
 
 ## Docs walks
 
@@ -155,4 +155,4 @@ Each suite builds its own Fixture and new purged vaults under `.scratch/e2e-*`. 
 - Each tier waits for the normal initial Item Lookup index build before timing ZotLit Query. Its separate renderer hydration and indexing work would otherwise contaminate query responsiveness and total-time samples.
 - Worker runs check execution slices and encoding steps against the spec's limits, and check renderer timer gaps against the same limits. Unlimited queries write complete JSON files; the runner deletes each file after its receipt.
 - The numbers come from the dev-build command `zotlit:query-measure` (`packages/query-views/src/desktop/item-query/measure.ts`). A cancel through the CLI uses the production command `zotlit:query-cancel` with the `id` of the measured run.
-- Output goes to `.scratch/query-measure/<time>/`: `raw.json` and `summary.md`, the comment for the release pull request.
+- Output goes to `.scratch/query-measure/<time>/`: `raw.json` and `summary.md`, the summary to read before a release.

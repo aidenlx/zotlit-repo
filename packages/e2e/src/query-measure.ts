@@ -26,7 +26,7 @@ import { randomUUID } from "node:crypto";
 // every run.
 //
 // Output: `.scratch/query-measure/<time>/raw.json` and `summary.md`. Post
-// `summary.md` as a comment on the release pull request. The thresholds are in
+// `summary.md` to read before a release. The thresholds are in
 // `query-record.ts`.
 //
 // `--help` prints the options and the thresholds.
