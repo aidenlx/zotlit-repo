@@ -1,14 +1,20 @@
 name: Release
 
-# Publishes each app whose version on `main` (stable) or `next` (beta) has no
-# release yet. Pull requests run no checks: `pnpm verify` gates every push
-# locally, so this workflow is where GitHub checks code. The `verify` job runs
-# the release gate on the merged tree before anything publishes, and it is the
-# one check a push that skips its hooks cannot skip. See ADR 0076.
+# Publishes each product whose version on its line's branch has no release
+# tag yet: a pre-release from `next`, a stable version from `main`. The
+# products publish to the publish repository, aidenlx/zotlit
+# (RELEASE_REPOSITORY in packages/config/repositories.ts):
 #
-# Every push enters the plan job, which stops in seconds when both versions
-# are already released. A failed verify leaves the version unpublished: land
-# the fix, then re-run this workflow with workflow_dispatch.
+#   obsidian  the npm bundle package, then the shell commit and the version
+#             tag in aidenlx/zotlit, whose own workflow builds and releases
+#             the plugin; then the same tag here
+#   zotero    the zt-<version> release and the rolling update channel in
+#             aidenlx/zotlit; then the same tag here
+#
+# The steps live in packages/scripts/lib/release/ and run the same way from
+# a machine (`pnpm release:publish`). Each skips what an earlier run did, so
+# a run that failed half way runs again with workflow_dispatch. See
+# CONTRIBUTING.md "Releasing".
 on:
   push:
     branches: [main, next]
@@ -22,35 +28,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Tag existence is the idempotency gate: a version that already has its
-  # release is skipped, so the toolchain setup and every later job run only
-  # for a new version.
+  # The release tags of this repository are the gate: a pushed branch whose
+  # versions are tagged stops here, before any dependency is installed.
   plan:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     outputs:
       obsidian: ${{ steps.plan.outputs.obsidian }}
       zotero: ${{ steps.plan.outputs.zotero }}
     steps:
       - uses: actions/checkout@v7
 
-      # Every `gh release` call and resource URL acts on the publish
-      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
-      - name: Name the publish repository
-        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
+      - uses: ./.github/actions/setup-workspace
+        with:
+          bootstrap: "false"
 
       - name: Find unreleased versions
         id: plan
-        run: |
-          unreleased() {
-            if gh release view "$1" >/dev/null 2>&1; then echo false; else echo true; fi
-          }
-          obsidian="$(node -p "require('./apps/obsidian/package.json').version")"
-          zotero="$(node -p "require('./apps/zotero/package.json').version")"
-          echo "obsidian=$(unreleased "$obsidian")" >> "$GITHUB_OUTPUT"
-          echo "zotero=$(unreleased "zt-$zotero")" >> "$GITHUB_OUTPUT"
+        run: node packages/scripts/scripts/release-plan.ts --branch "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
 
+  # The release gate on the tree that ships. Its desktop checks skip here;
+  # `pnpm release` ran them in its Land Turn.
   verify:
     needs: plan
     if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true'
@@ -68,220 +65,53 @@ jobs:
 
   obsidian:
     needs: [plan, verify]
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-      artifact-metadata: write
     if: needs.plan.outputs.obsidian == 'true'
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
+    permissions:
+      # The release tag of this repository.
+      contents: write
+      # npm trusted publishing and its provenance statement.
+      id-token: write
     steps:
+      # The full history: the run checks that it builds a commit of its branch.
       - uses: actions/checkout@v7
-
-      # Every `gh release` call and resource URL acts on the publish
-      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
-      - name: Name the publish repository
-        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
-
-      - name: Resolve version
-        id: meta
-        run: |
-          version="$(node -p "require('./apps/obsidian/package.json').version")"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=$version" >> "$GITHUB_OUTPUT"
-          echo "res_tag=res-$version" >> "$GITHUB_OUTPUT"
+        with:
+          lfs: true
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup-workspace
 
-      - name: Resolve prerelease flag
-        id: prerelease
-        run: |
-          prerelease="$(pnpm --filter @zotlit/scripts exec node -p \
-            "require('semver').prerelease('${{ steps.meta.outputs.version }}') !== null")"
-          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
-
-      # A pre-release build links to Pre-release Docs, the site that describes
-      # its own line; a stable build links to Stable Docs. Baked into main.js
-      # through the DOCS_SITE_URL build variable (see apps/obsidian/vite.config.ts).
-      - name: Build
+      - name: Publish
+        run: pnpm release:publish obsidian --branch "$GITHUB_REF_NAME"
         env:
-          DOCS_SITE_URL: ${{ steps.prerelease.outputs.prerelease == 'true' && 'https://zotlit-beta.aidenlx.site' || 'https://zotlit.aidenlx.site' }}
-        run: pnpm turbo run build --filter=@zotlit/obsidian
-
-      # Everything the installed plugin downloads at runtime, staged into one
-      # directory so the base locale — which ships bundled inside main.js — is
-      # skipped once and every later step globs one place.
-      - name: Stage resources
-        run: |
-          pnpm turbo run @zotlit/plugin-messages#generate:language-packs @zotlit/item-query#generate:schema
-          mkdir -p apps/obsidian/dist/resources
-          for pack in packages/plugin-messages/generated/*.json; do
-            [ "${pack##*/}" = "en.json" ] && continue
-            cp "$pack" apps/obsidian/dist/resources/
-          done
-          cp packages/db/src/contract/generated/*.schema.json apps/obsidian/dist/resources/
-          cp packages/item-query/generated/query.schema.json apps/obsidian/dist/resources/
-
-      # The plugin release carries only the three files the Obsidian community
-      # scanner accepts, so everything else lives on a Resource Release pinned to
-      # the same version. Created before the plugin release, which is the sole
-      # gate: while the plugin tag is absent no installed build can name this
-      # version, so a retry may re-upload assets over a partial earlier run.
-      - name: Create Resource Release
-        run: |
-          if ! gh release view "${{ steps.meta.outputs.res_tag }}" >/dev/null 2>&1; then
-            notes=$(printf '%s\n\n%s\n%s' \
-              "Runtime resources for ZotLit Obsidian plugin v${{ steps.meta.outputs.version }}: Language Packs, template data JSON Schemas, and the Item Query Schema." \
-              "The installed plugin downloads these on its own — there is nothing to install by hand." \
-              "Get the plugin from the ${{ steps.meta.outputs.tag }} release.")
-            gh release create "${{ steps.meta.outputs.res_tag }}" \
-              --title "${{ steps.meta.outputs.res_tag }}" \
-              --target "${{ github.sha }}" \
-              --notes "$notes" \
-              ${{ steps.prerelease.outputs.prerelease == 'true' && '--prerelease' || '' }} \
-              --latest=false
-          fi
-          gh release upload "${{ steps.meta.outputs.res_tag }}" \
-            apps/obsidian/dist/resources/* --clobber
-
-      # Downloads each resource anonymously from the versioned URL the plugin
-      # composes, so a missed or corrupted upload fails the run loudly — before
-      # the plugin release exists, which keeps the failure free of cleanup.
-      - name: Verify resources
-        run: |
-          download_dir="$(mktemp -d)"
-          for resource in apps/obsidian/dist/resources/*; do
-            file_name="${resource##*/}"
-            url="https://github.com/${GH_REPO}/releases/download/${{ steps.meta.outputs.res_tag }}/$file_name"
-            for attempt in 1 2 3 4 5; do
-              if curl --fail --silent --show-error --location \
-                --header "Cache-Control: no-cache" \
-                --output "$download_dir/$file_name" \
-                "$url" &&
-                cmp --silent "$resource" "$download_dir/$file_name"; then
-                break
-              fi
-              if [ "$attempt" -eq 5 ]; then
-                echo "::error file=$resource::Anonymous download did not match the staged resource"
-                exit 1
-              fi
-              sleep 2
-            done
-          done
-
-      - name: Create release
-        run: |
-          notes=$(printf '%s\n\n%s' \
-            "ZotLit Obsidian plugin v${{ steps.meta.outputs.version }}" \
-            "Release notes: https://zotlit.aidenlx.site/changelog/${{ steps.meta.outputs.version }}")
-          gh release create "${{ steps.meta.outputs.tag }}" \
-            --title "${{ steps.meta.outputs.tag }}" \
-            --target "${{ github.sha }}" \
-            --notes "$notes" \
-            ${{ steps.prerelease.outputs.prerelease == 'true' && '--prerelease' || '--latest' }} \
-            apps/obsidian/dist/main.js \
-            apps/obsidian/dist/manifest.json \
-            apps/obsidian/dist/styles.css
-
-      - name: Attest provenance
-        uses: actions/attest@v4
-        with:
-          subject-path: |
-            apps/obsidian/dist/main.js
-            apps/obsidian/dist/manifest.json
-            apps/obsidian/dist/styles.css
-            apps/obsidian/dist/resources/*
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
   zotero:
     needs: [plan, verify]
+    if: needs.plan.outputs.zotero == 'true'
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
       attestations: write
       artifact-metadata: write
-    if: needs.plan.outputs.zotero == 'true'
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
-
-      # Every `gh release` call and resource URL acts on the publish
-      # repository, RELEASE_REPOSITORY in packages/config/repositories.ts.
-      - name: Name the publish repository
-        run: echo "GH_REPO=$(sed -n 's/^export const RELEASE_REPOSITORY = "\(.*\)";$/\1/p' packages/config/repositories.ts)" >> "$GITHUB_ENV"
-
-      - name: Resolve version
-        id: meta
-        run: |
-          version="$(node -p "require('./apps/zotero/package.json').version")"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=zt-$version" >> "$GITHUB_OUTPUT"
-          echo "xpi=apps/zotero/dist/zotlit-zotero-$version.xpi" >> "$GITHUB_OUTPUT"
-          # The changelog is keyed on the Obsidian plugin version (the headline
-          # product); this companion release points at that same entry.
-          echo "changelog=$(node -p "require('./apps/obsidian/package.json').version")" >> "$GITHUB_OUTPUT"
+        with:
+          lfs: true
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup-workspace
 
-      - name: Resolve prerelease flag
-        id: prerelease
-        run: |
-          prerelease="$(pnpm --filter @zotlit/scripts exec node -p \
-            "require('semver').prerelease('${{ steps.meta.outputs.version }}') !== null")"
-          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+      - name: Publish
+        id: publish
+        run: pnpm release:publish zotero --branch "$GITHUB_REF_NAME"
+        env:
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
-      - name: Build
-        run: pnpm turbo run build --filter=@zotlit/zotero
-
-      # Requires a pre-existing `zotero-release` host with its manifests (bootstrap
-      # manually — see docs/CI_SETUP.md). A missing host fails the step to
-      # guard against the version-gate clobbering a newer beta. Runs after
-      # Build because turbo may restore dist/** from cache, dropping
-      # pre-existing files.
-      - name: Download current update manifests
-        run: gh release download zotero-release --pattern 'update*.json' --dir apps/zotero/dist
-
-      # Replaces a channel entry only when this version is gt the existing one.
-      # Emits `attest` scoped to files this run actually built.
-      - name: Build update manifests
-        id: updates
-        run: node apps/zotero/scripts/build-update-json.ts
-
-      # `--latest=false`: Zotero ships via update.json, not the repo's "Latest"
-      # release pointer, which is left to the Obsidian plugin (the headline
-      # product) so a stable dual release resolves "Latest" deterministically.
-      - name: Create release
-        run: |
-          notes=$(printf '%s\n\n%s' \
-            "ZotLit Zotero companion v${{ steps.meta.outputs.version }}" \
-            "Release notes: https://zotlit.aidenlx.site/changelog/${{ steps.meta.outputs.changelog }}")
-          gh release create "${{ steps.meta.outputs.tag }}" \
-            --title "${{ steps.meta.outputs.tag }}" \
-            --target "${{ github.sha }}" \
-            --notes "$notes" \
-            ${{ steps.prerelease.outputs.prerelease == 'true' && '--prerelease' || '--latest=false' }} \
-            "${{ steps.meta.outputs.xpi }}"
-
-      # The `zotero-release` tag is permanent: prerelease, never "Latest". Uses `edit`
-      # to enforce the pre-existence invariant from the Download step.
-      - name: Refresh update channel
-        run: |
-          notes="apps/zotero/dist/release-host-notes.md"
-          gh release edit zotero-release \
-            --title "Release Manifest" \
-            --notes-file "$notes" \
-            --prerelease \
-            --latest=false
-          for f in apps/zotero/dist/update*.json; do
-            gh release upload zotero-release "$f" --clobber
-          done
-
-      # Scoped to files this run actually built: the XPI and any channel
-      # manifest the version-gate rewrote.
+      # The XPI and the channel manifests this run wrote
+      # (apps/zotero/scripts/build-update-json.ts).
       - name: Attest provenance
         uses: actions/attest@v4
         with:
-          subject-path: ${{ steps.updates.outputs.attest }}
+          subject-path: ${{ steps.publish.outputs.attest }}
