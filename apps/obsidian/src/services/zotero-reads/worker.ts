@@ -15,9 +15,10 @@ import { serveZoteroReads } from "@zotlit/zotero-reads/worker/serve.ts";
 // own runtime reaches the Node file system once, for the source's snapshot
 // sweeps.
 serveZoteroReads(self, {
-  connection: ({ config, snapshotOwner }) =>
+  connection: ({ config, snapshotOwner, deferOpen }) =>
     layerSource({
       initial: config,
+      deferOpen,
       ports: {
         prepareRead: (mode, path) => prepareRead(mode, path, snapshotOwner),
       },

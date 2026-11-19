@@ -431,6 +431,7 @@ export type ConfiguredReadMode = ReadsConfig["readMode"];
 export const WorkerInitSchema = Schema.Struct({
   ...ReadsConfigSchema.fields,
   snapshotOwner: Schema.String,
+  deferOpen: Schema.Boolean,
   logs: Transferable.MessagePort,
 });
 

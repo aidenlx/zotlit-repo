@@ -28,6 +28,7 @@ export interface ZoteroReadsWorkerHost {
   readonly connection: (spawn: {
     readonly config: ReadsConfig;
     readonly snapshotOwner: string;
+    readonly deferOpen: boolean;
   }) => Layer.Layer<Connection, never, FileSystem.FileSystem>;
   /** The host's reads beyond the spawn settings. */
   readonly handlers?: Pick<HandlersOptions, "readSegmenter" | "queryJobs">;
@@ -49,7 +50,7 @@ export function serveZoteroReads(
   const handlers = Layer.unwrap(
     RpcWorker.initialMessage(WorkerInitSchema).pipe(
       Effect.orDie,
-      Effect.map(({ snapshotOwner, logs, ...config }) => {
+      Effect.map(({ snapshotOwner, deferOpen, logs, ...config }) => {
         const level = Ref.makeUnsafe(config.logLevel);
         return handlersLayer({
           ...host.handlers,
@@ -57,7 +58,7 @@ export function serveZoteroReads(
           chineseSegmenter: config.chineseSegmenter,
           applyLogLevel: (next) => Ref.set(level, next),
         }).pipe(
-          Layer.provide(host.connection({ config, snapshotOwner })),
+          Layer.provide(host.connection({ config, snapshotOwner, deferOpen })),
           Layer.provide(Logger.layer([makePortLogger(logs, level)])),
           Layer.provide(layerLibraryLogPort),
           Layer.provide(host.fileSystem),

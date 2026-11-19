@@ -125,6 +125,7 @@ export interface SourceOptions {
   ports?: Partial<SourcePorts>;
   /** The settings to open first; without them the source waits for `Configure`. */
   initial?: ReadsConfig | null;
+  deferOpen?: boolean;
 }
 
 /** A change signal travelling from a watcher or a push to the refresh gate. */
@@ -848,7 +849,13 @@ export function layerSource(
         }
       });
 
-      if (options?.initial) yield* configure(options.initial);
+      const initial = options?.initial;
+      if (initial && options.deferOpen)
+        yield* Ref.update(state, (current) => ({
+          ...current,
+          config: initial,
+        }));
+      else if (initial) yield* configure(initial);
 
       return Connection.of({
         // A read before the first open waits for it, as callers once waited on

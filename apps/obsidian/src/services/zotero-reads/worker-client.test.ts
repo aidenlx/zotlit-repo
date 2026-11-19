@@ -13,7 +13,12 @@ import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
 import { testObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import {
+  layerWorkspaceFrom,
+  Workspace,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
 import {
@@ -42,12 +47,16 @@ vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
   const spawned = yield* Queue.unbounded<StandInWorker>();
   const configured = yield* Queue.unbounded<ReadsConfig>();
-  const initial = yield* Queue.unbounded<ReadsConfig>();
+  const initial = yield* Queue.unbounded<
+    ReadsConfig & { readonly deferOpen: boolean }
+  >();
+  const refreshed = yield* Queue.unbounded<void>();
   const run = Effect.runSyncWith(yield* Effect.context<never>());
   const group = RpcGroup.make(
     ...Array.from(ZoteroReads.requests.values()).filter(
       (rpc) =>
         rpc._tag === "Configure" ||
+        rpc._tag === "Refresh" ||
         rpc._tag === "Changes" ||
         rpc._tag === "Ping",
     ),
@@ -87,6 +96,8 @@ const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
                   group.toLayer({
                     Configure: (config) =>
                       Queue.offer(configured, config).pipe(Effect.asVoid),
+                    Refresh: () =>
+                      Queue.offer(refreshed, undefined).pipe(Effect.asVoid),
                     Changes: () => Stream.never,
                     Ping: () => Effect.void,
                   }),
@@ -134,7 +145,21 @@ const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
     ),
     ChineseSegmenter,
   );
-  return { spawned, configured, initial, settings, chineseSegmenter };
+  const host = new MemoryWorkspace();
+  const workspace = Context.get(
+    yield* Layer.build(layerWorkspaceFrom(host)),
+    Workspace,
+  );
+  return {
+    spawned,
+    configured,
+    initial,
+    refreshed,
+    settings,
+    chineseSegmenter,
+    host,
+    workspace,
+  };
 });
 
 // A delayed prefs.js must settle before the worker receives its first configuration.
@@ -156,6 +181,7 @@ it.effect("starts the worker with the loaded profile data directory", () =>
           Effect.provideService(ZoteroPref, f.pref),
           Effect.provideService(ChineseSegmenter, worker.chineseSegmenter),
           Effect.provideService(ObsidianEnv, testObsidianEnv()),
+          Effect.provideService(Workspace, worker.workspace),
           Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
         ),
       ),
@@ -165,9 +191,12 @@ it.effect("starts the worker with the loaded profile data directory", () =>
     yield* TestClock.adjust("1 second");
     (yield* Queue.take(worker.spawned)).start();
     yield* Fiber.join(opening);
-    expect((yield* Queue.take(worker.initial)).databasePath).toBe(
-      "/research-data/zotero.sqlite",
-    );
+    expect(yield* Queue.take(worker.initial)).toMatchObject({
+      databasePath: "/research-data/zotero.sqlite",
+      deferOpen: true,
+    });
+    worker.host.layoutReady();
+    yield* Queue.take(worker.refreshed);
     yield* worker.settings.update({ "zotero.auto-refresh": false });
     expect((yield* Queue.take(worker.configured)).databasePath).toBe(
       "/research-data/zotero.sqlite",
@@ -187,6 +216,7 @@ it.effect(
         Effect.provideService(ZoteroPref, f.pref),
         Effect.provideService(ChineseSegmenter, worker.chineseSegmenter),
         Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
         Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
         Effect.forkChild,
       );
@@ -212,6 +242,7 @@ it.effect(
         Effect.provideService(ZoteroPref, f.pref),
         Effect.provideService(ChineseSegmenter, worker.chineseSegmenter),
         Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
         Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
         Effect.forkChild,
       );

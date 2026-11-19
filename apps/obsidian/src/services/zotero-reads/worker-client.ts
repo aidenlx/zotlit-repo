@@ -4,6 +4,7 @@ import workerSource from "virtual:zotero-reads-worker";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { ZoteroReadMode } from "@zotlit/plugin-services/core/database/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -39,6 +40,7 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
   const pref = yield* ZoteroPref;
   const segmenter = yield* ChineseSegmenter;
   const { language } = yield* ObsidianEnv;
+  const workspace = yield* Workspace;
   // `makeWorkerReads` takes a connect step with no requirement but its Scope
   // and reruns it on every respawn, so the step carries the file system its
   // dead-worker reap reads.
@@ -63,10 +65,17 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
     } satisfies ReadsConfig;
   });
   const config = yield* Ref.make(yield* configuration);
+  const laidOut = yield* Ref.make(false);
   const reads = yield* makeWorkerReads(
     connectWorker(workerSource, Ref.get(config), {
       reapSnapshots: reapWorkerSnapshots,
+      deferOpen: Effect.map(Ref.get(laidOut), (ready) => !ready),
     }).pipe(Effect.provideService(FileSystem.FileSystem, fs)),
+  );
+  yield* workspace.layoutReady.pipe(
+    Effect.andThen(Ref.set(laidOut, true)),
+    Effect.andThen(Effect.ignore(reads.Refresh())),
+    Effect.forkScoped({ startImmediately: true }),
   );
   const push = Effect.fn("ZoteroReads.configure")(function* () {
     const next = yield* configuration;

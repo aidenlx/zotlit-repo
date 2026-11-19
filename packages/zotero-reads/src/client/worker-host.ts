@@ -104,6 +104,7 @@ export interface ConnectWorkerOptions {
    * Without it the connection removes no snapshot.
    */
   readonly reapSnapshots?: ReapWorkerSnapshots;
+  readonly deferOpen?: Effect.Effect<boolean>;
 }
 
 /**
@@ -118,7 +119,10 @@ export interface ConnectWorkerOptions {
 export const connectWorker = Effect.fnUntraced(function* (
   source: string,
   config: Effect.Effect<ReadsConfig>,
-  { reapSnapshots }: ConnectWorkerOptions = {},
+  {
+    reapSnapshots,
+    deferOpen = Effect.succeed(false),
+  }: ConnectWorkerOptions = {},
 ): Effect.fn.Return<
   WorkerConnection,
   DbUnavailable,
@@ -249,6 +253,7 @@ export const connectWorker = Effect.fnUntraced(function* (
             return {
               ...current,
               snapshotOwner,
+              deferOpen: yield* deferOpen,
               logs: port2,
             };
           }),
