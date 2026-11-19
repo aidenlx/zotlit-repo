@@ -2010,7 +2010,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         for (const id of CITATION_EXAMPLE_IDS)
           submenu.addItem((entry) =>
             entry
-              .setTitle(citationExampleLabel(m, id))
+              .setTitle(citationExampleLabel(workbenchM, id))
               .setChecked(citationExample === id)
               .onClick(() => setCitation({ citationExample: id })),
           );

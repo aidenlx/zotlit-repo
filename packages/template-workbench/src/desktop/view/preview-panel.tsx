@@ -9,6 +9,7 @@ import type { ComponentProps } from "react";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import type { WorkbenchDocumentKind } from "@zotlit/workbench/document";
 import {
   DEFAULT_PARTIAL_CONTEXT,
@@ -186,8 +187,10 @@ export function PreviewPanel({
           ? m.workbench_annotation_example()
           : m.workbench_result_heading();
   const caption = [
-    ...(mode === "partial" ? [partialContextLabel(m, partialContext)] : []),
-    ...(citationSet ? [citationVariantLabel(m, variant)] : []),
+    ...(mode === "partial"
+      ? [partialContextLabel(workbenchM, partialContext)]
+      : []),
+    ...(citationSet ? [citationVariantLabel(workbenchM, variant)] : []),
     ...(mode === "note"
       ? [
           preview.showManaged

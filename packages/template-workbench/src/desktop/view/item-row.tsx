@@ -7,6 +7,7 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { citationExampleLabel, ItemRow } from "@zotlit/workbench/ui";
 
 import { previewTarget } from "./preview-panel.tsx";
@@ -32,7 +33,7 @@ export function ViewItemRow({ view }: { view: TemplateWorkbenchView }) {
       ? title
       : // A built-in set reads as an example, as a built-in Item does.
         m.workbench_example_title({
-          name: citationExampleLabel(m, citationExample),
+          name: citationExampleLabel(workbenchM, citationExample),
         })
     : selectionName({
         item: item && { id: item.id, title },
