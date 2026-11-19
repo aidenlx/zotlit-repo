@@ -5,6 +5,7 @@ import * as v from "valibot";
 
 import {
   RELEASE_REPOSITORY,
+  SOURCE_BRANCH,
   SOURCE_REPOSITORY,
 } from "@zotlit/config/repositories";
 
@@ -36,16 +37,6 @@ export const gitConfig = {
   branch: "main",
 };
 
-const docsSourceBranches = {
-  production: "main",
-  beta: "next",
-} satisfies { production: "main"; beta: "next" };
-
-/** The repository branch that publishes each documentation line. */
-export function docsSourceBranch(docsLine: DocsLine) {
-  return docsSourceBranches[docsLine];
-}
-
 /**
  * A docs page's own title — its H1, `<title>`, and every edition of it: the
  * searcher-facing `searchTitle` when the page sets one, else the sidebar `title`.
@@ -74,6 +65,11 @@ export const repoUrl = `https://github.com/${repoSlug}`;
 
 /** The source repository, where each docs page and the license live. */
 export const sourceRepoUrl = `https://github.com/${SOURCE_REPOSITORY}`;
+/**
+ * Files on the trunk of the source repository, where every change lands. Both
+ * docs sites link here to edit a page and to read the license.
+ */
+export const sourceBlobUrl = `${sourceRepoUrl}/blob/${SOURCE_BRANCH}`;
 
 /** The frozen v1 site; every v1-only permalink still resolves there. */
 export const zotlitLegacyUrl = "https://zotlit-v1.aidenlx.site";

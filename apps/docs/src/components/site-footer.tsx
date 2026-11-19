@@ -1,6 +1,6 @@
 // Shared copyright footer for the (home) index surfaces (landing, blog, changelog).
 
-import { currentYear, docsSourceBranch, sourceRepoUrl } from "@/lib/shared.ts";
+import { currentYear, sourceBlobUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
@@ -10,7 +10,7 @@ export function SiteFooter() {
       <span>
         © 2022–{currentYear()} AidenLx ·{" "}
         <a
-          href={`${sourceRepoUrl}/blob/${docsSourceBranch("production")}/LICENSE`}
+          href={`${sourceBlobUrl}/LICENSE`}
           target="_blank"
           rel="noreferrer noopener"
           className="underline decoration-fd-border underline-offset-4 transition-colors hover:text-fd-primary hover:decoration-fd-primary"

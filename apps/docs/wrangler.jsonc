@@ -67,7 +67,7 @@
     "enabled": true,
   },
   "env": {
-    // Pre-release Docs: the beta line, deployed from `next`.
+    // Pre-release Docs: the beta line, deployed from each push to `main`.
     "beta": {
       "name": "zotlit-docs-beta",
       "routes": [

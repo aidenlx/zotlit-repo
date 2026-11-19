@@ -40,11 +40,11 @@ The channel that carries beta builds — BRAT for ZotLit, `update-beta.json` for
 _Avoid_: beta channel, next channel, nightly, canary
 
 **Stable Docs**:
-The documentation deployment for the Stable channel, published at zotlit.aidenlx.site. Its content describes the Stable Release Line that the deployment represents.
+The documentation deployment for the Stable channel, published at zotlit.aidenlx.site. It deploys from the tag of a stable release, so its content describes the Stable Release Line that the deployment represents.
 _Avoid_: production docs, main docs
 
 **Pre-release Docs**:
-The documentation deployment for the Pre-release channel, published at zotlit-beta.aidenlx.site. Its content can describe a Stable Release Line that is ahead of Stable Docs.
+The documentation deployment for the Pre-release channel, published at zotlit-beta.aidenlx.site. It deploys from each change to the trunk, so its content can describe a Stable Release Line that is ahead of Stable Docs.
 _Avoid_: beta content, mixed docs
 
 **Dormant Pre-release**:

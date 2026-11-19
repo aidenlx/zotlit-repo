@@ -8,7 +8,6 @@
 
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { env } from "cloudflare:workers";
 import { getBreadcrumbItems } from "fumadocs-core/breadcrumb";
 import {
   DocsBody,
@@ -38,9 +37,8 @@ import {
   appName,
   docsPageTitle,
   docsRoute,
-  docsSourceBranch,
   ogImageUrl,
-  sourceRepoUrl,
+  sourceBlobUrl,
 } from "@/lib/shared.ts";
 import { source } from "@/lib/source.ts";
 import type { Crumb } from "@/lib/structured-data.ts";
@@ -83,7 +81,7 @@ export const resolveDocsPage = createServerFn({ method: "GET" })
         contentRouteUrl({ section: "docs", slugs: page.slugs }),
         { locale },
       ),
-      githubUrl: `${sourceRepoUrl}/blob/${docsSourceBranch(env.DOCS_LINE)}/apps/docs/content/docs/${page.path}`,
+      githubUrl: `${sourceBlobUrl}/apps/docs/content/docs/${page.path}`,
       // Only the install pages carry release facts. The snapshot is the one
       // this render saw — the build's own in a prerendered page, where the
       // provider then refreshes it from `/api/release-snapshot`.
