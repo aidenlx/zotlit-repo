@@ -64,7 +64,7 @@ export type VaultScript = (args: string[]) => Promise<{ stdout: string }>;
  * window, which is often a vault a run just opened, in this worktree or
  * another, and that run removes it when it ends.
  */
-async function stableHost(): Promise<string | undefined> {
+export async function stableHost(): Promise<string | undefined> {
   const output = await cli([
     "eval",
     "code=JSON.stringify(require('electron').ipcRenderer.sendSync('vault-list'))",

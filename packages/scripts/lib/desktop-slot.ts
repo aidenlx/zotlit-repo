@@ -1280,11 +1280,23 @@ async function processInfo(
   }
 }
 
-/** The process runs, and its pid was not given to a new process. */
-async function isHolderAlive(record: {
+/** A process as {@link isHolderAlive} checks it later: its pid and when it started. */
+export interface ProcessRecord {
   pid: number;
+  /** When the process `pid` started, as `ps` reports it; tells a reused pid apart. */
   processStart?: string;
-}): Promise<boolean> {
+}
+
+/** The record of the process `pid`, this process by default. */
+export async function processRecord(
+  pid: number = process.pid,
+): Promise<ProcessRecord> {
+  const { start } = await processInfo(pid);
+  return start === undefined ? { pid } : { pid, processStart: start };
+}
+
+/** The process runs, and its pid was not given to a new process. */
+export async function isHolderAlive(record: ProcessRecord): Promise<boolean> {
   if (!isAlive(record.pid)) return false;
   if (record.processStart === undefined) return true;
   const { start } = await processInfo(record.pid);

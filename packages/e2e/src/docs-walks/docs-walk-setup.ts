@@ -1,6 +1,7 @@
 // The Desktop Slot admission of a docs-walk run, before its walks open.
 
 import { assertDevBundleFresh } from "@e2e/bundle-freshness.ts";
+import { pinPdfSidebar } from "@e2e/pdf-sidebar-pin.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 
 import {
@@ -14,8 +15,9 @@ import { exclusiveHoldRequested } from "./docs-walk.ts";
 /**
  * The global setup of `pnpm --filter @zotlit/e2e docs-walk`: one Desktop Slot
  * for the run, or an Exclusive Hold of every slot
- * ({@link exclusiveHoldRequested}). A run without a reachable Obsidian skips
- * its walks and takes no slot.
+ * ({@link exclusiveHoldRequested}), with Obsidian's PDF sidebar held closed
+ * for the run ({@link pinPdfSidebar}). A run without a reachable Obsidian
+ * skips its walks and takes no slot.
  * @throws when the run needs an Exclusive Hold and reuses an outer hold of
  * one slot.
  */
@@ -37,5 +39,15 @@ export default async function setup() {
       `this docs walk captures or records, so it needs an Exclusive Hold, but it runs under the hold of one Desktop Slot that pid ${slot.owner.pid} (${slot.owner.command}) has. Start the outer hold with \`pnpm desktop-slot run --exclusive\`, or run the walk outside it.`,
     );
   }
-  return () => slot.release();
+  const pdfSidebar = await pinPdfSidebar().catch((error: unknown) => {
+    slot.release();
+    throw error;
+  });
+  return async () => {
+    try {
+      await pdfSidebar[Symbol.asyncDispose]();
+    } finally {
+      slot.release();
+    }
+  };
 }

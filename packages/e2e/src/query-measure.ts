@@ -62,6 +62,7 @@ import { prepareRunWindow } from "./background-throttling.ts";
 import { obRun } from "./obsidian-cli.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
 import type { BackgroundWindow } from "./page-notes-types.ts";
+import { pinPdfSidebar } from "./pdf-sidebar-pin.ts";
 import {
   DATASET_QUERY_SPECS,
   evaluateTier,
@@ -1038,6 +1039,8 @@ const pluginDir = join(vaultPath, ".obsidian", "plugins", "zotlit");
 await mkdir(pluginDir, { recursive: true });
 await cp(pluginBundleDir, pluginDir, { recursive: true });
 
+// Released in the `finally` below: `process.exit` at the end skips disposal.
+const pdfSidebar = await pinPdfSidebar();
 const rawTiers: RawTier[] = [];
 let failure: Error | undefined;
 let environmentLines: string[] = [];
@@ -1063,6 +1066,9 @@ try {
   // The tiers measured so far are still written.
   failure = error instanceof Error ? error : new Error(String(error));
 } finally {
+  await pdfSidebar[Symbol.asyncDispose]().catch((error: unknown) =>
+    log(`could not write the PDF sidebar setting back: ${String(error)}`),
+  );
   if (!options.keep) {
     await runVaultScript(["remove", vaultPath, "--purge"]).catch(
       (error: unknown) => log(`could not remove the vault: ${String(error)}`),
