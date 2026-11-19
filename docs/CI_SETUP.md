@@ -48,7 +48,7 @@ publish job grants itself the write permissions it needs.
 
 The `obsidian` job pushes the shell commit and the version tag to
 `aidenlx/zotlit` with `RELEASE_REPO_TOKEN`. A tag pushed with a token, not with
-that repository's own `GITHUB_TOKEN`, starts the shell's `release.yml` there,
+that repository's own `GITHUB_TOKEN`, starts the shell's `plugin-release.yml` there,
 which runs with its own `GITHUB_TOKEN`: the official Obsidian action
 (`mode: release`, `strict: true`), the Resource Release `res-<version>`, an
 anonymous download check, the attestation of the resources, and the release.
@@ -153,16 +153,18 @@ Before the first release of the two-repository flow:
       and write** and **Workflows: read and write** on `aidenlx/zotlit`. Git
       refuses a push of a commit that adds or changes
       `.github/workflows/*.yml` without the Workflows permission, and every
-      shell commit carries the shell's `release.yml`. It also needs Metadata:
+      shell commit carries the shell's `plugin-release.yml`. It also needs Metadata:
       read (always on).
 - [ ] **Actions in `aidenlx/zotlit-repo`**: enable Actions; keep workflow
       permissions read-only (each job grants its own). `id-token: write` is
       granted in the job, which needs no repository setting.
 - [ ] **Actions in `aidenlx/zotlit`**: Actions stay enabled for the shell's
-      `release.yml`. Its old monorepo workflows run from the branch they are
-      on: disable `Docs Deploy` and `Release` there
+      `plugin-release.yml`. Its old monorepo workflows run from the branch
+      they are on: `Docs Deploy` and `Release` are disabled there
       (`gh workflow disable -R aidenlx/zotlit`), since a push to its old
-      `next` would deploy the old docs. `Issue triage gate` runs on issues
+      `next` would deploy the old docs. GitHub keeps that state by file
+      path, so the shell's workflow has a path of its own; a shell workflow
+      at `.github/workflows/release.yml` would be disabled with the old one. `Issue triage gate` runs on issues
       from the default branch until the first stable shell replaces `main`;
       keep or disable it by choice.
 - [ ] **Branches of `aidenlx/zotlit`**: the default branch stays `main`. Its

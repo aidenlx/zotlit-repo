@@ -33,7 +33,7 @@ aidenlx/zotlit-repo  release.yml on a push to next or main
                                  build ─▶ zt-<v> ─▶ update manifests ─▶ zotero-release
                                  ─▶ the tag here
 
-aidenlx/zotlit       the shell's release.yml on the tag (its own GITHUB_TOKEN)
+aidenlx/zotlit       the shell's plugin-release.yml on the tag (its own GITHUB_TOKEN)
                        official action ─▶ res-<v> ─▶ publish the release
 ```
 
@@ -63,4 +63,4 @@ aidenlx/zotlit       the shell's release.yml on the tag (its own GITHUB_TOKEN)
 - A beta's Land Turn of `next` lasts as long as the release gate with its End-to-end Run; other lands wait behind it.
 - A stable version commit can stay on `next` without a release when its graduation fails; the fix lands into `next`, then `pnpm land --to main` graduates the new tip.
 - A version published to npm is final. A fix that changes the bundle after the npm step needs a new version.
-- `aidenlx/zotlit` runs only the shell's workflow on its tags; its old monorepo workflows on `main` and `next` are disabled by hand.
+- `aidenlx/zotlit` runs only the shell's workflow on its tags; its old monorepo workflows on `main` and `next` are disabled by hand. GitHub keeps a workflow's disabled state by file path, so the shell's workflow is `plugin-release.yml`, not `release.yml`.

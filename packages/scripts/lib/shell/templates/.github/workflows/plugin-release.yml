@@ -1,4 +1,4 @@
-name: Release
+name: Plugin release
 
 # Releases the plugin when its version tag is pushed. The tag names the
 # commit whose manifest.json carries that version. The tags of Resource

@@ -66,7 +66,7 @@ person          pnpm release ─▶ version commit ─▶ Land Queue ─▶ next
 aidenlx/zotlit-repo  release.yml on the push:
                 plan ─▶ verify ─▶ obsidian: npm ─▶ shell commit + tag ─▶ tag here
                                └▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
-aidenlx/zotlit  release.yml of the shell, on the tag:
+aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
                 official Obsidian action ─▶ res-<v> ─▶ publish the release
 ```
 
@@ -112,7 +112,7 @@ aidenlx/zotlit  release.yml of the shell, on the tag:
      tag (one atomic push), and the tag in `aidenlx/zotlit-repo`.
    - **Companion:** the XPI on the release `zt-<version>`, the update
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
-4. The tag starts the shell's own `release.yml` in `aidenlx/zotlit`. It runs
+4. The tag starts the shell's own `plugin-release.yml` in `aidenlx/zotlit`. It runs
    the official Obsidian action (scanner lint, attestation, draft release),
    creates and checks the Resource Release `res-<version>`, and publishes the
    release (a pre-release for a beta). See
@@ -170,7 +170,7 @@ lead's machine, logged in to npm as the owner of the scope.
    of the `main` history of `aidenlx/zotlit` with the tag `2.3.0-beta.0`, and
    pushes the same tag here. Use the Git and `gh` login of the lead, or set
    `RELEASE_REPO_TOKEN`.
-4. Watch the shell's `release.yml` in `aidenlx/zotlit` publish `2.3.0-beta.0`
+4. Watch the shell's `plugin-release.yml` in `aidenlx/zotlit` publish `2.3.0-beta.0`
    and `res-2.3.0-beta.0`.
 5. Set trusted publishing for the npm package (docs/CI_SETUP.md).
 6. Enable Actions in `aidenlx/zotlit-repo` and run `release.yml` with
