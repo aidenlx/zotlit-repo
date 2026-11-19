@@ -1,10 +1,20 @@
 # Contributing
 
-> Contribution guidelines (code style, PR process, issue triage) will be
-> added here as the project matures.
->
-> Bug reports and feature requests via
-> [GitHub Issues](https://github.com/aidenlx/zotlit-repo/issues) are welcome.
+ZotLit has two repositories:
+
+| Repository                                                      | Holds                                                                                                | Send here                               |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [`aidenlx/zotlit-repo`](https://github.com/aidenlx/zotlit-repo) | The source: all code, its history, the docs site, and the issue tracker                              | Pull requests, against `main`           |
+| [`aidenlx/zotlit`](https://github.com/aidenlx/zotlit)           | The releases, and a tree that is generated at each release and builds the plugin from an npm package | Nothing: pull requests are closed there |
+
+- **Code changes** go to `aidenlx/zotlit-repo` as a pull request against
+  `main`. A maintainer lands an accepted change through the Land Queue (see
+  [Landing a change](#landing-a-change)); pull requests run no checks, so run
+  `pnpm verify` before you push.
+- **Bug reports, feature requests and questions** go to the
+  [ZotLit forum](https://zotlit-forum.aidenlx.site). GitHub Issues in
+  `aidenlx/zotlit-repo` hold the defects a maintainer has confirmed. Issues
+  opened in `aidenlx/zotlit` before the source moved stay there.
 
 ## Releasing
 
