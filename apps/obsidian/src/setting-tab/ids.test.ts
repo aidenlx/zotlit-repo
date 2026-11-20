@@ -50,6 +50,7 @@ function ctx(): SettingTabContext {
             state: Effect.die("unread"),
             changes: Stream.empty,
             current: Effect.succeed(null),
+            settled: Effect.void,
             effective: Effect.succeed({ mode: "all" }),
             invalid: Effect.succeed(false),
             libraries: Effect.succeed([]),
