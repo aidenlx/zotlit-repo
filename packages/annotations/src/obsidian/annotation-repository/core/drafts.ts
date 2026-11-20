@@ -16,7 +16,13 @@ import {
   saveKey,
   setDraft,
 } from "./draft-store.ts";
-import { capabilityFor, holding, sessionHolding } from "./lists.ts";
+import {
+  capabilityFor,
+  compatibleApiSource,
+  holding,
+  prepareCollection,
+  sessionHolding,
+} from "./lists.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
@@ -38,8 +44,13 @@ import {
   settle,
 } from "./outcomes.ts";
 import type { CoreState } from "./state.ts";
-import { command, lockRefusal, writeBlocked, writeText } from "./writes.ts";
-import type { WriteRunFailed } from "./writes.ts";
+import {
+  command,
+  lockRefusal,
+  writeBlocked,
+  writeText,
+  WriteRunFailed,
+} from "./writes.ts";
 
 import {
   annotationTags,
@@ -156,7 +167,7 @@ const editTextField = Effect.fnUntraced(function* (
 ): Effect.fn.Return<TextFieldDraft | null> {
   const source = yield* core.localApi.demandSource;
   const standing = yield* draftFor(core, field, annotationKey);
-  const held = standing ? null : yield* holding(core, annotationKey);
+  const held = standing ? null : yield* sessionHolding(core, annotationKey);
   if (!standing && (!source || !held)) return null;
   const capability = yield* capabilityFor(
     core,
@@ -204,9 +215,17 @@ const submitTextField = Effect.fnUntraced(function* (
     automatic = false,
   }: { annotationKey: string; automatic?: boolean },
 ): Effect.fn.Return<MutationState, WriteRunFailed> {
+  const asked = yield* draftFor(core, field, annotationKey);
+  if (!asked) return IDLE;
+  yield* cancelTextSave(core, field, asked);
+  const api = yield* compatibleApiSource(core, asked.attachmentKey);
+  if (api) {
+    yield* prepareCollection(core, asked.attachmentKey, api).pipe(
+      Effect.mapError((cause) => new WriteRunFailed({ cause })),
+    );
+  }
   const draft = yield* draftFor(core, field, annotationKey);
   if (!draft) return IDLE;
-  yield* cancelTextSave(core, field, draft);
   if (draft.state.kind === "conflict") {
     return mutationFor(core, annotationKey);
   }

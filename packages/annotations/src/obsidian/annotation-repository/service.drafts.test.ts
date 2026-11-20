@@ -1867,6 +1867,67 @@ it.effect(
     }),
 );
 
+it.effect(
+  "saves a comment drafted on a list read from the database while the Local API is available",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroTagging("PUPR5FG5", [...TAGGED]);
+      const { service } = yield* Effect.promise(() =>
+        setup(stack, zotero.answers, { key: REMEMBERED_KEY }),
+      );
+      expect((yield* service.read("RGRPDF24"))?.source.kind).toBe("zotero-db");
+      expect(yield* service.capabilityFor("RGRPDF24")).toEqual({
+        kind: "writable",
+      });
+
+      expect(yield* service.editTextField("comment", "PUPR5FG5")).toMatchObject(
+        {
+          attachmentKey: "RGRPDF24",
+          baseline: "",
+          state: { kind: "editing" },
+        },
+      );
+      yield* service.editTextField("comment", "PUPR5FG5", "Worth citing");
+
+      expect(yield* service.submitTextField("comment", "PUPR5FG5")).toEqual({
+        kind: "idle",
+      });
+      expect(zotero.comment).toBe("Worth citing");
+      expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toBeNull();
+    }),
+);
+
+it.effect(
+  "requires a choice when Zotero changed a comment drafted on a list read from the database",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroTagging("PUPR5FG5", [...TAGGED]);
+      const { service } = yield* Effect.promise(() =>
+        setup(stack, zotero.answers, { key: REMEMBERED_KEY }),
+      );
+      expect((yield* service.read("RGRPDF24"))?.source.kind).toBe("zotero-db");
+      yield* service.editTextField("comment", "PUPR5FG5", "My draft");
+      zotero.changeInZotero({ comment: "Zotero note" });
+
+      expect(yield* service.submitTextField("comment", "PUPR5FG5")).toEqual({
+        kind: "conflict",
+        conflict: {
+          write: "comment",
+          attempted: "My draft",
+          fresh: "Zotero note",
+        },
+      });
+      expect(zotero.comment).toBe("Zotero note");
+      expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toMatchObject({
+        baseline: "",
+        text: "My draft",
+        state: { kind: "conflict", fresh: "Zotero note" },
+      });
+    }),
+);
+
 it.effect("removes an automatic tag, as Zotero lets the user do", () =>
   Effect.gen(function* () {
     const stack = yield* scopedStack;
