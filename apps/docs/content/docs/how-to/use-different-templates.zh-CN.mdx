@@ -67,11 +67,23 @@ import { m } from "@/paraglide/messages.js";
 
   </Step>
   <Step>
+    ### 从该配置方案创建笔记 [#create-note]
+
+    运行 <Command inline name={m.command_open_lit_note_name()} /> 并选择这本书。
+
+    ![文献笔记快速切换器，其中《The Visual Display of Quantitative Information》一书用红框标出](/img/how-to/use-different-templates-6a-open-note.webp)
+
+    ZotLit 发现该条目匹配 Books，并将笔记写入 `literatures/books`。笔记会在其 `zotlit-profile` 属性中记录所用的配置方案。
+
+    ![literatures/books 中新建的笔记 tufte1983，其中读数为 Books 的 zotlit-profile 属性用红框标出](/img/how-to/use-different-templates-6b-note-profile.webp)
+
+  </Step>
+  <Step>
     ### 将笔记切换至该配置方案 [#switch]
 
     ZotLit 会对所有匹配该条目的新建笔记使用此配置方案。若要切换已有笔记的配置方案，请打开该笔记，打开命令面板，并运行 <Command inline name={m.command_switch_literature_note_profile_name()} />。
 
-    ![运行“切换文献笔记配置方案”后打开的配置方案列表，其中 Books 这一行及其笔记路径用红框标出](/img/how-to/use-different-templates-6-switch.webp)
+    ![运行“切换文献笔记配置方案”后打开的配置方案列表，其中 Books 这一行及其笔记路径用红框标出](/img/how-to/use-different-templates-7-switch.webp)
 
     列表中会显示各个配置方案及其文件夹以及该笔记对应的路径。选择 **Books** 即可将该笔记应用此配置方案。已有笔记在手动切换之前，会始终保留创建它们时所用的配置方案。
 
@@ -81,6 +93,8 @@ import { m } from "@/paraglide/messages.js";
 ## 当两个配置方案同时匹配时 [#overlap]
 
 两个配置方案可能会同时匹配同一个条目，此时 ZotLit 不会自动为你做出选择。选择器会弹出并提示 <UiLabel name={m.modal_profile_problem_overlap({ profiles: "…" })} />。其搜索框提示为 <UiLabel name={m.modal_profile_overlap_placeholder()} />，且每个匹配该条目的候选配置方案都会带有 <UiLabel name={m.modal_profile_match_candidate()} /> 标识。
+
+![两个配置方案同时匹配时的选择器：Books 与 Reading notes 都带有“匹配此条目”标识，其中 Books 这一行用红框标出](/img/how-to/use-different-templates-overlap.webp)
 
 选择你打算使用的配置方案，或者关闭选择器取消创建笔记。在 <UiLabel name={m.workbench_tab_match()} /> 标签页中收窄条件是彻底解决此问题的方法。
 

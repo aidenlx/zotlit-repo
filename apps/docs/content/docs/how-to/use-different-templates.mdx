@@ -67,11 +67,23 @@ A profile decides a literature note's name, folder, properties, and body. A new 
 
   </Step>
   <Step>
+    ### Create a note from the profile [#create-note]
+
+    Run <Command inline name={m.command_open_lit_note_name()} /> and choose the book.
+
+    ![The literature note quick switcher with the book The Visual Display of Quantitative Information outlined in red](/img/how-to/use-different-templates-6a-open-note.webp)
+
+    ZotLit finds that the item matches Books and writes the note into `literatures/books`. The note records the profile in its `zotlit-profile` property.
+
+    ![The new note tufte1983 in literatures/books, with the zotlit-profile property reading Books outlined in red](/img/how-to/use-different-templates-6b-note-profile.webp)
+
+  </Step>
+  <Step>
     ### Move a note to the profile [#switch]
 
     ZotLit uses the profile for every new note whose item matches. To move a note you already have, open it, open the command palette, and run <Command inline name={m.command_switch_literature_note_profile_name()} />.
 
-    ![The list of profiles opened by Switch literature note profile, with the row Books and its note path outlined in red](/img/how-to/use-different-templates-6-switch.webp)
+    ![The list of profiles opened by Switch literature note profile, with the row Books and its note path outlined in red](/img/how-to/use-different-templates-7-switch.webp)
 
     The list shows each profile with its folder and the path the note would have. Select **Books** to give the note that profile. Existing notes keep the profile that made them until you switch them.
 
@@ -81,6 +93,8 @@ A profile decides a literature note's name, folder, properties, and body. A new 
 ## When two profiles match [#overlap]
 
 Two profiles can match the same item, and ZotLit does not choose for you when they do. The picker opens and reports <UiLabel name={m.modal_profile_problem_overlap({ profiles: "…" })} />. Its search box reads <UiLabel name={m.modal_profile_overlap_placeholder()} />, and every candidate that matches the item carries <UiLabel name={m.modal_profile_match_candidate()} />.
+
+![The picker for two matching profiles: Books and Reading notes both carry Matches this item, and the Books row is outlined in red](/img/how-to/use-different-templates-overlap.webp)
 
 Pick the profile you meant to use, or dismiss the picker to cancel the note. Narrowing the conditions on the <UiLabel name={m.workbench_tab_match()} /> tab is the durable fix.
 
