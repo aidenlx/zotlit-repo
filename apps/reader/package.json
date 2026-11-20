@@ -28,6 +28,7 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-services": "workspace:*",
     "@zotlit/plugin-shell": "workspace:*",
+    "@zotlit/reader-api": "workspace:*",
     "@zotlit/reader-feature": "workspace:*",
     "@zotlit/reader-messages": "workspace:*",
     "effect": "catalog:",

@@ -8,8 +8,8 @@ import {
   installReaderProbe,
   PROBE_ID,
   PROBE_LAYER,
-  PROBE_VIEW_TYPE,
   removeReaderProbe,
+  writeProbeData,
 } from "./reader-probe.ts";
 
 const PDF_PATH = "attachments/excerpt-acceptance/excerpt-rendering.pdf";
@@ -20,6 +20,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   describe("the PDF reader in a plugin with no Zotero features", () => {
     beforeAll(async () => {
       await installReaderProbe(workspaceRoot, e2eVaultPath);
+      await writeProbeData(e2eVaultPath, { host: true });
       await obRun(
         run.vaultId,
         async ({ app }, { id }) => {
@@ -50,78 +51,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { id: PROBE_ID },
       );
       await removeReaderProbe(e2eVaultPath);
-    });
-
-    it("opens a PDF in its own view, draws its layer and keeps the layer through a zoom", async () => {
-      const opened = await obRun(
-        run.vaultId,
-        async ({ app }, { id, path, layerId }) => {
-          await using cleanup = new AsyncDisposableStack();
-          const probe = app.plugins.plugins[id] as ReaderProbePlugin;
-          const file = app.vault.getFileByPath(path)!;
-          const view = await probe.pdf!.open(file, {
-            subpath: "#page=2",
-            pane: "tab",
-          });
-          if (view) cleanup.adopt(view.leaf, (leaf) => leaf.detach());
-          const reader = view?.reader ?? null;
-          if (!view || !reader) return null;
-          const document = await reader.whenReady();
-          const rendered = await reader.whenRendered(1);
-          await reader.settled();
-          const layerOf = () =>
-            reader
-              .pageAt(1)
-              ?.div.querySelector<HTMLElement>(
-                `[data-zpr-layer="${layerId}"]`,
-              ) ?? null;
-          const layer = layerOf();
-          const drawn = probe.drawn;
-          const repainted = new Promise<void>((resolve) => {
-            const off = reader.on("page-rendered", ({ page }) => {
-              if (page.pageIndex !== 1) return;
-              off();
-              resolve();
-            });
-          });
-          reader.set({ zoom: 2 });
-          await repainted;
-          await reader.settled();
-          const zoomed = layerOf();
-          return {
-            viewType: view.getViewType(),
-            kind: reader.kind,
-            ready: document !== null,
-            painted: rendered !== null,
-            pageIndex: reader.state.get().pageIndex,
-            attached: probe.attached.at(-1) ?? null,
-            band: layer?.querySelector(".probe-band") !== null,
-            fonts: [...view.containerEl.doc.fonts].some((face) =>
-              face.family.includes(`g_${id}`),
-            ),
-            scale: reader.state.get().scale,
-            sameLayer: layer !== null && zoomed === layer,
-            bandAfterZoom: zoomed?.querySelector(".probe-band") !== null,
-            redrawn: probe.drawn > drawn,
-          };
-        },
-        { id: PROBE_ID, path: PDF_PATH, layerId: PROBE_LAYER },
-        { timeoutMs: 30_000 },
-      );
-      expect(opened).toEqual({
-        viewType: PROBE_VIEW_TYPE,
-        kind: "view",
-        ready: true,
-        painted: true,
-        pageIndex: 1,
-        attached: { kind: "view", subpath: "#page=2", restored: false },
-        band: true,
-        fonts: true,
-        scale: 2,
-        sameLayer: true,
-        bandAfterZoom: true,
-        redrawn: true,
-      });
     });
 
     it("renders side by side with ZotLit's own reader, each with its own fonts (E-20)", async () => {

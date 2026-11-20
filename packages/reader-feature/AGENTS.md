@@ -13,3 +13,7 @@ The package exports its TypeScript source as `@zotlit/reader-feature/obsidian/<f
 ## Feature
 
 `src/obsidian/feature.ts` exports `reader`, made with `defineFeature` (`packages/plugin-shell/AGENTS.md` → A feature). It owns the settings slice `reader.open-all-pdfs` (`settings.ts`, on by default) and the Reader page with its row (`settings-page.ts`). Its `onload` calls `registerPdfReader` and sets the takeover from each change of that setting; an `"unavailable"` takeover shows the `reader_takeover_unavailable` notice. The reader's strings come from `@zotlit/reader-messages` (`strings.ts`, and `reader_*` Messages for the Reader's own texts).
+
+## Interop
+
+`src/obsidian/interop/provider.ts` answers the workspace handshake of `@zotlit/reader-api` right after the registration: `answerConnect` with a map from each supported major to its `ReaderApi` (one entry, major 1, the registration's own `api`), and the same object as `plugin.api`. Only the handshake is documented as stable. A refused major writes one Effect log line (category `interop`) and shows no notice. At unload, the `onClose` listeners run before the readers dispose.

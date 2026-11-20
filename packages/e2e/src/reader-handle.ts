@@ -1,4 +1,4 @@
-import type { View } from "obsidian";
+import type { TFile, View } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
 import type { ReaderApi } from "@zotlit/reader-api";
@@ -9,6 +9,10 @@ import type { PageApp } from "./page-host.ts";
 export interface ReaderHandle {
   readonly viewType: string;
   open: ReaderApi["open"];
+  openNew(
+    file: TFile,
+    options?: Parameters<ReaderApi["open"]>[1],
+  ): Promise<View>;
   setTakeover(on: boolean): Promise<void>;
   views(): View[];
   readerOf: ReaderApi["readerOf"];
@@ -39,11 +43,27 @@ export function createReaderHandle(
     if (!found) throw new Error("ZotLit Reader gives no api");
     return found;
   };
-  return {
+  const handle: ReaderHandle = {
     get viewType() {
       return api().viewType;
     },
     open: (file, options) => api().open(file, options),
+    openNew: async (file, options) => {
+      const known = new Set(handle.views());
+      await api().open(file, options);
+      let opened: View | undefined;
+      await until(`${file.path} in a new reader view`, () => {
+        opened = handle
+          .views()
+          .find(
+            (view) =>
+              !known.has(view) &&
+              (view as View & { file?: TFile | null }).file === file,
+          );
+        return opened !== undefined;
+      });
+      return opened!;
+    },
     setTakeover: async (on) => {
       const wanted = on ? "on" : "off";
       const services = zotlit();
@@ -82,4 +102,5 @@ export function createReaderHandle(
     readerOf: (view) => api().readerOf(view),
     loadDocument: (source, options) => api().loadDocument(source, options),
   };
+  return handle;
 }

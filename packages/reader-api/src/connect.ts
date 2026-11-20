@@ -52,9 +52,14 @@ export function connectReader(
   return () => workspace.offref(ready);
 }
 
+interface AnswerOptions {
+  onRefuse?(request: ConnectRequest): void;
+}
+
 export function answerConnect(
   workspace: Events,
   apiByMajor: ReadonlyMap<number, ReaderApi>,
+  options: AnswerOptions = {},
 ): () => void {
   const supported = [...apiByMajor.keys()];
   const readerVersion = apiByMajor.values().next().value?.readerVersion ?? "";
@@ -62,7 +67,10 @@ export function answerConnect(
     const request = data[0] as ConnectRequest;
     const api = apiByMajor.get(request.major);
     if (api) request.accept(api);
-    else request.refuse({ supported, readerVersion });
+    else {
+      options.onRefuse?.(request);
+      request.refuse({ supported, readerVersion });
+    }
   };
   const connect = workspace.on(CONNECT_EVENT, answer);
   workspace.trigger(READY_EVENT);

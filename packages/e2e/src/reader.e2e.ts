@@ -1,16 +1,25 @@
+import type { ProbeData } from "@e2e-fixtures/reader-probe-plugin/main.ts";
+import type ReaderProbePlugin from "@e2e-fixtures/reader-probe-plugin/main.ts";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { prepareRunWindow } from "./background-throttling.ts";
-import { obRun } from "./obsidian-cli.ts";
+import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type {
   FileExplorerView,
   PagePdfReaderView,
 } from "./page-notes-types.ts";
+import {
+  installReaderProbe,
+  PROBE_ID,
+  PROBE_LAYER,
+  removeReaderProbe,
+  writeProbeData,
+} from "./reader-probe.ts";
 import {
   clearVault,
   e2eVaultDir,
@@ -1319,6 +1328,230 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
         embed: true,
         hover: true,
       },
+    });
+  });
+
+  describe("the contract probe, a plugin with no Zotero code that reaches the Reader through its API", () => {
+    const enableProbe = async (data: ProbeData) => {
+      await installReaderProbe(workspaceRoot, vaultPath);
+      await writeProbeData(vaultPath, data);
+      await obRun(
+        vaultId,
+        async ({ app }, { id }) => {
+          await app.plugins.loadManifests();
+          await app.plugins.enablePlugin(id);
+        },
+        { id: PROBE_ID },
+      );
+      return obRunUntil(
+        vaultId,
+        ({ app }, { id }) => {
+          const probe = app.plugins.plugins[id] as
+            | ReaderProbePlugin
+            | undefined;
+          const connection = probe?.connection ?? null;
+          if (!connection) return null;
+          return {
+            state: connection.state,
+            reason:
+              connection.state === "refused"
+                ? {
+                    supported: [...connection.reason.supported],
+                    readerVersion: connection.reason.readerVersion,
+                  }
+                : null,
+          };
+        },
+        { id: PROBE_ID },
+        {
+          ready: (value) => value !== null,
+          what: "the reader probe plugin to connect",
+        },
+      );
+    };
+
+    afterEach(async () => {
+      await obRun(
+        vaultId,
+        async ({ app }, { id }) => {
+          if (app.plugins.plugins[id]) await app.plugins.disablePlugin(id);
+        },
+        { id: PROBE_ID },
+      );
+      await removeReaderProbe(vaultPath);
+    });
+
+    it("the contract probe draws its layer in the Reader's view through a zoom", async () => {
+      expect(await enableProbe({})).toEqual({
+        state: "connected",
+        reason: null,
+      });
+      const opened = await obRun(
+        vaultId,
+        async ({ app, page, reader: handles }, { id, path, layerId }) => {
+          await using cleanup = new AsyncDisposableStack();
+          const probe = app.plugins.plugins[id] as ReaderProbePlugin;
+          const file = app.vault.getFileByPath(path)!;
+          const view = (await page.reader.openNew(file, {
+            subpath: "#page=2",
+            pane: "tab",
+          })) as PagePdfReaderView;
+          cleanup.adopt(view.leaf, (leaf) => leaf.detach());
+          const reader = await page.until("the reader", () => view.reader);
+          await reader.whenReady();
+          await reader.whenRendered(1);
+          await reader.settled();
+          const layerOf = () =>
+            reader
+              .pageAt(1)
+              ?.div.querySelector<HTMLElement>(
+                `[data-zpr-layer="${layerId}"]`,
+              ) ?? null;
+          const layer = await page.until("the probe layer", layerOf);
+          const drawn = probe.drawn;
+          const repainted = new Promise<void>((resolve) => {
+            const off = reader.on("page-rendered", ({ page: painted }) => {
+              if (painted.pageIndex !== 1) return;
+              off();
+              resolve();
+            });
+          });
+          reader.set({ zoom: 2 });
+          await repainted;
+          await reader.settled();
+          const zoomed = layerOf();
+          return {
+            viewType: view.getViewType(),
+            sameApi:
+              probe.connection?.state === "connected" &&
+              probe.connection.api === handles.api,
+            attached: probe.attached.at(-1) ?? null,
+            band: layer.querySelector(".probe-band") !== null,
+            scale: reader.state.get().scale,
+            sameLayer: zoomed === layer,
+            bandAfterZoom: zoomed?.querySelector(".probe-band") !== null,
+            redrawn: probe.drawn > drawn,
+          };
+        },
+        { id: PROBE_ID, path: PDF_PATH, layerId: PROBE_LAYER },
+        { timeoutMs: 30_000 },
+      );
+      expect(opened).toEqual({
+        viewType: "zotlit-pdf",
+        sameApi: true,
+        attached: { kind: "view", subpath: "#page=2", restored: false },
+        band: true,
+        scale: 2,
+        sameLayer: true,
+        bandAfterZoom: true,
+        redrawn: true,
+      });
+    });
+
+    it("the probe enabled after a Reader tab is open gets its layer in that tab", async () => {
+      await installReaderProbe(workspaceRoot, vaultPath);
+      await writeProbeData(vaultPath, {});
+      const attached = await obRun(
+        vaultId,
+        async ({ app, page }, { id, path, layerId }) => {
+          await using cleanup = new AsyncDisposableStack();
+          const file = app.vault.getFileByPath(path)!;
+          const view = (await page.reader.openNew(file, {
+            subpath: "#page=2",
+            pane: "tab",
+          })) as PagePdfReaderView;
+          cleanup.adopt(view.leaf, (leaf) => leaf.detach());
+          const reader = await page.until("the reader", () => view.reader);
+          await reader.whenReady();
+          await reader.whenRendered(1);
+          await reader.settled();
+          await app.plugins.loadManifests();
+          await app.plugins.enablePlugin(id);
+          const probe = await page.until(
+            "the reader probe plugin to connect",
+            () =>
+              (app.plugins.plugins[id] as ReaderProbePlugin | undefined)
+                ?.connection?.state === "connected"
+                ? (app.plugins.plugins[id] as ReaderProbePlugin)
+                : null,
+          );
+          const band = await page.until(
+            "the probe layer in the open tab",
+            () =>
+              reader
+                .pageAt(1)
+                ?.div.querySelector(
+                  `[data-zpr-layer="${layerId}"] .probe-band`,
+                ) ?? null,
+          );
+          return {
+            band: band !== null,
+            attached: probe.attached.find((entry) => entry.kind === "view"),
+          };
+        },
+        { id: PROBE_ID, path: PDF_PATH, layerId: PROBE_LAYER },
+        { timeoutMs: 30_000 },
+      );
+      expect(attached).toEqual({
+        band: true,
+        attached: { kind: "view", subpath: null, restored: true },
+      });
+    });
+
+    it("refuses a probe that claims version 2, keeps the Reader's tab working, and the probe reports the refusal (I-7)", async () => {
+      const readerVersion = JSON.parse(
+        await readFile(
+          join(vaultPath, ".obsidian", "plugins", READER_ID, "manifest.json"),
+          "utf8",
+        ),
+      ).version as string;
+      expect(await enableProbe({ major: 2 })).toEqual({
+        state: "refused",
+        reason: { supported: [1], readerVersion },
+      });
+      const shown = await obRun(
+        vaultId,
+        async ({ app, page }, { id, path, layerId }) => {
+          await using cleanup = new AsyncDisposableStack();
+          const probe = app.plugins.plugins[id] as ReaderProbePlugin;
+          const file = app.vault.getFileByPath(path)!;
+          const view = (await page.reader.openNew(file, {
+            subpath: "#page=2",
+            pane: "tab",
+          })) as PagePdfReaderView;
+          cleanup.adopt(view.leaf, (leaf) => leaf.detach());
+          const reader = await page.until("the reader", () => view.reader);
+          await reader.whenReady();
+          await reader.whenRendered(1);
+          await reader.settled();
+          return {
+            viewType: view.getViewType(),
+            ours: page.reader.readerOf(view) === reader,
+            status: reader.state.get().status,
+            pageIndex: reader.state.get().pageIndex,
+            text: (reader.pageAt(1)?.textLayer?.textContent.length ?? 0) > 0,
+            probeLayer:
+              reader.root.querySelector(`[data-zpr-layer="${layerId}"]`) !==
+              null,
+            attached: probe.attached.length,
+            notices: [...activeDocument.querySelectorAll(".notice")]
+              .map((notice) => notice.textContent)
+              .filter((text) => /version/i.test(text)),
+          };
+        },
+        { id: PROBE_ID, path: PDF_PATH, layerId: PROBE_LAYER },
+        { timeoutMs: 30_000 },
+      );
+      expect(shown).toEqual({
+        viewType: "zotlit-pdf",
+        ours: true,
+        status: "ready",
+        pageIndex: 1,
+        text: true,
+        probeLayer: false,
+        attached: 0,
+        notices: [],
+      });
     });
   });
 });

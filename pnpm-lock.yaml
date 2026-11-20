@@ -873,6 +873,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../../packages/plugin-shell
+      '@zotlit/reader-api':
+        specifier: workspace:*
+        version: link:../../packages/reader-api
       '@zotlit/reader-feature':
         specifier: workspace:*
         version: link:../../packages/reader-feature
@@ -2678,6 +2681,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/reader-api':
+        specifier: workspace:*
+        version: link:../reader-api
       '@zotlit/reader-messages':
         specifier: workspace:*
         version: link:../reader-messages

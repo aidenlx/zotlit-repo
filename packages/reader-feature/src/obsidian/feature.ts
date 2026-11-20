@@ -1,9 +1,12 @@
-import { Stream } from "effect";
+import { Effect, Stream } from "effect";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import "@zotlit/pdf-reader/styles.css";
 import { registerPdfReader } from "@zotlit/pdf-reader/obsidian";
-import { bridgeLog } from "@zotlit/plugin-kernel/effect-log.ts";
+import {
+  bridgeLog,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { defineFeature } from "@zotlit/plugin-shell/obsidian/feature.ts";
 import * as m from "@zotlit/reader-messages/messages.ts";
@@ -11,6 +14,8 @@ import * as m from "@zotlit/reader-messages/messages.ts";
 import { readerPage } from "./settings-page.ts";
 import { readerSettings } from "./settings.ts";
 import { readerT } from "./strings.ts";
+
+import { provideReaderApi } from "#obsidian/interop/provider.ts";
 
 const READER_VIEW_TYPE = "zotlit-pdf";
 
@@ -27,6 +32,13 @@ export const reader = defineFeature({
       report: (error, where) => {
         log.error("The PDF reader reported an error", { error, ...where });
       },
+    });
+    provideReaderApi(plugin, registration.api, (refusal) => {
+      bridge.runAndForget(
+        Effect.logWarning(
+          "A plugin asked for a version of the ZotLit Reader API that this Reader does not give",
+        ).pipe(Effect.annotateLogs({ ...refusal }), withLogCategory("interop")),
+      );
     });
     const notifier = read(Notifier);
     plugin.register(

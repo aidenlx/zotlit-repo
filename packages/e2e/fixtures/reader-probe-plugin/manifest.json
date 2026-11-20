@@ -3,7 +3,7 @@
   "name": "Reader probe",
   "version": "0.0.0",
   "minAppVersion": "1.14.4",
-  "description": "A plugin with no Zotero features that hosts the ZotLit PDF reader, for the End-to-end Run.",
+  "description": "A plugin with no Zotero features that adds a page layer to ZotLit Reader through its API, and with data.json host: true hosts the ZotLit PDF reader itself, for the End-to-end Run.",
   "author": "ZotLit",
   "isDesktopOnly": true
 }

@@ -47,7 +47,7 @@ afterEach(() => {
 describe("the handshake between a client and ZotLit Reader", () => {
   it("accepts in the same call when the Reader loaded first", () => {
     const workspace = new Events();
-    const api = readerApi(1, 0);
+    const api = readerApi(READER_API.major, READER_API.minor);
     answerConnect(workspace, new Map([[1, api]]));
 
     const { answers } = client(workspace);
@@ -57,7 +57,7 @@ describe("the handshake between a client and ZotLit Reader", () => {
 
   it("reports absent, then accepts once the Reader announces it is ready", () => {
     const workspace = new Events();
-    const api = readerApi(1, 0);
+    const api = readerApi(READER_API.major, READER_API.minor);
     const { answers } = client(workspace);
 
     expect(answers).toEqual([{ kind: "absent" }]);
@@ -87,15 +87,21 @@ describe("the handshake between a client and ZotLit Reader", () => {
     ]);
   });
 
-  it("refuses a major the Reader does not support", () => {
+  it("refuses a major the Reader does not support, and tells the Reader which request it refused", () => {
     const workspace = new Events();
-    answerConnect(workspace, new Map([[1, readerApi(1, 0)]]));
+    const refused: { client: string; major: number; minor: number }[] = [];
+    answerConnect(workspace, new Map([[1, readerApi(1, 0)]]), {
+      onRefuse: ({ client: name, major, minor }) =>
+        refused.push({ client: name, major, minor }),
+    });
 
     const { answers } = client(workspace, { major: 2, minor: 0 });
+    client(workspace, { major: 1, minor: 0 });
 
     expect(answers).toEqual([
       { kind: "refuse", reason: { supported: [1], readerVersion: "1.2.0" } },
     ]);
+    expect(refused).toEqual([{ client: "zotlit", major: 2, minor: 0 }]);
   });
 
   it("refuses a Reader whose minor is lower than the client needs", () => {
@@ -145,7 +151,7 @@ describe("the handshake between a client and ZotLit Reader", () => {
         onAbsent: () => {},
       },
     );
-    const api = readerApi(1, 0);
+    const api = readerApi(READER_API.major, READER_API.minor);
 
     answerConnect(workspace, new Map([[1, api]]));
 

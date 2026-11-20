@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { Layer } from "effect";
-import { Plugin } from "obsidian";
+import { Layer, Logger, References } from "effect";
+import { Events, Plugin } from "obsidian";
 import type { App, PluginManifest, SettingDefinitionItem } from "obsidian";
 import { expect, it } from "vitest";
 
@@ -18,6 +18,8 @@ import {
   settingDefinitions,
   settingTabContext,
 } from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
+import type { ReaderApi, RefuseReason } from "@zotlit/reader-api";
+import { connectReader, READY_EVENT } from "@zotlit/reader-api";
 import { reader } from "@zotlit/reader-feature/obsidian/feature.ts";
 import * as m from "@zotlit/reader-messages/messages.ts";
 
@@ -33,6 +35,7 @@ const manifest: PluginManifest = {
 };
 
 class ReaderPlugin extends Plugin {
+  declare readonly api: ReaderApi | undefined;
   registerView(): void {}
 }
 
@@ -67,26 +70,41 @@ type MaybeRegistries = {
   readonly [K in keyof Registries]?: Registries[K] | undefined;
 };
 
+function readerWorkspace(): App["workspace"] {
+  return Object.assign(new Events(), {
+    getLeavesOfType: () => [],
+  }) as unknown as App["workspace"];
+}
+
 async function startReader(options: {
   readonly registries: boolean;
   readonly saved?: Record<string, unknown>;
+  readonly workspace?: App["workspace"];
 }) {
+  const workspace = options.workspace ?? readerWorkspace();
   const app = stubService<App & MaybeRegistries>("App", {
-    workspace: stubService<App["workspace"]>("Workspace", {
-      getLeavesOfType: () => [],
-    }),
+    workspace,
     ...(options.registries
       ? registries()
       : { viewRegistry: undefined, embedRegistry: undefined }),
   });
   const plugin = new ReaderPlugin(app, manifest) as ReaderPlugin &
     ShellPluginInstance;
+  const logs: { message: unknown; annotations: Record<string, unknown> }[] = [];
   const writes: Record<string, unknown>[] = [];
   const notifier = testNotifier();
   const stack = new AsyncDisposableStack();
   const runtime = buildRuntime(
     Layer.mergeAll(
       notifier.layer,
+      Logger.layer([
+        Logger.make(({ message, fiber }) => {
+          logs.push({
+            message,
+            annotations: { ...fiber.getRef(References.CurrentLogAnnotations) },
+          });
+        }),
+      ]),
       layerPluginSettings(
         {
           loadData: async () => options.saved ?? null,
@@ -116,6 +134,8 @@ async function startReader(options: {
   });
   return {
     app,
+    plugin,
+    logs,
     notices: notifier.notices,
     writes,
     release: () => bridge.runPromise(runtime.runSync(PluginSettings).release),
@@ -173,6 +193,92 @@ it("saves only the Reader's own keys in its data.json, and keeps PDFs in Obsidia
   ]);
   await using restarted = await startReader({ registries: true, saved });
   expect(restarted.app.viewRegistry?.typeByExtension.pdf).toBe("pdf");
+});
+
+function client(major: number) {
+  const answers: (
+    | { readonly accepted: ReaderApi }
+    | { readonly refused: RefuseReason }
+    | "absent"
+  )[] = [];
+  return {
+    answers,
+    connect: (workspace: App["workspace"]) =>
+      connectReader(
+        workspace,
+        { client: "reader-probe", major, minor: 0 },
+        {
+          onAccept: (accepted) => answers.push({ accepted }),
+          onRefuse: (refused) => answers.push({ refused }),
+          onAbsent: () => answers.push("absent"),
+        },
+      ),
+  };
+}
+
+it("gives a plugin that asks for version 1 the Reader's API, the same object as plugin.api", async () => {
+  await using started = await startReader({ registries: true });
+  const probe = client(1);
+  probe.connect(started.app.workspace);
+  expect(probe.answers).toHaveLength(1);
+  const [answer] = probe.answers;
+  expect(answer).toHaveProperty("accepted");
+  const api = (answer as { readonly accepted: ReaderApi }).accepted;
+  expect(api).toBe(started.plugin.api);
+  expect(api.api.major).toBe(1);
+  expect(api.viewType).toBe("zotlit-pdf");
+  expect(api.readerVersion).toBe(manifest.version);
+  expect(started.logs).toEqual([]);
+});
+
+it("refuses a plugin that asks for version 2, names version 1, and writes one log line", async () => {
+  await using started = await startReader({ registries: true });
+  const probe = client(2);
+  probe.connect(started.app.workspace);
+  expect(probe.answers).toEqual([
+    { refused: { supported: [1], readerVersion: manifest.version } },
+  ]);
+  await expect.poll(() => started.logs).toHaveLength(1);
+  expect(started.logs[0]!.annotations).toMatchObject({
+    client: "reader-probe",
+    major: 2,
+    supported: [1],
+  });
+  expect(started.notices).toEqual([]);
+});
+
+it("connects a plugin that loaded first when the Reader starts, and says it is ready once", async () => {
+  const workspace = readerWorkspace();
+  let ready = 0;
+  const events: Events = workspace;
+  events.on(READY_EVENT, () => {
+    ready++;
+  });
+  const probe = client(1);
+  probe.connect(workspace);
+  expect(probe.answers).toEqual(["absent"]);
+  await using started = await startReader({ registries: true, workspace });
+  expect(ready).toBe(1);
+  expect(probe.answers).toHaveLength(2);
+  expect(probe.answers[1]).toEqual({ accepted: started.plugin.api });
+});
+
+it("at unload, tells connected plugins first while the Reader still opens PDFs, then gives PDFs back and answers no later plugin", async () => {
+  const workspace = readerWorkspace();
+  const seen: (string | undefined)[] = [];
+  let typeByExtension: Record<string, string> | undefined;
+  {
+    await using started = await startReader({ registries: true, workspace });
+    typeByExtension = started.app.viewRegistry?.typeByExtension;
+    started.plugin.api!.onClose(() => {
+      seen.push(typeByExtension?.pdf);
+    });
+  }
+  expect(seen).toEqual(["zotlit-pdf"]);
+  expect(typeByExtension?.pdf).toBe("pdf");
+  const later = client(1);
+  later.connect(workspace);
+  expect(later.answers).toEqual(["absent"]);
 });
 
 function rows(items: readonly SettingDefinitionItem[]): string[][] {

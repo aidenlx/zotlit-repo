@@ -1,3 +1,4 @@
+import type { ProbeData } from "@e2e-fixtures/reader-probe-plugin/main.ts";
 import {
   copyFile,
   mkdir,
@@ -12,7 +13,6 @@ import { build } from "vite";
 import { gitInputs, newerInput } from "./bundle-freshness.ts";
 
 export const PROBE_ID = "zotlit-reader-probe";
-export const PROBE_VIEW_TYPE = "probe-pdf";
 export const PROBE_LAYER = "probe-band";
 
 const REGENERATE = "pnpm exec turbo run generate --filter=@zotlit/pdf-reader";
@@ -93,6 +93,16 @@ export async function installReaderProbe(
   await copyFile(
     join(fixtureDir, "manifest.json"),
     join(pluginDir, "manifest.json"),
+  );
+}
+
+export async function writeProbeData(
+  vaultPath: string,
+  data: ProbeData,
+): Promise<void> {
+  await writeFile(
+    join(probePluginDir(vaultPath), "data.json"),
+    JSON.stringify(data),
   );
 }
 

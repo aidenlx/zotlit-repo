@@ -19,7 +19,7 @@ Each type declares the members that a client reads today, in the shape that `@zo
 
 1. The Reader calls `answerConnect(workspace, apiByMajor)` at load. It listens for `CONNECT_EVENT`, then triggers `READY_EVENT` once.
 2. The client calls `connectReader(workspace, { client, major, minor }, handlers)`. It listens for `READY_EVENT`, then triggers `CONNECT_EVENT` with a `ConnectRequest`, and again on each `READY_EVENT`.
-3. The Reader answers in the same call: `accept(api)` with the entry of `apiByMajor` for the request's major, else `refuse({ supported, readerVersion })`.
+3. The Reader answers in the same call: `accept(api)` with the entry of `apiByMajor` for the request's major, else `refuse({ supported, readerVersion })`. Before a refusal it calls the `onRefuse(request)` option of `answerConnect`, so the Reader can log the request it refused.
 4. The client calls `onAccept(api)` when `api.major` is its major and `api.minor` is at least its minor. Else it calls `onRefuse`, with `supported: [api.major]` for a minor that is too low. No answer when the trigger returns calls `onAbsent`.
 
 A listener that throws does not stop the other side: Obsidian's `Events` calls each listener in turn and throws the error again from a timer.
@@ -28,6 +28,7 @@ A listener that throws does not stop the other side: Obsidian's `Events` calls e
 
 - Major: a member goes or changes meaning, or a name in `READER_CSS_PARTS` is renamed or goes. Minor: a member is added.
 - A new name in `READER_CSS_PARTS` is a minor change; a rename is a major change.
+- Minor 1 adds the `onRefuse` option of `answerConnect`.
 - `apiByMajor` maps each supported major to an adapter of the current implementation. It holds N and N-1 for one release after a major change.
 - `onRefuse` names the plugin to update: when `supported` holds the client's major, or only majors below it, update ZotLit Reader; when it holds only majors above it, update the client.
 
