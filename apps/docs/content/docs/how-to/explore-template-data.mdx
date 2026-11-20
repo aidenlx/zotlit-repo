@@ -1,31 +1,87 @@
 ---
 title: "Explore template data"
 searchTitle: "Find Zotero fields to use in Obsidian templates"
-description: "Browse the Zotero fields a template receives for a paper, annotation, note name, or citation, copy their paths, and copy ready-made template snippets."
+description: "Open the template data explorer to find a Zotero field, such as the journal name, and copy it as a snippet you can paste into a template."
 ---
 
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { Steps, Step } from "fumadocs-ui/components/steps";
 import { Command } from "@/components/command";
 import { UiLabel } from "@/components/ui-label";
 import { m } from "@/paraglide/messages.js";
 
-1. Open a literature note and run <Command inline name={m.command_open_template_data_explorer_name()} /> from the command palette.
-2. Type part of a field name, such as `title`, in the search box.
-3. Right-click the field's row and select <UiLabel name={m.workbench_explorer_menu_copy_output()} />.
-4. Paste the snippet, for example `{{ zt.title }}`, into your template.
+Open a literature note, run <Command inline name={m.command_open_template_data_explorer_name()} />, search for the field you need, and copy it. This page copies the journal name as `{{ zt.publicationTitle }}`.
 
-A template reads everything about a paper from one name, `zt`: `zt.title` is the title, `zt.authors` the authors. You paste what you copy here into your **profile**, the document that writes your literature notes, which you edit in the Template Workbench View (see [How templates work](/docs/reference/templates/how-templates-work)).
+A template reads everything about a paper from one name, `zt`: `zt.title` is the title and `zt.authors` the authors. Browsing here changes no template and touches nothing in your Zotero library. What you copy is plain text. To insert a field straight into a profile while you edit it, use <UiLabel name={m.workbench_view_fields()} /> in the editor instead, as in [Customize a template](/docs/how-to/customize-a-template#insert-field).
 
-## Find a field and copy it
+<Steps>
+  <Step>
+    ### Open the explorer [#open-explorer]
 
-1. Open a literature note, open the command palette, and run <Command inline name={m.command_open_template_data_explorer_name()} />. A pane opens that lists that note's paper's fields under section headings, with a title ending in <UiLabel name={m.workbench_view_fields()} />. With no literature note active, it shows a list of papers to choose from instead.
-2. If asked, choose a paper under <UiLabel name={m.workbench_recently_updated()} /> or select <UiLabel name={m.workbench_search_zotero()} /> (or choose one of the built-in examples: journal article, conference paper, book, or thesis). The list is replaced by that paper's fields, starting with <UiLabel name={m.workbench_explorer_section_common()} />.
-3. Type in the <UiLabel name={m.workbench_fields_search_note()} /> box to match field names, keys, or values. Matching rows open along with the rows that hold them.
-4. Right-click the row, or open its <UiLabel name={m.workbench_explorer_row_actions()} /> menu, and select <UiLabel name={m.workbench_explorer_menu_copy_output()} />. The notice <UiLabel name={m.workbench_field_copy_done()} /> appears, and your clipboard holds the snippet (for example, `{{ zt.title }}`).
+    Open a literature note. Open the command palette and run <Command inline name={m.command_open_template_data_explorer_name()} />.
 
-Browsing here changes no template and touches nothing in your Zotero library; what you copy is plain text. To insert fields directly at your cursor while editing a template, use <UiLabel name={m.workbench_view_fields()} /> inside the Template Workbench View instead. For a complete list of every available field, see the [Data reference](/docs/reference/templates/data).
+    ![The command palette filtered to ZotLit: Open template data explorer, with the command outlined in red](/img/how-to/explore-template-data-1-open-explorer.webp)
+
+    The explorer opens in the right sidebar, below the annotations, and names your paper at the top.
+
+  </Step>
+  <Step>
+    ### Read the field list [#find-panel]
+
+    Look at the panel titled <UiLabel name={m.workbench_fields_heading()} />. The paper's fields sit under section headings. The first section is <UiLabel name={m.workbench_explorer_section_common()} />, with Title, Authors, Date, Abstract, Published in, and Citation key. Each row shows the field's name and your paper's own value.
+
+    ![The Template fields panel in the right sidebar, outlined in red, listing the common fields of Ten Simple Rules for Better Figures](/img/how-to/explore-template-data-2-find-panel.webp)
+
+    To look at another paper, select <UiLabel name={m.workbench_choose_item()} /> in the panel header and pick one under <UiLabel name={m.workbench_recently_updated()} />, search with <UiLabel name={m.workbench_search_zotero()} />, or choose a built-in example.
+
+  </Step>
+  <Step>
+    ### Search for the field [#search]
+
+    Type part of the field's name, such as `published`, in the <UiLabel name={m.workbench_fields_search_note()} /> box.
+
+    ![The search box with published typed in and outlined in red, and one matching row, Published in, below it](/img/how-to/explore-template-data-3-search-field.webp)
+
+    The list shows only the matching rows. Here it shows **Published in** with the value **PLOS Computational Biology**.
+
+  </Step>
+  <Step>
+    ### Copy the snippet [#copy]
+
+    Right-click the row **Published in**, or select its <UiLabel name={m.workbench_explorer_row_actions()} /> button, and select <UiLabel name={m.workbench_explorer_menu_copy_output()} />.
+
+    ![The menu open on the Published in row, with Copy output outlined in red](/img/how-to/explore-template-data-4-copy-output.webp)
+
+    The menu offers <UiLabel name={m.workbench_explorer_menu_copy_path()} />, <UiLabel name={m.workbench_explorer_menu_copy_value()} />, <UiLabel name={m.workbench_explorer_menu_copy_output()} />, and <UiLabel name={m.workbench_explorer_menu_copy_if_present()} />.
+
+  </Step>
+  <Step>
+    ### Check that it copied [#copied]
+
+    Look at the top right of the window.
+
+    ![The notice Copied outlined in red at the top right of the window](/img/how-to/explore-template-data-5-copied.webp)
+
+    The notice <UiLabel name={m.workbench_field_copy_done()} /> appears, and your clipboard holds `{{ zt.publicationTitle }}`. Paste it into the note text of a profile, as in [Customize a template](/docs/how-to/customize-a-template).
+
+  </Step>
+</Steps>
 
 <Accordions multiple>
+<Accordion title="If something looks different" id="fixes">
+
+- **A list of papers instead of fields** — no literature note was active when you ran the command. Pick a paper from the list, or open a literature note and run the command again.
+- <UiLabel name={m.workbench_fields_no_matches()} /> — shorten or clear the text
+  in the search box.
+- <UiLabel name={m.workbench_field_copy_failed()} /> — select the snippet text
+  displayed on screen and copy it manually.
+- **The snippet items are in two submenus, Liquid and Eta** — choose the language your template uses. If you are starting fresh, choose Liquid.
+- **Zotero asks for confirmation each time it opens Obsidian** — follow [Suppress the Zotero security prompt](/docs/how-to/suppress-zotero-security-prompt).
+- **The values look out of date** — data updates automatically, but you can select <UiLabel name={m.workbench_refresh_item()} /> from the pane menu to refresh it immediately.
+- **A template rendered the wrong thing and you want to report it** — follow [Template data](/docs/how-to/collect-debug-logs#template-data) in Collect debug logs.
+
+</Accordion>
 <Accordion title="Which copy action to choose" id="copy-actions">
 
 | Menu item                                                      | What it copies                                                     |
@@ -67,20 +123,29 @@ The fields an annotation template reads belong to an individual highlight rather
 </Accordion>
 </Accordions>
 
-## If you see something else
-
-- **A list of papers instead of fields** — no literature note was active when you ran the command. Pick a paper from the list, or open a literature note and run the command again.
-- <UiLabel name={m.workbench_fields_no_matches()} /> — shorten or clear the text
-  in the search box.
-- <UiLabel name={m.workbench_field_copy_failed()} /> — select the snippet text
-  displayed on screen and copy it manually.
-- **The snippet items are in two submenus, Liquid and Eta** — choose the language your template uses. If you are starting fresh, choose Liquid.
-- **Zotero asks for confirmation each time it opens Obsidian** — follow [Suppress the Zotero security prompt](/docs/how-to/suppress-zotero-security-prompt).
-- **The values look out of date** — data updates automatically, but you can select <UiLabel name={m.workbench_refresh_item()} /> from the pane menu to refresh it immediately.
-- **A template rendered the wrong thing and you want to report it** — follow [Template data](/docs/how-to/collect-debug-logs#template-data) in Collect debug logs.
-
 ## Next
 
-- [Customize a template](/docs/how-to/customize-a-template) — paste the snippet into a profile and preview it.
-- [Configure frontmatter properties](/docs/how-to/configure-frontmatter-properties) — use a field as a note property.
-- [Data reference](/docs/reference/templates/data) — every field, by template.
+Work through the template recipes in this order.
+
+<Cards>
+  <Card
+    title="Customize a template"
+    description="Paste the snippet into a profile and preview the note."
+    href="/docs/how-to/customize-a-template"
+  />
+  <Card
+    title="Configure frontmatter properties"
+    description="Set the properties at the top of each note on the Properties tab."
+    href="/docs/how-to/configure-frontmatter-properties"
+  />
+  <Card
+    title="Use a different template for different notes"
+    description="Add a second profile, for books for example."
+    href="/docs/how-to/use-different-templates"
+  />
+  <Card
+    title="Data reference"
+    description="Every field, by template."
+    href="/docs/reference/templates/data"
+  />
+</Cards>
