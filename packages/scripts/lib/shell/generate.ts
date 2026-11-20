@@ -22,7 +22,7 @@ import { parseManifest } from "#obsidian-manifest";
 const TEMPLATES = join(import.meta.dirname, "templates");
 /** The template files the shell carries as they are. */
 const STATIC_FILES = ["scripts/build.mjs"];
-const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
+export const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;

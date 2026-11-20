@@ -13,7 +13,9 @@ import type { PublishedPluginName } from "#shell/plugins";
 //               and compare main.js and styles.css with the host app's build
 //   commit      the shell commit on the line's branch of the publish repository
 //   push        the commit and the version tag, in one atomic push; the tag
-//               starts the publish repository's release workflow
+//               starts the publish repository's release workflow. While the
+//               publish repository's main lacks that workflow, the push also
+//               fast-forwards main to the commit
 //   source tag  the product's release tag in the source repository, on the
 //               source commit
 //
@@ -203,7 +205,9 @@ ${SOURCE_REPOSITORY}@${options.sourceCommit}.
       : `${shell.commit.slice(0, 12)} on ${shell.branch}, parents ${shell.parents.map((parent) => parent.slice(0, 12)).join(" ")}.`,
   );
 
-  step(`push: ${shell.branch} and the tag ${shell.tag}`);
+  step(
+    `push: ${shell.movesMain ? `${shell.branch}, main` : shell.branch} and the tag ${shell.tag}`,
+  );
   if (shell.state === "released") {
     say("Pushed by an earlier run; nothing to push.");
   } else {

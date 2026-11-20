@@ -269,16 +269,17 @@ npm bundle package `@zotlit/reader-plugin`, on BRAT.
    the code as `npm_config_otp=<code>` in front of the command, or run it in
    a terminal that npm can prompt in. The run publishes the npm package
    without provenance, pushes the shell commit and the version tag to the
-   publish repository, and pushes the source tag here.
-4. Make sure that `main` of the publish repository holds the shell's
-   `.github/workflows/plugin-release.yml`. At ZotLit Reader `1.0.0-beta.0`,
-   `main` held only the first commit: GitHub listed no workflow and started
-   no run for the tag. A fast-forward of `main` to the shell commit (it
-   descends from `main`), then a delete and a push again of the version tag
-   on the same commit, started the run. This is a workaround until R42.
-5. Watch the shell's `plugin-release.yml` in the publish repository publish
+   publish repository, and pushes the source tag here. GitHub starts the
+   tag's run only when `main` holds the shell's
+   `.github/workflows/plugin-release.yml`. While `main` lacks it, as in a new
+   publish repository, the same atomic push also fast-forwards `main` to the
+   shell commit; the dry run names `main` in its `push` step. If GitHub
+   still lists no "Plugin release" workflow and starts no run, delete the
+   version tag in the publish repository and push it again on the same
+   commit.
+4. Watch the shell's `plugin-release.yml` in the publish repository publish
    the release and its Resource Release.
-6. Set trusted publishing for the npm package from the lead's machine, each
+5. Set trusted publishing for the npm package from the lead's machine, each
    npm command with an OTP (docs/CI_SETUP.md):
 
    ```sh

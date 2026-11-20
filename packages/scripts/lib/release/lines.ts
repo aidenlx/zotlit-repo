@@ -20,7 +20,7 @@ export function releaseLine(version: string): ReleaseLine {
 /**
  * The branch of the publish repository that holds each line's shell. The
  * community directory reads `manifest.json` from the default branch, `main`,
- * so a beta stays off it.
+ * so a beta stays off it once `main` holds the shell's workflow.
  */
 export const PUBLISH_BRANCH = {
   beta: "beta",

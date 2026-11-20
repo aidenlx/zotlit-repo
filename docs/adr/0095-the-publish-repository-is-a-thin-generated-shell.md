@@ -43,5 +43,5 @@ ZotLit Reader is the second published plugin. A plugin is one entry in each of t
 
 Consequences:
 
-- Adding a plugin is an entry in both registries, a publish job in `release.yml`, a host app that writes its own `dist/package/`, and a publish repository whose `main` holds the shell's workflow before the first tag (CONTRIBUTING.md "First release of a new plugin").
+- Adding a plugin is an entry in both registries, a publish job in `release.yml`, a host app that writes its own `dist/package/`, and a publish repository with a first commit on `main`; the first publish fast-forwards `main` to the shell while `main` lacks the shell's workflow (CONTRIBUTING.md "First release of a new plugin").
 - Each publish repository tags the bare version on its shell commit; the source repository tells the plugins apart by the tag prefix.

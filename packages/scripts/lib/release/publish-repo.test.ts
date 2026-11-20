@@ -5,15 +5,20 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { prepareShellCommit, pushShellCommit } from "./publish-repo.ts";
+import {
+  prepareShellCommit,
+  pushShellCommit,
+  releaseRefspecs,
+} from "./publish-repo.ts";
 import type { PublishRepoOptions } from "./publish-repo.ts";
 
 import { git, makeGitRepos } from "#git-repos";
 
 // The publish repository is a bare repository in a temporary folder whose
-// main holds an old history, as aidenlx/zotlit does; each test writes a shell
-// tree and commits it the way a release does.
+// main holds an old history with the shell's workflow, as aidenlx/zotlit
+// does; each test writes a shell tree and commits it the way a release does.
 const SLOW = 30_000;
+const WORKFLOW = ".github/workflows/plugin-release.yml";
 const run = promisify(execFile);
 
 let repos: GitRepos;
@@ -32,6 +37,11 @@ beforeEach(async () => {
     text: "old history\n",
     message: "old monorepo",
   });
+  await mkdir(join(maintainer, ".github/workflows"), { recursive: true });
+  await repos.commit(maintainer, WORKFLOW, {
+    text: "on: push\n",
+    message: "shell workflow",
+  });
   await git(maintainer, "push", "-q", "origin", "main");
   publish = { gitDir: join(repos.root, "work.git"), remote };
 });
@@ -41,6 +51,8 @@ afterEach(() => repos.dispose());
 async function shellTree(version: string): Promise<string> {
   const dir = join(repos.root, `shell-${version}-${Math.random()}`);
   await mkdir(join(dir, "src"), { recursive: true });
+  await mkdir(join(dir, ".github/workflows"), { recursive: true });
+  await writeFile(join(dir, WORKFLOW), "on: push\n");
   await writeFile(join(dir, "manifest.json"), `{"version":"${version}"}\n`);
   await writeFile(join(dir, "src/main.ts"), "export {};\n");
   await writeFile(join(dir, ".gitignore"), "node_modules/\nmain.js\n");
@@ -75,6 +87,7 @@ describe("the shell commit", () => {
         state: "ready",
         branch: "beta",
         parents: [main],
+        movesMain: false,
       });
       expect(await remoteRev("beta")).toBe(shell.commit);
       expect(await remoteRev("2.3.0-beta.0^{commit}")).toBe(shell.commit);
@@ -83,7 +96,51 @@ describe("the shell commit", () => {
         (
           await git(publish.remote, "ls-tree", "-r", "--name-only", "beta")
         ).split("\n"),
-      ).toEqual([".gitignore", "manifest.json", "src/main.ts"]);
+      ).toEqual([WORKFLOW, ".gitignore", "manifest.json", "src/main.ts"]);
+    },
+    SLOW,
+  );
+
+  it(
+    "also moves main to the first beta when main lacks the shell's workflow, so the tag starts it",
+    async () => {
+      const empty = join(repos.root, "empty.git");
+      await run("git", ["init", "-q", "--bare", "-b", "main", empty]);
+      const owner = join(repos.root, "owner");
+      await run("git", ["clone", "-q", empty, owner]);
+      await git(owner, "commit", "-q", "--allow-empty", "-m", "Initial commit");
+      await git(owner, "push", "-q", "origin", "HEAD:refs/heads/main");
+      publish = { gitDir: join(repos.root, "empty-work.git"), remote: empty };
+      const main = await remoteRev("main");
+
+      const shell = await prepareShellCommit({
+        ...publish,
+        shellDir: await shellTree("1.0.0-beta.0"),
+        version: "1.0.0-beta.0",
+        line: "beta",
+        message: "release: 1.0.0-beta.0\n",
+      });
+
+      expect(shell).toMatchObject({
+        state: "ready",
+        branch: "beta",
+        parents: [main],
+        movesMain: true,
+      });
+      expect(releaseRefspecs(shell)).toEqual([
+        `${shell.commit}:refs/heads/beta`,
+        `${shell.commit}:refs/heads/main`,
+        `${shell.commit}:refs/tags/1.0.0-beta.0`,
+      ]);
+
+      await pushShellCommit(publish, shell, { tag: false });
+
+      expect(await remoteRev("beta")).toBe(shell.commit);
+      expect(await remoteRev("main")).toBe(shell.commit);
+      expect(await git(empty, "tag", "--list")).toBe("");
+      const next = await release("1.0.0-beta.1", "beta");
+      expect(next.movesMain).toBe(false);
+      expect(await remoteRev("main")).toBe(shell.commit);
     },
     SLOW,
   );

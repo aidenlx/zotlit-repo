@@ -164,11 +164,11 @@ Before the first release of a plugin. For the desktop plugin (`aidenlx/zotlit`,
 Reader (`aidenlx/zotlit-reader`, `@zotlit/reader-plugin`).
 
 - [ ] **Publish repository.** Create the repository that
-      `PUBLISHED_PLUGINS` names, public, with a first commit on `main`. Before
-      the first tag, `main` must hold the shell's
-      `.github/workflows/plugin-release.yml`, or the tag starts no run
-      (CONTRIBUTING.md "First release of a new plugin", step 4). Reader:
-      done.
+      `PUBLISHED_PLUGINS` names, public, with a first commit on `main`. The
+      first publish also fast-forwards `main` to the shell commit while
+      `main` lacks the shell's `.github/workflows/plugin-release.yml`, so the
+      tag starts that workflow (CONTRIBUTING.md "First release of a new
+      plugin", step 3). Reader: done.
 - [ ] **npm scope.** Create the npm organization of the scope in the bundle
       package's name (`PUBLISHED_PLUGINS` in
       `packages/scripts/lib/shell/plugins.ts`), or change that one value to a
