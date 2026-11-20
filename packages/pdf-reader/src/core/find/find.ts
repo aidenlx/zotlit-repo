@@ -71,6 +71,7 @@ export class FindSession {
   readonly #update: (change: (find: FindState) => FindState) => void;
   readonly #searched: () => void;
   #highlightAll: boolean | null = null;
+  #dispatched = false;
 
   constructor(
     viewer: ReaderViewer,
@@ -87,6 +88,7 @@ export class FindSession {
     viewer.on<{ readonly state: number; readonly matchesCount: MatchesCount }>(
       "updatefindcontrolstate",
       ({ state, matchesCount }) => {
+        if (state !== PdfFindState.PENDING) this.#dispatched = false;
         this.#update((find) =>
           find.query === ""
             ? find
@@ -138,6 +140,17 @@ export class FindSession {
     return true;
   }
 
+  get waiting(): boolean {
+    return this.#dispatched;
+  }
+
+  cancel(): void {
+    if (!this.#dispatched) return;
+    this.#dispatched = false;
+    this.#viewer.eventBus.dispatch("findbarclose", { source: this });
+    this.#update((find) => ({ ...find, open: false }));
+  }
+
   reset(): void {
     this.#update((find) => found(find, "idle", null));
   }
@@ -153,6 +166,7 @@ export class FindSession {
   }
 
   #dispatch(type: FindType, findPrevious: boolean): void {
+    if (type !== "highlightallchange") this.#dispatched = true;
     const find = this.#read();
     if (find.query === "") {
       this.#update((current) => found(current, "idle", null));

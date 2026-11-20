@@ -77,6 +77,7 @@ interface NavigationOptions {
   readonly scroller: HTMLElement;
   readonly mount: Subpath | null;
   readonly lifetime: DocumentLifetime<Kept>;
+  readonly cancelSearch: () => void;
 }
 
 export class Navigation {
@@ -366,13 +367,16 @@ export class Navigation {
     cause: PageChangeCause,
     navigation: number,
   ): Promise<NavigateOutcome> {
-    const { viewer, lifetime } = this.#options;
+    const { viewer, lifetime, cancelSearch } = this.#options;
     if (typeof target === "string") {
-      return this.#applySubpath(parseSubpath(target), cause, {
+      const subpath = parseSubpath(target);
+      if (!subpath.search) cancelSearch();
+      return this.#applySubpath(subpath, cause, {
         announce: true,
         navigation,
       });
     }
+    cancelSearch();
     if ("dest" in target) {
       return this.#applyDestination(target.dest, cause, navigation);
     }

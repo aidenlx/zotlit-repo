@@ -214,6 +214,11 @@ it.skipIf(!testElectron)(
         lastBeforeReady: null,
       },
     });
+    expect(report.superseded.outcomes).toEqual(["shown", "shown"]);
+    expect(report.superseded.landed.pageIndex).toBe(3);
+    expect(report.superseded.landed.top).toBeGreaterThan(-20);
+    expect(report.superseded.later).toEqual(report.superseded.landed);
+    expect(report.superseded.findOpen).toBe(false);
   },
   120_000,
 );

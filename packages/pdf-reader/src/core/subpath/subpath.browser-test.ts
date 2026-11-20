@@ -54,6 +54,17 @@ export interface SubpathReport {
     readonly announced: readonly string[];
   };
   readonly ordered: Readonly<Record<string, Ordered>>;
+  readonly superseded: {
+    readonly outcomes: readonly NavigateOutcome[];
+    readonly landed: Spot;
+    readonly later: Spot;
+    readonly findOpen: boolean;
+  };
+}
+
+interface Spot {
+  readonly pageIndex: number;
+  readonly top: number;
 }
 
 interface Ordered {
@@ -319,6 +330,36 @@ async function ordered(
   };
 }
 
+async function superseded(
+  engine: PdfEngine,
+): Promise<SubpathReport["superseded"]> {
+  using mounted = mountFixture(engine, {
+    source: fixtureSource("pdf-reader/navigation.pdf"),
+  });
+  const { reader } = mounted;
+  await within("ready", reader.whenReady());
+  await within("settled", reader.settled());
+  const search = reader.navigate("#search=fox");
+  const page = reader.navigate("#page=4&offset=0,792,0");
+  const outcomes = await within(
+    "search then page",
+    Promise.all([search, page]),
+  );
+  await within("settled", reader.settled());
+  const spot = (): Spot => ({
+    pageIndex: reader.state.get().pageIndex,
+    top: pageTop(reader, 3),
+  });
+  const landed = spot();
+  await pause(600);
+  return {
+    outcomes,
+    landed,
+    later: spot(),
+    findOpen: reader.state.get().find.open,
+  };
+}
+
 export async function run(): Promise<SubpathReport> {
   installStyles();
   using engine = testEngine();
@@ -341,5 +382,6 @@ export async function run(): Promise<SubpathReport> {
         late: { pageIndex: 1 },
       }),
     },
+    superseded: await superseded(engine),
   };
 }

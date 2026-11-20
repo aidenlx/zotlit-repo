@@ -182,9 +182,7 @@ class Reader<H> {
         show: (held, kept) => this.#show(held, kept),
         resumed: () => this.#find.resume(),
         closing: () => this.#closing(),
-        quiet: () =>
-          this.#atoms.state.get().find.phase !== "pending" &&
-          this.#navigation.quiet(),
+        quiet: () => !this.#find.waiting && this.#navigation.quiet(),
       },
     });
     this.#mountSubpath = options.subpath ? parseSubpath(options.subpath) : null;
@@ -198,6 +196,7 @@ class Reader<H> {
       scroller: this.#chrome.scroller,
       mount: this.#mountSubpath,
       lifetime: this.#lifetime,
+      cancelSearch: () => this.#find.cancel(),
     });
     this.#bindInput();
     this.handle = this.#makeHandle();
