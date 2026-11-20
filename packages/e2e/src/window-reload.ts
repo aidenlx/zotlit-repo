@@ -23,6 +23,7 @@ export async function reloadWindow(vaultId: string): Promise<void> {
   const plugins = await obRun(vaultId, async ({ app, zotlit }) => {
     if (app.plugins.plugins.zotlit)
       await zotlit.services.bridge.runPromise(zotlit.services.settings.flush);
+    await app.workspace.requestSaveLayout.run();
     return JSON.parse(
       await app.vault.adapter.read(
         `${app.vault.configDir}/community-plugins.json`,
