@@ -10,7 +10,7 @@ import { layerObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { runtimeServices } from "@zotlit/plugin-kernel/effect-services.ts";
 
 import { startLanguagePack } from "./service.ts";
-import type { LanguagePackStartup } from "./service.ts";
+import type { LanguagePackIdentity, LanguagePackStartup } from "./service.ts";
 
 /**
  * Apply the Language Pack before any copy shows: `onload`'s own notices (an
@@ -21,10 +21,11 @@ import type { LanguagePackStartup } from "./service.ts";
  */
 export function startI18n(
   app: App,
+  identity: LanguagePackIdentity,
   pluginVersion: string,
 ): LanguagePackStartup {
   return Effect.runSyncWith(runtimeServices)(
-    startLanguagePack(pluginVersion).pipe(
+    startLanguagePack(identity, pluginVersion).pipe(
       Effect.provide(Layer.merge(layerObsidianEnv, layerDeviceStorage)),
       Effect.provideService(ObsidianApp, app),
     ),

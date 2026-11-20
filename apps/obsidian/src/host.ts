@@ -1,5 +1,8 @@
 // Desktop ZotLit as a host of the shell: its features, its settings history,
 // and the order of its setting tab and its file menu.
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+import { catalog } from "@zotlit/plugin-messages/catalog.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { defineHost } from "@zotlit/plugin-shell/obsidian/compose.ts";
 
 import { features } from "./features.ts";
@@ -8,6 +11,12 @@ import { withHost } from "./services/settings/layer.ts";
 export const host = defineHost({
   features,
   settings: withHost({}),
+  languagePack: {
+    catalog,
+    runtime,
+    namespace: "zotlit",
+    repository: RELEASE_REPOSITORY,
+  },
   settingTab: {
     top: ["resources", "literature-notes"],
     // Profiles leads because it extends the default Profile's rows above it.

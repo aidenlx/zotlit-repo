@@ -1,5 +1,6 @@
 // Where each contract JSON Schema is published, and the contract-root vocabulary it names.
 
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { CONTRACT_ROOTS } from "@zotlit/db";
 import type { ContractRoot } from "@zotlit/db";
 import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
@@ -28,7 +29,7 @@ export function schemaAssets(
     CONTRACT_ROOTS.map((root) => [
       root,
       {
-        url: `${resourceReleaseUrl(pluginVersion)}/${root}.schema.json`,
+        url: `${resourceReleaseUrl(RELEASE_REPOSITORY, pluginVersion)}/${root}.schema.json`,
         fileName: `zotlit-${root}-${pluginVersion}.schema.json`,
       },
     ]),

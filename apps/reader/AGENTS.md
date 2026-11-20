@@ -7,7 +7,8 @@ The app is a thin host: it composes feature values and holds no feature code. Th
 ## Files
 
 - `src/features.ts` — the feature list, in start-up order: `platformBase` (the Zotero-free platform part of the shell), a `FileSystem` group over the vault adapter (`@zotlit/obsidian-kit/vault-file-system.ts`), then `reader`.
-- `src/host.ts` — `defineHost`: the features, the settings, the setting tab order (the Advanced page of `platformBase`), the file and folder menu order.
+- `src/host.ts` — `defineHost`: the features, the settings, the Language Pack identity (`languagePack`: the `@zotlit/reader-messages` catalog and runtime, namespace `zotlit-reader`, repository `__PLUGIN_REPOSITORY__`), the setting tab order (the Advanced page of `platformBase`), the file and folder menu order.
+- `build-defines.ts`, `src/env.d.ts` — the build constants for Vite and Vitest, and their declarations. `__PLUGIN_REPOSITORY__` is `PUBLISHED_PLUGINS.reader.repository`: the Reader downloads its Language Packs from that repository's Resource Release `res-<version>`.
 - `src/main.ts` — the plugin class, `shellPlugin(host)`.
 - `src/services/settings/` — the settings definition composed from the features (`schema.ts`), with the type check that it equals the Reader's `SettingsRegistry`, and the settings options (`layer.ts`). The plugin has no `data.json` history, so it has no migration.
 - `src/e2e.ts` — the type of `plugin.services` for the End-to-end Run.
@@ -16,7 +17,7 @@ The app is a thin host: it composes feature values and holds no feature code. Th
 
 ## Build
 
-- `turbo run build --filter=@zotlit/reader` — the production build: the bundle package `@zotlit/reader-plugin` in `dist/package/`, then `dist/main.js`, `dist/styles.css` and `dist/manifest.json` through the publish repository's build script. The host build is `obsidianBuildPlugin` from `@zotlit/scripts/shell/host-build`, as for ZotLit.
+- `turbo run build --filter=@zotlit/reader` — the production build: the bundle package `@zotlit/reader-plugin` in `dist/package/`, then `dist/main.js`, `dist/styles.css` and `dist/manifest.json` through the publish repository's build script. The host build is `obsidianBuildPlugin` from `@zotlit/scripts/shell/host-build`, as for ZotLit. The build stages the Reader's Language Packs other than English (`zh-CN.json`) in `dist/package/resources/` for the Resource Release; English is in `main.js`.
 - `pnpm --filter @zotlit/reader build:dev` — a development build into `dist-dev/`, copied into this worktree's Development Vault; prefix `ZT_VAULT_CASE=<case>` for a Vault Case vault.
 - The build resolves with browser conditions, so the built `main.js` requires only `obsidian`. Check it with `rg -o 'require\("[^"]+"\)' dist/main.js | sort -u`.
 - The Messages come from `@zotlit/reader-messages`, the Reader's subset (`packages/reader-messages/AGENTS.md`). The build compiles that folder at build start, and both the build and Vitest resolve `@zotlit/plugin-messages/*` to it. A Message outside the subset fails the build with `IMPORT_IS_UNDEFINED`.

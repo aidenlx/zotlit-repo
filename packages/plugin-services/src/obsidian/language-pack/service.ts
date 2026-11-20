@@ -1,4 +1,4 @@
-// The Language Pack Lifecycle for ZotLit: locale resolution, consent, device
+// The Language Pack Lifecycle of a plugin: locale resolution, consent, device
 // cache, and download of the pack compiled from this release's Messages.
 import {
   Context,
@@ -24,15 +24,16 @@ import {
 } from "@zotlit/obsidian-i18n";
 import type {
   LanguagePackRestartNotice,
+  LanguagePackRuntime,
   LanguagePackSituation,
-  LocaleKeys,
+  LocaleCatalog,
   PackSource,
   RemotePackInfo,
 } from "@zotlit/obsidian-i18n";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import {
-  RELEASE_ORIGIN,
+  releaseOrigin,
   resourceReleaseUrl,
 } from "@zotlit/plugin-kernel/constants.ts";
 import {
@@ -40,25 +41,26 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import { resolvePluginLocale } from "@zotlit/plugin-kernel/i18n/locale.ts";
-import { catalog } from "@zotlit/plugin-messages/catalog.ts";
-import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
 export type { LanguagePackRestartNotice, LanguagePackSituation };
 
-/** A locale ZotLit's Messages compile to. */
-export type Locale = LocaleKeys<
-  typeof catalog.baseLocale,
-  typeof catalog.packs
->;
+export interface LanguagePackIdentity {
+  readonly catalog: LocaleCatalog;
+  readonly runtime: LanguagePackRuntime;
+  readonly namespace: string;
+  readonly repository: string;
+}
 
-const NAMESPACE = "zotlit";
 const CONSENT_ACCEPTED = "accepted";
 const CONSENT_DECLINED = "declined";
 
-const packCacheKey = (pluginVersion: string, locale: string): string =>
-  `${NAMESPACE}:i18n:pack:${pluginVersion}:${locale}`;
-const consentKey = (locale: string): string =>
-  `${NAMESPACE}:i18n:consent:${locale}`;
+const packCacheKey = (
+  namespace: string,
+  pluginVersion: string,
+  locale: string,
+): string => `${namespace}:i18n:pack:${pluginVersion}:${locale}`;
+const consentKey = (namespace: string, locale: string): string =>
+  `${namespace}:i18n:consent:${locale}`;
 
 /** No pack ships for the resolved locale, so there is nothing to install. */
 export class NoLanguagePack extends Schema.TaggedError<
@@ -98,7 +100,7 @@ export type LanguagePackInstallError =
 export class LanguagePack extends Context.Service<
   LanguagePack,
   {
-    readonly locale: Locale;
+    readonly locale: string;
     /**
      * The resolved language's Endonym, for copy that names the Language
      * Pack's language. Falls back to {@link locale} for a language outside
@@ -141,8 +143,9 @@ export class LanguagePack extends Context.Service<
 
 /** What startup found on the device, before the plugin's services build. */
 export interface LanguagePackStartup {
+  readonly identity: LanguagePackIdentity;
   readonly pluginVersion: string;
-  readonly locale: Locale;
+  readonly locale: string;
   readonly endonym: string;
   /** Absent when no pack ships for the locale. */
   readonly remote?: {
@@ -158,21 +161,21 @@ export interface LanguagePackStartup {
 }
 
 /**
- * ZotLit's release policy: Language Packs are assets of the Resource Release
- * pinned to the running plugin version, so a build downloads the pack compiled
- * from its own message set.
+ * The release policy: Language Packs are assets of the plugin's Resource
+ * Release pinned to the running plugin version, so a build downloads the pack
+ * compiled from its own message set.
  *
  * @see docs/adr/0019-runtime-assets-ship-on-a-parallel-resource-release.md
  */
-const packSource = (pluginVersion: string): PackSource =>
+const packSource = (repository: string, pluginVersion: string): PackSource =>
   typeof __LANGUAGE_PACK_DEV_SERVER__ === "string"
     ? {
         baseUrl: __LANGUAGE_PACK_DEV_SERVER__,
         origin: new URL(__LANGUAGE_PACK_DEV_SERVER__).host,
       }
     : {
-        baseUrl: resourceReleaseUrl(pluginVersion),
-        origin: RELEASE_ORIGIN,
+        baseUrl: resourceReleaseUrl(repository, pluginVersion),
+        origin: releaseOrigin(repository),
       };
 
 /** The device storage, failing as the Language Pack where Obsidian throws. */
@@ -198,8 +201,10 @@ const storageFailed = (cause: unknown) =>
  * already read `m.*`. A storage read that throws fails startup.
  */
 export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
+  identity: LanguagePackIdentity,
   pluginVersion: string,
 ) {
+  const { catalog, runtime, namespace, repository } = identity;
   const storage = deviceStorage(yield* DeviceStorage);
   const { language } = yield* ObsidianEnv;
   runtime.reset();
@@ -208,25 +213,37 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
   runtime.setLogger(
     bridgeLog({ runSync: Effect.runSyncWith(yield* Effect.context()) }, "i18n"),
   );
-  const locale = resolvePluginLocale(language);
+  const locale = resolvePluginLocale(language, catalog);
   // Applied before any situation is observable, so the consent copy a
   // first-run user reads is already in their language with no pack installed.
   runtime.setTargetLocale(locale);
   const endonym = languageEndonym(language) ?? locale;
-  const remote: { fileName: string } | undefined =
+  const remote =
     locale === catalog.baseLocale ? undefined : catalog.packs[locale];
   yield* Effect.logInfo(
     "Language Pack startup: Obsidian language resolved to a locale",
   ).pipe(
-    Effect.annotateLogs({ language, locale, endonym, pluginVersion, remote }),
+    Effect.annotateLogs({
+      namespace,
+      language,
+      locale,
+      endonym,
+      pluginVersion,
+      remote,
+    }),
   );
   if (remote === undefined) {
     yield* Effect.logInfo(
       "No Language Pack ships for the locale; using the bundled base pack",
     ).pipe(Effect.annotateLogs({ locale }));
-    return { pluginVersion, locale, endonym } satisfies LanguagePackStartup;
+    return {
+      identity,
+      pluginVersion,
+      locale,
+      endonym,
+    } satisfies LanguagePackStartup;
   }
-  const source = packSource(pluginVersion);
+  const source = packSource(repository, pluginVersion);
   const pack: RemotePackInfo = {
     fileName: remote.fileName,
     origin: source.origin,
@@ -236,13 +253,14 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
     found: NonNullable<LanguagePackStartup["remote"]>["found"],
   ) =>
     ({
+      identity,
       pluginVersion,
       locale,
       endonym,
       remote: { pack, url, found },
     }) satisfies LanguagePackStartup;
 
-  const cacheKey = packCacheKey(pluginVersion, locale);
+  const cacheKey = packCacheKey(namespace, pluginVersion, locale);
   const cached = yield* storage.load(cacheKey);
   if (typeof cached === "string") {
     const applied = yield* Effect.try(() =>
@@ -264,7 +282,7 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
     }
   }
 
-  const consent = yield* storage.load(consentKey(locale));
+  const consent = yield* storage.load(consentKey(namespace, locale));
   yield* Effect.logDebug("No cached Language Pack; read the consent").pipe(
     Effect.annotateLogs({ cacheKey, consent }),
   );
@@ -318,7 +336,8 @@ export function layerLanguagePack(
     Effect.gen(function* () {
       const storage = deviceStorage(yield* DeviceStorage);
       const http = yield* HttpClient.HttpClient;
-      const { pluginVersion, locale, endonym, remote } = startup;
+      const { identity, pluginVersion, locale, endonym, remote } = startup;
+      const { catalog, namespace } = identity;
 
       /**
        * Clears the device cache and consent of every locale the catalog
@@ -330,12 +349,15 @@ export function layerLanguagePack(
       const clearStoredPacks = Effect.gen(function* () {
         const locales = Object.keys(catalog.packs);
         for (const packLocale of locales) {
-          yield* storage.save(packCacheKey(pluginVersion, packLocale), null);
-          yield* storage.save(consentKey(packLocale), null);
+          yield* storage.save(
+            packCacheKey(namespace, pluginVersion, packLocale),
+            null,
+          );
+          yield* storage.save(consentKey(namespace, packLocale), null);
         }
         yield* Effect.logInfo(
           "Reset Language Packs: cleared the cache and consent of every locale",
-        ).pipe(Effect.annotateLogs({ locales, pluginVersion }));
+        ).pipe(Effect.annotateLogs({ namespace, locales, pluginVersion }));
       });
       const asReset = <E>(effect: Effect.Effect<void, E>) =>
         effect.pipe(
@@ -365,7 +387,7 @@ export function layerLanguagePack(
       }
 
       const { pack, url, found } = remote;
-      const cacheKey = packCacheKey(pluginVersion, locale);
+      const cacheKey = packCacheKey(namespace, pluginVersion, locale);
       const record = yield* SubscriptionRef.make<PackRecord>({
         state: found === "installed" ? "installed" : "none",
         downloading: false,
@@ -508,7 +530,7 @@ export function layerLanguagePack(
           yield* Effect.logInfo("Recording Language Pack consent").pipe(
             Effect.annotateLogs({ locale }),
           );
-          yield* storage.save(consentKey(locale), CONSENT_ACCEPTED);
+          yield* storage.save(consentKey(namespace, locale), CONSENT_ACCEPTED);
         }
         return yield* Fiber.join(yield* startDownload);
       }).pipe(withLogCategory("i18n"), Effect.withSpan("LanguagePack.install"));
@@ -517,7 +539,7 @@ export function layerLanguagePack(
         yield* Effect.logInfo("Language Pack install declined").pipe(
           Effect.annotateLogs({ locale }),
         );
-        yield* storage.save(consentKey(locale), CONSENT_DECLINED);
+        yield* storage.save(consentKey(namespace, locale), CONSENT_DECLINED);
         yield* SubscriptionRef.update(record, (current) => ({
           ...current,
           offer: false,

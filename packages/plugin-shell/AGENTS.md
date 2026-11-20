@@ -7,7 +7,7 @@ The plugin shell: the plugin class a host extends, its lifecycle, the runtime, s
 - `src/core/` — no Obsidian, no Node: the build order of service groups (`graph.ts`), the start-up failure that names a layer (`startup-failure.ts`), and the interrupted start-up release key (`release-key.ts`).
 - `src/obsidian/` — Obsidian, no Node (lint bans `@effect/platform-node` here):
   - `feature.ts` — `defineFeature`, `serviceGroup`, `registration`, `protocolHandler`, and the `Feature` value.
-  - `compose.ts` — `defineHost` (with the type check of missing services), `settingsDefinitionOf`, `featureServices`, `pluginGraph`, `serviceOrder`.
+  - `compose.ts` — `defineHost` (with the type check of missing services; a host declaration requires `languagePack`, the Language Pack identity: catalog, runtime, storage namespace, publish repository), `settingsDefinitionOf`, `featureServices`, `pluginGraph`, `serviceOrder`.
   - `base.ts` — the shell base every group reads without naming it (`ShellBase`): settings, logging, the Obsidian capability tags, `PluginHost`, `LanguagePack`, `GraphBuilt`.
   - `runtime.ts`, `plugin.ts`, `lifecycle.ts`, `startup-notice.ts` — the runtime, the plugin class (`shellPlugin(host)`), and unload.
   - `setting-tab/` — the tab shell (`tab.ts`), its layer (`layer.ts`) and the declarative control store (`controls.ts`).

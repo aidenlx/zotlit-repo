@@ -1,5 +1,4 @@
 /// <reference path="./typings/build-env.d.ts" />
-import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 
 /**
  * The documentation site this build belongs to, fixed at build time: Stable
@@ -21,21 +20,25 @@ export const WEB_WORKBENCH_ENABLED = __WEB_WORKBENCH_ENABLED__;
 export const ANNOTATION_SUGGESTER_ENABLED = __ANNOTATION_SUGGESTER_ENABLED__;
 
 /**
- * Host and repository ZotLit's releases are served from, as shown to the user
- * when a download is attributed to its source.
+ * Host and publish repository (`owner/name`) a plugin's releases are served
+ * from, as shown to the user when a download is attributed to its source.
  */
-export const RELEASE_ORIGIN = `github.com/${RELEASE_REPOSITORY}`;
+export const releaseOrigin = (repository: string): string =>
+  `github.com/${repository}`;
 
 /**
  * Base URL of the Resource Release serving a plugin version — the `res-<version>`
- * release carrying the Language Packs and template data JSON Schemas a build
- * downloads at runtime. The plugin's own release tag carries only `main.js`,
- * `manifest.json`, and `styles.css`.
+ * release of the plugin's publish repository, carrying the Language Packs and
+ * template data JSON Schemas a build downloads at runtime. The plugin's own
+ * release tag carries only `main.js`, `manifest.json`, and `styles.css`.
  *
  * @see docs/adr/0019-runtime-assets-ship-on-a-parallel-resource-release.md
  */
-export const resourceReleaseUrl = (pluginVersion: string): string =>
-  `https://${RELEASE_ORIGIN}/releases/download/res-${pluginVersion}`;
+export const resourceReleaseUrl = (
+  repository: string,
+  pluginVersion: string,
+): string =>
+  `https://${releaseOrigin(repository)}/releases/download/res-${pluginVersion}`;
 
 /** Obsidian prefixes an external file's path with this ahead of its absolute path. */
 export const EXTERNAL_FILE_PREFIX = "file:";

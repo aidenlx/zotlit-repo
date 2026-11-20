@@ -13,6 +13,7 @@
 import { Cause, Data, Effect } from "effect";
 import type { Scope } from "effect";
 
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { readLibraries } from "@zotlit/db/item-query";
 import type {
   ItemQueryDatabase,
@@ -181,7 +182,7 @@ function answerSchema(
           ok: true,
           identity: env.identity,
           schema: {
-            url: `${resourceReleaseUrl(pluginVersion)}/query.schema.json`,
+            url: `${resourceReleaseUrl(RELEASE_REPOSITORY, pluginVersion)}/query.schema.json`,
             fileName: `zotlit-query-${pluginVersion}.schema.json`,
           },
           customFields,

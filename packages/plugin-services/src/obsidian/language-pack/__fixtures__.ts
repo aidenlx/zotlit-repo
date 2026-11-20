@@ -7,12 +7,22 @@ import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-sto
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { layerFakeFetch } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { catalog } from "@zotlit/plugin-messages/catalog.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
 import {
   LanguagePack,
   layerLanguagePack,
   startLanguagePack,
 } from "./service.ts";
+import type { LanguagePackIdentity } from "./service.ts";
+
+const ZOTLIT_IDENTITY: LanguagePackIdentity = {
+  catalog,
+  runtime,
+  namespace: "zotlit",
+  repository: "aidenlx/zotlit",
+};
 
 /** A valid zh-CN pack, overriding Messages the tests read through `m.*`. */
 export const CHINESE_PACK = JSON.stringify({
@@ -61,13 +71,15 @@ export const startOn = Effect.fn("test.startOn")(function* (
   {
     language,
     pluginVersion = "2.0.0",
+    identity = ZOTLIT_IDENTITY,
   }: {
     language: string;
     pluginVersion?: string;
+    identity?: LanguagePackIdentity;
   },
 ) {
   const storage = layerDeviceStorageFrom(device);
-  const startup = yield* startLanguagePack(pluginVersion).pipe(
+  const startup = yield* startLanguagePack(identity, pluginVersion).pipe(
     Effect.provide(
       Layer.merge(
         storage,

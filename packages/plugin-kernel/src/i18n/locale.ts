@@ -1,7 +1,8 @@
 // The plugin locale for the language Obsidian runs in.
 
 import { resolveLocale } from "@zotlit/obsidian-i18n";
-import { catalog } from "@zotlit/plugin-messages/catalog.ts";
+import type { LocaleCatalog } from "@zotlit/obsidian-i18n";
+import { catalog as zotlitCatalog } from "@zotlit/plugin-messages/catalog.ts";
 
 /** Obsidian language codes that name a catalog locale under another code. */
 const ALIASES = { zh: "zh-CN" } as const;
@@ -10,6 +11,9 @@ const ALIASES = { zh: "zh-CN" } as const;
  * The catalog locale for an Obsidian language code (`getLanguage()`): the
  * Language Pack the plugin offers, and the edition of the docs site it links.
  */
-export function resolvePluginLocale(language: string) {
+export function resolvePluginLocale(
+  language: string,
+  catalog: LocaleCatalog = zotlitCatalog,
+): string {
   return resolveLocale(language, catalog, ALIASES);
 }

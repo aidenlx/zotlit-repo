@@ -101,7 +101,11 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
       // preflight and startup-failure notices read `m.*` outside the service
       // graph. The graph's LanguagePack carries on from here and shows the
       // consent notice or the refresh toast once it builds.
-      const languagePack = startI18n(this.app, this.manifest.version);
+      const languagePack = startI18n(
+        this.app,
+        host.languagePack,
+        this.manifest.version,
+      );
 
       this.preflight();
 
@@ -117,7 +121,9 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
       const { services, context } = await createShellRuntime(this, stack, {
         host,
         languagePack,
-      }).catch(reportStartupFailure);
+      }).catch((error: unknown) =>
+        reportStartupFailure(error, this.manifest.name),
+      );
       // Logged now: the runtime's logging layer has given LogTape its sinks.
       if (lateRelease) logLateRelease(this.manifest.id);
 

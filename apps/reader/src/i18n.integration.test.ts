@@ -14,7 +14,9 @@ test("shared code in the Reader reads the Reader's own facade", () => {
 
 test("the facade gives the English text of a pdf_reader_ Message and of the start-up notice", () => {
   expect(m.pdf_reader_view_name()).toBe("ZotLit PDF reader");
-  expect(m.notice_startup_failed()).toBe("ZotLit could not start");
+  expect(m.notice_startup_failed({ plugin: "ZotLit Reader" })).toBe(
+    "ZotLit Reader could not start",
+  );
 });
 
 test("the base pack holds the Reader's subset only and the catalog lists zh-CN", () => {

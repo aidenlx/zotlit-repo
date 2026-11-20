@@ -16,7 +16,10 @@ import type {
   Settings,
   SettingsDefinition,
 } from "@zotlit/plugin-services/core/settings/schema.ts";
-import type { LanguagePackStartup } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
+import type {
+  LanguagePackIdentity,
+  LanguagePackStartup,
+} from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import type { SettingTabEnv } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import type { SettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import type { PluginSettingsOptions } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -58,6 +61,7 @@ export interface HostDeclaration<F extends readonly Feature<any, any, any>[]> {
   readonly features: F;
   /** The settings definition and this plugin's `data.json` migrations. */
   readonly settings: PluginSettingsOptions;
+  readonly languagePack: LanguagePackIdentity;
   /** Where the setting tab places each feature's entries. */
   readonly settingTab: SettingTabOrder;
   /** The file menu's segments, by id, in row order. */

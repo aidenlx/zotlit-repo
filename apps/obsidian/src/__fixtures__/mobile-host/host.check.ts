@@ -2,6 +2,9 @@
 // features read has a stub in `capabilities.ts`. Only `tsconfig.mobile.json`
 // checks it: a program with the desktop files registers the desktop
 // services in the open registries, which this host does not fill.
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+import { catalog } from "@zotlit/plugin-messages/catalog.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import {
   defineHost,
   settingsDefinitionOf,
@@ -12,6 +15,12 @@ import { mobileFeatures } from "./features.ts";
 export const mobileHost = defineHost({
   features: mobileFeatures,
   settings: { definition: settingsDefinitionOf(mobileFeatures) },
+  languagePack: {
+    catalog,
+    runtime,
+    namespace: "zotlit",
+    repository: RELEASE_REPOSITORY,
+  },
   settingTab: {
     top: ["literature-notes"],
     pages: ["note-import", "citations", "zotero", "reader", "advanced"],

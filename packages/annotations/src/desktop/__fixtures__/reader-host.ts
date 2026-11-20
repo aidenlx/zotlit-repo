@@ -6,8 +6,11 @@
 import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { Context } from "effect";
 
+import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { catalog } from "@zotlit/plugin-messages/catalog.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -105,6 +108,12 @@ export const readerFeatures = [
 export const readerHost = defineHost({
   features: readerFeatures,
   settings: { definition: settingsDefinitionOf(readerFeatures) },
+  languagePack: {
+    catalog,
+    runtime,
+    namespace: "zotlit",
+    repository: RELEASE_REPOSITORY,
+  },
   settingTab: { top: [], pages: ["reader"] },
   fileMenu: ["attachment-open", "annotation-history"],
   folderMenu: [],

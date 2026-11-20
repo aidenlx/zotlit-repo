@@ -2,9 +2,10 @@ import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, Stream } from "effect";
 import { describe, expect } from "vitest";
 
+import { createLanguagePackRuntime } from "@zotlit/obsidian-i18n";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { fakeDevice, startOn } from "./__fixtures__.ts";
+import { CHINESE_PACK, fakeDevice, startOn } from "./__fixtures__.ts";
 import type { LanguagePack } from "./service.ts";
 import { languagePackSettingCopy } from "./setting-copy.ts";
 
@@ -515,5 +516,62 @@ describe("Language Pack reset", () => {
 
       expect([...device.storage.keys()]).toEqual([]);
     }),
+  );
+});
+
+describe("Language Packs of two plugins on one device", () => {
+  const reader = {
+    catalog: {
+      baseLocale: "en",
+      packs: { "zh-CN": { fileName: "zh-CN.json" } },
+    },
+    runtime: createLanguagePackRuntime({
+      schemaVersion: 1,
+      locale: "en",
+      messages: { hello: "reader world" },
+    }),
+    namespace: "zotlit-reader",
+    repository: "aidenlx/zotlit-reader",
+  } as const;
+
+  it.effect(
+    "keeps each plugin's pack cache and consent under its own namespace at one version",
+    () =>
+      Effect.gen(function* () {
+        const device = fakeDevice();
+        const zotlit = yield* startOn(device, { language: "zh" });
+        const readerPack = yield* startOn(device, {
+          language: "zh",
+          identity: reader,
+        });
+
+        yield* readerPack.install;
+        yield* zotlit.decline;
+
+        expect(device.requests).toEqual([
+          "https://github.com/aidenlx/zotlit-reader/releases/download/res-2.0.0/zh-CN.json",
+        ]);
+        expect(Object.fromEntries(device.storage)).toEqual({
+          "zotlit-reader:i18n:pack:2.0.0:zh-CN": CHINESE_PACK,
+          "zotlit-reader:i18n:consent:zh-CN": "accepted",
+          "zotlit:i18n:consent:zh-CN": "declined",
+        });
+
+        const restartedZotlit = yield* startOn(device, { language: "zh" });
+        const restartedReader = yield* startOn(device, {
+          language: "zh",
+          identity: reader,
+        });
+        expect(yield* kindOf(restartedReader)).toBe("active");
+        expect(yield* kindOf(restartedZotlit)).toBe("installable");
+        expect(reader.runtime.translate("hello")).toBe("世界（测试）");
+        expect(m.hello()).toBe("world");
+
+        yield* restartedReader.reset;
+
+        expect(Object.fromEntries(device.storage)).toEqual({
+          "zotlit:i18n:consent:zh-CN": "declined",
+        });
+      }),
   );
 });

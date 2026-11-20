@@ -11,6 +11,10 @@ import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  fakeDevice,
+  startOn,
+} from "@zotlit/plugin-services/obsidian/language-pack/__fixtures__.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import {
@@ -99,3 +103,26 @@ it("shows the Advanced page with the log rows and the Language Pack reset", () =
     m.settings_language_pack_reset_name(),
   ]);
 });
+
+it.effect(
+  "downloads the Reader's Language Packs from its own Resource Release and keeps them under its own namespace",
+  () =>
+    Effect.gen(function* () {
+      const device = fakeDevice();
+      const pack = yield* startOn(device, {
+        language: "zh",
+        pluginVersion: "0.1.0",
+        identity: host.languagePack,
+      });
+
+      yield* pack.install;
+
+      expect(device.requests).toEqual([
+        "https://github.com/aidenlx/zotlit-reader/releases/download/res-0.1.0/zh-CN.json",
+      ]);
+      expect([...device.storage.keys()].sort()).toEqual([
+        "zotlit-reader:i18n:consent:zh-CN",
+        "zotlit-reader:i18n:pack:0.1.0:zh-CN",
+      ]);
+    }),
+);

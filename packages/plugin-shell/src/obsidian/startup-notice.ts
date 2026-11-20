@@ -11,13 +11,13 @@ import { ServiceStartupFailed } from "#core/startup-failure.ts";
  *
  * @throws the startup failure, aborting plugin load.
  */
-export function reportStartupFailure(error: unknown): never {
+export function reportStartupFailure(error: unknown, plugin: string): never {
   if (error instanceof ServiceStartupFailed) {
     new BaseNotice(
       BaseNotice.render((renderer) => {
-        renderer.setTitle(m.notice_startup_failed());
+        renderer.setTitle(m.notice_startup_failed({ plugin }));
         renderer.addText(
-          m.notice_startup_failed_detail({ service: error.service }),
+          m.notice_startup_failed_detail({ plugin, service: error.service }),
         );
       }),
       0,

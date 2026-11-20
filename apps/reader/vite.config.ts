@@ -1,5 +1,6 @@
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
+import { cp, mkdir, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
@@ -99,6 +100,7 @@ export default defineConfig(({ mode }) => {
         packageRoot,
         workspaceRoot,
         plugin: PUBLISHED_PLUGINS.reader,
+        stageResources,
         isDev,
         isProd,
         outDir: resolve(packageRoot, outDir),
@@ -107,3 +109,15 @@ export default defineConfig(({ mode }) => {
     ],
   };
 });
+
+async function stageResources(dir: string): Promise<void> {
+  await mkdir(dir, { recursive: true });
+  const packs = (await readdir(READER_MESSAGES_DIRECTORY)).filter(
+    (name) => name.endsWith(".json") && name !== "en.json",
+  );
+  await Promise.all(
+    packs.map((name) =>
+      cp(join(READER_MESSAGES_DIRECTORY, name), join(dir, name)),
+    ),
+  );
+}
