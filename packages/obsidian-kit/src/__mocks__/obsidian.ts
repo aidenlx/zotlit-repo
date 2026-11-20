@@ -16,7 +16,7 @@ import type {
   EditorSuggestContext,
   FrontMatterInfo,
   EventRef,
-  Events,
+  Events as ObsidianEvents,
   HoverParent,
   HoverPopover as ObsidianHoverPopover,
   IconName,
@@ -136,6 +136,56 @@ export class Notice {
     return this;
   }
   hide(): void {}
+}
+
+type EventCallback = (...data: unknown[]) => unknown;
+
+interface EventEntry {
+  readonly e: Events;
+  readonly name: string;
+  readonly fn: EventCallback;
+  readonly ctx: unknown;
+}
+
+export class Events implements ObsidianEvents {
+  readonly #listeners = new Map<string, EventEntry[]>();
+
+  on(name: string, callback: EventCallback, ctx?: unknown): EventRef {
+    const entry: EventEntry = { e: this, name, fn: callback, ctx };
+    this.#listeners.set(name, [...(this.#listeners.get(name) ?? []), entry]);
+    return entry;
+  }
+
+  off(name: string, callback: EventCallback): void {
+    this.#keep(name, (entry) => entry.fn !== callback);
+  }
+
+  offref(ref: EventRef): void {
+    const entry = ref as unknown as EventEntry;
+    this.#keep(entry.name, (other) => other !== entry);
+  }
+
+  trigger(name: string, ...data: unknown[]): void {
+    for (const entry of this.#listeners.get(name) ?? [])
+      this.tryTrigger(entry, data);
+  }
+
+  tryTrigger(evt: EventRef, args: unknown[]): void {
+    const entry = evt as unknown as EventEntry;
+    try {
+      entry.fn.apply(entry.ctx, args);
+    } catch (error) {
+      setTimeout(() => {
+        throw error;
+      }, 0);
+    }
+  }
+
+  #keep(name: string, keep: (entry: EventEntry) => boolean): void {
+    const kept = (this.#listeners.get(name) ?? []).filter(keep);
+    if (kept.length > 0) this.#listeners.set(name, kept);
+    else this.#listeners.delete(name);
+  }
 }
 
 // The three CodeMirror facets/fields Obsidian adds to its editors. A state
