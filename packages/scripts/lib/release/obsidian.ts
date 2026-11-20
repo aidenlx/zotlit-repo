@@ -13,9 +13,9 @@ import type { PublishedPluginName } from "#shell/plugins";
 //               and compare main.js and styles.css with the host app's build
 //   commit      the shell commit on the line's branch of the publish repository
 //   push        the commit and the version tag, in one atomic push; the tag
-//               starts the publish repository's release workflow. While the
-//               publish repository's main lacks that workflow, the push also
-//               fast-forwards main to the commit
+//               starts the publish repository's release workflow. When the
+//               publish repository is new and its main has no files, the
+//               push also fast-forwards main to the commit
 //   source tag  the product's release tag in the source repository, on the
 //               source commit
 //

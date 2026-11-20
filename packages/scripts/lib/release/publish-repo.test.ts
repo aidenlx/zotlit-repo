@@ -5,17 +5,13 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  prepareShellCommit,
-  pushShellCommit,
-  releaseRefspecs,
-} from "./publish-repo.ts";
+import { prepareShellCommit, pushShellCommit } from "./publish-repo.ts";
 import type { PublishRepoOptions } from "./publish-repo.ts";
 
 import { git, makeGitRepos } from "#git-repos";
 
 // The publish repository is a bare repository in a temporary folder whose
-// main holds an old history with the shell's workflow, as aidenlx/zotlit
+// main holds an old history without the shell's workflow, as aidenlx/zotlit
 // does; each test writes a shell tree and commits it the way a release does.
 const SLOW = 30_000;
 const WORKFLOW = ".github/workflows/plugin-release.yml";
@@ -36,11 +32,6 @@ beforeEach(async () => {
   await repos.commit(maintainer, "monorepo.txt", {
     text: "old history\n",
     message: "old monorepo",
-  });
-  await mkdir(join(maintainer, ".github/workflows"), { recursive: true });
-  await repos.commit(maintainer, WORKFLOW, {
-    text: "on: push\n",
-    message: "shell workflow",
   });
   await git(maintainer, "push", "-q", "origin", "main");
   publish = { gitDir: join(repos.root, "work.git"), remote };
@@ -77,7 +68,7 @@ const remoteRev = (rev: string) => git(publish.remote, "rev-parse", rev);
 
 describe("the shell commit", () => {
   it(
-    "puts the first beta on a beta branch on top of main, with its tag, and leaves main as it was",
+    "puts the first beta on a beta branch on top of main, with its tag, and leaves a main with files and no shell workflow as it was",
     async () => {
       const main = await remoteRev("main");
 
@@ -102,7 +93,7 @@ describe("the shell commit", () => {
   );
 
   it(
-    "also moves main to the first beta when main lacks the shell's workflow, so the tag starts it",
+    "also moves the main of a new publish repository, which has no files, to the first beta, so the tag starts the shell workflow",
     async () => {
       const empty = join(repos.root, "empty.git");
       await run("git", ["init", "-q", "--bare", "-b", "main", empty]);
@@ -127,12 +118,6 @@ describe("the shell commit", () => {
         parents: [main],
         movesMain: true,
       });
-      expect(releaseRefspecs(shell)).toEqual([
-        `${shell.commit}:refs/heads/beta`,
-        `${shell.commit}:refs/heads/main`,
-        `${shell.commit}:refs/tags/1.0.0-beta.0`,
-      ]);
-
       await pushShellCommit(publish, shell, { tag: false });
 
       expect(await remoteRev("beta")).toBe(shell.commit);

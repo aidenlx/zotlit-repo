@@ -7,10 +7,6 @@
 //            the first beta, or a beta after a stable release that `beta`
 //            lacks, also takes the tip of main as a parent
 //
-// GitHub starts a tag's workflow only when the default branch, main, holds
-// that workflow. While main lacks the shell's workflow, as in a new publish
-// repository, the push also fast-forwards main to the shell commit.
-//
 // A second run finds what the first one did: a tag that names the same tree
 // is a finished release, and a branch tip with the same tree is reused.
 import { access, rm } from "node:fs/promises";
@@ -19,8 +15,6 @@ import { $ } from "zx";
 
 import { PUBLISH_BRANCH } from "./lines.ts";
 import type { ReleaseLine } from "./lines.ts";
-
-import { RELEASE_WORKFLOW } from "#shell/generate";
 
 /** Who the shell commits name. A release is made by the release flow, not by a person. */
 export const RELEASE_AUTHOR = {
@@ -194,14 +188,8 @@ export async function prepareShellCommit(
   }
   const base = parents[0]!;
   const movesMain =
-    branch !== PUBLISH_BRANCH.stable &&
-    (await git.local(
-      "ls-tree",
-      "--name-only",
-      "refs/remotes/publish/main",
-      "--",
-      RELEASE_WORKFLOW,
-    )) === "";
+    line !== "stable" &&
+    (await git.local("ls-tree", "refs/remotes/publish/main")) === "";
   if (parents.length === 1 && (await treeOf(base)) === tree) {
     // A run before this one pushed the commit, and not the tag.
     return {
@@ -244,7 +232,7 @@ async function writeTree(
 
 /**
  * The refspecs of the release push: the commit onto its branch, onto main
- * when main lacks the shell's workflow, and the tag, in one atomic push, so
+ * when main has no files, and the tag, in one atomic push, so
  * the branches and the tag move together or not at all.
  */
 export function releaseRefspecs(

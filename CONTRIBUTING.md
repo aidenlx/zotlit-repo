@@ -271,12 +271,13 @@ npm bundle package `@zotlit/reader-plugin`, on BRAT.
    without provenance, pushes the shell commit and the version tag to the
    publish repository, and pushes the source tag here. GitHub starts the
    tag's run only when `main` holds the shell's
-   `.github/workflows/plugin-release.yml`. While `main` lacks it, as in a new
-   publish repository, the same atomic push also fast-forwards `main` to the
-   shell commit; the dry run names `main` in its `push` step. If GitHub
-   still lists no "Plugin release" workflow and starts no run, delete the
-   version tag in the publish repository and push it again on the same
-   commit.
+   `.github/workflows/plugin-release.yml`. When `main` of the new publish
+   repository has no files, the same atomic push also fast-forwards `main`
+   to the shell commit; the dry run names `main` in its `push` step. So a
+   new plugin's `main` holds its first beta shell until its first stable
+   release. If GitHub still lists no "Plugin release" workflow and starts no
+   run, delete the version tag in the publish repository and push it again
+   on the same commit.
 4. Watch the shell's `plugin-release.yml` in the publish repository publish
    the release and its Resource Release.
 5. Set trusted publishing for the npm package from the lead's machine, each

@@ -22,7 +22,7 @@ import { parseManifest } from "#obsidian-manifest";
 const TEMPLATES = join(import.meta.dirname, "templates");
 /** The template files the shell carries as they are. */
 const STATIC_FILES = ["scripts/build.mjs"];
-export const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
+const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
@@ -95,7 +95,9 @@ generated at each release: send changes to the source repository.
 /**
  * The `versions.json` of the shell: the plugin's own, with this version's
  * minimum Obsidian version when it is a stable release. Obsidian reads it
- * from the default branch, which carries stable releases only.
+ * from the default branch, which carries stable releases only. A new
+ * plugin's default branch holds its first beta shell until its first stable
+ * release.
  */
 function shellVersions(
   versions: Record<string, string>,
