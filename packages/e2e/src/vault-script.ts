@@ -2,12 +2,14 @@
 // vault folders they register.
 
 import { execFile } from "node:child_process";
-import { rm } from "node:fs/promises";
+import { cp, mkdir, rm } from "node:fs/promises";
 import { join, sep } from "node:path";
 import { promisify } from "node:util";
 
 import { getWorktreeVaultName } from "@zotlit/scripts/dev-vault";
+import { resolveVaultPlugins } from "@zotlit/scripts/vault-plugins";
 
+import { assertDevBundleFresh } from "./bundle-freshness.ts";
 import { cli } from "./obsidian-cli.ts";
 
 const execFileAsync = promisify(execFile);
@@ -132,4 +134,19 @@ export async function clearVault(
 ): Promise<void> {
   await run(["remove", path]);
   await rm(path, { recursive: true, force: true });
+}
+
+export async function installPlugins(
+  workspaceRoot: string,
+  vaultPath: string,
+  list: string,
+): Promise<string> {
+  const plugins = await resolveVaultPlugins(workspaceRoot, list);
+  for (const plugin of plugins) {
+    await assertDevBundleFresh(workspaceRoot, plugin.app);
+    const pluginDir = join(vaultPath, ".obsidian", "plugins", plugin.id);
+    await mkdir(pluginDir, { recursive: true });
+    await cp(plugin.devBundleDir, pluginDir, { recursive: true });
+  }
+  return `--plugins=${plugins.map(({ id }) => id).join(",")}`;
 }

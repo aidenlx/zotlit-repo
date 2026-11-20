@@ -6,7 +6,8 @@ import { cli, obRun, obRunUntil, waitFor } from "./obsidian-cli.ts";
 
 /**
  * Reloads `vaultId`'s window (`app:reload`) and resolves when the new window
- * has its layout ready, ZotLit loaded, and its CLI commands registered.
+ * has its layout ready, each plugin of the vault's `community-plugins.json`
+ * loaded with its services, and its CLI commands registered.
  *
  * Use it for bugs that only appear when the plugin loads during Obsidian
  * startup. A plugin loaded then subscribes to vault events before Obsidian's
@@ -19,9 +20,14 @@ import { cli, obRun, obRunUntil, waitFor } from "./obsidian-cli.ts";
  * taken down before the reload and put back after it.
  */
 export async function reloadWindow(vaultId: string): Promise<void> {
-  await obRun(vaultId, async ({ app, zotlit }) => {
+  const plugins = await obRun(vaultId, async ({ app, zotlit }) => {
     if (app.plugins.plugins.zotlit)
       await zotlit.services.bridge.runPromise(zotlit.services.settings.flush);
+    return JSON.parse(
+      await app.vault.adapter.read(
+        `${app.vault.configDir}/community-plugins.json`,
+      ),
+    ) as string[];
   });
   // The reload goes after the reply, so this call is answered by the old
   // window; the marker tells that window from the new one.
@@ -40,14 +46,24 @@ export async function reloadWindow(vaultId: string): Promise<void> {
   // counts both as "not ready yet".
   await obRunUntil(
     vaultId,
-    ({ app, zotlit, page }) =>
+    ({ app, page }, { plugins }) =>
       !page.scratch.windowBeforeReload &&
       app.workspace.layoutReady &&
-      app.plugins.plugins.zotlit?._loaded === true &&
-      !!zotlit.services,
-    undefined,
+      plugins.every((id) => {
+        const plugin = app.plugins.plugins[id] as
+          | (import("obsidian").Plugin & {
+              _loaded: boolean;
+              services?: unknown;
+            })
+          | undefined;
+        return (
+          plugin?._loaded === true &&
+          (!("services" in plugin) || !!plugin.services)
+        );
+      }),
+    { plugins },
     {
-      what: `the window of ${vaultId} did not come back with ZotLit loaded`,
+      what: `the window of ${vaultId} did not come back with ${plugins.join(", ")} loaded`,
       tries: 120,
     },
   );

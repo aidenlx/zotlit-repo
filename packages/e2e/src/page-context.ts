@@ -1,4 +1,6 @@
 import type { E2eServices } from "@zotlit/obsidian/e2e";
+import type { ReaderApi } from "@zotlit/reader-api";
+import type { E2eServices as ReaderServices } from "@zotlit/reader/e2e";
 
 import type { createPageHelpers } from "./page-helpers.ts";
 import type { PageApp } from "./page-host.ts";
@@ -7,6 +9,7 @@ import type { PageApp } from "./page-host.ts";
 export interface ObsidianContext {
   app: PageApp;
   zotlit: { services: E2eServices };
+  reader: { services: ReaderServices; api: ReaderApi | undefined };
   page: ReturnType<typeof createPageHelpers>;
 }
 

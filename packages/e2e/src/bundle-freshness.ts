@@ -9,9 +9,6 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
-export const REBUILD_COMMAND =
-  "pnpm exec turbo run build:dev --filter=@zotlit/obsidian";
-
 export interface BundleInput {
   /** Path relative to the workspace root. */
   path: string;
@@ -108,13 +105,18 @@ export async function gitInputs(
 }
 
 /**
- * Throw when `apps/obsidian/dist-dev` is missing or older than a source input,
- * naming the command that rebuilds it.
+ * Throw when the dev bundle `<app>/dist-dev` is missing or older than a source
+ * input, naming the command that rebuilds it.
  */
 export async function assertDevBundleFresh(
   workspaceRoot: string,
+  app: string,
 ): Promise<void> {
-  const appDir = join(workspaceRoot, "apps", "obsidian");
+  const appDir = join(workspaceRoot, app);
+  const { name } = JSON.parse(
+    await readFile(join(appDir, "package.json"), "utf-8"),
+  ) as { name: string };
+  const rebuild = `pnpm exec turbo run build:dev --filter=${name}`;
   const bundlePath = join(appDir, "dist-dev", "main.js");
   const bundle = await stat(bundlePath).catch(
     (error: NodeJS.ErrnoException) => {
@@ -124,7 +126,7 @@ export async function assertDevBundleFresh(
   );
   if (!bundle) {
     throw new Error(
-      `No dev plugin bundle at ${relative(workspaceRoot, bundlePath)}. Build it:\n  ${REBUILD_COMMAND}`,
+      `No dev plugin bundle at ${relative(workspaceRoot, bundlePath)}. Build it:\n  ${rebuild}`,
     );
   }
   const newer = newerInput(
@@ -133,7 +135,7 @@ export async function assertDevBundleFresh(
   );
   if (newer) {
     throw new Error(
-      `The dev plugin bundle ${relative(workspaceRoot, bundlePath)} is older than ${newer.path}. Rebuild it:\n  ${REBUILD_COMMAND}`,
+      `The dev plugin bundle ${relative(workspaceRoot, bundlePath)} is older than ${newer.path}. Rebuild it:\n  ${rebuild}`,
     );
   }
 }

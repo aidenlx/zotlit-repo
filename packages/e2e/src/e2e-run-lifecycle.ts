@@ -1,9 +1,6 @@
-import { cp, mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, expect } from "vitest";
 
 import { prepareRunWindow } from "./background-throttling.ts";
-import { assertDevBundleFresh } from "./bundle-freshness.ts";
 import {
   e2eVaultPath,
   runVaultScript,
@@ -11,7 +8,7 @@ import {
 } from "./e2e-run-fixture.ts";
 import { availableLoopbackPort } from "./e2e-run-helpers.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
-import { clearVault } from "./vault-script.ts";
+import { clearVault, installPlugins } from "./vault-script.ts";
 
 /** Shared End-to-end Run vault state for every area file. */
 export const run = {
@@ -25,13 +22,9 @@ let refCount = 0;
 
 async function bootstrap(): Promise<void> {
   run.m = await import("@zotlit/plugin-messages/messages.ts");
-  await assertDevBundleFresh(workspaceRoot);
   await clearVault(runVaultScript, e2eVaultPath);
-  const pluginBundleDir = join(workspaceRoot, "apps", "obsidian", "dist-dev");
-  const e2ePluginDir = join(e2eVaultPath, ".obsidian", "plugins", "zotlit");
-  await mkdir(e2ePluginDir, { recursive: true });
-  await cp(pluginBundleDir, e2ePluginDir, { recursive: true });
-  const created = await runVaultScript(["open", e2eVaultPath]);
+  const plugins = await installPlugins(workspaceRoot, e2eVaultPath, "zotlit");
+  const created = await runVaultScript(["open", e2eVaultPath, plugins]);
   run.vaultId = created.stdout.trim().split("\n")[0]!.trim();
   await obRun(
     run.vaultId,

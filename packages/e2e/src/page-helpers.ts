@@ -22,6 +22,7 @@ import type {
   WalkthroughLeaf,
   WalkthroughViews,
 } from "./page-walkthrough-types.ts";
+import type { createReaderHandle } from "./reader-handle.ts";
 
 /** JSON handle for a Query View embedded in a Markdown note. */
 export interface NoteQueryView {
@@ -49,7 +50,10 @@ export interface PageScratch {
  * Self-contained: serialized into each receiving window. Keep all runtime
  * dependencies inside this function; type-only imports are erased.
  */
-export function createPageHelpers(app: PageApp) {
+export function createPageHelpers(
+  app: PageApp,
+  createReader: typeof createReaderHandle,
+) {
   const scratch: PageScratch = {};
   function press<T extends HTMLElement>(
     el: T | null | undefined,
@@ -1101,7 +1105,9 @@ export function createPageHelpers(app: PageApp) {
     }
   }
 
+  const reader = createReader(app, until);
   return {
+    reader,
     leavesOfType,
     measure,
     waitFor,

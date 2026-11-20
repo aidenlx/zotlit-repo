@@ -25,12 +25,20 @@ export type PageApp = App & {
   };
   cli: { handlers: Map<string, unknown> };
   changeTheme(theme: "obsidian" | "moonstone" | "system"): void;
-  viewRegistry: { viewByType: Record<string, unknown> };
+  viewRegistry: {
+    viewByType: Record<string, unknown>;
+    typeByExtension: Record<string, string>;
+  };
   plugins: App["plugins"] & {
     plugins: App["plugins"]["plugins"] & {
       zotlit?: import("obsidian").Plugin & {
         _loaded: boolean;
         services: unknown;
+      };
+      "zotlit-reader"?: import("obsidian").Plugin & {
+        _loaded: boolean;
+        services: unknown;
+        api?: unknown;
       };
     };
     manifests: Record<string, import("obsidian").PluginManifest>;

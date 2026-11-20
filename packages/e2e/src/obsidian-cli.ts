@@ -11,6 +11,7 @@ import { createObsidianCall } from "@zotlit/scripts/obsidian-cli";
 
 import type { ObsidianContext, JsonCompatible } from "./page-context.ts";
 import { createPageHelpers } from "./page-helpers.ts";
+import { createReaderHandle } from "./reader-handle.ts";
 
 const CLI_TIMEOUT_MS = 15_000;
 
@@ -185,12 +186,12 @@ export async function obRun<A = undefined, R = void>(
   args?: A & JsonCompatible<A>,
   options: { timeoutMs?: number } = {},
 ): Promise<Awaited<R>> {
-  const code = `(async()=>{const page=globalThis.__zotlitPageHelpers;if(!page)return '__zotlitHelpersMissing__';const result=await (${callback.toString()})({app,zotlit:{get services(){return app.plugins.plugins.zotlit.services;}},page},${JSON.stringify(args) ?? "undefined"});return JSON.stringify({value:result});})()`;
+  const code = `(async()=>{const page=globalThis.__zotlitPageHelpers;if(!page)return '__zotlitHelpersMissing__';const result=await (${callback.toString()})({app,zotlit:{get services(){return app.plugins.plugins.zotlit.services;}},reader:{get services(){return app.plugins.plugins["zotlit-reader"].services;},get api(){return app.plugins.plugins["zotlit-reader"].api;}},page},${JSON.stringify(args) ?? "undefined"});return JSON.stringify({value:result});})()`;
   let reply = await obEval(vaultId, code, options.timeoutMs);
   if (reply === "__zotlitHelpersMissing__") {
     await obEval(
       vaultId,
-      `globalThis.__zotlitPageHelpers=(${createPageHelpers.toString()})(app);true`,
+      `globalThis.__zotlitPageHelpers=(${createPageHelpers.toString()})(app,${createReaderHandle.toString()});true`,
       options.timeoutMs,
     );
     reply = await obEval(vaultId, code, options.timeoutMs);

@@ -30,6 +30,8 @@
     "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/query-views": "workspace:*",
+    "@zotlit/reader": "workspace:*",
+    "@zotlit/reader-api": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "@zotlit/template-workbench": "workspace:*",
     "arkregex": "catalog:",

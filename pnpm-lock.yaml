@@ -1486,6 +1486,12 @@ importers:
       '@zotlit/query-views':
         specifier: workspace:*
         version: link:../query-views
+      '@zotlit/reader':
+        specifier: workspace:*
+        version: link:../../apps/reader
+      '@zotlit/reader-api':
+        specifier: workspace:*
+        version: link:../reader-api
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../scripts

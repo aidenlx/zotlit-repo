@@ -15,6 +15,18 @@ function proofs() {
     // @ts-expect-error Removed service members must fail before a desktop run.
     return zotlit.services.noSuchService;
   });
+  void obRun(
+    "vault",
+    ({ reader }) =>
+      reader.services.bridge.runSync(reader.services.settings.current)[
+        "log.to-file"
+      ],
+  );
+  void obRun("vault", ({ reader }) => {
+    // @ts-expect-error ZotLit's services are absent from ZotLit Reader's.
+    return reader.services.zoteroPref;
+  });
+  void obRun("vault", ({ page }) => page.reader.viewType);
   // @ts-expect-error Args follow the callback's declared input.
   void obRun("vault", (_, args: { path: string }) => args.path, { path: 1 });
   // @ts-expect-error A Map cannot cross the JSON transport.
