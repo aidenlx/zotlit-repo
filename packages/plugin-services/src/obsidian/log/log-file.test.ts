@@ -90,6 +90,23 @@ async function logFileLines(
     .filter((line) => !line.includes('"message":"probe"'));
 }
 
+it("reports a record the log file cannot hold as a fatal record on the console", async () => {
+  using consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+  const loop: Record<string, unknown> = { name: "loop" };
+  loop["self"] = loop;
+
+  const lines = await logFileLines([
+    Effect.logInfo("Looped").pipe(Effect.annotateLogs({ loop })),
+  ]);
+
+  expect(lines).toEqual([]);
+  expect(consoleError.mock.calls).toContainEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/FTL.*Failed to write a log record to a sink: /),
+    ]),
+  );
+});
+
 it("writes the same JSON lines as LogTape 2.1.0's JSON-lines formatter", async () => {
   const lines = await logFileLines([
     Effect.logInfo("Opened Zotero database"),

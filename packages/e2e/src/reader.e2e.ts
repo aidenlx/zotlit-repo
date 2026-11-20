@@ -930,6 +930,40 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
             ) <= 1,
         };
 
+        const element = cleanup.adopt(root.doc.body.createDiv(), (div) =>
+          div.remove(),
+        );
+        const markdownView = noteLeaf.view as import("obsidian").MarkdownView;
+        await (
+          markdownView.previewMode
+            .constructor as typeof import("obsidian").MarkdownPreviewView
+        ).render(
+          app,
+          "![[excerpt-rendering.pdf#page=2]]",
+          element,
+          note,
+          markdownView,
+        );
+        const image = await page.until(
+          "the static page image",
+          () => {
+            const found =
+              element.querySelector<HTMLImageElement>(".pdf-embed img");
+            return found?.complete && found.naturalWidth > 0 ? found : null;
+          },
+          10000,
+        );
+        const printedEmbed = image.closest<HTMLElement>(".pdf-embed")!;
+        const printed = {
+          wide: image.naturalWidth > 1000,
+          fitsImage:
+            Math.abs(
+              printedEmbed.getBoundingClientRect().bottom -
+                image.getBoundingClientRect().bottom,
+            ) <= 4,
+          reader: element.querySelector(".zpr-root") !== null,
+        };
+
         const canvasLeaf = cleanup.adopt(app.workspace.getLeaf("tab"), (tab) =>
           tab.detach(),
         );
@@ -1053,6 +1087,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
           embeds,
           hover,
           livePreview,
+          printed,
           canvas,
           farKind,
         };
@@ -1072,6 +1107,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
       },
       hover: { toolbarHeight: 0 },
       livePreview: { fixedHeight: true },
+      printed: { wide: true, fitsImage: true, reader: false },
       canvas: { fromText: 0, fromPage: 1 },
       farKind: { detached: true, kind: "canvas" },
     });
