@@ -3209,8 +3209,6 @@
   "settings_failed_language_pack_reset": "无法移除语言包",
   "pdf_reader_embed_open": "打开",
   "pdf_reader_embed_more_options": "更多选项",
-  "pdf_reader_view_name": "ZotLit PDF 阅读器",
-  "pdf_reader_takeover_unavailable": "此版本的 Obsidian 不支持在 ZotLit 阅读器中打开所有 PDF。PDF 仍在 Obsidian 的 PDF 查看器中打开。",
   "reader_settings_page": "阅读器",
   "reader_settings_page_desc": "ZotLit Reader 打开仓库中 PDF 的方式。",
   "reader_settings_open_all_pdfs_name": "打开所有 PDF",

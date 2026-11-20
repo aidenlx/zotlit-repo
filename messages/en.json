@@ -3269,8 +3269,6 @@
   "settings_failed_language_pack_reset": "Could not remove the language packs",
   "pdf_reader_embed_open": "Open",
   "pdf_reader_embed_more_options": "More options",
-  "pdf_reader_view_name": "ZotLit PDF reader",
-  "pdf_reader_takeover_unavailable": "ZotLit can’t open all PDFs in its reader in this version of Obsidian. PDFs keep opening in Obsidian’s PDF viewer.",
   "reader_settings_page": "Reader",
   "reader_settings_page_desc": "How ZotLit Reader opens the PDFs in your vault.",
   "reader_settings_open_all_pdfs_name": "Open all PDFs",

@@ -1,19 +1,102 @@
 ---
-title: "Read PDFs in the ZotLit reader"
-searchTitle: "Read and search PDFs in ZotLit's PDF reader"
-description: "Page through, search, and copy from a paper in ZotLit's PDF reader, and choose whether every PDF in your vault opens there."
+title: "Read PDFs in ZotLit Reader"
+searchTitle: "Read and search PDFs in ZotLit Reader"
+description: "Install ZotLit Reader through BRAT to read PDFs in Obsidian, or pair it with ZotLit to see Zotero annotations."
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { ActionLink } from "@/components/action-link";
+import { Callout } from "@/components/callout";
 import { SettingsPath } from "@/components/settings-path";
 import { UiLabel } from "@/components/ui-label";
 import { m } from "@/paraglide/messages.js";
 
-Read a paper in an Obsidian tab, find passages, and copy quotes and links into your notes.
+ZotLit Reader is a separate Obsidian plugin that reads the PDFs in your vault. Install it through BRAT. With ZotLit beside it, your PDFs also show your Zotero annotations and the tools to make new ones.
 
-ZotLit has its own PDF reader inside Obsidian, the <UiLabel name={m.pdf_reader_view_name()} />. Each PDF that ZotLit opens shows there, with your Zotero annotations and the annotation tools. You can select and highlight text in every PDF that has text. This includes PDFs that earlier versions of ZotLit could not highlight.
+You need Obsidian 1.15.1 or later on a desktop computer; ZotLit Reader is desktop only. You do not need ZotLit or Zotero just to read PDFs.
 
-To open a paper's PDF, see [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian). To highlight and comment, see [How to edit PDF annotations in Obsidian](/docs/how-to/edit-pdf-annotations).
+<Callout type="info">
+  ZotLit Reader is in development. It is not yet in Obsidian's community plugin
+  directory. Its only release so far, `1.0.0-beta.0`, tests the release process.
+</Callout>
+
+## Install ZotLit Reader [#install]
+
+BRAT (Beta Reviewers Auto-update Tester) is an Obsidian plugin that installs and updates plugins from GitHub.
+
+<Steps>
+  <Step>
+    ### Install BRAT [#install-brat]
+
+    Open BRAT in the Obsidian plugin directory, then select **Install** and **Enable**. Skip this step if BRAT is already installed.
+
+    <ActionLink href="obsidian://show-plugin?id=obsidian42-brat" kind="obsidian">Install BRAT</ActionLink>
+
+    BRAT appears in **Settings > Community plugins**.
+
+  </Step>
+  <Step>
+    ### Add ZotLit Reader to BRAT [#add-to-brat]
+
+    Select the link below. Or open the command palette, run **BRAT: Add a beta plugin**, and enter `aidenlx/zotlit-reader`.
+
+    <ActionLink href="obsidian://brat?plugin=aidenlx/zotlit-reader" kind="obsidian">Add ZotLit Reader to BRAT</ActionLink>
+
+    BRAT installs the plugin.
+
+  </Step>
+  <Step>
+    ### Turn on ZotLit Reader [#turn-on]
+
+    Go to **Settings > Community plugins** and turn on **ZotLit Reader**. If it does not appear, refresh the plugin list.
+
+    Open a PDF from the file explorer. It opens in a tab named <UiLabel name={m.reader_view_name()} />, because <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> is on after install.
+
+  </Step>
+</Steps>
+
+BRAT updates ZotLit Reader when a new release comes out. If PDFs still open in Obsidian's PDF view, turn on <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />.
+
+## What ZotLit adds [#with-zotlit]
+
+ZotLit Reader works alone, with no ZotLit and no Zotero. When ZotLit is also installed and turned on, the two plugins connect by themselves, in either start order.
+
+| Feature                                                                 | ZotLit Reader alone | With ZotLit |
+| :---------------------------------------------------------------------- | :------------------ | :---------- |
+| [Read](#navigate) and [find text](#find)                                | Yes                 | Yes         |
+| [Copy text and selection links](#copy)                                  | Yes                 | Yes         |
+| [PDF embeds, hover previews, canvas cards](#open-all-pdfs)              | Yes                 | Yes         |
+| [Dark mode](#theme)                                                     | Yes                 | Yes         |
+| Zotero annotations on the page                                          | No                  | Yes         |
+| [Make and change Zotero annotations](/docs/how-to/edit-pdf-annotations) | No                  | Yes         |
+| Annotation view in the sidebar                                          | No                  | Yes         |
+
+Annotation links that ZotLit writes into notes open in ZotLit Reader with the annotation selected.
+
+## ZotLit without ZotLit Reader [#without-reader]
+
+ZotLit opens PDFs in Obsidian's own PDF view when ZotLit Reader is not installed or is turned off. It does the same when the two versions do not work together. A link that names a page, such as an annotation link, opens that view at its page. The page shows no Zotero annotations and no annotation tools.
+
+The first time this happens, a notice stays on screen until you close it. Its title is <UiLabel name={m.notice_reader_fallback()} /> Below it are one sentence and one button:
+
+| Situation                         | Sentence                                                                        | Button                                                       |
+| :-------------------------------- | :------------------------------------------------------------------------------ | :----------------------------------------------------------- |
+| ZotLit Reader is not installed    | <UiLabel name={m.settings_reader_status_install()} />                           | <UiLabel name={m.settings_reader_status_install_action()} /> |
+| ZotLit Reader is turned off       | <UiLabel name={m.settings_reader_status_turn_on()} />                           | <UiLabel name={m.settings_reader_status_turn_on_action()} /> |
+| The versions do not work together | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit Reader" })} /> | <UiLabel name={m.settings_reader_status_update_action()} />  |
+
+When ZotLit is the older plugin, the last sentence names ZotLit instead. ZotLit shows each notice once per vault on this computer, so a second PDF opens without one.
+
+To install ZotLit Reader, follow the [BRAT steps](#install) above. To turn it on, go to **Settings > Community plugins**. To update either plugin, update it through BRAT or the community directory, wherever you installed it from.
+
+### See the connection [#status]
+
+The same sentence and button sit in the <UiLabel name={m.settings_reader_status_name()} /> row at the top of <SettingsPath page={m.settings_page_reader()} />. The row adds <UiLabel name={m.settings_reader_status_fallback()} /> When the two plugins are connected, it reads <UiLabel name={m.settings_reader_status_connected()} /> and has no button.
+
+The setup steps at the top of the [Library View](/docs/how-to/use-library-view) end with a <UiLabel name={m.welcome_step_reader_title()} /> step. It shows <UiLabel name={m.welcome_step_reader_recommended()} /> until the plugins connect, then <UiLabel name={m.welcome_step_reader_connected()} />.
+
+If the row still says <UiLabel name={m.settings_reader_status_install_action()} /> after you installed ZotLit Reader, close the settings and open them again.
 
 ## Move through the paper [#navigate]
 
@@ -62,32 +145,35 @@ A link that you copy here works in Obsidian's own PDF viewer too. Some pages hav
 
 Open <UiLabel name={m.pdf_reader_display_options()} /> and select <UiLabel name={m.pdf_reader_adapt_to_theme()} />. With a dark Obsidian theme, the pages turn dark and the text turns light. Drawn shapes keep their hue, so dark blue turns light blue. Photos and other pictures stay as they are.
 
-## Open every PDF in the ZotLit reader [#open-all-pdfs]
+## Open every PDF in ZotLit Reader [#open-all-pdfs]
 
-By default, the ZotLit reader shows only the PDFs that ZotLit opens. A PDF that you open from the file explorer opens in Obsidian's own PDF viewer.
-
-To read every PDF of your vault in the ZotLit reader, turn on <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_all_pdfs_name()} />. These then use the ZotLit reader:
+After install, ZotLit Reader opens every PDF of your vault. These use ZotLit Reader:
 
 - PDFs that you open from the file explorer, a search, or a link.
 - PDF embeds in your notes, such as `![[paper.pdf#page=3]]`.
 - Hover previews of PDF links.
 - PDF cards on a canvas.
 
-Turn the setting off to give these PDFs back to Obsidian's own viewer. They also go back when you turn ZotLit off.
+To give these PDFs back to Obsidian's own PDF viewer, turn off <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />. They also go back when you turn ZotLit Reader off. The PDFs that ZotLit opens still use ZotLit Reader while the setting is off.
 
 An embed has a <UiLabel name={m.pdf_reader_embed_more_options()} /> button. Select <UiLabel name={m.pdf_reader_embed_open()} /> to read the whole PDF. The same menu has Obsidian's own link items, such as **Open in new tab**.
 
 ## Limits [#limits]
 
-- Obsidian's own PDF viewer shows no ZotLit annotation tools. A link that ZotLit wrote into a note, such as an annotation link, still opens in the ZotLit reader. This is true while <UiLabel name={m.settings_reader_open_all_pdfs_name()} /> is off too.
+- Obsidian's own PDF viewer shows no ZotLit annotation tools. A link that ZotLit wrote into a note, such as an annotation link, still opens in ZotLit Reader. This is true while <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> is off too.
 - A link made with **Copy link to selection** in Obsidian's own viewer opens with the passage highlighted. When the two readers read that page's text differently, the link opens on its page without the highlight.
 - A PDF card on a canvas has no **Save current position in document** button.
 - In Live Preview, a PDF embed has no **Edit this block** button. To change the embed's link, switch the note to Source mode.
-- If ZotLit shows <UiLabel name={m.pdf_reader_takeover_unavailable()} />, your Obsidian version does not let ZotLit open all PDFs. ZotLit still opens its own PDFs in its reader.
+- If ZotLit Reader shows <UiLabel name={m.reader_takeover_unavailable()} />, your Obsidian version does not let it open all PDFs. ZotLit still opens its own PDFs in ZotLit Reader.
 
 ## See also
 
 <Cards>
+  <Card
+    title="Install ZotLit"
+    description="Install ZotLit itself, from the community directory or through BRAT."
+    href="/docs/install-zotlit"
+  />
   <Card
     title="Open an item's PDF in Obsidian"
     description="Open a Zotero PDF attachment from a note, the Library View, or Zotero."
@@ -100,7 +186,7 @@ An embed has a <UiLabel name={m.pdf_reader_embed_more_options()} /> button. Sele
   />
   <Card
     title="Settings"
-    description="Every option on the Reader page of ZotLit's settings."
+    description="The Reader pages of ZotLit and of ZotLit Reader."
     href="/docs/reference/settings#reader"
   />
 </Cards>

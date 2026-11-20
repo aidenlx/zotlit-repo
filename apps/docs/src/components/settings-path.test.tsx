@@ -30,4 +30,18 @@ describe("SettingsPath", () => {
 
     expect(markdown).toBe("**Settings > ZotLit > Citations > Citations**");
   });
+
+  it("renders a route through the ZotLit Reader tab", async () => {
+    const markdown = await renderToMarkdown(
+      <SettingsPath
+        plugin="ZotLit Reader"
+        page={m.reader_settings_page()}
+        setting={m.reader_settings_open_all_pdfs_name()}
+      />,
+    );
+
+    expect(markdown).toBe(
+      "**Settings > ZotLit Reader > Reader > Open all PDFs**",
+    );
+  });
 });

@@ -1,19 +1,102 @@
 ---
-title: "在 ZotLit 阅读器中阅读 PDF"
-searchTitle: "在 ZotLit 的 PDF 阅读器中阅读和搜索 PDF"
-description: "在 ZotLit 的 PDF 阅读器中翻阅、搜索和复制文献内容，并选择是否让仓库中的所有 PDF 都在其中打开。"
+title: "在 ZotLit Reader 中阅读 PDF"
+searchTitle: "在 ZotLit Reader 中阅读和搜索 PDF"
+description: "通过 BRAT 安装 ZotLit Reader，在 Obsidian 中阅读 PDF；与 ZotLit 一起使用时还能看到 Zotero 标注。"
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { ActionLink } from "@/components/action-link";
+import { Callout } from "@/components/callout";
 import { SettingsPath } from "@/components/settings-path";
 import { UiLabel } from "@/components/ui-label";
 import { m } from "@/paraglide/messages.js";
 
-在 Obsidian 标签页中阅读文献，查找段落，并将引文和链接复制到笔记中。
+ZotLit Reader 是一个独立的 Obsidian 插件，用于阅读仓库中的 PDF。通过 BRAT 安装它。与 ZotLit 一起使用时，PDF 中还会显示你的 Zotero 标注和创建新标注的工具。
 
-ZotLit 在 Obsidian 内有自己的 PDF 阅读器，即 <UiLabel name={m.pdf_reader_view_name()} />。ZotLit 打开的每个 PDF 都显示在这里，并带有你的 Zotero 标注和标注工具。所有含文本的 PDF 都可以选择文本和高亮，包括早期版本的 ZotLit 无法高亮的 PDF。
+你需要在桌面电脑上使用 Obsidian 1.15.1 或更高版本；ZotLit Reader 仅支持桌面端。只阅读 PDF 时，不需要 ZotLit 或 Zotero。
 
-如需打开文献的 PDF，请参阅[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。如需高亮和评论，请参阅[在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
+<Callout type="info">
+  ZotLit Reader 仍在开发中，尚未进入 Obsidian 的第三方插件市场。目前唯一的版本
+  `1.0.0-beta.0` 用于测试发布流程。
+</Callout>
+
+## 安装 ZotLit Reader [#install]
+
+BRAT（Beta Reviewers Auto-update Tester）是一款 Obsidian 插件，用于安装并更新来自 GitHub 的插件。
+
+<Steps>
+  <Step>
+    ### 安装 BRAT [#install-brat]
+
+    在 Obsidian 插件目录中打开 BRAT，然后选择**安装**和**启用**。如果你已安装 BRAT，请跳过此步。
+
+    <ActionLink href="obsidian://show-plugin?id=obsidian42-brat" kind="obsidian">安装 BRAT</ActionLink>
+
+    BRAT 会出现在**设置 > 第三方插件**中。
+
+  </Step>
+  <Step>
+    ### 将 ZotLit Reader 添加到 BRAT [#add-to-brat]
+
+    点击下方链接。或者打开命令面板，运行 **BRAT: Add a beta plugin**，并输入 `aidenlx/zotlit-reader`。
+
+    <ActionLink href="obsidian://brat?plugin=aidenlx/zotlit-reader" kind="obsidian">将 ZotLit Reader 添加到 BRAT</ActionLink>
+
+    BRAT 会安装该插件。
+
+  </Step>
+  <Step>
+    ### 启用 ZotLit Reader [#turn-on]
+
+    前往**设置 > 第三方插件**并启用 **ZotLit Reader**。如果列表中没有它，请先刷新插件列表。
+
+    从文件列表打开一个 PDF。它会在名为 <UiLabel name={m.reader_view_name()} /> 的标签页中打开，因为安装后 <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> 默认开启。
+
+  </Step>
+</Steps>
+
+有新版本发布时，BRAT 会更新 ZotLit Reader。如果 PDF 仍在 Obsidian 的 PDF 视图中打开，请开启 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />。
+
+## ZotLit 带来的功能 [#with-zotlit]
+
+ZotLit Reader 可以单独使用，无需 ZotLit 和 Zotero。如果同时安装并启用了 ZotLit，两个插件会自动连接，与启动顺序无关。
+
+| 功能                                                        | 仅 ZotLit Reader | 搭配 ZotLit |
+| :---------------------------------------------------------- | :--------------- | :---------- |
+| [阅读](#navigate)和[查找文本](#find)                        | 是               | 是          |
+| [复制文本和选区链接](#copy)                                 | 是               | 是          |
+| [PDF 嵌入、悬停预览、白板卡片](#open-all-pdfs)              | 是               | 是          |
+| [深色模式](#theme)                                          | 是               | 是          |
+| 页面上的 Zotero 标注                                        | 否               | 是          |
+| [创建和修改 Zotero 标注](/docs/how-to/edit-pdf-annotations) | 否               | 是          |
+| 侧栏中的标注视图                                            | 否               | 是          |
+
+ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，并选中该标注。
+
+## 没有 ZotLit Reader 时的 ZotLit [#without-reader]
+
+如果 ZotLit Reader 未安装或已停用，ZotLit 会在 Obsidian 自带的 PDF 视图中打开 PDF。两个插件的版本无法协同工作时也是如此。指向某一页的链接（例如标注链接）会在该视图中打开到该页。页面上不显示 Zotero 标注，也没有标注工具。
+
+第一次出现这种情况时，会弹出一条通知，直到你关闭它为止。通知标题为 <UiLabel name={m.notice_reader_fallback()} /> 下方有一句说明和一个按钮：
+
+| 情况                 | 说明                                                                            | 按钮                                                         |
+| :------------------- | :------------------------------------------------------------------------------ | :----------------------------------------------------------- |
+| 未安装 ZotLit Reader | <UiLabel name={m.settings_reader_status_install()} />                           | <UiLabel name={m.settings_reader_status_install_action()} /> |
+| ZotLit Reader 已停用 | <UiLabel name={m.settings_reader_status_turn_on()} />                           | <UiLabel name={m.settings_reader_status_turn_on_action()} /> |
+| 两个版本无法协同工作 | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit Reader" })} /> | <UiLabel name={m.settings_reader_status_update_action()} />  |
+
+如果较旧的是 ZotLit，最后一句会改为要求更新 ZotLit。每种通知在这台电脑上的每个仓库中只显示一次，之后再打开 PDF 不会再出现。
+
+如需安装 ZotLit Reader，请按照上方的 [BRAT 步骤](#install)操作。如需启用它，请前往**设置 > 第三方插件**。如需更新任一插件，请通过你当初安装它的途径（BRAT 或第三方插件市场）更新。
+
+### 查看连接状态 [#status]
+
+同样的说明和按钮也显示在 <SettingsPath page={m.settings_page_reader()} /> 顶部的 <UiLabel name={m.settings_reader_status_name()} /> 一行中。该行还会加上 <UiLabel name={m.settings_reader_status_fallback()} /> 两个插件连接后，该行显示 <UiLabel name={m.settings_reader_status_connected()} />，并且没有按钮。
+
+[文库视图](/docs/how-to/use-library-view)顶部的设置步骤以 <UiLabel name={m.welcome_step_reader_title()} /> 一步结尾。连接之前它显示 <UiLabel name={m.welcome_step_reader_recommended()} />，连接之后显示 <UiLabel name={m.welcome_step_reader_connected()} />。
+
+如果安装 ZotLit Reader 后该行仍显示 <UiLabel name={m.settings_reader_status_install_action()} />，请关闭设置后再重新打开。
 
 ## 翻阅文献 [#navigate]
 
@@ -62,32 +145,35 @@ ZotLit 在 Obsidian 内有自己的 PDF 阅读器，即 <UiLabel name={m.pdf_rea
 
 打开 <UiLabel name={m.pdf_reader_display_options()} /> 并选择 <UiLabel name={m.pdf_reader_adapt_to_theme()} />。使用深色 Obsidian 主题时，页面变暗，文字变亮。绘制的图形保留原有色相，例如深蓝色变为浅蓝色。照片和其他图片保持不变。
 
-## 在 ZotLit 阅读器中打开所有 PDF [#open-all-pdfs]
+## 在 ZotLit Reader 中打开所有 PDF [#open-all-pdfs]
 
-默认情况下，ZotLit 阅读器只显示 ZotLit 打开的 PDF。从文件列表打开的 PDF 会在 Obsidian 自带的 PDF 查看器中打开。
-
-如需在 ZotLit 阅读器中阅读仓库中的所有 PDF，请开启 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_all_pdfs_name()} />。之后以下内容都会使用 ZotLit 阅读器：
+安装后，ZotLit Reader 会打开仓库中的所有 PDF。以下内容都会使用 ZotLit Reader：
 
 - 从文件列表、搜索或链接打开的 PDF。
 - 笔记中嵌入的 PDF，例如 `![[paper.pdf#page=3]]`。
 - PDF 链接的悬停预览。
 - 白板上的 PDF 卡片。
 
-关闭此设置后，这些 PDF 会交还给 Obsidian 自带的查看器。关闭 ZotLit 插件时也是如此。
+如需把这些 PDF 交还给 Obsidian 自带的 PDF 查看器，请关闭 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />。停用 ZotLit Reader 插件时也是如此。即使此设置关闭，ZotLit 打开的 PDF 仍使用 ZotLit Reader。
 
 嵌入的 PDF 带有 <UiLabel name={m.pdf_reader_embed_more_options()} /> 按钮。选择 <UiLabel name={m.pdf_reader_embed_open()} /> 可阅读完整的 PDF。同一菜单中还有 Obsidian 自带的链接选项，例如**在新标签页中打开**。
 
 ## 限制 [#limits]
 
-- Obsidian 自带的 PDF 查看器不显示 ZotLit 的标注工具。即使 <UiLabel name={m.settings_reader_open_all_pdfs_name()} /> 处于关闭状态，ZotLit 写入笔记的链接（如标注链接）仍会在 ZotLit 阅读器中打开。
+- Obsidian 自带的 PDF 查看器不显示 ZotLit 的标注工具。即使 <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> 处于关闭状态，ZotLit 写入笔记的链接（如标注链接）仍会在 ZotLit Reader 中打开。
 - 在 Obsidian 自带查看器中用**复制到选区的链接**创建的链接，打开时会高亮该段落。如果两个阅读器对该页文本的读取方式不同，链接只会打开到该页，不显示高亮。
 - 白板上的 PDF 卡片没有**保存文档中的当前位置**按钮。
 - 在实时预览中，PDF 嵌入没有**编辑这个区块**按钮。要修改嵌入的链接，请将笔记切换到源码模式。
-- 如果 ZotLit 显示 <UiLabel name={m.pdf_reader_takeover_unavailable()} />，说明你的 Obsidian 版本不允许 ZotLit 打开所有 PDF。ZotLit 仍会在其阅读器中打开它自己的 PDF。
+- 如果 ZotLit Reader 显示 <UiLabel name={m.reader_takeover_unavailable()} />，说明你的 Obsidian 版本不允许它打开所有 PDF。ZotLit 仍会在 ZotLit Reader 中打开它自己的 PDF。
 
 ## 另请参阅
 
 <Cards>
+  <Card
+    title="安装 ZotLit"
+    description="从第三方插件市场或通过 BRAT 安装 ZotLit 本身。"
+    href="/docs/install-zotlit"
+  />
   <Card
     title="在 Obsidian 中打开条目的 PDF"
     description="从笔记、文库视图或 Zotero 打开 Zotero PDF 附件。"
@@ -100,7 +186,7 @@ ZotLit 在 Obsidian 内有自己的 PDF 阅读器，即 <UiLabel name={m.pdf_rea
   />
   <Card
     title="设置"
-    description="ZotLit 设置中阅读器页面的每个选项。"
+    description="ZotLit 与 ZotLit Reader 各自的阅读器设置页面。"
     href="/docs/reference/settings#reader"
   />
 </Cards>

@@ -673,36 +673,72 @@ ZotLit 仅将此授权保存在本设备上该仓库的 Obsidian 密钥链（Key
 
 ## 阅读器 [#reader]
 
-从 <SettingsPath page={m.settings_page_reader()} /> 打开此页面。它控制 ZotLit 如何在其 [PDF 阅读器](/docs/how-to/read-pdfs-in-zotlit-reader)中打开 PDF。
+从 <SettingsPath page={m.settings_page_reader()} /> 打开此页面。它控制 ZotLit 打开 PDF 时的行为。ZotLit 在独立插件 [ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader) 中显示 PDF；没有 ZotLit Reader 时，则在 Obsidian 自带的 PDF 视图中显示。
 
-| 标签                                                              | 键名                           | 控件 | 默认值 | 依赖                                                             | 存储   |
-| ----------------------------------------------------------------- | ------------------------------ | ---- | ------ | ---------------------------------------------------------------- | ------ |
-| <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | 开关 | 开启   | 无                                                               | 已同步 |
-| <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | 开关 | 开启   | 无                                                               | 已同步 |
-| <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | 开关 | 开启   | <UiLabel name={m.settings_reader_open_file_links_name()} /> 开启 | 已同步 |
-| <UiLabel name={m.settings_reader_open_all_pdfs_name()} />         | `reader.open-all-pdfs`         | 开关 | 关闭   | 无                                                               | 已同步 |
+| 标签                                                              | 键名                           | 控件       | 默认值 | 依赖                                                             | 存储   |
+| ----------------------------------------------------------------- | ------------------------------ | ---------- | ------ | ---------------------------------------------------------------- | ------ |
+| <UiLabel name={m.settings_reader_status_name()} />                | （无）                         | 状态和按钮 | （无） | 无                                                               | （无） |
+| <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | 开关       | 开启   | 无                                                               | 已同步 |
+| <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | 开关       | 开启   | 无                                                               | 已同步 |
+| <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | 开关       | 开启   | <UiLabel name={m.settings_reader_open_file_links_name()} /> 开启 | 已同步 |
+
+### ZotLit Reader 状态 [#reader-status]
+
+<UiLabel name={m.settings_reader_status_name()} /> 一行显示 ZotLit 是否已连接到
+ZotLit
+Reader。它显示一句说明；未连接时还有一个按钮。除已连接外，每句说明后都会加上
+<UiLabel name={m.settings_reader_status_fallback()} />
+
+| 状态                                   | 说明                                                                            | 按钮                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 已连接                                 | <UiLabel name={m.settings_reader_status_connected()} />                         | 无                                                           |
+| 未安装 ZotLit Reader                   | <UiLabel name={m.settings_reader_status_install()} />                           | <UiLabel name={m.settings_reader_status_install_action()} /> |
+| 已安装但已停用 ZotLit Reader           | <UiLabel name={m.settings_reader_status_turn_on()} />                           | <UiLabel name={m.settings_reader_status_turn_on_action()} /> |
+| ZotLit Reader 版本低于此 ZotLit 的要求 | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit Reader" })} /> | <UiLabel name={m.settings_reader_status_update_action()} />  |
+| ZotLit 版本低于此 ZotLit Reader 的要求 | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit" })} />        | <UiLabel name={m.settings_reader_status_update_action()} />  |
+
+该按钮会打开插件在 Obsidian 第三方插件市场中的页面。ZotLit Reader 尚未进入插件市场，因此请[通过 BRAT 安装](/docs/how-to/read-pdfs-in-zotlit-reader#install)。该行在连接状态变化时读取已安装的插件。安装 ZotLit Reader 后，请重新打开此页面以查看新状态。参见[没有 ZotLit Reader 时的 ZotLit](/docs/how-to/read-pdfs-in-zotlit-reader#without-reader)。
+
+### PDF 设置 [#reader-pdf]
 
 <UiLabel name={m.settings_reader_focus_annot_view_name()} />
 ：每次 ZotLit 打开 PDF 时，在侧栏中打开标注视图。关闭它可保持侧栏现状不变。
 
 <UiLabel name={m.settings_reader_open_file_links_name()} />
-：当笔记中的文件链接指向 Zotero 文库中的 PDF 时，在 ZotLit 的 PDF
-阅读器中打开该链接。其他所有文件链接均在系统应用中打开。右键点击并选择在系统应用中打开的链接也会在系统应用中打开。关闭此设置将在系统应用中打开所有文件链接。关闭时，标注卡片或查询视图行中的页码链接将在
+：当笔记中的文件链接指向 Zotero 文库中的 PDF 时，在 Obsidian
+中打开该链接：已连接 ZotLit Reader 时在 ZotLit Reader 中打开，否则在 Obsidian
+自带的 PDF
+视图中打开。其他所有文件链接均在系统应用中打开。右键点击并选择在系统应用中打开的链接也会在系统应用中打开。关闭此设置将在系统应用中打开所有文件链接。关闭时，标注卡片或查询视图行中的页码链接将在
 Zotero 中打开标注。
 
 <UiLabel name={m.settings_reader_open_annotation_links_name()} />
-：在 ZotLit 的 PDF
-阅读器中打开持久标注链接并选中该标注。标注卡片或查询视图行中的页码链接也会以相同方式打开。关闭时，该链接将在
+：在 ZotLit Reader 中打开持久标注链接并选中该标注。没有 ZotLit Reader
+时，该链接会在 Obsidian 自带的 PDF
+视图中打开到标注所在页。标注卡片或查询视图行中的页码链接也会以相同方式打开。关闭时，该链接将在
 Zotero 中打开。悬停在链接上仍会显示标注。必须同时开启
 <UiLabel name={m.settings_reader_open_file_links_name()} />。
 
-<UiLabel name={m.settings_reader_open_all_pdfs_name()} />
-：在 ZotLit 的 PDF 阅读器中打开仓库中的所有 PDF，包括嵌入的
-PDF、悬停预览和白板卡片。关闭时，只有 ZotLit 打开的 PDF 使用其阅读器，其余 PDF
-在 Obsidian 自带的 PDF 查看器中打开。参见[在 ZotLit 阅读器中打开所有
+参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。
+
+## ZotLit Reader [#zotlit-reader]
+
+ZotLit Reader 是一个独立的插件，有自己的设置标签页。从 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} /> 打开它的页面。该标签页还有一个 <UiLabel name={m.settings_page_advanced()} /> 页面。
+
+| 标签                                                      | 键名                   | 控件 | 默认值 | 依赖 | 存储   |
+| --------------------------------------------------------- | ---------------------- | ---- | ------ | ---- | ------ |
+| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | 开关 | 开启   | 无   | 已同步 |
+
+<UiLabel name={m.reader_settings_open_all_pdfs_name()} />
+：在 ZotLit Reader 中打开仓库中的所有 PDF，包括嵌入的
+PDF、悬停预览和白板卡片。关闭时，PDF 在 Obsidian 自带的 PDF 查看器中打开；ZotLit
+打开的 PDF 仍使用 ZotLit Reader。ZotLit Reader 将该值保存在它自己的 `data.json`
+中。参见[在 ZotLit Reader 中打开所有
 PDF](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs)。
 
-参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。
+早期版本的 ZotLit 在自己的阅读器页面上有此设置，名为
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} />
+。ZotLit Reader 不会读取该值：它安装后此设置为开启。
 
 ## 高级 [#advanced]
 

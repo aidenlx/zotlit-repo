@@ -689,39 +689,71 @@ The sub-page's first row is <UiLabel name={m.settings_attachment_approved_policy
 
 ## Reader [#reader]
 
-Open this page from <SettingsPath page={m.settings_page_reader()} />. It controls how ZotLit opens PDFs in its [PDF reader](/docs/how-to/read-pdfs-in-zotlit-reader).
+Open this page from <SettingsPath page={m.settings_page_reader()} />. It controls what ZotLit does when it opens a PDF. ZotLit shows PDFs in [ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader), a separate plugin, and in Obsidian's own PDF view when ZotLit Reader is missing.
 
-| Label                                                             | Key                            | Control | Default | Dependency                                                        | Storage |
-| ----------------------------------------------------------------- | ------------------------------ | ------- | ------- | ----------------------------------------------------------------- | ------- |
-| <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | Toggle  | On      | None                                                              | Synced  |
-| <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | Toggle  | On      | None                                                              | Synced  |
-| <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | Toggle  | On      | <UiLabel name={m.settings_reader_open_file_links_name()} /> is on | Synced  |
-| <UiLabel name={m.settings_reader_open_all_pdfs_name()} />         | `reader.open-all-pdfs`         | Toggle  | Off     | None                                                              | Synced  |
+| Label                                                             | Key                            | Control           | Default | Dependency                                                        | Storage |
+| ----------------------------------------------------------------- | ------------------------------ | ----------------- | ------- | ----------------------------------------------------------------- | ------- |
+| <UiLabel name={m.settings_reader_status_name()} />                | (none)                         | Status and button | (none)  | None                                                              | (none)  |
+| <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | Toggle            | On      | None                                                              | Synced  |
+| <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | Toggle            | On      | None                                                              | Synced  |
+| <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | Toggle            | On      | <UiLabel name={m.settings_reader_open_file_links_name()} /> is on | Synced  |
+
+### ZotLit Reader status [#reader-status]
+
+The <UiLabel name={m.settings_reader_status_name()} /> row tells you whether ZotLit is connected to ZotLit Reader. It shows one sentence and, unless the plugins are connected, one button. Each sentence except the connected one ends with <UiLabel name={m.settings_reader_status_fallback()} />
+
+| State                                         | Sentence                                                                        | Button                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Connected                                     | <UiLabel name={m.settings_reader_status_connected()} />                         | None                                                         |
+| ZotLit Reader is not installed                | <UiLabel name={m.settings_reader_status_install()} />                           | <UiLabel name={m.settings_reader_status_install_action()} /> |
+| ZotLit Reader is installed and turned off     | <UiLabel name={m.settings_reader_status_turn_on()} />                           | <UiLabel name={m.settings_reader_status_turn_on_action()} /> |
+| ZotLit Reader is older than this ZotLit needs | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit Reader" })} /> | <UiLabel name={m.settings_reader_status_update_action()} />  |
+| ZotLit is older than this ZotLit Reader needs | <UiLabel name={m.settings_reader_status_update({ plugin: "ZotLit" })} />        | <UiLabel name={m.settings_reader_status_update_action()} />  |
+
+The button opens the plugin's page in Obsidian's community plugin directory. ZotLit Reader is not in the directory yet, so [install it through BRAT](/docs/how-to/read-pdfs-in-zotlit-reader#install). The row reads the installed plugins when the connection changes. After you install ZotLit Reader, open this page again to see the new state. See [ZotLit without ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader#without-reader).
+
+### PDF settings [#reader-pdf]
 
 <UiLabel name={m.settings_reader_focus_annot_view_name()} /> opens the
 annotation view in the sidebar each time ZotLit opens a PDF. Turn it off to keep
 the sidebar as it is.
 
 <UiLabel name={m.settings_reader_open_file_links_name()} /> opens a file link in
-a note in ZotLit's PDF reader when the link points to a PDF in your Zotero
-library. Every other file link opens in your system app. A link you right-click
-and send to your system app also opens there. Turn it off to open all file links
-in your system app. While it is off, the page link on an annotation card or a
-Query View row opens the annotation in Zotero.
+a note in Obsidian when the link points to a PDF in your Zotero library: in
+ZotLit Reader when it is connected, and in Obsidian's own PDF view when not.
+Every other file link opens in your system app. A link you right-click and send
+to your system app also opens there. Turn it off to open all file links in your
+system app. While it is off, the page link on an annotation card or a Query View
+row opens the annotation in Zotero.
 
 <UiLabel name={m.settings_reader_open_annotation_links_name()} /> opens a
-durable annotation link in ZotLit's PDF reader with the annotation selected. The
-page link on an annotation card or a Query View row opens the same way. When
+durable annotation link in ZotLit Reader with the annotation selected. Without
+ZotLit Reader, the link opens Obsidian's own PDF view at the annotation's page.
+The page link on an annotation card or a Query View row opens the same way. When
 off, the link opens in Zotero. Hovering the link still shows the annotation.
 <UiLabel name={m.settings_reader_open_file_links_name()} /> must also be on.
 
-<UiLabel name={m.settings_reader_open_all_pdfs_name()} /> opens every PDF of the
-vault in ZotLit's PDF reader, with PDF embeds, hover previews and canvas cards.
-When off, only the PDFs that ZotLit opens use its reader, and the rest open in
-Obsidian's own PDF viewer. See [Open every PDF in the ZotLit
-reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
-
 See [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian).
+
+## ZotLit Reader [#zotlit-reader]
+
+ZotLit Reader is a separate plugin with its own settings tab. Open its page from <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} />. The tab also has an <UiLabel name={m.settings_page_advanced()} /> page.
+
+| Label                                                     | Key                    | Control | Default | Dependency | Storage |
+| --------------------------------------------------------- | ---------------------- | ------- | ------- | ---------- | ------- |
+| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | Toggle  | On      | None       | Synced  |
+
+<UiLabel name={m.reader_settings_open_all_pdfs_name()} /> opens every PDF of the
+vault in ZotLit Reader, with PDF embeds, hover previews and canvas cards. When
+off, PDFs open in Obsidian's own PDF viewer; the PDFs that ZotLit opens still
+use ZotLit Reader. ZotLit Reader keeps the value in its own `data.json`. See
+[Open every PDF in ZotLit
+Reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
+
+Earlier versions of ZotLit had this setting on their own Reader page, as
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} />. ZotLit Reader does
+not read that value: it starts with the setting on.
 
 ## Advanced [#advanced]
 
