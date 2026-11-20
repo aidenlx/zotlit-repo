@@ -1143,9 +1143,14 @@ const vaultCli = yargs(hideBin(process.argv))
   .command(
     "create [vault-path]",
     "seed and register this worktree's Development Vault",
-    (y) => y.positional("vault-path", vaultPathPosition),
+    (y) =>
+      y
+        .positional("vault-path", vaultPathPosition)
+        .option("plugins", pluginsOption),
     async (argv) => {
-      await create(argv["vault-path"] ?? defaultVault);
+      await create(argv["vault-path"] ?? defaultVault, {
+        plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
+      });
     },
   )
   .command(
