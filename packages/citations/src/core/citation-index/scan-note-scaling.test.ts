@@ -35,10 +35,11 @@ it.each([
     for (let sample = 0; sample < sampleCount; sample++) {
       for (const index of indices) {
         let linkCount = 0;
-        const start = performance.now();
+        const start = process.threadCpuUsage();
         for (let scan = 0; scan < scansPerSample; scan++)
           linkCount += scanNote(sources[index]!).wikilinks.length;
-        samples[index]!.push((performance.now() - start) / scansPerSample);
+        const { user, system } = process.threadCpuUsage(start);
+        samples[index]!.push((user + system) / 1000 / scansPerSample);
         expect(linkCount).toBe(links.length * scansPerSample);
       }
       indices.reverse();

@@ -153,11 +153,13 @@ class Reader<H> {
     [this.#viewer, this.#pages] = this.#buildViewer();
     this.#find = new FindSession(this.#viewer, {
       read: () => this.#atoms.state.get().find,
-      update: (change) =>
+      update: (change) => {
         this.#atoms.update((state) => {
           const find = change(state.find);
           return find === state.find ? state : { ...state, find };
-        }),
+        });
+        this.#lifetime.check();
+      },
       searched: () => {
         this.#closePopup();
         this.#navigation.clearHighlight();
@@ -180,7 +182,9 @@ class Reader<H> {
         show: (held, kept) => this.#show(held, kept),
         resumed: () => this.#find.resume(),
         closing: () => this.#closing(),
-        quiet: () => this.#navigation.quiet(),
+        quiet: () =>
+          this.#atoms.state.get().find.phase !== "pending" &&
+          this.#navigation.quiet(),
       },
     });
     this.#mountSubpath = options.subpath ? parseSubpath(options.subpath) : null;

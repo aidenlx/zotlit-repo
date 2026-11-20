@@ -19,16 +19,17 @@ it("scans dense Pandoc Citations in linear time", () => {
       expect(scanPandocCitations(source)).toHaveLength(counts[index]!);
     }
   }
-  // Real elapsed time is the behavior under test. Batch scans and alternate
-  // size order so timer noise and host load do not favor one size.
+  // Batch scans and alternate size order so timer noise and host load do not
+  // favor one size.
   const indices = [0, 1, 2, 3];
   for (let sample = 0; sample < sampleCount; sample++) {
     for (const index of indices) {
       let citationCount = 0;
-      const start = performance.now();
+      const start = process.threadCpuUsage();
       for (let scan = 0; scan < scansPerSample; scan++)
         citationCount += scanPandocCitations(sources[index]!).length;
-      samples[index]!.push((performance.now() - start) / scansPerSample);
+      const { user, system } = process.threadCpuUsage(start);
+      samples[index]!.push((user + system) / 1000 / scansPerSample);
       expect(citationCount).toBe(counts[index]! * scansPerSample);
     }
     indices.reverse();
