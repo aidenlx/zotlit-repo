@@ -48,6 +48,8 @@ export const PUBLISHED_PLUGINS = {
     budget: {
       mainJsBytes: 5_000_000,
       stylesCssBytes: 146_143,
+      startupDailyMs: 145,
+      startupUpdateMs: 190,
     },
     allowedRequires: [
       "obsidian",
@@ -95,6 +97,8 @@ export const PUBLISHED_PLUGINS = {
     budget: {
       mainJsBytes: 1_700_000,
       stylesCssBytes: 291_892,
+      startupDailyMs: 30,
+      startupUpdateMs: 50,
     },
     allowedRequires: ["obsidian"],
   },
