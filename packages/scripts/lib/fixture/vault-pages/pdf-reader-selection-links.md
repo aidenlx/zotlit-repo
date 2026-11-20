@@ -39,7 +39,7 @@ in Obsidian's own PDF view and highlights the same text.
 | Turn the takeover off, then open the pasted link. | Obsidian's own PDF view opens page 5 with the same text highlighted. |
 | In the PDF reader, select a line on page 1 of `rougier-2014.pdf` and select **Copy as quote**. | The quote ends with a link that highlights the same line in the PDF reader and in Obsidian's own PDF view. |
 
-The desktop check, `pnpm e2e --project=desktop src/pdf-reader.e2e.ts`, partly
+The desktop check, `pnpm e2e --project=desktop src/reader.e2e.ts -t R-2`, partly
 covers this page. It opens each link of the first table in Obsidian's own PDF
 view and in the PDF reader, and checks that both highlight the expected text,
 and that the link past the end of page 5 opens page 5 with no highlight. It

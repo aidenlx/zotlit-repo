@@ -43,7 +43,9 @@ export function languagePackResetItem(
           awaitConfirm(
             {
               title: m.settings_language_pack_reset_confirm_title(),
-              content: m.settings_language_pack_reset_confirm_body(),
+              content: m.settings_language_pack_reset_confirm_body({
+                plugin: ctx.manifest.name,
+              }),
               action: m.settings_language_pack_reset_action(),
               destructive: true,
             },

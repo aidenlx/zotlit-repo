@@ -30,12 +30,13 @@ export type LanguagePackSettingCopy = {
  * is already running.
  */
 export function languagePackSettingCopy(lifecycle: {
+  readonly plugin: string;
   readonly endonym: string;
   readonly situation: LanguagePackSituation;
   /** Installs behind the download toast, which reports the outcome. */
   install(): void;
 }): LanguagePackSettingCopy | undefined {
-  const { endonym, situation } = lifecycle;
+  const { plugin, endonym, situation } = lifecycle;
   const name = m.settings_language_pack_name();
   // `install()` joins the download in flight, so the disabled button's action
   // stays the real one rather than a stand-in that could never run.
@@ -50,18 +51,18 @@ export function languagePackSettingCopy(lifecycle: {
     case "active":
       return undefined;
     case "restart-pending":
-      return { name, desc: m.notice_language_pack_restart() };
+      return { name, desc: m.notice_language_pack_restart({ plugin }) };
     case "downloading":
       return {
         name,
-        desc: m.notice_language_pack_downloading(),
+        desc: m.notice_language_pack_downloading({ plugin }),
         install: install(true),
       };
     case "offered":
     case "installable":
       return {
         name,
-        desc: m.settings_language_pack_desc({ language: endonym }),
+        desc: m.settings_language_pack_desc({ plugin, language: endonym }),
         install: install(false),
       };
   }

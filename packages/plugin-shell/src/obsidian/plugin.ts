@@ -104,7 +104,7 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
       const languagePack = startI18n(
         this.app,
         host.languagePack,
-        this.manifest.version,
+        this.manifest,
       );
 
       this.preflight();
@@ -155,7 +155,7 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
 
       void stack?.disposeAsync().catch((error: unknown) => {
         console.error("ZotLit cleanup error:", error);
-        new BaseNotice("Failed to clean up ZotLit resources");
+        new BaseNotice(`Failed to clean up ${this.manifest.name} resources`);
       });
     }
   };

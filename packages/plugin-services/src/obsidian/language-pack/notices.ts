@@ -33,9 +33,9 @@ class LanguagePackInstallCopy extends Schema.TaggedError<
 const failWithCopy = (message: string, cause: LanguagePackInstallError) =>
   Effect.fail(new LanguagePackInstallCopy({ message, cause }));
 
-const downloadFailedCopy = (cause: LanguagePackInstallError) =>
+const downloadFailedCopy = (plugin: string, cause: LanguagePackInstallError) =>
   failWithCopy(
-    m.notice_language_pack_download_failed({ message: cause.message }),
+    m.notice_language_pack_download_failed({ plugin, message: cause.message }),
     cause,
   );
 
@@ -44,6 +44,7 @@ const downloadFailedCopy = (cause: LanguagePackInstallError) =>
  * runs, then the restart notice or the failure.
  */
 const reportInstall = (
+  plugin: string,
   outcome: Effect.Effect<
     Exit.Exit<LanguagePackRestartNotice, LanguagePackInstallError>
   >,
@@ -57,15 +58,18 @@ const reportInstall = (
         // instead of the error.
         (error) =>
           error.updateNeeded
-            ? failWithCopy(m.notice_language_pack_update_needed(), error)
-            : downloadFailedCopy(error),
-        (error) => downloadFailedCopy(error),
+            ? failWithCopy(
+                m.notice_language_pack_update_needed({ plugin }),
+                error,
+              )
+            : downloadFailedCopy(plugin, error),
+        (error) => downloadFailedCopy(plugin, error),
       ),
       Effect.exit,
     ),
     {
-      loading: m.notice_language_pack_downloading(),
-      success: m.notice_language_pack_restart(),
+      loading: m.notice_language_pack_downloading({ plugin }),
+      success: m.notice_language_pack_restart({ plugin }),
       error: (error) => (Error.isError(error) ? error.message : String(error)),
       successDuration: RESTART_NOTICE_DURATION,
     },
@@ -79,7 +83,7 @@ export const toastLanguagePackInstall = Effect.gen(function* () {
   const pack = yield* LanguagePack;
   // Started once: the toast awaits it again after its loading delay.
   const install = yield* Effect.forkChild(pack.install);
-  yield* reportInstall(Fiber.await(install));
+  yield* reportInstall(pack.plugin, Fiber.await(install));
 }).pipe(Effect.withSpan("LanguagePackNotices.toastInstall"));
 
 /**
@@ -95,7 +99,7 @@ export const layerLanguagePackNotices: Layer.Layer<
   Effect.gen(function* () {
     const pack = yield* LanguagePack;
     if (Option.isSome(pack.refresh)) {
-      yield* Effect.forkScoped(reportInstall(pack.refresh.value));
+      yield* Effect.forkScoped(reportInstall(pack.plugin, pack.refresh.value));
     } else if ((yield* pack.situation).kind === "offered") {
       yield* showInstallOffer;
     }
@@ -117,7 +121,10 @@ const showInstallOffer = Effect.gen(function* () {
   const notice: NoticeHandle = yield* notifier.show(
     BaseNotice.render((renderer) => {
       renderer.setTitle(
-        m.notice_language_pack_install({ language: pack.endonym }),
+        m.notice_language_pack_install({
+          plugin: pack.plugin,
+          language: pack.endonym,
+        }),
       );
       renderer.addAction((button) => {
         button

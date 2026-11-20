@@ -72,14 +72,20 @@ export const startOn = Effect.fn("test.startOn")(function* (
     language,
     pluginVersion = "2.0.0",
     identity = ZOTLIT_IDENTITY,
+    plugin = "ZotLit",
   }: {
     language: string;
     pluginVersion?: string;
     identity?: LanguagePackIdentity;
+    plugin?: string;
   },
 ) {
   const storage = layerDeviceStorageFrom(device);
-  const startup = yield* startLanguagePack(identity, pluginVersion).pipe(
+  const startup = yield* startLanguagePack(
+    identity,
+    pluginVersion,
+    plugin,
+  ).pipe(
     Effect.provide(
       Layer.merge(
         storage,

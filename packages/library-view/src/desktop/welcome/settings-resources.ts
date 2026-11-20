@@ -104,6 +104,7 @@ export function resourcesGroup(
     current["note.template-conversion-pending"] === true;
   const pack = ctx.tab.sync(LanguagePack);
   const languagePack = languagePackSettingCopy({
+    plugin: pack.plugin,
     endonym: pack.endonym,
     situation: ctx.tab.sync(pack.situation),
     install: () =>

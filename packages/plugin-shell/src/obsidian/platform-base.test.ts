@@ -49,6 +49,7 @@ const base = Layer.mergeAll(
   testPluginHost({ onViewCreated: () => Effect.succeed(false) }).layer,
   Layer.mock(LanguagePack)({
     locale: "en",
+    plugin: "ZotLit",
     endonym: "English",
     refresh: Option.none(),
     situation: Effect.succeed({ kind: "unavailable" }),

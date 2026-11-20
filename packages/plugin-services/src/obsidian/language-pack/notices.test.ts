@@ -159,7 +159,7 @@ describe("Language Pack startup notices", () => {
         yield* eventually(() => expect(notices).toHaveLength(2));
 
         expect(notices[1]?.messages.map(textOf)).toEqual([
-          m.notice_language_pack_restart(),
+          m.notice_language_pack_restart({ plugin: "ZotLit" }),
         ]);
         yield* TestClock.adjust("9 seconds");
         expect(notices[1]?.hidden).toBe(false);
@@ -199,15 +199,15 @@ describe("Language Pack startup notices", () => {
         const { pack, notices } = yield* loadOn(device, { language: "zh" });
         yield* TestClock.adjust("200 millis");
         expect(notices.map((notice) => notice.messages.map(textOf))).toEqual([
-          [m.notice_language_pack_downloading()],
+          [m.notice_language_pack_downloading({ plugin: "ZotLit" })],
         ]);
 
         answer();
         yield* leaving(pack, "downloading");
         yield* eventually(() => expect(notices[0]?.messages).toHaveLength(2));
         expect(notices[0]?.messages.map(textOf)).toEqual([
-          m.notice_language_pack_downloading(),
-          m.notice_language_pack_restart(),
+          m.notice_language_pack_downloading({ plugin: "ZotLit" }),
+          m.notice_language_pack_restart({ plugin: "ZotLit" }),
         ]);
       }),
   );
@@ -216,13 +216,14 @@ describe("Language Pack startup notices", () => {
     [
       "the restart notice",
       CHINESE_PACK,
-      () => m.notice_language_pack_restart(),
+      () => m.notice_language_pack_restart({ plugin: "ZotLit" }),
     ],
     [
       "the failure",
       { status: 503, text: "unavailable" },
       () =>
         m.notice_language_pack_download_failed({
+          plugin: "ZotLit",
           message:
             "https://github.com/aidenlx/zotlit/releases/download/res-2.0.0/zh-CN.json responded 503",
         }),
@@ -253,6 +254,7 @@ describe("Language Pack startup notices", () => {
       { status: 503, text: "unavailable" },
       () =>
         m.notice_language_pack_download_failed({
+          plugin: "ZotLit",
           message:
             "https://github.com/aidenlx/zotlit/releases/download/res-2.0.0/zh-CN.json responded 503",
         }),
@@ -260,7 +262,7 @@ describe("Language Pack startup notices", () => {
     [
       "asks for a plugin update for a pack from a newer lineage",
       JSON.stringify({ schemaVersion: 2, locale: "zh-CN", messages: {} }),
-      () => m.notice_language_pack_update_needed(),
+      () => m.notice_language_pack_update_needed({ plugin: "ZotLit" }),
     ],
   ] as const)("%s", ([, answer, expected]) =>
     Effect.gen(function* () {

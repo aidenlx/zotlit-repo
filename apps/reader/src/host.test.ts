@@ -10,7 +10,6 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   fakeDevice,
   startOn,
@@ -27,6 +26,7 @@ import {
   settingDefinitions,
   settingTabContext,
 } from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
+import * as m from "@zotlit/reader-messages/messages.ts";
 
 import { host } from "./host.ts";
 
@@ -79,7 +79,7 @@ function pageNames(items: readonly SettingDefinitionItem[]): string[] {
   ]);
 }
 
-it("shows the Advanced page with the log rows and the Language Pack reset", () => {
+it("shows the Reader page, then the Advanced page with the log rows and the Language Pack reset", () => {
   const ctx = stubService<SettingTabContext>("SettingTabContext", {
     tab: stubService<SettingTabContext["tab"]>("SettingTab", {}),
     webWorkbenchEnabled: false,
@@ -94,6 +94,8 @@ it("shows the Advanced page with the log rows and the Language Pack reset", () =
     host.settingTab,
   );
   expect(pageNames(tree)).toEqual([
+    m.reader_settings_page(),
+    m.reader_settings_open_all_pdfs_name(),
     m.settings_page_advanced(),
     m.settings_advanced_logging_heading(),
     m.settings_log_level_name(),

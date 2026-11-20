@@ -68,6 +68,7 @@ function ctx(): SettingTabContext {
           LanguagePack,
           stubService<LanguagePack["Service"]>("LanguagePack", {
             situation: Effect.succeed({ kind: "unavailable" }),
+            plugin: "ZotLit",
             endonym: "English",
           }),
         ),

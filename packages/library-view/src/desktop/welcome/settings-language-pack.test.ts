@@ -72,7 +72,7 @@ it.effect(
           Stream.runHead,
         );
         expect(languagePackRow(ctx)?.desc).toBe(
-          m.notice_language_pack_restart(),
+          m.notice_language_pack_restart({ plugin: "ZotLit" }),
         );
       }),
     ),

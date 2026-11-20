@@ -67,6 +67,7 @@ it("opens conversion review from the pending reminder and removes it after accep
               kind: "active" as const,
               pack: { fileName: "en.json", origin: "https://example.com" },
             }),
+            plugin: "ZotLit",
             endonym: "English",
           }),
         ),

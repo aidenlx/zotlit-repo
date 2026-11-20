@@ -21,10 +21,10 @@ this note again.
 | Turn **Open all PDFs in the ZotLit reader** off, then open this note again. | The embeds show Obsidian's own PDF embed. A PDF opened from the file explorer opens in Obsidian's PDF view. |
 
 Two desktop checks cover this page. `pnpm e2e --project=desktop
-src/pdf-reader.e2e.ts` checks the three embeds, **More options**, the hover
-preview, the move to a new window, the canvas card's reader, the page images
-of a static render, and the turn back to Obsidian's PDF embed, in Reading view,
-through the reader probe plugin (`packages/e2e/fixtures/reader-probe-plugin`).
+src/reader.e2e.ts -t R-3` checks the three embeds, **More options**, the hover
+preview, the Live Preview embed of `#height=300`, the move to a new window and
+the canvas card's reader in ZotLit Reader alone, and `-t R-5` checks the turn
+back to Obsidian's PDF embed when **Open all PDFs** is off.
 `pnpm e2e --project=desktop src/zotlit-pdf-reader.e2e.ts` turns on ZotLit's
 setting and checks a real text drag in a Live Preview embed with the note's
 cursor kept, the hover preview, a real text drag on the canvas card, and the

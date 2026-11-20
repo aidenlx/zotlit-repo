@@ -36,6 +36,7 @@ const settingCopy = Effect.fn("test.settingCopy")(function* (
 ) {
   const situation = yield* pack.situation;
   return languagePackSettingCopy({
+    plugin: pack.plugin,
     endonym: pack.endonym,
     situation,
     install: () => {},
@@ -65,14 +66,17 @@ describe("Language Pack startup", () => {
         const pack = yield* startOn(fakeDevice(), { language: "zh" });
 
         expect(pack.endonym).toBe("简体中文");
-        expect(m.notice_language_pack_install({ language: pack.endonym })).toBe(
-          "ZotLit 简体中文 语言包可用。",
-        );
+        expect(
+          m.notice_language_pack_install({
+            plugin: "ZotLit",
+            language: pack.endonym,
+          }),
+        ).toBe("ZotLit 简体中文 语言包可用。");
         expect(m.notice_language_pack_decline_action()).toBe("不再询问");
-        expect(m.notice_language_pack_downloading()).toBe(
+        expect(m.notice_language_pack_downloading({ plugin: "ZotLit" })).toBe(
           "正在下载 ZotLit 语言包…",
         );
-        expect(m.notice_language_pack_restart()).toBe(
+        expect(m.notice_language_pack_restart({ plugin: "ZotLit" })).toBe(
           "重启 Obsidian 以应用 ZotLit 语言包。",
         );
         const offered = yield* settingCopy(pack);
@@ -185,7 +189,9 @@ describe("Language Pack install", () => {
       expect(device.requests).toEqual([PACK_URL]);
       expect(kinds).toEqual(["downloading", "restart-pending"]);
       const downloaded = yield* settingCopy(pack);
-      expect(downloaded?.desc).toBe(m.notice_language_pack_restart());
+      expect(downloaded?.desc).toBe(
+        m.notice_language_pack_restart({ plugin: "ZotLit" }),
+      );
       expect(downloaded?.install).toBeUndefined();
       // Cached, not applied: the facade still reads the bundled base pack.
       expect(m.hello()).toBe("world");
@@ -307,7 +313,7 @@ describe("Language Pack install", () => {
         disabled: true,
       });
       expect((yield* settingCopy(pack))?.desc).toBe(
-        m.notice_language_pack_downloading(),
+        m.notice_language_pack_downloading({ plugin: "ZotLit" }),
       );
       const second = yield* Effect.forkChild(pack.install, {
         startImmediately: true,

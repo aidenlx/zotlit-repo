@@ -101,6 +101,7 @@ export class LanguagePack extends Context.Service<
   LanguagePack,
   {
     readonly locale: string;
+    readonly plugin: string;
     /**
      * The resolved language's Endonym, for copy that names the Language
      * Pack's language. Falls back to {@link locale} for a language outside
@@ -145,6 +146,7 @@ export class LanguagePack extends Context.Service<
 export interface LanguagePackStartup {
   readonly identity: LanguagePackIdentity;
   readonly pluginVersion: string;
+  readonly plugin: string;
   readonly locale: string;
   readonly endonym: string;
   /** Absent when no pack ships for the locale. */
@@ -203,6 +205,7 @@ const storageFailed = (cause: unknown) =>
 export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
   identity: LanguagePackIdentity,
   pluginVersion: string,
+  plugin: string,
 ) {
   const { catalog, runtime, namespace, repository } = identity;
   const storage = deviceStorage(yield* DeviceStorage);
@@ -239,6 +242,7 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
     return {
       identity,
       pluginVersion,
+      plugin,
       locale,
       endonym,
     } satisfies LanguagePackStartup;
@@ -255,6 +259,7 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
     ({
       identity,
       pluginVersion,
+      plugin,
       locale,
       endonym,
       remote: { pack, url, found },
@@ -336,7 +341,8 @@ export function layerLanguagePack(
     Effect.gen(function* () {
       const storage = deviceStorage(yield* DeviceStorage);
       const http = yield* HttpClient.HttpClient;
-      const { identity, pluginVersion, locale, endonym, remote } = startup;
+      const { identity, pluginVersion, plugin, locale, endonym, remote } =
+        startup;
       const { catalog, namespace } = identity;
 
       /**
@@ -370,6 +376,7 @@ export function layerLanguagePack(
         yield* Effect.addFinalizer(() => PubSub.shutdown(situation.pubsub));
         return LanguagePack.of({
           locale,
+          plugin,
           endonym,
           situation: SubscriptionRef.get(situation),
           changes: SubscriptionRef.changes(situation),
@@ -568,6 +575,7 @@ export function layerLanguagePack(
       const situation = situationOf(pack);
       return LanguagePack.of({
         locale,
+        plugin,
         endonym,
         situation: Effect.map(SubscriptionRef.get(record), (current) =>
           situation(current),

@@ -24,9 +24,9 @@ display menu of the reader toolbar and in **More options** of the reader view.
 | With **Adapt to theme** on, close the PDF and open it again. | **Adapt to theme** is still on, and the page opens in the colours of the theme. |
 | In the light theme, with **Adapt to theme** on, turn on a CSS snippet with `body { --pdf-page-background: #f4ecd8; }`. | The page turns sepia. The "H" stays black and the rectangle stays dark blue. |
 
-The desktop check, `pnpm e2e --project=desktop src/pdf-reader.e2e.ts -t 'Obsidian theme'`,
+The desktop check, `pnpm e2e --project=desktop src/reader.e2e.ts -t R-4`,
 covers the first three rows, the change back to the light theme and the
-background tab on this PDF in the reader view. The Electron test
+background tab on this PDF in the reader view of ZotLit Reader alone. The Electron test
 `packages/pdf-reader/src/core/theme/theme.test.ts` checks the colour of each
 part on a light, a sepia and a dark page, the text field, the thumbnail, and
 that a theme event with no colour change does not repaint the page;

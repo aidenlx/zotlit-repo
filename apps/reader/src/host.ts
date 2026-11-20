@@ -14,7 +14,7 @@ export const host = defineHost({
     namespace: "zotlit-reader",
     repository: __PLUGIN_REPOSITORY__,
   },
-  settingTab: { top: [], pages: ["advanced"] },
+  settingTab: { top: [], pages: ["reader", "advanced"] },
   fileMenu: [],
   folderMenu: [],
 });

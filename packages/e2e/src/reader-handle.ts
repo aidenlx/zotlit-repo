@@ -2,6 +2,7 @@ import type { View } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
 import type { ReaderApi } from "@zotlit/reader-api";
+import type { E2eServices as ReaderServices } from "@zotlit/reader/e2e";
 
 import type { PageApp } from "./page-host.ts";
 
@@ -44,14 +45,29 @@ export function createReaderHandle(
     },
     open: (file, options) => api().open(file, options),
     setTakeover: async (on) => {
-      const services = zotlit();
-      if (!services) throw new Error("ZotLit Reader has no takeover setting");
-      const { bridge, settings } = services;
-      await bridge.runPromise(settings.update({ "reader.open-all-pdfs": on }));
       const wanted = on ? "on" : "off";
+      const services = zotlit();
+      if (services) {
+        const { bridge, settings } = services;
+        await bridge.runPromise(
+          settings.update({ "reader.open-all-pdfs": on }),
+        );
+        await until(
+          `the takeover to turn ${wanted}`,
+          () => registration(services).takeover.get() === wanted,
+        );
+        return;
+      }
+      const reader = app.plugins.plugins["zotlit-reader"]?.services as
+        | ReaderServices
+        | undefined;
+      if (!reader) throw new Error("ZotLit Reader is not loaded");
+      await reader.bridge.runPromise(
+        reader.settings.update({ "reader.open-all-pdfs": on }),
+      );
       await until(
         `the takeover to turn ${wanted}`,
-        () => registration(services).takeover.get() === wanted,
+        () => (app.viewRegistry.typeByExtension.pdf === "pdf") !== on,
       );
     },
     views: () => {

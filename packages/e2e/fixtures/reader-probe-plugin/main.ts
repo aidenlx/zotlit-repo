@@ -1,5 +1,4 @@
-import type { Component } from "obsidian";
-import { MarkdownRenderer, Plugin } from "obsidian";
+import { Plugin } from "obsidian";
 
 import type { PdfReaderRegistration } from "@zotlit/pdf-reader/obsidian";
 import { registerPdfReader } from "@zotlit/pdf-reader/obsidian";
@@ -15,7 +14,6 @@ export default class ReaderProbePlugin extends Plugin {
     readonly subpath: string | null;
     readonly restored: boolean;
   }[] = [];
-  readonly migrated: { readonly kind: string; readonly window: Window }[] = [];
 
   override onload(): void {
     this.pdf = registerPdfReader(this, {
@@ -25,17 +23,12 @@ export default class ReaderProbePlugin extends Plugin {
         {
           id: PROBE_LAYER,
           kinds: ["view", "embed", "hover", "canvas"],
-          attach: ({ host, subpath, reader }) => {
+          attach: ({ host, subpath }) => {
             this.attached.push({
               kind: host.kind,
               subpath: subpath?.raw ?? null,
               restored: host.restored,
             });
-            return {
-              [Symbol.dispose]: reader.on("window-migrated", ({ window }) => {
-                this.migrated.push({ kind: host.kind, window });
-              }),
-            };
           },
           drawPage: (page, layer) => {
             this.drawn++;
@@ -51,20 +44,5 @@ export default class ReaderProbePlugin extends Plugin {
         },
       ],
     });
-  }
-
-  render(target: {
-    readonly markdown: string;
-    readonly element: HTMLElement;
-    readonly sourcePath: string;
-    readonly component: Component;
-  }): Promise<void> {
-    return MarkdownRenderer.render(
-      this.app,
-      target.markdown,
-      target.element,
-      target.sourcePath,
-      target.component,
-    );
   }
 }

@@ -2705,6 +2705,9 @@ importers:
       '@zotlit/plugin-kernel':
         specifier: workspace:*
         version: link:../plugin-kernel
+      '@zotlit/plugin-services':
+        specifier: workspace:*
+        version: link:../plugin-services
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
@@ -2714,6 +2717,9 @@ importers:
       effect:
         specifier: 'catalog:'
         version: 4.1.2
+      valibot:
+        specifier: 'catalog:'
+        version: 1.4.2(typescript@7.0.2)
     devDependencies:
       '@zotlit/config':
         specifier: workspace:*

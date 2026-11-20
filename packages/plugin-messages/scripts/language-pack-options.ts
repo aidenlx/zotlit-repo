@@ -2,8 +2,12 @@
 // the root inlang project holds for other hosts. Every caller that compiles the
 // pack reads them from here, so one prefix is added in one place.
 
-/** The site and Companion own these namespaces; the plugin also renders Workbench copy. */
-export const EXCLUDE_MESSAGE_PREFIXES = ["docs_", "zotero."] as const;
+/** The site, the Companion and ZotLit Reader own these namespaces; the plugin also renders Workbench copy. */
+export const EXCLUDE_MESSAGE_PREFIXES = [
+  "docs_",
+  "zotero.",
+  "reader_",
+] as const;
 
 /** Companion labels quoted by the live-updates settings descriptions. */
 export const INCLUDE_MESSAGES = [
