@@ -132,10 +132,10 @@ if (release) {
 }
 
 /**
- * One Desktop Slot hold covers both desktop runs: one wait in the Desktop
- * Queue and one Memory Gate pass, which the nested runs reuse through the
- * environment. Their test cases renew its Lease. At the Admission Deadline
- * this exits 75, outside `step`.
+ * One Desktop Slot hold, an Exclusive Hold, covers the desktop runs and the
+ * start-up gate: one wait in the Desktop Queue and one Memory Gate pass, which
+ * the nested runs reuse through the environment. Their test cases and loads
+ * renew its Lease. At the Admission Deadline this exits 75, outside `step`.
  */
 async function desktopChecks(): Promise<void> {
   using slot = ci

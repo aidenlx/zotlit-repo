@@ -11,9 +11,10 @@ The End-to-end Run suite — the plugin running in a real desktop Obsidian windo
 - Worker responsiveness: `pnpm e2e:worker` requires desktop Obsidian and passes only when the unchanged refresh, changed-Item rebuild, and rejected-snapshot cases all execute. `pnpm verify --release` runs it after the full End-to-end Run on the desktop. Its worker timer detects stalls that sequential search p99 can hide.
 
 - `pnpm --filter @zotlit/e2e measure:query` — the release-time measurement of ZotLit Query (see below).
+- `pnpm --filter @zotlit/e2e measure:startup [--check]` — the start-up of each plugin's production build; `pnpm verify --release` runs it with `--check` (see "Start-up measurement").
 - `pnpm --filter @zotlit/e2e test` — unit tests of the measurement record, the PDF sidebar pin, and other suite logic (`src/**/*.test.ts`, `vitest.unit.config.ts`). They touch no Obsidian.
 
-The End-to-end Run and the measurement drive a real Electron app. The `test` script runs the unit tests alone. `pnpm verify --release` requires the full End-to-end Run, including the Paired Run, followed by worker responsiveness on the desktop. GitHub Actions skips the desktop checks; `pnpm release` runs them in the Land Turn of the version commit.
+The End-to-end Run and the measurement drive a real Electron app. The `test` script runs the unit tests alone. `pnpm verify --release` requires the full End-to-end Run, including the Paired Run, followed by worker responsiveness and the start-up gate on the desktop. GitHub Actions skips the desktop checks; `pnpm release` runs them in the Land Turn of the version commit.
 
 ## Docs walks
 

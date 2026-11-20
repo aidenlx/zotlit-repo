@@ -33,8 +33,6 @@ export interface PluginBudget {
   readonly startupWarmMs?: number;
 }
 
-const READER_MAIN_JS_BYTES_PROPOSED = 1_700_000;
-
 export const PUBLISHED_PLUGINS = {
   desktop: {
     app: "apps/obsidian",
@@ -95,7 +93,7 @@ export const PUBLISHED_PLUGINS = {
     giscus: false,
     resources: "Language Packs",
     budget: {
-      mainJsBytes: READER_MAIN_JS_BYTES_PROPOSED,
+      mainJsBytes: 1_700_000,
       stylesCssBytes: 291_892,
     },
     allowedRequires: ["obsidian"],

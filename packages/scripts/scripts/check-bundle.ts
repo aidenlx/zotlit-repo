@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
@@ -9,19 +8,15 @@ import { getWorkspaceRoot } from "#package-roots";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-const plugins = await Promise.all(
-  Object.entries(PUBLISHED_PLUGINS).map(async ([name, plugin]) => {
-    const { name: packageName } = JSON.parse(
-      await readFile(join(root, plugin.app, "package.json"), "utf8"),
-    ) as { name: string };
-    return { name, plugin, packageName };
-  }),
-);
+const plugins = Object.entries(PUBLISHED_PLUGINS).map(([name, plugin]) => ({
+  name,
+  plugin,
+}));
 
 await $({
   cwd: root,
   stdio: "inherit",
-})`pnpm exec turbo run build ${plugins.map(({ packageName }) => `--filter=${packageName}`)} --concurrency=2`;
+})`pnpm exec turbo run build ${plugins.map(({ plugin }) => `--filter=./${plugin.app}`)} --concurrency=2`;
 
 let failed = false;
 for (const { name, plugin } of plugins) {

@@ -40,6 +40,31 @@ import {
 
 const WARM_PRIMING_LOADS = 2;
 const SETTLE_MS = 3000;
+const DEFAULT_RUNS = 5;
+const MODES = ["cold", "warm"] as const;
+
+function renderReference(): string {
+  const budgets = Object.values<PublishedPlugin>(PUBLISHED_PLUGINS).map(
+    ({ app, budget }) =>
+      `  ${app}: ${budget.startupWarmMs === undefined ? "no warm budget, medians recorded only" : `warm median at most ${budget.startupWarmMs} ms`}`,
+  );
+  return [
+    "Needs desktop Obsidian with the CLI enabled and the production builds",
+    "in apps/<app>/dist (pnpm check:bundle). Takes an Exclusive Hold.",
+    "",
+    "Modes, in this order:",
+    "  cold: a new comment in each main.js per load, so no V8 code cache matches",
+    `  warm: the same bytes each load, after ${WARM_PRIMING_LOADS} priming loads that are not counted`,
+    "Each load reloads the window and waits for the layout and every plugin,",
+    `then waits ${SETTLE_MS} ms and reads communityPlugins.<id> from dev:startup.`,
+    "",
+    "Warm budgets (--check, from PUBLISHED_PLUGINS budget.startupWarmMs):",
+    ...budgets,
+    "",
+    "Output:",
+    "  .scratch/startup-measure/<time>/summary.json and dev-startup.jsonl",
+  ].join("\n");
+}
 
 const options = await yargs(hideBin(process.argv))
   .usage(
@@ -49,7 +74,7 @@ const options = await yargs(hideBin(process.argv))
   .option("runs", {
     describe: "counted window loads per mode",
     type: "number",
-    default: 5,
+    default: DEFAULT_RUNS,
   })
   .option("check", {
     describe: "fail when a warm median is above its plugin's startupWarmMs",
@@ -61,6 +86,7 @@ const options = await yargs(hideBin(process.argv))
     type: "boolean",
     default: false,
   })
+  .epilogue(renderReference())
   .strict()
   .version(false)
   .parse();
@@ -202,7 +228,7 @@ try {
   ]);
   vaultId = created.stdout.trim().split("\n")[0]!.trim();
   await prepareRunWindow(vaultId);
-  for (const mode of ["cold", "warm"] as const) {
+  for (const mode of MODES) {
     const runs = await measure(mode);
     for (const id of ids) summary[id]![mode] = summarize(runs[id]!);
   }

@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 
+import { pluginsOption } from "@zotlit/scripts/vault-plugins";
+
 import { prepareRunWindow } from "./background-throttling.ts";
 import { expectNothingLeftOpen } from "./case-leftovers.ts";
 import {
@@ -25,7 +27,7 @@ declare module "vitest" {
   }
 }
 
-const RUN_PLUGINS = ["zotlit-reader", "zotlit"];
+const RUN_PLUGINS = pluginsOption.default.split(",");
 
 let firstLoadStartupMs: Record<string, number> | undefined;
 
@@ -113,16 +115,10 @@ async function bootstrap(): Promise<void> {
 }
 
 async function recordFirstLoad(): Promise<void> {
-  try {
-    firstLoadStartupMs = pluginStartupMs(
-      await cli([`vault=${run.vaultId}`, "dev:startup", "format=json"]),
-      RUN_PLUGINS,
-    );
-  } catch (error) {
-    console.warn(
-      `the start-up trend of this run is missing: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
+  firstLoadStartupMs = pluginStartupMs(
+    await cli([`vault=${run.vaultId}`, "dev:startup", "format=json"]),
+    RUN_PLUGINS,
+  );
 }
 
 async function teardown(): Promise<void> {
