@@ -10,7 +10,7 @@ import type {
   ExcerptIdentity,
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { open } from "node:fs/promises";
 // The live display read of one Annotation, as a card demands it and a saved
 // edit replaces it.
@@ -31,13 +31,12 @@ import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/ex
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
+import { fakePdfEngine, layerReaderLoading } from "#__fixtures__/pdf-engine.ts";
 import { PNG_FORMAT, WEBP_FORMAT } from "#core/excerpt-image/format.ts";
 import {
   excerptAnnotationRecord,
   excerptFingerprint,
 } from "#obsidian/excerpt-image/service.ts";
-import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 // The one read below that goes through the service's own renderer doubles the
 // PDF file and the canvas that renderer needs, and nothing else.
@@ -318,7 +317,7 @@ function resident(): Resident {
         stamp: async () => ({ size: bytes.length, mtimeMs: 1 }),
       },
       layerExcerptFiles(open),
-      Layer.succeed(PdfEngine, engine),
+      layerReaderLoading(engine),
     ),
   );
   const queries = stack.use(queryClientsFixture());

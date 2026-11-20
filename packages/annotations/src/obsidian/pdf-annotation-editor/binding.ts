@@ -15,7 +15,13 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { Platform, TExternalFile } from "obsidian";
-import type { FileSystemAdapter, HoverParent, HoverPopover } from "obsidian";
+import type {
+  FileSystemAdapter,
+  HoverParent,
+  HoverPopover,
+  TFile,
+  View,
+} from "obsidian";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import {
@@ -24,8 +30,6 @@ import {
 } from "@zotlit/obsidian-kit/disposables.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
-import type { ReaderDocument } from "@zotlit/pdf-reader";
-import type { PdfReaderView } from "@zotlit/pdf-reader/obsidian";
 import { PdfTextStructure } from "@zotlit/pdf-structure";
 import type {
   PdfPosition,
@@ -41,6 +45,7 @@ import type {
   AttachmentResolver,
 } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { ReaderDocument } from "@zotlit/reader-api";
 
 import { borrowReaderDocument } from "./borrow.ts";
 import {
@@ -193,7 +198,8 @@ export interface CapabilityGestures {
 type CommentNotes = Pick<NoteIndex["Service"], "getNotesByItemKey">;
 
 export interface PdfViewBindingDeps {
-  view: PdfReaderView;
+  view: View;
+  file: TFile;
   reader: HostedReader;
   adapter: Pick<FileSystemAdapter, "getFullPath">;
   attachments: AttachmentReads;
@@ -253,6 +259,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    */
   hoverPopover: HoverPopover | null = null;
   readonly #view;
+  readonly #file;
   readonly #reader;
   readonly #adapter;
   readonly #attachments;
@@ -374,6 +381,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
 
   constructor({
     view,
+    file,
     reader,
     adapter,
     attachments,
@@ -395,6 +403,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     sourceScope,
   }: PdfViewBindingDeps) {
     this.#view = view;
+    this.#file = file;
     this.#anchor = anchor;
     this.#reader = reader;
     this.#adapter = adapter;
@@ -595,12 +604,8 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   }
 
   load(): void {
-    const file = this.#view.file;
-    this.#filePath = file?.path ?? null;
-    if (file === null) {
-      logger.debug("PDF view holds no file yet");
-      return;
-    }
+    const file = this.#file;
+    this.#filePath = file.path;
     const absolutePath = absolutePathOf(file, this.#adapter);
     this.#absolutePath = absolutePath;
     // A view bound while the Zotero database is still loading — plugin startup

@@ -127,6 +127,7 @@ const SERVICES = [
   "src/*/excerpt-image/**",
   "src/*/pdf-annotation-editor/**",
   "src/*/pdf-engine/**",
+  "src/*/reader-connection/**",
   "src/*/reader-session/**",
 ];
 

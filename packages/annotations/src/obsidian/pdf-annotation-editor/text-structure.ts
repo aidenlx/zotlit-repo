@@ -2,9 +2,8 @@
 // content from the fork, the page boxes, and the catalog's page labels.
 //
 // @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
-import type { ReaderDocument } from "@zotlit/pdf-reader";
-import type { TextChar } from "@zotlit/pdf-reader/pdfjs";
 import type { PdfPageSource, Rect, ZoteroChar } from "@zotlit/pdf-structure";
+import type { ReaderDocument, TextChar } from "@zotlit/reader-api";
 
 export function readerPageSource(document_: ReaderDocument): PdfPageSource {
   return {

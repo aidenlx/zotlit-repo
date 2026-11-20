@@ -50,8 +50,16 @@ import { readerPageItems } from "./pdf-annotation-editor/settings-page.ts";
 import { readerSettings } from "./pdf-annotation-editor/settings.ts";
 import { layerPdfEngine } from "./pdf-engine/layer.ts";
 import { PdfEngine } from "./pdf-engine/service.ts";
-import { registerZotlitReader } from "./pdf-reader/register.ts";
+import {
+  BundledReader,
+  layerBundledReader,
+  registerZotlitReader,
+} from "./pdf-reader/register.ts";
 import { layerZotlitPdfReader, ZotlitPdfReader } from "./pdf-reader/service.ts";
+import {
+  layerReaderConnection,
+  ReaderConnection,
+} from "./reader-connection/service.ts";
 
 export const annotations = defineFeature({
   name: "annotations",
@@ -59,8 +67,23 @@ export const annotations = defineFeature({
   services: [
     serviceGroup("PdfEngine", { provides: [PdfEngine] }, layerPdfEngine),
     serviceGroup(
+      "BundledReader",
+      { provides: [BundledReader] },
+      layerBundledReader,
+    ),
+    serviceGroup(
+      "ReaderConnection",
+      { provides: [ReaderConnection], requires: [BundledReader] },
+      Layer.unwrap(
+        Effect.gen(function* () {
+          const bundled = yield* BundledReader;
+          return layerReaderConnection(bundled.source);
+        }),
+      ),
+    ),
+    serviceGroup(
       "ZotlitPdfReader",
-      { provides: [ZotlitPdfReader] },
+      { provides: [ZotlitPdfReader], requires: [ReaderConnection] },
       layerZotlitPdfReader,
     ),
     serviceGroup(
@@ -120,6 +143,7 @@ export const annotations = defineFeature({
           AttachmentResolver,
           CapabilityNotices,
           NoteIndex,
+          ReaderConnection,
           UseLedger,
           ZoteroLocalApi,
           ZoteroPref,
@@ -165,7 +189,7 @@ export const annotations = defineFeature({
     const pdfAnnotationEditor = read(PdfAnnotationEditor);
     registerZotlitReader(plugin, {
       engine: read(PdfEngine),
-      editorExtension: pdfAnnotationEditor.extension,
+      bundled: read(BundledReader),
       bridge,
       notifier: read(Notifier),
       settings: read(PluginSettings),

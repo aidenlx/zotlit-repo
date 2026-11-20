@@ -3,6 +3,8 @@ import type { PaneType, TFile } from "obsidian";
 
 import type { PdfReaderRegistration } from "@zotlit/pdf-reader/obsidian";
 
+import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
+
 export interface ZotlitPdfReaderPort {
   registration: PdfReaderRegistration | null;
 }
@@ -34,9 +36,14 @@ export class ZotlitPdfReader extends Context.Service<
   }
 >()("zotlit/pdf-reader/ZotlitPdfReader") {}
 
-export const layerZotlitPdfReader: Layer.Layer<ZotlitPdfReader> = Layer.sync(
+export const layerZotlitPdfReader: Layer.Layer<
   ZotlitPdfReader,
-  () => {
+  never,
+  ReaderConnection
+> = Layer.effect(
+  ZotlitPdfReader,
+  Effect.gen(function* () {
+    const connection = yield* ReaderConnection;
     const port: ZotlitPdfReaderPort = { registration: null };
     return ZotlitPdfReader.of({
       port,
@@ -49,19 +56,18 @@ export const layerZotlitPdfReader: Layer.Layer<ZotlitPdfReader> = Layer.sync(
           ZotlitPdfOpenOutcome,
           ReaderUnavailable | ReaderOpenFailed
         > {
-          const { registration } = port;
-          if (!registration) {
+          const state = yield* connection.current;
+          if (state.status !== "connected") {
             return yield* new ReaderUnavailable({
               message: "The ZotLit PDF reader is not registered",
             });
           }
-          const view = yield* Effect.tryPromise({
-            try: () => registration.open(file, { subpath, pane }),
+          return yield* Effect.tryPromise({
+            try: () => state.api.open(file, { subpath, pane }),
             catch: (cause) => new ReaderOpenFailed({ cause }),
           });
-          return view === null ? "file-missing" : "opened";
         },
       ),
     });
-  },
+  }),
 );

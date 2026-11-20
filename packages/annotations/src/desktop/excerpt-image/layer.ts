@@ -41,7 +41,7 @@ import {
   ExcerptImageService,
   supersedes,
 } from "#obsidian/excerpt-image/service.ts";
-import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
+import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 const logged = withLogCategory("excerpt-image");
 const debug = (message: string, fields?: Record<string, unknown>) =>
@@ -106,10 +106,25 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
       let generation = 0;
       let operations = 0;
       let stalled = false;
-      const engine = yield* PdfEngine;
+      const connection = yield* ReaderConnection;
+      const current = Effect.runSyncWith(yield* Effect.context<never>());
       const renderer = deps.render
         ? undefined
-        : new ExcerptRenderer({ engine, readers: deps.readers });
+        : new ExcerptRenderer({
+            engine: {
+              load: (source, options) => {
+                const state = current(connection.current);
+                return state.status === "connected"
+                  ? state.api.loadDocument(source, options)
+                  : Promise.reject(
+                      new ExcerptImageError({
+                        message: "The ZotLit PDF reader is not connected",
+                      }),
+                    );
+              },
+            },
+            readers: deps.readers,
+          });
       if (renderer) yield* Effect.addFinalizer(() => renderer.dispose);
       let cache = deps.cache;
       if (deps.openStore) {

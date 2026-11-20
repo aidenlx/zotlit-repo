@@ -17,18 +17,13 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { View } from "obsidian";
+import type { TFile, View } from "obsidian";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import { attachmentPathKey } from "@zotlit/db/path";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import type { ReaderExtension } from "@zotlit/pdf-reader";
-import type {
-  ObsidianHostContext,
-  PdfReaderView,
-} from "@zotlit/pdf-reader/obsidian";
 import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import {
   fromInstant,
@@ -44,6 +39,7 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { writeReadUse } from "@zotlit/plugin-services/obsidian/zotero-local-api/last-read.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
+import type { ReaderExtension, ReaderHostContext } from "@zotlit/reader-api";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { anchorIn, registerAnnotationAnchorCapture } from "./anchor-capture.ts";
@@ -57,6 +53,7 @@ import { PdfReads } from "#core/pdf-annotation-editor/reads.ts";
 import { AnnotationNoteActions } from "#obsidian/annot-view/note-actions.ts";
 import { CapabilityNotices } from "#obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "#obsidian/annotation-repository/service.ts";
+import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 export type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 export type {
@@ -85,7 +82,7 @@ export interface PdfAnnotationEditorPorts {
 export class PdfAnnotationEditor extends Context.Service<
   PdfAnnotationEditor,
   {
-    readonly extension: ReaderExtension<ObsidianHostContext>;
+    readonly extension: ReaderExtension<ReaderHostContext>;
     readonly bindings: Effect.Effect<readonly PdfViewBinding[]>;
     readonly sessions: Stream.Stream<ReadonlyMap<View, ReaderSession>>;
     bindingFor(
@@ -119,6 +116,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       const notifier = yield* Notifier;
       const annotationNotes = yield* AnnotationNoteActions;
       const zoteroPref = yield* ZoteroPref;
+      const connection = yield* ReaderConnection;
       const bridge = yield* scopedBridge;
       const layerScope = yield* Effect.scope;
       const now = instantClock(yield* Clock.Clock);
@@ -128,7 +126,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       >(new Map());
       yield* Effect.addFinalizer(() => PubSub.shutdown(sessions.pubsub));
       yield* Effect.addFinalizer(() => PubSub.shutdown(events));
-      const bindings = new Map<PdfReaderView, PdfViewBinding>();
+      const bindings = new Map<View, PdfViewBinding>();
       /** Each binding's own Scope, which its writes run on. */
       const scopes = new Map<PdfViewBinding, Scope.Closeable>();
       let trackOpens = false;
@@ -161,12 +159,10 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           ),
         ),
       );
-      yield* Effect.acquireDisposable(
-        Effect.sync(() => registerAnnotationAnchorCapture()),
-      );
       // Every binding's Scope is a child of this one, which closes right after
       // the finalizer below retires the layer.
       const bindingScopes = yield* Scope.fork(layerScope);
+      const connectionScopes = yield* Scope.fork(layerScope);
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
           retired = true;
@@ -180,7 +176,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
        * the layer's Scope rather than in the caller.
        */
       const unbind = Effect.fnUntraced(function* (
-        view: PdfReaderView,
+        view: View,
         binding: PdfViewBinding,
         { unloading }: { unloading: boolean },
       ) {
@@ -194,12 +190,17 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           );
       });
       const bind = Effect.fnUntraced(function* (
-        view: PdfReaderView,
+        view: View,
         reader: HostedReader,
         {
+          file,
           restored,
           anchor,
-        }: { restored: boolean; anchor: ParsedAnnotationSubpath | null },
+        }: {
+          file: TFile;
+          restored: boolean;
+          anchor: ParsedAnnotationSubpath | null;
+        },
       ) {
         const scope = yield* Scope.fork(bindingScopes);
         const { registry, writes } = yield* bindingResources.pipe(
@@ -211,6 +212,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
         );
         const binding = new PdfViewBinding({
           view,
+          file,
           reader,
           adapter: {
             getFullPath: (path) => bridge.runSync(vault.fullPath(path))!,
@@ -262,14 +264,15 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
         return binding;
       });
       const run = Effect.runSyncWith(yield* Effect.context<never>());
-      const extension: ReaderExtension<ObsidianHostContext> = {
+      const extension: ReaderExtension<ReaderHostContext> = {
         id: "zotlit-annotation-editor",
         kinds: ["view"],
         attach: ({ reader, host, subpath: mounted }) => {
-          const { view } = host;
+          const { view, file } = host;
           if (retired || view === null) return;
           let binding = run(
             bind(view, reader, {
+              file,
               restored: host.restored,
               anchor: mounted ? anchorIn(mounted.raw) : null,
             }),
@@ -280,6 +283,10 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
             attached = true;
             binding.attachDocument();
           });
+          if (reader.document.get() !== null) {
+            attached = true;
+            binding.attachDocument();
+          }
           const offSubpath = reader.on("subpath", ({ subpath }) => {
             if (retired) return;
             const anchor = anchorIn(subpath.raw);
@@ -301,7 +308,9 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
               ),
             );
             run(unbind(view, binding, { unloading: false }));
-            binding = run(bind(view, reader, { restored: false, anchor }));
+            binding = run(
+              bind(view, reader, { file, restored: false, anchor }),
+            );
             if (attached) binding.attachDocument();
           });
           return {
@@ -320,9 +329,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       };
       const bindingFor = Effect.fn("PdfAnnotationEditor.bindingFor")(
         (view: View | null | undefined) =>
-          Effect.sync(() =>
-            view ? (bindings.get(view as PdfReaderView) ?? null) : null,
-          ),
+          Effect.sync(() => (view ? (bindings.get(view) ?? null) : null)),
       );
       const borrowDocument = Effect.fn("PdfAnnotationEditor.borrowDocument")(
         (absolutePath: string) =>
@@ -350,11 +357,30 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
             ports.readers.borrow = () => null;
           }),
       );
+      let connected: Scope.Closeable | null = null;
+      yield* forkEach(connection.changes, (state) =>
+        Effect.gen(function* () {
+          const previous = connected;
+          connected = null;
+          if (previous) yield* Scope.close(previous, Exit.void);
+          if (state.status !== "connected") return;
+          const scope = yield* Scope.fork(connectionScopes);
+          connected = scope;
+          yield* Effect.acquireRelease(
+            Effect.sync(() => state.api.addExtension(extension)),
+            (remove) => Effect.sync(remove),
+          ).pipe(Scope.provide(scope));
+          yield* Effect.acquireDisposable(
+            Effect.sync(() =>
+              registerAnnotationAnchorCapture(state.api.viewType),
+            ),
+          ).pipe(Scope.provide(scope));
+        }),
+      );
       yield* forkEach(workspace.changes, (event) => {
         if (event._tag === "active-leaf-change") {
           for (const binding of bindings.values()) binding.placePopup();
-          if (event.leaf)
-            bindings.get(event.leaf.view as PdfReaderView)?.activate();
+          if (event.leaf) bindings.get(event.leaf.view)?.activate();
         }
       });
       yield* workspace.layoutReady.pipe(

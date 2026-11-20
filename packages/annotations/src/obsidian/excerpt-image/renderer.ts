@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 
-import type { HeadlessDocument, PdfEngine } from "@zotlit/pdf-reader";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type { HeadlessDocument, ReaderApi } from "@zotlit/reader-api";
 
 import { excerptSourceIdentity } from "./contract.ts";
 import type { ExcerptRequest } from "./contract.ts";
@@ -237,7 +237,7 @@ export class ExcerptRenderer {
   #active = false;
 
   constructor(host: {
-    engine: Pick<PdfEngine, "load">;
+    engine: { load: ReaderApi["loadDocument"] };
     canvas?: () => HTMLCanvasElement;
     readers?: ExcerptReaderDocuments;
   }) {

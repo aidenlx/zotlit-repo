@@ -8,8 +8,8 @@ import type {
   PdfRectsPosition,
   PdfTextPosition,
 } from "@zotlit/db";
-import type { PageViewport } from "@zotlit/pdf-reader/pdfjs";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import type { PageViewport } from "@zotlit/reader-api";
 
 import {
   freeTextLayout,
@@ -573,7 +573,7 @@ function inkTarget(
  * press on a Mark Handle drawn there is measured.
  */
 export function unitPointOf(view: OverlayPageView, [x, y]: PdfPoint): Point {
-  const [px, py] = toPageUnits(view).viewport.convertToViewportPoint(x, y);
+  const [px, py] = viewportPoint(toPageUnits(view).viewport, x, y);
   return { x: px, y: py };
 }
 
@@ -683,10 +683,7 @@ function isInk(
 function pagePoints(page: OverlayPage, path: readonly number[]): PagePoint[] {
   const points: PagePoint[] = [];
   for (let index = 0; index + 1 < path.length; index += 2) {
-    const [x, y] = page.viewport.convertToViewportPoint(
-      path[index]!,
-      path[index + 1]!,
-    );
+    const [x, y] = viewportPoint(page.viewport, path[index]!, path[index + 1]!);
     points.push([x, y]);
   }
   return points;
@@ -696,7 +693,7 @@ function pagePoints(page: OverlayPage, path: readonly number[]): PagePoint[] {
 function layoutOf(page: OverlayPage, position: PdfTextPosition) {
   return freeTextLayout(
     (x, y) => {
-      const [left, top] = page.viewport.convertToViewportPoint(x, y);
+      const [left, top] = viewportPoint(page.viewport, x, y);
       return [left, top];
     },
     position,
@@ -1050,6 +1047,15 @@ function colorOf(annotation: AnnotationRecord): string {
 
 export type { PageRect } from "./free-text-layout.ts";
 
+function viewportPoint(
+  viewport: Pick<PageViewport, "convertToViewportPoint">,
+  x: number,
+  y: number,
+): [number, number] {
+  const point = viewport.convertToViewportPoint(x, y);
+  return [point[0]!, point[1]!];
+}
+
 /** The page reduced to what a mark is drawn from: page units and a document. */
 interface OverlayPage {
   document: Document;
@@ -1091,7 +1097,7 @@ function toPageUnits(page: OverlayPageView): OverlayPage {
       height: viewport.height / total,
       rotation: viewport.rotation,
       convertToViewportPoint(x, y) {
-        const [pointX, pointY] = viewport.convertToViewportPoint(x, y);
+        const [pointX, pointY] = viewportPoint(viewport, x, y);
         return [pointX / total, pointY / total];
       },
     },
@@ -1107,8 +1113,8 @@ function pdfRectToPage(
   viewport: OverlayPage["viewport"],
   rect: PdfRect,
 ): PageRect {
-  const [x1, y2] = viewport.convertToViewportPoint(rect[0], rect[1]);
-  const [x2, y1] = viewport.convertToViewportPoint(rect[2], rect[3]);
+  const [x1, y2] = viewportPoint(viewport, rect[0], rect[1]);
+  const [x2, y1] = viewportPoint(viewport, rect[2], rect[3]);
   return [
     Math.min(x1, x2),
     Math.min(y1, y2),

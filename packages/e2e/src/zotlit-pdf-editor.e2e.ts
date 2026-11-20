@@ -48,7 +48,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const anchor = (mark: string) =>
             `#page=3&zt-annotation=${mark}&zt-attachment=${attachmentKey}`;
           const keysOf = (
-            subpath: import("@zotlit/pdf-reader").Subpath | null,
+            subpath: Parameters<
+              NonNullable<typeof s.pdfAnnotationEditor.extension.attach>
+            >[0]["subpath"],
           ) => ({
             annotation: subpath?.params.get("zt-annotation") ?? null,
             attachment: subpath?.params.get("zt-attachment") ?? null,

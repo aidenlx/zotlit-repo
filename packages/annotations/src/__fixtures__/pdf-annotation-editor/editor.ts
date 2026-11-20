@@ -1,6 +1,6 @@
 // The real editor Layer behind the public Promise/DOM binding test seam.
 import { Clock, DateTime, Effect, Layer } from "effect";
-import type { App, FileSystemAdapter, View } from "obsidian";
+import type { App, FileSystemAdapter, TFile, View } from "obsidian";
 
 import type { PdfReader } from "@zotlit/pdf-reader";
 import type {
@@ -26,6 +26,8 @@ import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-ap
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ReaderConnection } from "#obsidian/reader-connection/service.ts";
+import { layerReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "#obsidian/pdf-annotation-editor/service.ts";
@@ -49,7 +51,13 @@ interface EditorFixtureOptions {
   recordUse?: (itemKey: string) => void;
   /** Where the editor's notices go; a fresh recording one unless given. */
   notifier?: ReturnType<typeof testNotifier>;
+  reader?: Layer.Layer<ReaderConnection>;
 }
+
+const layerNoReader = layerReaderConnection((handlers) => {
+  handlers.onAbsent();
+  return () => {};
+});
 
 /** The actual layer; only its external services have typed test substitutes. */
 export function editorFixtureLayer(options: EditorFixtureOptions) {
@@ -100,7 +108,10 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
     readers: { borrow: () => null },
     revealAnnotation: options.markGestures.revealAnnotation,
     blockedPress: options.markGestures.blockedPress,
-  }).pipe(Layer.provide(deps));
+  }).pipe(
+    Layer.provide(deps),
+    Layer.provideMerge(options.reader ?? layerNoReader),
+  );
   return options.now
     ? layer.pipe(
         Layer.provide(
@@ -125,6 +136,7 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
 
 export interface OpenReaderView {
   readonly fake: FakeReader;
+  readonly file: unknown;
 }
 
 export function attachReader(
@@ -139,6 +151,7 @@ export function attachReader(
     reader: view.fake.reader as PdfReader,
     host: stubService<ObsidianHostContext>("ObsidianHostContext", {
       view: view as unknown as PdfReaderView,
+      file: view.file as TFile,
       restored,
       unloading,
     }),

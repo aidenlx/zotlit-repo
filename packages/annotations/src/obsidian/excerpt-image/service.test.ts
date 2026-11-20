@@ -22,7 +22,7 @@ import type {
 
 import { excerptImageFixture } from "#__fixtures__/excerpt-image/effect-service.ts";
 import { redPng, corruptPng } from "#__fixtures__/excerpt-image/png.ts";
-import { layerNoPdfEngine } from "#__fixtures__/pdf-engine.ts";
+import { layerReaderRefusingLoads } from "#__fixtures__/pdf-engine.ts";
 import { ExcerptCacheWriteError } from "#core/excerpt-image/error.ts";
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";
 import { excerptKey } from "#desktop/excerpt-image/key.ts";
@@ -1726,7 +1726,7 @@ it.effect(
         layerExcerptImage({ render }).pipe(
           Layer.provide([
             Layer.succeed(FileSystem.FileSystem, FileSystem.makeNoop({})),
-            layerNoPdfEngine,
+            layerReaderRefusingLoads,
           ]),
         ),
       );
@@ -1770,7 +1770,7 @@ it.effect("keeps capacity waits open beyond a preflight deadline", () =>
       layerExcerptImage({ render }).pipe(
         Layer.provide([
           Layer.succeed(FileSystem.FileSystem, FileSystem.makeNoop({})),
-          layerNoPdfEngine,
+          layerReaderRefusingLoads,
         ]),
       ),
     );

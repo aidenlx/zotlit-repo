@@ -1,4 +1,4 @@
-import type { PdfReader } from "@zotlit/pdf-reader";
+import type { PdfReader } from "@zotlit/reader-api";
 
 export type HostedReader = Pick<
   PdfReader,

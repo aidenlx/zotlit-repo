@@ -7,7 +7,7 @@ import type {
   ExcerptEntry,
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 // The render seam: a crop drawn from the reader's own document once that
 // document proves it holds the file's bytes, and from the file otherwise.
@@ -22,8 +22,7 @@ import { excerptKey } from "./key.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
-import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
+import { fakePdfEngine, layerReaderLoading } from "#__fixtures__/pdf-engine.ts";
 
 const folders: string[] = [];
 
@@ -235,7 +234,7 @@ async function harness(options: {
         readers: options.reader?.(pdfPath),
       },
       undefined,
-      Layer.succeed(PdfEngine, detached.engine),
+      layerReaderLoading(detached.engine),
     ),
   );
   return {

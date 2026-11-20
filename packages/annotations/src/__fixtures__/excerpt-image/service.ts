@@ -9,8 +9,8 @@ import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 import type { ExcerptDeps } from "#desktop/excerpt-image/layer.ts";
 import type { ExcerptRequest, ExcerptImageOperation } from "#obsidian/excerpt-image/service.ts";
 import type { ExcerptOutcomeScope } from "#obsidian/excerpt-image/outcome-scope.ts";
-import { layerNoPdfEngine } from "#__fixtures__/pdf-engine.ts";
-import type { PdfEngine } from "#obsidian/pdf-engine/service.ts";
+import { layerReaderRefusingLoads } from "#__fixtures__/pdf-engine.ts";
+import type { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 export class ExcerptImageFixture implements AsyncDisposable {
   readonly #stack = new AsyncDisposableStack();
@@ -23,7 +23,7 @@ export class ExcerptImageFixture implements AsyncDisposable {
   constructor(
     deps: ExcerptDeps = {},
     fs = Layer.succeed(FileSystem.FileSystem, FileSystem.makeNoop({})),
-    engine: Layer.Layer<PdfEngine> = layerNoPdfEngine,
+    engine: Layer.Layer<ReaderConnection> = layerReaderRefusingLoads,
   ) {
     this.#runtime = buildRuntime(layerExcerptImage(deps).pipe(Layer.provide([fs, engine])), this.#stack);
     this.#bridge = this.#runtime.context().then(() => {

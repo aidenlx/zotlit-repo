@@ -1,32 +1,28 @@
+import type { FakePdfEngine } from "#__fixtures__/pdf-engine.ts";
 import { it } from "@effect/vitest";
-import { Effect, Exit, Fiber, Layer } from "effect";
-import type { FileSystem } from "effect";
+import { Effect, Exit, Fiber } from "effect";
+import type { FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
 // Host doubles measure resource ownership without allocating a browser canvas or a large PDF.
 import { open } from "node:fs/promises";
 import { expect, vi } from "vitest";
 
-import type {
-  DocumentSource,
-  HeadlessDocument,
-  PdfEngine as ReaderPdfEngine,
-} from "@zotlit/pdf-reader";
+import type { DocumentSource, HeadlessDocument } from "@zotlit/pdf-reader";
 
 import { layerExcerptFiles } from "#__fixtures__/excerpt-image/files.ts";
 import { NodeExcerptImageFixture } from "#__fixtures__/excerpt-image/node-service.ts";
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import { ExcerptRendererFixture as ExcerptRenderer } from "#__fixtures__/excerpt-image/renderer.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
-import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
+import { fakePdfEngine, layerReaderLoading } from "#__fixtures__/pdf-engine.ts";
 
 let platform: Layer.Layer<FileSystem.FileSystem>;
 class ExcerptImageService extends NodeExcerptImageFixture {
   constructor(
     deps: ConstructorParameters<typeof NodeExcerptImageFixture>[0],
-    engine?: ReaderPdfEngine,
+    engine?: FakePdfEngine,
   ) {
-    super(deps, platform, engine && Layer.succeed(PdfEngine, engine));
+    super(deps, platform, engine && layerReaderLoading(engine));
   }
 }
 import type { ExcerptRequest } from "./service.ts";

@@ -3,8 +3,8 @@ import type {
   ExcerptCropPage,
 } from "#obsidian/excerpt-image/reader-borrow.ts";
 
-import type { ReaderDocument } from "@zotlit/pdf-reader";
 import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import type { ReaderDocument } from "@zotlit/reader-api";
 
 const logger = getLogger("pdf-annotation-editor");
 

@@ -17,8 +17,6 @@ import {
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 
-import { ZOTLIT_PDF_VIEW_TYPE } from "./view-type.ts";
-
 const OBSIDIAN_PDF_VIEW_TYPE = "pdf";
 
 /**
@@ -26,7 +24,7 @@ const OBSIDIAN_PDF_VIEW_TYPE = "pdf";
  * open whose subpath carries an Anchor to the ZotLit reader instead. A plain
  * `#page=N` open keeps Obsidian's view.
  */
-export function registerAnnotationAnchorCapture(): Disposable {
+export function registerAnnotationAnchorCapture(viewType: string): Disposable {
   const host = WorkspaceLeaf.prototype as unknown as {
     setViewState: (viewState: ViewState, eState?: unknown) => Promise<void>;
   };
@@ -38,7 +36,11 @@ export function registerAnnotationAnchorCapture(): Disposable {
           viewState: ViewState,
           eState?: unknown,
         ): Promise<void> {
-          return native.call(this, routedViewState(viewState, eState), eState);
+          return native.call(
+            this,
+            routedViewState(viewState, eState, viewType),
+            eState,
+          );
         },
     }),
   );
@@ -60,11 +62,15 @@ function navigationSubpathOf(state: unknown): string | null {
   return typeof subpath === "string" ? subpath : null;
 }
 
-function routedViewState(viewState: ViewState, eState: unknown): ViewState {
+function routedViewState(
+  viewState: ViewState,
+  eState: unknown,
+  viewType: string,
+): ViewState {
   if (viewState.type !== OBSIDIAN_PDF_VIEW_TYPE) return viewState;
   const subpath = navigationSubpathOf(eState);
   if (subpath === null || anchorIn(subpath) === null) return viewState;
-  return { ...viewState, type: ZOTLIT_PDF_VIEW_TYPE };
+  return { ...viewState, type: viewType };
 }
 
 /**

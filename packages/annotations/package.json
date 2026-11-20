@@ -36,6 +36,7 @@
     "@zotlit/plugin-services": "workspace:*",
     "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/protocol": "workspace:*",
+    "@zotlit/reader-api": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/ui": "workspace:*",
     "@zotlit/workbench": "workspace:*",

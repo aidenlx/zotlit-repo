@@ -1070,6 +1070,9 @@ importers:
       '@zotlit/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@zotlit/reader-api':
+        specifier: workspace:*
+        version: link:../reader-api
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared
