@@ -20,7 +20,7 @@ it.skipIf(!testElectron)(
   async () => {
     if (!existsSync(obsidianFonts)) {
       throw new Error(
-        `No extracted Obsidian ${OBSIDIAN_VERSION} runtime at ${obsidianFonts}. Extract it with the obsidian-asar-extract skill.`,
+        `No extracted Obsidian ${OBSIDIAN_VERSION} runtime at ${obsidianFonts}. Run: mise run init`,
       );
     }
     const report = (await runInElectron({
