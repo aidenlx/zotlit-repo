@@ -35,6 +35,23 @@ export interface ExtensionsReport {
     readonly order: readonly string[];
   };
   readonly status: Readonly<Record<string, Status>>;
+  readonly live: {
+    readonly attached: readonly {
+      readonly subpath: string | null;
+      readonly document: boolean;
+      readonly rendered: boolean;
+    }[];
+    readonly reports: readonly {
+      readonly extension?: string;
+      readonly phase: string;
+    }[];
+    readonly embedOnly: number;
+    readonly whileLive: Nodes;
+    readonly removed: Nodes;
+    readonly disposedOnRemove: number;
+    readonly drawsAfterRemove: number;
+    readonly mountedStillDraws: boolean;
+  };
   readonly disposed: {
     readonly settled: string;
     readonly navigate: NavigateOutcome;
@@ -43,6 +60,12 @@ export interface ExtensionsReport {
     readonly statusAfter: ReaderState["status"];
     readonly rootAttached: boolean;
   };
+}
+
+interface Nodes {
+  readonly slot: number;
+  readonly drawn: number;
+  readonly marks: number;
 }
 
 interface Status {
@@ -142,6 +165,102 @@ async function fence(engine: PdfEngine): Promise<ExtensionsReport["fence"]> {
     subscriberCalls,
     embedOnly,
     order,
+  };
+}
+
+function nodes(reader: PdfReader): Nodes {
+  const count = (selector: string) =>
+    reader.root.querySelectorAll(selector).length;
+  return {
+    slot: count('[data-zpr-slot="toolbar-end"] [data-probe="late-button"]'),
+    drawn: count('[data-zpr-layer="late"]'),
+    marks: count('[data-zpr-layer="late-marks"]'),
+  };
+}
+
+async function live(engine: PdfEngine): Promise<ExtensionsReport["live"]> {
+  let mountedDraws = 0;
+  using mounted = mountFixture(engine, {
+    source: fixtureSource("pdf-reader/navigation.pdf"),
+    subpath: "#page=2",
+    extensions: [
+      {
+        id: "mounted",
+        drawPage: () => {
+          mountedDraws++;
+        },
+      },
+    ],
+  });
+  const { reader, extensions, host } = mounted;
+  await within("ready", reader.whenReady());
+  await within("settled", reader.settled());
+  const attached: ExtensionsReport["live"]["attached"][number][] = [];
+  let embedOnly = 0;
+  let draws = 0;
+  let disposedOnRemove = 0;
+  extensions.add(
+    {
+      id: "late-broken",
+      attach: () => {
+        throw new Error("late attach fails");
+      },
+    },
+    { host: null, subpath: null },
+  );
+  extensions.add(
+    {
+      id: "late",
+      attach: ({ reader: late, subpath }) => {
+        attached.push({
+          subpath: subpath?.raw ?? null,
+          document: late.document.get() !== null,
+          rendered: late.renderedPages().length > 0,
+        });
+        const button = document.createElement("button");
+        button.dataset.probe = "late-button";
+        late.slot("toolbar-end").append(button);
+        for (const page of late.renderedPages()) page.layer("late-marks");
+        return {
+          [Symbol.dispose]: () => {
+            disposedOnRemove++;
+          },
+        };
+      },
+      drawPage: (_page, layer) => {
+        draws++;
+        layer.textContent = "late";
+      },
+    },
+    { host: null, subpath: null },
+  );
+  extensions.add(
+    {
+      id: "embed-only",
+      kinds: ["embed"],
+      attach: () => {
+        embedOnly++;
+      },
+    },
+    { host: null, subpath: null },
+  );
+  reader.set({ zoom: 1.5 });
+  await within("settled after zoom", reader.settled());
+  const whileLive = nodes(reader);
+  extensions.remove("late");
+  const drawsAtRemove = draws;
+  const mountedAtRemove = mountedDraws;
+  reader.set({ zoom: 1 });
+  await within("settled after removal", reader.settled());
+  return {
+    attached,
+    reports: host.reports.map(({ extension, phase }) => ({ extension, phase })),
+    embedOnly,
+    whileLive,
+    removed: nodes(reader),
+    disposedOnRemove,
+    drawsAfterRemove: draws - drawsAtRemove,
+    mountedStillDraws: mountedDraws > mountedAtRemove,
   };
 }
 
@@ -263,6 +382,7 @@ export async function run(): Promise<ExtensionsReport> {
       corrupt: await status(engine, "excerpt-rendering/corrupt.pdf"),
       brokenPage: await status(engine, "broken-page.pdf"),
     },
+    live: await live(engine),
     disposed: await disposed(engine),
   };
 }

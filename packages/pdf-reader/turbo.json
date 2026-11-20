@@ -6,11 +6,13 @@
       "inputs": [
         "build/embed-assets.ts",
         "build/gen-strings.ts",
+        "build/gen-pdfjs-build.ts",
         "build/build-css.ts",
         "src/**/*.ts",
         "src/**/*.tsx",
         "src/**/*.css",
         "!src/generated/**",
+        "$TURBO_ROOT$/packages/pdfjs/provenance.json",
         "$TURBO_ROOT$/packages/pdfjs/dist/pdf.worker.mjs",
         "$TURBO_ROOT$/packages/pdfjs/dist/wasm/*.wasm",
         "$TURBO_ROOT$/packages/pdfjs/dist/pdf_viewer.css",

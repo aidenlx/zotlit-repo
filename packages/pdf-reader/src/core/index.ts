@@ -16,7 +16,9 @@ export type {
   MenuItem,
   ReaderHost,
 } from "#/core/host.ts";
-export { mountReader } from "#/core/reader.ts";
+export type { AttachContext } from "#/core/extensions/host.ts";
+export { mountExtensible, mountReader } from "#/core/reader.ts";
+export type { ExtensibleReader, LiveExtensions } from "#/core/reader.ts";
 export { parseSubpath } from "#/core/subpath/parse.ts";
 export type { Subpath } from "#/core/subpath/parse.ts";
 export type {

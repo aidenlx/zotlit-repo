@@ -2107,6 +2107,9 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)(react@19.2.7)(scheduler@0.27.0)
+      '@zotlit/reader-api':
+        specifier: workspace:*
+        version: link:../reader-api
       effect:
         specifier: 'catalog:'
         version: 4.1.2
@@ -2126,6 +2129,9 @@ importers:
       '@zotlit/config':
         specifier: workspace:*
         version: link:../config
+      '@zotlit/obsidian-kit':
+        specifier: workspace:*
+        version: link:../obsidian-kit
       '@zotlit/pdfjs':
         specifier: workspace:*
         version: link:../pdfjs

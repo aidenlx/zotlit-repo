@@ -1,6 +1,7 @@
 import type {
   DocumentSource,
   LegacyText,
+  LiveExtensions,
   MountOptions,
   PdfEngine,
   PdfReader,
@@ -10,7 +11,7 @@ import type {
 import type { FixturePdf } from "#test/fixtures.ts";
 import type { TestHost } from "#test/host.ts";
 
-import { createPdfEngine, mountReader } from "#/core/index.ts";
+import { createPdfEngine, mountExtensible } from "#/core/index.ts";
 import { testFetchData } from "#test/data.ts";
 import { fixturePdf } from "#test/fixtures.ts";
 import { testHost } from "#test/host.ts";
@@ -108,6 +109,7 @@ export function fixtureSource(
 
 export interface Mounted extends Disposable {
   readonly reader: PdfReader;
+  readonly extensions: LiveExtensions<null>;
   readonly host: TestHost;
   readonly element: HTMLElement;
 }
@@ -123,7 +125,7 @@ export function mountFixture(
   element.style.cssText = "position: relative; width: 760px; height: 540px;";
   document.body.append(element);
   const host = options.host ?? testHost();
-  const reader = mountReader(element, {
+  const { reader, extensions } = mountExtensible(element, {
     engine,
     host,
     hostContext: null,
@@ -132,6 +134,7 @@ export function mountFixture(
   });
   return {
     reader,
+    extensions,
     host,
     element,
     [Symbol.dispose]: () => {

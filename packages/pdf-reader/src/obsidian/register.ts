@@ -9,7 +9,11 @@ import type { ObsidianHostContext } from "#/obsidian/layer.ts";
 import type { TakeoverState } from "#/obsidian/takeover.ts";
 import type { PaneType, Plugin, TFile, View } from "obsidian";
 
+import type { ReaderApi } from "@zotlit/reader-api";
+
 import { createPdfEngine, englishStrings } from "#/core/index.ts";
+import { pdfjsBuild } from "#/generated/pdfjs-build.ts";
+import { makeReaderApi } from "#/obsidian/api.ts";
 import { PdfEmbed } from "#/obsidian/embed.ts";
 import { obsidianFetchData } from "#/obsidian/fetch-data.ts";
 import { makeLayer } from "#/obsidian/layer.ts";
@@ -40,6 +44,9 @@ export interface PdfReaderRegistration {
   open(file: TFile, options?: OpenOptions): Promise<PdfReaderView | null>;
   views(): readonly PdfReaderView[];
   readerOf(view: View | null | undefined): PdfReader | null;
+  addExtension(extension: ReaderExtension<ObsidianHostContext>): () => void;
+  onClose(listener: () => void): () => void;
+  readonly api: ReaderApi;
 }
 
 const englishT: ReaderHost["t"] = (key, vars = {}) =>
@@ -98,7 +105,7 @@ export function registerPdfReader(
   plugin.registerView(viewType, viewCreator(layer));
   plugin.register(() => owned.dispose());
 
-  return {
+  const registration: Omit<PdfReaderRegistration, "api"> = {
     viewType,
     engine,
     takeover: takeover.state,
@@ -121,5 +128,14 @@ export function registerPdfReader(
         .map((leaf) => leaf.view)
         .filter(ours),
     readerOf: (view) => (ours(view) ? view.reader : null),
+    addExtension: (extension) => layer.addExtension(extension),
+    onClose: (listener) => layer.onClose(listener),
+  };
+  return {
+    ...registration,
+    api: makeReaderApi(registration, {
+      readerVersion: plugin.manifest.version,
+      pdfjsBuild,
+    }),
   };
 }

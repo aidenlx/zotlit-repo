@@ -1,4 +1,5 @@
 import type {
+  LiveExtensions,
   PdfEngine,
   PdfReader,
   ReaderExtension,
@@ -8,7 +9,7 @@ import type {
 import type { PdfReaderView } from "#/obsidian/view.ts";
 import type { App, Component, TFile, WorkspaceLeaf } from "obsidian";
 
-import { mountReader } from "#/core/index.ts";
+import { mountExtensible } from "#/core/index.ts";
 import { obsidianHost } from "#/obsidian/host.ts";
 import { vaultSource } from "#/obsidian/source.ts";
 
@@ -63,10 +64,20 @@ export interface LayerOptions {
   readonly foundOpen: ReadonlySet<WorkspaceLeaf>;
 }
 
-export interface OwnedLayer extends ReaderLayer, Disposable {}
+export interface OwnedLayer extends ReaderLayer, Disposable {
+  addExtension(extension: ReaderExtension<ObsidianHostContext>): () => void;
+  onClose(listener: () => void): () => void;
+}
+
+interface LiveReader {
+  readonly extensions: LiveExtensions<ObsidianHostContext>;
+  readonly hostContext: ObsidianHostContext;
+}
 
 export function makeLayer(options: LayerOptions): OwnedLayer {
-  const readers = new Set<PdfReader>();
+  const readers = new Map<PdfReader, LiveReader>();
+  const extensions = new Set(options.extensions);
+  const closeListeners = new Set<() => void>();
   const foundOpen = new WeakSet(options.foundOpen);
   let unloading = false;
   const layer: OwnedLayer = {
@@ -82,7 +93,17 @@ export function makeLayer(options: LayerOptions): OwnedLayer {
     mount: (request) => {
       if (unloading) return null;
       const { app } = options;
-      const reader = mountReader<ObsidianHostContext>(request.element, {
+      const hostContext: ObsidianHostContext = {
+        kind: request.kind,
+        app,
+        file: request.file,
+        view: request.view,
+        component: request.component,
+        sourcePath: request.sourcePath,
+        restored: request.restored,
+        unloading: () => unloading,
+      };
+      const mounted = mountExtensible<ObsidianHostContext>(request.element, {
         engine: options.engine,
         source: vaultSource(app, request.file),
         host: obsidianHost(layer, {
@@ -90,22 +111,14 @@ export function makeLayer(options: LayerOptions): OwnedLayer {
           sourcePath: request.sourcePath,
           element: request.element,
         }),
-        hostContext: {
-          kind: request.kind,
-          app,
-          file: request.file,
-          view: request.view,
-          component: request.component,
-          sourcePath: request.sourcePath,
-          restored: request.restored,
-          unloading: () => unloading,
-        },
+        hostContext,
         kind: request.kind,
         subpath: request.subpath,
-        extensions: options.extensions,
+        extensions: [...extensions],
         deferUntilVisible: true,
       });
-      readers.add(reader);
+      const { reader } = mounted;
+      readers.set(reader, { extensions: mounted.extensions, hostContext });
       return {
         reader,
         [Symbol.dispose]: () => {
@@ -114,10 +127,39 @@ export function makeLayer(options: LayerOptions): OwnedLayer {
         },
       };
     },
+    addExtension: (extension) => {
+      if (extensions.has(extension)) return () => {};
+      extensions.add(extension);
+      for (const live of readers.values()) {
+        live.extensions.add(extension, {
+          host: { ...live.hostContext, restored: true },
+          subpath: null,
+        });
+      }
+      return () => {
+        if (!extensions.delete(extension)) return;
+        for (const live of readers.values())
+          live.extensions.remove(extension.id);
+      };
+    },
+    onClose: (listener) => {
+      closeListeners.add(listener);
+      return () => {
+        closeListeners.delete(listener);
+      };
+    },
     [Symbol.dispose]: () => {
       unloading = true;
+      for (const listener of closeListeners) {
+        try {
+          listener();
+        } catch (error) {
+          options.report(error, { phase: "close" });
+        }
+      }
+      closeListeners.clear();
       using stack = new DisposableStack();
-      for (const reader of readers) stack.use(reader);
+      for (const reader of readers.keys()) stack.use(reader);
       readers.clear();
     },
   };

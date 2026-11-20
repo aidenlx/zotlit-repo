@@ -77,6 +77,13 @@ export class PageRegistry {
     this.#records = new Map();
   }
 
+  dropLayer(id: string): void {
+    for (const { layers } of this.#records.values()) {
+      layers.get(id)?.element.remove();
+      layers.delete(id);
+    }
+  }
+
   started(event: PageEvent): void {
     const record = this.#current(event);
     if (!record) return;

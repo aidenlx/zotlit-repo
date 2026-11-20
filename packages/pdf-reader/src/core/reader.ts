@@ -1,6 +1,7 @@
 import type { PdfAnnotation } from "#/core/annotations/annotations.ts";
 import type { ChromeModel, OutlineNode } from "#/core/chrome/model.ts";
 import type { Held } from "#/core/document/lifetime.ts";
+import type { AttachContext } from "#/core/extensions/host.ts";
 import type { MenuItem, ReaderHost } from "#/core/host.ts";
 import type { TextRange } from "#/core/subpath/legacy-selection.ts";
 import type { Subpath } from "#/core/subpath/parse.ts";
@@ -10,6 +11,7 @@ import type {
   MountOptions,
   PdfReader,
   ReaderCommand,
+  ReaderExtension,
   ReaderIntent,
   ReaderPage,
   ReaderState,
@@ -97,8 +99,19 @@ function sameFindOptions(a: ReaderState["find"], b: ReaderState["find"]) {
   );
 }
 
+export interface LiveExtensions<H> {
+  add(extension: ReaderExtension<H>, context: AttachContext<H>): void;
+  remove(id: string): void;
+}
+
+export interface ExtensibleReader<H> {
+  readonly reader: PdfReader;
+  readonly extensions: LiveExtensions<H>;
+}
+
 class Reader<H> {
   readonly handle: PdfReader;
+  readonly live: LiveExtensions<H>;
   readonly #options: MountOptions<H>;
   readonly #host: ReaderHost;
   readonly #atoms = makeReaderAtoms((error, phase) =>
@@ -183,8 +196,14 @@ class Reader<H> {
     });
     this.#bindInput();
     this.handle = this.#makeHandle();
-    this.#extensions = new ExtensionHost(this.#host);
-    this.#extensions.attach(this.handle, options.extensions ?? [], {
+    this.#extensions = new ExtensionHost(this.#host, this.handle, (id) =>
+      this.#pages.dropLayer(id),
+    );
+    this.live = {
+      add: (extension, context) => this.#extensions.add(extension, context),
+      remove: (id) => this.#extensions.remove(id),
+    };
+    this.#extensions.attach(options.extensions ?? [], {
       host: options.hostContext,
       subpath: this.#mountSubpath,
     });
@@ -825,9 +844,17 @@ class Reader<H> {
   }
 }
 
+export function mountExtensible<H>(
+  element: HTMLElement,
+  options: MountOptions<H>,
+): ExtensibleReader<H> {
+  const reader = new Reader(element, options);
+  return { reader: reader.handle, extensions: reader.live };
+}
+
 export function mountReader<H>(
   element: HTMLElement,
   options: MountOptions<H>,
 ): PdfReader {
-  return new Reader(element, options).handle;
+  return mountExtensible(element, options).reader;
 }

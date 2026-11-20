@@ -8,7 +8,7 @@ import type { ExtensionsReport } from "./extensions.browser-test.ts";
 import { binaryAssets, readerAlias } from "#test/vite.ts";
 
 it.skipIf(!testElectron)(
-  "attaches extensions before the read, fences a throwing extension off, and reaches the password and failed states",
+  "attaches extensions before the read and on a mounted reader, fences a throwing extension off, removes a live extension with its nodes, and reaches the password and failed states",
   async () => {
     const report = (await runInElectron({
       entry: resolve(import.meta.dirname, "extensions.browser-test.ts"),
@@ -68,6 +68,23 @@ it.skipIf(!testElectron)(
         settled: true,
       },
     });
+
+    expect(report.live).toEqual({
+      attached: [{ subpath: null, document: true, rendered: true }],
+      reports: [{ extension: "late-broken", phase: "attach" }],
+      embedOnly: 0,
+      whileLive: {
+        slot: 1,
+        drawn: expect.any(Number),
+        marks: expect.any(Number),
+      },
+      removed: { slot: 0, drawn: 0, marks: 0 },
+      disposedOnRemove: 1,
+      drawsAfterRemove: 0,
+      mountedStillDraws: true,
+    });
+    expect(report.live.whileLive.drawn).toBeGreaterThan(0);
+    expect(report.live.whileLive.marks).toBeGreaterThan(0);
 
     expect(report.disposed).toEqual({
       settled: "AbortError",

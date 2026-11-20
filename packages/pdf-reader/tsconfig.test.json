@@ -6,6 +6,11 @@
     "rootDir": ".",
     "types": ["node", "vite/client"]
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx", "./test/**/*.ts"],
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "./test/**/*.ts",
+    "../obsidian-kit/src/typings/*.d.ts"
+  ],
   "exclude": ["./node_modules", "./dist/**/*"]
 }
