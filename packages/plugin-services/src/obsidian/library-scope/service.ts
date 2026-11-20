@@ -5,6 +5,7 @@ import type { Settings } from "#core/settings/schema.ts";
 import {
   Cause,
   Context,
+  Deferred,
   Effect,
   Layer,
   PubSub,
@@ -55,6 +56,7 @@ export class LibraryScope extends Context.Service<
     readonly state: Effect.Effect<LibraryScopeState>;
     readonly changes: Stream.Stream<LibraryScopeState>;
     readonly current: Effect.Effect<ResolvedLibraryScope | null>;
+    readonly settled: Effect.Effect<void>;
     readonly effective: Effect.Effect<SavedLibraryScope>;
     readonly invalid: Effect.Effect<boolean>;
     readonly libraries: Effect.Effect<readonly AvailableLibrary[]>;
@@ -225,7 +227,13 @@ export const layerLibraryScope = Layer.effect(
       }),
     );
 
-    yield* Effect.forkScoped(readLibraries(), { startImmediately: true });
+    const firstRead = yield* Deferred.make<void>();
+    yield* Effect.forkScoped(
+      readLibraries().pipe(
+        Effect.ensuring(Deferred.succeed(firstRead, undefined)),
+      ),
+      { startImmediately: true },
+    );
     yield* recompute(yield* heldLibraries());
     yield* Effect.logInfo("Library scope ready").pipe(
       Effect.annotateLogs({
@@ -239,6 +247,7 @@ export const layerLibraryScope = Layer.effect(
         heldLibraries(),
         Effect.map(SubscriptionRef.get(state), (snapshot) => snapshot.current),
       ),
+      settled: Deferred.await(firstRead),
       effective: Effect.map(savedScope(), (saved) => saved ?? MY_LIBRARY_SCOPE),
       invalid,
       libraries: Effect.andThen(

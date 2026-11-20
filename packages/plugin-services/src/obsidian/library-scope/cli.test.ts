@@ -19,7 +19,7 @@ import { LibraryScope } from "./service.ts";
 function setup(current: ResolvedLibraryScope | null) {
   const { host, commands, command } = fakeCliHost();
   registerLibraryScopeCli(host, {
-    libraryScope: { current: Effect.succeed(current) },
+    libraryScope: { current: Effect.succeed(current), settled: Effect.void },
   });
   return {
     commands,

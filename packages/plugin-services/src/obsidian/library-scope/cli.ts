@@ -74,7 +74,7 @@ function envelope(command: LibraryScopeCommand, tail: object): string {
 }
 
 interface LibraryScopeCliDeps {
-  libraryScope: Pick<LibraryScope["Service"], "current">;
+  libraryScope: Pick<LibraryScope["Service"], "current" | "settled">;
 }
 
 /**
@@ -122,6 +122,7 @@ function createLibraryScopeHandler(
       command: LIBRARY_SCOPE_COMMAND,
     });
 
+    yield* deps.libraryScope.settled;
     const current = yield* deps.libraryScope.current;
     if (current === null) {
       return envelope(LIBRARY_SCOPE_COMMAND, {
