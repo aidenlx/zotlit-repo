@@ -691,7 +691,7 @@ it.effect(
       f.state.stage = "render";
       f.state.destroyGate = new Promise(() => {});
       const fiber = yield* f.renderer.native
-        .render(f.request)
+        .render(f.request, f.renderer.engine)
         .pipe(Effect.provide(platform), Effect.exit, Effect.forkChild);
       yield* Effect.promise(() => f.started.promise);
       yield* TestClock.adjust(30_000);
@@ -699,7 +699,7 @@ it.effect(
       yield* TestClock.adjust(5_000);
       expect(Exit.isFailure(yield* Fiber.join(fiber))).toBe(true);
       const next = yield* f.renderer.native
-        .render(f.request)
+        .render(f.request, f.renderer.engine)
         .pipe(Effect.provide(platform), Effect.flip);
       expect(next).toMatchObject({ message: "Excerpt renderer is closed" });
       expect(f.load).toHaveBeenCalledTimes(1);

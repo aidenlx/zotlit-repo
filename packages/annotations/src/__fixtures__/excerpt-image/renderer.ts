@@ -6,6 +6,7 @@ import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { ExcerptRenderer } from "#obsidian/excerpt-image/renderer.ts";
+import type { ExcerptEngine } from "#obsidian/excerpt-image/renderer.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
 
 export class ExcerptRendererFixture implements AsyncDisposable {
@@ -13,8 +14,13 @@ export class ExcerptRendererFixture implements AsyncDisposable {
   readonly native;
   readonly #runtime;
   readonly #ready;
-  constructor(host: ConstructorParameters<typeof ExcerptRenderer>[0], fs: Layer.Layer<FileSystem.FileSystem>) {
+  readonly engine: ExcerptEngine;
+  constructor(
+    { engine, ...host }: ConstructorParameters<typeof ExcerptRenderer>[0] & { engine: Pick<ExcerptEngine, "load"> & { id?: string } },
+    fs: Layer.Layer<FileSystem.FileSystem>,
+  ) {
     this.native = new ExcerptRenderer(host);
+    this.engine = { id: engine.id ?? "fixture", load: (source, options) => engine.load(source, options) };
     this.#runtime = buildRuntime(Layer.effectDiscard(
       Effect.addFinalizer(() => this.native.dispose),
     ).pipe(Layer.provideMerge(fs)), this.#stack);
@@ -23,7 +29,7 @@ export class ExcerptRendererFixture implements AsyncDisposable {
   get diagnostics() { return this.native.diagnostics; }
   async render(request: ExcerptRequest, signal?: AbortSignal) {
     const { context, bridge } = await this.#ready;
-    return bridge.runPromise(this.native.render(request).pipe(Effect.provideContext(context)), { signal });
+    return bridge.runPromise(this.native.render(request, this.engine).pipe(Effect.provideContext(context)), { signal });
   }
   async [Symbol.asyncDispose]() {
     await this.#ready;

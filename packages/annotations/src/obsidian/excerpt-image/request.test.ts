@@ -37,6 +37,7 @@ import { excerptRequest } from "./service.ts";
 import type { ExcerptEntry } from "./service.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
+import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";
 import { excerptKey } from "#desktop/excerpt-image/key.ts";
 
@@ -343,7 +344,9 @@ describe("Excerpt request verification", () => {
           paths,
         });
         expect(fromApi).not.toBeNull();
-        expect(excerptKey(fromApi!)).toBe(excerptKey(fromDatabase!));
+        expect(excerptKey(fromApi!, fakeReaderEngine)).toBe(
+          excerptKey(fromDatabase!, fakeReaderEngine),
+        );
         expect(fromApi!.pdfPath).toBe(fromDatabase!.pdfPath);
         expect(fromApi!.attachmentKey).toBe(ATTACHMENT);
       }),
@@ -402,7 +405,7 @@ describe("Excerpt request verification", () => {
           provenance: "cache",
           bytes,
           identity: {
-            key: excerptKey(fromApi),
+            key: excerptKey(fromApi, fakeReaderEngine),
             pdf: { size: 100, mtimeMs: 10 },
           },
         });
@@ -471,12 +474,13 @@ describe("Excerpt request verification", () => {
         yield* excerptRequest({ ...standalone, source: apiSource }),
       ).toBeNull();
       // A copy of the database keeps its own identity through its source scope.
-      expect(excerptKey(request!)).not.toBe(
+      expect(excerptKey(request!, fakeReaderEngine)).not.toBe(
         excerptKey(
           (yield* excerptRequest({
             ...standalone,
             paths: { ...paths, dataDir: "/copied-zotero" },
           }))!,
+          fakeReaderEngine,
         ),
       );
     }),

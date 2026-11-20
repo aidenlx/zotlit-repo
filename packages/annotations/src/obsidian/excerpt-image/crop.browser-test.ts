@@ -58,7 +58,7 @@ export interface CropReport {
 
 const PDF_PATH = "/fixture/excerpt-rendering.pdf";
 
-function bytes(base64: string): Uint8Array {
+export function bytes(base64: string): Uint8Array {
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
 }
 
@@ -74,7 +74,7 @@ function countWorkers(): void {
   };
 }
 
-function memoryOpen(pdf: Uint8Array): typeof open {
+export function memoryOpen(pdf: Uint8Array): typeof open {
   const handle = {
     stat: async () => ({ size: pdf.length, mtimeMs: 1 }),
     read: async (
@@ -94,7 +94,10 @@ function memoryOpen(pdf: Uint8Array): typeof open {
   return (async () => handle) as unknown as typeof open;
 }
 
-function request(entry: FixtureExcerptCase, index: number): ExcerptRequest {
+export function request(
+  entry: FixtureExcerptCase,
+  index: number,
+): ExcerptRequest {
   return {
     annotation: {
       key: `EXCERPT${String(index).padStart(2, "0")}`,
@@ -131,7 +134,7 @@ function request(entry: FixtureExcerptCase, index: number): ExcerptRequest {
   };
 }
 
-async function decode(
+export async function decode(
   entry: FixtureExcerptCase,
   image: ExcerptImage,
 ): Promise<CropCaseReport> {

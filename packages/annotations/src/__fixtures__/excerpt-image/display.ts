@@ -5,7 +5,9 @@ import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 
+import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";
 import { ExcerptDisplays, layerExcerptDisplays } from "#desktop/excerpt-image/display.ts";
+import { excerptKey } from "#desktop/excerpt-image/key.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 import type { AvailableExcerpt, ExcerptOutcome } from "#obsidian/excerpt-image/service.ts";
@@ -28,6 +30,7 @@ export class ExcerptDisplayFixture implements AsyncDisposable {
         queueDiagnostics: { admitted: 0, rendering: 0, queued: 0, checking: 0, awaiting: 0 },
         resolve: (request) => Effect.tryPromise((signal) => deps.resolve(request, signal)),
         stored: (request) => Effect.promise(() => deps.stored(request)),
+        key: (request) => Effect.sync(() => excerptKey(request, fakeReaderEngine)),
       }),
     ))), this.#stack);
     this.#bridge = effectBridge(runtime);

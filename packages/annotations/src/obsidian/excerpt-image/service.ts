@@ -83,6 +83,7 @@ export class ExcerptImageService extends Context.Service<
       request: ExcerptRequest,
     ): Effect.Effect<ExcerptOutcome, ExcerptError>;
     stored(request: ExcerptRequest): Effect.Effect<AvailableExcerpt | null>;
+    key(request: ExcerptRequest): Effect.Effect<string>;
     operation(options?: {
       outcomes?: ExcerptOutcomeScope;
     }): Effect.Effect<ExcerptImageOperation, never, Scope.Scope>;

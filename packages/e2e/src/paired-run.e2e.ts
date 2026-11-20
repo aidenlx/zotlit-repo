@@ -2462,7 +2462,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           };
         }
 
-        it("creates an ink Annotation from a stroke drawn on the page, and stays armed", async () => {
+        it("creates an ink Annotation from a stroke drawn on the page, and stays armed (I-8)", async () => {
           await armInk([150, 355]);
           const before = await annotationKeys();
 
@@ -6216,7 +6216,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
       });
 
-      it("selects a line of a PDF whose text sits inside a Form XObject, and the highlight it creates takes Zotero's Page Label and Sort Index (E-1)", async () => {
+      it("selects a line of a PDF whose text sits inside a Form XObject, and the highlight it creates takes Zotero's Page Label and Sort Index (E-1, I-8)", async () => {
         const form = ATTACHMENTS.find(({ key }) => key === "FRMXPDF2")!;
         const formPath = form.path!;
         const formKey = form.key;

@@ -2,7 +2,11 @@ import { Effect } from "effect";
 
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-import type { HeadlessDocument, ReaderApi } from "@zotlit/reader-api";
+import type {
+  DocumentSource,
+  HeadlessDocument,
+  LoadOptions,
+} from "@zotlit/reader-api";
 
 import { excerptSourceIdentity } from "./contract.ts";
 import type { ExcerptRequest } from "./contract.ts";
@@ -31,6 +35,13 @@ export interface ExcerptRenderTask {
   cancel(): void;
   onContinue?: (continueCallback: () => void) => void;
 }
+export type ExcerptDocument = Pick<HeadlessDocument, "page"> & AsyncDisposable;
+
+export interface ExcerptEngine {
+  readonly id: string;
+  load(source: DocumentSource, options?: LoadOptions): Promise<ExcerptDocument>;
+}
+
 /** A page of a document this renderer loaded itself, which it also cleans up. */
 interface PdfPage extends ExcerptCropPage {
   cleanup(): boolean;
@@ -97,6 +108,7 @@ export interface ExcerptRendererDiagnosticSnapshot {
   canvas: { width: number; height: number } | null;
   lastCanvas: { width: number; height: number } | null;
   loads: ExcerptRendererLoads;
+  engine: string | null;
 }
 
 interface DiagnosticGate {
@@ -115,6 +127,7 @@ export class ExcerptRendererDiagnostics {
   #renderTaskActive = false;
   #canvas?: HTMLCanvasElement;
   #lastCanvas?: { width: number; height: number };
+  #engine: string | null = null;
   readonly #loads: ExcerptRendererLoads = {
     borrowed: 0,
     detached: 0,
@@ -135,6 +148,7 @@ export class ExcerptRendererDiagnostics {
         : null,
       lastCanvas: this.#lastCanvas ? { ...this.#lastCanvas } : null,
       loads: { ...this.#loads },
+      engine: this.#engine,
     };
   }
 
@@ -190,8 +204,9 @@ export class ExcerptRendererDiagnostics {
   }
 
   /** One PDF document was loaded. */
-  loadedDocument(): void {
+  loadedDocument(engine: string): void {
     this.#loads.documentLoads++;
+    this.#engine = engine;
   }
 
   document(open: boolean): void {
@@ -232,12 +247,11 @@ export class ExcerptRendererDiagnostics {
 export class ExcerptRenderer {
   readonly diagnostics = new ExcerptRendererDiagnostics();
   readonly #host;
-  #session?: { key: string; document: HeadlessDocument };
+  #session?: { key: string; document: ExcerptDocument };
   #unusable = false;
   #active = false;
 
   constructor(host: {
-    engine: { load: ReaderApi["loadDocument"] };
     canvas?: () => HTMLCanvasElement;
     readers?: ExcerptReaderDocuments;
   }) {
@@ -281,7 +295,7 @@ export class ExcerptRenderer {
   });
 
   render = Effect.fn("ExcerptRenderer.render")(
-    (request: ExcerptRequest) =>
+    (request: ExcerptRequest, engine: ExcerptEngine) =>
       Effect.acquireUseRelease(
         Effect.suspend(() => {
           if (this.#unusable)
@@ -298,7 +312,7 @@ export class ExcerptRenderer {
           });
         }),
         () =>
-          this.#render(request).pipe(
+          this.#render(request, engine).pipe(
             Effect.timeout(30_000),
             Effect.onError(() => this.#close),
           ),
@@ -314,6 +328,7 @@ export class ExcerptRenderer {
   readonly #document = Effect.fnUntraced(function* (
     this: ExcerptRenderer,
     request: ExcerptRequest,
+    engine: ExcerptEngine,
   ) {
     const file = yield* openExcerptFile(request.pdfPath!);
     this.diagnostics.file(true);
@@ -331,6 +346,7 @@ export class ExcerptRenderer {
         message: "PDF exceeds excerpt byte limit",
       });
     const key = JSON.stringify([
+      engine.id,
       request.sourceScope,
       excerptSourceIdentity(request.source),
       request.libraryID,
@@ -365,9 +381,9 @@ export class ExcerptRenderer {
       const path = request.pdfPath!;
       const bridge = yield* scopedBridge;
       this.diagnostics.document(true);
-      this.diagnostics.loadedDocument();
+      this.diagnostics.loadedDocument(engine.id);
       const document = yield* Effect.tryPromise((signal) =>
-        this.#host.engine.load(
+        engine.load(
           {
             key: path,
             name: path,
@@ -397,6 +413,7 @@ export class ExcerptRenderer {
   readonly #render = Effect.fnUntraced(function* (
     this: ExcerptRenderer,
     request: ExcerptRequest,
+    engine: ExcerptEngine,
   ) {
     const position = request.annotation.position;
     if (
@@ -430,7 +447,7 @@ export class ExcerptRenderer {
         return image;
       }
     }
-    const pdf = yield* this.#document(request);
+    const pdf = yield* this.#document(request, engine);
     if (this.#unusable)
       return yield* new ExcerptImageError({
         message: "Excerpt renderer is closed",

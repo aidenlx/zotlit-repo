@@ -29,6 +29,7 @@ import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
 // survival need a vault and a Zotero data directory, so they are covered where
 // those exist — see `service.test.ts`.
 import { ExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/service.ts";
+import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";
 import { EXCERPT_JOB_LIMIT } from "#core/excerpt-image/pdf-queue.ts";
 import { excerptAnnotationRecord } from "#obsidian/excerpt-image/contract.ts";
 import { openExcerptStore } from "#obsidian/excerpt-image/store.ts";
@@ -281,7 +282,7 @@ export async function run(): Promise<RefreshReport> {
       );
       check(
         (await app.store.latest(excerptAnnotationRecord(pixels)))?.key ===
-          excerptKey(pixels),
+          excerptKey(pixels, fakeReaderEngine),
         "A resolution left no reference to the image it stored",
       );
       passed.push("one resolution over the real store");
@@ -302,7 +303,7 @@ export async function run(): Promise<RefreshReport> {
       check(first.image !== null, "The first crop never reached the card");
       check(
         (await app.store.latest(excerptAnnotationRecord(request("#ff0000"))))
-          ?.key === excerptKey(request("#ff0000")),
+          ?.key === excerptKey(request("#ff0000"), fakeReaderEngine),
         "A displayed image left no reference",
       );
 
@@ -323,7 +324,7 @@ export async function run(): Promise<RefreshReport> {
       );
       check(
         (await app.store.latest(excerptAnnotationRecord(saved)))?.key ===
-          excerptKey(saved),
+          excerptKey(saved, fakeReaderEngine),
         "The inactive replacement left the reference behind",
       );
       queue = { ...app.service.queueDiagnostics, limit: EXCERPT_JOB_LIMIT };
@@ -392,7 +393,7 @@ export async function run(): Promise<RefreshReport> {
       check(replaced.image !== null, "The current crop never reached the card");
       check(
         (await app.store.latest(excerptAnnotationRecord(saved)))?.key ===
-          excerptKey(saved),
+          excerptKey(saved, fakeReaderEngine),
         "The current crop left the reference behind",
       );
       card.release();
@@ -416,20 +417,20 @@ export async function run(): Promise<RefreshReport> {
     try {
       const oldest = request("#ff0000");
       await Effect.runPromise(
-        app.store.put(excerptKey(oldest), {
+        app.store.put(excerptKey(oldest, fakeReaderEngine), {
           bytes: measured.bytes,
           format: measured.format,
           pdf: PDF,
         }),
       );
       await app.store.putLatest(excerptAnnotationRecord(oldest), {
-        key: excerptKey(oldest),
+        key: excerptKey(oldest, fakeReaderEngine),
         fingerprint: "F1",
         pdf: PDF,
       });
       check(
         (await app.store.latest(excerptAnnotationRecord(oldest)))?.key ===
-          excerptKey(oldest),
+          excerptKey(oldest, fakeReaderEngine),
         "A reference did not survive its own write",
       );
 
@@ -465,7 +466,8 @@ export async function run(): Promise<RefreshReport> {
         }),
       );
       check(
-        (await app.store.get(excerptKey(oldest))) === undefined &&
+        (await app.store.get(excerptKey(oldest, fakeReaderEngine))) ===
+          undefined &&
           (await app.store.latest(excerptAnnotationRecord(oldest))) ===
             undefined,
         "Eviction kept the oldest image or its reference",
@@ -477,8 +479,8 @@ export async function run(): Promise<RefreshReport> {
       // What the walk left behind, measured back from the store: the budget it
       // opened with is a bound on these bytes, not a restatement of itself.
       const kept = await Promise.all(
-        [excerptKey(oldest), "replacement", "newest"].map((key) =>
-          app.store.get(key),
+        [excerptKey(oldest, fakeReaderEngine), "replacement", "newest"].map(
+          (key) => app.store.get(key),
         ),
       );
       bytes.retained = kept.reduce(
@@ -540,7 +542,8 @@ export async function run(): Promise<RefreshReport> {
       for (const color of ["#ff0000", "#00ff00", "#0000ff"]) {
         const pixels = request(color);
         check(
-          (await app.store.get(excerptKey(pixels))) === undefined &&
+          (await app.store.get(excerptKey(pixels, fakeReaderEngine))) ===
+            undefined &&
             (await app.store.latest(excerptAnnotationRecord(pixels))) ===
               undefined,
           `A clear left ${color} behind`,

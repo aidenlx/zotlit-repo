@@ -31,7 +31,11 @@ import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/ex
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-import { fakePdfEngine, layerReaderLoading } from "#__fixtures__/pdf-engine.ts";
+import {
+  fakePdfEngine,
+  fakeReaderEngine,
+  layerReaderLoading,
+} from "#__fixtures__/pdf-engine.ts";
 import { PNG_FORMAT, WEBP_FORMAT } from "#core/excerpt-image/format.ts";
 import {
   excerptAnnotationRecord,
@@ -848,9 +852,9 @@ describe("Excerpt Image live display", () => {
     await live.started(1);
     live.finish(1, 2);
     await vi.waitFor(() =>
-      expect(live.entries.get(excerptKey(saved))?.bytes).toEqual(
-        new Uint8Array([2]),
-      ),
+      expect(
+        live.entries.get(excerptKey(saved, fakeReaderEngine))?.bytes,
+      ).toEqual(new Uint8Array([2])),
     );
     expect(live.references.get(stored(saved))?.fingerprint).toBe(
       excerptFingerprint(saved.annotation),
@@ -886,14 +890,16 @@ describe("Excerpt Image live display", () => {
 
     live.finish(2, 3);
     await vi.waitFor(() =>
-      expect(live.entries.get(excerptKey(newest))?.bytes).toEqual(
-        new Uint8Array([3]),
-      ),
+      expect(
+        live.entries.get(excerptKey(newest, fakeReaderEngine))?.bytes,
+      ).toEqual(new Uint8Array([3])),
     );
     expect(live.references.get(stored(newest))?.fingerprint).toBe(
       excerptFingerprint(newest.annotation),
     );
-    expect(live.entries.has(excerptKey(request("#00ff00")))).toBe(false);
+    expect(
+      live.entries.has(excerptKey(request("#00ff00"), fakeReaderEngine)),
+    ).toBe(false);
   });
 
   it("holds the renderer for the live read alone, and releases it when the read settles", async () => {

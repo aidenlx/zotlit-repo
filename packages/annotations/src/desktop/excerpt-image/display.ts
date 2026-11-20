@@ -12,8 +12,6 @@ import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 
-import { excerptKey } from "./key.ts";
-
 import {
   excerptAnnotationIdentity,
   excerptAnnotationRecord,
@@ -163,7 +161,7 @@ export const layerExcerptDisplays = Layer.effect(
         };
       return {
         image: held.value,
-        current: held.value.identity.key === excerptKey(card.demand),
+        current: held.value.identity.key === (yield* images.key(card.demand)),
         status:
           held.status === "revalidating"
             ? "reading"
@@ -246,6 +244,7 @@ export const layerExcerptDisplays = Layer.effect(
         { ...state, read: null },
       ]);
       const request = previous.latest;
+      const excerpt = yield* images.key(request);
       yield* queries.invalidate(slot.key);
       if (previous.read) yield* Fiber.interrupt(previous.read.fiber);
 
@@ -273,12 +272,12 @@ export const layerExcerptDisplays = Layer.effect(
         ),
       );
       const fiber = yield* FiberSet.run(jobs, work);
-      const reading = { excerpt: excerptKey(request), fiber };
+      const reading = { excerpt, fiber };
       yield* Ref.update(slot.state, (state) => ({ ...state, read: reading }));
     });
     const read = Effect.fnUntraced(function* (slot: Slot) {
       const state = yield* Ref.get(slot.state);
-      const wanted = excerptKey(state.latest);
+      const wanted = yield* images.key(state.latest);
       const running = state.read?.excerpt ?? null;
       if (running === wanted) return;
       if (
@@ -344,7 +343,8 @@ export const layerExcerptDisplays = Layer.effect(
       if (previous) yield* Fiber.interrupt(previous);
       const work: Effect.Effect<void> = Effect.gen(function* () {
         const stored = yield* images.stored(request);
-        if (!stored || stored.identity.key === excerptKey(request)) return;
+        if (!stored || stored.identity.key === (yield* images.key(request)))
+          return;
         yield* images.resolve(request);
       }).pipe(
         Effect.catch((error) =>

@@ -43,6 +43,7 @@ export interface RenderingResult {
   minimized: PixelResult[];
   failures: { name: string; kind: string }[];
   pdfLeaves: { before: number; after: number };
+  engine: string | null;
   electron: {
     before: { minimized: boolean; visible: boolean };
     during: { minimized: boolean; visible: boolean };
@@ -476,7 +477,9 @@ async function startRenderProbe(
   };
 }
 
-export async function verifyExcerptRendering(vaultId: string): Promise<void> {
+export async function verifyExcerptRendering(
+  vaultId: string,
+): Promise<{ engine: string | null }> {
   const owner = randomUUID();
   await using cleanup = new AsyncDisposableStack();
   cleanup.defer(async () => {
@@ -561,9 +564,12 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               assertActive();
               return outcome;
             };
-            const pdfLeavesBefore = app.workspace.getLeavesOfType(
-              helpers.reader.viewType,
-            ).length;
+            const pdfLeaves = () =>
+              app.workspace.getLeavesOfType("pdf").length +
+              (app.plugins.plugins["zotlit-reader"]
+                ? app.workspace.getLeavesOfType(helpers.reader.viewType).length
+                : 0);
+            const pdfLeavesBefore = pdfLeaves();
             const cases = acceptance.cases;
             const file = app.vault.getAbstractFileByPath(relative);
             if (!file)
@@ -750,11 +756,8 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               rerender,
               minimized,
               failures,
-              pdfLeaves: {
-                before: pdfLeavesBefore,
-                after: app.workspace.getLeavesOfType(helpers.reader.viewType)
-                  .length,
-              },
+              pdfLeaves: { before: pdfLeavesBefore, after: pdfLeaves() },
+              engine: service.rendererDiagnostics?.snapshot().engine ?? null,
               electron: { before, during, after },
             };
           })()
@@ -993,6 +996,7 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
     kind: "available",
     provenance: "cache",
   });
+  return { engine: result.engine };
 }
 
 /** Compare PDF.js output with independent PNGs produced by Zotero's worker. */

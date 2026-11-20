@@ -85,6 +85,7 @@ it.effect.each(["visible", "stored"] as const)(
               resolve: () => pending,
               stored: () =>
                 kind === "stored" ? pending : Effect.succeed(null),
+              key: () => Effect.succeed("excerpt"),
             }),
           ),
         ),
@@ -122,6 +123,7 @@ it.live(
               },
               resolve: () => Effect.succeed({ kind: "unavailable" }),
               stored: () => Deferred.await(fallback),
+              key: () => Effect.succeed("excerpt"),
             }),
           ),
         ),

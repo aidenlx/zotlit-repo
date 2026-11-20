@@ -4,6 +4,10 @@
 // a trial that accidentally needs a file or a Zotero database fails loudly
 // instead of quietly passing.
 
+export function loadPdfJs(): never {
+  throw new Error("No PDF.js host in a browser trial");
+}
+
 /** The filesystem, which only the Zotero fallback read reaches. */
 export function open(): never {
   throw new Error("No filesystem in a browser trial");

@@ -22,7 +22,11 @@ import { excerptKey } from "./key.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-import { fakePdfEngine, layerReaderLoading } from "#__fixtures__/pdf-engine.ts";
+import {
+  fakePdfEngine,
+  fakeReaderEngine,
+  layerReaderLoading,
+} from "#__fixtures__/pdf-engine.ts";
 
 const folders: string[] = [];
 
@@ -293,11 +297,15 @@ it("selects the reader's document and publishes under the detached identity", as
   expect(detached.detached.load).toHaveBeenCalledTimes(1);
   expect(fromReader.format).toEqual(fromFile.format);
   expect(fromReader.identity).toMatchObject({
-    key: excerptKey(borrowed.request),
+    key: excerptKey(borrowed.request, fakeReaderEngine),
     fingerprint: fromFile.identity.fingerprint,
   });
-  expect([...borrowed.entries.keys()]).toEqual([excerptKey(borrowed.request)]);
-  expect([...detached.entries.keys()]).toEqual([excerptKey(detached.request)]);
+  expect([...borrowed.entries.keys()]).toEqual([
+    excerptKey(borrowed.request, fakeReaderEngine),
+  ]);
+  expect([...detached.entries.keys()]).toEqual([
+    excerptKey(detached.request, fakeReaderEngine),
+  ]);
 });
 
 it("serves a later resolution from the entry reader-backed work published", async () => {
@@ -319,11 +327,15 @@ it("serves a later resolution from the entry reader-backed work published", asyn
 
   expect(fromCache).toMatchObject({ kind: "available", provenance: "cache" });
   expect(later.detached.load).not.toHaveBeenCalled();
-  expect([...shared.keys()]).toEqual([excerptKey(borrowed.request)]);
-  expect(shared.get(excerptKey(later.request))).toMatchObject({
-    bytes: fromReader.kind === "available" ? fromReader.bytes : undefined,
-    format: fromReader.kind === "available" ? fromReader.format : undefined,
-  });
+  expect([...shared.keys()]).toEqual([
+    excerptKey(borrowed.request, fakeReaderEngine),
+  ]);
+  expect(shared.get(excerptKey(later.request, fakeReaderEngine))).toMatchObject(
+    {
+      bytes: fromReader.kind === "available" ? fromReader.bytes : undefined,
+      format: fromReader.kind === "available" ? fromReader.format : undefined,
+    },
+  );
 });
 
 it.each([
@@ -353,7 +365,9 @@ it.each([
     provenance: "rendered",
   });
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()]).toEqual([excerptKey(f.request)]);
+  expect([...f.entries.keys()]).toEqual([
+    excerptKey(f.request, fakeReaderEngine),
+  ]);
 });
 
 it("renders from the file when a reader open before startup holds bytes the file no longer has", async () => {
@@ -371,7 +385,9 @@ it("renders from the file when a reader open before startup holds bytes the file
   });
   expect(reader.page).not.toHaveBeenCalled();
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()]).toEqual([excerptKey(f.request)]);
+  expect([...f.entries.keys()]).toEqual([
+    excerptKey(f.request, fakeReaderEngine),
+  ]);
 });
 
 it("watches a full batch of excerpts borrow the one proven document", async () => {
@@ -424,7 +440,9 @@ it("renders from the file when the reader's page fails under the crop", async ()
   });
   // One publication, from the file the borrow fell back to.
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()]).toEqual([excerptKey(f.request)]);
+  expect([...f.entries.keys()]).toEqual([
+    excerptKey(f.request, fakeReaderEngine),
+  ]);
 });
 
 it("stops waiting on a borrowed byte read that never settles", async () => {
@@ -480,7 +498,9 @@ it("reads the file when the reader replaces its document while the page is resol
   expect(withdrawn.tasks).toHaveLength(0);
   expect(withdrawn.cleanup).not.toHaveBeenCalled();
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()]).toEqual([excerptKey(f.request)]);
+  expect([...f.entries.keys()]).toEqual([
+    excerptKey(f.request, fakeReaderEngine),
+  ]);
 });
 
 it("reads the file when the reader replaces its document while the crop draws", async () => {
@@ -508,7 +528,9 @@ it("reads the file when the reader replaces its document while the crop draws", 
   // not it, and nothing of the reader's own task was cancelled for it.
   expect(held.readerTask.cancel).not.toHaveBeenCalled();
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()]).toEqual([excerptKey(f.request)]);
+  expect([...f.entries.keys()]).toEqual([
+    excerptKey(f.request, fakeReaderEngine),
+  ]);
 });
 
 it("cancels a borrowed crop when its caller aborts, and publishes nothing", async () => {
@@ -681,5 +703,7 @@ it("gives a waiting PDF its turn after four borrowed crops of another", async ()
 
   expect(await Promise.all(jobs)).toHaveLength(requests.length);
   expect(f.detached.load).toHaveBeenCalledTimes(1);
-  expect([...f.entries.keys()].sort()).toEqual(requests.map(excerptKey).sort());
+  expect([...f.entries.keys()].sort()).toEqual(
+    requests.map((request) => excerptKey(request, fakeReaderEngine)).sort(),
+  );
 });

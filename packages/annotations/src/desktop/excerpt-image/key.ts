@@ -11,12 +11,13 @@ import {
 } from "#obsidian/excerpt-image/contract.ts";
 
 /** Excludes source revision and record versions, which cannot change the pixels. */
-export function excerptKey(request: ExcerptRequest): string {
+export function excerptKey(request: ExcerptRequest, engine: string): string {
   const { annotation: a, source } = request;
   return createHash("sha256")
     .update(
       JSON.stringify([
         EXCERPT_RENDERER_VERSION,
+        engine,
         request.sourceScope,
         excerptSourceIdentity(source),
         request.libraryID,

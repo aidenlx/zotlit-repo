@@ -5,6 +5,7 @@ import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import type { ExcerptOutcomeScope } from "#obsidian/excerpt-image/outcome-scope.ts";
 import type { ExcerptReaderDocuments } from "#obsidian/excerpt-image/reader-borrow.ts";
+import type { ExcerptEngine } from "#obsidian/excerpt-image/renderer.ts";
 import type {
   ExcerptCache,
   ExcerptEntry,
@@ -16,9 +17,11 @@ import type {
 import type { ExcerptStore } from "#obsidian/excerpt-image/store.ts";
 import { Effect, Fiber, FileSystem, Layer, Scope, Semaphore } from "effect";
 import type { Cause, PlatformError } from "effect";
+import { loadPdfJs } from "obsidian";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+import type { ReaderApi } from "@zotlit/reader-api";
 
 import { excerptKey } from "./key.ts";
 import { usableExcerptPng } from "./png.ts";
@@ -36,6 +39,8 @@ import {
   excerptAnnotationRecord,
   excerptFingerprint,
 } from "#obsidian/excerpt-image/contract.ts";
+import { readerEngine } from "#obsidian/excerpt-image/engine.ts";
+import { obsidianPdfJsEngine } from "#obsidian/excerpt-image/obsidian-pdfjs.ts";
 import { ExcerptRenderer } from "#obsidian/excerpt-image/renderer.ts";
 import {
   ExcerptImageService,
@@ -107,24 +112,27 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
       let operations = 0;
       let stalled = false;
       const connection = yield* ReaderConnection;
-      const current = Effect.runSyncWith(yield* Effect.context<never>());
+      const obsidianEngine = obsidianPdfJsEngine(loadPdfJs);
+      let untested: ReaderApi | undefined;
+      const engine = Effect.gen(function* () {
+        const state = yield* connection.current;
+        if (state.status !== "connected") return obsidianEngine;
+        const reader = readerEngine(state.api);
+        if (reader) return reader;
+        if (untested !== state.api) {
+          untested = state.api;
+          yield* Effect.logWarning(
+            "ZotLit Reader's pdf.js build is untested; excerpts draw with Obsidian's pdf.js",
+          ).pipe(
+            Effect.annotateLogs({ pdfjsBuild: state.api.pdfjsBuild }),
+            logged,
+          );
+        }
+        return obsidianEngine;
+      });
       const renderer = deps.render
         ? undefined
-        : new ExcerptRenderer({
-            engine: {
-              load: (source, options) => {
-                const state = current(connection.current);
-                return state.status === "connected"
-                  ? state.api.loadDocument(source, options)
-                  : Promise.reject(
-                      new ExcerptImageError({
-                        message: "The ZotLit PDF reader is not connected",
-                      }),
-                    );
-              },
-            },
-            readers: deps.readers,
-          });
+        : new ExcerptRenderer({ readers: deps.readers });
       if (renderer) yield* Effect.addFinalizer(() => renderer.dispose);
       let cache = deps.cache;
       if (deps.openStore) {
@@ -268,6 +276,7 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
           probe: ExcerptProbe;
           identity: ExcerptIdentity;
           evidence: { pdf?: PdfStamp };
+          engine: ExcerptEngine;
         },
       ) {
         const { identity, evidence } = context;
@@ -281,7 +290,7 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
           const image = yield* deps.render
             ? renderHost(request)
             : renderer!
-                .render(request)
+                .render(request, context.engine)
                 .pipe(Effect.provideService(FileSystem.FileSystem, fs));
           evidence.pdf = pdf;
           if (pdf && context.generation === generation && persistent) {
@@ -359,6 +368,7 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
           key: string;
           generation: number;
           outcomes: ExcerptOutcomeScope | undefined;
+          engine: ExcerptEngine;
         },
       ) {
         const annotation = excerptAnnotationRecord(request);
@@ -449,7 +459,8 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
         const currentGeneration = generation;
         yield* clearing.withPermit(Effect.void);
         if (isScopeClosed(scope)) return yield* Effect.interrupt;
-        const key = excerptKey(snapshot);
+        const chosen = yield* engine;
+        const key = excerptKey(snapshot, chosen.id);
         const pendingKey = JSON.stringify([
           currentGeneration,
           key,
@@ -462,6 +473,7 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
               key,
               generation: currentGeneration,
               outcomes,
+              engine: chosen,
             });
             entry.users++;
             return entry;
@@ -524,6 +536,9 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
           ),
         ),
         operation,
+        key: Effect.fn("ExcerptImageService.key")(function* (request) {
+          return excerptKey(request, (yield* engine).id);
+        }),
         stored: Effect.fn("ExcerptImageService.stored")(function* (request) {
           yield* clearing.withPermit(Effect.void);
           const store = request.sourceScope ? cache : undefined;

@@ -11,6 +11,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, vi } from "vitest";
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import type { CapturedLogs } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ConnectHandlers } from "@zotlit/reader-api";
 
 import { ExcerptImageService as ExcerptImages } from "./service.ts";
 import { excerptAnnotationRecord, excerptFingerprint } from "./service.ts";
@@ -22,7 +23,12 @@ import type {
 
 import { excerptImageFixture } from "#__fixtures__/excerpt-image/effect-service.ts";
 import { redPng, corruptPng } from "#__fixtures__/excerpt-image/png.ts";
-import { layerReaderRefusingLoads } from "#__fixtures__/pdf-engine.ts";
+import {
+  fakePdfEngine,
+  fakeReaderApi,
+  fakeReaderEngine,
+  layerReaderRefusingLoads,
+} from "#__fixtures__/pdf-engine.ts";
 import { ExcerptCacheWriteError } from "#core/excerpt-image/error.ts";
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";
 import { excerptKey } from "#desktop/excerpt-image/key.ts";
@@ -30,6 +36,7 @@ import {
   layerExcerptImage,
   MAX_FALLBACK_BYTES,
 } from "#desktop/excerpt-image/layer.ts";
+import { layerReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 /** Debug records the excerpt-image logger emits; read by the admission tests. */
 let logs: CapturedLogs;
@@ -435,7 +442,9 @@ describe("Excerpt Image resolution", () => {
             libraryRevision: 8,
           } as ExcerptRequest["source"],
         };
-        expect(excerptKey(edited)).toBe(excerptKey(inkRequest));
+        expect(excerptKey(edited, fakeReaderEngine)).toBe(
+          excerptKey(inkRequest, fakeReaderEngine),
+        );
         expect(yield* service.resolve(edited)).toMatchObject({
           provenance: "cache",
         });
@@ -840,7 +849,9 @@ describe("Excerpt Image resolution", () => {
           bytes: replacement,
           identity: { pdf: { size: 101, mtimeMs: 11 } },
         });
-        expect(entries.get(excerptKey(lateRequest))?.pdf).toEqual({
+        expect(
+          entries.get(excerptKey(lateRequest, fakeReaderEngine))?.pdf,
+        ).toEqual({
           size: 101,
           mtimeMs: 11,
         });
@@ -880,7 +891,9 @@ describe("Excerpt Image resolution", () => {
       ...request,
       source: { kind: "zotero-local-api", serverID: "SAME" },
     };
-    expect(excerptKey({ ...api, libraryID: 2 })).not.toBe(excerptKey(api));
+    expect(excerptKey({ ...api, libraryID: 2 }, fakeReaderEngine)).not.toBe(
+      excerptKey(api, fakeReaderEngine),
+    );
     if (request.source.kind !== "zotero-db")
       throw new Error("Expected database fixture");
     const standalone = (
@@ -894,50 +907,60 @@ describe("Excerpt Image resolution", () => {
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: null }),
+        fakeReaderEngine,
       ),
     ).not.toBe(
       excerptKey(
         standalone({ userID: 2, localUserKey: "LOCAL-B", serverID: null }),
+        fakeReaderEngine,
       ),
     );
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: null }),
+        fakeReaderEngine,
       ),
-    ).not.toBe(excerptKey(api));
+    ).not.toBe(excerptKey(api, fakeReaderEngine));
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: "OTHER" }),
+        fakeReaderEngine,
       ),
-    ).not.toBe(excerptKey(api));
+    ).not.toBe(excerptKey(api, fakeReaderEngine));
     // One database reached through either representation shares one identity.
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: "SAME" }),
+        fakeReaderEngine,
       ),
-    ).toBe(excerptKey(api));
-    expect(excerptKey({ ...api, sourceScope: "/copied-database" })).not.toBe(
-      excerptKey(api),
-    );
+    ).toBe(excerptKey(api, fakeReaderEngine));
+    expect(
+      excerptKey({ ...api, sourceScope: "/copied-database" }, fakeReaderEngine),
+    ).not.toBe(excerptKey(api, fakeReaderEngine));
     const changed = structuredClone(request);
     changed.annotation.position = {
       kind: "pdf-rects",
       pageIndex: 0,
       rects: [[11, 20, 80, 90]],
     };
-    expect(excerptKey(changed)).not.toBe(excerptKey(request));
-    expect(excerptKey({ ...request, sourceScope: "/other" })).not.toBe(
-      excerptKey(request),
-    );
-    expect(excerptKey({ ...request, attachmentKey: "ATTACH01g2" })).not.toBe(
-      excerptKey(request),
+    expect(excerptKey(changed, fakeReaderEngine)).not.toBe(
+      excerptKey(request, fakeReaderEngine),
     );
     expect(
-      excerptKey({
-        ...request,
-        annotation: { ...request.annotation, comment: "New comment" },
-      }),
-    ).toBe(excerptKey(request));
+      excerptKey({ ...request, sourceScope: "/other" }, fakeReaderEngine),
+    ).not.toBe(excerptKey(request, fakeReaderEngine));
+    expect(
+      excerptKey({ ...request, attachmentKey: "ATTACH01g2" }, fakeReaderEngine),
+    ).not.toBe(excerptKey(request, fakeReaderEngine));
+    expect(
+      excerptKey(
+        {
+          ...request,
+          annotation: { ...request.annotation, comment: "New comment" },
+        },
+        fakeReaderEngine,
+      ),
+    ).toBe(excerptKey(request, fakeReaderEngine));
   });
 
   it.effect(
@@ -1016,7 +1039,9 @@ describe("Excerpt Image resolution", () => {
           vi.waitFor(() =>
             expect(
               logs.records.find(
-                (record) => record.properties.key === excerptKey(firstRequest),
+                (record) =>
+                  record.properties.key ===
+                  excerptKey(firstRequest, fakeReaderEngine),
               ),
             ).toBeDefined(),
           ),
@@ -1032,16 +1057,22 @@ describe("Excerpt Image resolution", () => {
           vi.waitFor(() =>
             expect(
               logs.records.find(
-                (record) => record.properties.key === excerptKey(secondRequest),
+                (record) =>
+                  record.properties.key ===
+                  excerptKey(secondRequest, fakeReaderEngine),
               ),
             ).toBeDefined(),
           ),
         );
         const firstRecord = logs.records.find(
-          (record) => record.properties.key === excerptKey(firstRequest),
+          (record) =>
+            record.properties.key ===
+            excerptKey(firstRequest, fakeReaderEngine),
         )!;
         const secondRecord = logs.records.find(
-          (record) => record.properties.key === excerptKey(secondRequest),
+          (record) =>
+            record.properties.key ===
+            excerptKey(secondRequest, fakeReaderEngine),
         )!;
         // Both records name the excerpt and the full bound; the second also counts
         // the producer already waiting for a slot, which is the saturation a
@@ -1161,7 +1192,7 @@ describe("Excerpt Image resolution", () => {
       const f = yield* fixture();
       const service = f.service;
       const identity = {
-        key: excerptKey(request),
+        key: excerptKey(request, fakeReaderEngine),
         fingerprint: excerptFingerprint(request.annotation),
       };
       expect(yield* service.resolve(request)).toMatchObject({
@@ -1391,7 +1422,7 @@ describe("Excerpt latest references", () => {
         yield* service.resolve(inkRequest);
         const previous = f.references.get(record);
         expect(previous).toEqual({
-          key: excerptKey(inkRequest),
+          key: excerptKey(inkRequest, fakeReaderEngine),
           fingerprint: excerptFingerprint(inkRequest.annotation),
           pdf: { size: 100, mtimeMs: 10 },
         });
@@ -1471,7 +1502,7 @@ describe("Excerpt latest references", () => {
         // The joining caller carries the newest saved pixels, so A's answer is the
         // one that becomes the reference and B's older one cannot move it back.
         expect(references.get(record)).toMatchObject({
-          key: excerptKey(latest),
+          key: excerptKey(latest, fakeReaderEngine),
           fingerprint: excerptFingerprint(latest.annotation),
         });
         expect(references.get(record)?.fingerprint).not.toBe(
@@ -1496,7 +1527,8 @@ describe("Excerpt latest references", () => {
           cache: {
             get: async (key) => {
               // The stale request's preflight stalls; every other read answers.
-              if (stale && key === excerptKey(inkRequest)) await gate.promise;
+              if (stale && key === excerptKey(inkRequest, fakeReaderEngine))
+                await gate.promise;
               return entries.get(key);
             },
             put: (key, entry) =>
@@ -1673,7 +1705,7 @@ describe("Excerpt latest references", () => {
           freshness: "unchecked",
           bytes: generated,
           identity: {
-            key: excerptKey(inkRequest),
+            key: excerptKey(inkRequest, fakeReaderEngine),
             fingerprint: excerptFingerprint(inkRequest.annotation),
             pdf: { size: 100, mtimeMs: 10 },
           },
@@ -1871,4 +1903,68 @@ it.effect("an interrupted startup disposes a store that opens later", () =>
     yield* Fiber.join(interrupted);
     expect(dispose).toHaveBeenCalledTimes(1);
   }),
+);
+
+it.effect(
+  "keeps the crops of ZotLit Reader's pdf.js and Obsidian's pdf.js apart in the cache",
+  () =>
+    Effect.gen(function* () {
+      const entries = new Map<string, ExcerptEntry>();
+      const cache = {
+        get: async (key: string) => entries.get(key),
+        put: (key: string, entry: ExcerptEntry) =>
+          Effect.sync(() => {
+            entries.set(key, entry);
+          }),
+      };
+      const render = vi.fn(async () => rendered);
+      let connect: ConnectHandlers | undefined;
+      const context = yield* Layer.build(
+        layerExcerptImage({
+          cache,
+          render,
+          stamp: async () => ({ size: 1, mtimeMs: 1 }),
+        }).pipe(
+          Layer.provide([
+            Layer.succeed(FileSystem.FileSystem, FileSystem.makeNoop({})),
+            layerReaderConnection((handlers) => {
+              connect = handlers;
+              handlers.onAbsent();
+              return () => {};
+            }),
+          ]),
+        ),
+      );
+      const service = Context.get(context, ExcerptImages);
+      const engine = fakePdfEngine(async () => {
+        throw new Error("PDF engine is not available in this test");
+      });
+
+      const obsidian = yield* service.resolve(request);
+      connect!.onAccept(fakeReaderApi(engine));
+      const reader = yield* service.resolve(request);
+      const readerAgain = yield* service.resolve(request);
+      connect!.onAccept(fakeReaderApi(engine, "untested-build"));
+      const untested = yield* service.resolve(request);
+      yield* service.resolve(request);
+
+      expect([obsidian, reader, readerAgain, untested]).toMatchObject([
+        { kind: "available", provenance: "rendered" },
+        { kind: "available", provenance: "rendered" },
+        { kind: "available", provenance: "cache" },
+        { kind: "available", provenance: "cache" },
+      ]);
+      const keys = [obsidian, reader, untested].map((outcome) =>
+        outcome.kind === "available" ? outcome.identity.key : null,
+      );
+      expect(keys[0]).not.toBe(keys[1]);
+      expect(keys[2]).toBe(keys[0]);
+      expect(entries.size).toBe(2);
+      expect(render).toHaveBeenCalledTimes(2);
+      expect(
+        logs.records.filter(
+          (record) => record.properties.pdfjsBuild === "untested-build",
+        ),
+      ).toHaveLength(1);
+    }),
 );
