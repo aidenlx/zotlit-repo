@@ -1,7 +1,7 @@
 import { resetSync } from "@logtape/logtape";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { configureLogTape, enableStartupLogging } from "./log.ts";
+import { enableStartupLogging, pluginLogTape } from "./log.ts";
 
 afterEach(() => resetSync());
 
@@ -14,11 +14,10 @@ describe("configuring LogTape for the plugin", () => {
     expect(process.listenerCount("exit")).toBe(before);
   });
 
-  it("leaves no exit listener on the host process on a reconfigure", async () => {
+  it("leaves no exit listener on the host process on a reconfigure", () => {
     const before = process.listenerCount("exit");
     enableStartupLogging();
-    await configureLogTape({
-      reset: true,
+    pluginLogTape().configure({
       sinks: { none: () => {} },
       loggers: [{ category: ["zotlit"], sinks: ["none"] }],
     });

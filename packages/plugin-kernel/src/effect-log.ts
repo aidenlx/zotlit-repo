@@ -14,12 +14,12 @@ import {
   LogTimestamp,
   withLogCategory,
 } from "./effect-log-category.ts";
-import { rootLogger } from "./log.ts";
+import { pluginLogCategory } from "./log.ts";
 
 export { LogCategory, withLogCategory };
 
 setLibraryLogSink(({ level, category, message, properties }) =>
-  getLogTapeLogger(category)[level](message, properties),
+  getLogTapeLogger(pluginLogCategory(category))[level](message, properties),
 );
 
 const METHODS = {
@@ -91,12 +91,7 @@ export const logTapeLogger = Logger.make<unknown, void>(
   ({ message, logLevel, cause, fiber, date }) => {
     if (logLevel === "All" || logLevel === "None") return;
     const category = fiber.getRef(LogCategory);
-    const logger =
-      category[0] === "zotlit"
-        ? getLogTapeLogger(category)
-        : category.length
-          ? rootLogger.getChild(category as [string, ...string[]])
-          : rootLogger;
+    const logger = getLogTapeLogger(pluginLogCategory(category));
     const [text, ...details] = Array.isArray(message) ? message : [message];
     const properties: Record<string, unknown> = {
       ...fiber.getRef(References.CurrentLogAnnotations),

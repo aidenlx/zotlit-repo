@@ -8,7 +8,10 @@ import {
   printableCliHandler,
 } from "@zotlit/obsidian-kit/cli-rejection.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { enableStartupLogging } from "@zotlit/plugin-kernel/log.ts";
+import {
+  enableStartupLogging,
+  setLogCategoryRoot,
+} from "@zotlit/plugin-kernel/log.ts";
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
 
@@ -89,6 +92,7 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
     protected preflight(): void {}
 
     override async onload(): Promise<void> {
+      setLogCategoryRoot(this.manifest.id);
       await super.onload();
 
       if (__DEV__) enableStartupLogging();

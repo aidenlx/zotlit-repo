@@ -1,11 +1,11 @@
 import { it } from "@effect/vitest";
-import type { Config } from "@logtape/logtape";
 import { Effect, Exit, Fiber, Layer, Queue, Schema, Scope } from "effect";
 import { TestClock, TestConsole } from "effect/testing";
 import type { App, Plugin } from "obsidian";
 import { expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { PluginLogConfig } from "@zotlit/plugin-kernel/log.ts";
 
 import {
   layerLogging,
@@ -24,7 +24,7 @@ class ConfigureFailed extends Schema.TaggedError<
   { readonly brand: unique symbol }
 >()("ConfigureFailed", { message: Schema.String }) {}
 
-type LogConfig = Config<string, string>;
+type LogConfig = PluginLogConfig;
 
 /**
  * Each `configure` LogTape is asked for takes one second of the TestClock. A
@@ -234,8 +234,7 @@ it.effect("leaves nothing of LogTape on the host once it resets", () =>
     const output = yield* LogOutput.pipe(
       Effect.provide(layerLogOutput(plugin)),
     );
-    const config: Config<string, string> = {
-      reset: true,
+    const config: PluginLogConfig = {
       sinks: { none: () => {} },
       loggers: [{ category: ["zotlit"], sinks: ["none"] }],
     };

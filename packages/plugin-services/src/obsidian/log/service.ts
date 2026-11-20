@@ -2,7 +2,7 @@
 
 import type { Settings } from "#obsidian/settings/service.ts";
 import { getConsoleSink } from "@logtape/logtape";
-import type { Config, LogLevel, Sink } from "@logtape/logtape";
+import type { LogLevel, Sink } from "@logtape/logtape";
 import {
   Cause,
   Console,
@@ -15,11 +15,8 @@ import {
 } from "effect";
 import type { Plugin } from "obsidian";
 
-import {
-  configureLogTape,
-  configureLogTapeSync,
-  resetLogTape,
-} from "@zotlit/plugin-kernel/log.ts";
+import { logCategoryRoot, pluginLogTape } from "@zotlit/plugin-kernel/log.ts";
+import type { PluginLogConfig } from "@zotlit/plugin-kernel/log.ts";
 import { devToolsFormatter } from "@zotlit/shared/log-formatter";
 
 import { createVaultFileSink } from "./vault-sink.ts";
@@ -28,13 +25,15 @@ import { PluginSettings } from "#obsidian/settings/service.ts";
 
 export const LOG_FILENAME = "zotlit.log.jsonl";
 
-type LogConfig = Config<string, string>;
+type LogConfig = PluginLogConfig;
 
-/** What {@link layerLogging} drives: LogTape's configuration and the log file. */
+/**
+ * What {@link layerLogging} drives: the sinks and levels of the plugin's own
+ * loggers, and the log file.
+ */
 export class LogOutput extends Context.Service<
   LogOutput,
   {
-    /** Fails while an earlier configuration still holds an async sink. */
     configureSync(config: LogConfig): Effect.Effect<void, unknown>;
     configure(config: LogConfig): Effect.Effect<void, unknown>;
     readonly reset: Effect.Effect<void, unknown>;
@@ -43,22 +42,23 @@ export class LogOutput extends Context.Service<
   }
 >()("zotlit/log/LogOutput") {}
 
-/** LogTape itself, and the log file in the plugin's folder. */
+/** The plugin's loggers in LogTape, and the log file in the plugin's folder. */
 export function layerLogOutput(
   plugin: Pick<Plugin, "app" | "manifest">,
 ): Layer.Layer<LogOutput> {
   const path = `${plugin.manifest.dir}/${LOG_FILENAME}`;
   const { adapter } = plugin.app.vault;
+  const logTape = pluginLogTape();
   return Layer.succeed(
     LogOutput,
     LogOutput.of({
       configureSync: Effect.fn("LogOutput.configureSync")((config) =>
-        Effect.try(() => configureLogTapeSync(config)),
+        Effect.try(() => logTape.configure(config)),
       ),
       configure: Effect.fn("LogOutput.configure")((config) =>
-        Effect.tryPromise(() => configureLogTape(config)),
+        Effect.try(() => logTape.configure(config)),
       ),
-      reset: Effect.tryPromise(() => resetLogTape()),
+      reset: Effect.try(() => logTape.release()),
       openFile: Effect.acquireDisposable(
         Effect.tryPromise(() => createVaultFileSink(adapter, path)),
       ),
@@ -82,11 +82,12 @@ export const STARTUP_LOG_SETTINGS: LogSettings = {
  * from its first line, then applies each change to the log settings. While a
  * change applies, later changes wait and only the newest is applied; a change
  * that fails is applied again on the next settings change. A `null`
- * `log.level` routes `["zotlit"]` to no sinks and opens no file.
+ * `log.level` routes the plugin's category to no sinks and opens no file.
  *
  * Closing the layer waits for an applying change, drains the log file, and
- * resets LogTape. A failure is reported to the console through Effect's
- * `Console`, which does not depend on the LogTape configuration that failed.
+ * removes the plugin's sinks from LogTape. A failure is reported to the
+ * console through Effect's `Console`, which does not depend on the LogTape
+ * configuration that failed.
  */
 export const layerLogging: Layer.Layer<
   never,
@@ -166,14 +167,13 @@ function sameLogSettings(a: LogSettings, b: LogSettings): boolean {
 function logConfig(settings: LogSettings, file?: Sink): LogConfig {
   const sinks = file ? ["console", "file"] : ["console"];
   return {
-    reset: true,
     sinks: {
       console: getConsoleSink({ formatter: devToolsFormatter }),
       ...(file && { file }),
     },
     loggers: [
       {
-        category: ["zotlit"],
+        category: [logCategoryRoot()],
         sinks: settings.level === null ? [] : sinks,
         lowestLevel: settings.level ?? "fatal",
       },

@@ -103,14 +103,14 @@ export const commonImports: RestrictedImports = {
   paths: [...obsidianImportPaths, ...itemQuerySchemaPaths],
 };
 
-// LogTape's own configure and reset leave a host-process listener and a
-// window-wide root logger that hold a disabled plugin in memory;
-// packages/plugin-kernel/src/log.ts releases both.
+// LogTape's own configure and reset clear the loggers of every plugin on the
+// window-wide root logger and leave a host-process listener;
+// packages/plugin-kernel/src/log.ts changes only the plugin's own sinks.
 export const logTapeConfigurePath: ImportPath = {
   name: "@logtape/logtape",
   importNames: ["configure", "configureSync", "reset"],
   message:
-    "Configure and reset LogTape through configureLogTape, configureLogTapeSync, and resetLogTape from @zotlit/plugin-kernel/log.ts.",
+    "Give the plugin's loggers their sinks and levels through pluginLogTape from @zotlit/plugin-kernel/log.ts.",
 };
 
 export const runtimeImports: RestrictedImports = {

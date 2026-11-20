@@ -1,83 +1,116 @@
-import {
-  configure,
-  configureSync,
-  dispose,
-  disposeSync,
-  getConsoleSink,
-  getLogger as tapGetLogger,
-  reset,
-} from "@logtape/logtape";
-import type { Config } from "@logtape/logtape";
+import { getConsoleSink, getLogger as tapGetLogger } from "@logtape/logtape";
+import type { LogLevel, LogRecord, Logger, Sink } from "@logtape/logtape";
 
-/**
- * Configure LogTape for the plugin. LogTape ties its disposal to the host
- * process with an `exit` (or `pagehide`) listener on every configure; in
- * Obsidian that process outlives the plugin, so the listener holds each
- * disabled plugin's bundle in memory. The plugin owns LogTape's
- * lifetime instead: `layerLogging` resets it on unload with
- * {@link resetLogTape}. Configure LogTape through these two functions only.
- */
-export async function configureLogTape(
-  config: Config<string, string>,
-): Promise<void> {
-  try {
-    await configure(config);
-  } finally {
-    detachHostDisposeHook();
-  }
+let categoryRoot = "zotlit";
+
+export function setLogCategoryRoot(id: string): void {
+  categoryRoot = id;
 }
 
-/** {@link configureLogTape} for sync sinks. */
-export function configureLogTapeSync(config: Config<string, string>): void {
-  try {
-    configureSync(config);
-  } finally {
-    detachHostDisposeHook();
-  }
+export function logCategoryRoot(): string {
+  return categoryRoot;
 }
+
+export function pluginLogCategory(
+  category: readonly string[],
+): [string, ...string[]] {
+  return category[0] === "zotlit"
+    ? [categoryRoot, ...category.slice(1)]
+    : [categoryRoot, "obsidian", ...category];
+}
+
+export interface PluginLogConfig {
+  readonly sinks: Readonly<Record<string, Sink>>;
+  readonly loggers: readonly {
+    readonly category: string | readonly string[];
+    readonly sinks?: readonly string[];
+    readonly lowestLevel?: LogLevel | null;
+  }[];
+}
+
+export interface PluginLogTape {
+  configure(config: PluginLogConfig): void;
+  release(): void;
+}
+
+interface LoggerState {
+  readonly sinks: Sink[];
+  lowestLevel: LogLevel | null;
+  readonly children: Record<string, LoggerState | WeakRef<LoggerState>>;
+}
+
+const OWNER = Symbol.for("zotlit.log.owner");
+
+type OwnedSink = Sink & { readonly [OWNER]: string };
 
 const LOGTAPE_ROOT = Symbol.for("logtape.rootLogger");
 
-/**
- * Reset LogTape as the plugin unloads. LogTape keeps its root logger on
- * `globalThis` for every copy of it in the window, and that root is an
- * instance of the first bundle's class, so it holds that bundle in memory
- * after its unload. Releasing it lets the next load make its own.
- */
-export async function resetLogTape(): Promise<void> {
-  await reset();
-  // oxlint-disable-next-line obsidianmd/no-global-this -- LogTape keeps its root on the realm global
-  delete (globalThis as Record<symbol, unknown>)[LOGTAPE_ROOT];
+const stateOf = (logger: Logger) => logger as unknown as LoggerState;
+
+const removeSinks = (logger: LoggerState, drop: (sink: Sink) => boolean) => {
+  for (let i = logger.sinks.length - 1; i >= 0; i--)
+    if (drop(logger.sinks[i]!)) logger.sinks.splice(i, 1);
+};
+
+const holdsSinks = (logger: LoggerState): boolean =>
+  logger.sinks.length > 0 ||
+  Object.values(logger.children).some((child) => {
+    const state = "deref" in child ? child.deref() : child;
+    return state !== undefined && holdsSinks(state);
+  });
+
+export function pluginLogTape(): PluginLogTape {
+  let configured: LoggerState[] = [];
+  let added = new Set<Sink>();
+  return {
+    configure(config) {
+      const owner = categoryRoot;
+      const owned = new Map(
+        Object.entries(config.sinks).map(([id, target]) => [
+          id,
+          Object.assign((record: LogRecord) => target(record), {
+            [OWNER]: owner,
+          }) satisfies OwnedSink,
+        ]),
+      );
+      const loggers: LoggerState[] = [];
+      for (const entry of config.loggers) {
+        const logger = stateOf(tapGetLogger(entry.category));
+        removeSinks(logger, (sink) => (sink as OwnedSink)[OWNER] === owner);
+        for (const id of entry.sinks ?? []) logger.sinks.push(owned.get(id)!);
+        if (entry.lowestLevel !== undefined)
+          logger.lowestLevel = entry.lowestLevel;
+        loggers.push(logger);
+      }
+      configured = loggers;
+      added = new Set(owned.values());
+    },
+    release() {
+      for (const logger of configured) {
+        removeSinks(logger, (sink) => added.has(sink));
+        if (logger.sinks.length === 0) logger.lowestLevel = "trace";
+      }
+      configured = [];
+      added = new Set();
+      if (!holdsSinks(stateOf(tapGetLogger())))
+        // oxlint-disable-next-line obsidianmd/no-global-this -- LogTape keeps its root on the realm global
+        delete (globalThis as Record<symbol, unknown>)[LOGTAPE_ROOT];
+    },
+  };
 }
 
-/** Remove the listener LogTape's configure just added to the host. */
-function detachHostDisposeHook(): void {
-  for (const handler of [dispose, disposeSync]) {
-    // oxlint-disable-next-line obsidianmd/no-global-this -- removes what LogTape added to the realm global
-    globalThis.process?.removeListener("exit", handler);
-    // oxlint-disable-next-line obsidianmd/no-global-this -- removes what LogTape added to the realm global
-    globalThis.removeEventListener?.("pagehide", handler);
-  }
-}
-
-/**
- * Root logger for the obsidian app. Module-level so any file can call
- * {@link getLogger} at import time without depending on the DI container.
- * `layerLogging` owns LogTape's configuration; before it builds, calls
- * through this logger are no-ops aside from LogTape's own meta sink.
- */
-export const rootLogger = tapGetLogger(["zotlit", "obsidian"]);
+const startupLogTape = pluginLogTape();
 
 /**
  * Wires a console sink before the services build, so dev builds keep startup
  * records (locale resolution, Language Pack install) that would otherwise be
- * dropped. `layerLogging` replaces this config with `reset: true`.
+ * dropped. `layerLogging` replaces these sinks with its own.
  */
 export function enableStartupLogging(): void {
-  configureLogTapeSync({
+  startupLogTape.configure({
     sinks: { console: getConsoleSink() },
     loggers: [
-      { category: ["zotlit"], sinks: ["console"], lowestLevel: "debug" },
+      { category: [categoryRoot], sinks: ["console"], lowestLevel: "debug" },
       {
         category: ["logtape", "meta"],
         sinks: ["console"],
@@ -88,11 +121,14 @@ export function enableStartupLogging(): void {
 }
 
 /**
- * Derive a logger under the obsidian root.
- * @param subcategory single string or non-empty array appended to `["zotlit", "obsidian"]`.
+ * Derive a logger under the plugin's obsidian root.
+ * @param subcategory single string or non-empty array appended to the
+ *   plugin's `[id, "obsidian"]`.
  */
 export function getLogger(
   subcategory: string | readonly [string] | readonly [string, ...string[]],
-) {
-  return rootLogger.getChild(subcategory);
+): Logger {
+  const category =
+    typeof subcategory === "string" ? [subcategory] : subcategory;
+  return tapGetLogger([categoryRoot, "obsidian", ...category]);
 }

@@ -153,7 +153,7 @@ catalogs:
       specifier: 1.7.2
       version: 1.7.2
     '@logtape/logtape':
-      specifier: ^2.0.7
+      specifier: 2.1.0
       version: 2.1.0
     '@pnpm/find-workspace-dir':
       specifier: ^1000.1.5
