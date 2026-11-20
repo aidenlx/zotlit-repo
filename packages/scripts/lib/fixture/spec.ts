@@ -305,6 +305,22 @@ export const DEMO_ITEMS: readonly FixtureItem[] = [
     dateModified: "2024-11-19 09:00:00",
     collectionIDs: [],
   },
+  // A book with no Literature Note yet, so a walkthrough can write the first one.
+  {
+    itemID: 918,
+    libraryID: 1,
+    key: "DMTUFBKT",
+    itemType: "book",
+    citationKey: "tufte1983",
+    literatureNoteName: "tufte1983",
+    title: "The Visual Display of Quantitative Information",
+    venue: "Graphics Press",
+    date: "1983",
+    creators: [author("Edward R.", "Tufte")],
+    tags: [{ name: "visualization", type: 0 }],
+    dateModified: "2024-11-18 09:00:00",
+    collectionIDs: [],
+  },
 ];
 
 /** Vault folder that holds the demo papers' linked PDFs. */
