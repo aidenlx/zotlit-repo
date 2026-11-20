@@ -1928,6 +1928,26 @@ it.effect(
     }),
 );
 
+it.effect(
+  "applies a comment again on a list read from the database while the Local API is available",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroTagging("PUPR5FG5", [...TAGGED]);
+      const { service } = yield* Effect.promise(() =>
+        setup(stack, zotero.answers, { key: REMEMBERED_KEY }),
+      );
+      expect((yield* service.read("RGRPDF24"))?.source.kind).toBe("zotero-db");
+      yield* service.editTextField("comment", "PUPR5FG5", "My draft");
+
+      expect(yield* service.retryTextDraft("comment", "PUPR5FG5")).toEqual({
+        kind: "idle",
+      });
+      expect(zotero.comment).toBe("My draft");
+      expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toBeNull();
+    }),
+);
+
 it.effect("removes an automatic tag, as Zotero lets the user do", () =>
   Effect.gen(function* () {
     const stack = yield* scopedStack;

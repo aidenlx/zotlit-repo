@@ -206,6 +206,17 @@ const editTextField = Effect.fnUntraced(function* (
   return draft;
 });
 
+const handOff = Effect.fnUntraced(function* (
+  core: CoreState,
+  attachmentKey: string,
+) {
+  const api = yield* compatibleApiSource(core, attachmentKey);
+  if (!api) return;
+  yield* prepareCollection(core, attachmentKey, api).pipe(
+    Effect.mapError((cause) => new WriteRunFailed({ cause })),
+  );
+});
+
 /** Submit one text field's current shared draft once. */
 const submitTextField = Effect.fnUntraced(function* (
   core: CoreState,
@@ -218,12 +229,7 @@ const submitTextField = Effect.fnUntraced(function* (
   const asked = yield* draftFor(core, field, annotationKey);
   if (!asked) return IDLE;
   yield* cancelTextSave(core, field, asked);
-  const api = yield* compatibleApiSource(core, asked.attachmentKey);
-  if (api) {
-    yield* prepareCollection(core, asked.attachmentKey, api).pipe(
-      Effect.mapError((cause) => new WriteRunFailed({ cause })),
-    );
-  }
+  yield* handOff(core, asked.attachmentKey);
   const draft = yield* draftFor(core, field, annotationKey);
   if (!draft) return IDLE;
   if (draft.state.kind === "conflict") {
@@ -363,9 +369,12 @@ const retryTextDraft = Effect.fnUntraced(function* (
   field: TextField,
   annotationKey: string,
 ): Effect.fn.Return<MutationState, WriteRunFailed> {
+  const asked = yield* draftFor(core, field, annotationKey);
+  if (!asked) return IDLE;
+  yield* cancelTextSave(core, field, asked);
+  yield* handOff(core, asked.attachmentKey);
   const draft = yield* draftFor(core, field, annotationKey);
   if (!draft) return IDLE;
-  yield* cancelTextSave(core, field, draft);
   const saving = savingText(core, field, annotationKey);
   if (saving) return yield* answerOf(core, saving);
   // The draft and its Write Conflict stay as they stand.
