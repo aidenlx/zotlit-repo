@@ -4189,7 +4189,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       JSON.stringify({
         before: { active: false, pressed: "false" },
         dismissed: false,
-        steps: 4,
+        steps: 5,
         rows: 0,
         active: true,
         pressed: "true",
