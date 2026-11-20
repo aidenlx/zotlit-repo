@@ -17,7 +17,7 @@ import type {
 import { Effect } from "effect";
 
 import { autosaveDue, draftFor } from "./draft-store.ts";
-import { handOff, holding } from "./lists.ts";
+import { handOff, writeHolding } from "./lists.ts";
 import { DRAFT_FIELDS, proposedTags } from "./model.ts";
 import type { AnnotationRecord } from "./model.ts";
 import type { CoreState } from "./state.ts";
@@ -266,7 +266,7 @@ const takeStep = Effect.fnUntraced(function* (
   }
   const checked: { change: HistoryChange; record: AnnotationRecord }[] = [];
   for (const change of step.changes) {
-    const record = (yield* holding(core, change.annotationKey))?.record;
+    const record = yield* heldRecord(core, change.annotationKey);
     if (record && stillHolds(change.after, record)) {
       checked.push({ change, record });
       continue;
@@ -314,7 +314,7 @@ const takeStep = Effect.fnUntraced(function* (
       history.drop(direction, step);
       return { kind: "changed", annotationKey };
     }
-    const settled = (yield* holding(core, annotationKey))?.record;
+    const settled = yield* heldRecord(core, annotationKey);
     left.push({
       annotationKey,
       before,
@@ -326,6 +326,14 @@ const takeStep = Effect.fnUntraced(function* (
   history.drop(direction, step);
   history.push(opposite(direction), { kind: step.kind, changes: left });
   return { kind: "stepped", annotationKey: left[0]!.annotationKey };
+});
+
+const heldRecord = Effect.fnUntraced(function* (
+  core: CoreState,
+  annotationKey: string,
+) {
+  const held = yield* writeHolding(core, annotationKey);
+  return held === "server-changed" ? undefined : held?.record;
 });
 
 /**
@@ -396,7 +404,7 @@ const takeTagStep = Effect.fnUntraced(function* (
   },
 ): Effect.fn.Return<HistoryOutcome, StepError> {
   const [{ annotationKey, tags }] = step.changes;
-  const record = (yield* holding(core, annotationKey))?.record;
+  const record = yield* heldRecord(core, annotationKey);
   if (!record) {
     yield* Effect.logDebug(
       "A history step was dropped: Zotero no longer holds it",
@@ -441,7 +449,7 @@ const takeTagStep = Effect.fnUntraced(function* (
   if (outcome.kind === "failed") {
     return { kind: "failed", failure: outcome.failure };
   }
-  const settled = (yield* holding(core, annotationKey))?.record;
+  const settled = yield* heldRecord(core, annotationKey);
   const left =
     settled && tagChange(annotationTags(sent), annotationTags(settled));
   if (left && !noTagChange(left)) {
@@ -478,7 +486,7 @@ const takeExistenceStep = Effect.fnUntraced(function* (
   },
 ): Effect.fn.Return<HistoryOutcome, StepError> {
   for (const change of step.changes) {
-    const record = (yield* holding(core, change.annotationKey))?.record ?? null;
+    const record = (yield* heldRecord(core, change.annotationKey)) ?? null;
     if (sameContent(change.after.content ?? null, record)) continue;
     yield* Effect.logDebug(
       "A history step was dropped: Zotero holds another value",
@@ -535,7 +543,7 @@ const takeExistenceStep = Effect.fnUntraced(function* (
     // Zotero named the restored Annotation itself, so every step of both
     // stacks that asked after the old key asks after this one now.
     history.rename(change.annotationKey, made.annotationKey);
-    const settled = (yield* holding(core, made.annotationKey))?.record ?? null;
+    const settled = (yield* heldRecord(core, made.annotationKey)) ?? null;
     left.push({
       annotationKey: made.annotationKey,
       before: { content: null },

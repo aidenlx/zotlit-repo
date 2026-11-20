@@ -587,7 +587,7 @@ const handOff = Effect.fnUntraced(function* (
   attachmentKey: string,
 ) {
   const api = yield* compatibleApiSource(core, attachmentKey);
-  if (api) yield* prepareCollection(core, attachmentKey, api);
+  return api ? yield* prepareCollection(core, attachmentKey, api) : false;
 });
 
 /** Locate the Annotation independently of the source's write readiness. */
@@ -600,7 +600,7 @@ function attachmentHolding(
   )?.[0];
 }
 
-const prepareWrite = Effect.fnUntraced(function* (
+const writeHolding = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
 ): Effect.fn.Return<
@@ -1368,12 +1368,10 @@ export {
   capability,
   editingCapability,
   announceReadPixels,
-  holding,
   sessionHolding,
-  prepareCollection,
+  writeHolding,
   handOff,
   attachmentHolding,
-  prepareWrite,
   dropAttachment,
   refreshLocks,
   sourceMoved,

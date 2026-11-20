@@ -16,7 +16,12 @@ import {
   saveKey,
   setDraft,
 } from "./draft-store.ts";
-import { capabilityFor, handOff, holding, sessionHolding } from "./lists.ts";
+import {
+  capabilityFor,
+  handOff,
+  sessionHolding,
+  writeHolding,
+} from "./lists.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
@@ -378,7 +383,10 @@ const resendText = Effect.fnUntraced(function* (
   draft: TextFieldDraft,
 ) {
   const { annotationKey } = draft;
-  const held = yield* holding(core, annotationKey);
+  const found = yield* writeHolding(core, annotationKey).pipe(
+    Effect.mapError((cause) => new WriteRunFailed({ cause })),
+  );
+  const held = found === "server-changed" ? null : found;
   const reviewed =
     draft.state.kind === "conflict" ? draft.state.fresh : draft.baseline;
   const fresh = (held && TEXT_FIELD_SPECS[field].valueOf(held.record)) ?? "";

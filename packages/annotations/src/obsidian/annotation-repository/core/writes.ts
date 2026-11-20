@@ -61,13 +61,13 @@ import {
   compatibleApiSource,
   dropAttachment,
   editingCapability,
-  prepareCollection,
-  prepareWrite,
+  handOff,
   read,
   refresh,
   rememberAcknowledgedRevision,
   sessionHolding,
   sourceStillBound,
+  writeHolding,
 } from "./lists.ts";
 import type { AnnotationLibraryUnresolved } from "./lists.ts";
 import {
@@ -260,7 +260,7 @@ const sendCreate = Effect.fnUntraced(function* (
   if (!expectedSource) {
     return { kind: "failed", failure: { kind: "db-source" } };
   }
-  if (!(yield* prepareCollection(core, attachmentKey, expectedSource))) {
+  if (!(yield* handOff(core, attachmentKey))) {
     return { kind: "failed", failure: { kind: "server-changed" } };
   }
   const whole = { ...draft, parentKey: parsed.key };
@@ -758,7 +758,7 @@ const runCommand: (
   command: QueuedCommand,
 ) => Effect.Effect<MutationState, WriteReadError> = Effect.fnUntraced(
   function* (core, annotationKey, command) {
-    const held = yield* prepareWrite(core, annotationKey);
+    const held = yield* writeHolding(core, annotationKey);
     if (held === "server-changed") {
       return leave(core, annotationKey, {
         write: command.write,
