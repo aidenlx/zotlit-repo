@@ -120,6 +120,8 @@ await step("Test", async () => {
   await gated`pnpm test:eval-runtime`;
 });
 
+await step("Bundle", () => sh`pnpm check:bundle`);
+
 if (release) {
   await desktopChecks();
   await step("Obsidian guideline review", () => sh`pnpm review`);

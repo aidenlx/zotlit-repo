@@ -23,7 +23,17 @@ export interface PublishedPlugin {
   readonly giscus: boolean;
   readonly resources: string;
   readonly changelog?: string;
+  readonly budget: PluginBudget;
+  readonly allowedRequires: readonly string[];
 }
+
+export interface PluginBudget {
+  readonly mainJsBytes: number;
+  readonly stylesCssBytes: number;
+  readonly startupWarmMs?: number;
+}
+
+const READER_MAIN_JS_BYTES_PROPOSED = 1_700_000;
 
 export const PUBLISHED_PLUGINS = {
   desktop: {
@@ -36,6 +46,45 @@ export const PUBLISHED_PLUGINS = {
     resources:
       "Language Packs, template data JSON Schemas, and the Item Query Schema",
     changelog: "https://zotlit.aidenlx.site/changelog/",
+    budget: {
+      mainJsBytes: 5_000_000,
+      stylesCssBytes: 146_143,
+      startupWarmMs: 90,
+    },
+    allowedRequires: [
+      "obsidian",
+      "@codemirror/autocomplete",
+      "@codemirror/commands",
+      "@codemirror/language",
+      "@codemirror/lint",
+      "@codemirror/state",
+      "@codemirror/view",
+      "@lezer/common",
+      "@lezer/highlight",
+      "@lezer/lr",
+      "module",
+      "node:async_hooks",
+      "node:buffer",
+      "node:child_process",
+      "node:crypto",
+      "node:fs",
+      "node:fs/promises",
+      "node:http",
+      "node:http2",
+      "node:module",
+      "node:net",
+      "node:os",
+      "node:path",
+      "node:path/posix",
+      "node:sqlite",
+      "node:stream",
+      "node:stream/consumers",
+      "node:string_decoder",
+      "node:tls",
+      "node:url",
+      "node:util",
+      "node:zlib",
+    ],
   },
   reader: {
     app: "apps/reader",
@@ -45,6 +94,11 @@ export const PUBLISHED_PLUGINS = {
     readme: "apps/reader/README.md",
     giscus: false,
     resources: "Language Packs",
+    budget: {
+      mainJsBytes: READER_MAIN_JS_BYTES_PROPOSED,
+      stylesCssBytes: 291_892,
+    },
+    allowedRequires: ["obsidian"],
   },
 } as const satisfies Record<string, PublishedPlugin>;
 
