@@ -4,7 +4,14 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
 
+import { obsidianI18n } from "@zotlit/obsidian-i18n/vite";
 import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
+import {
+  INCLUDE_MESSAGE_PREFIXES,
+  INCLUDE_MESSAGES,
+  READER_MESSAGES_DIRECTORY,
+  TARGET_LOCALE_MESSAGE_PREFIXES,
+} from "@zotlit/reader-messages/language-pack-options";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
 import { HOST_MODULES } from "@zotlit/scripts/shell/build";
@@ -38,6 +45,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     resolve: {
+      alias: { "@zotlit/plugin-messages": READER_MESSAGES_DIRECTORY },
       conditions: ["module", "browser", "development|production"],
     },
     define: {
@@ -61,6 +69,10 @@ export default defineConfig(({ mode }) => {
       copyPublicDir: false,
       rolldownOptions: {
         external: HOST_MODULES,
+        onLog(level, log, handler) {
+          if (log.code === "IMPORT_IS_UNDEFINED") throw new Error(log.message);
+          handler(level, log);
+        },
         output: {
           postBanner: jsBanner,
           strictExecutionOrder: true,
@@ -72,6 +84,13 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
+      obsidianI18n({
+        project: join(workspaceRoot, "project.inlang"),
+        output: READER_MESSAGES_DIRECTORY,
+        includeMessagePrefixes: INCLUDE_MESSAGE_PREFIXES,
+        includeMessages: INCLUDE_MESSAGES,
+        targetLocaleMessagePrefixes: TARGET_LOCALE_MESSAGE_PREFIXES,
+      }),
       effectEntry("renderer", { scopes: pluginCode }),
       effectEntryCheck("renderer"),
       preact(),

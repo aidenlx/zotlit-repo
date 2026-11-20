@@ -90,6 +90,9 @@ const config: KnipConfig = {
       // Generated: the facade exports every Message, read or not.
       ignore: ["generated/**"],
     },
+    "packages/reader-messages": {
+      ignore: ["generated/**"],
+    },
     "apps/zotero": {
       entry: [
         "src/bootstrap.ts",

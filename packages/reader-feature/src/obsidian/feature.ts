@@ -3,9 +3,9 @@ import "@zotlit/pdf-reader/styles.css";
 import type { ReaderHost } from "@zotlit/pdf-reader";
 import { registerPdfReader } from "@zotlit/pdf-reader/obsidian";
 import { bridgeLog } from "@zotlit/plugin-kernel/effect-log.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-import { translate } from "@zotlit/plugin-messages/runtime.ts";
 import { defineFeature } from "@zotlit/plugin-shell/obsidian/feature.ts";
+import * as m from "@zotlit/reader-messages/messages.ts";
+import { translate } from "@zotlit/reader-messages/runtime.ts";
 
 const READER_VIEW_TYPE = "zotlit-pdf";
 

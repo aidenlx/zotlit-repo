@@ -19,8 +19,8 @@
     "@zotlit/obsidian-kit": "workspace:*",
     "@zotlit/pdf-reader": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
-    "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/plugin-shell": "workspace:*",
+    "@zotlit/reader-messages": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

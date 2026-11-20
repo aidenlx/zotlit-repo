@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+import { resolve } from "node:path";
+
+import { compile } from "@zotlit/obsidian-i18n/compiler";
+
+import {
+  INCLUDE_MESSAGE_PREFIXES,
+  INCLUDE_MESSAGES,
+  TARGET_LOCALE_MESSAGE_PREFIXES,
+} from "./language-pack-options.ts";
+
+const packageRoot = resolve(import.meta.dirname, "..");
+
+const result = await compile({
+  root: packageRoot,
+  project: "../../project.inlang",
+  output: "generated",
+  includeMessagePrefixes: INCLUDE_MESSAGE_PREFIXES,
+  includeMessages: INCLUDE_MESSAGES,
+  targetLocaleMessagePrefixes: TARGET_LOCALE_MESSAGE_PREFIXES,
+});
+process.stdout.write(`Generated ${result.messageCount} Message wrappers\n`);
+if (result.warnings.length > 0) {
+  process.stderr.write(`${result.warnings.join("\n")}\n`);
+}

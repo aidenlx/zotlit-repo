@@ -870,9 +870,6 @@ importers:
       '@zotlit/plugin-kernel':
         specifier: workspace:*
         version: link:../../packages/plugin-kernel
-      '@zotlit/plugin-messages':
-        specifier: workspace:*
-        version: link:../../packages/plugin-messages
       '@zotlit/plugin-services':
         specifier: workspace:*
         version: link:../../packages/plugin-services
@@ -882,6 +879,9 @@ importers:
       '@zotlit/reader-feature':
         specifier: workspace:*
         version: link:../../packages/reader-feature
+      '@zotlit/reader-messages':
+        specifier: workspace:*
+        version: link:../../packages/reader-messages
       effect:
         specifier: 'catalog:'
         version: 4.1.2
@@ -904,6 +904,12 @@ importers:
       '@zotlit/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@zotlit/obsidian-i18n':
+        specifier: workspace:*
+        version: link:../../packages/obsidian-i18n
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../../packages/plugin-messages
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../../packages/scripts
@@ -2690,12 +2696,12 @@ importers:
       '@zotlit/plugin-kernel':
         specifier: workspace:*
         version: link:../plugin-kernel
-      '@zotlit/plugin-messages':
-        specifier: workspace:*
-        version: link:../plugin-messages
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/reader-messages':
+        specifier: workspace:*
+        version: link:../reader-messages
       effect:
         specifier: 'catalog:'
         version: 4.1.2
@@ -2706,6 +2712,28 @@ importers:
       obsidian:
         specifier: 'catalog:'
         version: 1.14.4(@codemirror/state@6.7.6)(@codemirror/view@6.43.13)
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+
+  packages/reader-messages:
+    dependencies:
+      '@zotlit/obsidian-i18n':
+        specifier: workspace:*
+        version: link:../obsidian-i18n
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      '@zotlit/plugin-messages':
+        specifier: workspace:*
+        version: link:../plugin-messages
       oxlint:
         specifier: 'catalog:'
         version: 1.93.0(oxlint-tsgolint@7.0.2006)

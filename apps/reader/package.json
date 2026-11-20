@@ -26,10 +26,10 @@
   "dependencies": {
     "@zotlit/obsidian-kit": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
-    "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/plugin-services": "workspace:*",
     "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/reader-feature": "workspace:*",
+    "@zotlit/reader-messages": "workspace:*",
     "effect": "catalog:",
     "preact": "catalog:"
   },
@@ -39,6 +39,8 @@
     "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
+    "@zotlit/obsidian-i18n": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "happy-dom": "catalog:",
     "obsidian": "catalog:",

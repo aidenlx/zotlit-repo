@@ -43,6 +43,43 @@ describe("runCli", () => {
     expect(facade).not.toContain("docs_message");
   });
 
+  test("compiles only the bundles under an included prefix, with Included Messages", async () => {
+    const projectPath = await createFixtureProject(
+      {
+        reader_message: "Reader",
+        plugin_message: "Plugin",
+        shell_notice: "Notice",
+      },
+      { prefix: "obsidian-i18n-cli-" },
+    );
+    const root = dirname(projectPath);
+    const { io, stdout } = createIo(root);
+
+    await runCli(
+      [
+        "compile",
+        "--project",
+        "project.inlang",
+        "--output",
+        "generated",
+        "--include-prefix",
+        "reader_",
+        "--include-message",
+        "shell_notice",
+      ],
+      io,
+    );
+
+    expect(stdout()).toBe("Generated 2 Message wrappers\n");
+    const pack = JSON.parse(
+      await readFile(join(root, "generated", "en.json"), "utf8"),
+    );
+    expect(Object.keys(pack.messages).sort()).toEqual([
+      "reader_message",
+      "shell_notice",
+    ]);
+  });
+
   test("routes target-locale prefixes into the generated wrappers", async () => {
     const projectPath = await createFixtureProject(
       { notice_pack_offer: "A pack is available.", plugin_message: "Plugin" },

@@ -27,7 +27,7 @@ function parseArguments(argv: readonly string[], cwd: string): CompileOptions {
   const args = [...argv];
   if (args.shift() !== "compile") {
     throw new Error(
-      "Usage: obsidian-i18n compile [--project PATH] [--output PATH] [--exclude-prefix PREFIX] [--include-message BUNDLE_ID] [--target-locale-prefix PREFIX]",
+      "Usage: obsidian-i18n compile [--project PATH] [--output PATH] [--exclude-prefix PREFIX] [--include-prefix PREFIX] [--include-message BUNDLE_ID] [--target-locale-prefix PREFIX]",
     );
   }
   const options: CompileOptions = {
@@ -50,6 +50,12 @@ function parseArguments(argv: readonly string[], cwd: string): CompileOptions {
       case "--exclude-prefix":
         options.excludeMessagePrefixes = [
           ...(options.excludeMessagePrefixes ?? []),
+          value,
+        ];
+        break;
+      case "--include-prefix":
+        options.includeMessagePrefixes = [
+          ...(options.includeMessagePrefixes ?? []),
           value,
         ];
         break;

@@ -9,8 +9,8 @@ lifecycle itself: ZotLit's is the `LanguagePack` service in the plugin.
 
 **Message**:
 A keyed, translatable user-facing string in an Inlang source catalog,
-optionally taking named inputs. A consumer may exclude key prefixes from its
-generated artifacts.
+optionally taking named inputs. A consumer may include or exclude key prefixes
+from its generated artifacts.
 _Avoid_: token, translation string
 
 **Included Message**:

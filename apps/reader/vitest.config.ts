@@ -6,6 +6,7 @@ import { defineConfig } from "vitest/config";
 import { testDefaults } from "@zotlit/config/vitest";
 import { obsidianMock, obsidianSetupFile } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
+import { READER_MESSAGES_DIRECTORY } from "@zotlit/reader-messages/language-pack-options";
 import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
 
 import { buildDefines } from "./build-defines.ts";
@@ -16,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       obsidian: obsidianMock,
+      "@zotlit/plugin-messages": READER_MESSAGES_DIRECTORY,
       "@zotlit/pdfjs/viewer": resolve(packageRoot, "__mocks__/pdfjs-viewer.ts"),
     },
   },
@@ -41,7 +43,7 @@ export default defineConfig({
     globalSetup: [
       ...testDefaults.globalSetup,
       fileURLToPath(
-        import.meta.resolve("@zotlit/plugin-messages/vitest-setup"),
+        import.meta.resolve("@zotlit/reader-messages/vitest-setup"),
       ),
     ],
   },

@@ -70,6 +70,7 @@
     "//#lint:repo:deps": {
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/reader-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types",
         "@zotlit/item-query#generate:schema",
         "@zotlit/pdf-reader#generate",
