@@ -21,7 +21,7 @@ The package exports its TypeScript source as `@zotlit/annotations/<layer>/<unit>
 
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The browser trials of the excerpt images (`*.browser-test.ts`) run in an Electron renderer when `ZOTLIT_TEST_ELECTRON_PATH` names one, and skip otherwise.
+`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The browser trials of the excerpt images (`*.browser-test.ts`) run in an Electron renderer when `ZOTLIT_TEST_ELECTRON_PATH` names one, and skip otherwise. The minimized-window queue trial (`queue-chromium.test.ts`) also asks the Paint Check (`@zotlit/scripts/desktop-paint`, `packages/e2e/AGENTS.md`) and skips, naming the cause, while the desktop cannot paint a window, such as a locked screen.
 
 ## Feature
 

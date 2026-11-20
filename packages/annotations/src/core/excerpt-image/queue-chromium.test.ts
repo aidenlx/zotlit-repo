@@ -2,6 +2,8 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
+import { readDesktopPaint } from "@zotlit/scripts/desktop-paint";
+
 import type { ChromiumQueueReport } from "./queue-chromium.browser-test.ts";
 
 import {
@@ -20,7 +22,11 @@ const MAX_COLD_BATCH_MS = 30_000;
 
 it.skipIf(!testElectron)(
   "schedules real Chromium crop work under the admitted bound in a minimized window",
-  async () => {
+  async (ctx) => {
+    const paint = await readDesktopPaint();
+    if (paint.state === "cannot paint") {
+      ctx.skip(`the desktop cannot paint a window: ${paint.machine}`);
+    }
     // The trial throws on any failed check, so a returned report is the shape of
     // a complete run.
     const report = (await runInElectron({

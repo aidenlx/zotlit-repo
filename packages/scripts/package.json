@@ -38,6 +38,7 @@
     "#git-repos": "./lib/__fixtures__/git-repos.ts"
   },
   "exports": {
+    "./desktop-paint": "./lib/desktop-paint.ts",
     "./desktop-slot": "./lib/desktop-slot.ts",
     "./electron-renderer": "./lib/electron-renderer.ts",
     "./fixture": "./lib/fixture/build.ts",
