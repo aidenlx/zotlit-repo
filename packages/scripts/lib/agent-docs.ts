@@ -7,6 +7,7 @@ const NAMES = new Set([
   "CODING_STANDARDS.md",
   "CONTRIBUTING.md",
   "GLOSSARY.md",
+  "GLOSSARY-MAP.md",
   "README.md",
 ]);
 

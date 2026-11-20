@@ -15,5 +15,5 @@ The versioned contract through which another plugin, the client, extends ZotLit 
 _Avoid_: plugin API (Obsidian's `plugin.api`, which only the handshake makes stable), interop API, reader SDK
 
 **Contract probe**:
-A test plugin with no Zotero code that connects to ZotLit Reader as a client of the Reader API and adds its own layer to the Reader's view, so the contract is proved apart from ZotLit. It can ask for a major the Reader does not support, to prove the refusal.
+A test plugin with no Zotero code that connects to ZotLit Reader as a client of the Reader API and adds its own layer to the Reader's view, so the contract is proved apart from ZotLit.
 _Avoid_: fake ZotLit, test client

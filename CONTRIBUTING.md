@@ -221,8 +221,8 @@ the fix from the latest stable release instead. The hotfix commits reach
 
 ### ZotLit and ZotLit Reader
 
-ZotLit no longer draws its annotation tools on Obsidian's PDF view; they come
-with ZotLit Reader. Before you start a ZotLit release, check this item:
+ZotLit's annotation tools come with ZotLit Reader: ZotLit adds them to the
+Reader's view. Before you start a ZotLit release, check this item:
 
 - [ ] A ZotLit release that has no overlay on Obsidian's PDF view waits until the community directory lists ZotLit Reader.
 
@@ -230,8 +230,8 @@ The release order is: a ZotLit Reader beta on BRAT, then the community
 directory listing of ZotLit Reader, then that ZotLit release.
 
 ZotLit Reader `1.0.0-beta.0` proved the Reader's release pipeline. The Reader
-is still in development: its next version waits for the maintainer, and fixes
-land on `main` with no Reader version bump.
+is still in development: the next Reader release comes when the maintainer
+says so, and fixes land on `main` as normal changes.
 
 ### Distribution channels
 
@@ -265,25 +265,31 @@ npm bundle package `@zotlit/reader-plugin`, on BRAT.
    at `1.0.0-beta.0`), else in the version commit of `pnpm release`.
 3. On that commit of `origin/main`, with a clean tree, run
    `pnpm release:publish <product> --dry-run`, read its output, then
-   `pnpm release:publish <product>`. npm asks for a one-time password: pass
+   `pnpm release:publish <product>` with an npm one-time password (OTP): pass
    the code as `npm_config_otp=<code>` in front of the command, or run it in
    a terminal that npm can prompt in. The run publishes the npm package
    without provenance, pushes the shell commit and the version tag to the
    publish repository, and pushes the source tag here.
 4. Make sure that `main` of the publish repository holds the shell's
-   `.github/workflows/plugin-release.yml`. GitHub starts a tag's workflow
-   only when the default branch has that workflow file, and a new repository
-   holds only its first commit. For a first beta, fast-forward `main` to the
-   shell commit (it descends from `main`), then delete the version tag in the
-   publish repository and push it again on the same commit. The tag push then
-   starts the run.
+   `.github/workflows/plugin-release.yml`. At ZotLit Reader `1.0.0-beta.0`,
+   `main` held only the first commit: GitHub listed no workflow and started
+   no run for the tag. A fast-forward of `main` to the shell commit (it
+   descends from `main`), then a delete and a push again of the version tag
+   on the same commit, started the run. This is a workaround until R42.
 5. Watch the shell's `plugin-release.yml` in the publish repository publish
    the release and its Resource Release.
-6. Set trusted publishing for the npm package from the lead's machine:
-   `npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml`
-   (docs/CI_SETUP.md). Then enable the `Release` workflow again
-   (`gh workflow enable Release -R aidenlx/zotlit-repo`). Later releases
-   publish from `release.yml`.
+6. Set trusted publishing for the npm package from the lead's machine, each
+   npm command with an OTP (docs/CI_SETUP.md):
+
+   ```sh
+   npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml --allow-publish -y
+   npm access set mfa=publish <bundle package>
+   ```
+
+   Then check "Require two-factor authentication and disallow tokens" on the
+   package's settings page on npmjs.com, and enable the `Release` workflow
+   again with `gh workflow enable Release -R aidenlx/zotlit-repo`. Later
+   releases publish from `release.yml`.
 
 ### A step failed half way
 

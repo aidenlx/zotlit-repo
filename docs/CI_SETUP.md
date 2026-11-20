@@ -160,40 +160,50 @@ changes a channel.
 ## Settings outside the repository
 
 Before the first release of a plugin. For the desktop plugin (`aidenlx/zotlit`,
-`@zotlit/obsidian-plugin`) and ZotLit Reader (`aidenlx/zotlit-reader`,
-`@zotlit/reader-plugin`) they are done:
+`@zotlit/obsidian-plugin`) they are done. Each item names its state for ZotLit
+Reader (`aidenlx/zotlit-reader`, `@zotlit/reader-plugin`).
 
 - [ ] **Publish repository.** Create the repository that
       `PUBLISHED_PLUGINS` names, public, with a first commit on `main`. Before
       the first tag, `main` must hold the shell's
       `.github/workflows/plugin-release.yml`, or the tag starts no run
-      (CONTRIBUTING.md "First release of a new plugin", step 4).
-
+      (CONTRIBUTING.md "First release of a new plugin", step 4). Reader:
+      done.
 - [ ] **npm scope.** Create the npm organization of the scope in the bundle
       package's name (`PUBLISHED_PLUGINS` in
       `packages/scripts/lib/shell/plugins.ts`), or change that one value to a
       scope the lead owns. The lead logs in with `npm login` as its owner.
-- [ ] **First npm publish** from the lead's machine
+      Reader: done.
+- [ ] **First npm publish** from the lead's machine with an OTP
       (CONTRIBUTING.md "First release of a new plugin"); a package must
-      exist before trusted publishing can be set for it.
-- [ ] **Trusted publishing**, after that first publish: run
-      `npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml`
-      as the owner of the scope: GitHub Actions, workflow `release.yml`, no
-      environment. Then set "Require two-factor authentication and disallow
-      tokens" for the package. The workflow needs npm 11.5.1 or later; the
-      Node of `mise.toml` brings it.
+      exist before trusted publishing can be set for it. Reader: done
+      (`1.0.0-beta.0`).
+- [ ] **Trusted publishing**, after that first publish, as the owner of the
+      scope, each npm command with an OTP:
+
+      ```sh
+      npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml --allow-publish -y
+      npm access set mfa=publish <bundle package>
+      ```
+
+      Then check "Require two-factor authentication and disallow tokens" on
+      the package's settings page on npmjs.com, and run
+      `gh workflow enable Release -R aidenlx/zotlit-repo`. The workflow needs
+      npm 11.5.1 or later; the Node of `mise.toml` brings it. Reader: done.
+
 - [ ] **`RELEASE_REPO_TOKEN`**: the fine-grained token needs **Contents: read
       and write** and **Workflows: read and write** on each publish
       repository (`aidenlx/zotlit`, `aidenlx/zotlit-reader`). Git
       refuses a push of a commit that adds or changes
       `.github/workflows/*.yml` without the Workflows permission, and every
       shell commit carries the shell's `plugin-release.yml`. It also needs Metadata:
-      read (always on).
+      read (always on). Reader: done.
 - [ ] **Actions in `aidenlx/zotlit-repo`**: enable Actions; keep workflow
       permissions read-only (each job grants its own). `id-token: write` is
-      granted in the job, which needs no repository setting.
+      granted in the job, which needs no repository setting. Reader: done.
 - [ ] **Actions in `aidenlx/zotlit-reader`**: Actions stay enabled for the
       shell's `plugin-release.yml`; the repository has no other workflow.
+      Reader: done.
 - [ ] **Actions in `aidenlx/zotlit`**: Actions stay enabled for the shell's
       `plugin-release.yml`. Its old monorepo workflows run from the branch
       they are on: `Docs Deploy` and `Release` are disabled there
@@ -209,7 +219,9 @@ Before the first release of a plugin. For the desktop plugin (`aidenlx/zotlit`,
       one. Delete or archive the old `next` when it is no longer needed.
 - [ ] **Directory pre-scan**: run the community directory's "Review branch"
       pre-scan on `beta` of the publish repository after its first shell
-      commit.
+      commit. Reader: not done.
+- [ ] **Directory listing**: submit the plugin to
+      `obsidianmd/obsidian-releases` and answer the review. Reader: not done.
 
 ## Verification
 

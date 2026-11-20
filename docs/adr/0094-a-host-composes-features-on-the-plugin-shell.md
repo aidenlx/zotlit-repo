@@ -38,14 +38,14 @@ Consequences:
 
 ## Update: ZotLit Reader is the second host (2026-11-20)
 
-The second host is ZotLit Reader (`apps/reader`), and its composition differs from the reader that the first version of this decision expected.
+The second host is ZotLit Reader (`apps/reader`). It composes the platform base and its own reader feature, and the annotations stay in ZotLit.
 
-- **Its features.** `apps/reader/src/features.ts` lists `platformBase`, a `FileSystem` group over the vault adapter, and `reader` (`@zotlit/reader-feature`). It does not list `annotations`: ZotLit Reader works with no ZotLit and no Zotero, and the annotation tools stay in ZotLit.
-- **A Zotero-free platform part.** `platformBase` (`plugin-shell/src/obsidian/platform-base.ts`) holds what every host has: the log level setting, the Language Pack notices and the Advanced page. `platform` extends it with the Zotero preferences, the connections and the other Zotero services. The Reader's lint bans `platform.ts` and the Zotero packages in its imports.
+- **Its features.** `apps/reader/src/features.ts` lists `platformBase`, a `FileSystem` group over the vault adapter, and `reader` (`@zotlit/reader-feature`): ZotLit Reader works with no ZotLit and no Zotero, and the annotation tools stay in ZotLit.
+- **A Zotero-free platform part.** `platformBase` (`plugin-shell/src/obsidian/platform-base.ts`) holds what every host has: the log level setting, the Language Pack notices and the Advanced page. `platform` extends it with the Zotero preferences, the connections and the other Zotero services. The Reader's lint keeps its imports to `platformBase` and Zotero-free packages.
 - **The host gives its identity as values.** `defineHost` takes the Language Pack catalog, runtime, namespace and repository, so each host loads its own Messages from its own Resource Release. The build gives the plugin id (`__PLUGIN_ID__`), which names the host's log category.
-- **Two plugins, one contract.** The two hosts share no runtime. ZotLit reaches the Reader through the workspace handshake of `@zotlit/reader-api`; neither host lists the other's features.
+- **Two plugins, one contract.** Each host runs its own runtime. ZotLit reaches the Reader through the workspace handshake of `@zotlit/reader-api`, and each host lists only its own features.
 
 Consequences:
 
-- `annotations/src/desktop/__fixtures__/reader-host.ts` stays a test of the annotations' ports over the full `platform`; it is not the composition of ZotLit Reader.
+- `annotations/src/desktop/__fixtures__/reader-host.ts` stays a test of the annotations' ports over the full `platform`; ZotLit Reader's composition is `apps/reader/src/features.ts`.
 - A feature that both plugins need goes into a shared package and into each host's feature list; a feature of one plugin reaches the other only through the Reader API.
