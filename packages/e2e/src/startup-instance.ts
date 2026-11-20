@@ -24,6 +24,7 @@ export const OBSIDIAN_BINARY =
 const ENDPOINT_TIMEOUT_MS = 30_000;
 const QUIT_TIMEOUT_MS = 30_000;
 const RESULT_TIMEOUT_MS = 120_000;
+const QUIT_SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 
 export interface InstanceLayout {
   readonly root: string;
@@ -129,7 +130,21 @@ export async function launchInstance(
   void exited.then(() => output.close().catch(() => undefined));
   const alive = () => child.exitCode === null && child.signalCode === null;
 
+  const killOnExit = (): void => {
+    if (alive()) process.kill(pid, "SIGKILL");
+  };
+  const onSignal = (signal: NodeJS.Signals): void => {
+    void quit().finally(() => {
+      if (process.listenerCount(signal) === 0)
+        process.kill(process.pid, signal);
+    });
+  };
+  process.once("exit", killOnExit);
+  for (const signal of QUIT_SIGNALS) process.once(signal, onSignal);
+
   const quit = async (): Promise<void> => {
+    process.off("exit", killOnExit);
+    for (const signal of QUIT_SIGNALS) process.off(signal, onSignal);
     if (!alive()) return;
     process.kill(pid, "SIGTERM");
     const done = await Promise.race([
