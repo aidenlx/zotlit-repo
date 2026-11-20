@@ -5,13 +5,16 @@
 //
 // The reader's own text layer is read exactly as the browser laid it out —
 // ZotLit never re-renders it.
+import { Effect } from "effect";
+
 import type { Rect, TextLayerSelection } from "@zotlit/pdf-structure";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { OverlayPageView } from "./render.ts";
 import { pageContentBox } from "./surface.ts";
-
-const logger = getLogger("pdf-annotation-editor");
 
 /** A box in client coordinates, as `Range.getClientRects()` answers them. */
 export interface ClientBox {
@@ -146,7 +149,11 @@ function pdfRectsOf(
 ): Rect[] {
   const inverse = inverseTransform(transform);
   if (!inverse) {
-    logger.debug("PDF page viewport carries no invertible transform");
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("PDF page viewport carries no invertible transform").pipe(
+        withLogCategory("pdf-annotation-editor"),
+      ),
+    );
     return [];
   }
   return rects.flatMap((rect) => {

@@ -1,17 +1,19 @@
 // The two palette commands that open a Citation Graph: the graph Obsidian's own commands open, with ZotLit's preset applied.
 
+import { Effect } from "effect";
 import { Keymap } from "obsidian";
 import type { App, Plugin, TFile } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
 import type { GraphCitations } from "./service.ts";
-
-const logger = getLogger("graph-citations");
 
 export interface GraphCitationsActionDeps {
   app: App;
@@ -135,7 +137,12 @@ export function citationGraphReadiness(
  */
 export function notifyCitationGraph(readiness: CitationGraphReadiness): void {
   if (readiness === "ready") return;
-  logger.debug("Citation Graph not opened", { readiness });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Citation Graph not opened").pipe(
+      Effect.annotateLogs({ readiness }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   new BaseNotice(BLOCKED[readiness]());
 }
 

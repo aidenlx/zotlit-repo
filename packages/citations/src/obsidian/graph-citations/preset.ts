@@ -1,8 +1,12 @@
 // The Citation Graph preset: the option values both commands apply to the graph they open.
 
+import { Effect } from "effect";
 import type { GraphColor, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import {
   AUTHOR_TITLE_LABELS,
@@ -16,8 +20,6 @@ import {
 } from "./filters.ts";
 import { addLiteratureNotesGroup, groupsTarget } from "./groups.ts";
 import { graphEngineOf, membersPresent } from "./install.ts";
-
-const logger = getLogger("graph-citations");
 
 export interface CitationGraphPresetOptions {
   /**
@@ -102,10 +104,15 @@ export function applyCitationGraphPreset(
   engine!.setOptions!(citationGraphPreset(options));
   const target = groupsTarget(engine!);
   const added = target ? addLiteratureNotesGroup(target, options.color) : false;
-  logger.debug("Citation Graph preset applied", {
-    viewType,
-    wikilinkCitations: options.wikilinkCitations,
-    groupAdded: added,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Citation Graph preset applied").pipe(
+      Effect.annotateLogs({
+        viewType,
+        wikilinkCitations: options.wikilinkCitations,
+        groupAdded: added,
+      }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   return true;
 }

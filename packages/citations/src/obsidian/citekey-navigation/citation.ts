@@ -1,6 +1,7 @@
 // The interaction one rendered citation carries, wherever it is rendered.
 
 import type { ShownCitation } from "#obsidian/citation-text/present.ts";
+import { Effect } from "effect";
 import { Menu } from "obsidian";
 import type { HoverParent, Workspace } from "obsidian";
 
@@ -9,7 +10,11 @@ import {
   menuSections,
   raiseMenu,
 } from "@zotlit/obsidian-kit/menu-events.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { citationHoverIntent } from "./hover.ts";
 import type { CitationHoverIntent, HoverPreferences } from "./hover.ts";
@@ -26,8 +31,6 @@ import type {
 } from "./intent.ts";
 import { hoverGesture, mouseGesture, triggerCitekeyHover } from "./shell.ts";
 import type { GestureSurface } from "./shell.ts";
-
-const logger = getLogger("citekey-navigation");
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
@@ -238,10 +241,16 @@ export function clickWikilinkCitation(
   if (intent === "navigate") return;
   event.preventDefault();
   event.stopPropagation();
-  logger.debug("Wikilink citation keeps its note closed", {
-    surface: where.surface,
-    intent,
-  });
+  if (logLevelEnabled("debug"))
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Wikilink citation keeps its note closed").pipe(
+        Effect.annotateLogs({
+          surface: where.surface,
+          intent,
+        }),
+        withLogCategory("citekey-navigation"),
+      ),
+    );
   if (intent === "edit") edit?.(event);
 }
 
@@ -272,29 +281,47 @@ function navigate(event: MouseEvent, navigation: CitationNavigation): void {
   );
   if (intent.kind === "open") {
     event.preventDefault();
-    logger.debug("Rendered citation opens note", {
-      surface,
-      citekey: intent.citekey,
-      pane: intent.pane,
-    });
+    if (logLevelEnabled("debug"))
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Rendered citation opens note").pipe(
+          Effect.annotateLogs({
+            surface,
+            citekey: intent.citekey,
+            pane: intent.pane,
+          }),
+          withLogCategory("citekey-navigation"),
+        ),
+      );
     navigation.open(intent.citekey, intent.pane);
     return;
   }
   if (intent.kind !== "show-citation-menu") {
-    logger.debug("Rendered citation click not followed", {
-      surface,
-      works: works.length,
-      intent: intent.kind,
-    });
+    if (logLevelEnabled("debug"))
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Rendered citation click not followed").pipe(
+          Effect.annotateLogs({
+            surface,
+            works: works.length,
+            intent: intent.kind,
+          }),
+          withLogCategory("citekey-navigation"),
+        ),
+      );
     return;
   }
   event.preventDefault();
 
-  logger.debug("Rendered citation offers its works", {
-    surface,
-    works: works.length,
-    pane: intent.pane,
-  });
+  if (logLevelEnabled("debug"))
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Rendered citation offers its works").pipe(
+        Effect.annotateLogs({
+          surface,
+          works: works.length,
+          pane: intent.pane,
+        }),
+        withLogCategory("citekey-navigation"),
+      ),
+    );
   const menu = new Menu();
   for (const work of works) {
     menu.addItem((item) =>
@@ -338,11 +365,17 @@ export function hoverWikilinkCitation(
   if (preferences.action === "popover") event.stopPropagation();
   const answer = hoverResult(event, element, { hover, preferences });
   if (answer === null || answer.intent.kind !== "popover") return;
-  logger.trace("Wikilink citation shows its entries", {
-    surface: hover.where.surface,
-    works: hover.works.length,
-    path: answer.target.sourcePath,
-  });
+  if (logLevelEnabled("trace"))
+    Effect.runSyncWith(logServices)(
+      Effect.logTrace("Wikilink citation shows its entries").pipe(
+        Effect.annotateLogs({
+          surface: hover.where.surface,
+          works: hover.works.length,
+          path: answer.target.sourcePath,
+        }),
+        withLogCategory("citekey-navigation"),
+      ),
+    );
   hover.showPopover({
     hoverParent: answer.target.hoverParent,
     sourcePath: answer.target.sourcePath,
@@ -380,18 +413,30 @@ function hover(
   if (intent.kind === "page-preview") {
     const notePath = navigation.hoverNotePath(intent.citekey);
     if (notePath === null) {
-      logger.trace("Rendered citation hover suppressed", {
-        surface,
-        works: works.length,
-        reason: "no-note",
-      });
+      if (logLevelEnabled("trace"))
+        Effect.runSyncWith(logServices)(
+          Effect.logTrace("Rendered citation hover suppressed").pipe(
+            Effect.annotateLogs({
+              surface,
+              works: works.length,
+              reason: "no-note",
+            }),
+            withLogCategory("citekey-navigation"),
+          ),
+        );
       return;
     }
-    logger.trace("Rendered citation previews note", {
-      surface,
-      citekey: intent.citekey,
-      path: notePath,
-    });
+    if (logLevelEnabled("trace"))
+      Effect.runSyncWith(logServices)(
+        Effect.logTrace("Rendered citation previews note").pipe(
+          Effect.annotateLogs({
+            surface,
+            citekey: intent.citekey,
+            path: notePath,
+          }),
+          withLogCategory("citekey-navigation"),
+        ),
+      );
     triggerCitekeyHover(target.workspace, {
       event,
       hoverParent: target.hoverParent,
@@ -402,11 +447,17 @@ function hover(
     return;
   }
 
-  logger.trace("Rendered citation shows its entries", {
-    surface,
-    works: intent.citekeys.length,
-    path: target.sourcePath,
-  });
+  if (logLevelEnabled("trace"))
+    Effect.runSyncWith(logServices)(
+      Effect.logTrace("Rendered citation shows its entries").pipe(
+        Effect.annotateLogs({
+          surface,
+          works: intent.citekeys.length,
+          path: target.sourcePath,
+        }),
+        withLogCategory("citekey-navigation"),
+      ),
+    );
   navigation.showPopover({
     hoverParent: target.hoverParent,
     sourcePath: target.sourcePath,
@@ -453,17 +504,29 @@ function hoverResult(
     works.map((work) => work.citekey),
   );
   if (intent.kind === "nothing") {
-    logger.trace("Rendered citation hover suppressed", {
-      surface,
-      works: works.length,
-      reason: intent.reason,
-    });
+    if (logLevelEnabled("trace"))
+      Effect.runSyncWith(logServices)(
+        Effect.logTrace("Rendered citation hover suppressed").pipe(
+          Effect.annotateLogs({
+            surface,
+            works: works.length,
+            reason: intent.reason,
+          }),
+          withLogCategory("citekey-navigation"),
+        ),
+      );
     return null;
   }
 
   const target = hover.hoverTarget();
   if (!target) {
-    logger.trace("Rendered citation sits in no view", { surface });
+    if (logLevelEnabled("trace"))
+      Effect.runSyncWith(logServices)(
+        Effect.logTrace("Rendered citation sits in no view").pipe(
+          Effect.annotateLogs({ surface }),
+          withLogCategory("citekey-navigation"),
+        ),
+      );
     return null;
   }
   return { intent, target };

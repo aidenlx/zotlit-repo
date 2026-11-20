@@ -7,6 +7,7 @@ import type {
 // prepass, and in-rule resolution of annotation excerpts, citation marks, and
 // embedded images.
 import { distinct } from "@std/collections";
+import { Effect } from "effect";
 import type TurndownService from "turndown";
 
 import {
@@ -24,7 +25,10 @@ import type {
 } from "@zotlit/db";
 import { attachmentAbsPath, parseAttachmentPath } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
   AttachmentImportBatch,
@@ -51,8 +55,6 @@ import {
   createObsidianTurndown,
   encodeCalloutAttr,
 } from "#core/note-import/turndown/index.ts";
-
-const logger = getLogger(["note-import", "note-parser"]);
 
 /** Per-note dependencies wiring every DB/link-backed resolver in
  * {@link createNoteParser}. The database rows arrive already read: the
@@ -168,15 +170,27 @@ export function parseNote(
     if (schema.version === null) {
       if (!root.body.hasChildNodes()) return "";
       const markdown = createObsidianTurndown(Turndown).turndown(root.body);
-      logger.warn("Converted Plain HTML Child Note with basic formatting", {
-        fallbackReason: schema.fallbackReason,
-        markdownLength: markdown.length,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning(
+          "Converted Plain HTML Child Note with basic formatting",
+        ).pipe(
+          Effect.annotateLogs({
+            fallbackReason: schema.fallbackReason,
+            markdownLength: markdown.length,
+          }),
+          withLogCategory("note-import", "note-parser"),
+        ),
+      );
       return markdown;
     }
-    logger.warn("Skipped legacy Zotero note", {
-      schemaVersion: schema.version,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning("Skipped legacy Zotero note").pipe(
+        Effect.annotateLogs({
+          schemaVersion: schema.version,
+        }),
+        withLogCategory("note-import", "note-parser"),
+      ),
+    );
     return m.note_parser_legacy_format_callout({ version: schema.version });
   }
   const { renderAnnotationParagraph, ...parserDeps } = deps;
@@ -429,9 +443,14 @@ function resolveAnnotationExcerpt(
     const el = node as Element;
     const info = parseAnnotation(el);
     if (!info) {
-      logger.warn("Invalid data-annotation payload", {
-        raw: el.getAttribute("data-annotation")?.slice(0, 100),
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Invalid data-annotation payload").pipe(
+          Effect.annotateLogs({
+            raw: el.getAttribute("data-annotation")?.slice(0, 100),
+          }),
+          withLogCategory("note-import", "note-parser"),
+        ),
+      );
       return content;
     }
     const kind = el.classList.contains("underline") ? "underline" : "highlight";
@@ -452,13 +471,23 @@ function resolveEmbeddedImage(
 
     const attachment = deps.attachments.get(key);
     if (!attachment) {
-      logger.warn("Embedded image attachment not found", { key });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Embedded image attachment not found").pipe(
+          Effect.annotateLogs({ key }),
+          withLogCategory("note-import", "note-parser"),
+        ),
+      );
       return el.outerHTML;
     }
 
     const sourcePath = attachmentAbsPath(attachment, deps.pathContext);
     if (!sourcePath) {
-      logger.warn("Embedded image attachment path is unresolved", { key });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Embedded image attachment path is unresolved").pipe(
+          Effect.annotateLogs({ key }),
+          withLogCategory("note-import", "note-parser"),
+        ),
+      );
       return el.outerHTML;
     }
 

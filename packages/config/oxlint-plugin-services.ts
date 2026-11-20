@@ -5,7 +5,7 @@
 // failure boundaries. Rule tests: apps/obsidian/src/lint/services.test.ts.
 import { dirname, resolve, sep } from "node:path";
 
-import { importsEffect, isMemberOf } from "./oxlint-ast.ts";
+import { isEffectCode, isMemberOf } from "./oxlint-ast.ts";
 import type { AstNode, ModuleProgram, Rule } from "./oxlint-ast.ts";
 
 const EFFECT_GENERATOR_CALLEES = new Set(["gen", "fn", "fnUntraced"]);
@@ -416,7 +416,7 @@ function appMember(node: AstNode | undefined): string | undefined {
  * identifier or any member named `app` (`this.app`, `plugin.app`,
  * `this.#app`).
  *
- * "Imports Effect" is `importsEffect` (`./oxlint-ast.ts`), as for
+ * "Effect code" is `isEffectCode` (`./oxlint-ast.ts`), as for
  * `clock-time`. The tags themselves, and the backlog, are listed in
  * oxlint.config.ts.
  */
@@ -447,7 +447,10 @@ export const obsidianCapabilities: Rule = {
       appMember(node.object) !== undefined;
     return {
       Program(program) {
-        effectNative = importsEffect((program as ModuleProgram).body ?? []);
+        effectNative = isEffectCode(
+          (program as ModuleProgram).body ?? [],
+          context.sourceCode.text,
+        );
       },
       MemberExpression(node) {
         if (!effectNative) return;
@@ -909,7 +912,7 @@ export const clockTime: Rule = {
     return {
       Program(program) {
         const body = (program as ModuleProgram).body ?? [];
-        effectNative = importsEffect(body);
+        effectNative = isEffectCode(body, context.sourceCode.text);
         declarations = body.flatMap((statement) => {
           const node = statement as TypeNode;
           const declaration =
@@ -984,7 +987,10 @@ export const temporalInEffect: Rule = {
     let effectNative = false;
     return {
       Program(program) {
-        effectNative = importsEffect((program as ModuleProgram).body ?? []);
+        effectNative = isEffectCode(
+          (program as ModuleProgram).body ?? [],
+          context.sourceCode.text,
+        );
       },
       Identifier(node) {
         const identifier = node as unknown as TypeNode;

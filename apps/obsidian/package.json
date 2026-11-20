@@ -68,7 +68,6 @@
     "@codemirror/view": "catalog:",
     "@effect/vitest": "catalog:",
     "@electron/remote": "catalog:",
-    "@logtape/logtape": "catalog:",
     "@preact/preset-vite": "catalog:",
     "@tailwindcss/node": "catalog:",
     "@tailwindcss/vite": "catalog:",

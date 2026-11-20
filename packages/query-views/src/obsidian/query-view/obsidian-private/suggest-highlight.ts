@@ -6,11 +6,13 @@
 // popover before a key is typed there.
 //
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
+import { Effect } from "effect";
 import type { PopoverSuggest } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger(["obsidian-private", "suggest-highlight"]);
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 let warned = false;
 
@@ -21,8 +23,10 @@ function chooser(suggest: PopoverSuggest<unknown>) {
     return (at: number) => suggestions.forceSetSelectedItem?.(at, null);
   if (!warned) {
     warned = true;
-    logger.warn(
-      "Obsidian's suggestion popover has no chooser to clear; suggestions open only once a key is typed",
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "Obsidian's suggestion popover has no chooser to clear; suggestions open only once a key is typed",
+      ).pipe(withLogCategory("obsidian-private", "suggest-highlight")),
     );
   }
   return null;

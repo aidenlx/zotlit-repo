@@ -7,7 +7,7 @@ import type { LibrarySelection } from "#obsidian/library/model.ts";
 // reads Zotero's database only, so Zotero does not need to run.
 //
 // @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
-import { Option } from "effect";
+import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { debounce, ItemView, Keymap, Scope } from "obsidian";
 import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
@@ -16,7 +16,10 @@ import { inTextEntry } from "@zotlit/annotations/obsidian/pdf-annotation-editor/
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
@@ -99,8 +102,6 @@ import {
   waitForRead,
 } from "#obsidian/library/model.ts";
 import "./style.css";
-
-const logger = getLogger(["library-view"]);
 
 export const LIBRARY_VIEW_TYPE = "zotlit-library";
 
@@ -209,7 +210,12 @@ export class LibraryView extends ItemView {
   readonly #keep = debounce(
     () => {
       this.#saving = this.#storage.save().catch((error: unknown) => {
-        logger.warn("The Library View could not keep the search", { error });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning("The Library View could not keep the search").pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     },
     500,
@@ -349,9 +355,16 @@ export class LibraryView extends ItemView {
         this.#storage
           .change((doc) => withCardDisclosure(doc, name, open))
           .catch((error: unknown) => {
-            logger.warn("The Library View could not keep the Reading Card", {
-              error,
-            });
+            Effect.runSyncWith(logServices)(
+              Effect.logWarning(
+                "The Library View could not keep the Reading Card",
+              ).pipe(
+                Effect.annotateLogs({
+                  error,
+                }),
+                withLogCategory("library-view"),
+              ),
+            );
           });
       },
       selectTag: (name) => {
@@ -552,9 +565,16 @@ export class LibraryView extends ItemView {
           this.#storage
             .change((doc) => withCardWidth(doc, width))
             .catch((error: unknown) => {
-              logger.warn("The Library View could not keep the card's width", {
-                error,
-              });
+              Effect.runSyncWith(logServices)(
+                Effect.logWarning(
+                  "The Library View could not keep the card's width",
+                ).pipe(
+                  Effect.annotateLogs({
+                    error,
+                  }),
+                  withLogCategory("library-view"),
+                ),
+              );
             });
         },
       },
@@ -581,9 +601,16 @@ export class LibraryView extends ItemView {
           this.#storage
             .change((doc) => withCardHeight(doc, height))
             .catch((error: unknown) => {
-              logger.warn("The Library View could not keep the card's height", {
-                error,
-              });
+              Effect.runSyncWith(logServices)(
+                Effect.logWarning(
+                  "The Library View could not keep the card's height",
+                ).pipe(
+                  Effect.annotateLogs({
+                    error,
+                  }),
+                  withLogCategory("library-view"),
+                ),
+              );
             });
         },
       },
@@ -616,9 +643,16 @@ export class LibraryView extends ItemView {
           this.#storage
             .change((doc) => withTreeWidth(doc, width))
             .catch((error: unknown) => {
-              logger.warn("The Library View could not keep the tree's width", {
-                error,
-              });
+              Effect.runSyncWith(logServices)(
+                Effect.logWarning(
+                  "The Library View could not keep the tree's width",
+                ).pipe(
+                  Effect.annotateLogs({
+                    error,
+                  }),
+                  withLogCategory("library-view"),
+                ),
+              );
             });
         },
       },
@@ -765,9 +799,16 @@ export class LibraryView extends ItemView {
   /** The researcher opened or closed tree nodes: show them, and keep them. */
   #expand(change: (doc: LibraryViewDocument) => LibraryViewDocument): void {
     this.#storage.change(change).catch((error: unknown) => {
-      logger.warn("The Library View could not keep the open tree nodes", {
-        error,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning(
+          "The Library View could not keep the open tree nodes",
+        ).pipe(
+          Effect.annotateLogs({
+            error,
+          }),
+          withLogCategory("library-view"),
+        ),
+      );
     });
     this.tree.showExpanded(this.#storage.document().expanded);
   }
@@ -821,9 +862,16 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withCardClosed(doc, !on))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not keep the item details", {
-          error,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "The Library View could not keep the item details",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+            }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.#showCard();
     const row = this.#selectedRow();
@@ -840,9 +888,16 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withTreeCollapsed(doc, collapsed))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not keep the tree collapsed", {
-          error,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "The Library View could not keep the tree collapsed",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+            }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.tree.setOpen(false);
     this.tree.showCollapsed(collapsed);
@@ -1063,9 +1118,16 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withNode(doc, node))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not keep the tree selection", {
-          error,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "The Library View could not keep the tree selection",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+            }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.tree.showExpanded(this.#storage.document().expanded);
     // The selected row leaves the list with its node.
@@ -1081,7 +1143,12 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withFacets(doc, facets))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not keep the facets", { error });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning("The Library View could not keep the facets").pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.#show(this.#found);
   }
@@ -1092,9 +1159,16 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withTags(doc, tags))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not keep the selected tags", {
-          error,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "The Library View could not keep the selected tags",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+            }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.#show(this.#found);
   }
@@ -1106,7 +1180,14 @@ export class LibraryView extends ItemView {
     this.#storage
       .change((doc) => withTags(withFacets(doc, []), []))
       .catch((error: unknown) => {
-        logger.warn("The Library View could not clear the filters", { error });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "The Library View could not clear the filters",
+          ).pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("library-view"),
+          ),
+        );
       });
     this.#show(this.#found);
   }

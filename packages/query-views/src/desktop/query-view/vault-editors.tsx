@@ -9,6 +9,7 @@
 // Bases cell does; aliases suggest none, as in Bases.
 //
 // @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
+import { Effect } from "effect";
 import {
   AbstractInputSuggest,
   Component,
@@ -35,7 +36,10 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import { hasActiveMenu, showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
@@ -174,8 +178,6 @@ function withoutChip({ chip: _chip, ...rest }: VaultDraft): VaultDraft {
   return rest;
 }
 
-const logger = getLogger(["views", "query-view", "vault"]);
-
 /** A list item's menu: the item it copies, and what else it does. */
 export interface ChipMenu {
   readonly item: string;
@@ -188,7 +190,12 @@ export interface ChipMenu {
 /** Copy `item`, as a list item's menu does. */
 function copyItem(item: string) {
   navigator.clipboard.writeText(item).catch((error: unknown) => {
-    logger.warn("The Query View could not copy a list item", { error });
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning("The Query View could not copy a list item").pipe(
+        Effect.annotateLogs({ error }),
+        withLogCategory("views", "query-view", "vault"),
+      ),
+    );
   });
 }
 

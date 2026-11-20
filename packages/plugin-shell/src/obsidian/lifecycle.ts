@@ -1,12 +1,14 @@
 // A plugin that knows Obsidian has unloaded it, for an onload that a disable
 // interrupts.
+import { Effect } from "effect";
 import { Plugin } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { releaseKeyDescription } from "#core/release-key.ts";
-
-const logger = getLogger("plugin-lifecycle");
 
 /**
  * How long a start-up waits for the previous instance's release. A release
@@ -17,14 +19,21 @@ export const PREVIOUS_RELEASE_WAIT_MS = 10_000;
 /**
  * Warn that `pluginId` started before the previous instance released what it
  * held. Call it once the runtime's logging layer has built: until then a
- * production build's LogTape has no sinks, and the record is lost.
+ * production build's logger has no sinks, and the record is lost.
  */
 export function logLateRelease(pluginId: string): void {
   // Only the bound ends the wait this way, so it took the whole bound.
-  logger.warn("Started before the previous instance released what it held", {
-    pluginId,
-    elapsedMs: PREVIOUS_RELEASE_WAIT_MS,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logWarning(
+      "Started before the previous instance released what it held",
+    ).pipe(
+      Effect.annotateLogs({
+        pluginId,
+        elapsedMs: PREVIOUS_RELEASE_WAIT_MS,
+      }),
+      withLogCategory("plugin-lifecycle"),
+    ),
+  );
 }
 
 /**

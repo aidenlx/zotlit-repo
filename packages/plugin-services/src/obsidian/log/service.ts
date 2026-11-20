@@ -1,31 +1,29 @@
-// LogTape's sinks and levels for the plugin, following the log settings.
+// The plugin logger's sinks and level, following the log settings.
 
 import type { Settings } from "#obsidian/settings/service.ts";
-import { getConsoleSink } from "@logtape/logtape";
-import type { LogLevel, Sink } from "@logtape/logtape";
-import {
-  Cause,
-  Console,
-  Context,
-  Effect,
-  Exit,
-  Layer,
-  Scope,
-  Stream,
-} from "effect";
+import { Context, Effect, Exit, Layer, Scope, Stream } from "effect";
+import type { Logger } from "effect";
 import type { Plugin } from "obsidian";
 
-import { logCategoryRoot, pluginLogTape } from "@zotlit/plugin-kernel/log.ts";
-import type { PluginLogConfig } from "@zotlit/plugin-kernel/log.ts";
-import { devToolsFormatter } from "@zotlit/shared/log-formatter";
+import {
+  releaseLogOutputs,
+  setLogOutputs,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+import type {
+  LogLevel,
+  LogOutputs,
+  LogRecord,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+import { consoleLogSink } from "@zotlit/plugin-kernel/log-console.ts";
 
-import { createVaultFileSink } from "./vault-sink.ts";
+import { openVaultFileSink } from "./vault-sink.ts";
 
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
 export const LOG_FILENAME = "zotlit.log.jsonl";
 
-type LogConfig = PluginLogConfig;
+type LogConfig = LogOutputs;
 
 /**
  * What {@link layerLogging} drives: the sinks and levels of the plugin's own
@@ -38,30 +36,31 @@ export class LogOutput extends Context.Service<
     configure(config: LogConfig): Effect.Effect<void, unknown>;
     readonly reset: Effect.Effect<void, unknown>;
     /** The plugin's log file, truncated; closing the scope drains it. */
-    readonly openFile: Effect.Effect<Sink, unknown, Scope.Scope>;
+    readonly openFile: Effect.Effect<
+      Logger.Logger<LogRecord, void>,
+      unknown,
+      Scope.Scope
+    >;
   }
 >()("zotlit/log/LogOutput") {}
 
-/** The plugin's loggers in LogTape, and the log file in the plugin's folder. */
+/** The plugin logger's outputs, and the log file in the plugin's folder. */
 export function layerLogOutput(
   plugin: Pick<Plugin, "app" | "manifest">,
 ): Layer.Layer<LogOutput> {
   const path = `${plugin.manifest.dir}/${LOG_FILENAME}`;
   const { adapter } = plugin.app.vault;
-  const logTape = pluginLogTape();
   return Layer.succeed(
     LogOutput,
     LogOutput.of({
       configureSync: Effect.fn("LogOutput.configureSync")((config) =>
-        Effect.try(() => logTape.configure(config)),
+        Effect.sync(() => setLogOutputs(config)),
       ),
       configure: Effect.fn("LogOutput.configure")((config) =>
-        Effect.try(() => logTape.configure(config)),
+        Effect.sync(() => setLogOutputs(config)),
       ),
-      reset: Effect.try(() => logTape.release()),
-      openFile: Effect.acquireDisposable(
-        Effect.tryPromise(() => createVaultFileSink(adapter, path)),
-      ),
+      reset: Effect.sync(releaseLogOutputs),
+      openFile: openVaultFileSink(adapter, path),
     }),
   );
 }
@@ -78,16 +77,15 @@ export const STARTUP_LOG_SETTINGS: LogSettings = {
 };
 
 /**
- * Configures LogTape when it builds, so every service built after it logs
+ * Configures the plugin logger when it builds, so every service built after it logs
  * from its first line, then applies each change to the log settings. While a
  * change applies, later changes wait and only the newest is applied; a change
  * that fails is applied again on the next settings change. A `null`
- * `log.level` routes the plugin's category to no sinks and opens no file.
+ * `log.level` writes no record and opens no file.
  *
  * Closing the layer waits for an applying change, drains the log file, and
- * removes the plugin's sinks from LogTape. A failure is reported to the
- * console through Effect's `Console`, which does not depend on the LogTape
- * configuration that failed.
+ * removes the plugin logger's sinks. A failure is logged as an error, which
+ * reaches the console under any configuration.
  */
 export const layerLogging: Layer.Layer<
   never,
@@ -99,7 +97,7 @@ export const layerLogging: Layer.Layer<
     const output = yield* LogOutput;
 
     yield* Effect.addFinalizer(() =>
-      output.reset.pipe(reportFailure("Could not reset LogTape")),
+      output.reset.pipe(reportFailure("Could not reset logging")),
     );
     yield* output
       .configureSync(logConfig(STARTUP_LOG_SETTINGS))
@@ -139,7 +137,7 @@ const reportFailure =
   (message: string) =>
   <E, R>(effect: Effect.Effect<void, E, R>): Effect.Effect<void, never, R> =>
     Effect.catchCause(effect, (cause) =>
-      Console.error(message, Cause.squash(cause)),
+      Effect.logError(message, cause).pipe(withLogCategory("log")),
     );
 
 /**
@@ -164,20 +162,13 @@ function sameLogSettings(a: LogSettings, b: LogSettings): boolean {
   return a.level === b.level && a.toFile === b.toFile;
 }
 
-function logConfig(settings: LogSettings, file?: Sink): LogConfig {
-  const sinks = file ? ["console", "file"] : ["console"];
+function logConfig(
+  settings: LogSettings,
+  file?: Logger.Logger<LogRecord, void>,
+): LogConfig {
+  if (settings.level === null) return { level: null, sinks: [] };
   return {
-    sinks: {
-      console: getConsoleSink({ formatter: devToolsFormatter }),
-      ...(file && { file }),
-    },
-    loggers: [
-      {
-        category: [logCategoryRoot()],
-        sinks: settings.level === null ? [] : sinks,
-        lowestLevel: settings.level ?? "fatal",
-      },
-      { category: ["logtape", "meta"], sinks, lowestLevel: "warning" },
-    ],
+    level: settings.level,
+    sinks: file ? [consoleLogSink, file] : [consoleLogSink],
   };
 }

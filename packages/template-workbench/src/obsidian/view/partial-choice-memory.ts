@@ -7,16 +7,18 @@
 // again — ZotLit rewrites nothing on a rename, and a preview choice is not
 // worth following one.
 
+import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
 } from "@zotlit/workbench/render";
 import type { PartialChoice } from "@zotlit/workbench/render";
-
-const logger = getLogger(["views", "template-workbench"]);
 
 /** Device-local, so a vault synced between machines carries no preview choice. */
 const STORAGE_KEY = "zotlit-partial-choice";
@@ -83,7 +85,11 @@ function heldChoices(store: PartialChoiceStore): Record<string, HeldChoice> {
   const held: unknown = store.loadLocalStorage(STORAGE_KEY);
   if (held === null || typeof held !== "object" || Array.isArray(held)) {
     if (held !== null)
-      logger.debug("Discarded an unreadable partial choice store");
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Discarded an unreadable partial choice store").pipe(
+          withLogCategory("views", "template-workbench"),
+        ),
+      );
     return {};
   }
   return { ...(held as Record<string, HeldChoice>) };

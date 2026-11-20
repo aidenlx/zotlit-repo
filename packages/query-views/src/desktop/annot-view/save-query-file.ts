@@ -4,6 +4,7 @@
 // saves through the same dialog, which there asks the name and the folder.
 //
 // @see apps/obsidian/docs/adr/0069-the-annotation-view-is-the-annotations-layout-of-the-query-view.md
+import { Effect } from "effect";
 import {
   AbstractInputSuggest,
   Modal,
@@ -22,7 +23,10 @@ import {
   NOTE_CLASS,
 } from "@zotlit/obsidian-kit/dialog-frame.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
@@ -33,8 +37,6 @@ import {
   QUERY_FILE_EXTENSION,
   untitledName,
 } from "#core/query-view/query-file.ts";
-
-const logger = getLogger(["views", "annot-view", "save-query-file"]);
 
 /** The characters a file name cannot hold on every desktop system. */
 const FORBIDDEN = /[*"\\/<>:|?]/;
@@ -302,10 +304,15 @@ async function saveQueryFile(
     const file = await app.vault.create(choice.path, text(choice.records));
     await app.workspace.getLeaf("tab").openFile(file, { active: true });
   } catch (error) {
-    logger.error("Failed to save a Query File", {
-      path: choice.path,
-      error,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logError("Failed to save a Query File").pipe(
+        Effect.annotateLogs({
+          path: choice.path,
+          error,
+        }),
+        withLogCategory("views", "annot-view", "save-query-file"),
+      ),
+    );
     new BaseNotice(m.annot_view_save_failed());
   }
 }

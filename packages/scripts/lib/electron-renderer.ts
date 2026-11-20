@@ -17,6 +17,7 @@ export async function runInElectron(options: {
   minimized?: boolean;
   plugins?: PluginOption[];
   alias?: Record<string, string>;
+  define?: Record<string, string>;
 }): Promise<unknown> {
   const workspaceRoot = await getWorkspaceRoot(options.entry);
   const parent = resolve(workspaceRoot, ".scratch");
@@ -30,7 +31,10 @@ export async function runInElectron(options: {
     configFile: false,
     plugins: options.plugins,
     logLevel: "silent",
-    define: { "process.env.NODE_ENV": JSON.stringify("production") },
+    define: {
+      "process.env.NODE_ENV": JSON.stringify("production"),
+      ...options.define,
+    },
     resolve: {
       alias: {
         "@": resolve(getPackageRoot(options.entry), "src"),

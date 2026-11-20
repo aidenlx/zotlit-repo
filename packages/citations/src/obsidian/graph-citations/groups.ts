@@ -1,5 +1,6 @@
 // The "Add literature notes group" button beside the graph's native "New group" control, and the one colour group it inserts.
 
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import type {
   GraphColor,
@@ -9,13 +10,14 @@ import type {
 } from "obsidian";
 
 import { FIELD_ZOTERO_KEY } from "@zotlit/plugin-kernel/constants.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { targetOnce } from "./install.ts";
 import type { GraphNodeColors } from "./node-color.ts";
-
-const logger = getLogger("graph-citations");
 
 /**
  * The search query the inserted group carries: every note holding the
@@ -80,13 +82,22 @@ export function addLiteratureNotesGroup(
 ): boolean {
   const groups = target.section.getColoredQueries();
   if (groups.some((group) => group.query === LITERATURE_NOTES_QUERY)) {
-    logger.debug("Literature notes group already present; none added");
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug(
+        "Literature notes group already present; none added",
+      ).pipe(withLogCategory("graph-citations")),
+    );
     return false;
   }
   target.engine.setOptions({
     colorGroups: [...groups, { query: LITERATURE_NOTES_QUERY, color }],
   });
-  logger.debug("Literature notes group added", { groups: groups.length + 1 });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Literature notes group added").pipe(
+      Effect.annotateLogs({ groups: groups.length + 1 }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   return true;
 }
 
@@ -138,6 +149,10 @@ export function installGroupsButton(
     }),
   );
   restores.defer(() => container.remove());
-  logger.debug("Graph groups button installed");
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Graph groups button installed").pipe(
+      withLogCategory("graph-citations"),
+    ),
+  );
   return restores;
 }

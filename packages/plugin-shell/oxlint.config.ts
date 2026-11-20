@@ -117,15 +117,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      // Start-up and cleanup failures happen before or after logging runs,
-      // so the console is their one record.
-      files: ["src/obsidian/plugin.ts", "src/obsidian/startup-notice.ts"],
-      rules: {
-        "effecttsgo/global-console": "off",
-        "effecttsgo/global-console-in-effect": "off",
-      },
-    },
-    {
       // Background work that stands in no window, which lives as long as the
       // plugin and so as the main window.
       files: ["src/obsidian/lifecycle.ts"],

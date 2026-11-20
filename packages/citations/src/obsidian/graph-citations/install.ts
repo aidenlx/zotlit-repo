@@ -1,5 +1,6 @@
 // Locate and validate the internal members used by each graph installation.
 
+import { Effect } from "effect";
 import type {
   App,
   GraphData,
@@ -12,9 +13,10 @@ import type {
   WorkspaceLeaf,
 } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger("graph-citations");
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /** The core plugin behind both graph views, as `app.internalPlugins` names it. */
 export const GRAPH_CORE_PLUGIN_ID = "graph";
@@ -122,7 +124,12 @@ export function membersPresent(
 ): boolean {
   const missing = Object.keys(present).filter((member) => !present[member]);
   if (missing.length === 0) return true;
-  logger.warn(message, { ...context, missing });
+  Effect.runSyncWith(logServices)(
+    Effect.logWarning(message).pipe(
+      Effect.annotateLogs({ ...context, missing }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   return false;
 }
 

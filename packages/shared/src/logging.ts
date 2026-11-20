@@ -14,7 +14,7 @@ export const withLogCategory =
   <A, E, R>(self: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
     Effect.provideService(self, LogCategory, category);
 
-/** A log level understood by the plugin's LogTape and Effect bridges. */
+/** A log level understood by the plugin's Effect logger. */
 export type LibraryLogLevel =
   | "trace"
   | "debug"

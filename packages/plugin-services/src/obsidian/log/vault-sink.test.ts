@@ -1,154 +1,121 @@
-import type { LogRecord } from "@logtape/logtape";
+import { it } from "@effect/vitest";
+import { Effect, Exit, Scope } from "effect";
+import { TestClock, TestConsole } from "effect/testing";
 import type { DataAdapter } from "obsidian";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect } from "vitest";
 
-import { createVaultFileSink } from "./vault-sink.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import {
+  currentLogOutputs,
+  setLogOutputs,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
-interface AdapterStub {
-  writeCalls: string[];
-  appendCalls: string[];
-  write: (path: string, data: string) => Promise<void>;
-  append: (path: string, data: string) => Promise<void>;
-}
+import { openVaultFileSink } from "./vault-sink.ts";
 
-function makeAdapter(overrides: Partial<AdapterStub> = {}): AdapterStub {
+function makeAdapter(append?: (data: string) => Promise<void>) {
   const writeCalls: string[] = [];
   const appendCalls: string[] = [];
-  return {
-    writeCalls,
-    appendCalls,
-    write: async (_path: string, data: string) => {
+  const adapter = stubService<DataAdapter>("Adapter", {
+    write: async (_path, data) => {
       writeCalls.push(data);
     },
-    append: async (_path: string, data: string) => {
-      appendCalls.push(data);
-    },
-    ...overrides,
-  };
+    append:
+      append === undefined
+        ? async (_path, data) => {
+            appendCalls.push(data);
+          }
+        : (_path, data) => append(data),
+  });
+  return { adapter, writeCalls, appendCalls };
 }
 
-function asAdapter(stub: AdapterStub): DataAdapter {
-  return stub as unknown as DataAdapter;
-}
-
-function makeRecord(message: string): LogRecord {
-  return {
-    category: ["zotlit", "obsidian", "test"],
-    level: "info",
-    message: [message],
-    properties: {},
-    rawMessage: message,
-    timestamp: 1_700_000_000_000,
-  };
-}
-
-let errorSpy: ReturnType<typeof vi.spyOn>;
-
-beforeEach(() => {
-  vi.useFakeTimers();
-  errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-  errorSpy.mockRestore();
-});
-
-describe("createVaultFileSink", () => {
-  it("truncates the file on open", async () => {
-    const adapter = makeAdapter();
-    await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-    expect(adapter.writeCalls).toEqual([""]);
-  });
-
-  it("buffers records and flushes on the next timer tick", async () => {
-    const adapter = makeAdapter();
-    const sink = await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-
-    sink(makeRecord("a"));
-    sink(makeRecord("b"));
-    expect(adapter.appendCalls).toHaveLength(0);
-
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(adapter.appendCalls).toHaveLength(1);
-    expect(adapter.appendCalls[0]).toContain('"message":"a"');
-    expect(adapter.appendCalls[0]).toContain('"message":"b"');
-    expect(adapter.appendCalls[0]?.endsWith("\n")).toBe(true);
-  });
-
-  it("drains pending records on dispose", async () => {
-    const adapter = makeAdapter();
-    const sink = await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-
-    sink(makeRecord("only"));
-    await sink[Symbol.asyncDispose]();
-
-    expect(adapter.appendCalls).toHaveLength(1);
-    expect(adapter.appendCalls[0]).toContain('"message":"only"');
-  });
-
-  it("ignores records emitted after dispose", async () => {
-    const adapter = makeAdapter();
-    const sink = await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-
-    await sink[Symbol.asyncDispose]();
-    sink(makeRecord("after"));
-    await vi.advanceTimersByTimeAsync(2000);
-
-    expect(adapter.appendCalls).toHaveLength(0);
-  });
-
-  it("dispose awaits in-flight writes before resolving", async () => {
-    let resolveAppend!: () => void;
-    const adapter = makeAdapter({
-      append: vi.fn(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveAppend = resolve;
-          }),
-      ),
-    });
-    const sink = await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-
-    sink(makeRecord("a"));
-    await vi.advanceTimersByTimeAsync(1000);
-
-    let resolved = false;
-    const disposePromise = sink[Symbol.asyncDispose]().then(() => {
-      resolved = true;
-    });
-
-    await Promise.resolve();
-    expect(resolved).toBe(false);
-
-    resolveAppend();
-    await disposePromise;
-    expect(resolved).toBe(true);
-    expect(adapter.append).toHaveBeenCalledTimes(1);
-  });
-
-  it("logs and swallows append failures, continuing on subsequent ticks", async () => {
-    let calls = 0;
-    const adapter = makeAdapter({
-      append: vi.fn(async (_path: string, data: string) => {
-        calls += 1;
-        if (calls === 1) {
-          throw new Error("disk full");
-        }
-        adapter.appendCalls.push(data);
-      }),
-    });
-    const sink = await createVaultFileSink(asAdapter(adapter), "log.jsonl");
-
-    sink(makeRecord("a"));
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Failed to write to plugin log file",
-      expect.any(Error),
+const openFileLogging = (adapter: DataAdapter) =>
+  Effect.gen(function* () {
+    const scope = yield* Scope.make();
+    const sink = yield* openVaultFileSink(adapter, "log.jsonl").pipe(
+      Scope.provide(scope),
     );
-
-    sink(makeRecord("b"));
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(adapter.appendCalls).toContainEqual(expect.stringContaining('"b"'));
+    const previous = currentLogOutputs();
+    setLogOutputs({ level: "trace", sinks: [sink] });
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => setLogOutputs(previous)),
+    );
+    return { close: Scope.close(scope, Exit.void) };
   });
+
+const errorLinesUntil = (line: string) =>
+  TestConsole.errorLines.pipe(
+    Effect.tap(() => Effect.yieldNow),
+    Effect.repeat({
+      until: (lines) => lines.includes(line),
+      times: 1000,
+    }),
+  );
+
+describe("openVaultFileSink", () => {
+  it.effect("truncates the file on open", () =>
+    Effect.gen(function* () {
+      const { adapter, writeCalls } = makeAdapter();
+      yield* openFileLogging(adapter);
+      expect(writeCalls).toEqual([""]);
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect("buffers records and appends them once a second", () =>
+    Effect.gen(function* () {
+      const { adapter, appendCalls } = makeAdapter();
+      yield* openFileLogging(adapter);
+
+      yield* Effect.logInfo("a");
+      yield* Effect.logInfo("b");
+      expect(appendCalls).toHaveLength(0);
+
+      yield* TestClock.adjust("1 second");
+      yield* eventually(() => expect(appendCalls).toHaveLength(1));
+      expect(appendCalls[0]).toContain('"message":"a"');
+      expect(appendCalls[0]).toContain('"message":"b"');
+      expect(appendCalls[0]?.endsWith("\n")).toBe(true);
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect("drains pending records when its scope closes", () =>
+    Effect.gen(function* () {
+      const { adapter, appendCalls } = makeAdapter();
+      const file = yield* openFileLogging(adapter);
+
+      yield* Effect.logInfo("only");
+      yield* file.close;
+
+      expect(appendCalls).toHaveLength(1);
+      expect(appendCalls[0]).toContain('"message":"only"');
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "reports a failed append and appends the next records on a later tick",
+    () =>
+      Effect.gen(function* () {
+        let calls = 0;
+        const appended: string[] = [];
+        const { adapter } = makeAdapter(async (data) => {
+          calls += 1;
+          if (calls === 1) throw new Error("disk full");
+          appended.push(data);
+        });
+        yield* openFileLogging(adapter);
+
+        yield* Effect.logInfo("a");
+        yield* TestClock.adjust("1 second");
+        expect(
+          yield* errorLinesUntil("Failed to write to plugin log file"),
+        ).toContain("Failed to write to plugin log file");
+
+        yield* Effect.logInfo("b");
+        yield* TestClock.adjust("1 second");
+        yield* eventually(() =>
+          expect(appended).toContainEqual(expect.stringContaining('"b"')),
+        );
+      }).pipe(Effect.scoped),
+  );
 });

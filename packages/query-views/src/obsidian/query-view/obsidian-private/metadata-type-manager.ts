@@ -5,11 +5,13 @@
 // one the Properties panel shows.
 //
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
+import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger(["obsidian-private", "metadata-type-manager"]);
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /** The apps already warned of a missing manager, so each warns once. */
 const warned = new WeakSet<App>();
@@ -22,9 +24,13 @@ function manager(app: App, members: ("getAssignedWidget" | "on" | "offref")[]) {
   if (missing.length === 0) return types!;
   if (!warned.has(app)) {
     warned.add(app);
-    logger.warn(
-      "Obsidian's property type manager is missing; vault properties take the type of their values",
-      { missing },
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "Obsidian's property type manager is missing; vault properties take the type of their values",
+      ).pipe(
+        Effect.annotateLogs({ missing }),
+        withLogCategory("obsidian-private", "metadata-type-manager"),
+      ),
     );
   }
   return null;

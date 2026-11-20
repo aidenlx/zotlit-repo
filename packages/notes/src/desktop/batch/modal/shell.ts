@@ -1,10 +1,14 @@
 import type { BatchFailure } from "#obsidian/batch/batch-run.ts";
+import { Effect } from "effect";
 import { ButtonComponent, Modal, setIcon } from "obsidian";
 import type { App } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { failureRow, ICON_CLS, section, SECTION_SUMMARY_CLS } from "./dom.ts";
@@ -15,8 +19,6 @@ import type {
 } from "./types.ts";
 
 import { makeStopRequest } from "#obsidian/batch/batch-run.ts";
-
-const logger = getLogger("batch-modal");
 
 /**
  * Imperative loading → confirm → progress → summary modal for a batch run, in a
@@ -159,11 +161,16 @@ export class BatchModal extends Modal {
         try {
           await choice.choose();
         } catch (error) {
-          logger.error("Failed to change batch Profile", {
-            error,
-            label: choice.label,
-            source: choice.source,
-          });
+          Effect.runSyncWith(logServices)(
+            Effect.logError("Failed to change batch Profile").pipe(
+              Effect.annotateLogs({
+                error,
+                label: choice.label,
+                source: choice.source,
+              }),
+              withLogCategory("batch-modal"),
+            ),
+          );
           if (!this.#dismissed) new BaseNotice(this.#options.text.loadFailed);
         } finally {
           this.#choosingProfile = false;

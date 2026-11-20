@@ -6,13 +6,17 @@
 // union's, not the order in which two classes hand gestures to each other.
 //
 // @see apps/obsidian/docs/adr/0056-reader-surface-state-is-one-vanilla-store-per-pdf-view.md
+import { Effect } from "effect";
 import type { HoverParent } from "obsidian";
 import { createElement, Fragment } from "react";
 import type { ReactNode } from "react";
 
 import { hasActiveMenu } from "@zotlit/obsidian-kit/menu.ts";
 import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { Point } from "./hit-test.ts";
 import { MarkPopup } from "./mark-popup.tsx";
@@ -20,8 +24,6 @@ import { current } from "./reader-surface-model.ts";
 import type { ReaderSurface } from "./reader-surface-model.ts";
 import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state.ts";
 import type { Floating, PopuplessFloating } from "./reader-surface-state.ts";
-
-const logger = getLogger("pdf-annotation-editor");
 
 /** One floating variant, as its owner hands it to the host. */
 export interface MarkPopupVariant {
@@ -146,13 +148,18 @@ export class MarkPopupHost implements Disposable {
           ? "refresh"
           : null;
     if (action)
-      logger.debug("Mark Popup placed", {
-        action,
-        kind: head.kind,
-        key: head.key,
-        commenting: head.commenting,
-        tagging: head.tagging,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Mark Popup placed").pipe(
+          Effect.annotateLogs({
+            action,
+            kind: head.kind,
+            key: head.key,
+            commenting: head.commenting,
+            tagging: head.tagging,
+          }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
     if (!anchor) {
       this.#hide();
       if (variant) variant.unanchored?.();

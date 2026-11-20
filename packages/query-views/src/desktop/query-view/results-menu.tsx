@@ -4,6 +4,7 @@
 //
 // The menu is a `PinnedPopover` rather than a Chooser: its limit field takes
 // the arrow keys and Enter, which a Chooser's key scope would hold.
+import { Effect } from "effect";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { PinnedPopover } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
@@ -12,7 +13,10 @@ import { saveFile } from "@zotlit/obsidian-kit/file-save.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { writeClipboardRichText } from "@zotlit/plugin-kernel/clipboard.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
@@ -33,8 +37,6 @@ import {
   toolbarPopoverClass,
 } from "#obsidian/query-view/toolbar-popover.tsx";
 
-const logger = getLogger(["views", "query-view", "results"]);
-
 /** Copy the rows on screen as a table: tab-separated text and HTML. */
 export async function copyResults(view: QueryView): Promise<void> {
   const table = view.table();
@@ -42,7 +44,12 @@ export async function copyResults(view: QueryView): Promise<void> {
     await writeClipboardRichText({ html: toHTML(table), text: toTSV(table) });
     new BaseNotice(m.query_view_copied());
   } catch (error) {
-    logger.warn("The Query View could not copy its results", { error });
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning("The Query View could not copy its results").pipe(
+        Effect.annotateLogs({ error }),
+        withLogCategory("views", "query-view", "results"),
+      ),
+    );
     new BaseNotice(m.query_view_copy_failed());
   }
 }

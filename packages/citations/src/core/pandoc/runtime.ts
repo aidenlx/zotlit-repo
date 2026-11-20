@@ -8,10 +8,12 @@ import {
   WASI,
 } from "@bjorn3/browser_wasi_shim";
 import type { Inode } from "@bjorn3/browser_wasi_shim";
+import { Effect } from "effect";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger("pandoc");
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /** One record of Pandoc's structured log, as written to the `warnings` file. */
 export interface PandocLogMessage {
@@ -100,10 +102,20 @@ export async function createPandocRuntime(
     [
       new OpenFile(new WasiFile(new Uint8Array(), { readonly: true })),
       ConsoleStdout.lineBuffered((line) =>
-        logger.debug("Pandoc stdout", { line }),
+        Effect.runSyncWith(logServices)(
+          Effect.logDebug("Pandoc stdout").pipe(
+            Effect.annotateLogs({ line }),
+            withLogCategory("pandoc"),
+          ),
+        ),
       ),
       ConsoleStdout.lineBuffered((line) =>
-        logger.debug("Pandoc stderr", { line }),
+        Effect.runSyncWith(logServices)(
+          Effect.logDebug("Pandoc stderr").pipe(
+            Effect.annotateLogs({ line }),
+            withLogCategory("pandoc"),
+          ),
+        ),
       ),
       new PreopenDirectory("/", fileSystem),
     ],
@@ -206,7 +218,12 @@ function parseMessages(raw: string): PandocLogMessage[] {
   try {
     return JSON.parse(raw) as PandocLogMessage[];
   } catch (error) {
-    logger.warn("Pandoc wrote an unreadable log", { raw, error });
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning("Pandoc wrote an unreadable log").pipe(
+        Effect.annotateLogs({ raw, error }),
+        withLogCategory("pandoc"),
+      ),
+    );
     return [];
   }
 }

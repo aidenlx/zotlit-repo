@@ -3,21 +3,24 @@ import type { Attr, Inline, Inlines } from "#core/pandoc/ast.ts";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const logRecords: { level: string; message: string; fields: unknown }[] = [];
-vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
-  getLogger: () => ({
-    debug: (message: string, fields: unknown) =>
-      logRecords.push({ level: "debug", message, fields }),
-    info: (message: string, fields: unknown) =>
-      logRecords.push({ level: "info", message, fields }),
-    warn: (message: string, fields: unknown) =>
-      logRecords.push({ level: "warn", message, fields }),
-    error: (message: string, fields: unknown) =>
-      logRecords.push({ level: "error", message, fields }),
-  }),
-}));
+const keepRecord = (record: LogRecord) =>
+  logRecords.push({
+    level: record.level === "warning" ? "warn" : record.level,
+    message: record.rawMessage,
+    fields: record.properties,
+  });
+
+let forwarding: Disposable;
+beforeEach(() => {
+  forwarding = forwardLogRecords(keepRecord);
+});
+afterEach(() => forwarding[Symbol.dispose]());
+
+import { forwardLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
+import type { LogRecord } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { InlineContentProps } from "./inline-content.tsx";
 import {
@@ -479,6 +482,9 @@ describe("renderInlineContent", () => {
     }));
     try {
       const deferred = await import("./inline-content.tsx");
+      const freshLogs =
+        await import("@zotlit/plugin-kernel/__fixtures__/log-capture.ts");
+      using _forwarding = freshLogs.forwardLogRecords(keepRecord);
       const container = document.createElement("div");
 
       deferred.renderInlineContent(container, { nodes });

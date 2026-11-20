@@ -96,6 +96,7 @@ export default defineConfig(({ mode }) => {
   };
   const define = {
     __DEV__: JSON.stringify(isDev),
+    __PLUGIN_ID__: JSON.stringify(packageJson.obsidian.id),
     __WEB_WORKBENCH_ENABLED__: JSON.stringify(
       process.env.WEB_WORKBENCH_ENABLED === "true",
     ),

@@ -5,8 +5,12 @@ import type {
   QueryFileView,
   QueryFileViewEdit,
 } from "#core/query-view/query-file.ts";
+import { Effect } from "effect";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 // The Query File document: the text of one Query View's file, the file it
 // parses to, the view on screen, every edit, and when an edit saves. Each
@@ -29,8 +33,6 @@ import {
   withFilters,
   withFormula,
 } from "#core/query-view/query-file.ts";
-
-const logger = getLogger(["views", "query-view"]);
 
 /** What the document needs of the host: its save and select-view callbacks. */
 export type DocumentHost = Pick<
@@ -350,7 +352,12 @@ export class QueryFileDocument {
         await this.#host.save(text);
       } catch (error) {
         failed = true;
-        logger.warn("A Query View could not save its file", { error });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning("A Query View could not save its file").pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("views", "query-view"),
+          ),
+        );
       }
       this.#pending--;
       if (save === this.#saves) this.#events.saveFailed(failed);

@@ -1,6 +1,10 @@
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { Effect } from "effect";
 
-const logger = getLogger("pdf-reads");
+import {
+  logServices,
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /** A live read, retaining the Attachment and the exact instant for write-back. */
 export interface PdfRead {
@@ -37,11 +41,17 @@ export class PdfReads {
   ): void {
     const { attachmentKey, itemKey, serverID } = target;
     if (itemKey === null) {
-      logger.trace("PDF read skipped", {
-        attachmentKey,
-        event,
-        reason: "standalone",
-      });
+      if (logLevelEnabled("trace"))
+        Effect.runSyncWith(logServices)(
+          Effect.logTrace("PDF read skipped").pipe(
+            Effect.annotateLogs({
+              attachmentKey,
+              event,
+              reason: "standalone",
+            }),
+            withLogCategory("pdf-reads"),
+          ),
+        );
       return;
     }
     const last = this.#last.get(`${serverID}/${attachmentKey}`);
@@ -50,16 +60,28 @@ export class PdfReads {
       last &&
       instant.epochMilliseconds - last.epochMilliseconds < 5 * 60 * 1000
     ) {
-      logger.trace("PDF read throttled", {
-        attachmentKey,
-        event,
-        reason: "page interval",
-      });
+      if (logLevelEnabled("trace"))
+        Effect.runSyncWith(logServices)(
+          Effect.logTrace("PDF read throttled").pipe(
+            Effect.annotateLogs({
+              attachmentKey,
+              event,
+              reason: "page interval",
+            }),
+            withLogCategory("pdf-reads"),
+          ),
+        );
       return;
     }
     if (!last || Temporal.Instant.compare(instant, last) > 0)
       this.#last.set(`${serverID}/${attachmentKey}`, instant);
-    logger.trace("PDF read accepted", { attachmentKey, event });
+    if (logLevelEnabled("trace"))
+      Effect.runSyncWith(logServices)(
+        Effect.logTrace("PDF read accepted").pipe(
+          Effect.annotateLogs({ attachmentKey, event }),
+          withLogCategory("pdf-reads"),
+        ),
+      );
     this.#record({ attachmentKey, itemKey, serverID, instant });
   }
 }

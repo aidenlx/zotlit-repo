@@ -7,7 +7,6 @@ import baseConfig, {
 } from "@zotlit/config/oxlint";
 import {
   commonImports,
-  logTapeConfigurePath,
   pluginCodeJsPlugins,
   pluginCodeOverrides,
   pluginCodeRules,
@@ -44,11 +43,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(),
     {
-      // The LogTape bridge and its owner may use LogTape directly.
-      files: ["src/log.ts", "src/effect-log.ts"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
-    },
-    {
       // These tests exercise the run entry points themselves.
       files: ["src/effect-runtime.test.ts", "src/effect-entry.test.ts"],
       rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
@@ -78,21 +72,6 @@ export default defineConfig({
       // Converts between Effect's DateTime and Clock and the Temporal of plain code.
       files: ["src/effect-clock.ts", "src/effect-clock.test.ts"],
       rules: { "zotlit-services/temporal-in-effect": "off" },
-    },
-    {
-      // The owner of LogTape's configuration.
-      files: ["src/log.ts"],
-      rules: {
-        "no-restricted-imports": [
-          "error",
-          {
-            ...imports,
-            paths: imports.paths.filter(
-              (path) => path !== logTapeConfigurePath,
-            ),
-          },
-        ],
-      },
     },
     {
       // The wrappers, which reach the real package (NATIVE in

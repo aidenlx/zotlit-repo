@@ -20,7 +20,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@logtape/logtape": "catalog:",
     "@zotlit/db": "workspace:*",
     "@zotlit/obsidian-i18n": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",

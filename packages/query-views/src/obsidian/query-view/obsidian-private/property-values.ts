@@ -4,11 +4,13 @@
 // typed. A build without these reads suggests nothing; editing still works.
 //
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
+import { Effect } from "effect";
 import type { App } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger(["obsidian-private", "property-values"]);
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /** The apps already warned of a missing read, by member, so each warns once. */
 const warned = new WeakMap<App, Set<string>>();
@@ -22,9 +24,13 @@ function cache(app: App, member: Member) {
   if (!members.has(member)) {
     members.add(member);
     warned.set(app, members);
-    logger.warn(
-      "Obsidian's metadata cache has no read of vault values; vault properties suggest none",
-      { missing: member },
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "Obsidian's metadata cache has no read of vault values; vault properties suggest none",
+      ).pipe(
+        Effect.annotateLogs({ missing: member }),
+        withLogCategory("obsidian-private", "property-values"),
+      ),
     );
   }
   return null;

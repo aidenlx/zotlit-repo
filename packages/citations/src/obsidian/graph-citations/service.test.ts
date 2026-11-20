@@ -31,7 +31,7 @@ import type {
   Plugin,
   WorkspaceLeaf,
 } from "obsidian";
-import { afterEach, describe, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import type { Mock } from "vitest";
 
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
@@ -48,6 +48,7 @@ import {
 } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
+import { forwardLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -92,10 +93,13 @@ const DEFAULT_COLOR = { a: 1, rgb: 0xe8622c };
 
 const warn = vi.hoisted(() => vi.fn());
 // The real Note Index logs through the root logger; keep it.
-vi.mock("@zotlit/plugin-kernel/log.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@zotlit/plugin-kernel/log.ts")>()),
-  getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
-}));
+let forwarding: Disposable;
+beforeEach(() => {
+  forwarding = forwardLogRecords((record) => {
+    if (record.level === "warning") warn(record.rawMessage, record.properties);
+  });
+});
+afterEach(() => forwarding[Symbol.dispose]());
 
 /** The keys of each `WorkLabels` read, answered with the rows it returns. */
 const labelReads = vi.fn();

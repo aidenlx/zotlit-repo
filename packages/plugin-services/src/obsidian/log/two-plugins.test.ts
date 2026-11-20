@@ -1,4 +1,3 @@
-import { getLogger } from "@logtape/logtape";
 import { Effect, Layer } from "effect";
 import type { DataAdapter, Plugin } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -22,6 +21,7 @@ const open = new Set<RunningPlugin>();
 
 afterEach(async () => {
   for (const plugin of open) await plugin.close();
+  Object.assign(globalThis, { __PLUGIN_ID__: "zotlit" });
 });
 
 async function startPluginBundle(
@@ -29,9 +29,9 @@ async function startPluginBundle(
   level: string,
 ): Promise<RunningPlugin> {
   vi.resetModules();
-  const kernelLog = await import("@zotlit/plugin-kernel/log.ts");
-  kernelLog.setLogCategoryRoot(id);
-  const { bridgeLog } = await import("@zotlit/plugin-kernel/effect-log.ts");
+  Object.assign(globalThis, { __PLUGIN_ID__: id });
+  const { currentLogOutputs, logServices, withLogCategory } =
+    await import("@zotlit/plugin-kernel/effect-log.ts");
   const runtime = await import("@zotlit/plugin-kernel/effect-runtime.ts");
   const { buildRuntime } =
     await import("@zotlit/plugin-kernel/effect-layer.ts");
@@ -72,9 +72,10 @@ async function startPluginBundle(
   );
   await graph.context();
   const settings = graph.runSync(PluginSettings);
-  await waitUntilLevelApplied(id, level);
+  const levelApplied = (next: string) =>
+    vi.waitFor(() => expect(currentLogOutputs().level).toBe(next));
+  await levelApplied(level);
 
-  const log = bridgeLog(runtime, "bridge");
   const running: RunningPlugin = {
     id,
     appendedRecords: () =>
@@ -85,11 +86,13 @@ async function startPluginBundle(
         .map((line) => JSON.parse(line) as FileRecord),
     log: (message) => {
       runtime.runSync(Effect.logWarning(message));
-      log.warn(message);
+      runtime.runSyncWith(logServices)(
+        Effect.logWarning(message).pipe(withLogCategory("plain")),
+      );
     },
     setLevel: async (next) => {
       await graph.runPromise(settings.update({ "log.level": next as never }));
-      await waitUntilLevelApplied(id, next);
+      await levelApplied(next);
     },
     close: async () => {
       open.delete(running);
@@ -98,14 +101,6 @@ async function startPluginBundle(
   };
   open.add(running);
   return running;
-}
-
-async function waitUntilLevelApplied(id: string, level: string): Promise<void> {
-  const below = { info: "debug", warning: "info", error: "warning" }[level]!;
-  await vi.waitFor(() => {
-    expect(getLogger([id]).isEnabledFor(below as never)).toBe(false);
-    expect(getLogger([id]).isEnabledFor(level as never)).toBe(true);
-  });
 }
 
 const messagesOf = (plugin: RunningPlugin) =>
@@ -125,11 +120,11 @@ describe("two plugins in one window", () => {
     expect(messagesOf(reader)).toEqual(Array(2).fill("from reader"));
     expect(zotlit.appendedRecords().map((record) => record.logger)).toEqual([
       "zotlit.obsidian",
-      "zotlit.obsidian.bridge",
+      "zotlit.obsidian.plain",
     ]);
     expect(reader.appendedRecords().map((record) => record.logger)).toEqual([
       "zotlit-reader.obsidian",
-      "zotlit-reader.obsidian.bridge",
+      "zotlit-reader.obsidian.plain",
     ]);
   });
 
@@ -152,30 +147,10 @@ describe("two plugins in one window", () => {
     const reader = await startPluginBundle("zotlit-reader", "info");
 
     await zotlit.close();
-    expect(Symbol.for("logtape.rootLogger") in globalThis).toBe(true);
     reader.log("after zotlit unloaded");
     await reader.close();
 
     expect(messagesOf(reader)).toEqual(Array(2).fill("after zotlit unloaded"));
-    expect(Symbol.for("logtape.rootLogger") in globalThis).toBe(false);
-  });
-
-  it("gives LogTape's own warnings to each plugin that runs", async () => {
-    const zotlit = await startPluginBundle("zotlit", "info");
-    const reader = await startPluginBundle("zotlit-reader", "info");
-    const meta = getLogger(["logtape", "meta"]);
-
-    await reader.setLevel("error");
-    meta.warn("a sink failed");
-    await zotlit.close();
-    meta.warn("a sink failed again");
-    await reader.close();
-
-    expect(messagesOf(zotlit)).toEqual(["a sink failed"]);
-    expect(messagesOf(reader)).toEqual([
-      "a sink failed",
-      "a sink failed again",
-    ]);
   });
 
   it("replaces only that plugin's configuration on its second start", async () => {

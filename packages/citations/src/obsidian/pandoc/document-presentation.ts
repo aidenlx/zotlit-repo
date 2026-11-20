@@ -15,14 +15,15 @@ import {
   FIELD_DOCUMENT_LANGUAGE,
   FIELD_ZOTERO_NOTE_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { ProfileStyleReader, ProfileStyles } from "./profile-styles.ts";
 import type { RenderPresentation } from "./render-cache.ts";
-
-const logger = getLogger(["pandoc", "document-presentation"]);
 
 /**
  * The note property a document-scoped presentation failure stands on, which is
@@ -148,10 +149,15 @@ export function documentPresentation(
       };
     const resolved = profiles.profileOf(file);
     if (!resolved.ok) {
-      logger.debug("The Imported Note Profile is unavailable", {
-        path: file.path,
-        stamp: resolved.stamped.stamp,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("The Imported Note Profile is unavailable").pipe(
+          Effect.annotateLogs({
+            path: file.path,
+            stamp: resolved.stamped.stamp,
+          }),
+          withLogCategory("pandoc", "document-presentation"),
+        ),
+      );
       return {
         kind: "unusable",
         property: "profile",
@@ -170,10 +176,17 @@ export function documentPresentation(
     const styleId =
       typeof declaredStyle === "string" ? declaredStyle.trim() : "";
     if (!styleId) {
-      logger.debug("The document citation style property is no style ID", {
-        path: file.path,
-        property: FIELD_CITATION_STYLE,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug(
+          "The document citation style property is no style ID",
+        ).pipe(
+          Effect.annotateLogs({
+            path: file.path,
+            property: FIELD_CITATION_STYLE,
+          }),
+          withLogCategory("pandoc", "document-presentation"),
+        ),
+      );
       return { kind: "unusable", property: "style" };
     }
     presentation.styleId = styleId;
@@ -184,10 +197,17 @@ export function documentPresentation(
     const locale =
       typeof declaredLanguage === "string" ? declaredLanguage.trim() : "";
     if (!isLanguageTag(locale)) {
-      logger.debug("The document language property is no language tag", {
-        path: file.path,
-        property: FIELD_DOCUMENT_LANGUAGE,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug(
+          "The document language property is no language tag",
+        ).pipe(
+          Effect.annotateLogs({
+            path: file.path,
+            property: FIELD_DOCUMENT_LANGUAGE,
+          }),
+          withLogCategory("pandoc", "document-presentation"),
+        ),
+      );
       return { kind: "unusable", property: "language" };
     }
     presentation.locale = locale;

@@ -5,12 +5,16 @@
 //
 // @see apps/obsidian/docs/adr/0067-annotation-locks-come-from-the-zotero-database.md
 
+import { Effect } from "effect";
+
 import type { Annotation } from "@zotlit/db";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { lockReasonText } from "./lock-copy.ts";
-
-const logger = getLogger("annotation-repository");
 
 /**
  * Why an Annotation is locked. `external`: Zotero imported it from the PDF
@@ -119,11 +123,17 @@ export function lockOf(
     !!createdByUserID &&
     currentUserID !== null &&
     createdByUserID !== currentUserID;
-  logger.trace("Read the creator lock of a group Annotation", {
-    annotationKey: indexedKey,
-    createdByUserID,
-    currentUserID,
-    byAnotherUser,
-  });
+  if (logLevelEnabled("trace"))
+    Effect.runSyncWith(logServices)(
+      Effect.logTrace("Read the creator lock of a group Annotation").pipe(
+        Effect.annotateLogs({
+          annotationKey: indexedKey,
+          createdByUserID,
+          currentUserID,
+          byAnotherUser,
+        }),
+        withLogCategory("annotation-repository"),
+      ),
+    );
   return byAnotherUser ? { reason: "another-user" } : null;
 }

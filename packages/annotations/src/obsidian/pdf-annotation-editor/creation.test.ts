@@ -20,10 +20,10 @@ import type {
   SelectedText,
   TextSelection,
 } from "@zotlit/pdf-structure";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { createRefused } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 import type { ZoteroRequest } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
@@ -1778,7 +1778,7 @@ it("says a create's outcome is unknown when its PDF geometry read fails", async 
 });
 
 it("says nothing of a create that landed when what follows it fails, and logs it", async () => {
-  using warn = vi.spyOn(getLogger("pdf-annotation-editor"), "warn");
+  using logs = captureLogRecords();
   const colors: ToolColorStore = {
     ...toolColors(),
     use: () => {
@@ -1795,8 +1795,15 @@ it("says nothing of a create that landed when what follows it fails, and logs it
   // Zotero holds the Annotation, so no notice says it was not created.
   expect(open.drafts).toHaveLength(1);
   expect(open.reportCreateFailure).not.toHaveBeenCalled();
-  expect(warn).toHaveBeenCalledWith("An Annotation create did not finish", {
-    type: "image",
-    error: new Error("The recent colours were not kept"),
-  });
+  expect(logs.records).toContainEqual(
+    expect.objectContaining({
+      level: "warning",
+      category: ["zotlit", "obsidian", "pdf-annotation-editor"],
+      rawMessage: "An Annotation create did not finish",
+      properties: {
+        type: "image",
+        error: new Error("The recent colours were not kept"),
+      },
+    }),
+  );
 });

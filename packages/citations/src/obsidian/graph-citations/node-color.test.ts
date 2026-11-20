@@ -23,15 +23,6 @@ import {
   themeStatesNothing,
 } from "#__fixtures__/graph-citations/test-stub.ts";
 
-vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
-  getLogger: () => ({
-    trace: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-  }),
-}));
-
 afterEach(() => {
   themeStatesNothing();
   document.body.classList.remove("theme-dark");

@@ -1,5 +1,6 @@
 // Owns per-node Work Label graphics across Obsidian's lazy graphics lifecycle.
 
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import type {
   GraphDrawnNode,
@@ -8,14 +9,16 @@ import type {
   GraphTextStyle,
 } from "obsidian";
 
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import type { WorkLabel } from "@zotlit/plugin-kernel/item-summary.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 
 import type { GraphLeafMembers } from "./install.ts";
 
 import { workLabelTitleAlpha } from "#core/graph-citations/work-label-zoom.ts";
 
-const logger = getLogger("graph-citations");
 const LABEL_WIDTH = 240;
 
 interface TextSprite extends GraphTextDisplay {
@@ -53,10 +56,17 @@ export class WorkLabelGraphics implements Disposable {
       typeof renderer.changed !== "function"
     ) {
       if (labels.size)
-        logger.warn("Graph Work Label members unavailable; left native", {
-          nodes: Array.isArray(renderer.nodes),
-          changed: typeof renderer.changed,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "Graph Work Label members unavailable; left native",
+          ).pipe(
+            Effect.annotateLogs({
+              nodes: Array.isArray(renderer.nodes),
+              changed: typeof renderer.changed,
+            }),
+            withLogCategory("graph-citations"),
+          ),
+        );
       return;
     }
     const live = new Set(renderer.nodes);
@@ -79,9 +89,16 @@ export class WorkLabelGraphics implements Disposable {
         typeof node.clearGraphics !== "function" ||
         typeof node.getTextStyle !== "function"
       ) {
-        logger.warn("Graph node graphics members unavailable; left native", {
-          nodeId: node.id,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "Graph node graphics members unavailable; left native",
+          ).pipe(
+            Effect.annotateLogs({
+              nodeId: node.id,
+            }),
+            withLogCategory("graph-citations"),
+          ),
+        );
         continue;
       }
       const held: HeldNode = { label, restore: () => {}, container: null };
@@ -133,10 +150,17 @@ export class WorkLabelGraphics implements Disposable {
           const fade = renderer.fTextShowMult;
           if (!Number.isFinite(fade) && !this.#warnedFade) {
             this.#warnedFade = true;
-            logger.warn("Graph text fade term unavailable; using zero", {
-              member: "fTextShowMult",
-              value: fade,
-            });
+            Effect.runSyncWith(logServices)(
+              Effect.logWarning(
+                "Graph text fade term unavailable; using zero",
+              ).pipe(
+                Effect.annotateLogs({
+                  member: "fTextShowMult",
+                  value: fade,
+                }),
+                withLogCategory("graph-citations"),
+              ),
+            );
           }
           return workLabelTitleAlpha(
             renderer.scale,
@@ -145,9 +169,13 @@ export class WorkLabelGraphics implements Disposable {
           );
         },
         failedStyle: (error) => {
-          logger.warn(
-            "Graph Work Label style refresh failed; restoring native text",
-            { nodeId: node.id, error },
+          Effect.runSyncWith(logServices)(
+            Effect.logWarning(
+              "Graph Work Label style refresh failed; restoring native text",
+            ).pipe(
+              Effect.annotateLogs({ nodeId: node.id, error }),
+              withLogCategory("graph-citations"),
+            ),
           );
           // Native render still holds this text object until it returns.
           queueMicrotask(() => {
@@ -173,10 +201,15 @@ export class WorkLabelGraphics implements Disposable {
       native.destroy();
     } catch (error) {
       if (container && node.text !== container) container.destroy();
-      logger.warn("Graph Work Label graphics failed; left native", {
-        nodeId: node.id,
-        error,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Graph Work Label graphics failed; left native").pipe(
+          Effect.annotateLogs({
+            nodeId: node.id,
+            error,
+          }),
+          withLogCategory("graph-citations"),
+        ),
+      );
     }
   }
 
@@ -188,10 +221,15 @@ export class WorkLabelGraphics implements Disposable {
         node.clearGraphics!();
         node.initGraphics!();
       } catch (error) {
-        logger.warn("Graph native text restoration failed", {
-          nodeId: node.id,
-          error,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning("Graph native text restoration failed").pipe(
+            Effect.annotateLogs({
+              nodeId: node.id,
+              error,
+            }),
+            withLogCategory("graph-citations"),
+          ),
+        );
       }
     }
   }

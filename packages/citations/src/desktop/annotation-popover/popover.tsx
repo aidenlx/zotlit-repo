@@ -3,6 +3,7 @@
 
 import type { AnnotationHoverRequest } from "#obsidian/annotation-popover/service.ts";
 import type { PopoverPart } from "#obsidian/citation-popover/visits.ts";
+import { Effect } from "effect";
 import type { Component } from "obsidian";
 
 import type {
@@ -19,12 +20,10 @@ import type {
 import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { AnnotationPopoverContent } from "./content.tsx";
-
-const logger = getLogger("annotation-popover");
 
 export interface AnnotationPopoverCoreDeps {
   annotations: Pick<
@@ -122,10 +121,17 @@ export class AnnotationPopoverCore implements Disposable {
             list?.annotations.find(({ key }) => key === annotationKey) ?? null;
           drawn = true;
           if (annotation === null) {
-            logger.debug("Hovered annotation link names no annotation", {
-              attachmentKey,
-              annotationKey,
-            });
+            deps.bridge.runSync(
+              Effect.logDebug(
+                "Hovered annotation link names no annotation",
+              ).pipe(
+                Effect.annotateLogs({
+                  attachmentKey,
+                  annotationKey,
+                }),
+                withLogCategory("annotation-popover"),
+              ),
+            );
             part.draw(<AnnotationPopoverContent kind="unavailable" />);
             return;
           }
@@ -150,18 +156,30 @@ export class AnnotationPopoverCore implements Disposable {
               excerpt={excerpt}
             />,
           );
-          logger.debug("Annotation popover drawn", {
-            annotationKey,
-            type: annotation.type,
-            shown,
-          });
+          deps.bridge.runSync(
+            Effect.logDebug("Annotation popover drawn").pipe(
+              Effect.annotateLogs({
+                annotationKey,
+                type: annotation.type,
+                shown,
+              }),
+              withLogCategory("annotation-popover"),
+            ),
+          );
         })
         .catch((error: unknown) => {
           if (!current() || AbortError.test(error)) return;
-          logger.warn("Cannot read the annotations of a hovered link", {
-            attachmentKey,
-            error,
-          });
+          deps.bridge.runSync(
+            Effect.logWarning(
+              "Cannot read the annotations of a hovered link",
+            ).pipe(
+              Effect.annotateLogs({
+                attachmentKey,
+                error,
+              }),
+              withLogCategory("annotation-popover"),
+            ),
+          );
           part.draw(<AnnotationPopoverContent kind="unavailable" />);
         });
     };

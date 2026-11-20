@@ -6,18 +6,20 @@
 // so the card previews exactly the text a Literature Note will contain and a
 // `**bold**` typed in Zotero reads the same in both places.
 
+import { Effect } from "effect";
 import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 import type { App, Component } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import {
   commentToMarkdown,
   createCommentTurndown,
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
 
 import { postProcessComment } from "#core/annot-view/comment-postprocess.ts";
-
-const logger = getLogger(["views", "annot-view"]);
 
 export interface CommentRenderDeps {
   app: App;
@@ -57,7 +59,12 @@ export function createCommentRenderer(
         if (!disposed) postProcessComment(el);
       })
       .catch((error: unknown) => {
-        logger.warn("Failed to render annotation comment", { error });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning("Failed to render annotation comment").pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("views", "annot-view"),
+          ),
+        );
       });
 
     return () => {

@@ -1,15 +1,17 @@
 // The one rendering of a formatted inline flow, shared by every surface that shows citations.
 
 import type { Blocks, Inline, Inlines, QuoteType } from "#core/pandoc/ast.ts";
+import { Effect } from "effect";
 import type { ReactNode } from "react";
 import { createElement, isValidElement } from "react";
 import { createRoot } from "react-dom/client";
 
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
-
-const logger = getLogger(["pandoc", "renderer"]);
 
 export interface InlineContentProps {
   /** The formatted flow, as the engine handed it over. */
@@ -66,9 +68,14 @@ export function renderInlineContent(
   const flow = renderFlow(props.nodes, contextOf(props));
   createRoot(container).render(<>{flow}</>);
   if (flow.length === 0 || container.hasChildNodes()) return;
-  logger.error("Detached render left the container empty", {
-    inlines: props.nodes.length,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logError("Detached render left the container empty").pipe(
+      Effect.annotateLogs({
+        inlines: props.nodes.length,
+      }),
+      withLogCategory("pandoc", "renderer"),
+    ),
+  );
 }
 
 interface Context {
@@ -265,9 +272,16 @@ function renderFlow(nodes: Inlines, context: Context): ReactNode[] {
         case "Note": {
           const { serials } = context;
           if (!serials?.length) {
-            logger.debug("Dropped a note with no serial to stand for it", {
-              inline: inline.t,
-            });
+            Effect.runSyncWith(logServices)(
+              Effect.logDebug(
+                "Dropped a note with no serial to stand for it",
+              ).pipe(
+                Effect.annotateLogs({
+                  inline: inline.t,
+                }),
+                withLogCategory("pandoc", "renderer"),
+              ),
+            );
             break;
           }
           add(
@@ -278,10 +292,15 @@ function renderFlow(nodes: Inlines, context: Context): ReactNode[] {
           break;
         }
         case "RawInline":
-          logger.debug("Dropped an inline the renderer cannot show", {
-            inline: inline.t,
-            format: inline.c[0],
-          });
+          Effect.runSyncWith(logServices)(
+            Effect.logDebug("Dropped an inline the renderer cannot show").pipe(
+              Effect.annotateLogs({
+                inline: inline.t,
+                format: inline.c[0],
+              }),
+              withLogCategory("pandoc", "renderer"),
+            ),
+          );
           break;
       }
     }
@@ -352,9 +371,16 @@ export function noteContent(nodes: Inlines): Inlines {
           flow.push(...block.c);
           break;
         default:
-          logger.debug("Dropped a note block that reads as no inline flow", {
-            block: block.t,
-          });
+          Effect.runSyncWith(logServices)(
+            Effect.logDebug(
+              "Dropped a note block that reads as no inline flow",
+            ).pipe(
+              Effect.annotateLogs({
+                block: block.t,
+              }),
+              withLogCategory("pandoc", "renderer"),
+            ),
+          );
       }
     }
   }

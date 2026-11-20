@@ -2,11 +2,14 @@
 // per vault × device that never syncs: the folder dialog that picks a
 // machine-specific folder, and the note that says the value stays here.
 
-import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
+import { Effect } from "effect";
 
-const logger = getLogger(["setting-tab", "device-override"]);
+import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 /**
  * Open a folder picker and hand the chosen directory to `onPick`. `startPath`
@@ -26,7 +29,12 @@ export async function browseForDir(opts: {
     if (result.canceled || result.filePaths.length === 0) return;
     opts.onPick(result.filePaths[0]!);
   } catch (error) {
-    logger.error("Failed to open folder dialog", { error });
+    Effect.runSyncWith(logServices)(
+      Effect.logError("Failed to open folder dialog").pipe(
+        Effect.annotateLogs({ error }),
+        withLogCategory("setting-tab", "device-override"),
+      ),
+    );
   }
 }
 

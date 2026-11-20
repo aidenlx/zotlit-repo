@@ -1,8 +1,7 @@
-import { configureSync, resetSync } from "@logtape/logtape";
-import type { LogRecord } from "@logtape/logtape";
 import type { App, PluginManifest } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import {
@@ -177,24 +176,14 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease bound", () => {
   });
 });
 
-// The warning is written once LogTape has its sinks: in a production build
+// The warning is written once the logger has its sinks: in a production build
 // that is after the runtime's logging layer builds.
 describe("logLateRelease", () => {
-  afterEach(() => {
-    resetSync();
-  });
-
   it("writes one warning under plugin-lifecycle with the plugin id and the elapsed time", () => {
-    const records: LogRecord[] = [];
-    configureSync({
-      reset: true,
-      sinks: { capture: (record) => records.push(record) },
-      loggers: [
-        { category: ["zotlit"], sinks: ["capture"], lowestLevel: "trace" },
-      ],
-    });
+    using logs = captureLogRecords();
 
     logLateRelease("zotlit");
+    const { records } = logs;
 
     expect(records).toHaveLength(1);
     expect(records[0]).toMatchObject({

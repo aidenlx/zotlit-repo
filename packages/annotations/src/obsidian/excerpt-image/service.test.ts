@@ -1,8 +1,6 @@
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { DatabaseAnnotationSource } from "#obsidian/annotation-repository/service.ts";
 import { it } from "@effect/vitest";
-import { configureSync, resetSync } from "@logtape/logtape";
-import type { LogRecord } from "@logtape/logtape";
 import { Cause, Context, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { mkdtemp, open, readFile, rm, writeFile } from "node:fs/promises";
@@ -10,6 +8,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, vi } from "vitest";
 
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
+import type { CapturedLogs } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { ExcerptImageService as ExcerptImages } from "./service.ts";
@@ -32,28 +32,17 @@ import {
 } from "#desktop/excerpt-image/layer.ts";
 
 /** Debug records the excerpt-image logger emits; read by the admission tests. */
-let captured: LogRecord[] = [];
+let logs: CapturedLogs;
 
 beforeAll(() => {
-  configureSync({
-    reset: true,
-    sinks: {
-      capture: (record: LogRecord) => {
-        captured.push(record);
-      },
-    },
-    loggers: [
-      { category: ["zotlit"], sinks: ["capture"], lowestLevel: "debug" },
-      { category: ["logtape", "meta"], sinks: [], lowestLevel: "error" },
-    ],
-  });
+  logs = captureLogRecords("debug");
 });
 
 beforeEach(() => {
-  captured = [];
+  logs.records.length = 0;
 });
 
-afterAll(() => resetSync());
+afterAll(() => logs.release());
 
 const request: ExcerptRequest = {
   annotation: {
@@ -1026,7 +1015,7 @@ describe("Excerpt Image resolution", () => {
         yield* Effect.promise(() =>
           vi.waitFor(() =>
             expect(
-              captured.find(
+              logs.records.find(
                 (record) => record.properties.key === excerptKey(firstRequest),
               ),
             ).toBeDefined(),
@@ -1042,16 +1031,16 @@ describe("Excerpt Image resolution", () => {
         yield* Effect.promise(() =>
           vi.waitFor(() =>
             expect(
-              captured.find(
+              logs.records.find(
                 (record) => record.properties.key === excerptKey(secondRequest),
               ),
             ).toBeDefined(),
           ),
         );
-        const firstRecord = captured.find(
+        const firstRecord = logs.records.find(
           (record) => record.properties.key === excerptKey(firstRequest),
         )!;
-        const secondRecord = captured.find(
+        const secondRecord = logs.records.find(
           (record) => record.properties.key === excerptKey(secondRequest),
         )!;
         // Both records name the excerpt and the full bound; the second also counts
@@ -1525,7 +1514,7 @@ describe("Excerpt latest references", () => {
           excerptFingerprint(inkRequest.annotation),
         );
 
-        // A request for the pixels the device already holds — a captured note, a
+        // A request for the pixels the device already holds — a logs.records note, a
         // read that started before the edit — is admitted first and answers late.
         stale = true;
         const late = yield* service

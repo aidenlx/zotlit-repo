@@ -2,6 +2,7 @@ import type {
   QueryViewDeps,
   QueryViewHost,
 } from "#desktop/query-view/view.tsx";
+import { Effect } from "effect";
 import { ItemView, Scope } from "obsidian";
 import type {
   Menu as ObsidianMenu,
@@ -70,8 +71,8 @@ import { registerMigratingWindowEvent } from "@zotlit/obsidian-kit/disposables.t
 import { readerText } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { ItemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { pickItem } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
@@ -103,8 +104,6 @@ import { addSidebarQueryMenu, sidebarQueryText } from "./sidebar-query.ts";
 import { QueryView } from "#desktop/query-view/view.tsx";
 
 export const ANNOT_VIEW_TYPE = "zotero-annotation-view";
-
-const logger = getLogger(["views", "annot-view"]);
 
 /**
  * How long the view keeps the last Item while it reads the next one, before
@@ -700,7 +699,12 @@ export class AnnotationView extends ItemView implements HistorySurface {
     const current = this.#followState;
     const next = transition(current);
     if (next === current) return;
-    logger.debug("Follow mode changed by a gesture", { ...next });
+    this.#deps.bridge.runSync(
+      Effect.logDebug("Follow mode changed by a gesture").pipe(
+        Effect.annotateLogs({ ...next }),
+        withLogCategory("views", "annot-view"),
+      ),
+    );
     // A Follow Mode change clears the Card Selection; a reader the new mode
     // binds reports its own when the reload binds it.
     this.#layout.resetSelection();
@@ -965,10 +969,15 @@ export class AnnotationView extends ItemView implements HistorySurface {
       ({ itemDisplay, attachments } = answer);
     } catch (err) {
       if (this.#loading !== load) return;
-      logger.warn("Failed to load annot view data", {
-        key: target.key,
-        error: err,
-      });
+      this.#deps.bridge.runSync(
+        Effect.logWarning("Failed to load annot view data").pipe(
+          Effect.annotateLogs({
+            key: target.key,
+            error: err,
+          }),
+          withLogCategory("views", "annot-view"),
+        ),
+      );
       this.#clearState();
       return;
     }
@@ -1101,12 +1110,17 @@ export class AnnotationView extends ItemView implements HistorySurface {
       ),
     );
 
-    logger.debug("Annot view loaded", {
-      followMode: this.#followMode,
-      key,
-      libraryID,
-      attachments: attachments.length,
-    });
+    this.#deps.bridge.runSync(
+      Effect.logDebug("Annot view loaded").pipe(
+        Effect.annotateLogs({
+          followMode: this.#followMode,
+          key,
+          libraryID,
+          attachments: attachments.length,
+        }),
+        withLogCategory("views", "annot-view"),
+      ),
+    );
     return reading;
   }
 

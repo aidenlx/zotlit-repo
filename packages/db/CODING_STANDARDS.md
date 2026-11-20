@@ -12,11 +12,14 @@ or a direct edit. State the expected behavior and what the reviewer must check.
 
 ## Logging
 
-Import `getLogger` directly from `@logtape/logtape` — libraries must stay app-agnostic.
+Log through `logLibrary` from `@zotlit/shared/logging`, with a category rooted at `["zotlit", "db", ...]` — libraries stay app-agnostic, and the host that runs them installs the sink (`policies/logging.md`).
 
 ```ts
-import { getLogger } from "@logtape/logtape";
-const logger = getLogger(["zotlit", "db", "query"]);
+import { logLibrary } from "@zotlit/shared/logging";
+logLibrary({
+  level: "warn",
+  category: ["zotlit", "db", "tags"],
+  message: "Unknown tag type {type}",
+  properties: { type },
+});
 ```
-
-Never call `configure()` here — that belongs to the consuming app.

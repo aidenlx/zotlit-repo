@@ -244,6 +244,8 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
     'stack.use(this.registerEvent(this.app.workspace.on("file-open", open)));',
     // A type-only import of the bridge names the seam a legacy file holds.
     'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst cache = app.metadataCache.getFileCache(file);',
+    // A plain file that only logs through Effect keeps the App.
+    'import { Effect } from "effect";\nimport { logServices, withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";\nconst file = app.vault.getFileByPath(path);\nEffect.runSyncWith(logServices)(Effect.logDebug("Read {path}").pipe(Effect.annotateLogs({ path }), withLogCategory("views")));',
     // Not the App: a tag, or another object's members.
     `${effect}Effect.gen(function* () {
       const vault = yield* Vault;

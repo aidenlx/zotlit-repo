@@ -18,6 +18,7 @@ import {
   WidgetType,
 } from "@codemirror/view";
 import type { DecorationSet, ViewUpdate } from "@codemirror/view";
+import { Effect } from "effect";
 import { editorInfoField, Keymap, livePreviewState } from "obsidian";
 
 import {
@@ -30,7 +31,10 @@ import type {
   DocRange,
   TokenNode,
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
@@ -43,8 +47,6 @@ import {
   citationElement,
   presentedCitationEqual,
 } from "#obsidian/citation-text/present.ts";
-
-const logger = getLogger("citekey-editor");
 
 /** The Annotation one Durable Annotation Link names, by bare keys. */
 export type DurableAnnotationLink = AnnotationOpenUriOptions;
@@ -333,10 +335,15 @@ function hoverAt(
     : "source";
   const info = view.state.field(editorInfoField, false);
   if (!info) return;
-  logger.trace("Annotation link shows its annotation", {
-    annotationKey: link.annotationKey,
-    editorMode,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logTrace("Annotation link shows its annotation").pipe(
+      Effect.annotateLogs({
+        annotationKey: link.annotationKey,
+        editorMode,
+      }),
+      withLogCategory("citekey-editor"),
+    ),
+  );
   handlers.showAnnotation({
     event,
     hoverParent: info,

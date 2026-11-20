@@ -3,15 +3,17 @@
 // leaf holds one as `_empty`, and its `onOpen` empties `actionListEl` and
 // refills it each time the tab opens. Verified against Obsidian 1.14.4; the
 // End-to-end Run checks the pill against Obsidian's own on each upgrade.
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Platform, setIcon, setTooltip } from "obsidian";
 import type { App, EmptyView, PlatformInternals } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-const logger = getLogger(["views", "query-view", "empty-view"]);
 
 const ACTION_CLASS = "zt-empty-state-new-query";
 
@@ -117,8 +119,10 @@ export function installEmptyViewAction(
 ): Disposable {
   const anyInstance = anyEmptyView(app);
   if (!anyInstance) {
-    logger.warn(
-      "No leaf holds an empty view; New Zotero query table is left off the empty tab",
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "No leaf holds an empty view; New Zotero query table is left off the empty tab",
+      ).pipe(withLogCategory("views", "query-view", "empty-view")),
     );
     return new DisposableStack();
   }

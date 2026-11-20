@@ -3,16 +3,15 @@
 // the right, and in a new window.
 
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
+import { Effect } from "effect";
 import type { Plugin } from "obsidian";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { citekeyAtPos } from "./extension.ts";
 import type { CitekeyEditor } from "./service.ts";
-
-const logger = getLogger("citekey-editor");
 
 export interface CitekeyEditorActionDeps {
   citekeyEditor: Pick<
@@ -64,11 +63,16 @@ function addOpenCitekeyCommand(
       const citekey = citekeyAtPos(state, state.selection.main.head);
       if (!citekey) return false;
       if (checking) return true;
-      logger.debug("Citekey command opens note", {
-        citekey,
-        command: command.id,
-        pane: command.pane,
-      });
+      deps.bridge.runSync(
+        Effect.logDebug("Citekey command opens note").pipe(
+          Effect.annotateLogs({
+            citekey,
+            command: command.id,
+            pane: command.pane,
+          }),
+          withLogCategory("citekey-editor"),
+        ),
+      );
       // Unload interrupts a pending open. The open logs its own failures, so
       // the Exit is a success or an interrupt.
       void deps.bridge.runPromiseExit(

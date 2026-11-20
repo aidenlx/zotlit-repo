@@ -1,40 +1,46 @@
 import { it } from "@effect/vitest";
-import { Effect, Exit, Fiber, Layer, Queue, Schema, Scope } from "effect";
-import { TestClock, TestConsole } from "effect/testing";
+import {
+  Effect,
+  Exit,
+  Fiber,
+  Layer,
+  Logger,
+  Queue,
+  Schema,
+  Scope,
+} from "effect";
+import { TestClock } from "effect/testing";
 import type { App, Plugin } from "obsidian";
 import { expect } from "vitest";
 
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import type { PluginLogConfig } from "@zotlit/plugin-kernel/log.ts";
+import type { LogOutputs } from "@zotlit/plugin-kernel/effect-log.ts";
+import { consoleLogSink } from "@zotlit/plugin-kernel/log-console.ts";
 
-import {
-  layerLogging,
-  layerLogOutput,
-  LogOutput,
-  STARTUP_LOG_SETTINGS,
-} from "./service.ts";
+import { layerLogging, LogOutput, STARTUP_LOG_SETTINGS } from "./service.ts";
 
 import { platformSettings } from "#__fixtures__/platform-settings.ts";
 import { settingsOf } from "#__fixtures__/settings.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-/** The failure the fake LogTape answers a configure with. */
+/** The failure the fake log output answers a configure with. */
 class ConfigureFailed extends Schema.TaggedError<
   ConfigureFailed,
   { readonly brand: unique symbol }
 >()("ConfigureFailed", { message: Schema.String }) {}
 
-type LogConfig = PluginLogConfig;
+type LogConfig = LogOutputs;
 
 /**
- * Each `configure` LogTape is asked for takes one second of the TestClock. A
+ * Each `configure` the log output is asked for takes one second of the TestClock. A
  * case lets the last one finish: closing waits for a change being applied.
  */
 const CONFIGURE_TIME = "1 second";
 
 /**
  * The logging layer over saved settings `saved` (still loading when omitted),
- * driving a fake LogTape that records what happens in `events`.
+ * driving a fake log output that records what happens in `events`.
  */
 const logging = Effect.fnUntraced(function* (
   saved: Record<string, unknown> = {},
@@ -68,7 +74,7 @@ const logging = Effect.fnUntraced(function* (
     openFile: Effect.acquireRelease(
       Effect.sync(() => {
         events.push("open file");
-        return () => {};
+        return Logger.make(() => {});
       }),
       () => Effect.sync(() => events.push("close file")),
     ),
@@ -86,12 +92,16 @@ const logging = Effect.fnUntraced(function* (
   return { layer, settings, events, configs, started };
 });
 
-/** The level LogTape routes ZotLit records at under `config`. */
-const zotlitLogger = (config: LogConfig) =>
-  config.loggers.find((logger) => logger.category[0] === "zotlit")!;
+/** The level and the sinks the plugin logger writes ZotLit records to under `config`. */
+const zotlitLogger = (config: LogConfig) => ({
+  lowestLevel: config.level,
+  sinks: config.sinks.map((sink) =>
+    sink === consoleLogSink ? "console" : "file",
+  ),
+});
 
 // Failure mode: a service built after logging drops its startup records,
-// because LogTape has no sinks until the settings load.
+// because the logger has no sinks until the settings load.
 it.effect("logs to the console as soon as it builds", () =>
   Effect.gen(function* () {
     const { layer, events, configs, started } = yield* logging();
@@ -107,7 +117,7 @@ it.effect("logs to the console as soon as it builds", () =>
   }),
 );
 
-// Failure modes: a changed level never reaches LogTape, or the log file stays
+// Failure modes: a changed level never reaches the logger, or the log file stays
 // open, undrained, after it is turned off.
 it.effect("applies each change, closing the log file it turns off", () =>
   Effect.gen(function* () {
@@ -175,25 +185,27 @@ it.effect("applies only the newest of the changes made while one applies", () =>
   }),
 );
 
-// Failure mode: unload resets LogTape while a change still applies, and that
+// Failure mode: unload resets the logger while a change still applies, and that
 // change then installs sinks nobody closes.
-it.effect("closes after the change it is applying, then resets LogTape", () =>
-  Effect.gen(function* () {
-    const { layer, events, started } = yield* logging({
-      "log.to-file": true,
-    });
-    const scope = yield* Scope.make();
-    yield* Layer.buildWithScope(layer, scope);
-    yield* Queue.take(started);
+it.effect(
+  "closes after the change it is applying, then resets the logger",
+  () =>
+    Effect.gen(function* () {
+      const { layer, events, started } = yield* logging({
+        "log.to-file": true,
+      });
+      const scope = yield* Scope.make();
+      yield* Layer.buildWithScope(layer, scope);
+      yield* Queue.take(started);
 
-    const closing = yield* Effect.forkChild(Scope.close(scope, Exit.void), {
-      startImmediately: true,
-    });
-    yield* TestClock.adjust(CONFIGURE_TIME);
-    yield* Fiber.join(closing);
+      const closing = yield* Effect.forkChild(Scope.close(scope, Exit.void), {
+        startImmediately: true,
+      });
+      yield* TestClock.adjust(CONFIGURE_TIME);
+      yield* Fiber.join(closing);
 
-    expect(events.slice(-3)).toEqual(["configured", "close file", "reset"]);
-  }),
+      expect(events.slice(-3)).toEqual(["configured", "close file", "reset"]);
+    }),
 );
 
 // Failure modes: a failed change goes unreported when ZotLit's own logging
@@ -204,47 +216,29 @@ it.effect("reports a change it cannot apply and applies it again later", () =>
       { "log.level": "debug" },
       { failFirstConfigure: true },
     );
+    const logs = yield* Effect.acquireDisposable(
+      Effect.sync(() => captureLogRecords()),
+    );
     yield* Layer.build(layer);
     yield* Queue.take(started);
     yield* TestClock.adjust(CONFIGURE_TIME);
 
-    expect(yield* TestConsole.errorLines).toEqual([
-      "Could not apply the log settings",
-      new ConfigureFailed({ message: "boom" }),
+    expect(
+      logs.records.map(({ level, rawMessage, properties }) => ({
+        level,
+        rawMessage,
+        error: properties["error"],
+      })),
+    ).toEqual([
+      {
+        level: "error",
+        rawMessage: "Could not apply the log settings",
+        error: new ConfigureFailed({ message: "boom" }),
+      },
     ]);
 
     yield* settings.update({ "server.workbench": false });
     expect(zotlitLogger(yield* Queue.take(started)).lowestLevel).toBe("debug");
     yield* TestClock.adjust(CONFIGURE_TIME);
-  }),
-);
-
-// Failure mode: LogTape's exit hook on the host process, or its root logger on
-// the window, holds the disabled plugin in memory.
-it.effect("leaves nothing of LogTape on the host once it resets", () =>
-  Effect.gen(function* () {
-    const plugin = stubService<Plugin>("Plugin", {
-      app: stubService<App>("App", {
-        vault: stubService<App["vault"]>("Vault", {
-          adapter: stubService<App["vault"]["adapter"]>("Adapter", {}),
-        }),
-      }),
-      manifest: stubService<Plugin["manifest"]>("Manifest", { dir: "zotlit" }),
-    });
-    const output = yield* LogOutput.pipe(
-      Effect.provide(layerLogOutput(plugin)),
-    );
-    const config: PluginLogConfig = {
-      sinks: { none: () => {} },
-      loggers: [{ category: ["zotlit"], sinks: ["none"] }],
-    };
-    const before = process.listenerCount("exit");
-
-    yield* output.configureSync(config);
-    yield* output.configure(config);
-    yield* output.reset;
-
-    expect(process.listenerCount("exit")).toBe(before);
-    expect(Symbol.for("logtape.rootLogger") in globalThis).toBe(false);
   }),
 );

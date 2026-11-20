@@ -12,6 +12,7 @@ import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
 /** The settings of the build constants these services and the kernel read. */
 export const buildConstants = {
+  __PLUGIN_ID__: JSON.stringify("zotlit"),
   __DEV__: JSON.stringify(true),
   __WEB_WORKBENCH_ENABLED__: JSON.stringify(true),
   __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),

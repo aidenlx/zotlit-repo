@@ -37,6 +37,7 @@ import type {
   GeometryInput,
 } from "#obsidian/annotation-repository/service.ts";
 import type { WriteFailure } from "#obsidian/annotation-repository/write.ts";
+import { Effect } from "effect";
 import type { App } from "obsidian";
 import { Keymap, setIcon } from "obsidian";
 import { createElement } from "react";
@@ -56,7 +57,7 @@ import type {
 import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { inTextEntry, isEditGesture } from "./capability-affordance.ts";
@@ -194,8 +195,6 @@ import {
   writeFailureMessage,
   writeFailureReason,
 } from "#obsidian/annotation-repository/write.ts";
-
-const logger = getLogger("pdf-annotation-editor");
 
 /** What the selection reads and writes one Annotation through. */
 export type AnnotationEdits = Pick<
@@ -817,10 +816,15 @@ export class MarkSelection implements Disposable {
         })
         .catch((error: unknown) => {
           if (!this.#surfaces.disposed) update(surface, cancelAdjust);
-          logger.warn("Could not step a highlight's range", {
-            error,
-            annotationKey: record.key,
-          });
+          this.#deps.bridge.runSync(
+            Effect.logWarning("Could not step a highlight's range").pipe(
+              Effect.annotateLogs({
+                error,
+                annotationKey: record.key,
+              }),
+              withLogCategory("pdf-annotation-editor"),
+            ),
+          );
         });
       return true;
     }
@@ -1021,10 +1025,15 @@ export class MarkSelection implements Disposable {
         update(surface, moveAdjust(rectsPositionOf(selected), selected.text));
       })
       .catch((error: unknown) => {
-        logger.warn("Could not place a highlight's dragged range", {
-          error,
-          annotationKey: record.key,
-        });
+        this.#deps.bridge.runSync(
+          Effect.logWarning("Could not place a highlight's dragged range").pipe(
+            Effect.annotateLogs({
+              error,
+              annotationKey: record.key,
+            }),
+            withLogCategory("pdf-annotation-editor"),
+          ),
+        );
       });
   }
 

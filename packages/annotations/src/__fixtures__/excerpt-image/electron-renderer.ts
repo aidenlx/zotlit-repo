@@ -19,6 +19,7 @@ export function runInElectron(options: {
 }): Promise<unknown> {
   return runBundleInElectron({
     ...options,
+    define: { __PLUGIN_ID__: JSON.stringify("zotlit") },
     plugins: [
       effectEntry("renderer", {
         scopes: [

@@ -28,6 +28,7 @@ import type {
   HistoryDirection,
 } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
+import { Effect } from "effect";
 import { Component, Platform } from "obsidian";
 import type { App, Scope } from "obsidian";
 import type { ReactNode } from "react";
@@ -44,7 +45,10 @@ import type {
 import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { zoteroDataDirAtom } from "@zotlit/plugin-services/obsidian/zotero-pref/atoms.ts";
 
 import { AnnotActionsContext, createAnnotActions } from "./actions.tsx";
@@ -112,8 +116,6 @@ import {
   writeFailureMessage,
 } from "#obsidian/annotation-repository/write.ts";
 import { inTextEntry } from "#obsidian/pdf-annotation-editor/capability-affordance.ts";
-
-const logger = getLogger(["views", "annot-view"]);
 
 /**
  * The composite widgets in the layout and its host that answer their own keys.
@@ -655,9 +657,16 @@ export class AnnotationsLayout extends Component {
     return read.promise.then((answer) => {
       if (this.#reads.get(attachmentKey) !== read) return false;
       if (!answer) {
-        logger.warn("Failed to read the annotations of an attachment", {
-          attachmentKey,
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logWarning(
+            "Failed to read the annotations of an attachment",
+          ).pipe(
+            Effect.annotateLogs({
+              attachmentKey,
+            }),
+            withLogCategory("views", "annot-view"),
+          ),
+        );
         this.#landed.set(attachmentKey, null);
         this.#publish();
         return false;
@@ -914,12 +923,19 @@ export class AnnotationsLayout extends Component {
             session !== null &&
             !sameKeys(session.selected, selection.selected);
           if (changed)
-            logger.debug("A prune dropped hidden cards from the selection", {
-              selected: selection.selected.length,
-              pushed: push,
-              readerPending: this.#readerPending,
-              bound: session !== null,
-            });
+            Effect.runSyncWith(logServices)(
+              Effect.logDebug(
+                "A prune dropped hidden cards from the selection",
+              ).pipe(
+                Effect.annotateLogs({
+                  selected: selection.selected.length,
+                  pushed: push,
+                  readerPending: this.#readerPending,
+                  bound: session !== null,
+                }),
+                withLogCategory("views", "annot-view"),
+              ),
+            );
           if (push && session) this.#pushToPdf(session, selection.selected);
         },
         { equalityFn: sameKeys },
@@ -1175,9 +1191,14 @@ export class AnnotationsLayout extends Component {
    */
   bindReader(reader: ReaderSession | null): void {
     if (reader === this.#boundReader) return;
-    logger.debug("The Card Selection binds another reader", {
-      source: reader?.source ?? null,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("The Card Selection binds another reader").pipe(
+        Effect.annotateLogs({
+          source: reader?.source ?? null,
+        }),
+        withLogCategory("views", "annot-view"),
+      ),
+    );
     this.#boundReader = reader;
     this.#takeReaderSelection();
   }
@@ -1223,10 +1244,17 @@ export class AnnotationsLayout extends Component {
     const keys = reader.selected;
     if (editorOpen(state)) {
       this.#readerPending = true;
-      logger.debug("A reader selection waits for the card editor to close", {
-        source: reader.source,
-        keys: keys.length,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug(
+          "A reader selection waits for the card editor to close",
+        ).pipe(
+          Effect.annotateLogs({
+            source: reader.source,
+            keys: keys.length,
+          }),
+          withLogCategory("views", "annot-view"),
+        ),
+      );
       return;
     }
     const listed = new Set(state.annotations?.map(({ key }) => key));
@@ -1235,12 +1263,17 @@ export class AnnotationsLayout extends Component {
       kind: "replace",
       keys,
     });
-    logger.debug("A reader selection replaced the Card Selection", {
-      source: reader.source,
-      keys: keys.length,
-      selected: selection.selected.length,
-      waitsForList: this.#readerPending,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("A reader selection replaced the Card Selection").pipe(
+        Effect.annotateLogs({
+          source: reader.source,
+          keys: keys.length,
+          selected: selection.selected.length,
+          waitsForList: this.#readerPending,
+        }),
+        withLogCategory("views", "annot-view"),
+      ),
+    );
     if (changed) this.scrollToCard(selection.selected);
   }
 

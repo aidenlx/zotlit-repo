@@ -20,6 +20,7 @@ export default defineConfig({
   // The build constants the kernel reads, as the plugin's own test config
   // defines them.
   define: {
+    __PLUGIN_ID__: JSON.stringify("zotlit"),
     __WEB_WORKBENCH_ENABLED__: JSON.stringify(true),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
     __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),

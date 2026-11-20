@@ -6,14 +6,14 @@ import { Scheduler } from "effect/Scheduler";
 import { expect, it } from "vitest";
 
 import { browserScheduler } from "./browser-scheduler.ts";
-import { logTapeLogger } from "./effect-log.ts";
+import { pluginLogger } from "./effect-log.ts";
 
 // Failure mode: the redirect is gone, so `Effect.runSync` from `effect` runs
 // with Node's scheduler, Effect's console logger and trace propagation.
 it("runs Effect.runSync from effect with the runtime services", () => {
   const services = Effect.runSync(Effect.context<never>());
   expect(Context.get(services, Scheduler)).toBe(browserScheduler);
-  expect(Context.get(services, Logger.CurrentLoggers)).toContain(logTapeLogger);
+  expect(Context.get(services, Logger.CurrentLoggers)).toContain(pluginLogger);
   expect(Context.get(services, Tracer.DisablePropagation)).toBe(true);
 });
 

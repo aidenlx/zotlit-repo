@@ -1,5 +1,6 @@
 // Deep links into the settings modal: select a tab, descend its sub-pages, and reveal one row.
 
+import { Effect } from "effect";
 import type {
   App,
   SettingDefinition,
@@ -7,9 +8,10 @@ import type {
   SettingDefinitionPage,
 } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger("open-settings");
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 /**
  * A sub-page path: {@link SettingDefinitionPage#id} values, outermost first.
@@ -46,10 +48,15 @@ export function revealSetting(
   const tab = app.setting.openTabById(tabId);
   const hit = tab && locateSetting(tab.settingItems, settingId);
   if (!tab || !hit) {
-    logger.debug("A deep link named no row this tab renders", {
-      tabId,
-      settingId,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("A deep link named no row this tab renders").pipe(
+        Effect.annotateLogs({
+          tabId,
+          settingId,
+        }),
+        withLogCategory("open-settings"),
+      ),
+    );
     return;
   }
   // The scroll reaches only the rendered page, so the sub-page opens first.

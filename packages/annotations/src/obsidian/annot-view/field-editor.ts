@@ -21,6 +21,7 @@ import {
 import type { Extension } from "@codemirror/state";
 import type { Range } from "@codemirror/state";
 import { Decoration, EditorView, keymap, placeholder } from "@codemirror/view";
+import { Effect } from "effect";
 import { Menu, Scope } from "obsidian";
 import type { App, ExtendedHotkey } from "obsidian";
 
@@ -30,7 +31,10 @@ import {
   menuSections,
   raiseMenu,
 } from "@zotlit/obsidian-kit/menu-events.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { EditorSurface } from "./editor-sheet.ts";
@@ -42,8 +46,6 @@ import {
   parseComment,
   toggleFormat,
 } from "#core/annot-view/comment-format.ts";
-
-const logger = getLogger(["views", "annot-view"]);
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
@@ -384,7 +386,12 @@ function fillCommentMenu(menu: Menu, view: EditorView): void {
         .setDisabled(!enabled)
         .onClick(() => {
           run().catch((error: unknown) =>
-            logger.warn("Comment editor clipboard action failed", { error }),
+            Effect.runSyncWith(logServices)(
+              Effect.logWarning("Comment editor clipboard action failed").pipe(
+                Effect.annotateLogs({ error }),
+                withLogCategory("views", "annot-view"),
+              ),
+            ),
           );
         }),
     );
@@ -467,9 +474,14 @@ async function readClipboard(rich: boolean): Promise<string> {
         return parseHtml(await blob.text());
       }
     } catch (error) {
-      logger.debug("Rich clipboard read failed; pasting plain text", {
-        error,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Rich clipboard read failed; pasting plain text").pipe(
+          Effect.annotateLogs({
+            error,
+          }),
+          withLogCategory("views", "annot-view"),
+        ),
+      );
     }
   }
   return navigator.clipboard.readText();

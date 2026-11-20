@@ -1,4 +1,5 @@
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
+import { Effect } from "effect";
 // Obsidian owns Markdown rendering; each output owns and unloads its render children.
 import { Component, MarkdownRenderer } from "obsidian";
 import type { App } from "obsidian";
@@ -12,7 +13,10 @@ import {
 import { renderCitationRuns } from "@zotlit/citations/obsidian/wikilink-reading/render.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { RenderedProperty, RenderedRange } from "@zotlit/workbench/render";
 import { PropertyList } from "@zotlit/workbench/ui";
@@ -20,7 +24,6 @@ import type { WorkbenchMarkdownProps } from "@zotlit/workbench/ui";
 
 import type { NativeRenderResult } from "./render.ts";
 
-const logger = getLogger(["views", "template-workbench", "preview"]);
 export function NativeMarkdown({
   app,
   markdown,
@@ -109,7 +112,12 @@ export function NativeMarkdown({
       delete element.dataset["zotlitPreviewPending"];
       onRendered?.();
     })().catch((error: unknown) => {
-      logger.warn("Draft Markdown rendering failed", { error });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Draft Markdown rendering failed").pipe(
+          Effect.annotateLogs({ error }),
+          withLogCategory("views", "template-workbench", "preview"),
+        ),
+      );
       if (!disposed) {
         target.textContent = markdown;
         setRenderedEmpty(false);

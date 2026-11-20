@@ -131,11 +131,6 @@ export default defineConfig({
       services: SERVICES,
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
-    {
-      // Logging backlog: rework the file to log through Effect, then remove it from the list.
-      files: ["src/desktop/view/view.tsx"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
-    },
     // Capability backlog: files that import Effect and still reach the App.
     // A file moves off its list when it takes Obsidian from the capability
     // tags.

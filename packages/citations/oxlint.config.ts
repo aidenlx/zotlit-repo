@@ -162,15 +162,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**", "scripts/**"]),
     {
-      // Logging backlog: rework the file to log through Effect, then remove it from the list.
-      files: [
-        "src/obsidian/citation-index/sources.ts",
-        "src/obsidian/pandoc/document-presentation.ts",
-        "src/desktop/references/view.tsx",
-      ],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
-    },
-    {
       // These adapters own effect/rpc worker creation, shutdown and log transport.
       files: ["src/core/citation-parse/worker-host.ts"],
       rules: { "zotlit-services/worker-rpc": "off" },

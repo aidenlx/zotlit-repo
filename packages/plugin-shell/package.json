@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@effect/vitest": "catalog:",
-    "@logtape/logtape": "catalog:",
     "@preact/preset-vite": "catalog:",
     "@types/node": "catalog:",
     "@types/node-24": "catalog:",

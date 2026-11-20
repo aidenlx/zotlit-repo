@@ -1,5 +1,6 @@
 // The node-right-click wrap: a Cited Work Node opens ZotLit's own menu; every other node keeps the native one.
 
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
@@ -11,7 +12,10 @@ import {
   raiseMenu,
 } from "@zotlit/obsidian-kit/menu-events.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
@@ -19,8 +23,6 @@ import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import type { NodeClickDeps } from "./click.ts";
 import type { GraphLeafMembers } from "./install.ts";
-
-const logger = getLogger("graph-citations");
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
@@ -67,10 +69,15 @@ export function wrapNodeRightClick(
         const citekey = deps.citekeyOf(id);
         if (citekey === undefined) return native(evt, id, type);
         const resolution = deps.resolveCitekey(citekey);
-        logger.debug("Cited Work Node right-clicked", {
-          citekey,
-          resolution: resolution?.kind ?? "pending",
-        });
+        Effect.runSyncWith(logServices)(
+          Effect.logDebug("Cited Work Node right-clicked").pipe(
+            Effect.annotateLogs({
+              citekey,
+              resolution: resolution?.kind ?? "pending",
+            }),
+            withLogCategory("graph-citations"),
+          ),
+        );
         citedWorkMenu({
           citekey,
           resolution,

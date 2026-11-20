@@ -1,7 +1,12 @@
+import { Effect } from "effect";
+
 import type { TemplateDataLoadResult } from "@zotlit/notes/desktop/template/data.ts";
 import { exportTimestamp, saveFile } from "@zotlit/obsidian-kit/file-save.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 // Export rebuilds the selected contract root through the native loader so its
 // request remains reproducible and device image handling stays with that loader.
@@ -10,7 +15,6 @@ import type { TemplateRoot } from "@zotlit/workbench/ui";
 import { buildTemplateDataExport } from "#core/data-explorer/export.ts";
 import { getSampleItem } from "#core/editor/selection-data.ts";
 
-const logger = getLogger(["views", "template-data-explorer"]);
 export interface TemplateDataExportTarget {
   indexedKey: string;
   root: TemplateRoot;
@@ -44,11 +48,18 @@ export function saveTemplateDataExport(
   }: TemplateDataExportTarget & { pluginVersion: string },
 ): void {
   if (result.kind !== "data") {
-    logger.error("No template data to export for {indexedKey}: {reason}", {
-      indexedKey,
-      root,
-      reason: result.kind,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logError(
+        "No template data to export for {indexedKey}: {reason}",
+      ).pipe(
+        Effect.annotateLogs({
+          indexedKey,
+          root,
+          reason: result.kind,
+        }),
+        withLogCategory("views", "template-data-explorer"),
+      ),
+    );
     new BaseNotice(m.template_data_explorer_export_failed());
     return;
   }
@@ -60,7 +71,12 @@ export function saveTemplateDataExport(
     timestamp: exportTimestamp(),
   });
   saveFile(new Blob([json], { type: "application/json" }), filename);
-  logger.debug("Exported template data to {filename}", { filename, root });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Exported template data to {filename}").pipe(
+      Effect.annotateLogs({ filename, root }),
+      withLogCategory("views", "template-data-explorer"),
+    ),
+  );
 }
 
 /** Reports an export that failed with `error`. */
@@ -68,10 +84,15 @@ export function failTemplateDataExport(
   { indexedKey, root }: TemplateDataExportTarget,
   error: unknown,
 ): void {
-  logger.error("Failed to export template data for {indexedKey}", {
-    indexedKey,
-    root,
-    error,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logError("Failed to export template data for {indexedKey}").pipe(
+      Effect.annotateLogs({
+        indexedKey,
+        root,
+        error,
+      }),
+      withLogCategory("views", "template-data-explorer"),
+    ),
+  );
   new BaseNotice(m.template_data_explorer_export_failed());
 }

@@ -148,9 +148,10 @@ const V0_KEY_MAP: ReadonlyArray<
 ];
 
 /**
- * Map log4js severity levels to logtape's set. OFF maps to `null` so the
- * disabled state is preserved; MARK returns `undefined` because there is no
- * LogTape equivalent, so the migration drops it and the v1 default applies.
+ * Map log4js severity levels to the plugin logger's set. OFF maps to `null`
+ * so the disabled state is preserved; MARK returns `undefined` because the
+ * plugin logger has no such level, so the migration drops it and the v1
+ * default applies.
  */
 function mapLogLevel(value: unknown): LogLevel | undefined {
   if (typeof value !== "string") return undefined;

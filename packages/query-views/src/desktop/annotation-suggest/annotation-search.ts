@@ -3,6 +3,7 @@ import type {
   QueryViewRow,
   QueryViewValue,
 } from "#desktop/item-query/query-view.ts";
+import { Effect } from "effect";
 
 // The Annotation Suggester's search: ZotLit Query over the Zotero database,
 // so it answers with Zotero closed. The query text reads in the Library
@@ -12,12 +13,14 @@ import type {
 // not yet written there is missing from the results until it has. Selection
 // reads the live annotation repository (`annotation-insert.ts`), the Local API
 // while Zotero runs, so what lands holds the latest edits.
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { searchTokens } from "@zotlit/plugin-services/core/item-lookup/search-text.ts";
 
 import { visibleText } from "#core/item-query/visible-text.ts";
-
-const logger = getLogger(["views", "annotation-suggest"]);
 
 /** The token names the Annotation Suggester reads beside its words. */
 export const ANNOTATION_SEARCH_TOKENS = ["tag", "color", "paper"] as const;
@@ -150,16 +153,27 @@ export async function searchAnnotations(
   );
   if (papers.kind !== "result") {
     if (papers.kind === "failed")
-      logger.warn("Annotation search failed", {
-        stage: "papers",
-        diagnostic: papers.diagnostic,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Annotation search failed").pipe(
+          Effect.annotateLogs({
+            stage: "papers",
+            diagnostic: papers.diagnostic,
+          }),
+          withLogCategory("views", "annotation-suggest"),
+        ),
+      );
     return null;
   }
   const rank = new Map(
     (papers.result.rows ?? []).map((row, index) => [row.indexedKey, index]),
   );
-  logger.trace("Annotation search papers", { papers: rank.size });
+  if (logLevelEnabled("trace"))
+    Effect.runSyncWith(logServices)(
+      Effect.logTrace("Annotation search papers").pipe(
+        Effect.annotateLogs({ papers: rank.size }),
+        withLogCategory("views", "annotation-suggest"),
+      ),
+    );
   if (rank.size === 0) return [];
   const annotations = await service.run(
     {
@@ -180,10 +194,15 @@ export async function searchAnnotations(
   );
   if (annotations.kind !== "result") {
     if (annotations.kind === "failed")
-      logger.warn("Annotation search failed", {
-        stage: "annotations",
-        diagnostic: annotations.diagnostic,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Annotation search failed").pipe(
+          Effect.annotateLogs({
+            stage: "annotations",
+            diagnostic: annotations.diagnostic,
+          }),
+          withLogCategory("views", "annotation-suggest"),
+        ),
+      );
     return null;
   }
   return (annotations.result.groups ?? [])

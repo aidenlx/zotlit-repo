@@ -1,8 +1,8 @@
 // Clipboard writing of one payload in several representations, so the destination takes the one it reads.
 
-import { getLogger } from "#log.ts";
+import { Effect } from "effect";
 
-const logger = getLogger("clipboard");
+import { logServices, withLogCategory } from "#effect-log.ts";
 
 /** Which representation the platform took. */
 export type ClipboardRepresentation = "rich" | "text";
@@ -40,9 +40,16 @@ export async function writeClipboardRichText({
     ]);
     return "rich";
   } catch (error) {
-    logger.warn("The rich clipboard write did not land; writing text", {
-      error,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "The rich clipboard write did not land; writing text",
+      ).pipe(
+        Effect.annotateLogs({
+          error,
+        }),
+        withLogCategory("clipboard"),
+      ),
+    );
     await navigator.clipboard.writeText(text);
     return "text";
   }

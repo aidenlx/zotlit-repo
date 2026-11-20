@@ -1,21 +1,28 @@
 // UI recovery for an unavailable Profile, shared by notes and citation surfaces.
+import { Effect } from "effect";
 import type { App, EventRef } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { BaseNotice } from "./notice.ts";
 import type { WorkspaceEventHost } from "./obsidian-workspace.ts";
 import type { UnknownProfileDiagnostic } from "./profile-stamp.ts";
 
-const logger = getLogger("profile-recovery");
-
 /** Ask for a Profile switch on the host's workspace: the app, or the Workspace tag's trigger. */
 export function requestProfileSwitch(
   host: WorkspaceEventHost,
   path: string,
 ): void {
-  logger.debug("Requested Profile recovery for {path}", { path });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Requested Profile recovery for {path}").pipe(
+      Effect.annotateLogs({ path }),
+      withLogCategory("profile-recovery"),
+    ),
+  );
   host.workspace.trigger("zotlit:switch-profile", { path });
 }
 

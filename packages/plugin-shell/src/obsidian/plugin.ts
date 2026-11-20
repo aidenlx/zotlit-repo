@@ -1,5 +1,6 @@
 // The plugin class a host extends: start-up over the host's composition, the
 // interrupted start-up release, and unload.
+import { Effect } from "effect";
 import type { Plugin } from "obsidian";
 
 import type { CliCommand, CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
@@ -10,8 +11,9 @@ import {
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import {
   enableStartupLogging,
-  setLogCategoryRoot,
-} from "@zotlit/plugin-kernel/log.ts";
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
 
@@ -92,7 +94,6 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
     protected preflight(): void {}
 
     override async onload(): Promise<void> {
-      setLogCategoryRoot(this.manifest.id);
       await super.onload();
 
       if (__DEV__) enableStartupLogging();
@@ -124,7 +125,7 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
       }).catch((error: unknown) =>
         reportStartupFailure(error, this.manifest.name),
       );
-      // Logged now: the runtime's logging layer has given LogTape its sinks.
+      // Logged now: the runtime's logging layer has given the logger its sinks.
       if (lateRelease) logLateRelease(this.manifest.id);
 
       // A disable during the build has already unloaded this instance: leave
@@ -154,7 +155,12 @@ export function shellPlugin<const F extends readonly Feature<any, any, any>[]>(
       this.#stack = undefined;
 
       void stack?.disposeAsync().catch((error: unknown) => {
-        console.error("ZotLit cleanup error:", error);
+        Effect.runSyncWith(logServices)(
+          Effect.logError("Could not clean up the plugin's resources").pipe(
+            Effect.annotateLogs({ error }),
+            withLogCategory("plugin-lifecycle"),
+          ),
+        );
         new BaseNotice(`Failed to clean up ${this.manifest.name} resources`);
       });
     }

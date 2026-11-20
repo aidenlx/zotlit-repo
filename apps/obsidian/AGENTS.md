@@ -59,7 +59,7 @@ Project-specific: settings live in `PluginSettings` (`@zotlit/plugin-services/ob
 
 ## Logging
 
-Log through Effect, filed under a category with `withLogCategory` from `packages/plugin-kernel/src/effect-log.ts`. Every renderer Effect run entry point writes Effect's records to LogTape, where `layerLogging` (`packages/plugin-services/src/obsidian/log/service.ts`) owns the sinks and levels. `getLogger` from `packages/plugin-kernel/src/log.ts` is the legacy LogTape logger.
+Log through Effect, filed under a category with `withLogCategory` from `packages/plugin-kernel/src/effect-log.ts`. Every renderer Effect run entry point writes Effect's records to the plugin logger (`pluginLogger` in that file), whose level and sinks `layerLogging` (`packages/plugin-services/src/obsidian/log/service.ts`) sets. Plain code runs its `Effect.log*` record on its bridge or with `Effect.runSyncWith(logServices)`.
 
 ## UI text (JSON Language Packs)
 
@@ -83,7 +83,7 @@ When adding or changing a CLI schema or downloadable resource, inspect `packages
 
 ## Effect
 
-Import Effect from `effect`. The `effectEntry` Vite plugin (`packages/plugin-kernel/scripts/effect-entry.ts`) resolves `effect` and `effect/Effect`, imported from plugin code, to the wrappers in `packages/plugin-kernel/src`, so the runtime entry points default to Chromium scheduling in the renderer and workers. Worker bundles resolve them to `packages/plugin-kernel/src/effect-worker.ts` and carry no LogTape; renderer entry points log through LogTape. `effectEntryCheck` fails a build whose entry chunk misses its wrapper, `no-restricted-imports` bans the wrapper paths, and `pnpm e2e:worker` checks real worker responsiveness.
+Import Effect from `effect`. The `effectEntry` Vite plugin (`packages/plugin-kernel/scripts/effect-entry.ts`) resolves `effect` and `effect/Effect`, imported from plugin code, to the wrappers in `packages/plugin-kernel/src`, so the runtime entry points default to Chromium scheduling in the renderer and workers. Worker bundles resolve them to `packages/plugin-kernel/src/effect-worker.ts` and carry no plugin logger; renderer entry points log through the plugin logger. `effectEntryCheck` fails a build whose entry chunk misses its wrapper, `no-restricted-imports` bans the wrapper paths, and `pnpm e2e:worker` checks real worker responsiveness.
 
 ## Views
 
@@ -108,7 +108,7 @@ Vitest runs in Node with `"obsidian"` resolved to the mock in `packages/obsidian
 
 App-local `tsc` and `vitest` read workspace packages (`@zotlit/db`, `@zotlit/templates`, …) from their source, so a change in `packages/*` reaches them with no build. They do need the generated files: run `pnpm exec turbo run generate:language-packs generate:message-types` once before a direct run.
 
-Write an Effect case with `it.effect` from `@effect/vitest`; vitest.config.ts resolves it through `effectEntry` to `packages/plugin-kernel/src/effect-vitest.ts`, which adds the plugin's runtime services (browser scheduler, LogTape logger) to `@effect/vitest`'s TestClock and TestConsole. Provide a `Logger.layer` to capture logs (`packages/plugin-services/src/obsidian/use-ledger/service.test.ts`).
+Write an Effect case with `it.effect` from `@effect/vitest`; vitest.config.ts resolves it through `effectEntry` to `packages/plugin-kernel/src/effect-vitest.ts`, which adds the plugin's runtime services (browser scheduler, plugin logger) to `@effect/vitest`'s TestClock and TestConsole. Capture the plugin logger's records with `captureLogRecords` or `forwardLogRecords` from `packages/plugin-kernel/src/__fixtures__/log-capture.ts`; a `Logger.layer` captures only the Effect it is given to (`packages/plugin-services/src/obsidian/use-ledger/service.test.ts`).
 
 `sleep` is an Obsidian global that doesn't exist in Node. Use `delay` from `@std/async` instead.
 

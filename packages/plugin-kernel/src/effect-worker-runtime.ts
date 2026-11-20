@@ -6,7 +6,7 @@ import { browserScheduler } from "./browser-scheduler.ts";
 import { makeRunSurface } from "./effect-runtime-factory.ts";
 
 /**
- * Browser scheduling without the renderer's LogTape bridge. Every level
+ * Browser scheduling without the renderer's plugin logger. Every level
  * reaches the port logger, so the host's configured level is the only filter.
  */
 const runtimeServices = Context.add(

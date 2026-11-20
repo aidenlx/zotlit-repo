@@ -16,6 +16,7 @@ import type {
   TextField,
 } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/service.ts";
+import { Effect } from "effect";
 import { Menu } from "obsidian";
 import type { App, PaneType } from "obsidian";
 import { createContext } from "react";
@@ -34,7 +35,10 @@ import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
 import { observeExit } from "@zotlit/workbench/ui";
@@ -74,8 +78,6 @@ import {
   annotationColorMenu,
   buildColorMenu,
 } from "#obsidian/pdf-annotation-editor/color-menu.ts";
-
-const logger = getLogger(["views", "annot-view"]);
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
@@ -937,9 +939,16 @@ async function writeClipboard(text: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(text);
   } catch (error) {
-    logger.debug("The clipboard refused the write; Electron writes it", {
-      error,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug(
+        "The clipboard refused the write; Electron writes it",
+      ).pipe(
+        Effect.annotateLogs({
+          error,
+        }),
+        withLogCategory("views", "annot-view"),
+      ),
+    );
     requireElectron().clipboard.writeText(text);
   }
 }

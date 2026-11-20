@@ -113,15 +113,6 @@ export default defineConfig({
       "src/**/test-utils.ts",
     ]),
     {
-      // The sink owners may use LogTape directly.
-      files: ["src/obsidian/log/**"],
-      rules: {
-        "zotlit-logging/no-logtape-in-effect-file": "off",
-        "effecttsgo/global-console": "off",
-        "effecttsgo/global-console-in-effect": "off",
-      },
-    },
-    {
       // Capability backlog: no tag member yet for `vault.adapter`. The file
       // moves off the list when it takes Obsidian from the capability tags.
       files: ["src/obsidian/log/service.ts"],
@@ -137,12 +128,6 @@ export default defineConfig({
         "effecttsgo/global-date": "off",
         "no-restricted-globals": "off",
       },
-    },
-    {
-      // Background work that stands in no window, which lives as long as the
-      // plugin and so as the main window.
-      files: ["src/obsidian/log/vault-sink.ts"],
-      rules: { "zotlit-obsidian/no-global-timer": "off" },
     },
     {
       // The setting tab's runner forks each fiber into the tab layer's Scope

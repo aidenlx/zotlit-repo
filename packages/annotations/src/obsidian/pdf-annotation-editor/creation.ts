@@ -27,6 +27,7 @@ import type {
   InkPosition,
   TextPosition,
 } from "#obsidian/annotation-repository/write.ts";
+import { Effect } from "effect";
 import { Platform } from "obsidian";
 import type { App } from "obsidian";
 import { createElement } from "react";
@@ -40,7 +41,10 @@ import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { PdfTextStructure, SelectedText } from "@zotlit/pdf-structure";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -145,8 +149,6 @@ import {
   textFieldWording,
 } from "#obsidian/annot-view/card-controls.ts";
 import { blockedReason } from "#obsidian/annotation-repository/write.ts";
-
-const logger = getLogger("pdf-annotation-editor");
 
 /**
  * The side of the square a note is stored as, in PDF points: Zotero's.
@@ -949,7 +951,13 @@ export class MarkCreation implements CreationGestures, Disposable {
         color: this.#state().colors.text,
       }),
     );
-    logger.debug("A Text Draft was opened", { pageIndex });
+    if (logLevelEnabled("debug"))
+      this.#deps.bridge.runSync(
+        Effect.logDebug("A Text Draft was opened").pipe(
+          Effect.annotateLogs({ pageIndex }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
     // This surface's disposal finishes a draft still typed, after the viewer
     // let go of its document. The structure is kept, and its page and the Page
     // Labels are read now, so that create takes its Sort Index and Page Label
@@ -988,7 +996,13 @@ export class MarkCreation implements CreationGestures, Disposable {
     const structure = this.#draftStructure;
     this.#draftStructure = null;
     const draft = modify(this.#deps.surface, finishTextDraft);
-    logger.debug("A Text Draft was finished", { committed: draft !== null });
+    if (logLevelEnabled("debug"))
+      this.#deps.bridge.runSync(
+        Effect.logDebug("A Text Draft was finished").pipe(
+          Effect.annotateLogs({ committed: draft !== null }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
     if (draft) this.#creating = this.#createText(draft, structure);
   }
 
@@ -1088,7 +1102,11 @@ export class MarkCreation implements CreationGestures, Disposable {
     if (!editingLive(this.#capability())) return null;
     if (!structure) {
       update(this.#deps.surface, cancelCapture);
-      logger.warn("No text structure stands for this PDF; nothing was created");
+      this.#deps.bridge.runSync(
+        Effect.logWarning(
+          "No text structure stands for this PDF; nothing was created",
+        ).pipe(withLogCategory("pdf-annotation-editor")),
+      );
       this.#deps.reportCreateFailure(m.pdf_create_reason_no_document());
       return null;
     }
@@ -1174,7 +1192,13 @@ export class MarkCreation implements CreationGestures, Disposable {
           { path, reason: "split", group },
         ),
     });
-    logger.trace("An ink stroke began", { pageIndex: page.pageIndex });
+    if (logLevelEnabled("trace"))
+      this.#deps.bridge.runSync(
+        Effect.logTrace("An ink stroke began").pipe(
+          Effect.annotateLogs({ pageIndex: page.pageIndex }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
   }
 
   /**
@@ -1224,11 +1248,17 @@ export class MarkCreation implements CreationGestures, Disposable {
       paths: [path],
     };
     update(this.#deps.surface, appendPendingStroke(pending));
-    logger.debug("An ink stroke was finished", {
-      reason,
-      pageIndex: pending.pageIndex,
-      points: path.length / 2,
-    });
+    if (logLevelEnabled("debug"))
+      this.#deps.bridge.runSync(
+        Effect.logDebug("An ink stroke was finished").pipe(
+          Effect.annotateLogs({
+            reason,
+            pageIndex: pending.pageIndex,
+            points: path.length / 2,
+          }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
     this.#creating = this.#deps.writes(
       queued(this.#inking, () => this.#createInk(pending, group)),
     );
@@ -1277,7 +1307,12 @@ export class MarkCreation implements CreationGestures, Disposable {
     this.#inkGroup = null;
     releaseCapture(this.#deps.containerEl, stroke);
     stroke[Symbol.dispose]();
-    logger.debug("An ink stroke was discarded");
+    if (logLevelEnabled("debug"))
+      this.#deps.bridge.runSync(
+        Effect.logDebug("An ink stroke was discarded").pipe(
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
   }
 
   /** Takes back the click press, placing and opening nothing for it. */

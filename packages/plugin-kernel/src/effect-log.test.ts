@@ -1,33 +1,17 @@
 import { it } from "@effect/vitest";
-import { configureSync, resetSync } from "@logtape/logtape";
-import type { LogRecord } from "@logtape/logtape";
-import { DateTime, Effect, Layer, Logger, Queue } from "effect";
+import { Clock, DateTime, Effect, Layer, Logger, Queue } from "effect";
 import { describe, expect } from "vitest";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
+import { capturedLogQueue } from "./__fixtures__/log-capture.ts";
 import { layerHostLogPort } from "./effect-log-port.ts";
 import type { LogMessagePort, LogPortRecord } from "./effect-log-port.ts";
-import { logTapeLogger, withLogCategory } from "./effect-log.ts";
+import { pluginLogger, withLogCategory } from "./effect-log.ts";
 
 /** A time no wall clock reads, so only the worker's stamp can produce it. */
 const WORKER_LOG_TIME = DateTime.toEpochMillis(
   DateTime.makeUnsafe("2001-02-03T04:05:06Z"),
-);
-
-const captureLogTape = Effect.acquireRelease(
-  Effect.gen(function* () {
-    const captured = yield* Queue.unbounded<LogRecord>();
-    configureSync({
-      reset: true,
-      sinks: { capture: (record) => Queue.offerUnsafe(captured, record) },
-      loggers: [
-        { category: ["zotlit"], sinks: ["capture"], lowestLevel: "trace" },
-      ],
-    });
-    return captured;
-  }),
-  () => Effect.sync(() => resetSync()),
 );
 
 const hostPort = (): LogMessagePort => ({
@@ -49,10 +33,10 @@ const workerRecord = (
   ...overrides,
 });
 
-describe("logTapeLogger", () => {
+describe("pluginLogger", () => {
   it.effect("keeps the worker's timestamp on a record the host re-emits", () =>
     Effect.gen(function* () {
-      const captured = yield* captureLogTape;
+      const captured = yield* capturedLogQueue;
       const port = hostPort();
       yield* Layer.build(
         layerHostLogPort(port, {
@@ -69,14 +53,14 @@ describe("logTapeLogger", () => {
       expect(record.category).toEqual(["zotlit", "db", "tags"]);
       expect(record.message).toEqual(["Unknown tag type ", 99, ""]);
       expect(record.properties).toEqual({ type: 99 });
-    }).pipe(Effect.scoped, Effect.provide(Logger.layer([logTapeLogger]))),
+    }).pipe(Effect.scoped, Effect.provide(Logger.layer([pluginLogger]))),
   );
 
   it.effect(
-    "leaves a record without a LogTimestamp to LogTape's template parsing and clock",
+    "renders the template of a record without a LogTimestamp at the Effect clock's time",
     () =>
       Effect.gen(function* () {
-        const captured = yield* captureLogTape;
+        const captured = yield* capturedLogQueue;
 
         yield* Effect.logInfo("Opened {library.name}").pipe(
           Effect.annotateLogs({ library: { name: "ABCD" } }),
@@ -85,27 +69,29 @@ describe("logTapeLogger", () => {
         const record = yield* Queue.take(captured);
 
         expect(record.message).toEqual(["Opened ", "ABCD", ""]);
-        expect(record.timestamp).toBeGreaterThan(WORKER_LOG_TIME);
-      }).pipe(Effect.scoped, Effect.provide(Logger.layer([logTapeLogger]))),
+        expect(record.timestamp).toBe(yield* Clock.currentTimeMillis);
+      }).pipe(Effect.scoped, Effect.provide(Logger.layer([pluginLogger]))),
   );
 });
 
 describe("library log sink in the renderer", () => {
-  it.effect("reaches LogTape through the sink the bridge installs", () =>
-    Effect.gen(function* () {
-      const captured = yield* captureLogTape;
+  it.effect(
+    "reaches the plugin logger through the sink the bridge installs",
+    () =>
+      Effect.gen(function* () {
+        const captured = yield* capturedLogQueue;
 
-      logLibrary({
-        level: "warn",
-        category: ["zotlit", "db", "tags"],
-        message: "Unknown tag type {type}",
-        properties: { type: 99 },
-      });
-      const record = yield* Queue.take(captured);
+        logLibrary({
+          level: "warn",
+          category: ["zotlit", "db", "tags"],
+          message: "Unknown tag type {type}",
+          properties: { type: 99 },
+        });
+        const record = yield* Queue.take(captured);
 
-      expect(record.level).toBe("warning");
-      expect(record.category).toEqual(["zotlit", "db", "tags"]);
-      expect(record.message).toEqual(["Unknown tag type ", 99, ""]);
-    }).pipe(Effect.scoped),
+        expect(record.level).toBe("warning");
+        expect(record.category).toEqual(["zotlit", "db", "tags"]);
+        expect(record.message).toEqual(["Unknown tag type ", 99, ""]);
+      }).pipe(Effect.scoped),
   );
 });

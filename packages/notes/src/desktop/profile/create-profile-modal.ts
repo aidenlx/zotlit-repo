@@ -6,6 +6,7 @@ import type {
   ProfileCreateOptions,
   PreparedProfileCreation,
 } from "#obsidian/profile/service.ts";
+import { Effect } from "effect";
 // One Profile creation dialog shared by settings and contextual Profile pickers.
 import { DropdownComponent, Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
@@ -23,13 +24,14 @@ import {
   twoColumns,
 } from "@zotlit/obsidian-kit/dialog-frame.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { previewPanel } from "./preview-panel.ts";
-
-const logger = getLogger(["setting-tab", "profiles"]);
 
 export interface ProfileCreationData {
   note: NoteTemplateContext;
@@ -182,15 +184,25 @@ export class CreateProfileModal extends Modal {
         const selectedPreview = preview;
         try {
           const profile = await selectedDraft.create();
-          logger.debug("Created Profile from dialog", {
-            id: profile.id,
-            useForNote: this.#options.useForNote ?? false,
-          });
+          Effect.runSyncWith(logServices)(
+            Effect.logDebug("Created Profile from dialog").pipe(
+              Effect.annotateLogs({
+                id: profile.id,
+                useForNote: this.#options.useForNote ?? false,
+              }),
+              withLogCategory("setting-tab", "profiles"),
+            ),
+          );
           this.#decision.resolve({ profile, preview: selectedPreview });
           this.close();
         } catch (error) {
           if (isUserStop(error)) return;
-          logger.error("Failed to create Profile from dialog", { error });
+          Effect.runSyncWith(logServices)(
+            Effect.logError("Failed to create Profile from dialog").pipe(
+              Effect.annotateLogs({ error }),
+              withLogCategory("setting-tab", "profiles"),
+            ),
+          );
           reason.set(
             Error.isError(error)
               ? error.message
@@ -252,7 +264,12 @@ export class CreateProfileModal extends Modal {
         button.setDisabled(!!problem || this.#saving);
       } catch (error) {
         if (revision !== this.#revision || this.#closed) return;
-        logger.debug("Profile creation preview was refused", { label, error });
+        Effect.runSyncWith(logServices)(
+          Effect.logDebug("Profile creation preview was refused").pipe(
+            Effect.annotateLogs({ label, error }),
+            withLogCategory("setting-tab", "profiles"),
+          ),
+        );
         reason.set(
           Error.isError(error)
             ? error.message
@@ -266,7 +283,12 @@ export class CreateProfileModal extends Modal {
   }
 
   override onClose(): void {
-    if (!this.#saving) logger.debug("Cancelled Profile creation");
+    if (!this.#saving)
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Cancelled Profile creation").pipe(
+          withLogCategory("setting-tab", "profiles"),
+        ),
+      );
     this.#closed = true;
     this.#decision.resolve(undefined);
     this.contentEl.empty();

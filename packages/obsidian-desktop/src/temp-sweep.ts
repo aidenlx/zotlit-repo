@@ -6,7 +6,7 @@
 // the code that writes the entries the rule recognizes.
 //
 // The sweep is an Effect over `FileSystem`, so the database reads worker,
-// which carries no LogTape, runs the same walk the renderer does. Each runtime
+// which carries no plugin logger, runs the same walk the renderer does. Each runtime
 // provides the Node file system once.
 //
 // A sweep never fails on the filesystem: a directory that refuses to be
@@ -15,7 +15,7 @@
 // logs nothing.
 
 // The worker build resolves the specifier `effect` to the worker entry, so a
-// relative import of a wrapper here would pull the renderer's LogTape bridge
+// relative import of a wrapper here would pull the renderer's plugin logger
 // into the worker.
 import { Cause, Clock, Duration, Effect, FileSystem, Option } from "effect";
 import type { PlatformError } from "effect";

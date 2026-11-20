@@ -26,8 +26,5 @@
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "peerDependencies": {
-    "@logtape/logtape": ">=2.0.0"
   }
 }

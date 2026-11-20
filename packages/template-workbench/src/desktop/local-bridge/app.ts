@@ -7,12 +7,16 @@ import type {
   BridgeConnection,
   BridgeSessions,
 } from "#core/local-bridge/sessions.ts";
+import { Effect } from "effect";
 import type { Context } from "hono";
 import { Hono } from "hono/tiny";
 import * as v from "valibot";
 
 import { ProfileDocumentMissingError } from "@zotlit/notes/obsidian/profile/service.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import {
   codeBootstrapRequestSchema,
   disconnectRequestSchema,
@@ -27,8 +31,6 @@ import type { ConnectionGrant } from "@zotlit/workbench/bridge";
 import { SelectedItemUnavailableError } from "./reads.ts";
 import type { LocalBridgeReads } from "./reads.ts";
 import type { LocalBridgeSave, LocalBridgeSaveOutcome } from "./save.ts";
-
-const logger = getLogger("local-bridge");
 
 /** The grant as it stands now, without the credential the page already holds. */
 export type ConnectionGrantDescription = Omit<ConnectionGrant, "credential">;
@@ -159,7 +161,11 @@ export function createLocalBridgeApp(
         message: "The connection code is invalid, used, or expired.",
       });
     }
-    logger.info("Workbench Connection opened");
+    Effect.runSyncWith(logServices)(
+      Effect.logInfo("Workbench Connection opened").pipe(
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json({
       credential: connection.credential,
       ...(await deps.describeGrant(connection)),
@@ -170,7 +176,11 @@ export function createLocalBridgeApp(
     // The bearer gate already refused a credential the plugin no longer holds,
     // so reaching here means the grant stands: answer with the versions and
     // bindings in effect now, which is what the page re-checks.
-    logger.debug("Workbench Connection resumed");
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Workbench Connection resumed").pipe(
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(await deps.describeGrant(context.get("connection")));
   });
 
@@ -178,13 +188,22 @@ export function createLocalBridgeApp(
     const request = await parseBody(context.req.raw, disconnectRequestSchema);
     if (!request.success) return invalidRequest(context, request.issues);
     deps.sessions.disconnect(context.get("connection").credential);
-    logger.info("Workbench Connection ended by the page");
+    Effect.runSyncWith(logServices)(
+      Effect.logInfo("Workbench Connection ended by the page").pipe(
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json({});
   });
 
   app.get(LOCAL_BRIDGE_PATHS.templateSchema, (context) => {
     const schema = deps.reads.templateSchema();
-    logger.debug("Answered a Local Bridge read", { operation: "schema" });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Answered a Local Bridge read").pipe(
+        Effect.annotateLogs({ operation: "schema" }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(schema);
   });
 
@@ -203,10 +222,15 @@ export function createLocalBridgeApp(
     }
     try {
       const snapshot = await deps.reads.selectedItem(item);
-      logger.debug("Answered a Local Bridge read", {
-        operation: "selected-item",
-        itemKey: item.key,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Answered a Local Bridge read").pipe(
+          Effect.annotateLogs({
+            operation: "selected-item",
+            itemKey: item.key,
+          }),
+          withLogCategory("local-bridge"),
+        ),
+      );
       return context.json(snapshot);
     } catch (error) {
       if (!(error instanceof SelectedItemUnavailableError)) throw error;
@@ -222,10 +246,15 @@ export function createLocalBridgeApp(
     const profileId = context.get("connection").profileId;
     try {
       const selected = await deps.reads.selectedProfile(profileId);
-      logger.debug("Answered a Local Bridge read", {
-        operation: "selected-profile",
-        profileId,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Answered a Local Bridge read").pipe(
+          Effect.annotateLogs({
+            operation: "selected-profile",
+            profileId,
+          }),
+          withLogCategory("local-bridge"),
+        ),
+      );
       return context.json(selected);
     } catch (error) {
       if (!(error instanceof ProfileDocumentMissingError)) throw error;
@@ -246,15 +275,25 @@ export function createLocalBridgeApp(
     const dependencies = await deps.reads.templateDependencies(
       request.output.source,
     );
-    logger.debug("Answered a Local Bridge read", { operation: "dependencies" });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Answered a Local Bridge read").pipe(
+        Effect.annotateLogs({ operation: "dependencies" }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(dependencies);
   });
 
   app.get(LOCAL_BRIDGE_PATHS.citationStyles, async (context) => {
     const styles = await deps.reads.citationStyles();
-    logger.debug("Answered a Local Bridge read", {
-      operation: "citation-styles",
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Answered a Local Bridge read").pipe(
+        Effect.annotateLogs({
+          operation: "citation-styles",
+        }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(styles);
   });
 
@@ -265,9 +304,14 @@ export function createLocalBridgeApp(
     );
     if (!request.success) return invalidRequest(context, request.issues);
     const style = await deps.reads.selectedCitationStyle(request.output);
-    logger.debug("Answered a Local Bridge read", {
-      operation: "selected-citation-style",
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Answered a Local Bridge read").pipe(
+        Effect.annotateLogs({
+          operation: "selected-citation-style",
+        }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(style);
   });
 
@@ -299,27 +343,42 @@ export function createLocalBridgeApp(
     if (outcome.state === "refused") {
       // A refusal the contract names is the answer itself, so the page can tell
       // the user which check stopped the Save and keep the draft.
-      logger.debug("Refused a Local Bridge Save", {
-        operation: "selected-profile:save",
-        profileId,
-        reason: outcome.reason,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Refused a Local Bridge Save").pipe(
+          Effect.annotateLogs({
+            operation: "selected-profile:save",
+            profileId,
+            reason: outcome.reason,
+          }),
+          withLogCategory("local-bridge"),
+        ),
+      );
       return context.json(outcome);
     }
-    logger.debug("Saved a Profile document from the web Workbench", {
-      operation: "selected-profile:save",
-      profileId,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Saved a Profile document from the web Workbench").pipe(
+        Effect.annotateLogs({
+          operation: "selected-profile:save",
+          profileId,
+        }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return context.json(outcome);
   });
 
   // A fault the routes do not name still answers the one error shape the page
   // parses, and the record carries only the operation and fixed failure reason.
   app.onError((_error, context) => {
-    logger.error("A Local Bridge operation failed", {
-      operation: context.req.routePath,
-      reason: "operation-failed",
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logError("A Local Bridge operation failed").pipe(
+        Effect.annotateLogs({
+          operation: context.req.routePath,
+          reason: "operation-failed",
+        }),
+        withLogCategory("local-bridge"),
+      ),
+    );
     return refuse(context, {
       status: 500,
       code: "operation-failed",
@@ -377,10 +436,15 @@ function refuse(
     readonly message: string;
   },
 ): Response {
-  logger.debug("Refused a Local Bridge request", {
-    operation: new URL(context.req.url).pathname,
-    reason: error.code,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Refused a Local Bridge request").pipe(
+      Effect.annotateLogs({
+        operation: new URL(context.req.url).pathname,
+        reason: error.code,
+      }),
+      withLogCategory("local-bridge"),
+    ),
+  );
   return context.json(
     { error: { code: error.code, message: error.message } },
     error.status,

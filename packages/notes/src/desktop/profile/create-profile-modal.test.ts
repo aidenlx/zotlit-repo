@@ -12,9 +12,9 @@ import {
   controlsOf,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CreateProfileModal } from "./create-profile-modal.ts";
@@ -185,7 +185,7 @@ it.each([false, true])(
 it("says nothing when the dialog's Scope stops the save", async () => {
   using label = vi.spyOn(ButtonComponent.prototype, "setButtonText");
   using disabled = vi.spyOn(ButtonComponent.prototype, "setDisabled");
-  using failed = vi.spyOn(getLogger(["setting-tab", "profiles"]), "error");
+  using logs = captureLogRecords();
   const saveDisabled = () =>
     disabled.mock.calls.findLast((_, index) => {
       const button = disabled.mock.instances[index];
@@ -208,7 +208,13 @@ it("says nothing when the dialog's Scope stops the save", async () => {
   // The modal waited on the save first, so its catch has run once this one
   // does.
   await f.create.mock.results[0]!.value.catch(() => {});
-  expect(failed).not.toHaveBeenCalled();
+  expect(
+    logs.records.filter(
+      (record) =>
+        record.level === "error" &&
+        record.category.join(".") === "zotlit.obsidian.setting-tab.profiles",
+    ),
+  ).toEqual([]);
   expect(modal.contentEl.querySelector('[role="status"]')!.textContent).toBe(
     "",
   );

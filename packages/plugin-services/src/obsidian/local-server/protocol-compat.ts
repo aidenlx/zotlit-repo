@@ -1,28 +1,35 @@
+import { Effect } from "effect";
+
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { checkProtocolVersion, PROTOCOL_VERSION } from "@zotlit/protocol";
 import type { ProtocolVersionCheck } from "@zotlit/protocol";
 
 const noticedVersions = new Set<string>();
 
-interface ProtocolCompatLogger {
-  warn(message: string, fields: Record<string, unknown>): void;
-}
-
 export function rejectIncompatibleProtocol(
   received: unknown,
-  logger: ProtocolCompatLogger,
+  category: string,
   context: Record<string, unknown>,
 ): boolean {
   const check = checkProtocolVersion(received);
   if (check.ok) return false;
 
-  logger.warn("Rejected incompatible ZotLit protocol message", {
-    ...context,
-    expectedProtocolVersion: PROTOCOL_VERSION,
-    receivedProtocolVersion: check.received,
-    reason: check.reason,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logWarning("Rejected incompatible ZotLit protocol message").pipe(
+      Effect.annotateLogs({
+        ...context,
+        expectedProtocolVersion: PROTOCOL_VERSION,
+        receivedProtocolVersion: check.received,
+        reason: check.reason,
+      }),
+      withLogCategory(category),
+    ),
+  );
   showProtocolNotice(check);
   return true;
 }

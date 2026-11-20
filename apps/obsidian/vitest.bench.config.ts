@@ -31,6 +31,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   define: {
+    __PLUGIN_ID__: JSON.stringify("zotlit"),
     __DEV__: JSON.stringify(true),
     __WEB_WORKBENCH_ENABLED__: JSON.stringify(true),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),

@@ -1,7 +1,7 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noLogTapeInEffectFile } from "../../../../packages/config/oxlint-plugin-logging.ts";
+import { effectLoggingOnly } from "../../../../packages/config/oxlint-plugin-logging.ts";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -10,49 +10,82 @@ const tester = new RuleTester({
   languageOptions: { parserOptions: { lang: "ts" } },
 });
 
-const filename = "/repo/apps/obsidian/src/services/example.ts";
-const logtape = [{ messageId: "logtape" }];
+const filename = "/repo/packages/citations/src/obsidian/example.ts";
+const kernelFile = "/repo/packages/plugin-kernel/src/example.ts";
 
-tester.run("no-logtape-in-effect-file", noLogTapeInEffectFile, {
+tester.run("effect-logging-only", effectLoggingOnly, {
   valid: [
     {
-      code: 'import { getLogger } from "@zotlit/plugin-kernel/log.ts";',
+      code: 'import { Effect } from "effect";\nimport { logServices, withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";\nEffect.runSyncWith(logServices)(Effect.logWarning("Lost").pipe(withLogCategory("views")));',
       filename,
     },
     {
-      code: 'import { Effect } from "effect";',
+      code: 'import { Console } from "effect";\nConsole.error("Could not apply the log settings");',
       filename,
     },
     {
-      code: 'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nimport { getLogger } from "@zotlit/plugin-kernel/log.ts";',
+      code: "console.info(...args);",
+      filename: "/repo/packages/plugin-kernel/src/log-console.ts",
+    },
+    {
+      code: 'console.error("ZotLit worker log port failed:", kind);',
+      filename: "/repo/packages/plugin-kernel/src/effect-log-port.ts",
+    },
+    {
+      code: 'import { getLogger } from "./third-party-logger.ts";',
       filename,
+    },
+    {
+      code: 'console.log("pandoc version");',
+      filename:
+        "/repo/packages/citations/src/core/pandoc/filter/zotlit-cite.pandoc.test.ts",
     },
   ],
   invalid: [
     {
-      code: 'import { Effect } from "effect";\nimport { getLogger } from "@zotlit/plugin-kernel/log.ts";',
+      code: 'import { getLogger } from "@logtape/logtape";',
       filename,
-      errors: logtape,
+      errors: [{ messageId: "logtape" }],
     },
     {
-      code: 'import { Effect } from "effect";\nimport { getLogger } from "@logtape/logtape";',
+      code: 'import type { LogRecord } from "@logtape/logtape";',
       filename,
-      errors: logtape,
+      errors: [{ messageId: "logtape" }],
     },
     {
-      code: 'import { withLogCategory } from "#effect-log.ts";\nexport { getLogger } from "./log";',
-      filename: "/repo/packages/plugin-kernel/src/example.ts",
-      errors: logtape,
+      code: 'export { configure } from "@logtape/logtape";',
+      filename,
+      errors: [{ messageId: "logtape" }],
     },
     {
-      code: 'import type { Effect } from "effect";\nimport { getLogger } from "@zotlit/plugin-kernel/log.ts";',
+      code: 'const logtape = await import("@logtape/logtape");',
       filename,
-      errors: logtape,
+      errors: [{ messageId: "logtape" }],
     },
     {
-      code: 'import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nimport { getLogger } from "@zotlit/plugin-kernel/log.ts";',
+      code: 'import { getLogger } from "@zotlit/plugin-kernel/log.ts";',
       filename,
-      errors: logtape,
+      errors: [{ messageId: "getLogger" }],
+    },
+    {
+      code: 'import { getLogger } from "#log.ts";',
+      filename: kernelFile,
+      errors: [{ messageId: "getLogger" }],
+    },
+    {
+      code: 'export { getLogger } from "./log.ts";',
+      filename: kernelFile,
+      errors: [{ messageId: "getLogger" }],
+    },
+    {
+      code: 'console.log("opened");',
+      filename,
+      errors: [{ messageId: "console" }],
+    },
+    {
+      code: 'console.error("ZotLit cleanup error:", error);',
+      filename: "/repo/packages/plugin-shell/src/obsidian/plugin.ts",
+      errors: [{ messageId: "console" }],
     },
   ],
 });

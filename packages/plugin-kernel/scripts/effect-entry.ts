@@ -6,7 +6,7 @@
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
-/** The renderer entry carries the LogTape bridge; the worker entry does not. */
+/** The renderer entry carries the plugin logger; the worker entry does not. */
 export type EffectEntry = "renderer" | "worker";
 
 const libDir = resolve(import.meta.dirname, "../src");
@@ -80,7 +80,7 @@ export function effectEntry(
 
 /**
  * Fails the build when an entry chunk does not run through the `entry`
- * wrapper, or a worker chunk takes in the renderer's LogTape bridge: the
+ * wrapper, or a worker chunk takes in the renderer's plugin logger: the
  * redirect is wiring, and a config without `effectEntry` still builds.
  */
 export function effectEntryCheck(entry: EffectEntry): Plugin {

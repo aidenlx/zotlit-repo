@@ -50,7 +50,7 @@ Check in particular:
 
 ## Logging
 
-Log through Effect, with the category set by `withLogCategory` from `@zotlit/plugin-kernel/effect-log.ts` (under parent `["zotlit", "obsidian"]`) and fields as annotations. `effecttsgo/global-console` and `effecttsgo/global-console-in-effect` report a `console` call, and `zotlit-logging/no-logtape-in-effect-file` reports a LogTape logger in a file that imports Effect:
+Log through Effect, with the category set by `withLogCategory` from `@zotlit/plugin-kernel/effect-log.ts` (under parent `["zotlit", "obsidian"]`) and fields as annotations. `zotlit-logging/effect-logging-only` enforces it (`policies/logging.md`):
 
 ```ts
 Effect.logWarning("Could not read the saved Uses; starting empty").pipe(
@@ -59,9 +59,9 @@ Effect.logWarning("Could not read the saved Uses; starting empty").pipe(
 );
 ```
 
-`getLogger` from `@zotlit/plugin-kernel/log.ts` is the legacy LogTape logger, for files that have no Effect in them yet. A type-only import of `EffectBridge` does not count: a legacy file that holds the bridge keeps LogTape until it converts (`policies/services.md` → Bridge).
+Plain code runs the same record: on its bridge (`bridge.runSync(...)`) when it holds one, otherwise with `Effect.runSyncWith(logServices)(...)` (`logServices` from `@zotlit/plugin-kernel/effect-log.ts`). A file that only logs this way stays plain code for the Effect-code rules.
 
-`layerLogging` in `packages/plugin-services/src/obsidian/log/service.ts` owns LogTape's configuration; the dev-only `enableStartupLogging` is the one other caller. The ZoteroReads worker logs through Effect and posts each record over a port (`lib/effect-log-port.ts`); the host re-emits it into the renderer's Effect logger at the plugin's log level. The citation-parse worker has no logger.
+`layerLogging` in `packages/plugin-services/src/obsidian/log/service.ts` sets the plugin logger's level and sinks (the console and `zotlit.log.jsonl`); the dev-only `enableStartupLogging` is the one other caller. Outside the logging layer's life, error and fatal records go to the console. The ZoteroReads worker logs through Effect and posts each record over a port (`lib/effect-log-port.ts`); the host re-emits it into the renderer's Effect logger at the plugin's log level. The citation-parse worker has no logger.
 
 ## View state and menus
 

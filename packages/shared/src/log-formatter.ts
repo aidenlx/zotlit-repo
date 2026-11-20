@@ -1,4 +1,22 @@
-import type { LogLevel, LogRecord } from "@logtape/logtape";
+export const LOG_LEVELS = [
+  "trace",
+  "debug",
+  "info",
+  "warning",
+  "error",
+  "fatal",
+] as const;
+
+export type LogLevel = (typeof LOG_LEVELS)[number];
+
+export interface LogRecord {
+  readonly category: readonly string[];
+  readonly level: LogLevel;
+  readonly message: readonly unknown[];
+  readonly rawMessage: string;
+  readonly properties: Readonly<Record<string, unknown>>;
+  readonly timestamp: number;
+}
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
   trace: "background:#9CA3AF;color:white;padding:1px 4px;border-radius:2px;",
@@ -30,7 +48,7 @@ function escapeFormat(s: string): string {
 }
 
 /**
- * DevTools formatter for `getConsoleSink({ formatter })`. Emits a `%c`-styled
+ * DevTools formatter of the plugin's console sink. Emits a `%c`-styled
  * single line `HH:mm:ss.sss LVL category msg` with structured properties (if
  * any) appended as a trailing `%o`. User-controlled segments (category and
  * message template parts) have `%` doubled so a `%c` / `%o` inside them does

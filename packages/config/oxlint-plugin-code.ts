@@ -104,16 +104,6 @@ export const commonImports: RestrictedImports = {
   paths: [...obsidianImportPaths, ...itemQuerySchemaPaths],
 };
 
-// LogTape's own configure and reset clear the loggers of every plugin on the
-// window-wide root logger and leave a host-process listener;
-// packages/plugin-kernel/src/log.ts changes only the plugin's own sinks.
-export const logTapeConfigurePath: ImportPath = {
-  name: "@logtape/logtape",
-  importNames: ["configure", "configureSync", "reset"],
-  message:
-    "Give the plugin's loggers their sinks and levels through pluginLogTape from @zotlit/plugin-kernel/log.ts.",
-};
-
 export const runtimeImports: RestrictedImports = {
   ...commonImports,
   paths: [
@@ -142,7 +132,6 @@ export const runtimeImports: RestrictedImports = {
         "Obsidian scheduling is owned by @zotlit/plugin-kernel/effect-runtime.ts and @zotlit/plugin-kernel/browser-scheduler.ts.",
     },
     ...effectWrapperPaths,
-    logTapeConfigurePath,
     ...commonImports.paths,
   ],
 };
@@ -315,17 +304,12 @@ export function pluginCodeOverrides({
     },
     {
       files: ["src/**"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "error" },
+      rules: { "zotlit-logging/effect-logging-only": "error" },
     },
     {
       files: ["src/**"],
       excludeFiles: ["src/**/*.test.{ts,tsx}"],
       rules: { "zotlit-errors/no-message-match": "error" },
-    },
-    {
-      // Tests may use LogTape directly.
-      files: ["src/**/*.test.{ts,tsx}"],
-      rules: { "zotlit-logging/no-logtape-in-effect-file": "off" },
     },
     {
       files: ["src/**/*.test.{ts,tsx}"],

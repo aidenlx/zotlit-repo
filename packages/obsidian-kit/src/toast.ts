@@ -1,9 +1,12 @@
+import { Effect } from "effect";
+
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { LazyNotice } from "./notice.ts";
-
-const logger = getLogger("toast");
 
 interface ToastPromiseOptions<T> {
   loading?: string | DocumentFragment;
@@ -98,10 +101,15 @@ async function promiseToast<T>(
       errorMessage instanceof DocumentFragment
         ? errorMessage.textContent
         : errorMessage;
-    logger.error("Toast reported error: {message}", {
-      message: errorMessageText,
-      error,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logError("Toast reported error: {message}").pipe(
+        Effect.annotateLogs({
+          message: errorMessageText,
+          error,
+        }),
+        withLogCategory("toast"),
+      ),
+    );
     if (!errorMessage) return;
     notice.setMessage(errorMessage);
     await sleep(errorDuration);

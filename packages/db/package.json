@@ -33,7 +33,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@logtape/logtape": "catalog:",
     "@std/collections": "catalog:",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/shared": "workspace:*",

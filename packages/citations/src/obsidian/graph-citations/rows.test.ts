@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 import type { GraphEngine, GraphOptions } from "obsidian";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { settingsOf } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { ToggleComponent } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { forwardLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 
 import { installToggleRow, toggleRowTarget } from "./rows.ts";
 import type { ToggleRow, ToggleRowTarget } from "./rows.ts";
@@ -11,14 +12,13 @@ import type { ToggleRow, ToggleRowTarget } from "./rows.ts";
 import { FakeControlSection } from "#__fixtures__/graph-citations/test-double.ts";
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
-  getLogger: () => ({
-    trace: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn,
-  }),
-}));
+let forwarding: Disposable;
+beforeEach(() => {
+  forwarding = forwardLogRecords((record) => {
+    if (record.level === "warning") warn(record.rawMessage, record.properties);
+  });
+});
+afterEach(() => forwarding[Symbol.dispose]());
 
 const ROW: ToggleRow = {
   key: "zotlit-pandoc-citations",

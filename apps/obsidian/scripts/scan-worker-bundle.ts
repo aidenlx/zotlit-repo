@@ -7,6 +7,7 @@ import { build } from "vite";
 import { packageSource } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
+import packageJson from "../package.json" with { type: "json" };
 import { embeddedWorker } from "./embedded-worker.ts";
 
 export interface BenchmarkParseRequest {
@@ -64,6 +65,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
 }> {
   const packageRoot = resolve(import.meta.dirname, "..");
   const resolveConfig = { alias: { "@": resolve(packageRoot, "src") } };
+  const define = { __PLUGIN_ID__: JSON.stringify(packageJson.obsidian.id) };
   const scopes = [
     resolve(packageRoot, "src"),
     resolve(packageRoot, "scripts"),
@@ -77,6 +79,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
   const result = await build({
     configFile: false,
     logLevel: "silent",
+    define,
     resolve: resolveConfig,
     plugins: [
       {
@@ -89,6 +92,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
         id: "virtual:scan-worker",
         entry: resolve(packageRoot, "src/services/citation-parse/worker.ts"),
         config: {
+          define,
           resolve: resolveConfig,
           // The renderer entry, as the `@` alias gave this worker before.
           plugins: [effectEntry("renderer", { scopes })],

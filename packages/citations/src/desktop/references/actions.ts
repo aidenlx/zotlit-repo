@@ -10,6 +10,7 @@ import type {
 } from "#obsidian/references/copied-bibliography.ts";
 import type { ReferenceEntry } from "#obsidian/references/entries.ts";
 import type { ReferencesCopyTarget } from "#obsidian/references/state.ts";
+import { Effect } from "effect";
 import type { App } from "obsidian";
 import { createContext, useContext } from "react";
 import type { MouseEvent } from "react";
@@ -20,14 +21,15 @@ import {
 } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import type { ClipboardRepresentation } from "@zotlit/plugin-kernel/clipboard.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { toCopiedBibliography } from "#obsidian/references/copied-bibliography.ts";
-
-const logger = getLogger(["views", "references"]);
 
 /** The completed bibliography one copy is taken from, and what it answers for. */
 export interface CopyBibliographySnapshot extends ReferencesCopyTarget {
@@ -179,10 +181,15 @@ export async function copyBibliography(
     snapshot.path !== target.path ||
     snapshot.generation !== target.generation
   ) {
-    logger.debug("Bibliography snapshot changed before the copy", {
-      path: target.path,
-      generation: target.generation,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Bibliography snapshot changed before the copy").pipe(
+        Effect.annotateLogs({
+          path: target.path,
+          generation: target.generation,
+        }),
+        withLogCategory("views", "references"),
+      ),
+    );
     return { kind: "changed" };
   }
   let representation: ClipboardRepresentation;
@@ -191,18 +198,28 @@ export async function copyBibliography(
       toCopiedBibliography(snapshot.entries),
     );
   } catch (error) {
-    logger.error("Cannot copy the bibliography snapshot", {
-      path: snapshot.path,
-      error,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logError("Cannot copy the bibliography snapshot").pipe(
+        Effect.annotateLogs({
+          path: snapshot.path,
+          error,
+        }),
+        withLogCategory("views", "references"),
+      ),
+    );
     return { kind: "failed" };
   }
-  logger.debug("Bibliography snapshot copied", {
-    path: snapshot.path,
-    generation: snapshot.generation,
-    count: snapshot.entries.length,
-    representation,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Bibliography snapshot copied").pipe(
+      Effect.annotateLogs({
+        path: snapshot.path,
+        generation: snapshot.generation,
+        count: snapshot.entries.length,
+        representation,
+      }),
+      withLogCategory("views", "references"),
+    ),
+  );
   return { kind: "copied", representation };
 }
 

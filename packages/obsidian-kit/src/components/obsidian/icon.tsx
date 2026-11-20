@@ -1,13 +1,15 @@
+import { Effect } from "effect";
 import { getIcon } from "obsidian";
 import type { IconName } from "obsidian";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import type { CSSProperties, ReactNode, SVGAttributes } from "react";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { cn } from "#utils.ts";
-
-const logger = getLogger("ui.icon");
 
 export interface IconProps extends Omit<
   SVGAttributes<SVGSVGElement>,
@@ -65,7 +67,12 @@ export function Icon({
     const proto = getIcon(name);
     if (!proto) {
       svg.replaceChildren();
-      logger.warn("Unknown icon {name}", { name });
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning("Unknown icon {name}").pipe(
+          Effect.annotateLogs({ name }),
+          withLogCategory("ui.icon"),
+        ),
+      );
       return;
     }
 

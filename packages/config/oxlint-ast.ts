@@ -41,6 +41,10 @@ export interface ModuleStatement extends AstNode {
   readonly source?: {
     readonly value?: unknown;
   };
+  readonly specifiers?: readonly (AstNode & {
+    readonly imported?: AstNode;
+    readonly importKind?: string;
+  })[];
 }
 
 export interface ModuleProgram extends AstNode {
@@ -99,4 +103,67 @@ export function importsEffect(statements: readonly ModuleStatement[]): boolean {
       !isBridgeType(statement, source)
     );
   });
+}
+
+const LOGGING_SOURCES = new Set([
+  "effect",
+  "@zotlit/plugin-kernel/effect-log.ts",
+  "#effect-log.ts",
+]);
+
+const LOGGING_NAMES = new Set([
+  "Effect",
+  "logServices",
+  "withLogCategory",
+  "logLevelEnabled",
+]);
+
+const LOGGING_EFFECT_MEMBER =
+  /^(?:log(?:Trace|Debug|Info|Warning|Error|Fatal|WithLevel)?|annotateLogs|withLogSpan|runSyncWith)$/u;
+
+const EFFECT_MEMBER = /\bEffect\.(\w+)/gu;
+
+function importsOnlyLogging(statements: readonly ModuleStatement[]): boolean {
+  return statements.every((statement) => {
+    if (!hasSource(statement)) return true;
+    const source = statement.source?.value;
+    if (
+      typeof source !== "string" ||
+      !isEffectModule(source) ||
+      isBridgeType(statement, source)
+    )
+      return true;
+    return (
+      statement.type === "ImportDeclaration" &&
+      statement.importKind !== "type" &&
+      LOGGING_SOURCES.has(source) &&
+      (statement.specifiers ?? []).every(
+        (specifier) =>
+          specifier.type === "ImportSpecifier" &&
+          LOGGING_NAMES.has(specifier.imported?.name as string),
+      )
+    );
+  });
+}
+
+/**
+ * Whether a module is Effect code: it imports Effect ({@link importsEffect})
+ * for more than logging. Plain code logs through `Effect.log*`, its fields
+ * through `Effect.annotateLogs` and its category through `withLogCategory`,
+ * run with `Effect.runSyncWith(logServices)`; those uses alone keep it plain
+ * (policies/logging.md).
+ */
+export function isEffectCode(
+  statements: readonly ModuleStatement[],
+  sourceText: string,
+): boolean {
+  if (!importsEffect(statements)) return false;
+  if (!importsOnlyLogging(statements)) return true;
+  const members = [...sourceText.matchAll(EFFECT_MEMBER)].map(
+    ([, member]) => member!,
+  );
+  return (
+    members.length === 0 ||
+    members.some((member) => !LOGGING_EFFECT_MEMBER.test(member))
+  );
 }

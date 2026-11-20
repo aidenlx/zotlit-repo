@@ -1,9 +1,13 @@
 // The route back to the Template Workbench from a note operation that refused:
 // one notice, shared by every surface that reports one.
+import { Effect } from "effect";
 import type { App, EventRef } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
 import {
@@ -14,8 +18,6 @@ import {
 import type { RenderDiagnostic } from "@zotlit/workbench/render";
 
 import { MissingPartialError } from "#core/template/errors.ts";
-
-const logger = getLogger("workbench-recovery");
 
 /**
  * The failure a refused note operation asks the Workbench to explain: the
@@ -46,10 +48,17 @@ function requestTemplateWorkbench(
   app: App,
   request: TemplateWorkbenchRequest,
 ): void {
-  logger.debug("Requested the Template Workbench from a refused operation", {
-    document: request.document ?? null,
-    problem: request.problem?.diagnostic.code ?? null,
-  });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug(
+      "Requested the Template Workbench from a refused operation",
+    ).pipe(
+      Effect.annotateLogs({
+        document: request.document ?? null,
+        problem: request.problem?.diagnostic.code ?? null,
+      }),
+      withLogCategory("workbench-recovery"),
+    ),
+  );
   app.workspace.trigger("zotlit:open-template-workbench", request);
 }
 

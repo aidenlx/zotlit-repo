@@ -1,14 +1,16 @@
 // One native-styled toggle row in a section of the graph's controls panel, persisted the way a native row is.
 
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Setting } from "obsidian";
 import type { GraphControlSection, GraphEngine, GraphOptions } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { targetOnce } from "./install.ts";
-
-const logger = getLogger("graph-citations");
 
 /** Which section of the controls panel a row is built into. */
 export type GraphSectionName = "filter" | "display";
@@ -126,7 +128,12 @@ export function installToggleRow(
         .registerOptionListener(section.optionListeners, row.key)
         .onChange((next) => {
           engine.options[row.key] = next;
-          logger.debug("Graph row changed", { key: row.key, value: next });
+          Effect.runSyncWith(logServices)(
+            Effect.logDebug("Graph row changed").pipe(
+              Effect.annotateLogs({ key: row.key, value: next }),
+              withLogCategory("graph-citations"),
+            ),
+          );
           engine.render();
           engine.onOptionsChange();
         }),
@@ -146,7 +153,12 @@ export function installToggleRow(
     setting.settingEl.remove();
     delete section.optionListeners[row.key];
   });
-  logger.debug("Graph row installed", { key: row.key, value });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Graph row installed").pipe(
+      Effect.annotateLogs({ key: row.key, value }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   return restores;
 }
 

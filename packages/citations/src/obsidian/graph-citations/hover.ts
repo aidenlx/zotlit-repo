@@ -5,12 +5,16 @@ import type {
   WorkHoverRequest,
 } from "#obsidian/citation-popover/service.ts";
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Keymap, PopoverState } from "obsidian";
 import type { GraphData, MetadataCache, Workspace } from "obsidian";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
@@ -24,8 +28,6 @@ import {
   triggerCitekeyHover,
 } from "#obsidian/citekey-navigation/index.ts";
 import "./style.css";
-
-const logger = getLogger("graph-citations");
 
 /** The popover runners this hover boundary uses, without making the file an Effect owner. */
 interface PopoverBridge {
@@ -126,7 +128,13 @@ function hoverNode(
   // native hover does not make for the graph.
   const { pointerType } = evt as Partial<PointerEvent>;
   if (pointerType !== undefined && pointerType !== "mouse") {
-    logger.trace("Graph node hover suppressed", { id, reason: "not-a-mouse" });
+    if (logLevelEnabled("trace"))
+      deps.bridge.runSync(
+        Effect.logTrace("Graph node hover suppressed").pipe(
+          Effect.annotateLogs({ id, reason: "not-a-mouse" }),
+          withLogCategory("graph-citations"),
+        ),
+      );
     return true;
   }
   if (
@@ -134,16 +142,29 @@ function hoverNode(
     settings["citation.hover-require-mod-graph"] &&
     !Keymap.isModifier(evt, "Mod")
   ) {
-    logger.trace("Graph node hover suppressed", { id, reason: "needs-mod" });
+    if (logLevelEnabled("trace"))
+      deps.bridge.runSync(
+        Effect.logTrace("Graph node hover suppressed").pipe(
+          Effect.annotateLogs({ id, reason: "needs-mod" }),
+          withLogCategory("graph-citations"),
+        ),
+      );
     return true;
   }
   const position = nodeScreenPosition(members.renderer, id);
   if (position === null) {
     // The renderer holds no place for a node it just reported a hover on: a
     // build that moved the lookup out from under the member check.
-    logger.warn("Graph node has no place in the renderer; hover left native", {
-      id,
-    });
+    deps.bridge.runSync(
+      Effect.logWarning(
+        "Graph node has no place in the renderer; hover left native",
+      ).pipe(
+        Effect.annotateLogs({
+          id,
+        }),
+        withLogCategory("graph-citations"),
+      ),
+    );
     return false;
   }
   if (action === "page-preview") {
@@ -164,7 +185,13 @@ function hoverNode(
     });
     return true;
   }
-  logger.debug("Graph node shows its entry", { id, work: node.work });
+  if (logLevelEnabled("debug"))
+    deps.bridge.runSync(
+      Effect.logDebug("Graph node shows its entry").pipe(
+        Effect.annotateLogs({ id, work: node.work }),
+        withLogCategory("graph-citations"),
+      ),
+    );
   // Unload interrupts a pending popover.
   deps.bridge.runAndForget(
     deps.citationPopover.showWork({

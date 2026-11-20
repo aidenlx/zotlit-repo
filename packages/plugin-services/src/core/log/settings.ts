@@ -1,21 +1,21 @@
 // The logging keys of the plugin settings.
-import { getLogLevels } from "@logtape/logtape";
 import * as v from "valibot";
+
+import { LOG_LEVELS } from "@zotlit/shared/log-formatter";
 
 import { settingsSlice } from "#core/settings/slice.ts";
 
 /**
- * LogTape severity levels. `null` means logging is disabled, matching legacy
- * log4js `OFF`; legacy `MARK` is dropped during migration because there is no
- * LogTape equivalent.
+ * The plugin logger's severity levels. `null` means logging is disabled,
+ * matching legacy log4js `OFF`; legacy `MARK` is dropped during migration
+ * because the plugin logger has no such level.
  */
-const logLevel = v.nullable(v.picklist(getLogLevels()));
+const logLevel = v.nullable(v.picklist(LOG_LEVELS));
 export type LogLevel = v.InferOutput<typeof logLevel>;
 
-/** Every LogTape severity level, in LogTape's order. */
-export const LOG_LEVELS = getLogLevels();
+export { LOG_LEVELS };
 
-/** Whether `value` names a LogTape severity level. */
+/** Whether `value` names a plugin logger severity level. */
 export const isLogLevel = (value: string): value is NonNullable<LogLevel> =>
   LOG_LEVELS.some((level) => level === value);
 

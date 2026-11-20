@@ -5,6 +5,9 @@ import { testDefaults } from "@zotlit/config/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
 export default defineConfig({
+  define: {
+    __PLUGIN_ID__: JSON.stringify("zotlit"),
+  },
   plugins: [
     effectEntry("renderer", {
       vitest: true,

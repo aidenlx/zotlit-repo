@@ -22,8 +22,8 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { until } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -522,10 +522,8 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const f = yield* importerFixture("replace");
-      const failed = yield* Effect.acquireDisposable(
-        Effect.sync(() =>
-          vi.spyOn(getLogger(["setting-tab", "profile-import"]), "error"),
-        ),
+      const logs = yield* Effect.acquireDisposable(
+        Effect.sync(() => captureLogRecords()),
       );
       f.save.mockImplementationOnce(() => new Promise(() => {}));
       using buttons = observeButtons();
@@ -540,7 +538,14 @@ it.effect(
       yield* Effect.promise(async () => {
         await saved;
       });
-      expect(failed).not.toHaveBeenCalled();
+      expect(
+        logs.records.filter(
+          (record) =>
+            record.level === "error" &&
+            record.category.join(".") ===
+              "zotlit.obsidian.setting-tab.profile-import",
+        ),
+      ).toEqual([]);
     }),
 );
 

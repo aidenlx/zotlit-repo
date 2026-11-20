@@ -5,6 +5,7 @@ import type {
   PreparedProfileImport,
   ProfileImportOptions,
 } from "#obsidian/profile/service.ts";
+import { Effect } from "effect";
 // Source selection opens one consent sheet for a fresh or held Profile ID.
 import {
   DropdownComponent,
@@ -27,7 +28,10 @@ import {
   twoColumns,
 } from "@zotlit/obsidian-kit/dialog-frame.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -35,7 +39,6 @@ import { previewPanel } from "./preview-panel.ts";
 
 import { describeMatch } from "#obsidian/profile-selection/index.ts";
 
-const logger = getLogger(["setting-tab", "profile-import"]);
 export type ImportSource = "clipboard" | "file";
 
 /** What the import dialog reads and runs while it is open. */
@@ -279,7 +282,12 @@ export class ImportProfileModal extends Modal {
         error.set("");
         button.setDisabled(this.#saving);
       } catch (cause) {
-        logger.debug("Refused Profile import preview", { cause });
+        Effect.runSyncWith(logServices)(
+          Effect.logDebug("Refused Profile import preview").pipe(
+            Effect.annotateLogs({ cause }),
+            withLogCategory("setting-tab", "profile-import"),
+          ),
+        );
         if (revision === this.#revision && !this.#closed)
           error.set(
             Error.isError(cause) ? cause.message : m.profile_import_invalid(),
@@ -394,7 +402,12 @@ export class ImportProfileModal extends Modal {
       new BaseNotice(profileImportNotice(profile));
     } catch (cause) {
       if (isUserStop(cause)) return;
-      logger.error("Failed to write imported Profile", { cause });
+      Effect.runSyncWith(logServices)(
+        Effect.logError("Failed to write imported Profile").pipe(
+          Effect.annotateLogs({ cause }),
+          withLogCategory("setting-tab", "profile-import"),
+        ),
+      );
       error.set(
         Error.isError(cause) ? cause.message : m.notice_profile_action_failed(),
         "error",

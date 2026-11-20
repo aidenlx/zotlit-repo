@@ -4,13 +4,15 @@
 // own file card, which opens the file.
 //
 // @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
+import { Effect } from "effect";
 import type { App, EmbedCreator } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 export type { EmbedComponent, EmbedContext, EmbedCreator } from "obsidian";
-
-const logger = getLogger(["obsidian-private", "embed-registry"]);
 
 /**
  * Draw `![[file.<extension>]]` with `creator`.
@@ -28,19 +30,23 @@ export function registerEmbed(
   const unregister = registry?.unregisterExtension;
   const isRegistered = registry?.isExtensionRegistered;
   if (!registry || !register || !unregister || !isRegistered) {
-    logger.warn(
-      "Obsidian's embed registry is missing; embeds show Obsidian's file card",
-      {
-        extension,
-        missing: Object.entries({
-          embedRegistry: registry,
-          registerExtension: register,
-          unregisterExtension: unregister,
-          isExtensionRegistered: isRegistered,
-        })
-          .filter(([, member]) => member === undefined)
-          .map(([name]) => name),
-      },
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "Obsidian's embed registry is missing; embeds show Obsidian's file card",
+      ).pipe(
+        Effect.annotateLogs({
+          extension,
+          missing: Object.entries({
+            embedRegistry: registry,
+            registerExtension: register,
+            unregisterExtension: unregister,
+            isExtensionRegistered: isRegistered,
+          })
+            .filter(([, member]) => member === undefined)
+            .map(([name]) => name),
+        }),
+        withLogCategory("obsidian-private", "embed-registry"),
+      ),
     );
     return null;
   }

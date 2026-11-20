@@ -1,8 +1,6 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
-import { configureSync, resetSync } from "@logtape/logtape";
 
 import "@zotlit/citations/__fixtures__/dom-parser.ts";
-import type { LogRecord } from "@logtape/logtape";
 import { Effect, Layer, Scope } from "effect";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -25,6 +23,8 @@ import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-fi
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryMetadataCache } from "@zotlit/obsidian-kit/__fixtures__/obsidian-metadata-cache.ts";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
+import type { CapturedLogs } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -94,32 +94,21 @@ const ETA_PARTIAL: LiteratureNoteTemplatePartial = {
   source: "<%= it.zt.title %>",
 };
 
-let captured: LogRecord[] = [];
+let logs: CapturedLogs;
 
 beforeAll(() => {
-  configureSync({
-    reset: true,
-    sinks: {
-      capture: (record: LogRecord) => {
-        captured.push(record);
-      },
-    },
-    loggers: [
-      { category: ["zotlit"], sinks: ["capture"], lowestLevel: "debug" },
-      { category: ["logtape", "meta"], sinks: [], lowestLevel: "error" },
-    ],
-  });
+  logs = captureLogRecords("debug");
 });
 
 beforeEach(() => {
-  captured = [];
+  logs.records.length = 0;
 });
 
-afterAll(() => resetSync());
+afterAll(() => logs.release());
 
-/** Every field every captured record carries, as one string to search. */
+/** Every field every logs.records record carries, as one string to search. */
 function loggedText(): string {
-  return captured
+  return logs.records
     .map(
       (record) =>
         `${record.message.join(" ")} ${JSON.stringify(record.properties)}`,
@@ -753,7 +742,7 @@ it("keeps malformed draft excerpts out of operation failure logs", async () => {
   await expect(res.json()).resolves.toMatchObject({
     error: { code: "operation-failed" },
   });
-  const failures = captured.filter((record) => record.level === "error");
+  const failures = logs.records.filter((record) => record.level === "error");
   expect(failures).toHaveLength(1);
   expect(failures[0]!.properties).toEqual({
     operation: LOCAL_BRIDGE_PATHS.templateDependencies,

@@ -17,10 +17,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { placeInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import type { LogRecord } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { buildItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/__fixtures__.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
@@ -54,6 +55,15 @@ beforeEach(() => {
   bridge = openTestBridge();
   return () => bridge[Symbol.asyncDispose]();
 });
+
+const suggestDebug = (records: readonly LogRecord[]) =>
+  records
+    .filter(
+      (record) =>
+        record.level === "debug" &&
+        record.category.join(".") === "zotlit.obsidian.views.citation-suggest",
+    )
+    .map((record) => record.properties);
 
 function makeHit(citationKey: string | null): SearchHit {
   return searchHit("ABC123", "ABC123", citationKey);
@@ -703,7 +713,7 @@ describe("Citation Suggester document citations", () => {
   effectIt.effect("unload leaves the document citation fallback silent", () =>
     Effect.promise(async () => {
       await using bridge = openTestBridge();
-      using debug = vi.spyOn(getLogger(["views", "citation-suggest"]), "debug");
+      using logs = captureLogRecords();
       const started = Promise.withResolvers<void>();
       const pending = readDocumentCitedKeys(
         {
@@ -724,21 +734,18 @@ describe("Citation Suggester document citations", () => {
       await started.promise;
       await bridge[Symbol.asyncDispose]();
       expect(await pending).toEqual({ value: [] });
-      expect(debug).not.toHaveBeenCalled();
+      expect(suggestDebug(logs.records)).toEqual([]);
     }),
   );
 
   effectIt.effect("keeps searching when document citations fail", () =>
     Effect.promise(async () => {
-      using debug = vi.spyOn(getLogger(["views", "citation-suggest"]), "debug");
+      using logs = captureLogRecords();
       const error = new DbUnavailable({ message: "Index unavailable" });
       using h = setup(vi.fn(() => Effect.fail(error)));
       await h.suggest.getSuggestions(context);
       expect(h.search).toHaveBeenCalledWith("", { limit: 50, cited: [] });
-      expect(debug).toHaveBeenCalledWith(expect.any(String), {
-        reason: "failed",
-        error,
-      });
+      expect(suggestDebug(logs.records)).toEqual([{ reason: "failed", error }]);
     }),
   );
 
@@ -766,15 +773,13 @@ describe("Citation Suggester document citations", () => {
 
   effectIt.effect("drops a pending answer when the dropdown closes", () =>
     Effect.promise(async () => {
-      using debug = vi.spyOn(getLogger(["views", "citation-suggest"]), "debug");
+      using logs = captureLogRecords();
       const read = vi.fn(() => Effect.never);
       using h = setup(read);
       const pending = h.suggest.getSuggestions(context);
       h.suggest.close();
       await expect(pending).resolves.toEqual([]);
-      expect(debug).toHaveBeenCalledWith(expect.any(String), {
-        reason: "aborted",
-      });
+      expect(suggestDebug(logs.records)).toEqual([{ reason: "aborted" }]);
       expect(h.search).not.toHaveBeenCalled();
     }),
   );

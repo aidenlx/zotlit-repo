@@ -1,12 +1,14 @@
 // What a graph persisted before a plugin row existed to hear it: the Graph core plugin's own options, a deferred leaf's state, and the workspace file.
 
+import { Effect } from "effect";
 import type { App, GraphOptions, WorkspaceLeaf } from "obsidian";
 
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { GRAPH_CORE_PLUGIN_ID, GRAPH_VIEW_TYPES } from "./install.ts";
-
-const logger = getLogger("graph-citations");
 
 /**
  * The options the global graph persists, which its view applies on load —
@@ -48,11 +50,20 @@ export function deferredLeafOptions(leaf: WorkspaceLeaf): GraphOptions | null {
 export function savedLeafOptions(layout: unknown): Map<string, GraphOptions> {
   const saved = new Map<string, GraphOptions>();
   if (layout === null) {
-    logger.warn("Workspace file reader missing; local graph rows start fresh");
+    Effect.runSyncWith(logServices)(
+      Effect.logWarning(
+        "Workspace file reader missing; local graph rows start fresh",
+      ).pipe(withLogCategory("graph-citations")),
+    );
     return saved;
   }
   collectLeafOptions(layout, saved);
-  logger.debug("Saved graph leaf options read", { leaves: saved.size });
+  Effect.runSyncWith(logServices)(
+    Effect.logDebug("Saved graph leaf options read").pipe(
+      Effect.annotateLogs({ leaves: saved.size }),
+      withLogCategory("graph-citations"),
+    ),
+  );
   return saved;
 }
 

@@ -1,25 +1,20 @@
 import type { ZoteroChar } from "#chars.ts";
 import type { PdfPageSource } from "#session.ts";
 import type { PdfPosition } from "#sort-index.ts";
-import type { LogRecord } from "@logtape/logtape";
-import { configure, reset } from "@logtape/logtape";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { setLibraryLogSink } from "@zotlit/shared/logging";
+import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
 import { PdfTextStructure } from "#session.ts";
 
-let records: LogRecord[] = [];
+let records: LibraryLogRecord[] = [];
 
-beforeAll(async () => {
-  await configure({
-    sinks: { memory: (record: LogRecord) => void records.push(record) },
-    loggers: [
-      { category: ["zotlit"], lowestLevel: "debug", sinks: ["memory"] },
-      { category: ["logtape", "meta"], lowestLevel: "error", sinks: [] },
-    ],
-  });
+beforeAll(() => {
+  setLibraryLogSink((record) => void records.push(record));
 });
 
-afterAll(() => reset());
+afterAll(() => setLibraryLogSink(undefined));
 
 beforeEach(() => {
   records = [];

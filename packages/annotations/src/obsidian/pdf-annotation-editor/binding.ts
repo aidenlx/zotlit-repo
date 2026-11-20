@@ -14,6 +14,7 @@ import type {
   HistoryDirection,
 } from "#obsidian/annotation-repository/service.ts";
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
+import { Effect } from "effect";
 import { Platform, TExternalFile } from "obsidian";
 import type {
   FileSystemAdapter,
@@ -37,7 +38,7 @@ import type {
   SelectedText,
 } from "@zotlit/pdf-structure";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeAttribute } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
@@ -117,8 +118,6 @@ import { ReaderSessionHost } from "#core/reader-session/session.ts";
 import { editingLive } from "#obsidian/annot-view/card-controls.ts";
 import { createCommentRenderer } from "#obsidian/annot-view/comment-render.ts";
 import { createDragInsertHandler } from "#obsidian/annot-view/drag-insert.ts";
-
-const logger = getLogger("pdf-annotation-editor");
 
 /**
  * The Landing misses a later answer can still turn into a Mark, so the Anchor
@@ -667,10 +666,15 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         attachmentKey: this.#anchor?.attachment ?? null,
       }),
     );
-    logger.debug("PDF view resolved", {
-      path: this.#filePath,
-      attachment: this.#attachment,
-    });
+    this.#bridge.runSync(
+      Effect.logDebug("PDF view resolved").pipe(
+        Effect.annotateLogs({
+          path: this.#filePath,
+          attachment: this.#attachment,
+        }),
+        withLogCategory("pdf-annotation-editor"),
+      ),
+    );
     if (this.#attachment.kind === "resolved" && this.#openedAt)
       this.#reads?.record(this.#attachment, "open", this.#openedAt);
     this.#session.setTarget(
@@ -740,10 +744,15 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   #navigate(annotationKey: string): void {
     const pageIndex = pageOfMark(this.#marks, annotationKey);
     if (pageIndex === null || !this.#attached) {
-      logger.debug("No page holds this annotation", {
-        path: this.filePath,
-        annotationKey,
-      });
+      this.#bridge.runSync(
+        Effect.logDebug("No page holds this annotation").pipe(
+          Effect.annotateLogs({
+            path: this.filePath,
+            annotationKey,
+          }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
       return;
     }
     void this.#reader.navigate({ pageIndex });
@@ -1073,10 +1082,15 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     const win = this.#view.containerEl.win;
     const idle = win.requestIdleCallback(() => {
       void structure.pageLabels().catch((error: unknown) => {
-        logger.warn("The PDF page label pass did not finish", {
-          error,
-          path: this.filePath,
-        });
+        this.#bridge.runSync(
+          Effect.logWarning("The PDF page label pass did not finish").pipe(
+            Effect.annotateLogs({
+              error,
+              path: this.filePath,
+            }),
+            withLogCategory("pdf-annotation-editor"),
+          ),
+        );
       });
     });
     this.#held = { document: document_, structure, idle, win };
@@ -1370,10 +1384,15 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       if (this.#surfaces.disposed || ask !== this.#landingAsk) return;
       const pageIndex = pageOfMark(this.#marks, annotationKey);
       if (pageIndex === null || !this.#attached) {
-        logger.debug("No page holds this annotation", {
-          path: this.filePath,
-          annotationKey,
-        });
+        this.#bridge.runSync(
+          Effect.logDebug("No page holds this annotation").pipe(
+            Effect.annotateLogs({
+              path: this.filePath,
+              annotationKey,
+            }),
+            withLogCategory("pdf-annotation-editor"),
+          ),
+        );
         return;
       }
       this.#landing = { annotationKey, pageIndex };
@@ -1429,11 +1448,16 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     });
     if (landing.kind === "drop") return;
     if (landing.kind === "page") {
-      logger.debug("An Annotation Anchor did not reach its Mark", {
-        path: this.filePath,
-        annotationKey: anchor.annotation,
-        reason: landing.reason,
-      });
+      this.#bridge.runSync(
+        Effect.logDebug("An Annotation Anchor did not reach its Mark").pipe(
+          Effect.annotateLogs({
+            path: this.filePath,
+            annotationKey: anchor.annotation,
+            reason: landing.reason,
+          }),
+          withLogCategory("pdf-annotation-editor"),
+        ),
+      );
       if (!KEPT_MISSES.has(landing.reason)) this.#anchor = null;
       return;
     }
@@ -1443,12 +1467,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       annotationKey: landing.annotationKey,
       pageIndex: landing.pageIndex,
     };
-    logger.debug("An Annotation Anchor reached its Mark", {
-      path: this.filePath,
-      annotationKey: landing.annotationKey,
-      page: landing.pageIndex + 1,
-      rendered: landing.kind === "select",
-    });
+    this.#bridge.runSync(
+      Effect.logDebug("An Annotation Anchor reached its Mark").pipe(
+        Effect.annotateLogs({
+          path: this.filePath,
+          annotationKey: landing.annotationKey,
+          page: landing.pageIndex + 1,
+          rendered: landing.kind === "select",
+        }),
+        withLogCategory("pdf-annotation-editor"),
+      ),
+    );
     // A page PDF.js has not built yet is the reader's own jump to make; the
     // render it triggers is what the waiting Landing lands on.
     if (landing.kind === "wait")
@@ -1507,10 +1536,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         const list = exit.value;
         if (this.#surfaces.disposed || serial !== this.#refreshSerial) return;
         if (list === null) {
-          logger.debug("No annotation list stands for this attachment yet", {
-            path: this.filePath,
-            attachmentKey,
-          });
+          this.#bridge.runSync(
+            Effect.logDebug(
+              "No annotation list stands for this attachment yet",
+            ).pipe(
+              Effect.annotateLogs({
+                path: this.filePath,
+                attachmentKey,
+              }),
+              withLogCategory("pdf-annotation-editor"),
+            ),
+          );
           this.#land();
           return;
         }
@@ -1518,11 +1554,18 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         this.#draw(list);
       })
       .catch((error: unknown) => {
-        logger.warn("Failed to draw the annotations of an open PDF", {
-          error,
-          path,
-          attachmentKey,
-        });
+        this.#bridge.runSync(
+          Effect.logWarning(
+            "Failed to draw the annotations of an open PDF",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+              path,
+              attachmentKey,
+            }),
+            withLogCategory("pdf-annotation-editor"),
+          ),
+        );
       });
   }
 
@@ -1536,12 +1579,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         annotations: this.#annotations,
         bridge: this.#bridge,
       });
-    logger.debug("Annotation marks rebuilt for a PDF view", {
-      path: this.filePath,
-      source: list.source.kind,
-      annotations: list.annotations.length,
-      pages: this.#marks.size,
-    });
+    this.#bridge.runSync(
+      Effect.logDebug("Annotation marks rebuilt for a PDF view").pipe(
+        Effect.annotateLogs({
+          path: this.filePath,
+          source: list.source.kind,
+          annotations: list.annotations.length,
+          pages: this.#marks.size,
+        }),
+        withLogCategory("pdf-annotation-editor"),
+      ),
+    );
     this.#repaint();
     // A mark the read retired took its selection with it above; one that
     // moved takes the popup along.
@@ -1572,10 +1620,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     ).then(
       () => this.#patchSelected(),
       (error: unknown) => {
-        logger.debug("Could not read the text under a range's handles", {
-          error,
-          annotationKey: key,
-        });
+        this.#bridge.runSync(
+          Effect.logDebug(
+            "Could not read the text under a range's handles",
+          ).pipe(
+            Effect.annotateLogs({
+              error,
+              annotationKey: key,
+            }),
+            withLogCategory("pdf-annotation-editor"),
+          ),
+        );
       },
     );
   }

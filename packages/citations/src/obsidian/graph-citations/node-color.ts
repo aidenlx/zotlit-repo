@@ -1,17 +1,19 @@
 // Theme colors for literature-note group seeds and virtual Cited Work Nodes.
 
 import { regex } from "arkregex";
+import { Effect } from "effect";
 import { around } from "monkey-around";
 import type { GraphColor, GraphData } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import type { GraphCitationAdditions } from "./adapter.ts";
 import type { GraphLeafMembers } from "./install.ts";
-
-const logger = getLogger("graph-citations");
 
 /** A theme property and its fallback CSS variable or color value. */
 export interface ThemeColorRole {
@@ -102,10 +104,17 @@ export function readThemeColor(role: ThemeColorRole): GraphColor | null {
   probe.remove();
   const parsed = parseGraphColor(color, opacity);
   if (!parsed) {
-    logger.debug("Theme states no colour for a graph role; left native", {
-      property: role.property,
-      color,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug(
+        "Theme states no colour for a graph role; left native",
+      ).pipe(
+        Effect.annotateLogs({
+          property: role.property,
+          color,
+        }),
+        withLogCategory("graph-citations"),
+      ),
+    );
   }
   return parsed;
 }

@@ -1,15 +1,20 @@
 import type { App, EmbedRegistry } from "obsidian";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { forwardLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { registerEmbed } from "./embed-registry.ts";
 import type { EmbedCreator } from "./embed-registry.ts";
 
 const warn = vi.hoisted(() => vi.fn());
-vi.mock("@zotlit/plugin-kernel/log.ts", () => ({
-  getLogger: () => ({ trace: vi.fn(), debug: vi.fn(), info: vi.fn(), warn }),
-}));
+let forwarding: Disposable;
+beforeEach(() => {
+  forwarding = forwardLogRecords((record) => {
+    if (record.level === "warning") warn(record.rawMessage, record.properties);
+  });
+});
+afterEach(() => forwarding[Symbol.dispose]());
 
 beforeEach(() => warn.mockClear());
 

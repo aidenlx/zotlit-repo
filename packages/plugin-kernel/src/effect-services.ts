@@ -8,7 +8,7 @@ import { browserScheduler } from "./browser-scheduler.ts";
 import { logServices } from "./effect-log.ts";
 
 /**
- * Browser scheduling, LogTape logging, and no trace context on the wire:
+ * Browser scheduling, the plugin logger, and no trace context on the wire:
  * `HttpClient` adds a `traceparent` header to every request by default, and
  * neither Zotero nor a release host asks for one.
  */

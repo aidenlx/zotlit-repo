@@ -34,6 +34,7 @@ import {
   WidgetType,
 } from "@codemirror/view";
 import type { DecorationSet, ViewUpdate } from "@codemirror/view";
+import { Effect } from "effect";
 import { editorInfoField, livePreviewState } from "obsidian";
 import type { Workspace } from "obsidian";
 
@@ -41,7 +42,11 @@ import {
   livePreviewOf,
   overlapsSelection,
 } from "@zotlit/obsidian-kit/editor-decoration.ts";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+  logLevelEnabled,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { heldResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
@@ -85,8 +90,6 @@ import {
   triggerCitekeyHover,
 } from "#obsidian/citekey-navigation/index.ts";
 import "./style.css";
-
-const logger = getLogger("citekey-editor");
 
 /** Opens the Literature Note of `citekey`, creating it when none exists yet. */
 export type OpenCitekey = (citekey: string, pane: NavigationPane) => void;
@@ -359,22 +362,34 @@ export function citekeyEditorExtension(
           // A Source-mode plain click falls through to CodeMirror's caret
           // placement; every other non-open intent means this shell does not
           // handle the gesture yet.
-          logger.debug("Citekey click not followed", {
-            citekey,
-            editorMode,
-            button,
-            mod,
-            intent: intent.kind,
-          });
+          if (logLevelEnabled("debug"))
+            Effect.runSyncWith(logServices)(
+              Effect.logDebug("Citekey click not followed").pipe(
+                Effect.annotateLogs({
+                  citekey,
+                  editorMode,
+                  button,
+                  mod,
+                  intent: intent.kind,
+                }),
+                withLogCategory("citekey-editor"),
+              ),
+            );
           return false;
         }
-        logger.debug("Citekey click opens note", {
-          citekey,
-          editorMode,
-          button,
-          mod,
-          pane: intent.pane,
-        });
+        if (logLevelEnabled("debug"))
+          Effect.runSyncWith(logServices)(
+            Effect.logDebug("Citekey click opens note").pipe(
+              Effect.annotateLogs({
+                citekey,
+                editorMode,
+                button,
+                mod,
+                pane: intent.pane,
+              }),
+              withLogCategory("citekey-editor"),
+            ),
+          );
 
         event.preventDefault();
         handlers.open(citekey, intent.pane);
@@ -404,11 +419,17 @@ export function citekeyEditorExtension(
           [citekey],
         );
         if (intent.kind === "nothing") {
-          logger.trace("Citekey hover suppressed", {
-            citekey,
-            editorMode,
-            reason: intent.reason,
-          });
+          if (logLevelEnabled("trace"))
+            Effect.runSyncWith(logServices)(
+              Effect.logTrace("Citekey hover suppressed").pipe(
+                Effect.annotateLogs({
+                  citekey,
+                  editorMode,
+                  reason: intent.reason,
+                }),
+                withLogCategory("citekey-editor"),
+              ),
+            );
           return;
         }
 
@@ -423,18 +444,30 @@ export function citekeyEditorExtension(
             this.#lookup.current?.value ?? null,
           );
           if (notePath === null) {
-            logger.trace("Citekey hover suppressed", {
-              citekey,
-              editorMode,
-              reason: "no-note",
-            });
+            if (logLevelEnabled("trace"))
+              Effect.runSyncWith(logServices)(
+                Effect.logTrace("Citekey hover suppressed").pipe(
+                  Effect.annotateLogs({
+                    citekey,
+                    editorMode,
+                    reason: "no-note",
+                  }),
+                  withLogCategory("citekey-editor"),
+                ),
+              );
             return;
           }
-          logger.trace("Citekey hover previews note", {
-            citekey,
-            editorMode,
-            path: notePath,
-          });
+          if (logLevelEnabled("trace"))
+            Effect.runSyncWith(logServices)(
+              Effect.logTrace("Citekey hover previews note").pipe(
+                Effect.annotateLogs({
+                  citekey,
+                  editorMode,
+                  path: notePath,
+                }),
+                withLogCategory("citekey-editor"),
+              ),
+            );
           triggerCitekeyHover(info.app.workspace, {
             event,
             hoverParent: info,
@@ -445,7 +478,13 @@ export function citekeyEditorExtension(
           return;
         }
 
-        logger.trace("Citekey shows its entry", { citekey, editorMode });
+        if (logLevelEnabled("trace"))
+          Effect.runSyncWith(logServices)(
+            Effect.logTrace("Citekey shows its entry").pipe(
+              Effect.annotateLogs({ citekey, editorMode }),
+              withLogCategory("citekey-editor"),
+            ),
+          );
         handlers.showPopover({
           event,
           hoverParent: info,

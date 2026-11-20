@@ -9,14 +9,13 @@ import type {
   SelectedText,
   TextSelection,
 } from "#text-selection.ts";
-import { getLogger } from "@logtape/logtape";
+
+import { logLibrary } from "@zotlit/shared/logging";
 
 import { structureChars } from "#chars.ts";
 import { alignPageLabel, extractPageLabels } from "#page-label.ts";
 import { computeSortIndex } from "#sort-index.ts";
 import { adjustRange, rectRotation, selectText } from "#text-selection.ts";
-
-const logger = getLogger(["zotlit", "pdf-structure"]);
 
 /** What a waiter reads once the document closed under it. */
 const CLOSED = Symbol("closed");
@@ -125,8 +124,11 @@ export class PdfTextStructure {
       throw new Error("The PDF closed before its page was read");
     if (!page.chars.length && !this.#emptyPagesLogged.has(page.pageIndex)) {
       this.#emptyPagesLogged.add(page.pageIndex);
-      logger.debug("Page carries no text layer; Sort Index offset stays 0", {
-        pageIndex: page.pageIndex,
+      logLibrary({
+        level: "debug",
+        category: ["zotlit", "pdf-structure"],
+        message: "Page carries no text layer; Sort Index offset stays 0",
+        properties: { pageIndex: page.pageIndex },
       });
     }
     return computeSortIndex(page, position);

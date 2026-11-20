@@ -13,16 +13,18 @@ import type {
   PandocRuntime,
   VirtualFiles,
 } from "#core/pandoc/runtime.ts";
+import { Effect } from "effect";
 import { getFrontMatterInfo } from "obsidian";
 
 import type { CslItemData } from "@zotlit/db";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
+import {
+  logServices,
+  withLogCategory,
+} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { bibliographyHeadingFilter } from "#core/pandoc/bibliography-heading.ts";
 import { defaultLocaleOf } from "#core/pandoc/csl-style.ts";
 import { createPandocRuntime } from "#core/pandoc/runtime.ts";
-
-const logger = getLogger("pandoc");
 
 interface SupersedableRequest {
   /**
@@ -421,7 +423,12 @@ class PandocCitationEngine implements CitationEngine {
     const claim = {};
     if (supersedes !== undefined) {
       if (this.#claims.has(supersedes)) {
-        logger.trace("Pandoc request superseded", { slot: supersedes });
+        Effect.runSyncWith(logServices)(
+          Effect.logTrace("Pandoc request superseded").pipe(
+            Effect.annotateLogs({ slot: supersedes }),
+            withLogCategory("pandoc"),
+          ),
+        );
       }
       this.#claims.set(supersedes, claim);
     }
@@ -429,7 +436,12 @@ class PandocCitationEngine implements CitationEngine {
     const result = this.#queue.then(() => {
       if (supersedes !== undefined) {
         if (this.#claims.get(supersedes) !== claim) {
-          logger.trace("Pandoc request dropped", { slot: supersedes });
+          Effect.runSyncWith(logServices)(
+            Effect.logTrace("Pandoc request dropped").pipe(
+              Effect.annotateLogs({ slot: supersedes }),
+              withLogCategory("pandoc"),
+            ),
+          );
           throw new CitationRequestSupersededError(
             "A newer request superseded this one",
           );
@@ -442,9 +454,14 @@ class PandocCitationEngine implements CitationEngine {
       const converted = runtime.convert(options, stdin, files);
       if (converted.stderr)
         throw new CitationEngineError(converted.stderr.trim());
-      logger.debug("Pandoc conversion finished", {
-        messages: converted.messages,
-      });
+      Effect.runSyncWith(logServices)(
+        Effect.logDebug("Pandoc conversion finished").pipe(
+          Effect.annotateLogs({
+            messages: converted.messages,
+          }),
+          withLogCategory("pandoc"),
+        ),
+      );
       return converted;
     });
     this.#queue = result.catch(() => undefined);
@@ -723,9 +740,14 @@ function dropTrailingSpace(inlines: Inlines): Inlines {
 function blockInlines(blocks: Blocks): Inlines {
   return blocks.flatMap((block) => {
     if (block.t === "Para" || block.t === "Plain") return block.c;
-    logger.debug("Dropped a block the engine cannot unwrap", {
-      block: block.t,
-    });
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug("Dropped a block the engine cannot unwrap").pipe(
+        Effect.annotateLogs({
+          block: block.t,
+        }),
+        withLogCategory("pandoc"),
+      ),
+    );
     return [];
   });
 }
