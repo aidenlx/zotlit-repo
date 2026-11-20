@@ -132,19 +132,30 @@ if (release) {
 }
 
 /**
- * One Desktop Slot hold, an Exclusive Hold, covers the desktop runs and the
- * start-up gate: one wait in the Desktop Queue and one Memory Gate pass, which
- * the nested runs reuse through the environment. Their test cases and loads
- * renew its Lease. At the Admission Deadline this exits 75, outside `step`.
+ * One Desktop Slot hold covers both desktop runs: one wait in the Desktop
+ * Queue and one Memory Gate pass, which the nested runs reuse through the
+ * environment. Their test cases renew its Lease. The hold ends before the
+ * start-up gate, which takes its own Exclusive Hold for its run. At the
+ * Admission Deadline this exits 75, outside `step`.
  */
 async function desktopChecks(): Promise<void> {
+  await desktopRuns();
+  await step("Start-up", async () => {
+    if (ci) {
+      console.log("The start-up gate is desktop-only and ran in pnpm release.");
+      return;
+    }
+    await sh`pnpm --filter @zotlit/e2e measure:startup --check`;
+  });
+}
+
+async function desktopRuns(): Promise<void> {
   using slot = ci
     ? undefined
     : await acquireDesktopSlotOrExit({
         cwd: root,
         command: "pnpm verify --release",
         silenceMs: SILENCE_LIMIT_MS.e2e,
-        exclusive: true,
       });
   await step("End-to-end Run", async () => {
     if (ci) {
@@ -156,16 +167,6 @@ async function desktopChecks(): Promise<void> {
     await sh({ env: { ...process.env, ZOTLIT_E2E_REQUIRED: "1" } })`pnpm e2e`;
     slot?.progress("pnpm e2e:worker starts");
     await sh({ env: { ...process.env } })`pnpm e2e:worker`;
-  });
-  await step("Start-up", async () => {
-    if (ci) {
-      console.log("The start-up gate is desktop-only and ran in pnpm release.");
-      return;
-    }
-    slot?.progress("measure:startup starts");
-    await sh({
-      env: { ...process.env },
-    })`pnpm --filter @zotlit/e2e measure:startup --check`;
   });
 }
 
