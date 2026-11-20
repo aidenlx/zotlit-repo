@@ -4,6 +4,7 @@
 import { Layer, Stream } from "effect";
 
 import { layerUnreadKitViewServices } from "@zotlit/obsidian-kit/__fixtures__/view-atoms.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
@@ -20,6 +21,7 @@ import { AnnotationRepository } from "#obsidian/annotation-repository/service.ts
 import { AnnotationNoteActions } from "#obsidian/annot-view/note-actions.ts";
 import { PdfAnnotationEditor } from "#obsidian/pdf-annotation-editor/service.ts";
 import { ExcerptDisplays } from "#desktop/excerpt-image/display.ts";
+import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 /**
  * Every view service outside the Obsidian host tags, as an empty mock. Merge
@@ -49,6 +51,8 @@ export const layerUnreadViewServices = Layer.mergeAll(
     client: stubService<QueryClients["Service"]["client"]>("QueryClient", {}),
   }),
   Layer.mock(ZoteroPref, {}),
+  Layer.mock(ReaderConnection, {}),
+  Layer.succeed(ObsidianApp, stubService<ObsidianApp["Service"]>("App", {})),
   Layer.mock(ZoteroReads, {
     reads: stubService<ZoteroReads["Service"]["reads"]>("ZoteroReadsApi", {}),
   }),

@@ -5,6 +5,7 @@ import type { IconName } from "obsidian";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
+import { readerStatusCopy } from "@zotlit/annotations/obsidian/reader-connection/status.ts";
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -256,7 +257,8 @@ function StepRow({
  * The setup steps as a checklist: Connect to Zotero (left out while the
  * Library View shows its not-found card, which says the same), the
  * literature-notes folder, the library, which lists below the banner once
- * ZotLit reads Zotero's database, and ZotLit Companion, which is optional.
+ * ZotLit reads Zotero's database, and ZotLit Companion and ZotLit Reader,
+ * which are optional.
  * Only the first step that isn't done opens.
  */
 function Checklist({ connect }: { connect: boolean }) {
@@ -265,6 +267,7 @@ function Checklist({ connect }: { connect: boolean }) {
   const folderDone = useWelcomeState((s) => s.literatureFolderExists);
   const notFound = useWelcomeState((s) => s.notFound);
   const companionInstalled = useWelcomeState((s) => s.companionInstalled);
+  const readerStatus = useWelcomeState((s) => s.readerStatus);
   const actions = useWelcomeActions();
   const connected = connection.status === "connected";
 
@@ -368,6 +371,30 @@ function Checklist({ connect }: { connect: boolean }) {
         {m.welcome_action_install_companion()}
       </Button>
     ),
+  });
+  const readerConnected = readerStatus === "connected";
+  const readerCopy = readerStatusCopy(readerStatus);
+  const readerAction = readerCopy.action;
+  steps.push({
+    id: "reader",
+    state: readerConnected ? "done" : "todo",
+    title: m.welcome_step_reader_title(),
+    summary: (
+      <span className="zt:truncate">
+        {readerConnected
+          ? m.welcome_step_reader_connected()
+          : m.welcome_step_reader_recommended()}
+      </span>
+    ),
+    body: <p className="zt:m-0">{readerCopy.text}</p>,
+    action: readerAction ? (
+      <Button
+        icon="external-link"
+        onClick={() => actions.openExternal(readerAction.url)}
+      >
+        {readerAction.label}
+      </Button>
+    ) : undefined,
   });
   const next = steps.findIndex((step) => step.state !== "done");
 

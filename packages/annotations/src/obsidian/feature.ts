@@ -12,6 +12,7 @@ import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import {
@@ -152,7 +153,7 @@ export const annotations = defineFeature({
     ),
   ],
   settingTab: {
-    entries: { reader: () => [readerPage()] },
+    entries: { reader: (ctx) => [readerPage(ctx)] },
     slots: {
       [zoteroPageSlots.editing]: (ctx) => [
         {
@@ -187,12 +188,12 @@ export const annotations = defineFeature({
 });
 
 /** The Reader page. */
-function readerPage() {
+function readerPage(ctx: SettingTabContext) {
   return {
     type: "page" as const,
     id: "settings_page_reader",
     name: m.settings_page_reader(),
     desc: m.settings_page_reader_desc(),
-    items: readerPageItems(),
+    items: readerPageItems(ctx),
   };
 }

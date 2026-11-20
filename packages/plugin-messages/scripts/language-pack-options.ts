@@ -7,6 +7,7 @@ export const EXCLUDE_MESSAGE_PREFIXES = [
   "docs_",
   "zotero.",
   "reader_",
+  "pdf_reader_",
 ] as const;
 
 /** Companion labels quoted by the live-updates settings descriptions. */

@@ -7,6 +7,7 @@ import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/displ
 import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
+import { ReaderConnection } from "@zotlit/annotations/obsidian/reader-connection/service.ts";
 import { CitationIndex } from "@zotlit/citations/obsidian/citation-index/service.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
@@ -14,6 +15,7 @@ import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -53,6 +55,8 @@ export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(AnnotationRepository)({}),
   Layer.mock(ZoteroLocalApi)({}),
   Layer.mock(CapabilityNotices)({}),
+  Layer.mock(ReaderConnection)({}),
+  Layer.succeed(ObsidianApp, stubService<ObsidianApp["Service"]>("App", {})),
   Layer.mock(CitationIndex)({}),
   Layer.mock(PandocEngine)({}),
   Layer.mock(ChineseSegmenter)({}),

@@ -1,5 +1,6 @@
 // The state and section decisions of the Welcome banner.
 
+import type { ReaderStatus } from "@zotlit/annotations/obsidian/reader-connection/status.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 
 import type { ConnectionReadout } from "./connection.ts";
@@ -39,6 +40,11 @@ export interface WelcomeState {
    * Companion is optional: its step never keeps setup from being done.
    */
   companionInstalled: boolean;
+  /**
+   * Where ZotLit Reader stands. The Reader is optional: its step never keeps
+   * setup from being done.
+   */
+  readerStatus: ReaderStatus;
   /** Current `note.literature-folder` binding in the default profile. */
   literatureFolder: string;
   /** The literature-notes folder exists in the vault. */

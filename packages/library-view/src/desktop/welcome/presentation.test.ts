@@ -15,6 +15,7 @@ const SET_UP: WelcomeState = {
   connection: { status: "connected", path: "~/Zotero", itemCount: 3 },
   // ZotLit Companion is optional: setup is complete without it.
   companionInstalled: false,
+  readerStatus: "connected",
   literatureFolder: "literatures",
   literatureFolderExists: true,
   templateConversionPending: false,

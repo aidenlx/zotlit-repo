@@ -509,6 +509,7 @@ declare module "obsidian" {
     appId: string;
     plugins: {
       plugins: Record<string, unknown>;
+      manifests: Record<string, PluginManifest>;
     };
     internalPlugins: {
       /** The enabled core plugin instance, or null when disabled/absent. */

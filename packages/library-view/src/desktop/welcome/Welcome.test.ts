@@ -202,7 +202,7 @@ describe("Welcome setup checklist", () => {
         el.getAttribute("data-welcome-step"),
       ),
       // ZotLit Companion is optional: it does not keep setup from being done.
-    ).toEqual(["done", "done", "done", "todo"]);
+    ).toEqual(["done", "done", "done", "todo", "done"]);
   });
 
   it("keeps the steps open when asked for, even beside a notice", async () => {
@@ -212,7 +212,7 @@ describe("Welcome setup checklist", () => {
       requested: true,
     });
     expect(container.querySelector("[data-welcome-setup-done]")).toBeNull();
-    expect(container.querySelectorAll("[data-welcome-step]")).toHaveLength(4);
+    expect(container.querySelectorAll("[data-welcome-step]")).toHaveLength(5);
   });
 
   it("opens Connect while Zotero is missing, saying so beside the Locate action", async () => {
@@ -249,6 +249,7 @@ describe("Welcome setup checklist", () => {
       m.welcome_step_folder_title(),
       m.welcome_step_library_title(),
       m.welcome_step_companion_title(),
+      m.welcome_step_reader_title(),
     ]);
   });
 
@@ -274,6 +275,38 @@ describe("Welcome setup checklist", () => {
       button(companion, m.welcome_action_install_companion())?.click(),
     );
     expect(actions.openExternal).toHaveBeenCalledWith(companionDocsUrl());
+  });
+
+  it("offers ZotLit Reader last, with the action its state needs", async () => {
+    const { actions, container } = await render("fresh", {
+      connection: CONNECTED,
+      literatureFolderExists: true,
+      requested: true,
+      companionInstalled: true,
+      readerStatus: "turn-on",
+    });
+    const reader = step(container, m.welcome_step_reader_title());
+    expect(reader.hasAttribute("data-open")).toBe(true);
+    expect(reader.textContent).toContain(m.settings_reader_status_turn_on());
+    await act(() =>
+      button(reader, m.settings_reader_status_turn_on_action())?.click(),
+    );
+    expect(actions.openExternal).toHaveBeenCalledWith(
+      "obsidian://show-plugin?id=zotlit-reader",
+    );
+  });
+
+  it("marks ZotLit Reader done, with no action, while ZotLit is connected to it", async () => {
+    const { container } = await render("fresh", {
+      connection: CONNECTED,
+      literatureFolderExists: true,
+      requested: true,
+      readerStatus: "connected",
+    });
+    const reader = step(container, m.welcome_step_reader_title());
+    expect(reader.getAttribute("data-welcome-step")).toBe("done");
+    expect(reader.textContent).toContain(m.welcome_step_reader_connected());
+    expect(reader.querySelector("button")).toBeNull();
   });
 
   it("marks ZotLit Companion done once Zotero lists it as installed", async () => {

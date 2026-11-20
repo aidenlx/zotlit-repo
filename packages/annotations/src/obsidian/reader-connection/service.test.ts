@@ -7,17 +7,29 @@ import {
   Scope as ObsidianScope,
   WorkspaceLeaf,
 } from "obsidian";
-import type { App, PaneType, TFile, Vault, View } from "obsidian";
+import type {
+  App,
+  PaneType,
+  PluginManifest,
+  TFile,
+  Vault,
+  View,
+} from "obsidian";
 import { afterEach, beforeEach, expect, expectTypeOf, vi } from "vitest";
 import type { MockInstance } from "vitest";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import {
   resetMockPlatform,
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
   ConnectHandlers,
   PdfReader,
@@ -27,6 +39,7 @@ import type {
 import { answerConnect, READER_API } from "@zotlit/reader-api";
 
 import { readerHandshake } from "./handshake.ts";
+import { FALLBACK_NOTICE_KEY } from "./notice.ts";
 import type { ReaderConnectionState, ReaderSource } from "./service.ts";
 import { layerReaderConnection, ReaderConnection } from "./service.ts";
 
@@ -306,11 +319,21 @@ class OpeningWorkspace extends MemoryWorkspace {
   }
 }
 
-const handshakeReader = (prepare: (events: Events) => void = () => {}) =>
+const handshakeReader = (
+  prepare: (events: Events) => void = () => {},
+  {
+    installed = false,
+    storage = new MemoryDeviceStorage(),
+  }: { installed?: boolean; storage?: MemoryDeviceStorage } = {},
+) =>
   Effect.gen(function* () {
     const events = new Events();
     prepare(events);
     const workspace = new OpeningWorkspace();
+    const notifier = testNotifier();
+    const manifests: Record<string, PluginManifest> = installed
+      ? { "zotlit-reader": stubService<PluginManifest>("PluginManifest", {}) }
+      : {};
     const context = yield* Layer.build(
       layerZotlitPdfReader.pipe(
         Layer.provideMerge(
@@ -319,11 +342,21 @@ const handshakeReader = (prepare: (events: Events) => void = () => {}) =>
           ),
         ),
         Layer.provideMerge(layerWorkspaceFrom(workspace)),
+        Layer.provideMerge(layerDeviceStorageFrom(storage)),
+        Layer.provideMerge(notifier.layer),
+        Layer.provideMerge(
+          Layer.succeed(
+            ObsidianApp,
+            stubService<App>("App", { plugins: { plugins: {}, manifests } }),
+          ),
+        ),
       ),
     );
     return {
       events,
       workspace,
+      storage,
+      notices: notifier.notices,
       connection: Context.get(context, ReaderConnection),
       reader: Context.get(context, ZotlitPdfReader),
     };
@@ -394,4 +427,70 @@ it.effect(
         undefined,
       );
     }),
+);
+
+const noticeText = (notices: readonly { messages: unknown[] }[]) =>
+  notices.map(({ messages }) => (messages[0] as DocumentFragment).textContent);
+
+it.effect(
+  "tells the researcher once per vault how to get the annotation tools when a PDF opens in Obsidian's PDF view",
+  () =>
+    Effect.gen(function* () {
+      const storage = new MemoryDeviceStorage();
+      const first = yield* handshakeReader(undefined, { storage });
+      yield* first.reader.open(paper(), "#page=2", "tab");
+      yield* first.reader.open(paper(), "#page=3", "tab");
+      expect(noticeText(first.notices)).toEqual([
+        m.notice_reader_fallback() + m.settings_reader_status_install(),
+      ]);
+      const later = yield* handshakeReader(undefined, {
+        storage,
+        installed: true,
+      });
+      yield* later.reader.open(paper(), "", "tab");
+      yield* later.reader.open(paper(), "", "tab");
+      expect(noticeText(later.notices)).toEqual([
+        m.notice_reader_fallback() + m.settings_reader_status_turn_on(),
+      ]);
+      const again = yield* handshakeReader(undefined, {
+        storage,
+        installed: true,
+      });
+      yield* again.reader.open(paper(), "", "tab");
+      expect(again.notices).toEqual([]);
+      expect(storage.loadLocalStorage(FALLBACK_NOTICE_KEY)).toEqual([
+        "install",
+        "turn-on",
+      ]);
+    }),
+);
+
+it.effect(
+  "names the plugin to update in the notice when the Reader refuses ZotLit's major",
+  () =>
+    Effect.gen(function* () {
+      const { api } = fakeApi();
+      const { reader, notices } = yield* handshakeReader(
+        (events) =>
+          answerConnect(events, new Map([[READER_API.major + 1, api]])),
+        { installed: true },
+      );
+      yield* reader.open(paper(), "", "tab");
+      expect(noticeText(notices)).toEqual([
+        m.notice_reader_fallback() +
+          m.settings_reader_status_update({ plugin: "ZotLit" }),
+      ]);
+    }),
+);
+
+it.effect("shows no notice when the PDF opens in ZotLit Reader", () =>
+  Effect.gen(function* () {
+    const { api } = fakeApi();
+    const { reader, notices } = yield* handshakeReader(
+      (events) => answerConnect(events, new Map([[READER_API.major, api]])),
+      { installed: true },
+    );
+    yield* reader.open(paper(), "", "tab");
+    expect(notices).toEqual([]);
+  }),
 );

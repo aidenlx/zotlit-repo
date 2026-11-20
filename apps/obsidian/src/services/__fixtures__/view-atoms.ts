@@ -38,6 +38,8 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { ReaderConnection } from "@zotlit/annotations/obsidian/reader-connection/service.ts";
 
 /**
  * Every view service outside the Obsidian host tags, as an empty mock. Merge
@@ -96,6 +98,8 @@ export const layerUnreadViewServices = Layer.mergeAll(
   }),
   Layer.mock(TemplateMigration, {}),
   Layer.mock(ZoteroPref, {}),
+  Layer.mock(ReaderConnection, {}),
+  Layer.succeed(ObsidianApp, stubService<ObsidianApp["Service"]>("App", {})),
   Layer.mock(TemplateDataReads, {}),
   Layer.mock(ZoteroReads, {
     reads: stubService<ZoteroReads["Service"]["reads"]>("ZoteroReadsApi", {}),

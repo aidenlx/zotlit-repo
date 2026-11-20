@@ -1,9 +1,17 @@
 import { Context, Effect, Layer, Schema } from "effect";
 import type { PaneType, TFile } from "obsidian";
 
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 
+import { fallbackNotice } from "#obsidian/reader-connection/notice.ts";
 import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
+import {
+  readerInstalled,
+  readerStatus,
+} from "#obsidian/reader-connection/status.ts";
 
 export type ZotlitPdfOpenOutcome = "opened" | "file-missing";
 
@@ -26,12 +34,15 @@ export class ZotlitPdfReader extends Context.Service<
 export const layerZotlitPdfReader: Layer.Layer<
   ZotlitPdfReader,
   never,
-  ReaderConnection | Workspace
+  ReaderConnection | Workspace | ObsidianApp | DeviceStorage | Notifier
 > = Layer.effect(
   ZotlitPdfReader,
   Effect.gen(function* () {
     const connection = yield* ReaderConnection;
     const workspace = yield* Workspace;
+    const app = yield* ObsidianApp;
+    const storage = yield* DeviceStorage;
+    const notifier = yield* Notifier;
     return ZotlitPdfReader.of({
       open: Effect.fn("ZotlitPdfReader.open")(
         function* (
@@ -55,6 +66,13 @@ export const layerZotlitPdfReader: Layer.Layer<
               ),
             catch: (cause) => new ReaderOpenFailed({ cause }),
           });
+          const status = readerStatus(state, readerInstalled(app));
+          if (status !== "connected")
+            yield* fallbackNotice(status).pipe(
+              Effect.provideService(DeviceStorage, storage),
+              Effect.provideService(Notifier, notifier),
+              Effect.ignore,
+            );
           return "opened";
         },
       ),

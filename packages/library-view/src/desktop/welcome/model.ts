@@ -6,6 +6,7 @@ import * as Atom from "effect/reactivity/Atom";
 import { normalizePath } from "obsidian";
 import { createContext, useContext } from "react";
 
+import { readerStatusAtom } from "@zotlit/annotations/obsidian/reader-connection/status.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { held, viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -87,6 +88,7 @@ export function makeWelcomeModel() {
       noticesEnabled: s["release.notices-enabled"],
       connection: get(connectionAtom),
       companionInstalled: get(companionInstalledAtom),
+      readerStatus: get(readerStatusAtom),
       notFound: unavailable({ reads: get(zoteroStateAtom) }),
       version: Option.getOrElse(
         AsyncResult.value(get(releaseVersionAtom)),

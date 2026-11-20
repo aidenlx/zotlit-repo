@@ -20,6 +20,11 @@ test("the plugin pack contains its shared labels and fits the runtime cap", () =
   });
   expect(basePack.messages).not.toHaveProperty(["zotero.menu_file.label"]);
   expect(basePack.messages).toHaveProperty(["zotero.prefs_notify_section"]);
+  expect(
+    Object.keys(basePack.messages).filter(
+      (key) => key.startsWith("reader_") || key.startsWith("pdf_reader_"),
+    ),
+  ).toEqual([]);
   // A pack over the cap is refused at runtime, and copy another host owns is
   // what fills it. Add the new prefix to EXCLUDE_MESSAGE_PREFIXES when this
   // fails for messages the plugin never reads.
