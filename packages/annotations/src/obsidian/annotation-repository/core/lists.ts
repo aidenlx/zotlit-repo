@@ -548,6 +548,24 @@ const holding = Effect.fnUntraced(function* (
   return null;
 });
 
+const sessionHolding = Effect.fnUntraced(function* (
+  core: CoreState,
+  annotationKey: string,
+): Effect.fn.Return<Pick<HeldAnnotation, "attachmentKey" | "record"> | null> {
+  const attachmentKey = attachmentHolding(core, annotationKey);
+  if (!attachmentKey) return null;
+  const api = yield* compatibleApiSource(core, attachmentKey);
+  const list = core.publishedLists.get(attachmentKey);
+  if (!api || !list) return null;
+  const serverID =
+    list.source.kind === "zotero-local-api"
+      ? list.source.serverID
+      : list.source.database.serverID;
+  if (serverID !== api.serverID) return null;
+  const record = list.annotations.find(({ key }) => key === annotationKey);
+  return record ? { attachmentKey, record } : null;
+});
+
 /** Verify the binding and complete the first API handoff before a write. */
 const prepareCollection = Effect.fnUntraced(function* (
   core: CoreState,
@@ -1346,6 +1364,7 @@ export {
   editingCapability,
   announceReadPixels,
   holding,
+  sessionHolding,
   prepareCollection,
   attachmentHolding,
   prepareWrite,

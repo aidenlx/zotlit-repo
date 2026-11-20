@@ -16,7 +16,7 @@ import {
   saveKey,
   setDraft,
 } from "./draft-store.ts";
-import { capabilityFor, holding } from "./lists.ts";
+import { capabilityFor, holding, sessionHolding } from "./lists.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
@@ -476,7 +476,7 @@ const editTags = Effect.fnUntraced(function* (
   const standing = yield* tagDraftFor(core, annotationKey);
   if (standing?.state.kind === "pending") return standing;
   const source = yield* core.localApi.demandSource;
-  const held = standing ? null : yield* holding(core, annotationKey);
+  const held = standing ? null : yield* sessionHolding(core, annotationKey);
   if (!standing && (!source || !held)) return null;
   const attachmentKey = standing?.attachmentKey ?? held!.attachmentKey;
   const capability = yield* capabilityFor(core, attachmentKey);

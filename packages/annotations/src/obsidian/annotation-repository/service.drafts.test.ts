@@ -1815,6 +1815,42 @@ it.effect(
     }),
 );
 
+it.effect(
+  "starts a tag session on a list read from the database while the Local API is available",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroTagging("PUPR5FG5", [...TAGGED]);
+      const { service, client } = yield* Effect.promise(() =>
+        setup(stack, zotero.answers, { key: REMEMBERED_KEY }),
+      );
+      client.$client.exec(`
+    insert into tags (tagID, name) values (991, 'review'), (992, 'nlp'), (993, 'todo');
+    insert into itemTags (itemID, tagID, type) values (48, 991, 0), (48, 992, 1), (48, 993, 0);
+  `);
+      expect((yield* service.read("RGRPDF24"))?.source.kind).toBe("zotero-db");
+      expect(yield* service.capabilityFor("RGRPDF24")).toEqual({
+        kind: "writable",
+      });
+
+      const draft = yield* service.editTags("PUPR5FG5");
+
+      expect(draft).toMatchObject({
+        attachmentKey: "RGRPDF24",
+        baseline: ["review", "nlp", "todo"],
+        state: { kind: "editing" },
+      });
+      yield* service.editTags("PUPR5FG5", ["review", "nlp", "todo", "figure"]);
+      expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
+      expect(zotero.tags).toEqual([
+        "review",
+        { tag: "nlp", type: 1 },
+        "todo",
+        "figure",
+      ]);
+    }),
+);
+
 it.effect("removes an automatic tag, as Zotero lets the user do", () =>
   Effect.gen(function* () {
     const stack = yield* scopedStack;
