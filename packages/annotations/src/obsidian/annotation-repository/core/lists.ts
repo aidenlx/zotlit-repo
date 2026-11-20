@@ -582,6 +582,14 @@ const prepareCollection = Effect.fnUntraced(function* (
   );
 });
 
+const handOff = Effect.fnUntraced(function* (
+  core: CoreState,
+  attachmentKey: string,
+) {
+  const api = yield* compatibleApiSource(core, attachmentKey);
+  if (api) yield* prepareCollection(core, attachmentKey, api);
+});
+
 /** Locate the Annotation independently of the source's write readiness. */
 function attachmentHolding(
   core: CoreState,
@@ -1363,6 +1371,7 @@ export {
   holding,
   sessionHolding,
   prepareCollection,
+  handOff,
   attachmentHolding,
   prepareWrite,
   dropAttachment,

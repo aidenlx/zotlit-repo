@@ -16,13 +16,7 @@ import {
   saveKey,
   setDraft,
 } from "./draft-store.ts";
-import {
-  capabilityFor,
-  compatibleApiSource,
-  holding,
-  prepareCollection,
-  sessionHolding,
-} from "./lists.ts";
+import { capabilityFor, handOff, holding, sessionHolding } from "./lists.ts";
 import {
   TEXT_FIELD_SPECS,
   indexedID,
@@ -206,15 +200,18 @@ const editTextField = Effect.fnUntraced(function* (
   return draft;
 });
 
-const handOff = Effect.fnUntraced(function* (
+const reviewedTextDraft = Effect.fnUntraced(function* (
   core: CoreState,
-  attachmentKey: string,
+  field: TextField,
+  annotationKey: string,
 ) {
-  const api = yield* compatibleApiSource(core, attachmentKey);
-  if (!api) return;
-  yield* prepareCollection(core, attachmentKey, api).pipe(
+  const standing = yield* draftFor(core, field, annotationKey);
+  if (!standing) return null;
+  yield* cancelTextSave(core, field, standing);
+  yield* handOff(core, standing.attachmentKey).pipe(
     Effect.mapError((cause) => new WriteRunFailed({ cause })),
   );
+  return yield* draftFor(core, field, annotationKey);
 });
 
 /** Submit one text field's current shared draft once. */
@@ -226,11 +223,7 @@ const submitTextField = Effect.fnUntraced(function* (
     automatic = false,
   }: { annotationKey: string; automatic?: boolean },
 ): Effect.fn.Return<MutationState, WriteRunFailed> {
-  const asked = yield* draftFor(core, field, annotationKey);
-  if (!asked) return IDLE;
-  yield* cancelTextSave(core, field, asked);
-  yield* handOff(core, asked.attachmentKey);
-  const draft = yield* draftFor(core, field, annotationKey);
+  const draft = yield* reviewedTextDraft(core, field, annotationKey);
   if (!draft) return IDLE;
   if (draft.state.kind === "conflict") {
     return mutationFor(core, annotationKey);
@@ -369,11 +362,7 @@ const retryTextDraft = Effect.fnUntraced(function* (
   field: TextField,
   annotationKey: string,
 ): Effect.fn.Return<MutationState, WriteRunFailed> {
-  const asked = yield* draftFor(core, field, annotationKey);
-  if (!asked) return IDLE;
-  yield* cancelTextSave(core, field, asked);
-  yield* handOff(core, asked.attachmentKey);
-  const draft = yield* draftFor(core, field, annotationKey);
+  const draft = yield* reviewedTextDraft(core, field, annotationKey);
   if (!draft) return IDLE;
   const saving = savingText(core, field, annotationKey);
   if (saving) return yield* answerOf(core, saving);
