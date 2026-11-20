@@ -55,6 +55,11 @@ it.skipIf(!testElectron)(
     ]);
     expect(report.lateNodes).toEqual({ before: 2, after: 0 });
     expect(report.lateDisposed).toBe(2);
+    expect(report.twinNodes).toEqual({
+      before: 4,
+      afterFirst: 2,
+      afterBoth: 0,
+    });
     expect(report.loaded).toEqual({ pages: 8 });
     expect(report.rejected).toEqual({ reason: "invalid" });
     expect(report.unload).toEqual([

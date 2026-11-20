@@ -76,9 +76,13 @@ export class ExtensionHost<H> {
     });
   }
 
-  remove(id: string): void {
-    const removed = this.#entries.filter((entry) => entry.extension.id === id);
-    this.#entries = this.#entries.filter((entry) => entry.extension.id !== id);
+  remove(extension: ReaderExtension<H>): void {
+    const removed = this.#entries.filter(
+      (entry) => entry.extension === extension,
+    );
+    this.#entries = this.#entries.filter(
+      (entry) => entry.extension !== extension,
+    );
     for (const entry of removed) {
       this.#retire(entry);
       for (const layer of entry.layers) this.#dropLayer(layer);

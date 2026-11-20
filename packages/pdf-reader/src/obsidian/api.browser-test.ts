@@ -37,6 +37,11 @@ export interface ApiReport {
   readonly attached: readonly Attached[];
   readonly lateNodes: { readonly before: number; readonly after: number };
   readonly lateDisposed: number;
+  readonly twinNodes: {
+    readonly before: number;
+    readonly afterFirst: number;
+    readonly afterBoth: number;
+  };
   readonly loaded: { readonly pages: number };
   readonly rejected: { readonly reason: unknown };
   readonly unload: readonly string[];
@@ -236,6 +241,22 @@ export async function run(): Promise<ApiReport> {
   removeLate();
   const after = lateNodes();
 
+  const twinNodes = () =>
+    document.querySelectorAll(
+      '[data-zpr-slot="toolbar-start"] [data-probe="twin"]',
+    ).length;
+  const removeFirstTwin = api.addExtension(
+    recorder("twin", [], { slot: true }),
+  );
+  const removeSecondTwin = api.addExtension(
+    recorder("twin", [], { slot: true }),
+  );
+  const twinBefore = twinNodes();
+  removeFirstTwin();
+  const twinAfterFirst = twinNodes();
+  removeSecondTwin();
+  const twinAfterBoth = twinNodes();
+
   await using document_ = await api.loadDocument(
     bytesSource("ok.pdf", NAVIGATION),
   );
@@ -270,6 +291,11 @@ export async function run(): Promise<ApiReport> {
     attached,
     lateNodes: { before, after },
     lateDisposed,
+    twinNodes: {
+      before: twinBefore,
+      afterFirst: twinAfterFirst,
+      afterBoth: twinAfterBoth,
+    },
     loaded,
     rejected,
     unload,

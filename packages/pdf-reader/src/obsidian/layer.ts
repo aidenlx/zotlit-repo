@@ -138,8 +138,7 @@ export function makeLayer(options: LayerOptions): OwnedLayer {
       }
       return () => {
         if (!extensions.delete(extension)) return;
-        for (const live of readers.values())
-          live.extensions.remove(extension.id);
+        for (const live of readers.values()) live.extensions.remove(extension);
       };
     },
     onClose: (listener) => {

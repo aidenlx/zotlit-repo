@@ -101,7 +101,7 @@ function sameFindOptions(a: ReaderState["find"], b: ReaderState["find"]) {
 
 export interface LiveExtensions<H> {
   add(extension: ReaderExtension<H>, context: AttachContext<H>): void;
-  remove(id: string): void;
+  remove(extension: ReaderExtension<H>): void;
 }
 
 export interface ExtensibleReader<H> {
@@ -206,7 +206,7 @@ class Reader<H> {
     );
     this.live = {
       add: (extension, context) => this.#extensions.add(extension, context),
-      remove: (id) => this.#extensions.remove(id),
+      remove: (extension) => this.#extensions.remove(extension),
     };
     this.#extensions.attach(options.extensions ?? [], {
       host: options.hostContext,

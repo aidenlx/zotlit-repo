@@ -2,6 +2,7 @@ import type {
   NavigateOutcome,
   PdfEngine,
   PdfReader,
+  ReaderExtension,
   ReaderState,
 } from "#/core/index.ts";
 import type { FixturePdf } from "#test/fixtures.ts";
@@ -208,32 +209,30 @@ async function live(engine: PdfEngine): Promise<ExtensionsReport["live"]> {
     },
     { host: null, subpath: null },
   );
-  extensions.add(
-    {
-      id: "late",
-      attach: ({ reader: late, subpath }) => {
-        attached.push({
-          subpath: subpath?.raw ?? null,
-          document: late.document.get() !== null,
-          rendered: late.renderedPages().length > 0,
-        });
-        const button = document.createElement("button");
-        button.dataset.probe = "late-button";
-        late.slot("toolbar-end").append(button);
-        for (const page of late.renderedPages()) page.layer("late-marks");
-        return {
-          [Symbol.dispose]: () => {
-            disposedOnRemove++;
-          },
-        };
-      },
-      drawPage: (_page, layer) => {
-        draws++;
-        layer.textContent = "late";
-      },
+  const lateExtension: ReaderExtension<null> = {
+    id: "late",
+    attach: ({ reader: late, subpath }) => {
+      attached.push({
+        subpath: subpath?.raw ?? null,
+        document: late.document.get() !== null,
+        rendered: late.renderedPages().length > 0,
+      });
+      const button = document.createElement("button");
+      button.dataset.probe = "late-button";
+      late.slot("toolbar-end").append(button);
+      for (const page of late.renderedPages()) page.layer("late-marks");
+      return {
+        [Symbol.dispose]: () => {
+          disposedOnRemove++;
+        },
+      };
     },
-    { host: null, subpath: null },
-  );
+    drawPage: (_page, layer) => {
+      draws++;
+      layer.textContent = "late";
+    },
+  };
+  extensions.add(lateExtension, { host: null, subpath: null });
   extensions.add(
     {
       id: "embed-only",
@@ -247,7 +246,7 @@ async function live(engine: PdfEngine): Promise<ExtensionsReport["live"]> {
   reader.set({ zoom: 1.5 });
   await within("settled after zoom", reader.settled());
   const whileLive = nodes(reader);
-  extensions.remove("late");
+  extensions.remove(lateExtension);
   const drawsAtRemove = draws;
   const mountedAtRemove = mountedDraws;
   reader.set({ zoom: 1 });
