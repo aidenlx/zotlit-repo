@@ -3,25 +3,26 @@ import { resolve } from "node:path";
 import { expect, it } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
+import {
+  OBSIDIAN_RUNTIME_VERSION,
+  missingObsidianRuntime,
+} from "@zotlit/scripts/obsidian-runtime";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import type { LegacySelectionReport } from "./legacy-text.browser-test.ts";
 
 import { binaryAssets, readerAlias } from "#test/vite.ts";
 
-const OBSIDIAN_VERSION = "1.15.1";
 const obsidianPdfJs = resolve(
   await getWorkspaceRoot(import.meta.dirname),
-  `node_modules/.ob-rev-${OBSIDIAN_VERSION}/lib/pdfjs`,
+  `node_modules/.ob-rev-${OBSIDIAN_RUNTIME_VERSION}/lib/pdfjs`,
 );
 
 it.skipIf(!testElectron)(
   "reads and writes #selection= links in the indexes of Obsidian 1.15.1's PDF.js",
   async () => {
     if (!existsSync(obsidianPdfJs)) {
-      throw new Error(
-        `No extracted Obsidian ${OBSIDIAN_VERSION} runtime at ${obsidianPdfJs}. Run: mise run init`,
-      );
+      throw new Error(missingObsidianRuntime(obsidianPdfJs));
     }
     const report = (await runInElectron({
       entry: resolve(import.meta.dirname, "legacy-text.browser-test.ts"),

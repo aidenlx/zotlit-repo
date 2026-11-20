@@ -5,6 +5,10 @@ import { pathToFileURL } from "node:url";
 import { expect, it } from "vitest";
 
 import { EXCERPT_RENDERING_CASES } from "@zotlit/scripts/fixture/spec";
+import {
+  OBSIDIAN_RUNTIME_VERSION,
+  missingObsidianRuntime,
+} from "@zotlit/scripts/obsidian-runtime";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import type { ObsidianPdfJsReport } from "./obsidian-pdfjs.browser-test.ts";
@@ -14,20 +18,17 @@ import {
   testElectron,
 } from "#__fixtures__/excerpt-image/electron-renderer.ts";
 
-const OBSIDIAN_VERSION = "1.15.1";
 const root = await getWorkspaceRoot(import.meta.dirname);
 const obsidianPdfJs = resolve(
   root,
-  `node_modules/.ob-rev-${OBSIDIAN_VERSION}/lib/pdfjs`,
+  `node_modules/.ob-rev-${OBSIDIAN_RUNTIME_VERSION}/lib/pdfjs`,
 );
 
 it.skipIf(!testElectron)(
   "crops the Fixture excerpt cases through Obsidian 1.15.1's PDF.js to the expected pixels",
   async () => {
     if (!existsSync(obsidianPdfJs))
-      throw new Error(
-        `No extracted Obsidian ${OBSIDIAN_VERSION} runtime at ${obsidianPdfJs}. Run: mise run init`,
-      );
+      throw new Error(missingObsidianRuntime(obsidianPdfJs));
     const pdf = resolve(
       root,
       "packages/scripts/lib/fixture/assets/excerpt-rendering/excerpt-rendering.pdf",

@@ -6,6 +6,8 @@ import { join } from "node:path";
 // only for the type checker
 import type {} from "zx/globals";
 
+import { OBSIDIAN_RUNTIME_VERSION } from "#obsidian-runtime";
+
 $.verbose = true;
 
 // path to the primary worktree; wt itself copies gitignored files matched by
@@ -25,7 +27,7 @@ if (primary) {
 // messages during dev/build.
 await $`turbo run generate:language-packs generate:message-types`;
 
-const obsidianRuntime = "1.15.1";
+const obsidianRuntime = OBSIDIAN_RUNTIME_VERSION;
 const asarDirs: Record<string, string[]> = {
   darwin: [
     join(homedir(), "Library/Application Support/obsidian"),
