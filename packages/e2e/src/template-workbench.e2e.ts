@@ -1788,7 +1788,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const action = view.containerEl.querySelector<HTMLElement>(
             `.view-action[aria-label="${label}"]`,
           )!;
-          const content = el.querySelector<CodeMirrorElement>(".cm-content")!;
+          const content = await until("the editor", () =>
+            el.querySelector<CodeMirrorElement>(".cm-content"),
+          );
           const editor = content.cmTile!.root.view;
           await input.click(content);
           editor.dispatch({ selection: { anchor: editor.state.doc.length } });
