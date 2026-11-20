@@ -1248,12 +1248,13 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
               ) ?? null,
             10000,
           );
+          const hover = popover.querySelector(".zpr-root") !== null;
           (
             leaf.view as { hoverPopover?: { hide(): void } | null }
           ).hoverPopover?.hide();
           return {
             embed: embed.querySelector(".zpr-root") !== null,
-            hover: popover.querySelector(".zpr-root") !== null,
+            hover,
           };
         };
         const servicesOf = () => {
