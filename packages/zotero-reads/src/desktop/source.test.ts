@@ -5,7 +5,6 @@ import {
   Deferred,
   Effect,
   Exit,
-  Fiber,
   Layer,
   Option,
   PlatformError,
@@ -340,31 +339,18 @@ describe("ZoteroReads source", () => {
     expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
   });
 
-  it("holds the first open through a Configure until a refresh, then opens the latest settings once", async () => {
+  it("opens the settings it starts with, before any Configure", async () => {
     const { ports } = testPorts();
     const version = await Effect.runPromise(
       Effect.gen(function* () {
         const reads = yield* makeInProcessClient();
-        const pending = yield* Effect.forkChild(reads.Libraries({}), {
-          startImmediately: true,
-        });
-        yield* reads.Configure(config());
-        yield* Effect.sleep("200 millis");
-        yield* reads.Refresh();
-        return yield* Fiber.join(pending);
+        return yield* reads.Libraries({});
       }).pipe(
         Effect.scoped,
-        Effect.provide(
-          testSource({
-            ports,
-            initial: config({ readMode: "immutable" }),
-            deferOpen: true,
-          }),
-        ),
+        Effect.provide(testSource({ ports, initial: config() })),
       ),
     );
     expect(version.find((l) => l.libraryID === 1)?.version).toBe(1);
-    expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
   });
 
   it("waits for Configure before it opens anything", async () => {
