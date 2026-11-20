@@ -65,16 +65,20 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
     } satisfies ReadsConfig;
   });
   const config = yield* Ref.make(yield* configuration);
-  const laidOut = yield* Ref.make(false);
+  const opening = yield* Ref.make<"waiting" | "held" | "ready">("waiting");
   const reads = yield* makeWorkerReads(
     connectWorker(workerSource, Ref.get(config), {
       reapSnapshots: reapWorkerSnapshots,
-      deferOpen: Effect.map(Ref.get(laidOut), (ready) => !ready),
+      deferOpen: Ref.modify(opening, (state) =>
+        state === "ready" ? [false, state] : [true, "held" as const],
+      ),
     }).pipe(Effect.provideService(FileSystem.FileSystem, fs)),
   );
   yield* workspace.layoutReady.pipe(
-    Effect.andThen(Ref.set(laidOut, true)),
-    Effect.andThen(Effect.ignore(reads.Refresh())),
+    Effect.andThen(Ref.getAndSet(opening, "ready")),
+    Effect.flatMap((before) =>
+      before === "held" ? Effect.ignore(reads.Refresh()) : Effect.void,
+    ),
     Effect.forkScoped({ startImmediately: true }),
   );
   const push = Effect.fn("ZoteroReads.configure")(function* () {
