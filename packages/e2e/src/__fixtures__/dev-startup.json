@@ -1,0 +1,45 @@
+{
+  "total": 157.3,
+  "paint": {
+    "first-paint": 36,
+    "first-contentful-paint": 76
+  },
+  "marks": {
+    "startup-snapshot": 34.2
+  },
+  "durations": {
+    "initialization": 50.2,
+    "initialization.boot": 43.2,
+    "initialization.boot.response": 3.8,
+    "initialization.boot.domParse": 10.1,
+    "initialization.boot.snapshot": 16.6,
+    "initialization.boot.scriptEval": 12.7,
+    "initialization.language": 0,
+    "initialization.electron": 5.4,
+    "initialization.construct": 1.6,
+    "vault": 11.1,
+    "vault.setup": 3.1,
+    "vault.load": 7.4,
+    "vault.metadata": 0.4,
+    "vault.metadataListeners": 0.2,
+    "workspace": 17.9,
+    "workspace.components": 2.5,
+    "workspace.components.managers": 0.8,
+    "workspace.components.settings": 1.7,
+    "workspace.appearance": 0.8,
+    "workspace.managers": 2,
+    "workspace.managers.metadataType": 1.2,
+    "workspace.managers.secretStorage": 0.1,
+    "workspace.managers.hotkeys": 0.7,
+    "workspace.layout": 11.9,
+    "workspace.layout.load": 11.9,
+    "workspace.layout.open": 0,
+    "workspace.layout.finalize": 0,
+    "workspace.extra": 0.7,
+    "corePlugins": 5.3,
+    "communityPlugins": 72.8,
+    "communityPlugins.zotlit-reader": 13,
+    "communityPlugins.zotlit": 58.7,
+    "finalize": 0
+  }
+}

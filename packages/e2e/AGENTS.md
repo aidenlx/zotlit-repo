@@ -166,3 +166,11 @@ Each suite builds its own Fixture and new purged vaults under `.scratch/e2e-*`. 
 - Worker runs check execution slices and encoding steps against the spec's limits, and check renderer timer gaps against the same limits. Unlimited queries write complete JSON files; the runner deletes each file after its receipt.
 - The numbers come from the dev-build command `zotlit:query-measure` (`packages/query-views/src/desktop/item-query/measure.ts`). A cancel through the CLI uses the production command `zotlit:query-cancel` with the `id` of the measured run.
 - Output goes to `.scratch/query-measure/<time>/`: `raw.json` and `summary.md`, the summary to read before a release.
+
+## Start-up measurement
+
+`pnpm --filter @zotlit/e2e measure:startup` measures the start-up of each plugin's production build (`apps/<app>/dist`, from `pnpm check:bundle`) in a vault of its own on the Fixture, with the plugins of `--plugins` (default `zotlit-reader,zotlit`). It takes an Exclusive Hold, loads the window fresh, and reads `communityPlugins.<id>` from `dev:startup format=json`: 5 cold loads (a new comment in each `main.js`, so no V8 code cache matches), then 2 priming and 5 counted warm loads.
+
+- Output: medians and ranges per plugin and mode on stdout and in `.scratch/startup-measure/<time>/summary.json`, with each raw `dev:startup` capture in `dev-startup.jsonl`. Parser and comparison: `src/startup-record.ts`.
+- `--check` fails when a warm median is above the plugin's `budget.startupWarmMs` (`packages/scripts/lib/shell/plugins.ts`); a plugin with no budget gets its medians recorded. `pnpm verify --release` runs it after the End-to-end Run, in the same Exclusive Hold.
+- Trend: each End-to-end Run records the first window load of its vault (dev build, no threshold) as `meta.startupMs` of its first test in `results.json`.

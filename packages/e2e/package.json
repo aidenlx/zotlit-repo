@@ -7,6 +7,7 @@
     "e2e": "vitest run",
     "docs-walk": "vitest run --config vitest.docs-walk.config.ts",
     "measure:query": "node src/query-measure.ts",
+    "measure:startup": "node src/startup-measure.ts",
     "test": "vitest run --config vitest.unit.config.ts",
     "typecheck": "tsc --noEmit"
   },

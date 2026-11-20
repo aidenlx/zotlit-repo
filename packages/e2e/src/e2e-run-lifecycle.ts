@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { expectNothingLeftOpen } from "./case-leftovers.ts";
@@ -8,7 +8,8 @@ import {
   workspaceRoot,
 } from "./e2e-run-fixture.ts";
 import { availableLoopbackPort } from "./e2e-run-helpers.ts";
-import { obRun, obRunUntil } from "./obsidian-cli.ts";
+import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
+import { pluginStartupMs } from "./startup-record.ts";
 import { clearVault, installPlugins } from "./vault-script.ts";
 
 /** Shared End-to-end Run vault state for every area file. */
@@ -17,6 +18,16 @@ export const run = {
   m: undefined as unknown as typeof import("@zotlit/plugin-messages/messages.ts"),
   booksNotePath: "",
 };
+
+declare module "vitest" {
+  interface TaskMeta {
+    startupMs?: Record<string, number>;
+  }
+}
+
+const RUN_PLUGINS = ["zotlit-reader", "zotlit"];
+
+let firstLoadStartupMs: Record<string, number> | undefined;
 
 let initPromise: Promise<void> | null = null;
 let refCount = 0;
@@ -27,10 +38,11 @@ async function bootstrap(): Promise<void> {
   const plugins = await installPlugins(
     workspaceRoot,
     e2eVaultPath,
-    "zotlit-reader,zotlit",
+    RUN_PLUGINS.join(","),
   );
   const created = await runVaultScript(["open", e2eVaultPath, plugins]);
   run.vaultId = created.stdout.trim().split("\n")[0]!.trim();
+  await recordFirstLoad();
   await obRun(
     run.vaultId,
     async ({ app, page }) => {
@@ -100,6 +112,19 @@ async function bootstrap(): Promise<void> {
   );
 }
 
+async function recordFirstLoad(): Promise<void> {
+  try {
+    firstLoadStartupMs = pluginStartupMs(
+      await cli([`vault=${run.vaultId}`, "dev:startup", "format=json"]),
+      RUN_PLUGINS,
+    );
+  } catch (error) {
+    console.warn(
+      `the start-up trend of this run is missing: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 async function teardown(): Promise<void> {
   try {
     await runVaultScript(["remove", e2eVaultPath, "--purge"]);
@@ -125,6 +150,12 @@ export function registerEndToEndRunHooks(): void {
       initPromise = null;
     }
   }, 120000);
+
+  beforeEach(({ task }) => {
+    if (!firstLoadStartupMs) return;
+    task.meta.startupMs = firstLoadStartupMs;
+    firstLoadStartupMs = undefined;
+  });
 
   afterEach(() => expectNothingLeftOpen(run.vaultId));
 }
