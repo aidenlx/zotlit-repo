@@ -81,7 +81,11 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
     const pluginDir = join(vaultPath, ".obsidian", "plugins", "zotlit");
     await mkdir(pluginDir, { recursive: true });
     await cp(pluginBundleDir, pluginDir, { recursive: true });
-    const created = await runVaultScript(["create", vaultPath]);
+    const created = await runVaultScript([
+      "create",
+      vaultPath,
+      "--plugins=zotlit",
+    ]);
     vaultId = created.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(vaultId);
 

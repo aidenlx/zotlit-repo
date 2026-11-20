@@ -5,8 +5,8 @@ title: Annotations in the ZotLit PDF reader
 
 These checks use ZotLit's annotation tools in the ZotLit PDF reader on the
 Rougier paper, whose Zotero Attachment has eight Annotations on pages 1 and 2.
-Before you start, go to **Settings → ZotLit → Reader** and turn off **Open all
-PDFs in the ZotLit reader**. The first section asks you to turn it on part-way.
+Before you start, go to **Settings → ZotLit Reader → Reader** and turn off
+**Open all PDFs**. The first section asks you to turn it on part-way.
 Keep it on for the sections after it. The last section turns the setting off
 again.
 
@@ -31,9 +31,9 @@ Annotation stay manual checks.
 
 ## Opens from ZotLit
 
-ZotLit opens a PDF in the ZotLit PDF reader with **Open all PDFs in the ZotLit
-reader** off and with it on. Do these checks with the setting off. Then turn the
-setting on, close every tab of `rougier-2014.pdf`, and do them again.
+ZotLit opens a PDF in the ZotLit PDF reader with **Open all PDFs** off and with
+it on. Do these checks with the setting off. Then turn the setting on, close
+every tab of `rougier-2014.pdf`, and do them again.
 
 | Action | Expected result |
 | --- | --- |
@@ -90,8 +90,8 @@ Open [[attachments/rougier-2014.pdf]] and go to page 2.
 
 ## Annotation links with the setting off
 
-Go to **Settings → ZotLit → Reader** and turn off **Open all PDFs in the ZotLit
-reader**. Close every tab of `rougier-2014.pdf`.
+Go to **Settings → ZotLit Reader → Reader** and turn off **Open all PDFs**.
+Close every tab of `rougier-2014.pdf`.
 
 | Action | Expected result |
 | --- | --- |

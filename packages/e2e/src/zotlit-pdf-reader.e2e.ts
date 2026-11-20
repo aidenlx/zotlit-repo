@@ -63,7 +63,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
     });
 
-    it("opens an Attachment from ZotLit in the reader while Open all PDFs in the ZotLit reader is off and on, and gives PDFs back to Obsidian when ZotLit turns off with it on (E-18)", async () => {
+    it("opens an Attachment from ZotLit in the reader while Open all PDFs is off and on, and keeps PDFs in ZotLit Reader when ZotLit turns off with it on (E-18)", async () => {
       const routed = await obRun(
         run.vaultId,
         async ({ app, zotlit, page }, { path, attachmentKey }) => {
@@ -178,7 +178,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           coreEmbed: false,
         },
         offAgain: { mapped: "pdf", coreEmbed: true },
-        disabled: { mapped: "pdf", coreEmbed: true },
+        disabled: { mapped: READER_VIEW_TYPE, coreEmbed: false },
       });
     }, 180_000);
 

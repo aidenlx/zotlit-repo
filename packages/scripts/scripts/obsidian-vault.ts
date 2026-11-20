@@ -72,7 +72,10 @@ let fixtureVault = getFixtureVaultDir(workspaceRoot);
 // `--inactive` opens vault windows behind the app that has the OS focus.
 let inactive = false;
 const pluginId = "zotlit";
-const defaultPlugins = await resolveVaultPlugins(workspaceRoot, pluginId);
+const defaultPlugins = await resolveVaultPlugins(
+  workspaceRoot,
+  pluginsOption.default,
+);
 /** The folder in Obsidian's user data that holds its sandbox vault. */
 const sandboxFolder = "Obsidian Sandbox";
 

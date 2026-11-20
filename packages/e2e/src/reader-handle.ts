@@ -1,6 +1,5 @@
 import type { TFile } from "obsidian";
 
-import type { E2eServices } from "@zotlit/obsidian/e2e";
 import type {
   PdfReaderRegistration,
   PdfReaderView,
@@ -36,16 +35,7 @@ export function createReaderHandle(
     timeout?: number,
   ) => Promise<unknown>,
 ): ReaderHandle {
-  const zotlit = () =>
-    app.plugins.plugins.zotlit?.services as E2eServices | undefined;
-  const registration = (services: E2eServices) => {
-    const found = services.pdfReaderPort.registration;
-    if (!found) throw new Error("ZotLit has no PDF reader registration");
-    return found;
-  };
   const api = (): ReaderApi => {
-    const services = zotlit();
-    if (services) return registration(services).api;
     const found = app.plugins.plugins["zotlit-reader"]?.api as
       | ReaderApi
       | undefined;
@@ -73,26 +63,9 @@ export function createReaderHandle(
       });
       return opened!;
     },
-    takeover: () => {
-      const services = zotlit();
-      if (services)
-        return services.pdfReaderPort.registration?.takeover.get() === "on";
-      return app.viewRegistry.typeByExtension.pdf !== "pdf";
-    },
+    takeover: () => app.viewRegistry.typeByExtension.pdf !== "pdf",
     setTakeover: async (on) => {
       const wanted = on ? "on" : "off";
-      const services = zotlit();
-      if (services) {
-        const { bridge, settings } = services;
-        await bridge.runPromise(
-          settings.update({ "reader.open-all-pdfs": on }),
-        );
-        await until(
-          `the takeover to turn ${wanted}`,
-          () => registration(services).takeover.get() === wanted,
-        );
-        return;
-      }
       const reader = app.plugins.plugins["zotlit-reader"]?.services as
         | ReaderServices
         | undefined;
@@ -111,8 +84,6 @@ export function createReaderHandle(
       await handle.setTakeover(on);
     },
     views: () => {
-      const services = zotlit();
-      if (services) return [...registration(services).views()];
       const { viewType } = api();
       return app.workspace
         .getLeavesOfType(viewType)

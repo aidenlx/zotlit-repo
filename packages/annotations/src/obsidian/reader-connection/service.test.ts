@@ -2,11 +2,12 @@
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
 import {
+  Events,
   FileSystemAdapter,
   Scope as ObsidianScope,
   WorkspaceLeaf,
 } from "obsidian";
-import type { App, TFile, Vault, View } from "obsidian";
+import type { App, PaneType, TFile, Vault, View } from "obsidian";
 import { afterEach, beforeEach, expect, expectTypeOf, vi } from "vitest";
 import type { MockInstance } from "vitest";
 
@@ -15,6 +16,7 @@ import {
   resetMockPlatform,
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type {
   ConnectHandlers,
@@ -22,7 +24,9 @@ import type {
   ReaderApi,
   ReaderHostContext,
 } from "@zotlit/reader-api";
+import { answerConnect, READER_API } from "@zotlit/reader-api";
 
+import { readerHandshake } from "./handshake.ts";
 import type { ReaderConnectionState, ReaderSource } from "./service.ts";
 import { layerReaderConnection, ReaderConnection } from "./service.ts";
 
@@ -36,10 +40,6 @@ import {
 } from "#__fixtures__/pdf-annotation-editor.ts";
 import { editorFixtureLayer } from "#__fixtures__/pdf-annotation-editor/editor.ts";
 import { PdfAnnotationEditor } from "#obsidian/pdf-annotation-editor/service.ts";
-import {
-  BundledReader,
-  layerBundledReader,
-} from "#obsidian/pdf-reader/register.ts";
 import {
   layerZotlitPdfReader,
   ZotlitPdfReader,
@@ -84,7 +84,7 @@ function fakeApi(viewType = "zotlit-pdf") {
   });
   const open = vi.fn<ReaderApi["open"]>(async () => "opened");
   const api: ReaderApi = {
-    api: { major: 1, minor: 0 },
+    api: READER_API,
     readerVersion: "1.0.0",
     pdfjsBuild: "test",
     viewType,
@@ -289,53 +289,109 @@ it.effect(
 
 it("takes the Reader through the contract's types alone", () => {
   expectTypeOf<Parameters<ReaderSource>[0]>().toEqualTypeOf<ConnectHandlers>();
-  expectTypeOf<
-    Parameters<BundledReader["Service"]["accept"]>[0]
-  >().toEqualTypeOf<ReaderApi>();
+  expectTypeOf(readerHandshake).returns.toEqualTypeOf<ReaderSource>();
   expectTypeOf<
     Extract<ReaderConnectionState, { status: "connected" }>["api"]
   >().toEqualTypeOf<ReaderApi>();
 });
 
-const bundledReader = Effect.gen(function* () {
-  const context = yield* Layer.build(
-    layerZotlitPdfReader.pipe(
-      Layer.provideMerge(
-        Layer.unwrap(
-          Effect.gen(function* () {
-            const bundled = yield* BundledReader;
-            return layerReaderConnection(bundled.source);
-          }),
+class OpeningWorkspace extends MemoryWorkspace {
+  readonly openFile = vi.fn<WorkspaceLeaf["openFile"]>(async () => {});
+
+  override getLeaf(newLeaf?: PaneType | boolean): WorkspaceLeaf {
+    super.getLeaf(newLeaf);
+    return stubService<WorkspaceLeaf>("WorkspaceLeaf", {
+      openFile: this.openFile,
+    });
+  }
+}
+
+const handshakeReader = (prepare: (events: Events) => void = () => {}) =>
+  Effect.gen(function* () {
+    const events = new Events();
+    prepare(events);
+    const workspace = new OpeningWorkspace();
+    const context = yield* Layer.build(
+      layerZotlitPdfReader.pipe(
+        Layer.provideMerge(
+          layerReaderConnection(
+            readerHandshake({ workspace: events }, "zotlit"),
+          ),
         ),
+        Layer.provideMerge(layerWorkspaceFrom(workspace)),
       ),
-      Layer.provideMerge(layerBundledReader),
-    ),
-  );
-  return {
-    bundled: Context.get(context, BundledReader),
-    connection: Context.get(context, ReaderConnection),
-    reader: Context.get(context, ZotlitPdfReader),
-  };
-});
+    );
+    return {
+      events,
+      workspace,
+      connection: Context.get(context, ReaderConnection),
+      reader: Context.get(context, ZotlitPdfReader),
+    };
+  });
+
+const paper = () => stubService<TFile>("TFile", { path: "paper.pdf" });
 
 it.effect(
-  "connects the bundled reader when onload hands over its api, and opens through it",
+  "connects through the handshake when the Reader started first, and opens through its api",
   () =>
     Effect.gen(function* () {
-      const { bundled, connection, reader } = yield* bundledReader;
-      const file = stubService<TFile>("TFile", { path: "paper.pdf" });
-      expect(yield* connection.current).toEqual({ status: "absent" });
-      const before = yield* reader
-        .open(file, "#page=2", "tab")
-        .pipe(Effect.flip);
-      expect(before._tag).toBe("ReaderUnavailable");
       const { api, open } = fakeApi();
-      bundled.accept(api);
+      const { workspace, connection, reader } = yield* handshakeReader(
+        (events) => answerConnect(events, new Map([[READER_API.major, api]])),
+      );
       expect(yield* connection.current).toEqual({ status: "connected", api });
+      const file = paper();
       expect(yield* reader.open(file, "#page=2", "tab")).toBe("opened");
       expect(open).toHaveBeenCalledExactlyOnceWith(file, {
         subpath: "#page=2",
         pane: "tab",
       });
+      expect(workspace.openFile).not.toHaveBeenCalled();
+    }),
+);
+
+it.effect(
+  "opens in Obsidian's PDF view until the Reader starts, then connects on its ready",
+  () =>
+    Effect.gen(function* () {
+      const { events, workspace, connection, reader } =
+        yield* handshakeReader();
+      expect(yield* connection.current).toEqual({ status: "absent" });
+      const file = paper();
+      expect(yield* reader.open(file, "#page=2", "tab")).toBe("opened");
+      expect(workspace.leafRequests).toEqual(["tab"]);
+      expect(workspace.openFile).toHaveBeenCalledExactlyOnceWith(file, {
+        eState: { subpath: "#page=2" },
+      });
+      const { api, open } = fakeApi();
+      answerConnect(events, new Map([[READER_API.major, api]]));
+      expect(yield* connection.current).toEqual({ status: "connected", api });
+      expect(yield* reader.open(file, "", false)).toBe("opened");
+      expect(open).toHaveBeenCalledOnce();
+      expect(workspace.openFile).toHaveBeenCalledOnce();
+    }),
+);
+
+it.effect(
+  "is incompatible when the Reader refuses ZotLit's major, and opens in Obsidian's PDF view",
+  () =>
+    Effect.gen(function* () {
+      const { events, workspace, connection, reader } =
+        yield* handshakeReader();
+      const { api } = fakeApi();
+      answerConnect(events, new Map([[READER_API.major + 1, api]]));
+      expect(yield* connection.current).toEqual({
+        status: "incompatible",
+        reason: {
+          supported: [READER_API.major + 1],
+          readerVersion: "1.0.0",
+        },
+      });
+      const file = paper();
+      expect(yield* reader.open(file, "", true)).toBe("opened");
+      expect(workspace.openFile).toHaveBeenCalledExactlyOnceWith(
+        file,
+        undefined,
+      );
     }),
 );

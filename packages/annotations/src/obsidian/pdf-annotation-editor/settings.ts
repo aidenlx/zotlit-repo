@@ -40,7 +40,6 @@ export const readerSettings = settingsSlice(
     "reader.ink-width": inkWidthSchema,
     /** The font size the PDF reader's text tool types at, in PDF points. */
     "reader.text-font-size": textFontSizeSchema,
-    "reader.open-all-pdfs": v.boolean(),
   },
   {
     "reader.focus-annot-view": true,
@@ -50,7 +49,6 @@ export const readerSettings = settingsSlice(
     "reader.recent-colors": [],
     "reader.ink-width": DEFAULT_INK_WIDTH,
     "reader.text-font-size": DEFAULT_TEXT_FONT_SIZE,
-    "reader.open-all-pdfs": false,
   },
 );
 

@@ -164,6 +164,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
   // animation frames. The windows close with the vault when the run ends.
   beforeAll(async () => {
     await prepareRunWindow(vaultId!);
+    await obRun(vaultId!, async ({ page }) => {
+      await page.reader.setTakeover(false);
+    });
   });
 
   const prepareAuthorizationFixture = async (): Promise<void> => {

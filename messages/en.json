@@ -723,7 +723,6 @@
   "settings_reader_open_annotation_links_name": "Open annotation links in ZotLit reader",
   "settings_reader_open_annotation_links_desc": "Open Zotero annotation links in ZotLit’s PDF reader with the annotation selected. When off, the links open in Zotero.",
   "settings_reader_open_all_pdfs_name": "Open all PDFs in the ZotLit reader",
-  "settings_reader_open_all_pdfs_desc": "Open every PDF in the vault in ZotLit’s reader, with PDF embeds, hover previews and canvas cards. When off, only the PDFs that ZotLit opens use its reader.",
   "settings_note_folder_desc": "Where new literature notes are created.",
   "settings_page_profiles": "Literature note profiles",
   "settings_page_profiles_desc": "Use a different template, folder, or citation style for some notes, and share template text between them.",

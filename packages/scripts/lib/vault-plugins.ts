@@ -14,7 +14,7 @@ export interface VaultPlugin {
 export const pluginsOption = {
   describe: "plugins to install and enable, comma-separated, in start-up order",
   type: "string",
-  default: FIXTURE_PLUGIN_ID,
+  default: `zotlit-reader,${FIXTURE_PLUGIN_ID}`,
 } as const;
 
 export async function resolveVaultPlugins(

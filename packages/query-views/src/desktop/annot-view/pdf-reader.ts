@@ -3,10 +3,7 @@ import { Effect } from "effect";
 
 import { obsidianAttachmentReader } from "@zotlit/annotations/desktop/attachment-open/obsidian-reader.ts";
 import type { TargetReader } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
-import type {
-  ReaderOpenFailed,
-  ReaderUnavailable,
-} from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
+import type { ReaderOpenFailed } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
 import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -21,7 +18,7 @@ import { activateAnnotView } from "./register.ts";
  * keeps the sidebar arranged their own way.
  */
 export const pdfReader: Effect.Effect<
-  TargetReader<ReaderUnavailable | ReaderOpenFailed>,
+  TargetReader<ReaderOpenFailed>,
   never,
   ObsidianApp | PluginSettings | ZotlitPdfReader | Vault
 > = Effect.gen(function* () {

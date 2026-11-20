@@ -233,7 +233,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ["on", true],
       ["off", false],
     ] as const)(
-      "lands a vault link with an Annotation Anchor while Open all PDFs in the ZotLit reader is %s, and rebinds to the other Attachment of the file a later link names (E-4)",
+      "lands a vault link with an Annotation Anchor while Open all PDFs is %s, and rebinds to the other Attachment of the file a later link names (E-4)",
       async (_, takeover) => {
         await using cleanup = new AsyncDisposableStack();
         cleanup.defer(async () => {
@@ -372,7 +372,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       180_000,
     );
 
-    it("keeps a plain page link in Obsidian's own PDF view while Open all PDFs in the ZotLit reader is off, and moves a tab of that view to the ZotLit reader for a link with an Annotation or Attachment Anchor (E-4)", async () => {
+    it("keeps a plain page link in Obsidian's own PDF view while Open all PDFs is off, and moves a tab of that view to the ZotLit reader for a link with an Annotation or Attachment Anchor (E-4)", async () => {
       const outcome = await obRun(
         run.vaultId,
         async ({ app, zotlit, page }, { path, pageTwoMark, attachmentKey }) => {

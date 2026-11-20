@@ -4,9 +4,8 @@ title: ZotLit PDF reader
 # ZotLit PDF reader
 
 These checks open the test PDFs in `attachments/pdf-reader/` in the ZotLit PDF
-reader. First go to **Settings → ZotLit → Reader** and turn on **Open all PDFs
-in the ZotLit reader**. Then select each link below. Turn the setting off again
-at the end.
+reader. First go to **Settings → ZotLit Reader → Reader** and turn on **Open
+all PDFs**. Then select each link below. Turn the setting off again at the end.
 
 The desktop check, `pnpm e2e --project=desktop src/reader.e2e.ts`, covers each
 table below in ZotLit Reader alone, with its own **Open all PDFs** setting

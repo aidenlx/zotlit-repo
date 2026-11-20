@@ -25,6 +25,7 @@ export default async function setup() {
   const cwd = await getWorkspaceRoot(import.meta.dirname);
   if (!(await isObsidianReachable(cwd))) return;
   // A walk proves the page against the code as it is now, not an old bundle.
+  await assertDevBundleFresh(cwd, "apps/reader");
   await assertDevBundleFresh(cwd, "apps/obsidian");
   const exclusive = exclusiveHoldRequested();
   const slot = await acquireDesktopSlotOrExit({

@@ -1,20 +1,11 @@
 import { Context, Effect, Layer, Schema } from "effect";
 import type { PaneType, TFile } from "obsidian";
 
-import type { PdfReaderRegistration } from "@zotlit/pdf-reader/obsidian";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 
 import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
-export interface ZotlitPdfReaderPort {
-  registration: PdfReaderRegistration | null;
-}
-
 export type ZotlitPdfOpenOutcome = "opened" | "file-missing";
-
-export class ReaderUnavailable extends Schema.TaggedError<
-  ReaderUnavailable,
-  { readonly brand: unique symbol }
->()("ReaderUnavailable", { message: Schema.String }) {}
 
 export class ReaderOpenFailed extends Schema.TaggedError<
   ReaderOpenFailed,
@@ -24,48 +15,47 @@ export class ReaderOpenFailed extends Schema.TaggedError<
 export class ZotlitPdfReader extends Context.Service<
   ZotlitPdfReader,
   {
-    readonly port: ZotlitPdfReaderPort;
     open(
       file: TFile,
       subpath: string,
       pane: PaneType | boolean,
-    ): Effect.Effect<
-      ZotlitPdfOpenOutcome,
-      ReaderUnavailable | ReaderOpenFailed
-    >;
+    ): Effect.Effect<ZotlitPdfOpenOutcome, ReaderOpenFailed>;
   }
 >()("zotlit/pdf-reader/ZotlitPdfReader") {}
 
 export const layerZotlitPdfReader: Layer.Layer<
   ZotlitPdfReader,
   never,
-  ReaderConnection
+  ReaderConnection | Workspace
 > = Layer.effect(
   ZotlitPdfReader,
   Effect.gen(function* () {
     const connection = yield* ReaderConnection;
-    const port: ZotlitPdfReaderPort = { registration: null };
+    const workspace = yield* Workspace;
     return ZotlitPdfReader.of({
-      port,
       open: Effect.fn("ZotlitPdfReader.open")(
         function* (
           file,
           subpath,
           pane,
-        ): Effect.fn.Return<
-          ZotlitPdfOpenOutcome,
-          ReaderUnavailable | ReaderOpenFailed
-        > {
+        ): Effect.fn.Return<ZotlitPdfOpenOutcome, ReaderOpenFailed> {
           const state = yield* connection.current;
-          if (state.status !== "connected") {
-            return yield* new ReaderUnavailable({
-              message: "The ZotLit PDF reader is not registered",
+          if (state.status === "connected") {
+            return yield* Effect.tryPromise({
+              try: () => state.api.open(file, { subpath, pane }),
+              catch: (cause) => new ReaderOpenFailed({ cause }),
             });
           }
-          return yield* Effect.tryPromise({
-            try: () => state.api.open(file, { subpath, pane }),
+          const leaf = yield* workspace.getLeaf(pane);
+          yield* Effect.tryPromise({
+            try: () =>
+              leaf.openFile(
+                file,
+                subpath ? { eState: { subpath } } : undefined,
+              ),
             catch: (cause) => new ReaderOpenFailed({ cause }),
           });
+          return "opened";
         },
       ),
     });

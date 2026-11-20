@@ -1,7 +1,5 @@
 import { Plugin } from "obsidian";
 
-import type { PdfReaderRegistration } from "@zotlit/pdf-reader/obsidian";
-import { registerPdfReader } from "@zotlit/pdf-reader/obsidian";
 import type {
   ReaderApi,
   ReaderExtension,
@@ -10,12 +8,10 @@ import type {
 } from "@zotlit/reader-api";
 import { connectReader, READER_API } from "@zotlit/reader-api";
 
-const PROBE_VIEW_TYPE = "probe-pdf";
 const PROBE_LAYER = "probe-band";
 
 export interface ProbeData {
   readonly major?: number;
-  readonly host?: boolean;
 }
 
 type ProbeConnection =
@@ -24,7 +20,6 @@ type ProbeConnection =
   | { readonly state: "absent" };
 
 export default class ReaderProbePlugin extends Plugin {
-  pdf: PdfReaderRegistration | null = null;
   connection: ProbeConnection | null = null;
   drawn = 0;
   readonly attached: {
@@ -63,12 +58,6 @@ export default class ReaderProbePlugin extends Plugin {
 
   override async onload(): Promise<void> {
     const data = ((await this.loadData()) ?? {}) as ProbeData;
-    if (data.host)
-      this.pdf = registerPdfReader(this, {
-        viewType: PROBE_VIEW_TYPE,
-        displayName: "Probe PDF",
-        extensions: [this.extension],
-      });
     this.register(
       connectReader(
         this.app.workspace,

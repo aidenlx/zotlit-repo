@@ -99,7 +99,6 @@ settings_pages
     settings_reader_focus_annot_view
     settings_reader_open_file_links
     settings_reader_open_annotation_links
-    settings_reader_open_all_pdfs
   settings_page_advanced
     template_workbench_preference
     settings_update_notices

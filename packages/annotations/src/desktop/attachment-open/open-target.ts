@@ -8,10 +8,7 @@
 // @see apps/obsidian/docs/adr/0045-file-link-capture-patches-window-open.md
 
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
-import type {
-  ReaderOpenFailed,
-  ReaderUnavailable,
-} from "#obsidian/pdf-reader/service.ts";
+import type { ReaderOpenFailed } from "#obsidian/pdf-reader/service.ts";
 import { Context, Effect, Layer, Schema } from "effect";
 import type { Duration } from "effect";
 import { fileURLToPath } from "node:url";
@@ -144,7 +141,7 @@ export class TargetOpener extends Context.Service<
  */
 export class PdfTargetReader extends Context.Service<
   PdfTargetReader,
-  TargetReader<ReaderUnavailable | ReaderOpenFailed>
+  TargetReader<ReaderOpenFailed>
 >()("zotlit/annotations/PdfTargetReader") {}
 
 export interface TargetOpenerPorts<R, E> {

@@ -1045,7 +1045,11 @@ const rawTiers: RawTier[] = [];
 let failure: Error | undefined;
 let environmentLines: string[] = [];
 try {
-  const created = await runVaultScript(["create", vaultPath]);
+  const created = await runVaultScript([
+    "create",
+    vaultPath,
+    "--plugins=zotlit",
+  ]);
   vaultId = created.stdout.trim().split("\n")[0]!.trim();
   await prepareRunWindow(vaultId);
   environmentLines = await environment();

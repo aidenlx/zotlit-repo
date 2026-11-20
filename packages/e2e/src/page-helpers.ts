@@ -720,10 +720,13 @@ export function createPageHelpers(
         if (past(end)) throw new Error(what());
       }
     }
-    function restoreLedger(cleanup: AsyncDisposableStack): void {
-      const savedLedger = JSON.stringify(
-        app.loadLocalStorage("zotlit-use-ledger") ?? null,
-      );
+    function restoreLedger(
+      cleanup: AsyncDisposableStack,
+      saved?: string,
+    ): void {
+      const savedLedger =
+        saved ??
+        JSON.stringify(app.loadLocalStorage("zotlit-use-ledger") ?? null);
       cleanup.defer(async () => {
         if (
           JSON.stringify(app.loadLocalStorage("zotlit-use-ledger") ?? null) ===

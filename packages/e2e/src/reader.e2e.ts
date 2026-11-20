@@ -3780,7 +3780,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
 
   describe("the contract probe, a plugin with no Zotero code that reaches the Reader through its API", () => {
     const enableProbe = async (data: ProbeData) => {
-      await installReaderProbe(workspaceRoot, vaultPath);
+      await installReaderProbe(vaultPath);
       await writeProbeData(vaultPath, data);
       await obRun(
         vaultId,
@@ -3895,7 +3895,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
     });
 
     it("the probe enabled after a Reader tab is open gets its layer in that tab", async () => {
-      await installReaderProbe(workspaceRoot, vaultPath);
+      await installReaderProbe(vaultPath);
       await writeProbeData(vaultPath, {});
       const attached = await obRun(
         vaultId,

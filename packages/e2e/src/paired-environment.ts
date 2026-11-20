@@ -76,6 +76,7 @@ export async function openPairedEnvironment(
   const opened = await run([
     "open",
     vaultPath,
+    "--plugins=zotlit-reader,zotlit",
     "--local-api",
     ...(vaultCase ? ["--vault-case", vaultCase] : []),
     `--live-update-port=${liveUpdatePort}`,

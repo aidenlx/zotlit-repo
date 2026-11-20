@@ -10,7 +10,7 @@ some pages in a different way, so it converts each link to its own pieces
 before it highlights the text, and it converts back when it copies a link.
 
 These checks need the ZotLit PDF reader to take over PDFs. Go to **Settings →
-ZotLit → Reader** and turn on **Open all PDFs in the ZotLit reader**, then open
+ZotLit Reader → Reader** and turn on **Open all PDFs**, then open
 this note again. With the takeover off, each link opens
 in Obsidian's own PDF view and highlights the same text.
 

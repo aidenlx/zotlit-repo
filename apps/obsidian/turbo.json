@@ -7,8 +7,7 @@
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types",
-        "@zotlit/item-query#generate:schema",
-        "@zotlit/pdf-reader#generate"
+        "@zotlit/item-query#generate:schema"
       ],
       "env": [
         "$TURBO_EXTENDS$",
@@ -26,7 +25,7 @@
       ]
     },
     "build:dev": {
-      "dependsOn": ["$TURBO_EXTENDS$", "@zotlit/pdf-reader#generate"],
+      "dependsOn": ["$TURBO_EXTENDS$"],
       "cache": false,
       "env": [
         "ANALYZE",
@@ -60,31 +59,27 @@
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
-        "@zotlit/pdf-reader#generate"
+        "@zotlit/workbench#generate:message-types"
       ]
     },
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
-        "@zotlit/pdf-reader#generate"
+        "@zotlit/workbench#generate:message-types"
       ]
     },
     "typecheck:node": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
-        "@zotlit/pdf-reader#generate"
+        "@zotlit/workbench#generate:message-types"
       ]
     },
     "test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/pdf-reader#generate"
+        "@zotlit/plugin-messages#generate:language-packs"
       ],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/assets/logo/**"]
     }

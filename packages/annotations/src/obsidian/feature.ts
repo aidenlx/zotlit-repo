@@ -5,7 +5,6 @@
 // the Target Opener and the commands that open Attachments.
 import { Effect, Layer } from "effect";
 
-import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -13,7 +12,6 @@ import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
-import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import {
@@ -48,14 +46,8 @@ import {
 } from "./pdf-annotation-editor/service.ts";
 import { readerPageItems } from "./pdf-annotation-editor/settings-page.ts";
 import { readerSettings } from "./pdf-annotation-editor/settings.ts";
-import { layerPdfEngine } from "./pdf-engine/layer.ts";
-import { PdfEngine } from "./pdf-engine/service.ts";
-import {
-  BundledReader,
-  layerBundledReader,
-  registerZotlitReader,
-} from "./pdf-reader/register.ts";
 import { layerZotlitPdfReader, ZotlitPdfReader } from "./pdf-reader/service.ts";
+import { readerHandshake } from "./reader-connection/handshake.ts";
 import {
   layerReaderConnection,
   ReaderConnection,
@@ -65,19 +57,15 @@ export const annotations = defineFeature({
   name: "annotations",
   settings: [readerSettings],
   services: [
-    serviceGroup("PdfEngine", { provides: [PdfEngine] }, layerPdfEngine),
-    serviceGroup(
-      "BundledReader",
-      { provides: [BundledReader] },
-      layerBundledReader,
-    ),
     serviceGroup(
       "ReaderConnection",
-      { provides: [ReaderConnection], requires: [BundledReader] },
+      { provides: [ReaderConnection] },
       Layer.unwrap(
         Effect.gen(function* () {
-          const bundled = yield* BundledReader;
-          return layerReaderConnection(bundled.source);
+          const host = yield* PluginHost;
+          return layerReaderConnection(
+            readerHandshake(host.app, host.manifest.id),
+          );
         }),
       ),
     ),
@@ -180,21 +168,11 @@ export const annotations = defineFeature({
     annotationRepository: read(AnnotationRepository),
     capabilityNotices: bindCapabilityNotices(bridge, read(CapabilityNotices)),
     pdfAnnotationEditor: read(PdfAnnotationEditor),
-    pdfEngine: read(PdfEngine),
     pdfReader: read(ZotlitPdfReader),
-    pdfReaderPort: read(ZotlitPdfReader).port,
   }),
-  onload: ({ plugin, bridge, read }) => {
+  onload: ({ bridge, read }) => {
     const annotationRepository = read(AnnotationRepository);
     const pdfAnnotationEditor = read(PdfAnnotationEditor);
-    registerZotlitReader(plugin, {
-      engine: read(PdfEngine),
-      bundled: read(BundledReader),
-      bridge,
-      notifier: read(Notifier),
-      settings: read(PluginSettings),
-      port: read(ZotlitPdfReader).port,
-    });
     return {
       fileMenu: {
         "annotation-history": annotationHistoryFileMenu({

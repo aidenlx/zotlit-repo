@@ -692,9 +692,6 @@ importers:
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../../packages/obsidian-kit
-      '@zotlit/pdf-reader':
-        specifier: workspace:*
-        version: link:../../packages/pdf-reader
       '@zotlit/pdf-structure':
         specifier: workspace:*
         version: link:../../packages/pdf-structure
@@ -810,9 +807,6 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../../packages/db-testing
-      '@zotlit/pdfjs':
-        specifier: workspace:*
-        version: link:../../packages/pdfjs
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../../packages/scripts
@@ -1049,9 +1043,6 @@ importers:
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../obsidian-kit
-      '@zotlit/pdf-reader':
-        specifier: workspace:*
-        version: link:../pdf-reader
       '@zotlit/pdf-structure':
         specifier: workspace:*
         version: link:../pdf-structure
@@ -1137,6 +1128,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
+      '@zotlit/pdf-reader':
+        specifier: workspace:*
+        version: link:../pdf-reader
       '@zotlit/pdfjs':
         specifier: workspace:*
         version: link:../pdfjs

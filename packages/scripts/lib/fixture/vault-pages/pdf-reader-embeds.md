@@ -4,7 +4,7 @@ title: PDF reader embeds
 # PDF reader embeds
 
 These checks need the ZotLit PDF reader to take over PDFs. Go to **Settings →
-ZotLit → Reader** and turn on **Open all PDFs in the ZotLit reader**, then open
+ZotLit Reader → Reader** and turn on **Open all PDFs**, then open
 this note again.
 
 | Action | Expected result |
@@ -18,7 +18,7 @@ this note again.
 | Move this note to a new window. | The embeds stay in the reader and show the same pages in the new window. |
 | Open `pdf-reader-embeds.canvas`. | The card shows page 2 in the reader. Select the card, then drag across its text: the text is selected and the card does not move. |
 | Export this note to PDF. | Each embed prints as one image of its page: page 1, page 2 and page 1. |
-| Turn **Open all PDFs in the ZotLit reader** off, then open this note again. | The embeds show Obsidian's own PDF embed. A PDF opened from the file explorer opens in Obsidian's PDF view. |
+| Turn **Open all PDFs** off, then open this note again. | The embeds show Obsidian's own PDF embed. A PDF opened from the file explorer opens in Obsidian's PDF view. |
 
 Two desktop checks cover this page. `pnpm e2e --project=desktop
 src/reader.e2e.ts -t R-3` checks the three embeds, **More options**, the hover

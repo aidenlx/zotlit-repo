@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
+import { Events } from "obsidian";
 import type { App, SecretStorage } from "obsidian";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -27,7 +28,12 @@ const base = Layer.mergeAll(
   layerHost(),
   layerTestObsidianEnv(),
   testNotifier().layer,
-  testPluginHost().layer,
+  testPluginHost({
+    app: stubService<App>("App", {
+      workspace: new Events() as unknown as App["workspace"],
+    }),
+    manifest: { id: "zotlit" },
+  }).layer,
   Layer.succeed(LanguagePack, stubService("LanguagePack", {})),
   makeGraphBuilt().layer,
   Layer.succeed(

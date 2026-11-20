@@ -54,6 +54,17 @@ const desktopModules = {
   message:
     "The Obsidian layer loads on Obsidian Mobile, where Node and Electron are absent; desktop code belongs in src/desktop/.",
 };
+const readerModules = {
+  group: [
+    "@zotlit/pdf-reader",
+    "@zotlit/pdf-reader/**",
+    "@zotlit/pdfjs",
+    "@zotlit/pdfjs/**",
+  ],
+  allowTypeImports: true,
+  message:
+    "ZotLit Reader owns the PDF reader and pdf.js; reach them through ReaderConnection and @zotlit/reader-api.",
+};
 const layer = (names: string[], message: string) => ({
   group: names.map((name) => `#${name}/**`),
   message,
@@ -74,13 +85,18 @@ const aboveDesktop = layer(
 const coreImports = withPatterns(runtimeImports, [
   hostModulePattern,
   pluginLayers,
+  readerModules,
   aboveCore,
 ]);
 const obsidianImports = withPatterns(runtimeImports, [
   desktopModules,
+  readerModules,
   aboveObsidian,
 ]);
-const desktopImports = withPatterns(runtimeImports, [aboveDesktop]);
+const desktopImports = withPatterns(runtimeImports, [
+  readerModules,
+  aboveDesktop,
+]);
 
 const NOT_TESTS = [
   "src/**/*.test.ts",
@@ -126,7 +142,6 @@ const SERVICES = [
   "src/*/attachment-open/**",
   "src/*/excerpt-image/**",
   "src/*/pdf-annotation-editor/**",
-  "src/*/pdf-engine/**",
   "src/*/reader-connection/**",
   "src/*/reader-session/**",
 ];

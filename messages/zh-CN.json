@@ -761,7 +761,6 @@
   "settings_reader_open_annotation_links_name": "在 ZotLit 阅读器中打开标注链接",
   "settings_reader_open_annotation_links_desc": "在 ZotLit 的 PDF 阅读器中打开 Zotero 标注链接并选中该标注。关闭后，链接在 Zotero 中打开。",
   "settings_reader_open_all_pdfs_name": "在 ZotLit 阅读器中打开所有 PDF",
-  "settings_reader_open_all_pdfs_desc": "用 ZotLit 的阅读器打开仓库中的所有 PDF，包括嵌入的 PDF、悬停预览和白板卡片。关闭后，只有 ZotLit 打开的 PDF 使用其阅读器。",
   "settings_note_folder_desc": "新文献笔记的创建位置。",
   "settings_page_profiles": "文献笔记配置方案",
   "settings_page_profiles_desc": "为部分笔记指定不同的模板、文件夹或引注样式，并在它们之间共享模板文本。",

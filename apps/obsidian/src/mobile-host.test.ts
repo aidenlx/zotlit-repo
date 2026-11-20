@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
+import { Events } from "obsidian";
 import type { App, SecretStorage } from "obsidian";
 
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
@@ -29,7 +30,13 @@ const base = Layer.mergeAll(
   layerTestObsidianEnv(),
   testNotifier().layer,
   // No graph view to hook: the build has no view registry member.
-  testPluginHost({ onViewCreated: () => Effect.succeed(false) }).layer,
+  testPluginHost({
+    onViewCreated: () => Effect.succeed(false),
+    app: stubService<App>("App", {
+      workspace: new Events() as unknown as App["workspace"],
+    }),
+    manifest: { id: "zotlit" },
+  }).layer,
   Layer.succeed(LanguagePack, stubService("LanguagePack", {})),
   makeGraphBuilt().layer,
   Layer.succeed(

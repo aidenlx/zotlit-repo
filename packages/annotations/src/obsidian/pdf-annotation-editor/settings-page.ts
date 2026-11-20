@@ -26,11 +26,5 @@ export function readerPageItems(): SettingDefinitionItem<SettingsKey>[] {
       desc: m.settings_reader_open_annotation_links_desc(),
       control: { type: "toggle", key: "reader.open-annotation-links" },
     },
-    {
-      id: "settings_reader_open_all_pdfs",
-      name: m.settings_reader_open_all_pdfs_name(),
-      desc: m.settings_reader_open_all_pdfs_desc(),
-      control: { type: "toggle", key: "reader.open-all-pdfs" },
-    },
   ];
 }

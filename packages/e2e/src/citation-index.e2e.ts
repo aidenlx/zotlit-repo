@@ -118,7 +118,11 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
         recursive: true,
       },
     );
-    const created = await runVaultScript(["create", vaultPath]);
+    const created = await runVaultScript([
+      "create",
+      vaultPath,
+      "--plugins=zotlit",
+    ]);
     vaultId = created.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(vaultId);
     await cli([`vault=${vaultId}`, "plugin:disable", "id=zotlit"]);

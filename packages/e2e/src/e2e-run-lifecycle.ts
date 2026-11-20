@@ -24,13 +24,18 @@ let refCount = 0;
 async function bootstrap(): Promise<void> {
   run.m = await import("@zotlit/plugin-messages/messages.ts");
   await clearVault(runVaultScript, e2eVaultPath);
-  const plugins = await installPlugins(workspaceRoot, e2eVaultPath, "zotlit");
+  const plugins = await installPlugins(
+    workspaceRoot,
+    e2eVaultPath,
+    "zotlit-reader,zotlit",
+  );
   const created = await runVaultScript(["open", e2eVaultPath, plugins]);
   run.vaultId = created.stdout.trim().split("\n")[0]!.trim();
   await obRun(
     run.vaultId,
-    async ({ app }) => {
+    async ({ app, page }) => {
       app.vault.setConfig("nativeMenus", false);
+      await page.reader.setTakeover(false);
       // Customize opens the Template Workbench in Obsidian, as on a device
       // that remembered "Edit here in Obsidian". A build with the web
       // Workbench asks for the destination first; its cases choose one.

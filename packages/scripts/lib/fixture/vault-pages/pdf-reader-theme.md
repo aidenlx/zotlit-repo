@@ -4,7 +4,7 @@ title: PDF reader theme
 # PDF reader theme
 
 These checks need the ZotLit PDF reader to take over PDFs. Go to **Settings →
-ZotLit → Reader** and turn on **Open all PDFs in the ZotLit reader**, then open
+ZotLit Reader → Reader** and turn on **Open all PDFs**, then open
 this note again.
 
 `pdf-reader-theme.pdf` has one page: a dark blue rectangle, a black letter
