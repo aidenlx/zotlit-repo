@@ -1,54 +1,59 @@
 # Obsidian on Android
 
-## Device setup
+The Mac drives Obsidian's WebView over adb and the Chrome DevTools Protocol, on an emulator or a USB device. Scripts in [`mobile/`](mobile/) do the evaluation.
 
-Use a USB Android device with USB debugging enabled, or boot an Android Virtual Device.
-For a local emulator on Apple Silicon, install a JDK and the
-[Mac ARM command-line tools](https://developer.android.com/studio#command-line-tools-only).
-With the tools on PATH and the SDK directory set, install one ARM64 image:
+## Tools, installed globally
+
+The SDK, the JDK and the AVD live in the standard global places, so every worktree shares one install:
 
 ```sh
+brew install openjdk@21
+brew install --cask android-commandlinetools
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+yes | sdkmanager --licenses
 sdkmanager platform-tools emulator 'system-images;android-35;google_apis;arm64-v8a'
 printf 'no\n' | avdmanager create avd -n ZotLitAndroid -k 'system-images;android-35;google_apis;arm64-v8a'
-emulator -avd ZotLitAndroid -no-window -no-audio -no-snapshot -gpu swiftshader_indirect
 ```
 
-Omit `-no-window` for setup that needs the emulator UI. If a sandboxed launch exits
-with signal 4 before boot, check `emulator -accel-check`. On the Mac used for the
-trial, the emulator booted when run with access to Hypervisor.framework outside
-the command sandbox.
+The AVD lands in `~/.android/avd`. Check first whether `avdmanager list avd` already lists `ZotLitAndroid`.
 
-Run `adb devices -l` and use the intended serial for every command below. Continue
-when `adb -s <serial> shell getprop sys.boot_completed` returns `1`.
+## Boot and install
+
+1. Start the emulator in the background and keep it running:
+   `emulator -avd ZotLitAndroid -no-window -no-audio -no-snapshot -memory 2560 -gpu swiftshader_indirect -no-metrics`.
+   If a sandboxed launch exits with signal 4 before boot, run it with access to Hypervisor.framework outside the command sandbox (`emulator -accel-check`).
+2. Wait for boot: `adb wait-for-device`, then until `adb shell getprop sys.boot_completed` prints `1`. With several devices, pass `-s <serial>` from `adb devices -l` to every adb call.
+3. Install the official APK: `gh release download -R obsidianmd/obsidian-releases --pattern '*.apk'`, then `adb install -r <apk>`. Record `adb shell getprop ro.build.version.release` and the WebView provider from `adb shell dumpsys webviewupdate`. The emulator image ships an old WebView (124 on Android 15 Google APIs); a real device updates it through the Play Store, so report the version beside every result.
 
 ## Attach
 
-1. **Open Obsidian.** Install the [official APK](https://obsidian.md/download) on the
-   test device with `adb -s <serial> install <apk>`. Launch the app and create a
-   disposable vault. Record the Android version with `getprop ro.build.version.release`
-   and the WebView provider with `dumpsys webviewupdate`, both through `adb shell`.
-2. **Find the app socket.** Use the PID reported by `adb -s <serial> shell pidof md.obsidian`.
-   Confirm that `adb -s <serial> shell cat /proc/net/unix` lists
-   `@webview_devtools_remote_<pid>`. If the socket is absent, bring Obsidian to the
-   foreground and check again. If the build does not expose an inspector, run the
-   probe from a temporary plugin in the disposable vault. See the
-   [Android WebView debugging guide](https://developer.chrome.com/docs/devtools/remote-debugging/webviews/).
-3. **Forward and select.** Forward to a free local port and query the page list.
+1. Launch and forward the app's DevTools socket. Repeat after every force-stop, because the PID changes:
 
    ```sh
-   adb -s <serial> forward --no-rebind tcp:9224 localabstract:webview_devtools_remote_<pid>
-   curl -fsS http://127.0.0.1:9224/json/list
+   pid=$(adb shell pidof md.obsidian | tr -d '\r')   # empty: adb shell am start -W -n md.obsidian/.MainActivity
+   adb forward --remove tcp:9224; adb forward tcp:9224 localabstract:webview_devtools_remote_$pid
    ```
 
-   Use the Obsidian page's `webSocketDebuggerUrl` with a CDP client, or select it in
-   Chrome at `chrome://inspect/#devices`. Confirm `location.origin` and
-   `app.vault.getName()` before a vault write. The Android trial used
-   `http://localhost`. The onboarding page can expose the WebView before a vault exists.
-4. **Probe.** For a CLI client, send `Runtime.evaluate` with `awaitPromise: true`
-   and `returnByValue: true`. Record the returned value or `exceptionDetails`.
-5. **Relaunch.** If the bug requires a cold start, run
-   `adb -s <serial> shell am force-stop md.obsidian` and reopen Obsidian. Remove
-   the old forward, get the new PID, and attach again before repeating the probe.
-6. **Clean up.** Close the CDP client and run
-   `adb -s <serial> forward --remove tcp:9224`. Report the app and WebView versions,
-   test results, and whether the target was an emulator or a physical device.
+2. Evaluate a file or stdin with [`mobile/cdp-eval.mjs`](mobile/cdp-eval.mjs) (`node mobile/cdp-eval.mjs <file|-> [seconds]`). It sends `Runtime.evaluate` with `awaitPromise` and prints the value or `ERROR <exceptionDetails>`. The origin is `http://localhost`.
+3. A fresh install opens on onboarding, and the WebView is already attachable there. Create a disposable vault by clicking through it in the page: "Create a vault" → "Continue without sync" → set the name input (dispatch an `input` event) → click "App storage" → "Create a vault". Then confirm `app.vault.getName()`.
+
+## Move files and run a plugin build
+
+The emulator reaches the Mac at `10.0.2.2`: serve the files with `python3 -m http.server 8765 --bind 127.0.0.1`, fetch them in the page with the global `requestUrl`, and write them with `app.vault.adapter.writeBinary`. Install and enable a plugin build as in [ios.md](ios.md) ("Run a plugin build").
+
+## Workers and errors
+
+pdf.js and other libraries run in Blob-URL Workers, whose console the page never sees. [`mobile/cdp-watch.mjs`](mobile/cdp-watch.mjs) evaluates a file while it auto-attaches every Worker (`Target.setAutoAttach` with `flatten`) and prints their exceptions and console output, tagged `W` (worker) or `P` (page). `Log.enable` replays old page entries first; read the `W` lines and the entries after your action.
+
+A view's own state is the source of truth for a load: a Reader can resolve `whenReady()` with a failed document, so read `reader.state.get().status` and `failure`.
+
+## Start-up time and memory
+
+- **Start-up:** relaunch from the Mac (`adb shell am force-stop md.obsidian`, then `am start -W -n md.obsidian/.MainActivity`), re-forward, and read the breakdown with [`mobile/startup-time.js`](mobile/startup-time.js). Emulator times run on a software GPU; compare them with each other, not with a device.
+- **Memory:** the page runs in the WebView renderer process, not in `md.obsidian`. Find it with `adb shell ps -A | grep sandboxed_process` and read `adb shell dumpsys meminfo <pid>` (TOTAL PSS / RSS). `performance.memory` gives the JS heap only.
+
+## Clean up
+
+`adb forward --remove-all`, `adb emu kill`, and stop the file server. Keep the global SDK and AVD for the next run. Report the target (emulator or device), the Android and WebView versions, and the results.

@@ -13,11 +13,11 @@ description: |
 Drive the running Obsidian app to verify plugin changes against real rendered state. The DOM
 is the source of truth.
 
-**iOS** — for a real iPhone, follow [ios.md](ios.md) to attach to the active Obsidian
-WebView and run probes from the Mac.
+**iOS** — for a real iPhone, follow [ios.md](ios.md) to attach to the Obsidian WebView, install a
+plugin build, and read start-up time from the Mac.
 
-**Android** — follow [android.md](android.md) to set up a standalone emulator or attach
-to Obsidian on a USB device, then run WebView probes from the Mac.
+**Android** — follow [android.md](android.md) to set up the global emulator or a USB device, attach
+to the Obsidian WebView and its Workers, install a plugin build, and read start-up time and memory.
 
 On desktop, make every Obsidian CLI call through `packages/scripts/scripts/obsidian-cli.ts` (written
 `obsidian-cli.ts` below), run from the repo root. It takes the `obsidian` binary's arguments
