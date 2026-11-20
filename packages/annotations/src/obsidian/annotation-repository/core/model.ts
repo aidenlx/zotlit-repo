@@ -505,6 +505,12 @@ type AnnotationMutation = Mutation<
   PendingProposal | null
 >;
 
+function sourceServerID(source: AnnotationSource): string | null {
+  return source.kind === "zotero-local-api"
+    ? source.serverID
+    : source.database.serverID;
+}
+
 /** One Annotation's or Attachment's key within one Zotero database. */
 function indexedID(serverID: string, key: string): string {
   return `${serverID}\0${key}`;
@@ -627,6 +633,7 @@ export {
   DRAFT_FIELDS,
   fieldMaps,
   indexedID,
+  sourceServerID,
   proposedText,
   sameText,
   freshValueOf,

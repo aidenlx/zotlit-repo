@@ -1841,7 +1841,23 @@ it.effect(
         state: { kind: "editing" },
       });
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "todo", "figure"]);
-      expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
+      const drawn = service.peek("RGRPDF24").pipe(
+        Effect.map((list) => ({
+          source: list?.value.source.kind,
+          tags: list?.value.annotations.find(({ key }) => key === "PUPR5FG5")
+            ?.tags,
+        })),
+      );
+      const release = zotero.holdWrites();
+      const saving = yield* Effect.forkChild(service.submitTags("PUPR5FG5"), {
+        startImmediately: true,
+      });
+      expect(yield* drawn).toEqual({
+        source: "zotero-db",
+        tags: ["review", "nlp", "todo", "figure"],
+      });
+      release();
+      expect(yield* Fiber.join(saving)).toEqual({ kind: "idle" });
       expect(zotero.tags).toEqual([
         "review",
         { tag: "nlp", type: 1 },

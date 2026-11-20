@@ -14,6 +14,7 @@ import {
   indexedID,
   proposedText,
   sameText,
+  sourceServerID,
 } from "./model.ts";
 import type {
   AnnotationList,
@@ -282,10 +283,7 @@ const reconcilePublishedDrafts = Effect.fnUntraced(function* (
   { attachmentKey, list }: { attachmentKey: string; list: AnnotationList },
 ) {
   if (held?.status !== "fresh" || held.value !== list) return;
-  const serverID =
-    list.source.kind === "zotero-local-api"
-      ? list.source.serverID
-      : list.source.database.serverID;
+  const serverID = sourceServerID(list.source);
   if (serverID === null) return;
   yield* reconcileDrafts(core, { serverID, attachmentKey }, list.annotations);
 });

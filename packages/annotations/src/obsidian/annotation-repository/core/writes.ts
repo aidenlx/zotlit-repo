@@ -61,12 +61,12 @@ import {
   compatibleApiSource,
   dropAttachment,
   editingCapability,
-  holding,
   prepareCollection,
   prepareWrite,
   read,
   refresh,
   rememberAcknowledgedRevision,
+  sessionHolding,
   sourceStillBound,
 } from "./lists.ts";
 import type { AnnotationLibraryUnresolved } from "./lists.ts";
@@ -684,7 +684,7 @@ const command = Effect.fnUntraced(function* (
   const expectedServerID =
     (yield* core.localApi.demandSource)?.serverID ?? null;
   const generation = core.commandGeneration;
-  const held = yield* holding(core, annotationKey);
+  const held = yield* sessionHolding(core, annotationKey);
   const proposal: PendingProposal | null =
     held && command.propose
       ? {

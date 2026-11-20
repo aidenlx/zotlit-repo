@@ -42,6 +42,7 @@ import {
   freshValueOf,
   fromLocalApi,
   indexedID,
+  sourceServerID,
   templateTags,
 } from "./model.ts";
 import type {
@@ -557,11 +558,7 @@ const sessionHolding = Effect.fnUntraced(function* (
   const api = yield* compatibleApiSource(core, attachmentKey);
   const list = core.publishedLists.get(attachmentKey);
   if (!api || !list) return null;
-  const serverID =
-    list.source.kind === "zotero-local-api"
-      ? list.source.serverID
-      : list.source.database.serverID;
-  if (serverID !== api.serverID) return null;
+  if (sourceServerID(list.source) !== api.serverID) return null;
   const record = list.annotations.find(({ key }) => key === annotationKey);
   return record ? { attachmentKey, record } : null;
 });
@@ -1039,8 +1036,8 @@ function withProposals(
   attachmentKey: string,
   list: AnnotationList,
 ): AnnotationList {
-  if (list.source.kind !== "zotero-local-api") return list;
-  const { serverID } = list.source;
+  const serverID = sourceServerID(list.source);
+  if (serverID === null) return list;
   const proposed = new Map<string, ProposedFields>();
   for (const mutation of core.queries.client
     .getMutationCache()
