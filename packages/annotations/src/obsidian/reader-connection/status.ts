@@ -85,6 +85,13 @@ export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
   }
 }
 
+export function readerStatusDetail(status: ReaderStatus): string {
+  const copy = readerStatusCopy(status);
+  return copy.action
+    ? `${copy.text} ${m.settings_reader_status_fallback()}`
+    : copy.text;
+}
+
 export const readerStatusChanges: Effect.Effect<
   Stream.Stream<ReaderStatus>,
   never,

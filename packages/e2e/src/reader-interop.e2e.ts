@@ -492,6 +492,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const savedNotices = app.loadLocalStorage(noticeKey);
           cleanup.defer(() => app.saveLocalStorage(noticeKey, savedNotices));
           app.saveLocalStorage(noticeKey, null);
+          const notices = () =>
+            [...document.querySelectorAll<HTMLElement>(".notice")].filter(
+              (notice) => notice.textContent.includes(noticeText),
+            );
+          cleanup.defer(() => {
+            for (const notice of notices()) notice.click();
+          });
           const file = app.vault.getFileByPath(path)!;
           const knownReader = new Set(
             app.workspace.getLeavesOfType("zotlit-pdf"),
@@ -547,10 +554,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             () => s.bridge.runSync(s.pdfAnnotationEditor.bindings).length === 0,
             10000,
           );
-          const notices = () =>
-            [...document.querySelectorAll<HTMLElement>(".notice")].filter(
-              (notice) => notice.textContent.includes(noticeText),
-            ).length;
           const opened = await s.bridge.runPromise(
             s.targetOpener.open(
               {
@@ -592,7 +595,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           const notice = await page.until(
             "the notice",
-            () => notices() === 1,
+            () => notices().length === 1,
             5000,
           );
           console.error = originalError;
@@ -628,6 +631,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await using cleanup = new AsyncDisposableStack();
           const services = () => zotlit.services;
           page.annotationLinkTools(services).restoreLedger(cleanup);
+          cleanup.defer(async () => {
+            if (!app.plugins.plugins.zotlit)
+              await app.plugins.enablePlugin("zotlit");
+          });
           cleanup.defer(async () => {
             for (const leaf of app.workspace.getLeavesOfType(
               page.reader.viewType,
@@ -816,9 +823,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     }, 180_000);
 
     it("keeps ZotLit's layer in a Reader tab when the contract probe claims another major and ZotLit Reader refuses it (I-7)", async () => {
-      await installReaderProbe(e2eVaultPath);
-      await writeProbeData(e2eVaultPath, { major: READER_API.major + 1 });
       try {
+        await installReaderProbe(e2eVaultPath);
+        await writeProbeData(e2eVaultPath, { major: READER_API.major + 1 });
         const outcome = await obRun(
           run.vaultId,
           async ({ app, zotlit, page }, { path, probeId }) => {
@@ -856,12 +863,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 '[data-zpr-part="toolbar"] .zt-pdf-creation-toolbar',
               ),
             );
-            await app.plugins.loadManifests();
-            await app.plugins.enablePlugin(probeId);
             cleanup.defer(async () => {
               if (app.plugins.plugins[probeId])
                 await app.plugins.disablePlugin(probeId);
             });
+            await app.plugins.loadManifests();
+            await app.plugins.enablePlugin(probeId);
             const probe = await page.until(
               "the probe's answer",
               () =>
@@ -1090,6 +1097,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const savedNotices = app.loadLocalStorage(noticeKey);
           cleanup.defer(() => app.saveLocalStorage(noticeKey, savedNotices));
           app.saveLocalStorage(noticeKey, null);
+          const notices = () =>
+            [...document.querySelectorAll<HTMLElement>(".notice")].filter(
+              (notice) => notice.textContent.includes(noticeText),
+            );
+          cleanup.defer(() => {
+            for (const notice of notices()) notice.click();
+          });
           const file = app.vault.getFileByPath(path)!;
           const known = new Set(app.workspace.getLeavesOfType("pdf"));
           cleanup.defer(() => {
@@ -1111,10 +1125,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             );
             originalError(...args);
           };
-          const notices = () =>
-            [...document.querySelectorAll<HTMLElement>(".notice")].filter(
-              (notice) => notice.textContent.includes(noticeText),
-            );
           type BuiltInPdf = {
             viewer?: {
               child?: {

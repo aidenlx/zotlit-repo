@@ -20,6 +20,7 @@ import type {
 import {
   readerStatusChanges,
   readerStatusCopy,
+  readerStatusDetail,
 } from "#obsidian/reader-connection/status.ts";
 
 export function readerStatusRow(
@@ -51,7 +52,7 @@ function renderReaderStatus(
     Stream.unwrap(readerStatusChanges).pipe(
       Stream.runForEach((status) => {
         const copy = readerStatusCopy(status);
-        statusEl.setText(copy.text);
+        statusEl.setText(readerStatusDetail(status));
         actionUrl = copy.action?.url ?? null;
         if (copy.action) actionButton?.setButtonText(copy.action.label);
         actionButton?.buttonEl.toggle(copy.action !== null);

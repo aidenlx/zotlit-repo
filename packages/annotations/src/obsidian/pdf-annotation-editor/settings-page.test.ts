@@ -101,7 +101,7 @@ it.effect(
   () =>
     Effect.gen(function* () {
       expect(yield* statusRow({ installed: false })).toEqual({
-        text: m.settings_reader_status_install(),
+        text: `${m.settings_reader_status_install()} ${m.settings_reader_status_fallback()}`,
         label: m.settings_reader_status_install_action(),
         opened: ["obsidian://show-plugin?id=zotlit-reader"],
       });
@@ -111,7 +111,7 @@ it.effect(
 it.effect("asks to turn on ZotLit Reader when it is installed but off", () =>
   Effect.gen(function* () {
     expect(yield* statusRow({ installed: true })).toMatchObject({
-      text: m.settings_reader_status_turn_on(),
+      text: `${m.settings_reader_status_turn_on()} ${m.settings_reader_status_fallback()}`,
       label: m.settings_reader_status_turn_on_action(),
       opened: ["obsidian://show-plugin?id=zotlit-reader"],
     });
@@ -128,7 +128,7 @@ it.effect(
           answer: answering(READER_API.major - 1),
         }),
       ).toMatchObject({
-        text: m.settings_reader_status_update({ plugin: "ZotLit Reader" }),
+        text: `${m.settings_reader_status_update({ plugin: "ZotLit Reader" })} ${m.settings_reader_status_fallback()}`,
         label: m.settings_reader_status_update_action(),
         opened: ["obsidian://show-plugin?id=zotlit-reader"],
       });
@@ -145,7 +145,7 @@ it.effect(
           answer: answering(READER_API.major + 1),
         }),
       ).toMatchObject({
-        text: m.settings_reader_status_update({ plugin: "ZotLit" }),
+        text: `${m.settings_reader_status_update({ plugin: "ZotLit" })} ${m.settings_reader_status_fallback()}`,
         label: m.settings_reader_status_update_action(),
         opened: ["obsidian://show-plugin?id=zotlit"],
       });

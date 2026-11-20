@@ -71,6 +71,12 @@ export const layerZotlitPdfReader: Layer.Layer<
             yield* fallbackNotice(status).pipe(
               Effect.provideService(DeviceStorage, storage),
               Effect.provideService(Notifier, notifier),
+              Effect.tapError((error) =>
+                Effect.logDebug(
+                  "The fallback notice could not read or save its device storage",
+                  error,
+                ),
+              ),
               Effect.ignore,
             );
           return "opened";

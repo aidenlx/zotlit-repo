@@ -5,7 +5,10 @@ import type { IconName } from "obsidian";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
-import { readerStatusCopy } from "@zotlit/annotations/obsidian/reader-connection/status.ts";
+import {
+  readerStatusCopy,
+  readerStatusDetail,
+} from "@zotlit/annotations/obsidian/reader-connection/status.ts";
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -386,7 +389,7 @@ function Checklist({ connect }: { connect: boolean }) {
           : m.welcome_step_reader_recommended()}
       </span>
     ),
-    body: <p className="zt:m-0">{readerCopy.text}</p>,
+    body: <p className="zt:m-0">{readerStatusDetail(readerStatus)}</p>,
     action: readerAction ? (
       <Button
         icon="external-link"

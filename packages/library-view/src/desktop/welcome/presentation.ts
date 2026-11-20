@@ -40,10 +40,6 @@ export interface WelcomeState {
    * Companion is optional: its step never keeps setup from being done.
    */
   companionInstalled: boolean;
-  /**
-   * Where ZotLit Reader stands. The Reader is optional: its step never keeps
-   * setup from being done.
-   */
   readerStatus: ReaderStatus;
   /** Current `note.literature-folder` binding in the default profile. */
   literatureFolder: string;

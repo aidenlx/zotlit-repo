@@ -8,8 +8,8 @@ Vault**). ZotLit opens PDFs in ZotLit Reader when it is on. Without it, ZotLit
 opens them in Obsidian's own PDF view and tells you once how to get the
 annotation tools.
 
-Before each section, turn ZotLit Reader off in **Settings → Community
-plugins**, or remove it for the "not installed" rows. To see the notice again,
+Each row says whether ZotLit Reader is on, off or removed; set that in
+**Settings → Community plugins** first. To see the notice again,
 run `app.saveLocalStorage("zotlit-reader-fallback-notices", null)` in the
 developer console.
 
@@ -23,4 +23,4 @@ developer console.
 | Select **Open PDF** again. | The PDF opens in Obsidian's PDF view, and no notice shows. |
 | Open the Annotation View and click the page chip of the image Annotation on page 2 of the Rougier paper (`attachments/rougier-2014.pdf`). | The PDF opens in Obsidian's PDF view on page 2. |
 | With ZotLit Reader on, open that Annotation, then turn ZotLit Reader off with the tab open. Click the page chip again. | ZotLit logs no error. The PDF opens in Obsidian's PDF view on page 2, and the notice shows if it did not show for "turned off" before. |
-| Open the Welcome View (**Welcome & help**) with ZotLit Reader off. | The setup steps end with **Install ZotLit Reader**, which says to turn it on and has a **Turn on** button. With ZotLit Reader on, the step is done and says **Connected**. |
+| Open the Welcome View (**Welcome & help**) with ZotLit Reader off. | The setup steps end with **ZotLit Reader**, which says to turn it on and has a **Turn on** button. With ZotLit Reader on, the step is done and says **Connected**. |
