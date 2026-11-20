@@ -9,8 +9,9 @@ import { join } from "node:path";
 //   (no flag)   the packages the branch changed since it left `main`, and
 //               their dependents.
 //   --release   every package, the desktop End-to-end Run and worker check,
-//               plus the Obsidian guideline review (ADR 0020) and the check
-//               of the publish repository's shell (check-shell.ts).
+//               the start-up gate (measure:startup --check), plus the
+//               Obsidian guideline review (ADR 0020) and the check of the
+//               publish repository's shell (check-shell.ts).
 //               `release.ts` runs it in the Land Turn of the version commit,
 //               a stable hotfix before its publish, and `release.yml` before
 //               it publishes (desktop checks skip there).
@@ -143,6 +144,7 @@ async function desktopChecks(): Promise<void> {
         cwd: root,
         command: "pnpm verify --release",
         silenceMs: SILENCE_LIMIT_MS.e2e,
+        exclusive: true,
       });
   await step("End-to-end Run", async () => {
     if (ci) {
@@ -154,6 +156,16 @@ async function desktopChecks(): Promise<void> {
     await sh({ env: { ...process.env, ZOTLIT_E2E_REQUIRED: "1" } })`pnpm e2e`;
     slot?.progress("pnpm e2e:worker starts");
     await sh({ env: { ...process.env } })`pnpm e2e:worker`;
+  });
+  await step("Start-up", async () => {
+    if (ci) {
+      console.log("The start-up gate is desktop-only and ran in pnpm release.");
+      return;
+    }
+    slot?.progress("measure:startup starts");
+    await sh({
+      env: { ...process.env },
+    })`pnpm --filter @zotlit/e2e measure:startup --check`;
   });
 }
 
