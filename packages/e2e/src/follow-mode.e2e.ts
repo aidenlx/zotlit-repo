@@ -204,7 +204,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     await obRun(
       imageVaultId,
       async ({ app, zotlit }) => {
-        app.workspace.detachLeavesOfType("pdf");
+        app.workspace.detachLeavesOfType("zotlit-pdf");
         app.workspace.detachLeavesOfType("zotero-annotation-view");
         await zotlit.services.bridge.runPromise(
           zotlit.services.excerptImage.clear,

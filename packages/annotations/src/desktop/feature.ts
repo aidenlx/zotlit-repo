@@ -50,6 +50,7 @@ import { ExcerptReaders } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 import { openExcerptStore } from "#obsidian/excerpt-image/store.ts";
 import { annotations as obsidianAnnotations } from "#obsidian/feature.ts";
+import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 /** The Literature Note attachments a command or a view opens, over the built graph. */
 export const literatureNoteAttachmentsOf = ({
@@ -88,7 +89,7 @@ export const annotations = extendFeature(obsidianAnnotations, {
       "ExcerptImages",
       {
         provides: [ExcerptImageService],
-        requires: [ExcerptReaders, FileSystem.FileSystem],
+        requires: [ExcerptReaders, FileSystem.FileSystem, PdfEngine],
       },
       Layer.unwrap(
         Effect.gen(function* () {

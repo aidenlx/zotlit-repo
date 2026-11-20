@@ -2,6 +2,12 @@
 import { Clock, DateTime, Effect, Layer } from "effect";
 import type { App, FileSystemAdapter, View } from "obsidian";
 
+import type { PdfReader } from "@zotlit/pdf-reader";
+import type {
+  ObsidianHostContext,
+  PdfReaderView,
+} from "@zotlit/pdf-reader/obsidian";
+
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -21,6 +27,7 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
+import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import { PdfAnnotationEditor, layerPdfAnnotationEditor } from "#obsidian/pdf-annotation-editor/service.ts";
 import type {
   AnnotationReads,
@@ -116,27 +123,76 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
     : layer;
 }
 
-export async function openPdfEditor(options: EditorFixtureOptions) {
+export interface OpenReaderView {
+  readonly fake: FakeReader;
+}
+
+export function attachReader(
+  editor: PdfAnnotationEditor["Service"],
+  view: OpenReaderView,
+  {
+    restored = false,
+    unloading = () => false,
+  }: { restored?: boolean; unloading?: () => boolean } = {},
+): Disposable | void {
+  return editor.extension.attach?.({
+    reader: view.fake.reader as PdfReader,
+    host: stubService<ObsidianHostContext>("ObsidianHostContext", {
+      view: view as unknown as PdfReaderView,
+      restored,
+      unloading,
+    }),
+    subpath: null,
+  });
+}
+
+export async function openPdfEditor(
+  options: EditorFixtureOptions & { open?: readonly OpenReaderView[] },
+) {
   await using stack = new AsyncDisposableStack();
   const runtime = buildRuntime(editorFixtureLayer(options), stack);
   await runtime.context();
   const service = runtime.runSync(PdfAnnotationEditor);
   const bridge = effectBridge(runtime);
   const owned = stack.move();
+  let unloading = false;
+  const attached = new Map<OpenReaderView, Disposable | void>();
+  const attach = (
+    view: OpenReaderView,
+    { restored = false, opened = true } = {},
+  ) => {
+    attached.set(
+      view,
+      attachReader(service, view, { restored, unloading: () => unloading }),
+    );
+    if (opened) view.fake.openDocument();
+  };
+  const detach = (view: OpenReaderView) => {
+    const instance = attached.get(view);
+    attached.delete(view);
+    instance?.[Symbol.dispose]();
+  };
+  for (const view of options.open ?? []) attach(view, { restored: true });
   return {
     service,
     runtime,
+    attach,
+    detach,
     get bindings() {
       return bridge.runSync(service.bindings);
     },
-    bindingFor: (view: View | null | undefined) =>
-      bridge.runSync(service.bindingFor(view)),
-    sessionFor: (view: View | null | undefined) =>
-      bridge.runSync(service.sessionFor(view)),
+    bindingFor: (view: unknown) =>
+      bridge.runSync(service.bindingFor(view as View)),
+    sessionFor: (view: unknown) =>
+      bridge.runSync(service.sessionFor(view as View)),
     borrowDocument: (path: string) =>
       bridge.runSync(service.borrowDocument(path)),
     subscribe: (callback: (path: string) => void) =>
       bridge.subscribe(service.sessionAdded, callback),
-    [Symbol.asyncDispose]: () => owned.disposeAsync(),
+    [Symbol.asyncDispose]: async () => {
+      unloading = true;
+      for (const view of [...attached.keys()].reverse()) detach(view);
+      await owned.disposeAsync();
+    },
   };
 }

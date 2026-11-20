@@ -33,7 +33,7 @@ import { byTextField } from "#obsidian/annotation-repository/write.ts";
 export type FollowMode = "active-tab" | "zotero-reader" | "pinned";
 
 /**
- * Why the view cannot change the Attachment on screen: an Obsidian PDF view or
+ * Why the view cannot change the Attachment on screen: a ZotLit PDF Reader or
  * the Zotero Reader chose it, and the picker stands down while it does.
  */
 export type AttachmentLock = "obsidian-pdf" | "zotero-reader" | null;

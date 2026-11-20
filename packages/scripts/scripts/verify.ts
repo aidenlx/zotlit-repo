@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Effect } from "effect";
+import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
 // The one quality gate. `pnpm land` runs it on the rebased result before it
 // pushes; GitHub runs no checks of its own (ADR 0076).
 //   (no flag)   the packages the branch changed since it left `main`, and
@@ -105,8 +108,13 @@ await step(
 // The step passes the Memory Gate once; each package's Vitest then skips it.
 await step("Test", async () => {
   const admitted = await Effect.runPromise(passMemoryGateOrExit());
+  const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
   const gated = sh({
-    env: admitted ? { ...env, [MEMORY_GATE_ADMITTED_ENV]: "1" } : env,
+    env: {
+      ...env,
+      ...electron,
+      ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
+    },
   });
   await gated`pnpm exec turbo run test ${scope} --concurrency=${ci ? 1 : 2}`;
   await gated`pnpm test:eval-runtime`;
@@ -145,6 +153,25 @@ async function desktopChecks(): Promise<void> {
     slot?.progress("pnpm e2e:worker starts");
     await sh({ env: { ...process.env } })`pnpm e2e:worker`;
   });
+}
+
+function electronPath(): string {
+  const binary = process.env.ZOTLIT_TEST_ELECTRON_PATH ?? installedElectron();
+  if (binary) return binary;
+  throw new Error(
+    "The Electron renderer tests need an Electron binary. Run `node node_modules/electron/install.js` in apps/obsidian, or set ZOTLIT_TEST_ELECTRON_PATH.",
+  );
+}
+
+function installedElectron(): string | null {
+  try {
+    const binary: unknown = createRequire(
+      join(root, "apps/obsidian/package.json"),
+    )("electron");
+    return typeof binary === "string" && existsSync(binary) ? binary : null;
+  } catch {
+    return null;
+  }
 }
 
 async function step(name: string, run: () => Promise<unknown>): Promise<void> {

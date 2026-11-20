@@ -1,0 +1,13 @@
+{
+  "extends": ["@zotlit/config/tsconfig", "@zotlit/config/tsconfig.node26"],
+  "compilerOptions": {
+    "isolatedDeclarations": false,
+    "noEmit": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "skipLibCheck": true
+  },
+  "include": ["./scripts/**/*.ts", "./dist/types", "./dist/wasm"],
+  "exclude": ["./node_modules"]
+}

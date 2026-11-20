@@ -8,7 +8,10 @@ import type { FixtureItem } from "@zotlit/scripts/fixture";
 import { readingState } from "./e2e-run-fixture.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { waitFor } from "./obsidian-cli.ts";
-import type { CodeMirrorElement, PagePdfView } from "./page-notes-types.ts";
+import type {
+  CodeMirrorElement,
+  PagePdfReaderView,
+} from "./page-notes-types.ts";
 import { withWorkbenchSurfaces } from "./workbench-surfaces.ts";
 
 export async function availableLoopbackPort(): Promise<number> {
@@ -175,11 +178,13 @@ export function pdfOpened(vaultId: string, path: string): Promise<boolean> {
   return obRunUntil(
     vaultId,
     async ({ app }, { expectedPath }) => {
-      const view = app.workspace.activeLeaf?.view as PagePdfView | undefined;
+      const view = app.workspace.activeLeaf?.view as
+        | PagePdfReaderView
+        | undefined;
       return (
-        view?.getViewType() === "pdf" &&
+        view?.getViewType() === "zotlit-pdf" &&
         view.file?.path === expectedPath &&
-        (view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) > 0
+        (view.reader?.state.get().pageCount ?? 0) > 0
       );
     },
     { expectedPath: path },

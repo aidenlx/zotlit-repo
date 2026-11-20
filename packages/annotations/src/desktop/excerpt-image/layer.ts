@@ -41,6 +41,7 @@ import {
   ExcerptImageService,
   supersedes,
 } from "#obsidian/excerpt-image/service.ts";
+import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 const logged = withLogCategory("excerpt-image");
 const debug = (message: string, fields?: Record<string, unknown>) =>
@@ -105,9 +106,10 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
       let generation = 0;
       let operations = 0;
       let stalled = false;
+      const engine = yield* PdfEngine;
       const renderer = deps.render
         ? undefined
-        : new ExcerptRenderer({ readers: deps.readers });
+        : new ExcerptRenderer({ engine, readers: deps.readers });
       if (renderer) yield* Effect.addFinalizer(() => renderer.dispose);
       let cache = deps.cache;
       if (deps.openStore) {

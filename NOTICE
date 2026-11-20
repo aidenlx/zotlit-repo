@@ -70,6 +70,33 @@ PDF.js, pinned to zotero/pdf.js f57fc80d1c07e4cdc50a767ae0b500b5272123b4
 
 =========================================================================
 
+This project contains a vendored build of pdf.js-zotlit, ZotLit's fork of
+Mozilla PDF.js (https://github.com/mozilla/pdf.js), based on PDF.js v6.5.438:
+
+  packages/pdfjs/dist/
+
+  Copyright Mozilla Foundation
+  Licensed under the Apache License, Version 2.0. A copy of the License is
+  in packages/pdfjs/LICENSE.
+
+  The fork modifies PDF.js. packages/pdfjs/provenance.json records the fork
+  commit and tag, each patch, and every modified file.
+
+  The build bundles two image decoders compiled to WebAssembly, each under
+  its own licence:
+
+    JBIG2 decoder (PDFium)   packages/pdfjs/LICENSE_JBIG2,
+                             packages/pdfjs/LICENSE_PDFJS_JBIG2
+    OpenJPEG                 packages/pdfjs/LICENSE_OPENJPEG,
+                             packages/pdfjs/LICENSE_PDFJS_OPENJPEG
+
+  Other files in the build carry their own licences, in the licence files
+  beside them: the QCMS colour library (packages/pdfjs/dist/wasm/), the
+  Foxit and Liberation standard fonts (packages/pdfjs/dist/standard_fonts/)
+  and the CMaps (packages/pdfjs/dist/cmaps/).
+
+=========================================================================
+
 This project contains two unmodified upstream copies. Each folder's
 provenance.json records the upstream commit.
 

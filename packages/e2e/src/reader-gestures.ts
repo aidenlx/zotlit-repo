@@ -25,11 +25,11 @@ export async function armToolOnFirstPage(
   await obRunUntil(
     vaultId,
     ({ page }, { attachmentPath }) => {
-      const view = page.pdfView(attachmentPath);
-      if (!view) return false;
-      view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
-      return !!view.viewer.child
-        .getPage(1)
+      const opened = page.pdfReader(attachmentPath);
+      if (!opened) return false;
+      void opened.reader.navigate({ pageIndex: 0 });
+      return !!opened.reader
+        .pageAt(0)
         ?.div.querySelector(".zt-pdf-annotation-overlay");
     },
     { attachmentPath },
@@ -52,8 +52,8 @@ export async function armToolOnFirstPage(
         const point = page.clientOfFirstPage(view, at[0], at[1]);
         return (
           Math.abs(point.y - innerHeight / 2) < innerHeight / 4 &&
-          view.viewer.child
-            .getPage(1)!
+          view
+            .reader!.pageAt(0)!
             .div.contains(document.elementFromPoint(point.x, point.y))
         );
       },
@@ -127,7 +127,11 @@ export async function reopenPdfView(
         const view = page.pdfView(attachmentPath)!;
         const file = view.file!;
         await view.leaf.setViewState({ type: "empty" });
-        await view.leaf.openFile(file);
+        await view.leaf.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         return "reopened";
       },
       { attachmentPath },
@@ -173,9 +177,10 @@ export async function openPdfWithAnnotationView(
   });
   await obRun(
     vaultId,
-    async ({ app }, { attachmentPath }) => {
+    async ({ app, zotlit }, { attachmentPath }) => {
       const file = app.vault.getFileByPath(attachmentPath)!;
-      await app.workspace.getLeaf("tab").openFile(file);
+      const s = zotlit.services;
+      await s.bridge.runPromise(s.pdfReader.open(file, "", "tab"));
     },
     { attachmentPath },
   );

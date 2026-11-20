@@ -17,12 +17,12 @@ export const readerSettings = settingsSlice(
   {
     "reader.focus-annot-view": v.boolean(),
     /**
-     * Whether a clicked Attachment File Link opens in Obsidian's PDF view
+     * Whether a clicked Attachment File Link opens in the ZotLit PDF Reader
      * instead of the system handler — File Link Capture, ADR 0045.
      */
     "reader.open-file-links": v.boolean(),
     /**
-     * Open a clicked Durable Annotation Link in Obsidian's reader, with the
+     * Open a clicked Durable Annotation Link in the ZotLit PDF Reader, with the
      * Annotation selected; off hands it to Zotero.
      */
     "reader.open-annotation-links": v.boolean(),
@@ -40,6 +40,7 @@ export const readerSettings = settingsSlice(
     "reader.ink-width": inkWidthSchema,
     /** The font size the PDF reader's text tool types at, in PDF points. */
     "reader.text-font-size": textFontSizeSchema,
+    "reader.open-all-pdfs": v.boolean(),
   },
   {
     "reader.focus-annot-view": true,
@@ -49,6 +50,7 @@ export const readerSettings = settingsSlice(
     "reader.recent-colors": [],
     "reader.ink-width": DEFAULT_INK_WIDTH,
     "reader.text-font-size": DEFAULT_TEXT_FONT_SIZE,
+    "reader.open-all-pdfs": false,
   },
 );
 

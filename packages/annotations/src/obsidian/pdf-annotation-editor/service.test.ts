@@ -1,14 +1,16 @@
+import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import type { HistoryOutcome } from "#obsidian/annotation-repository/service.ts";
 import { DateTime, Effect } from "effect";
-import {
-  FileSystemAdapter,
-  Scope,
-  TExternalFile,
+import { FileSystemAdapter, Scope, TExternalFile } from "obsidian";
+import type {
+  App,
+  EventRef,
+  View,
+  Vault,
+  Workspace,
   WorkspaceLeaf,
 } from "obsidian";
-import type { App, EventRef, View, Vault, Workspace } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { Mock } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 // @vitest-environment happy-dom
@@ -30,14 +32,13 @@ import {
   attachmentReads,
   capabilityGestures,
   dispatchKey,
-  failedIn,
   markGestures,
-  openingReader,
   pageView,
   pdfReader,
+  readerDocument,
   readerSettings,
 } from "#__fixtures__/pdf-annotation-editor.ts";
-import { openPdfEditor as PdfAnnotationEditor } from "#__fixtures__/pdf-annotation-editor/editor.ts";
+import { openPdfEditor } from "#__fixtures__/pdf-annotation-editor/editor.ts";
 import { editingCapabilityCopy } from "#obsidian/annotation-repository/capability-copy.ts";
 
 beforeEach(() => {
@@ -49,9 +50,6 @@ afterEach(async () => {
   await noteIndexes.disposeAsync();
   noteIndexes = new AsyncDisposableStack();
 });
-
-/** The eleven probes of the seam re-verification numbered P1 to P11. */
-const PROBE_COUNT = 11;
 
 /** A Zotero attachment as the attachment resolver reports one. */
 const RESOLVED = {
@@ -72,24 +70,10 @@ const UNDERLINE = annotation("K3JRFLFQ", "underline", {
   rects: [[67.011, 612.638, 211.485, 620.77]],
 });
 
-/** A reader whose one page fails the named viewport probe. */
-function brokenReader(member: string) {
-  const page = pageView();
-  delete (page.viewport as unknown as Record<string, unknown>)[member];
-  return pdfReader(page);
-}
-
-/** A reader Obsidian has not finished opening: its page holds no PDF.js proxy. */
-function loadingReader() {
-  const page = pageView();
-  delete page.pdfPage;
-  return pdfReader(page);
-}
-
-function pdfView(path: string | null, reader = pdfReader()) {
+function pdfView(path: string | null, reader: FakeReader = pdfReader()) {
   return {
     file: path === null ? null : { path },
-    viewer: reader.viewer,
+    fake: reader,
     // `View.containerEl` — public API, and where the reader's own keystrokes
     // reach the binding.
     containerEl: document.createElement("div"),
@@ -98,7 +82,17 @@ function pdfView(path: string | null, reader = pdfReader()) {
   };
 }
 
-function workspace(views: { view: unknown }[]) {
+type ReaderView = ReturnType<typeof pdfView>;
+
+const openViews = new WeakMap<App, ReaderView[]>();
+
+function PdfAnnotationEditor(
+  options: Omit<Parameters<typeof openPdfEditor>[0], "open">,
+) {
+  return openPdfEditor({ ...options, open: openViews.get(options.app) ?? [] });
+}
+
+function workspace(views: { view: ReaderView }[]) {
   const offref = vi.fn();
   const handlers = new Map<string, ((leaf?: { view: unknown }) => void)[]>();
   const app = stubService<App>("App", {
@@ -109,7 +103,7 @@ function workspace(views: { view: unknown }[]) {
       getLeavesOfType: () =>
         views.map(({ view }) =>
           stubService<WorkspaceLeaf>("WorkspaceLeaf", {
-            view: view as View,
+            view: view as unknown as View,
           }),
         ),
       offref,
@@ -128,15 +122,13 @@ function workspace(views: { view: unknown }[]) {
     }),
   });
 
+  openViews.set(
+    app,
+    views.map(({ view }) => view),
+  );
   return {
     app,
     offref,
-    /** Replays what Obsidian's `file-open` and `layout-change` events drive. */
-    relayout: () => {
-      for (const name of ["file-open", "layout-change"]) {
-        for (const handler of handlers.get(name) ?? []) handler();
-      }
-    },
     activate: (view: unknown) => {
       for (const handler of handlers.get("active-leaf-change") ?? []) {
         handler({ view });
@@ -235,23 +227,16 @@ it("binds an open PDF view, resolves its vault path, and unbinds on unload", asy
     expect(annotations.read).toHaveBeenCalledExactlyOnceWith("ABCD2345");
 
     reader.renderFirstPage();
-    await binding.probed;
-    expect(binding.probes).toHaveLength(PROBE_COUNT);
-    expect(failedIn(binding.probes)).toEqual([]);
-    expect(binding.supported).toBe(true);
     // A writable attachment shows only the normal editing tools.
-    expect(affordanceIn(reader.toolbarRightEl)).toBeNull();
-    expect(reader.toolbarRightEl.childElementCount).toBe(1);
+    expect(affordanceIn(reader.toolbarEl)).toBeNull();
+    expect(reader.toolbarEl.childElementCount).toBe(1);
     // An attachment with no Annotations leaves the page as Obsidian built it.
     expect(reader.page.div.childElementCount).toBe(0);
   }
 
-  // The binding's disposer leaves the toolbar as Obsidian built it.
-  expect(reader.toolbarRightEl.childElementCount).toBe(0);
-  expect(reader.child.off).toHaveBeenCalledWith(
-    "pagerendered",
-    expect.any(Function),
-  );
+  // The binding's disposer leaves the toolbar as the reader built it.
+  expect(reader.toolbarEl.childElementCount).toBe(0);
+  expect(reader.listening).toBe(0);
   expect(offref).toHaveBeenCalledTimes(4);
 });
 
@@ -298,33 +283,6 @@ it("rebuilds the marks from data after PDF.js recycles the page", async () => {
   expect(annotations.read).toHaveBeenCalledOnce();
 });
 
-it("probes the page a view had already painted before the binding attached", async () => {
-  const reader = pdfReader();
-  const view = pdfView("attachments/rougier-2014.pdf", reader);
-  const { app } = workspace([{ view }]);
-
-  await using service = await PdfAnnotationEditor({
-    app,
-    attachments: attachmentReads(RESOLVED),
-    annotations: annotationReads(),
-    capabilityGestures: capabilityGestures(),
-    ...(await standingDeps()),
-  });
-  const binding = service.bindings[0]!;
-  await binding.probed;
-
-  // Ten without a render: only P7 needs an event Obsidian has yet to dispatch.
-  expect(binding.probes.map(({ probe }) => probe)).not.toContain("P7");
-  expect(binding.probes).toHaveLength(PROBE_COUNT - 1);
-  expect(failedIn(binding.probes)).toEqual([]);
-
-  reader.renderFirstPage();
-  await binding.probed;
-
-  expect(binding.probes).toHaveLength(PROBE_COUNT);
-  expect(reader.page.pdfPage?.getTextContent).toHaveBeenCalledOnce();
-});
-
 /**
  * A painted page one glyph wide, laid out in the document so a drag across it
  * reaches selection capture. The page's text layer shows the glyph the text
@@ -342,24 +300,16 @@ function paintedPage() {
   };
   page.div.getBoundingClientRect = () => box as never;
   const textLayer = page.div.createDiv({ cls: "textLayer", text: "E" });
-  Object.assign(page, { renderingState: 3 });
   const reader = pdfReader(page);
+  reader.paintBeforeReady();
   const view = pdfView("attachments/rougier-2014.pdf", reader);
   view.containerEl.getBoundingClientRect = () => box as never;
   view.containerEl.append(page.div);
   document.body.append(view.containerEl);
-  const viewer = reader.child.pdfViewer as { pdfDocument?: unknown };
   return {
     page,
     reader,
     view,
-    /** The document proxy the reader's viewer holds; `undefined` while opening. */
-    get pdfDocument(): unknown {
-      return viewer.pdfDocument;
-    },
-    set pdfDocument(value: unknown) {
-      viewer.pdfDocument = value;
-    },
     /** Drags across the glyph, the gesture that opens the create popup. */
     dragAcrossGlyph: async (
       service: Awaited<ReturnType<typeof PdfAnnotationEditor>>,
@@ -421,16 +371,12 @@ it("opens the create popup over a page painted before the binding attached", asy
   painted.cleanup();
 });
 
-// A PDF opened in a hidden tab has a viewer before it has a document or a
-// loaded page: Obsidian defers the open until the tab shows, and the binding
-// has attached by then.
-it("reads the text structure of a document Obsidian opened after the binding attached", async () => {
+// A PDF opened in a hidden tab has a reader before it has a document: the
+// reader holds its read until the tab shows, and the binding has attached by
+// then.
+it("reads the text structure of a document the reader opened after the binding attached", async () => {
   const painted = paintedPage();
-  const { pdfDocument } = painted;
-  const { pdfPage } = painted.page;
-  painted.pdfDocument = undefined;
-  delete painted.page.pdfPage;
-  const { app } = workspace([{ view: painted.view }]);
+  const { app } = workspace([]);
   await using service = await PdfAnnotationEditor({
     app,
     attachments: attachmentReads(RESOLVED),
@@ -438,10 +384,10 @@ it("reads the text structure of a document Obsidian opened after the binding att
     capabilityGestures: capabilityGestures(),
     ...(await standingDeps()),
   });
+  service.attach(painted.view, { opened: false });
   await service.bindings[0]!.refreshed;
 
-  painted.pdfDocument = pdfDocument;
-  painted.page.pdfPage = pdfPage;
+  painted.reader.openDocument();
   painted.reader.renderFirstPage();
   await painted.dragAcrossGlyph(service);
 
@@ -463,47 +409,16 @@ it("reads the text structure again once the view reopened its document", async (
   });
   await service.bindings[0]!.refreshed;
   await painted.dragAcrossGlyph(service);
-  const readsOfOld = painted.page.pdfPage!.getTextContent.mock.calls.length;
+  const readsOfOld = painted.page.pdfPage.getTextContent.mock.calls.length;
 
   const reopened = pageView();
-  painted.pdfDocument = {
-    numPages: 1,
-    getPage: vi.fn(async () => reopened.pdfPage),
-    getPageLabels: vi.fn(async () => null),
-  };
+  painted.reader.reloadDocument(readerDocument(reopened));
   painted.reader.renderFirstPage();
   await painted.dragAcrossGlyph(service);
 
-  expect(reopened.pdfPage?.getTextContent).toHaveBeenCalledOnce();
-  expect(painted.page.pdfPage!.getTextContent).toHaveBeenCalledTimes(
-    readsOfOld,
-  );
+  expect(reopened.pdfPage.getTextContent).toHaveBeenCalledOnce();
+  expect(painted.page.pdfPage.getTextContent).toHaveBeenCalledTimes(readsOfOld);
   painted.cleanup();
-});
-
-it("waits for the first render when Obsidian is still opening the document", async () => {
-  const reader = loadingReader();
-  const view = pdfView("attachments/rougier-2014.pdf", reader);
-  const { app } = workspace([{ view }]);
-
-  await using service = await PdfAnnotationEditor({
-    app,
-    attachments: attachmentReads(RESOLVED),
-    annotations: annotationReads(),
-    capabilityGestures: capabilityGestures(),
-    ...(await standingDeps()),
-  });
-  const binding = service.bindings[0]!;
-
-  // Only the view and controller stages: P1 to P6 and P10.
-  expect(binding.probes).toHaveLength(7);
-
-  reader.renderFirstPage();
-  await binding.probed;
-
-  // P11 fails: the page Obsidian handed over carries no PDF.js proxy to read.
-  expect(binding.probes).toHaveLength(PROBE_COUNT);
-  expect(failedIn(binding.probes)).toEqual(["P11"]);
 });
 
 it("reads an external file's absolute path from the file itself", async () => {
@@ -546,7 +461,6 @@ it("leaves a PDF Zotero does not know exactly as Obsidian opened it", async () =
   });
   const binding = service.bindings[0]!;
   reader.renderFirstPage();
-  await binding.probed;
   await binding.refreshed;
 
   // "Zotero does not know this file" is an answer, so later database changes
@@ -558,7 +472,7 @@ it("leaves a PDF Zotero does not know exactly as Obsidian opened it", async () =
   expect(attachments.resolve).toHaveBeenCalledOnce();
   expect(binding.attachment).toEqual({ kind: "unresolved" });
   expect(annotations.read).not.toHaveBeenCalled();
-  expect(reader.toolbarRightEl.childElementCount).toBe(0);
+  expect(reader.toolbarEl.childElementCount).toBe(0);
   expect(reader.page.div.childElementCount).toBe(0);
 });
 
@@ -578,7 +492,6 @@ it("paints a view bound while the resolver could not answer yet", async () => {
   });
   const binding = service.bindings[0]!;
   reader.renderFirstPage();
-  await binding.probed;
   await binding.refreshed;
 
   // What a plugin reload over an open PDF tab does: the Zotero database is
@@ -595,11 +508,10 @@ it("paints a view bound while the resolver could not answer yet", async () => {
   expect(markedKeys(reader.page)).toEqual(["PUPR5FG5"]);
 });
 
-it("unbinds a leaf whose viewer Obsidian already closed", async () => {
+it("unbinds a view whose reader closed its document first", async () => {
   const reader = pdfReader();
   const view = pdfView("attachments/rougier-2014.pdf", reader);
-  const leaves = [{ view }];
-  const { app, relayout } = workspace(leaves);
+  const { app } = workspace([{ view }]);
 
   await using service = await PdfAnnotationEditor({
     app,
@@ -612,68 +524,11 @@ it("unbinds a leaf whose viewer Obsidian already closed", async () => {
 
   expect(markedKeys(reader.page)).toEqual(["PUPR5FG5"]);
 
-  // Obsidian runs its own `unload` first on a closing tab and on a pop-out
-  // detach: it closes the PDF.js viewer that `off` and `getPage` read through.
-  reader.closeViewer();
-  leaves.length = 0;
+  reader.closeDocument();
 
-  expect(() => relayout()).not.toThrow();
+  expect(() => service.detach(view)).not.toThrow();
   expect(service.bindings).toEqual([]);
-  expect(reader.child.off).not.toHaveBeenCalled();
-});
-
-it("fails closed to the reader when the controller seam changed shape", async () => {
-  const reader = pdfReader();
-  delete reader.child.applySubpath;
-  const view = pdfView("attachments/rougier-2014.pdf", reader);
-  const attachments = attachmentReads(RESOLVED);
-  const annotations = annotationReads([HIGHLIGHT]);
-  const { app } = workspace([{ view }]);
-
-  await using service = await PdfAnnotationEditor({
-    app,
-    attachments,
-    annotations,
-    capabilityGestures: capabilityGestures(),
-    ...(await standingDeps()),
-  });
-  const binding = service.bindings[0]!;
-  await binding.refreshed;
-
-  expect(binding.supported).toBe(false);
-  expect(failedIn(binding.probes)).toEqual(["P6"]);
-  expect(reader.child.on).not.toHaveBeenCalled();
-  expect(reader.page.div.childElementCount).toBe(0);
-  // The resolution the repository and the Annotation View read is untouched.
-  expect(attachments.resolve).toHaveBeenCalledExactlyOnceWith(
-    "/vault/attachments/rougier-2014.pdf",
-    { attachmentKey: null },
-  );
-  expect(binding.attachment).toEqual(RESOLVED);
-});
-
-it("drops its page listener when a page's viewport changed shape", async () => {
-  const reader = brokenReader("transform");
-  const view = pdfView("attachments/rougier-2014.pdf", reader);
-  const { app } = workspace([{ view }]);
-
-  await using service = await PdfAnnotationEditor({
-    app,
-    attachments: attachmentReads(RESOLVED),
-    annotations: annotationReads([HIGHLIGHT]),
-    capabilityGestures: capabilityGestures(),
-    ...(await standingDeps()),
-  });
-  const binding = service.bindings[0]!;
-  await binding.refreshed;
-
-  expect(binding.supported).toBe(false);
-  expect(failedIn(binding.probes)).toEqual(["P9"]);
-  expect(reader.page.div.childElementCount).toBe(0);
-  expect(reader.child.off).toHaveBeenCalledWith(
-    "pagerendered",
-    expect.any(Function),
-  );
+  expect(reader.listening).toBe(0);
 });
 
 it("rebinds a leaf that opened another PDF and unbinds a closed leaf", async () => {
@@ -681,8 +536,7 @@ it("rebinds a leaf that opened another PDF and unbinds a closed leaf", async () 
   const second = pdfReader();
   const view = pdfView("attachments/first.pdf", first);
   const attachments = attachmentReads(RESOLVED);
-  const leaves = [{ view }];
-  const { app, relayout } = workspace(leaves);
+  const { app } = workspace([{ view }]);
 
   await using service = await PdfAnnotationEditor({
     app,
@@ -692,59 +546,24 @@ it("rebinds a leaf that opened another PDF and unbinds a closed leaf", async () 
     ...(await standingDeps()),
   });
 
-  Object.assign(view, pdfView("attachments/second.pdf", second));
-  relayout();
+  service.detach(view);
+  const switched = Object.assign(view, {
+    file: { path: "attachments/second.pdf" },
+    fake: second,
+  });
+  service.attach(switched);
 
-  expect(first.child.off).toHaveBeenCalledWith(
-    "pagerendered",
-    expect.any(Function),
-  );
+  expect(first.listening).toBe(0);
   expect(attachments.resolve).toHaveBeenLastCalledWith(
     "/vault/attachments/second.pdf",
     { attachmentKey: null },
   );
-  expect(second.child.on).toHaveBeenCalledWith(
-    "pagerendered",
-    expect.any(Function),
-  );
+  expect(second.listening).toBeGreaterThan(0);
 
-  leaves.length = 0;
-  relayout();
+  service.detach(switched);
 
   expect(service.bindings).toEqual([]);
-  expect(second.child.off).toHaveBeenCalledWith(
-    "pagerendered",
-    expect.any(Function),
-  );
-});
-
-it("waits for the file a view has yet to load before it resolves anything", async () => {
-  const reader = pdfReader();
-  const view = pdfView(null, reader);
-  const attachments = attachmentReads(RESOLVED);
-  const annotations = annotationReads([HIGHLIGHT]);
-  const { app, relayout } = workspace([{ view }]);
-
-  await using service = await PdfAnnotationEditor({
-    app,
-    attachments,
-    annotations,
-    capabilityGestures: capabilityGestures(),
-    ...(await standingDeps()),
-  });
-
-  expect(attachments.resolve).not.toHaveBeenCalled();
-  expect(annotations.read).not.toHaveBeenCalled();
-  expect(reader.child.on).not.toHaveBeenCalled();
-  expect(service.bindings[0]!.absolutePath).toBeNull();
-
-  Object.assign(view, pdfView("attachments/rougier-2014.pdf", reader));
-  relayout();
-
-  expect(attachments.resolve).toHaveBeenCalledExactlyOnceWith(
-    "/vault/attachments/rougier-2014.pdf",
-    { attachmentKey: null },
-  );
+  expect(second.listening).toBe(0);
 });
 
 it("exposes each open PDF view as a Reader Session of its own", async () => {
@@ -761,20 +580,19 @@ it("exposes each open PDF view as a Reader Session of its own", async () => {
     ...(await standingDeps()),
   });
 
-  const session = service.sessionFor(view as never);
+  const session = service.sessionFor(view);
   expect(session).toBe(service.bindings[0]!.session);
   expect(session!.source).toBe("obsidian-pdf");
   expect(session!.target).toEqual({
     attachmentKey: "ABCD2345",
     itemKey: "WXYZ6789g4711",
   });
-  expect(service.sessionFor(other as never)).toBeNull();
+  expect(service.sessionFor(other)).toBeNull();
 });
 
 it("announces a late PDF session after its resolved target is available", async () => {
-  const reader = pdfReader();
-  const view = pdfView(null, reader);
-  const { app, relayout } = workspace([{ view }]);
+  const view = pdfView("attachments/rougier-2014.pdf");
+  const { app } = workspace([]);
 
   await using service = await PdfAnnotationEditor({
     app,
@@ -787,12 +605,11 @@ it("announces a late PDF session after its resolved target is available", async 
   service.subscribe((filePath) => {
     announced.push({
       filePath,
-      target: service.sessionFor(view as never)?.target,
+      target: service.sessionFor(view)?.target,
     });
   });
 
-  Object.assign(view, pdfView("attachments/rougier-2014.pdf", reader));
-  relayout();
+  service.attach(view);
 
   expect(announced).toEqual([
     {
@@ -820,7 +637,7 @@ it("names a standalone attachment in its session, with no parent Item", async ()
     ...(await standingDeps()),
   });
 
-  expect(service.sessionFor(view as never)!.target).toEqual({
+  expect(service.sessionFor(view)!.target).toEqual({
     attachmentKey: "LSTAND23",
     itemKey: null,
   });
@@ -842,7 +659,6 @@ it("paints the mark a consumer selected, and drops one the read retired", async 
   const binding = service.bindings[0]!;
   await binding.refreshed;
   reader.renderFirstPage();
-  await binding.probed;
 
   binding.session.setSelectedAnnotations(["PUPR5FG5"]);
   expect(selectedKeys(reader.page)).toEqual(["PUPR5FG5"]);
@@ -874,7 +690,6 @@ it("paints a group a consumer selected, with no popup, and walks it down to one 
   const binding = service.bindings[0]!;
   await binding.refreshed;
   reader.renderFirstPage();
-  await binding.probed;
   const popup = () => document.querySelector(".zt-pdf-mark-popup");
   const handles = () =>
     reader.page.div.querySelectorAll(".zt-pdf-annotation-handle").length;
@@ -922,7 +737,6 @@ it("keeps a selected group through a landing on one of its marks", async () => {
   const binding = service.bindings[0]!;
   await binding.refreshed;
   reader.renderFirstPage();
-  await binding.probed;
 
   // What the Annotation View sends for a Cmd/Ctrl-click that adds a card.
   binding.session.setSelectedAnnotations(["PUPR5FG5", "K3JRFLFQ"]);
@@ -941,7 +755,7 @@ it("keeps a selected group through a landing on one of its marks", async () => {
   expect(binding.session.selected).toEqual(["K3JRFLFQ"]);
 });
 
-it("lands on the mark a card click names, on a page Obsidian moves to first", async () => {
+it("lands on the mark a card click names, on a page the reader moves to first", async () => {
   const reader = pdfReader();
   const view = pdfView("attachments/rougier-2014.pdf", reader);
   const { app } = workspace([{ view }]);
@@ -956,25 +770,23 @@ it("lands on the mark a card click names, on a page Obsidian moves to first", as
   const binding = service.bindings[0]!;
   await binding.refreshed;
 
-  const applySubpath = reader.child.applySubpath as Mock<(s: string) => void>;
-
   // What the Annotation View asks of the reader for a card click.
   binding.session.setSelectedAnnotations(["PUPR5FG5"]);
   binding.session.navigateToAnnotation("PUPR5FG5");
   await binding.refreshed;
-  // PDF.js has not painted the mark's page, so Obsidian's own jump goes first.
-  expect(applySubpath).toHaveBeenCalledWith("#page=1");
+  // PDF.js has not painted the mark's page, so the reader's own jump goes
+  // first.
+  expect(reader.navigate).toHaveBeenCalledWith({ pageIndex: 0 });
 
   reader.renderFirstPage();
-  await binding.probed;
   expect(selectedKeys(reader.page)).toEqual(["PUPR5FG5"]);
   expect(binding.session.selected).toEqual(["PUPR5FG5"]);
 
   // An annotation this reader draws nowhere moves nothing.
-  applySubpath.mockClear();
+  reader.navigate.mockClear();
   binding.session.navigateToAnnotation("K3JRFLFQ");
   await binding.refreshed;
-  expect(applySubpath).not.toHaveBeenCalled();
+  expect(reader.navigate).not.toHaveBeenCalled();
 });
 
 it("drops a Landing still waiting on its page when a consumer clears the selection", async () => {
@@ -999,7 +811,6 @@ it("drops a Landing still waiting on its page when a consumer clears the selecti
   binding.session.setSelectedAnnotations([]);
 
   reader.renderFirstPage();
-  await binding.probed;
   expect(selectedKeys(reader.page)).toEqual([]);
   expect(binding.session.selected).toEqual([]);
 });
@@ -1024,7 +835,7 @@ it("stops announcing once the view's binding is gone", async () => {
 
   expect(announced).toEqual([]);
   expect(service.bindings).toEqual([]);
-  expect(service.sessionFor(view as never)).toBeNull();
+  expect(service.sessionFor(view)).toBeNull();
 });
 
 it("keeps the toolbar's nodes across capability announcements, and stands them down in place", async () => {
@@ -1033,7 +844,7 @@ it("keeps the toolbar's nodes across capability announcements, and stands them d
   const annotations = annotationReads();
   const { app } = workspace([{ view }]);
   const controls = () => [
-    ...reader.toolbarRightEl.querySelectorAll<HTMLElement>("[data-zt-tool]"),
+    ...reader.toolbarEl.querySelectorAll<HTMLElement>("[data-zt-tool]"),
   ];
 
   await using _service = await PdfAnnotationEditor({
@@ -1080,8 +891,8 @@ it("counts a cooldown down on the toolbar's window, under the binding's disposer
   const view = pdfView("attachments/rougier-2014.pdf", reader);
   const annotations = annotationReads();
   const { app } = workspace([{ view }]);
-  const started = vi.spyOn(reader.toolbarRightEl.win, "setInterval");
-  const stopped = vi.spyOn(reader.toolbarRightEl.win, "clearInterval");
+  const started = vi.spyOn(reader.toolbarEl.win, "setInterval");
+  const stopped = vi.spyOn(reader.toolbarEl.win, "clearInterval");
   const cooling = (): void =>
     annotations.setCapability({
       kind: "cooldown",
@@ -1102,14 +913,14 @@ it("counts a cooldown down on the toolbar's window, under the binding's disposer
 
     cooling();
     expect(started).toHaveBeenCalledOnce();
-    expect(secondsShown(reader.toolbarRightEl)).toBe("45");
+    expect(secondsShown(reader.toolbarEl)).toBe("45");
 
     // A capability that no longer counts down stops the clock rather than
     // leaving it turning behind a still icon.
     const id = started.mock.results[0]!.value as number;
     annotations.setCapability({ kind: "writable" });
     expect(stopped).toHaveBeenCalledWith(id);
-    expect(secondsShown(reader.toolbarRightEl)).toBeNull();
+    expect(secondsShown(reader.toolbarEl)).toBeNull();
 
     // A cooldown still running when the leaf closes takes its interval with it.
     stopped.mockClear();
@@ -1132,7 +943,7 @@ it("keeps pending authorization informational in the PDF reader", async () => {
     ...(await standingDeps()),
   });
 
-  const node = affordanceIn(reader.toolbarRightEl)!;
+  const node = affordanceIn(reader.toolbarEl)!;
   node.click();
   node.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
 
@@ -1200,8 +1011,7 @@ it("interrupts a blocked keystroke's probe when its PDF view closes, and says no
     Effect.never.pipe(Effect.onInterrupt(() => Effect.sync(interrupted))),
   );
   const gestures = capabilityGestures();
-  const open = [{ view }];
-  const { app, relayout } = workspace(open);
+  const { app } = workspace([{ view }]);
 
   await using service = await PdfAnnotationEditor({
     app,
@@ -1216,8 +1026,7 @@ it("interrupts a blocked keystroke's probe when its PDF view closes, and says no
   );
   expect(annotations.probeRuns).toHaveBeenCalledOnce();
 
-  open.pop();
-  relayout();
+  service.detach(view);
   await binding.gestured;
 
   expect(interrupted).toHaveBeenCalledOnce();
@@ -1228,8 +1037,7 @@ it("opens one Annotation History per Attachment and ends it with the last view",
   const first = pdfView("attachments/rougier-2014.pdf");
   const second = pdfView("attachments/rougier-2014.pdf");
   const annotations = annotationReads();
-  const open = [{ view: first }, { view: second }];
-  const { app, relayout } = workspace(open);
+  const { app } = workspace([{ view: first }, { view: second }]);
   const service = await PdfAnnotationEditor({
     app,
     attachments: attachmentReads(RESOLVED),
@@ -1244,8 +1052,7 @@ it("opens one Annotation History per Attachment and ends it with the last view",
     // Two views of one Attachment share one history.
     expect(annotations.histories).toEqual(new Map([["ABCD2345", 2]]));
 
-    open.pop();
-    relayout();
+    service.detach(second);
     expect(annotations.histories).toEqual(new Map([["ABCD2345", 1]]));
   }
 
@@ -1270,7 +1077,6 @@ it("lands on the Annotation an undo changed, and reports one Zotero moved", asyn
   const binding = service.bindings[0]!;
   await binding.refreshed;
   reader.renderFirstPage();
-  await binding.probed;
 
   annotations.undo.mockReturnValueOnce(
     Effect.succeed({
@@ -1328,8 +1134,7 @@ it("lets an undo finish when its PDF view closes, and says nothing of it", async
   const view = pdfView("attachments/rougier-2014.pdf", pdfReader());
   const annotations = annotationReads([HIGHLIGHT]);
   const notifier = testNotifier();
-  const open = [{ view }];
-  const { app, relayout } = workspace(open);
+  const { app } = workspace([{ view }]);
   const held = heldStep();
   annotations.undo.mockReturnValueOnce(held.step);
 
@@ -1345,8 +1150,7 @@ it("lets an undo finish when its PDF view closes, and says nothing of it", async
   binding.stepHistory("undo");
 
   // The view closes, then the plugin unloads, while Zotero has the step.
-  open.pop();
-  relayout();
+  service.detach(view);
   const unloaded = service[Symbol.asyncDispose]();
   held.answer(LOST);
   await unloaded;
@@ -1388,22 +1192,9 @@ it("answers two fast Annotation History presses one after the other, in order", 
 // A tab Obsidian restored at startup records no open of its own; a later open
 // that names another Attachment of the same file is the researcher's own, and
 // is recorded as a read of that Attachment.
-//
-// Kept beside annotation-links.e2e.ts, which proves the rename and the read of
-// the named Attachment in a tab ZotLit found open. There the opener's
-// same-file open rebinds through a reconcile on a workspace event, and the
-// in-place rebind this case drives was not reached: the restored-view line in
-// `#unbind` survived a mutation. The case stays until that path is shown
-// reachable from Obsidian's own same-leaf navigation, or shown dead.
 it("records a read of the other Attachment an open names in a restored tab", async () => {
   const SHARED = { ...RESOLVED, attachmentKey: "SHRDKEY2" } as const;
-  const leaf = Object.assign(new WorkspaceLeaf(), {
-    getViewState: () => ({ type: "pdf" }),
-  });
-  const view = Object.assign(pdfView("attachments/rougier-2014.pdf"), {
-    leaf,
-  });
-  Object.assign(leaf, { view });
+  const view = pdfView("attachments/rougier-2014.pdf");
   const { app } = workspace([{ view }]);
   let layoutReady = () => {};
   Object.assign((app as { workspace: object }).workspace, {
@@ -1431,7 +1222,8 @@ it("records a read of the other Attachment an open names in a restored tab", asy
   layoutReady();
   expect(recordRead).not.toHaveBeenCalled();
 
-  leaf.setEphemeralState({ subpath: `#zt-attachment=${SHARED.attachmentKey}` });
+  const subpath = `#zt-attachment=${SHARED.attachmentKey}`;
+  view.fake.navigateTo(subpath);
 
   expect(service.bindings[0]!.attachment).toMatchObject({
     attachmentKey: SHARED.attachmentKey,
@@ -1442,11 +1234,8 @@ it("records a read of the other Attachment an open names in a restored tab", asy
   ]);
 });
 
-/** Lets a page change at the reopen position see where the reader ends up. */
-const pageChangesSettled = () => new Promise((resolve) => setTimeout(resolve));
-
 /** A restored tab: a PDF view the workspace holds before its layout is ready. */
-async function restoredTab(reader: ReturnType<typeof pdfReader>) {
+async function restoredTab(reader: FakeReader) {
   const view = pdfView("attachments/rougier-2014.pdf", reader);
   const { app } = workspace([{ view }]);
   let layoutReady = () => {};
@@ -1469,147 +1258,51 @@ async function restoredTab(reader: ReturnType<typeof pdfReader>) {
   return { service, recordRead };
 }
 
-// PDF.js reopens a document at its last position, and the move to it is
-// a page change. A binding can attach before that move: the reader's page one
-// is loaded, and its initial view is not set yet.
+// The move to the position a document reopens at is the reader's own,
+// not a page turn.
 it("records no read for the page a restored reader reopens at", async () => {
-  const reader = openingReader();
+  const reader = pdfReader();
   const { service, recordRead } = await restoredTab(reader);
   await using _ = service;
 
-  reader.setInitialView();
+  reader.turnPage("restore");
 
-  await pageChangesSettled();
   expect(recordRead).not.toHaveBeenCalled();
 });
 
 // The page turns that follow the initial view are the researcher's.
 it("records a read for a page turn after the restored reader's initial view", async () => {
-  const reader = openingReader();
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-  reader.setInitialView();
-
-  reader.turnPage();
-
-  await vi.waitFor(() =>
-    expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey),
-  );
-});
-
-// The plugin enabled over an open PDF tab attaches after the initial
-// view.
-it("records a read for the first page turn in a reader whose initial view stands", async () => {
   const reader = pdfReader();
   const { service, recordRead } = await restoredTab(reader);
   await using _ = service;
+  reader.turnPage("restore");
 
-  reader.turnPage();
-
-  await vi.waitFor(() =>
-    expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey),
-  );
-});
-
-// PDF.js sets the initial view from the `.catch` of `load` when its
-// document-open handler throws, and `documentinit` never follows. A move to
-// another page is still PDF.js's own; the page turns after it count.
-it("records a read for a page turn after an initial view set without documentinit", async () => {
-  const reader = openingReader();
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-  reader.failInitialView({ move: true });
-  expect(recordRead).not.toHaveBeenCalled();
-
-  reader.turnPage();
+  reader.turnPage("user");
 
   expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey);
 });
 
-// When that initial view changes no page (no bookmark, or one on the
-// page already showing), the first page change after it is the one that shows
-// the view is set: it is not counted, and the page turns after it are.
-it("records reads from the second page turn after an initial view set without a move or documentinit", async () => {
-  const reader = openingReader();
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-  reader.failInitialView({ move: false });
-
-  reader.turnPage();
-  reader.turnPage();
-
-  expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey);
-});
-
-// Obsidian reloads a changed file into the same reader. PDF.js closes the
-// document and sets the initial view of the new one again, with its own move.
+// A vault modify reloads the file into the same reader, which reopens
+// it at the page it showed.
 it("records no read for the page a reader reopens at after its document reloads in place", async () => {
   const reader = pdfReader();
   const { service, recordRead } = await restoredTab(reader);
   await using _ = service;
 
-  reader.closeDocument();
-  reader.setInitialView();
+  reader.reloadDocument();
+  reader.turnPage("restore");
 
-  await pageChangesSettled();
   expect(recordRead).not.toHaveBeenCalled();
 });
 
-// PDF.js names the current page from the scroll position on its next scroll
-// update, which can run after `documentinit`. The move to the reopen position
-// then dispatches its `pagechanging` with the reader where the initial view
-// left it.
-it("records no read for the page PDF.js names after a restored reader's initial view", async () => {
-  const reader = openingReader();
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-  reader.setInitialView();
-
-  reader.settle();
-
-  await pageChangesSettled();
-  expect(recordRead).not.toHaveBeenCalled();
-});
-
-// A binding can attach after `documentinit` and before that scroll update.
-it("records no read for the page PDF.js names after the initial view a binding attached behind", async () => {
-  const reader = pdfReader();
-  // The initial view has moved the reader; PDF.js has not named the page yet.
-  reader.container.scrollTop = 300;
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-
-  reader.settle();
-
-  await pageChangesSettled();
-  expect(recordRead).not.toHaveBeenCalled();
-});
-
-it("records a read for a page turn after PDF.js names the reopen page", async () => {
-  const reader = openingReader();
-  const { service, recordRead } = await restoredTab(reader);
-  await using _ = service;
-  reader.setInitialView();
-  reader.settle();
-
-  reader.turnPage();
-
-  await vi.waitFor(() =>
-    expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey),
-  );
-});
-
-// A link or subpath turn names the new page before it scrolls there, so the
-// page change still finds the reader at the reopen position.
+// A link or subpath turn is the researcher's own.
 it("records a read for a link turn away from a restored reader's reopen position", async () => {
-  const reader = openingReader();
+  const reader = pdfReader();
   const { service, recordRead } = await restoredTab(reader);
   await using _ = service;
-  reader.setInitialView();
+  reader.turnPage("restore");
 
-  reader.navigate();
+  reader.turnPage("navigate");
 
-  await vi.waitFor(() =>
-    expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey),
-  );
+  expect(recordRead).toHaveBeenCalledExactlyOnceWith(RESOLVED.itemKey);
 });

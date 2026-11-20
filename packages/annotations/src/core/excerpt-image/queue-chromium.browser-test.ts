@@ -7,7 +7,8 @@ import { EXCERPT_JOB_LIMIT } from "./pdf-queue.ts";
 // work it schedules is real Chromium canvas encoding and the one window it runs
 // in is hidden — the background-throttled state a minimized Obsidian is in.
 // Nothing here parses a PDF: the renderer's own document load and rasterizer
-// live in Obsidian (see docs/excerpt-image-queue-measurements.md).
+// run on the PDF engine, which crop.browser-test.ts drives (see
+// docs/excerpt-image-queue-measurements.md).
 import { check } from "#__fixtures__/excerpt-image/check.ts";
 import { encodeExcerptImage } from "#__fixtures__/excerpt-image/encode.ts";
 import { queueFixture } from "#__fixtures__/excerpt-image/queue.ts";

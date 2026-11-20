@@ -13,7 +13,7 @@ import {
  * The queue's in-app half, in the same Chromium the plugin ships on: a window
  * Chromium minimizes (so the page is hidden and its timers are clamped), real
  * canvas crops, and the admitted bound under pressure. The PDF document and
- * rasterizer Obsidian owns are not part of it — see
+ * rasterizer are not part of it; crop.test.ts drives them — see
  * docs/excerpt-image-queue-measurements.md.
  */
 const MAX_COLD_BATCH_MS = 30_000;

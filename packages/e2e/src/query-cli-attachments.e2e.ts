@@ -74,7 +74,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
       expect(files).toMatchObject({ ok: true, truncated: false });
       expect(files.groups!.map(({ value, count }) => [value, count])).toEqual([
-        ["pdf", 11],
+        ["pdf", 12],
         ["web", 3],
       ]);
       for (const group of files.groups!)
@@ -223,7 +223,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
       expect(answer).toMatchObject({
         ok: true,
-        returnedCount: 14,
+        returnedCount: 15,
         truncated: false,
       });
       expect(answer.libraries).toHaveLength(LIBRARIES.length);

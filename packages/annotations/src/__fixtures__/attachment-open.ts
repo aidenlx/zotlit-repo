@@ -1,5 +1,5 @@
 // The opener every ZotLit gesture opens through, over the real Attachment
-// resolver and a seeded Zotero database. Obsidian's PDF view and the system
+// resolver and a seeded Zotero database. The ZotLit PDF Reader and the system
 // handler are the host boundaries, so both are recorders.
 
 import { Context, Effect, Layer } from "effect";
@@ -110,13 +110,13 @@ export async function openOpener(
   const runtime = buildRuntime(
     layerTargetOpener({
       reader: Effect.succeed({
-        open: (attachment, pane): Promise<ReaderOutcome> => {
+        open: (attachment, pane): Effect.Effect<ReaderOutcome, Error> => {
           if (broken.includes(attachment.absolutePath))
-            return Promise.reject(new Error("the reader failed"));
+            return Effect.fail(new Error("the reader failed"));
           if (missing.includes(attachment.absolutePath))
-            return Promise.resolve("file-missing");
+            return Effect.succeed("file-missing");
           opened.push({ attachment, pane });
-          return Promise.resolve("opened");
+          return Effect.succeed("opened");
         },
       }),
       native: native ?? ((url) => void handed.push(url)),

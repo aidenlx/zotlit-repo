@@ -13,6 +13,7 @@ import { addAnnotationHistoryActions } from "@zotlit/annotations/obsidian/annota
 import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-repository/actions.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
+import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
 // ZotLit Query on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
 // with the Item Query adapter, the Query View and the sidebar Annotation
 // View, the Annotation Suggester and the PDF view's note button, and the
@@ -20,6 +21,7 @@ import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
@@ -134,7 +136,7 @@ export const queryViews = extendFeature(obsidianQueryViews, {
     // A Target Opener's PDF opens bring the Annotation View forward beside it.
     serviceGroup(
       "PdfTargetReader",
-      { provides: [PdfTargetReader] },
+      { provides: [PdfTargetReader], requires: [ZotlitPdfReader, Vault] },
       Layer.effect(PdfTargetReader, pdfReader),
     ),
   ],

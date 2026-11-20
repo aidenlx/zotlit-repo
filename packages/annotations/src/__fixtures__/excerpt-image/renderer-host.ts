@@ -1,13 +1,8 @@
 // The host modules the excerpt tree also reaches, as the browser trials see
 // them: a trial drives the plugin's own logic in Chromium, and the seams that
 // belong to Obsidian or to Node are aliased here. Every one of them throws, so
-// a trial that accidentally needs a PDF host, a file, or a Zotero database
-// fails loudly instead of quietly passing.
-
-/** Obsidian's PDF.js host, which only a detached render reaches. */
-export function loadPdfJs(): never {
-  throw new Error("No PDF.js host in a browser trial");
-}
+// a trial that accidentally needs a file or a Zotero database fails loudly
+// instead of quietly passing.
 
 /** The filesystem, which only the Zotero fallback read reaches. */
 export function open(): never {
@@ -51,3 +46,17 @@ export function attachmentAbsPath(): never {
 export function resolveAnnotCachePath(): never {
   throw new Error("No Zotero database in a browser trial");
 }
+
+export function resolveIndexedKeyLibraryIn(): never {
+  throw new Error("No Zotero database in a browser trial");
+}
+
+export function annotationTypeToName(): never {
+  throw new Error("No Zotero database in a browser trial");
+}
+
+export function parseAnnotationPosition(): never {
+  throw new Error("No Zotero database in a browser trial");
+}
+
+export const nameDictionary = {};

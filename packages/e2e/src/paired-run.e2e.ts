@@ -54,7 +54,7 @@ import {
 } from "./obsidian-cli.ts";
 import type { NoteQueryView } from "./page-helpers.ts";
 import type { LibraryWorkerMessage } from "./page-library-types.ts";
-import type { PagePdfView } from "./page-notes-types.ts";
+import type { PagePdfReaderView } from "./page-notes-types.ts";
 import type {
   PairedWriteProbe,
   PairedScope,
@@ -299,7 +299,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     await obRun(
       vaultId!,
       async ({ app, zotlit }) => {
-        app.workspace.getLeavesOfType("pdf").forEach((l) => l.detach());
+        app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
         await zotlit.services.bridge.runPromise(
           zotlit.services.zoteroLocalApi.probe,
         );
@@ -1506,7 +1506,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           vaultId!,
           async ({ app }, { createdKey }: { createdKey: string }) => {
             return app.workspace
-              .getLeavesOfType("pdf")
+              .getLeavesOfType("zotlit-pdf")
               .some(({ view }) =>
                 view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -1581,7 +1581,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           vaultId!,
           async ({ app }, { createdKey }: { createdKey: string }) => {
             return app.workspace
-              .getLeavesOfType("pdf")
+              .getLeavesOfType("zotlit-pdf")
               .map((leaf) =>
                 leaf.view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -1822,7 +1822,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ) => {
             const view = pageHelpers.pdfView(attachmentPath)!;
             if (!view) return "no view";
-            view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+            void view.reader!.navigate({ pageIndex: 0 });
             const rect = pageHelpers
               .pdfView(attachmentPath)
               ?.containerEl.querySelector<SVGGraphicsElement>(
@@ -1976,7 +1976,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -2321,7 +2321,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -2370,7 +2370,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -2476,7 +2476,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -2907,8 +2907,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { attachmentPath }: { attachmentPath: string },
               ) => {
                 return getComputedStyle(
-                  pageHelpers.pdfView(attachmentPath)!.viewer.child.pdfViewer
-                    .pdfViewer.container,
+                  pageHelpers.pdfView(attachmentPath)!.reader!.container,
                 ).touchAction;
               },
               { attachmentPath },
@@ -2924,7 +2923,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 return getComputedStyle(
                   pageHelpers
                     .pdfView(attachmentPath)!
-                    .viewer.child.getPage(1)!
+                    .reader!.pageAt(0)!
                     .div.querySelector<HTMLElement>(".textLayer span")!,
                 ).cursor;
               },
@@ -3015,8 +3014,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { attachmentPath }: { attachmentPath: string },
               ) => {
                 return getComputedStyle(
-                  pageHelpers.pdfView(attachmentPath)!.viewer.child.pdfViewer
-                    .pdfViewer.container,
+                  pageHelpers.pdfView(attachmentPath)!.reader!.container,
                 ).touchAction;
               },
               { attachmentPath },
@@ -3032,7 +3030,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 return getComputedStyle(
                   pageHelpers
                     .pdfView(attachmentPath)!
-                    .viewer.child.getPage(1)!
+                    .reader!.pageAt(0)!
                     .div.querySelector<HTMLElement>(".textLayer span")!,
                 ).cursor;
               },
@@ -3073,7 +3071,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ) => {
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!.div;
+                  .reader!.pageAt(0)!.div;
                 return [
                   page,
                   page.querySelector<HTMLElement>(".textLayer span"),
@@ -3094,7 +3092,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ) => {
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!.div;
+                  .reader!.pageAt(0)!.div;
                 return [
                   page,
                   page.querySelector<HTMLElement>(".textLayer span"),
@@ -3115,7 +3113,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ) => {
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!.div;
+                  .reader!.pageAt(0)!.div;
                 return [
                   page,
                   page.querySelector<HTMLElement>(".textLayer span"),
@@ -3136,7 +3134,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ) => {
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!.div;
+                  .reader!.pageAt(0)!.div;
                 return [
                   page,
                   page.querySelector<HTMLElement>(".textLayer span"),
@@ -3207,7 +3205,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ) => {
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!.div;
+                  .reader!.pageAt(0)!.div;
                 return [
                   page,
                   page.querySelector<HTMLElement>(".textLayer span"),
@@ -3236,7 +3234,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 ) => {
                   const page = pageHelpers
                     .pdfView(attachmentPath)!
-                    .viewer.child.getPage(1)!.div;
+                    .reader!.pageAt(0)!.div;
                   return [
                     page,
                     page.querySelector<HTMLElement>(".textLayer span"),
@@ -3303,11 +3301,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 .getBoundingClientRect();
               const page = pageHelpers
                 .pdfView(attachmentPath)!
-                .viewer.child.getPage(1)!
+                .reader!.pageAt(0)!
                 .div.getBoundingClientRect();
               pageHelpers.pdfView(
                 attachmentPath,
-              )!.viewer.child.pdfViewer.pdfViewer.container.scrollTop +=
+              )!.reader!.container.scrollTop +=
                 page.top - (box.top + box.height / 2) + box.height;
             },
             { attachmentPath, toolName: "ink" },
@@ -3337,7 +3335,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   y = box.top + box.height / 2;
                 const page = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.getBoundingClientRect();
                 const container =
                   pageHelpers.pdfView(attachmentPath)!.containerEl;
@@ -3392,7 +3390,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -3692,7 +3690,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -3937,7 +3935,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -4173,7 +4171,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 const clientOf = (x: number, y: number) => {
                   const overlay = pageHelpers
                     .pdfView(attachmentPath)!
-                    .viewer.child.getPage(1)!
+                    .reader!.pageAt(0)!
                     .div.querySelector<SVGSVGElement>(
                       ".zt-pdf-annotation-overlay",
                     );
@@ -4800,7 +4798,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 ) => {
                   const view = pageHelpers.pdfView(attachmentPath)!;
                   if (!view) return "no view";
-                  view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+                  void view.reader!.navigate({ pageIndex: 0 });
                   const mark =
                     view.containerEl.querySelector<SVGGraphicsElement>(
                       `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(annotationKey)}]`,
@@ -4909,7 +4907,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 ) => {
                   const view = pageHelpers.pdfView(attachmentPath)!;
                   if (!view) return "no view";
-                  view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+                  void view.reader!.navigate({ pageIndex: 0 });
                   const mark =
                     view.containerEl.querySelector<SVGGraphicsElement>(
                       `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(textKey)}]`,
@@ -5029,13 +5027,13 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           vaultId!,
           async ({ app }, { attachmentPath }: { attachmentPath: string }) => {
             const leaf = app.workspace
-              .getLeavesOfType("pdf")
+              .getLeavesOfType("zotlit-pdf")
               .find(
                 ({ view }) => (view as FileView).file?.path === attachmentPath,
               );
-            const viewer = (leaf!.view as PagePdfView).viewer.child?.pdfViewer
-              ?.pdfViewer;
-            if (viewer) viewer.currentPageNumber = 2;
+            await (leaf!.view as PagePdfReaderView).reader?.navigate({
+              pageIndex: 1,
+            });
           },
           { attachmentPath },
         );
@@ -5043,7 +5041,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           vaultId!,
           async ({ app }, { imageKey }: { imageKey: "FDRFQ7C2" }) => {
             const mark = app.workspace
-              .getLeavesOfType("pdf")
+              .getLeavesOfType("zotlit-pdf")
               .map(({ view }) =>
                 view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(imageKey)}]`,
@@ -5093,7 +5091,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 2;
+              void view.reader!.navigate({ pageIndex: 1 });
               const rect = pageHelpers
                 .pdfView(attachmentPath)
                 ?.containerEl.querySelector<SVGGraphicsElement>(
@@ -6084,7 +6082,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ) => {
             const view = pageHelpers.pdfView(attachmentPath)!;
             if (!view) return "no view";
-            view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+            void view.reader!.navigate({ pageIndex: 0 });
             return (
               (pageHelpers
                 .pdfView(attachmentPath)
@@ -6195,6 +6193,192 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
       });
 
+      it("selects a line of a PDF whose text sits inside a Form XObject, and the highlight it creates takes Zotero's Page Label and Sort Index (E-1)", async () => {
+        const form = ATTACHMENTS.find(({ key }) => key === "FRMXPDF2")!;
+        const formPath = form.path!;
+        const formKey = form.key;
+        await using local = new AsyncDisposableStack();
+        const formItem = `Zotero.Items.getByLibraryAndKey(
+          Zotero.Libraries.userLibraryID,
+          ${JSON.stringify(formKey)},
+        )`;
+        local.defer(async () => {
+          await rdp.json(`(async () => {
+            const item = ${formItem};
+            for (const reader of Zotero.Reader._readers.filter(
+              (candidate) => candidate.itemID === item.id,
+            ))
+              reader.close();
+            for (const annotation of item.getAnnotations())
+              await annotation.eraseTx();
+            return "erased";
+          })()`);
+        });
+        local.defer(async () => {
+          await obRun(
+            vaultId!,
+            ({ app }, { formPath }: { formPath: string }) => {
+              for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+                if ((leaf.view as FileView).file?.path === formPath)
+                  leaf.detach();
+            },
+            { formPath },
+          );
+        });
+
+        expect(
+          await obRun(
+            vaultId!,
+            async ({ zotlit, page: pageHelpers }, { formKey }) => {
+              const s = zotlit.services;
+              await pageHelpers.until(
+                "the Attachment index to resolve the Form XObject PDF",
+                () =>
+                  s.bridge.runSync(s.attachmentResolver.lookup(formKey))
+                    .kind === "resolved",
+                30000,
+              );
+              return await s.bridge.runPromise(
+                s.targetOpener.open(
+                  { kind: "attachment", attachmentKey: formKey },
+                  "tab",
+                ),
+              );
+            },
+            { formKey },
+            { timeoutMs: 60_000 },
+          ),
+        ).toEqual({ kind: "reader" });
+        await raiseWindow(vaultId!);
+        await obRunUntil(
+          vaultId!,
+          async (
+            { zotlit, page: pageHelpers },
+            { formPath, formKey }: { formPath: string; formKey: string },
+          ) => {
+            const view = pageHelpers.pdfView(formPath);
+            if (!view) return false;
+            const binding = zotlit.services.bridge.runSync(
+              zotlit.services.pdfAnnotationEditor.bindingFor(view),
+            );
+            return (
+              binding?.session?.target?.attachmentKey === formKey &&
+              (view.containerEl.querySelector<HTMLElement>(
+                '.page[data-page-number="1"] .textLayer',
+              )?.textContent.length ?? 0) > 0
+            );
+          },
+          { formPath, formKey },
+          {
+            what: "the Form XObject PDF's binding and its page 1 text layer",
+          },
+        );
+
+        const selected = await obRun(
+          vaultId!,
+          async ({ page: pageHelpers }, { formPath }: { formPath: string }) => {
+            const { fire, trusted, until } = pageHelpers;
+            const walker = document.createTreeWalker(
+              pageHelpers
+                .pdfView(formPath)!
+                .containerEl.querySelector<HTMLElement>(
+                  '.page[data-page-number="1"] .textLayer',
+                )!,
+              NodeFilter.SHOW_TEXT,
+            );
+            let node: Node | null;
+            let seen = 0;
+            while ((node = walker.nextNode()))
+              if (
+                (node as Text).data.trim().length > 10 &&
+                node.parentElement!.getBoundingClientRect().height > 0 &&
+                seen++ === 4
+              )
+                break;
+            const range = document.createRange();
+            range.selectNodeContents(node!);
+            const box = range.getBoundingClientRect();
+            const x = box.left + 2,
+              y = box.top + box.height / 2;
+            const pressed = fire("pointerdown", x, y);
+            getSelection()!.removeAllRanges();
+            getSelection()!.addRange(range);
+            fire("pointerup", x, y, pressed);
+            const highlight = await until(
+              "the create popup's Highlight",
+              () =>
+                document.querySelector<HTMLElement>(
+                  '.zt-pdf-mark-popup [data-zt-verb="highlight"]',
+                ),
+              5000,
+            );
+            await trusted(window).click(highlight);
+            return (node as Text).data;
+          },
+          { formPath },
+        );
+
+        const createdOf = () =>
+          rdp.json<
+            {
+              type: string;
+              text: string;
+              sortIndex: string;
+              pageLabel: string;
+              position: string;
+            }[]
+          >(`(() =>
+            ${formItem}.getAnnotations().map((annotation) => ({
+              type: annotation.annotationType,
+              text: annotation.annotationText,
+              sortIndex: annotation.annotationSortIndex,
+              pageLabel: annotation.annotationPageLabel,
+              position: annotation.annotationPosition,
+            }))
+          )()`);
+        expect(await waitFor(async () => (await createdOf()).length > 0)).toBe(
+          true,
+        );
+        const [created, ...more] = await createdOf();
+        const zotero = await rdp.json<{
+          sortIndex: string;
+          pageLabel: string;
+          chars: number;
+        }>(`(async () => {
+          const item = ${formItem};
+          const reader = await Zotero.Reader.open(item.id);
+          await reader._initPromise;
+          let view = null;
+          for (let i = 0; i < 200 && !view; i++) {
+            view = reader._internalReader?._primaryView ?? null;
+            if (!view) await Zotero.Promise.delay(50);
+          }
+          await view.initializedPromise;
+          const position = JSON.parse(${JSON.stringify(created!.position)});
+          await view._ensureBasicPageData(position.pageIndex);
+          const meta = view.getAnnotationMeta(
+            Components.utils.cloneInto(position, reader._iframeWindow),
+          );
+          const chars = view._pdfPages[position.pageIndex].chars.length;
+          reader.close();
+          return { sortIndex: meta.sortIndex, pageLabel: meta.pageLabel, chars };
+        })()`);
+        expect(more).toEqual([]);
+        expect(created!.type).toBe("highlight");
+        expect(created!.text.replaceAll(/\s/g, "")).toBe(
+          selected.replaceAll(/\s/g, ""),
+        );
+        expect(zotero.chars).toBeGreaterThan(0);
+        expect(Number(created!.sortIndex.split("|")[1])).toBeGreaterThan(0);
+        expect({
+          sortIndex: created!.sortIndex,
+          pageLabel: created!.pageLabel,
+        }).toEqual({
+          sortIndex: zotero.sortIndex,
+          pageLabel: zotero.pageLabel,
+        });
+      });
+
       it("hides the Mark Popup of a new highlight when a new tab covers the PDF, and shows it again when the PDF's tab comes back", async () => {
         await raiseWindow(vaultId!);
         await obRunUntil(
@@ -6205,7 +6389,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ) => {
             const view = pageHelpers.pdfView(attachmentPath)!;
             if (!view) return "no view";
-            view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+            void view.reader!.navigate({ pageIndex: 0 });
             return (
               (pageHelpers
                 .pdfView(attachmentPath)
@@ -6352,7 +6536,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ({ app }, { attachmentPath }: { attachmentPath: string }) => {
             app.workspace.setActiveLeaf(
               app.workspace
-                .getLeavesOfType("pdf")
+                .getLeavesOfType("zotlit-pdf")
                 .find(
                   (leaf) =>
                     (leaf.view as FileView).file?.path === attachmentPath,
@@ -6379,7 +6563,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ready: (value) => value.shown,
             },
           ),
-        ).toEqual({ shown: true, tab: "pdf" });
+        ).toEqual({ shown: true, tab: "zotlit-pdf" });
         // Escape closes it, as before.
         await obRun(vaultId!, async ({ page: pageHelpers }) => {
           await pageHelpers.trusted(window).key("Escape");
@@ -6411,7 +6595,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ) => {
             const view = pageHelpers.pdfView(attachmentPath)!;
             if (!view) return "no view";
-            view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+            void view.reader!.navigate({ pageIndex: 0 });
             return (
               (pageHelpers
                 .pdfView(attachmentPath)
@@ -6521,7 +6705,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ({ app }, { attachmentPath }: { attachmentPath: string }) => {
             app.workspace.setActiveLeaf(
               app.workspace
-                .getLeavesOfType("pdf")
+                .getLeavesOfType("zotlit-pdf")
                 .find(
                   (leaf) =>
                     (leaf.view as FileView).file?.path === attachmentPath,
@@ -6586,7 +6770,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const mark = pageHelpers
                 .pdfView(attachmentPath)
                 ?.containerEl.querySelector<SVGGraphicsElement>(
@@ -6834,7 +7018,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const mark = pageHelpers
                 .pdfView(attachmentPath)
                 ?.containerEl.querySelector<SVGGraphicsElement>(
@@ -7062,7 +7246,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const mark = pageHelpers
                 .pdfView(attachmentPath)
                 ?.containerEl.querySelector<SVGGraphicsElement>(
@@ -7097,7 +7281,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const clientOf = (x: number, y: number) => {
                 const overlay = pageHelpers
                   .pdfView(attachmentPath)!
-                  .viewer.child.getPage(1)!
+                  .reader!.pageAt(0)!
                   .div.querySelector<SVGSVGElement>(
                     ".zt-pdf-annotation-overlay",
                   );
@@ -7184,7 +7368,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   const clientOf = (x: number, y: number) => {
                     const overlay = pageHelpers
                       .pdfView(attachmentPath)!
-                      .viewer.child.getPage(1)!
+                      .reader!.pageAt(0)!
                       .div.querySelector<SVGSVGElement>(
                         ".zt-pdf-annotation-overlay",
                       );
@@ -7546,7 +7730,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const rect = [
                 ...pageHelpers
                   .pdfView(attachmentPath)!
@@ -8274,7 +8458,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const rect = pageHelpers
                 .pdfView(attachmentPath)!
                 .containerEl.querySelector<SVGGraphicsElement>(
@@ -9432,7 +9616,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 const clientOf = (x: number, y: number) => {
                   const overlay = pageHelpers
                     .pdfView(attachmentPath)!
-                    .viewer.child.getPage(1)!
+                    .reader!.pageAt(0)!
                     .div.querySelector<SVGSVGElement>(
                       ".zt-pdf-annotation-overlay",
                     );
@@ -9685,7 +9869,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
               if (!view) return "no view";
-              view.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+              void view.reader!.navigate({ pageIndex: 0 });
               const rect = view.containerEl
                 .querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(markKey)}]`,
@@ -9821,9 +10005,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { page: pageHelpers },
               { attachmentPath }: { attachmentPath: string },
             ) => {
-              pageHelpers.pdfView(
-                attachmentPath,
-              )!.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 4;
+              void pageHelpers
+                .pdfView(attachmentPath)!
+                .reader!.navigate({ pageIndex: 3 });
             },
             { attachmentPath },
           );
@@ -9839,8 +10023,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               }: { attachmentPath: string; cardKey: "Q8ZR4TDH" },
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
-              const box =
-                view.viewer.child.pdfViewer.pdfViewer.container.getBoundingClientRect();
+              const box = view.reader!.container.getBoundingClientRect();
               const mark = view.containerEl.querySelector<SVGGraphicsElement>(
                 `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(cardKey)}]`,
               );
@@ -10593,7 +10776,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               }: { modifiers: []; attachmentPath: string; markKey: "PUPR5FG5" },
             ) => {
               const target = app.workspace
-                .getLeavesOfType("pdf")
+                .getLeavesOfType("zotlit-pdf")
                 .map(({ view }) => view)
                 .find(
                   (view) =>
@@ -11614,9 +11797,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { page: pageHelpers },
               { attachmentPath }: { attachmentPath: string },
             ) => {
-              pageHelpers.pdfView(
-                attachmentPath,
-              )!.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 4;
+              void pageHelpers
+                .pdfView(attachmentPath)!
+                .reader!.navigate({ pageIndex: 3 });
             },
             { attachmentPath },
           );
@@ -11632,8 +11815,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               }: { attachmentPath: string; next: string },
             ) => {
               const view = pageHelpers.pdfView(attachmentPath)!;
-              const box =
-                view.viewer.child.pdfViewer.pdfViewer.container.getBoundingClientRect();
+              const box = view.reader!.container.getBoundingClientRect();
               const mark = view.containerEl.querySelector<SVGGraphicsElement>(
                 `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(next)}]`,
               );
@@ -12098,8 +12280,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { attachmentPath }: { attachmentPath: string },
               ) => {
                 return String(
-                  pageHelpers.pdfView(attachmentPath)!.viewer.child.pdfViewer
-                    .pdfViewer.currentPageNumber,
+                  pageHelpers.pdfView(attachmentPath)!.reader!.state.get()
+                    .pageIndex + 1,
                 );
               },
               { attachmentPath },
@@ -12111,9 +12293,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { page: pageHelpers },
                 { attachmentPath }: { attachmentPath: string },
               ) => {
-                pageHelpers.pdfView(
-                  attachmentPath,
-                )!.viewer.child.pdfViewer.pdfViewer.currentPageNumber = 1;
+                void pageHelpers
+                  .pdfView(attachmentPath)!
+                  .reader!.navigate({ pageIndex: 0 });
                 return "top";
               },
               { attachmentPath },
@@ -13435,7 +13617,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 !!cardWin &&
                 cardWin !==
                   app.workspace
-                    .getLeavesOfType("pdf")
+                    .getLeavesOfType("zotlit-pdf")
                     .find(({ view }) =>
                       view.containerEl.querySelector<SVGGraphicsElement>(
                         `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -13576,7 +13758,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               owned:
                 editor!.win !==
                 app.workspace
-                  .getLeavesOfType("pdf")
+                  .getLeavesOfType("zotlit-pdf")
                   .find(({ view }) =>
                     view.containerEl.querySelector<SVGGraphicsElement>(
                       `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -13924,7 +14106,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 )
                 .find(Boolean);
               const mark = app.workspace
-                .getLeavesOfType("pdf")
+                .getLeavesOfType("zotlit-pdf")
                 .map((leaf) =>
                   leaf.view.containerEl.querySelector<SVGGraphicsElement>(
                     `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -14215,7 +14397,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             vaultId!,
             async ({ app, page: pageHelpers }) => {
               app.workspace
-                .getLeavesOfType("pdf")
+                .getLeavesOfType("zotlit-pdf")
                 .forEach((leaf) => leaf.detach());
               app.workspace.detachLeavesOfType("zotero-annotation-view");
               pageHelpers.scratch.__zotlitWriteOutcomeProbe!.release!();
@@ -14252,10 +14434,14 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(retained).not.toBeNull();
         await obRun(
           vaultId!,
-          async ({ app }, { attachmentPath }: { attachmentPath: string }) => {
+          async (
+            { app, zotlit },
+            { attachmentPath }: { attachmentPath: string },
+          ) => {
             const file = app.vault.getFileByPath(attachmentPath);
-            if (!app.workspace.getLeavesOfType("pdf").length)
-              await app.workspace.getLeaf("tab").openFile(file!);
+            const s = zotlit.services;
+            if (!app.workspace.getLeavesOfType("zotlit-pdf").length)
+              await s.bridge.runPromise(s.pdfReader.open(file!, "", "tab"));
             app.commands.executeCommandById("zotlit:open-annot-view");
             app.commands.executeCommandById(
               "zotlit:annot-view-follow-active-tab",
@@ -15265,10 +15451,18 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       });
       await obRun(
         vaultId!,
-        async ({ app }, { attachmentPath }: { attachmentPath: string }) => {
-          await app.workspace
-            .getLeaf("tab")
-            .openFile(app.vault.getFileByPath(attachmentPath)!);
+        async (
+          { app, zotlit },
+          { attachmentPath }: { attachmentPath: string },
+        ) => {
+          const s = zotlit.services;
+          await s.bridge.runPromise(
+            s.pdfReader.open(
+              app.vault.getFileByPath(attachmentPath)!,
+              "",
+              "tab",
+            ),
+          );
         },
         { attachmentPath },
       );
@@ -16497,7 +16691,7 @@ function visibleAnnotationColors(
         )
         .find(Boolean);
       const mark = app.workspace
-        .getLeavesOfType("pdf")
+        .getLeavesOfType("zotlit-pdf")
         .map((leaf) =>
           leaf.view.containerEl.querySelector<SVGGraphicsElement>(
             `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(annotationKey)}]`,

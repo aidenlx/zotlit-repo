@@ -15,7 +15,7 @@ upstream modules rather than an equivalent of its own. See
 | Module                  | What it owns                                                                                                                                                                                                                      |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/vendor/`           | The pinned port: `structure.js`, `page-label.js`, `util.js` from `zotero/pdf.js`, and `native-text-selection-map.js` from `zotero/reader`, copied verbatim under a provenance header.                                             |
-| `src/chars.ts`          | The adapter — Obsidian's per-glyph text content, filtered and normalised into the character stream the port consumes.                                                                                                             |
+| `src/chars.ts`          | The character shapes the port consumes and produces, and `structureChars`, the line grouping over one page.                                                                                                                       |
 | `src/sort-index.ts`     | The reader's `getSortIndex`, its rectangle choice, and the `PPPPP\|OOOOOO\|TTTTT` format.                                                                                                                                         |
 | `src/text-selection.ts` | The reader's text selection: a DOM selection mapped onto Structured Characters, the line rectangles and text a highlight or an underline stores, and a stored range with one end dragged to a point or stepped from the keyboard. |
 | `src/page-label.ts`     | The printed-page heuristic, plus the reader's alignment to the previous Annotation.                                                                                                                                               |
@@ -42,16 +42,16 @@ const stepped = await structure.adjustRange({ position, end: "start", step: "lef
 const rotation = structure.textRotation(pageIndex, rect);
 ```
 
-`source` is a `PdfPageSource` the host builds over Obsidian's PDF seam.
-`getTextItems` must request `{ includeChars: true }`, and `fontName` must be the
-**base** font name (`page.commonObjs.get(item.fontName).name`), not pdf.js's
-loaded name: the line grouping compares font names to decide paragraph breaks,
-and two subsets that Zotero reads as one font would otherwise split.
+`source` is a `PdfPageSource` the host builds over the pdf.js-zotlit document
+of the ZotLit PDF Reader. Its `getChars` gives the fork's per-glyph records,
+which are already in Zotero's shape, so `PdfTextStructure` groups them as they
+come. `getChars` returns new objects on each call, because the line grouping
+writes through the characters. `structureChars` is the same step for one page.
 
 ## Parity
 
 `src/parity.test.ts` runs Zotero's pinned modules in Node over the Fixture PDFs
-and compares every Structured Character and Page Label index for index, then
-reproduces the Sort Index strings Zotero itself wrote into the Fixture. It needs
+and compares the Page Labels and the text ranges, then reproduces the Sort
+Index strings Zotero itself wrote into the Fixture. It needs
 a Zotero checkout; it skips with an explanation when there is none. See
 [`AGENTS.md`](./AGENTS.md).

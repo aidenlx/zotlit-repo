@@ -1,14 +1,14 @@
-// Draws Zotero Annotations as one SVG overlay over an Obsidian PDF page.
+// Draws Zotero Annotations as one SVG overlay over a ZotLit reader page.
 
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import type { InkPosition } from "#obsidian/annotation-repository/write.ts";
-import type { PDFPageView, PDFPageViewport } from "obsidian";
 
 import type {
   PdfInkPosition,
   PdfRectsPosition,
   PdfTextPosition,
 } from "@zotlit/db";
+import type { PageViewport } from "@zotlit/pdf-reader/pdfjs";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import {
@@ -107,9 +107,9 @@ export function groupAnnotationsByPage(
 }
 
 /** The page view the overlay needs, so a test can stand one up as a literal. */
-export type OverlayPageView = Pick<PDFPageView, "div"> & {
+export type OverlayPageView = { div: HTMLElement } & {
   viewport: Pick<
-    PDFPageViewport,
+    PageViewport,
     | "width"
     | "height"
     | "scale"
@@ -121,7 +121,7 @@ export type OverlayPageView = Pick<PDFPageView, "div"> & {
     | "transform"
     | "convertToViewportPoint"
   > &
-    Partial<Pick<PDFPageViewport, "clone">>;
+    Partial<Pick<PageViewport, "clone">>;
 };
 
 export interface AnnotationOverlayOptions {
@@ -695,7 +695,10 @@ function pagePoints(page: OverlayPage, path: readonly number[]): PagePoint[] {
 /** The free-text geometry, bound to this page's own PDF-point mapping. */
 function layoutOf(page: OverlayPage, position: PdfTextPosition) {
   return freeTextLayout(
-    (x, y) => page.viewport.convertToViewportPoint(x, y),
+    (x, y) => {
+      const [left, top] = page.viewport.convertToViewportPoint(x, y);
+      return [left, top];
+    },
     position,
     SELECTION_OUTLINE_PADDING,
   );
@@ -1051,7 +1054,7 @@ export type { PageRect } from "./free-text-layout.ts";
 interface OverlayPage {
   document: Document;
   viewport: Pick<
-    PDFPageViewport,
+    PageViewport,
     "width" | "height" | "rotation" | "convertToViewportPoint"
   >;
 }

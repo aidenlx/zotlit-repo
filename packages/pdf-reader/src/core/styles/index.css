@@ -1,0 +1,107 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(zpr);
+
+@theme inline reference {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+
+  --color-background: var(--zpr-background);
+  --color-page: var(--zpr-page-background);
+  --color-popup: var(--zpr-popup-background);
+  --color-sidebar: var(--zpr-sidebar-background);
+  --color-surface: var(--zpr-surface);
+  --color-foreground: var(--zpr-text);
+  --color-muted: var(--zpr-text-muted);
+  --color-faint: var(--zpr-text-faint);
+  --color-accent: var(--zpr-accent);
+  --color-hover: var(--zpr-hover);
+  --color-active: var(--zpr-active);
+  --color-border: var(--zpr-border);
+  --color-error: var(--zpr-error);
+  --color-icon: var(--zpr-icon-color);
+  --color-icon-hover: var(--zpr-icon-color-hover);
+
+  --radius-*: initial;
+  --radius-sm: var(--zpr-radius-s);
+  --radius-md: var(--zpr-radius-m);
+  --radius-lg: var(--zpr-radius-l);
+  --radius-icon: var(--zpr-icon-radius);
+
+  --text-*: initial;
+  --text-xs: var(--zpr-font-smaller);
+  --text-sm: var(--zpr-font-small);
+  --text-base: var(--zpr-font-medium);
+  --text-lg: var(--zpr-font-large);
+
+  --font-*: initial;
+  --font-sans: var(--zpr-font-interface);
+
+  --shadow-*: initial;
+  --shadow-md: var(--zpr-shadow-popover);
+  --shadow-thumbnail: var(--zpr-thumbnail-shadow);
+}
+
+@import "tailwindcss/utilities.css" layer(utilities) prefix(zpr);
+
+@layer base {
+  .zpr-root {
+    @import "tailwindcss/preflight.css";
+  }
+
+  .zpr-root {
+    --zpr-background: var(--pdf-background, var(--background-primary, #fff));
+    --zpr-page-background: var(
+      --pdf-page-background,
+      var(--background-primary, #fff)
+    );
+    --zpr-sidebar-background: var(
+      --pdf-sidebar-background,
+      var(--background-primary, #fff)
+    );
+    --zpr-surface: var(--background-secondary, #f6f6f6);
+    --zpr-text: var(--text-normal, #222);
+    --zpr-text-muted: var(--text-muted, #5c5c5c);
+    --zpr-text-faint: var(--text-faint, #ababab);
+    --zpr-accent: var(--interactive-accent, #7852ee);
+    --zpr-hover: var(--background-modifier-hover, rgb(0 0 0 / 0.067));
+    --zpr-active: var(--background-modifier-active-hover, rgb(0 0 0 / 0.1));
+    --zpr-border: var(--background-modifier-border, #e0e0e0);
+    --zpr-error: var(--text-error, #e93147);
+    --zpr-radius-s: var(--radius-s, 4px);
+    --zpr-radius-m: var(--radius-m, 8px);
+    --zpr-radius-l: var(--radius-l, 12px);
+    --zpr-font-smaller: var(--font-ui-smaller, 12px);
+    --zpr-font-small: var(--font-ui-small, 13px);
+    --zpr-font-medium: var(--font-ui-medium, 15px);
+    --zpr-font-large: var(--font-ui-large, 20px);
+    --zpr-font-interface: var(--font-interface, system-ui, sans-serif);
+    --zpr-icon-color: var(--icon-color, var(--zpr-text-muted));
+    --zpr-icon-color-hover: var(--icon-color-hover, var(--zpr-text));
+    --zpr-icon-radius: var(--clickable-icon-radius, var(--zpr-radius-s));
+    --zpr-shadow: var(
+      --pdf-shadow,
+      0 0 0 1px rgb(0 0 0 / 0.05),
+      0 2px 8px rgb(0 0 0 / 0.1)
+    );
+    --zpr-spread-shadow: var(--pdf-spread-shadow, 0 0 0 1px rgb(0 0 0 / 0.05));
+    --zpr-thumbnail-shadow: var(
+      --pdf-thumbnail-shadow,
+      0 0 0 1px rgb(0 0 0 / 0.15),
+      0 2px 8px rgb(0 0 0 / 0.2)
+    );
+    --zpr-shadow-popover: var(
+      --shadow-s,
+      0 1px 2px rgb(0 0 0 / 0.1),
+      0 4px 8px rgb(0 0 0 / 0.1)
+    );
+    --zpr-find-match: var(--color-yellow, #e0ac00);
+    --zpr-find-selected: var(--interactive-accent, #7852ee);
+    --zpr-focused-text: #ffd000;
+    --zpr-popup-width: var(--pdf-popup-width, 280px);
+    --zpr-popup-background: var(--zpr-background);
+    --zpr-thumbnail-width: 98px;
+    --zpr-toolbar-height: var(--header-height, 40px);
+  }
+}

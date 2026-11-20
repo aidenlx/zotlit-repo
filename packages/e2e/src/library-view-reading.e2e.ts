@@ -1555,7 +1555,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { path }) => {
         const leaf = app.workspace.getLeaf("tab");
-        await leaf.openFile(app.vault.getFileByPath(path)!);
+        await leaf.setViewState({
+          type: "zotlit-pdf",
+          state: { file: path },
+          active: true,
+        });
         app.workspace.setActiveLeaf(leaf, { focus: true });
       },
       { path: loosePdf },
@@ -1565,7 +1569,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app, zotlit }, { path, labels }) => {
           const leaf = app.workspace
-            .getLeavesOfType("pdf")
+            .getLeavesOfType("zotlit-pdf")
             .find((leaf) => leaf.getViewState().state?.file === path)!;
           app.workspace.setActiveLeaf(leaf, { focus: true });
           const binding = zotlit.services.bridge.runSync(
@@ -1603,7 +1607,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const tab = app.workspace.getLeaf("tab");
         app.workspace.setActiveLeaf(tab, { focus: true });
         for (const leaf of [
-          ...app.workspace.getLeavesOfType("pdf"),
+          ...app.workspace.getLeavesOfType("zotlit-pdf"),
           ...app.workspace.getLeavesOfType("markdown"),
         ])
           leaf.detach();
@@ -1625,7 +1629,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           run.vaultId,
           async ({ app, zotlit }) => {
             return JSON.stringify(
-              app.workspace.getLeavesOfType("pdf").map((leaf) => ({
+              app.workspace.getLeavesOfType("zotlit-pdf").map((leaf) => ({
                 file: leaf.getViewState().state?.file,
                 target:
                   zotlit.services.bridge.runSync(
@@ -1651,7 +1655,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app, zotlit }, { attachmentKey, labels }) => {
           const leaf = app.workspace
-            .getLeavesOfType("pdf")
+            .getLeavesOfType("zotlit-pdf")
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(
@@ -1683,7 +1687,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app, zotlit, page }, { attachmentKey, gesture, label }) => {
           const leaf = app.workspace
-            .getLeavesOfType("pdf")
+            .getLeavesOfType("zotlit-pdf")
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(
@@ -1740,7 +1744,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app, zotlit }, { attachmentKey, key }) => {
           const pdfLeaf = app.workspace
-            .getLeavesOfType("pdf")
+            .getLeavesOfType("zotlit-pdf")
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(

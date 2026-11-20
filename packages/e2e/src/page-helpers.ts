@@ -15,7 +15,7 @@ import type {
 import type {
   PreparationTrial,
   PreparationService,
-  PagePdfView,
+  PagePdfReaderView,
   BackgroundWindow,
 } from "./page-notes-types.ts";
 import type {
@@ -625,19 +625,23 @@ export function createPageHelpers(app: PageApp) {
       ),
     };
   }
-  function pdfView(path: string): PagePdfView | undefined {
+  function pdfView(path: string): PagePdfReaderView | undefined {
     return app.workspace
-      .getLeavesOfType("pdf")
-      .map(({ view }) => view as PagePdfView)
+      .getLeavesOfType("zotlit-pdf")
+      .map(({ view }) => view as PagePdfReaderView)
       .find(
         (view) =>
           view.file?.path === path &&
           view.containerEl.getBoundingClientRect().width > 0,
       );
   }
-  function clientOfFirstPage(view: PagePdfView, x: number, y: number) {
-    const overlay = view.viewer.child
-      .getPage(1)!
+  function pdfReader(path: string) {
+    const view = pdfView(path);
+    return view?.reader ? { view, reader: view.reader } : undefined;
+  }
+  function clientOfFirstPage(view: PagePdfReaderView, x: number, y: number) {
+    const overlay = view
+      .reader!.pageAt(0)!
       .div.querySelector<SVGSVGElement>(".zt-pdf-annotation-overlay")!;
     const box = overlay.getBoundingClientRect();
     const frame = overlay.viewBox.baseVal;
@@ -646,13 +650,13 @@ export function createPageHelpers(app: PageApp) {
       y: box.top + ((frame.y + frame.height - y) * box.height) / frame.height,
     };
   }
-  function toolButton(view: PagePdfView, tool: string) {
+  function toolButton(view: PagePdfReaderView, tool: string) {
     return view.containerEl.querySelector<HTMLButtonElement>(
       `[data-zt-tool="${CSS.escape(tool)}"]`,
     );
   }
-  function pageContainer(view: PagePdfView) {
-    return view.viewer.child.pdfViewer.pdfViewer.container;
+  function pageContainer(view: PagePdfReaderView) {
+    return view.reader!.container;
   }
   /**
    * Shows the Electron window and leaves the OS focus
@@ -915,12 +919,84 @@ export function createPageHelpers(app: PageApp) {
         );
       return { link, x, y };
     }
+    async function withTakeover(
+      cleanup: AsyncDisposableStack,
+      takeover: boolean,
+    ): Promise<void> {
+      const services = getServices();
+      const registration = services.pdfReaderPort.registration!;
+      const mode = (on: boolean) => (on ? "on" : "off");
+      const before = services.bridge.runSync(services.settings.current)[
+        "reader.open-all-pdfs"
+      ];
+      cleanup.defer(async () => {
+        await services.bridge.runPromise(
+          services.settings.update({ "reader.open-all-pdfs": before }),
+        );
+        await until(
+          () => registration.takeover.get() === mode(before),
+          () => "The takeover did not follow the setting back",
+        );
+      });
+      await services.bridge.runPromise(
+        services.settings.update({ "reader.open-all-pdfs": takeover }),
+      );
+      await until(
+        () => registration.takeover.get() === mode(takeover),
+        () => `The takeover did not turn ${mode(takeover)}`,
+      );
+    }
+    async function landedIn(
+      leaf: WorkspaceLeaf,
+      mark: string | null,
+      pageNumber: number,
+    ) {
+      const services = getServices();
+      const registration = services.pdfReaderPort.registration!;
+      const bindingOf = () =>
+        services.bridge.runSync(
+          services.pdfAnnotationEditor.bindingFor(leaf.view),
+        );
+      const reader = await until(
+        () => registration.readerOf(leaf.view),
+        () => "The leaf has no reader",
+      );
+      await reader.whenReady();
+      await (
+        await until(bindingOf, () => "The leaf has no binding")
+      ).refreshed;
+      const selected = () => [
+        ...new Set(
+          [
+            ...reader.container.querySelectorAll<HTMLElement>(
+              "[data-zotero-annotation-key].is-selected",
+            ),
+          ].map((el) => el.dataset.zoteroAnnotationKey!),
+        ),
+      ];
+      await until(
+        () =>
+          (mark === null || selected().join() === mark) &&
+          reader.state.get().pageIndex + 1 === pageNumber,
+        () =>
+          `The leaf did not land on ${mark ?? "no Annotation"} at page ${pageNumber}`,
+      );
+      await reader.settled();
+      return {
+        viewType: leaf.view.getViewType(),
+        page: reader.state.get().pageIndex + 1,
+        selected: selected(),
+        attachment: bindingOf()!.historyAttachment,
+      };
+    }
     return {
       sleep,
       deadline,
       past,
       within,
       until,
+      withTakeover,
+      landedIn,
       restoreLedger,
       draft,
       inlineProfile,
@@ -1046,6 +1122,7 @@ export function createPageHelpers(app: PageApp) {
     tabStripInsets,
     workbenchSurfaces,
     pdfView,
+    pdfReader,
     clientOfFirstPage,
     toolButton,
     pageContainer,

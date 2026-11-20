@@ -1,4 +1,3 @@
-import type { PDFFileView, PDFViewerHost, PDFViewerController } from "obsidian";
 export interface FrameRecord {
   frames: number;
   maxFrameGapMs: number;
@@ -24,30 +23,8 @@ declare module "./page-helpers.ts" {
   }
 }
 
-/** PDF.js host fields used by desktop gestures in addition to the plugin seam. */
-export interface PagePdfView extends PDFFileView {
-  viewer: PagePdfViewerHost;
-}
-interface PagePdfViewerHost extends PDFViewerHost {
-  child: PagePdfController;
-}
-interface PagePdfController extends PDFViewerController {
-  getPage(pageNumber: number):
-    | (import("obsidian").PDFPageView & {
-        reset(): void;
-        draw(): Promise<void>;
-      })
-    | undefined;
-  pdfViewer: NonNullable<
-    import("obsidian").PDFViewerController["pdfViewer"]
-  > & {
-    pdfViewer: {
-      container: HTMLElement;
-      currentPageNumber: number;
-      pagesCount: number;
-    };
-  };
-}
+export type PagePdfReaderView =
+  import("@zotlit/pdf-reader/obsidian").PdfReaderView;
 
 /** Electron BrowserWindow methods used to show a background vault. */
 export interface BackgroundWindow {

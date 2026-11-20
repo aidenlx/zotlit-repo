@@ -1,4 +1,4 @@
-import type { ObsidianTextItem } from "#chars.ts";
+import type { ZoteroChar } from "#chars.ts";
 import type { PdfPageSource } from "#session.ts";
 import type { PdfPosition } from "#sort-index.ts";
 import type { LogRecord } from "@logtape/logtape";
@@ -26,17 +26,15 @@ beforeEach(() => {
 });
 
 /** One 10 pt glyph per page, at a page-dependent height. */
-const glyphs = (pageIndex: number): ObsidianTextItem[] => [
+const glyphs = (pageIndex: number): ZoteroChar[] => [
   {
-    transform: [10, 0, 0, 10, 72, 700 - pageIndex * 10],
+    c: "7",
+    u: "7",
+    rect: [72, 695 - pageIndex * 10, 78, 707 - pageIndex * 10],
+    fontSize: 10,
     fontName: "ABCDEF+Times",
-    chars: [
-      {
-        c: "7",
-        u: "7",
-        r: [72, 695 - pageIndex * 10, 78, 707 - pageIndex * 10],
-      },
-    ],
+    rotation: 0,
+    baseline: 700 - pageIndex * 10,
   },
 ];
 
@@ -45,7 +43,7 @@ function stubSource(overrides: Partial<PdfPageSource> = {}) {
   const source: PdfPageSource = {
     numPages: 3,
     getViewBox: () => Promise.resolve([0, 0, 612, 792]),
-    getTextItems: (pageIndex) => {
+    getChars: (pageIndex) => {
       textCalls.push(pageIndex);
       return Promise.resolve(glyphs(pageIndex));
     },
@@ -145,7 +143,7 @@ describe("a Sort Index once the document closes", () => {
 
   it("fails for a page the closed document never answered", async () => {
     const { source } = stubSource({
-      getTextItems: () => new Promise(() => {}),
+      getChars: () => new Promise(() => {}),
     });
     const structure = new PdfTextStructure(source);
 
@@ -161,7 +159,7 @@ describe("a Sort Index once the document closes", () => {
 describe("a Sort Index on a page with no text layer", () => {
   it("keeps offset zero, reports the geometry, and says so once at debug", async () => {
     const { source } = stubSource({
-      getTextItems: () => Promise.resolve([]),
+      getChars: () => Promise.resolve([]),
     });
     const structure = new PdfTextStructure(source);
     const position: PdfPosition = {

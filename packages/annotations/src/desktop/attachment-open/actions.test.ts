@@ -18,10 +18,7 @@ import {
   pdfPickerReader,
 } from "./actions.ts";
 import type { AttachmentOpenDeps } from "./actions.ts";
-import {
-  createObsidianAttachmentReader,
-  openAttachments,
-} from "./open-attachments.ts";
+import { openAttachments } from "./open-attachments.ts";
 import type { TargetOpener } from "./open-target.ts";
 
 import { openOpener } from "#__fixtures__/attachment-open.ts";
@@ -29,15 +26,10 @@ import { openOpener } from "#__fixtures__/attachment-open.ts";
 vi.mock("./open-attachments.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./open-attachments.ts")>()),
   openAttachments: vi.fn(),
-  createObsidianAttachmentReader: vi.fn(() => ({
-    icon: "file-text",
-    open: vi.fn(),
-  })),
 }));
 
 beforeEach(() => {
   vi.mocked(openAttachments).mockReset();
-  vi.mocked(createObsidianAttachmentReader).mockClear();
 });
 
 /** The Attachments Item ABCD2345 resolves to. */

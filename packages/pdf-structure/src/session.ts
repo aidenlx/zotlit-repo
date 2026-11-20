@@ -1,7 +1,7 @@
 // One Reader Session's view of a PDF: Structured Characters computed lazily
 // per page and memoized, with the Sort Index and Page Label they feed.
 
-import type { ObsidianTextItem, Rect, StructuredPage } from "#chars.ts";
+import type { Rect, StructuredPage, ZoteroChar } from "#chars.ts";
 import type { PageLabelSource, PreviousAnnotation } from "#page-label.ts";
 import type { PdfPosition } from "#sort-index.ts";
 import type {
@@ -11,7 +11,7 @@ import type {
 } from "#text-selection.ts";
 import { getLogger } from "@logtape/logtape";
 
-import { structurePage } from "#chars.ts";
+import { structureChars } from "#chars.ts";
 import { alignPageLabel, extractPageLabels } from "#page-label.ts";
 import { computeSortIndex } from "#sort-index.ts";
 import { adjustRange, rectRotation, selectText } from "#text-selection.ts";
@@ -21,11 +21,9 @@ const logger = getLogger(["zotlit", "pdf-structure"]);
 /** What a waiter reads once the document closed under it. */
 const CLOSED = Symbol("closed");
 
-/** The open document, as the Obsidian reader seam exposes it. */
-export interface PdfPageSource extends PageLabelSource {
-  /** `page.getTextContent({ includeChars: true })` for a zero-based page. */
-  getTextItems(pageIndex: number): Promise<readonly ObsidianTextItem[]>;
-}
+export type PdfPageSource = PageLabelSource & {
+  getChars(pageIndex: number): Promise<readonly ZoteroChar[]>;
+};
 
 /**
  * Everything a creation in Obsidian needs to name where it sits in Zotero's
@@ -89,11 +87,12 @@ export class PdfTextStructure {
   }
 
   async #structure(pageIndex: number): Promise<StructuredPage> {
-    const [viewBox, items] = await Promise.all([
-      this.#source.getViewBox(pageIndex),
-      this.#source.getTextItems(pageIndex),
+    const source = this.#source;
+    const [viewBox, chars] = await Promise.all([
+      source.getViewBox(pageIndex),
+      source.getChars(pageIndex),
     ]);
-    return structurePage(pageIndex, viewBox, items);
+    return structureChars(pageIndex, viewBox, chars);
   }
 
   /**

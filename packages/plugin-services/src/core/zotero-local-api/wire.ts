@@ -202,8 +202,6 @@ export interface WireTag {
  * a malformed one, which is why `parseIndexedKey` guards every request — so a
  * `404` is always a write meeting an object Zotero has deleted.
  *
- * @see docs/pdf-annotation-probes.md — "Two wire facts about the children route"
- *
  * @param serverID the server id the session holds, or `null` before a probe has
  *   answered one, which is the one call that may be answered by any database.
  */

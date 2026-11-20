@@ -585,6 +585,13 @@ export class ItemView {
   }
 }
 
+export class FileView extends ItemView {
+  file: TFile | null = null;
+  allowNoFile = false;
+}
+
+export class EditableFileView extends FileView {}
+
 /** File serialization seam; tests drive the editor's load and save callbacks. */
 export class TextFileView extends ItemView {
   readonly app: App;

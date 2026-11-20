@@ -1,5 +1,5 @@
 // Opening a Target: an Attachment, one Annotation in it, or a link that names
-// one, sent to Obsidian's own PDF view where this device holds an
+// one, sent to the ZotLit PDF Reader where this device holds an
 // Obsidian-Openable file for it, and to Zotero everywhere else. Every ZotLit
 // gesture that opens an Attachment, and File Link Capture for a link Obsidian
 // rendered, decides here, so the choice and its Zotero fallback are written
@@ -8,13 +8,16 @@
 // @see apps/obsidian/docs/adr/0045-file-link-capture-patches-window-open.md
 
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
+import type {
+  ReaderOpenFailed,
+  ReaderUnavailable,
+} from "#obsidian/pdf-reader/service.ts";
 import { Context, Effect, Layer, Schema } from "effect";
 import type { Duration } from "effect";
 import { fileURLToPath } from "node:url";
 import type { PaneType } from "obsidian";
 
 import { formatAnnotationSubpath } from "@zotlit/db";
-import { portCall } from "@zotlit/obsidian-kit/legacy-port.ts";
 import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
@@ -53,7 +56,7 @@ export type OpenTarget =
 
 /** Where an open ended up. */
 export type OpenOutcome =
-  /** Obsidian's PDF view shows the target. */
+  /** The ZotLit PDF Reader shows the target. */
   | { kind: "reader" }
   /** The system handler was handed `url`, which Zotero opens. */
   | { kind: "zotero"; url: string }
@@ -77,15 +80,15 @@ export class SystemOpenFailed extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** Whether Obsidian's PDF view opened the file, which it learns at the open itself. */
+/** Whether the ZotLit PDF Reader opened the file, which it learns at the open itself. */
 export type ReaderOutcome = "opened" | "file-missing";
 
-/** Obsidian's own PDF view, as the opener drives it. */
-export interface TargetReader {
+/** The ZotLit PDF Reader, as the opener drives it. */
+export interface TargetReader<E = never> {
   open(
     attachment: ObsidianOpenableAttachment,
     pane: PaneType | boolean,
-  ): Promise<ReaderOutcome>;
+  ): Effect.Effect<ReaderOutcome, E>;
 }
 
 /** The system handler a `zotero://` link reaches Zotero through. */
@@ -99,7 +102,7 @@ export class TargetOpener extends Context.Service<
   TargetOpener,
   {
     /**
-     * Open a target named by key. An Attachment that Obsidian's PDF view can
+     * Open a target named by key. An Attachment that the ZotLit PDF Reader can
      * host, and whose file this device holds, opens there in `pane`; every
      * other one opens in Zotero, which finds any Attachment by its key. Waits
      * a bounded time for the Attachment index while it is still being built,
@@ -135,18 +138,18 @@ export class TargetOpener extends Context.Service<
 >()("zotlit/attachment-open/TargetOpener") {}
 
 /**
- * Obsidian's PDF view as the Target Opener opens a file in it. The host's
+ * The ZotLit PDF Reader as the Target Opener opens a file in it. The host's
  * Annotation View owner fills it (`@zotlit/query-views`), so the view comes
  * forward beside the file.
  */
 export class PdfTargetReader extends Context.Service<
   PdfTargetReader,
-  TargetReader
+  TargetReader<ReaderUnavailable | ReaderOpenFailed>
 >()("zotlit/annotations/PdfTargetReader") {}
 
-export interface TargetOpenerPorts<R> {
-  /** Obsidian's PDF view, built over the layer's services. */
-  readonly reader: Effect.Effect<TargetReader, never, R>;
+export interface TargetOpenerPorts<R, E> {
+  /** The ZotLit PDF Reader, built over the layer's services. */
+  readonly reader: Effect.Effect<TargetReader<E>, never, R>;
   readonly native: NativeOpener;
   /** @default process.platform */
   readonly platform?: NodeJS.Platform;
@@ -172,12 +175,12 @@ interface Claim {
 /** A printed page label that also reads as a 1-based page number. */
 const PAGE_NUMBER_RE = /^[1-9]\d*$/;
 
-export function layerTargetOpener<R>({
+export function layerTargetOpener<R, E>({
   reader: makeReader,
   native,
   platform = process.platform,
   indexWait = "5 seconds",
-}: TargetOpenerPorts<R>): Layer.Layer<
+}: TargetOpenerPorts<R, E>): Layer.Layer<
   TargetOpener,
   never,
   R | AttachmentResolver | PluginSettings | Notifier | ObsidianEnv
@@ -229,9 +232,7 @@ export function layerTargetOpener<R>({
           fallback,
         }: { pane: PaneType | boolean; fallback: string | null },
       ) {
-        const outcome = yield* portCall("open-reader", () =>
-          reader.open(attachment, pane),
-        );
+        const outcome = yield* reader.open(attachment, pane);
         if (outcome === "opened")
           return { kind: "reader" } satisfies OpenOutcome;
         if (fallback === null) {

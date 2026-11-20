@@ -42,7 +42,7 @@ export interface ZoteroReaderSessionDeps {
 }
 
 /**
- * The Zotero Reader, in the same shape as an Obsidian PDF view's session.
+ * The Zotero Reader, in the same shape as a ZotLit PDF Reader's session.
  *
  * Zotero drives it one way: the companion pushes what its reader holds and
  * ZotLit translates it. `setSelectedAnnotations` therefore reaches nothing —

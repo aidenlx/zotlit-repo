@@ -8,7 +8,7 @@
 // with `pnpm --filter @zotlit/e2e docs-walk`; see AGENTS.md.
 
 import { cli, obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
-import type { PagePdfView } from "@e2e/page-notes-types.ts";
+import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 import { reloadWindow } from "@e2e/window-reload.ts";
 import { execFile } from "node:child_process";
@@ -162,7 +162,7 @@ describe.skipIf(!reachable)(
       await obRun(walk.vaultId, () => {
         const style = document.head.createEl("style");
         style.textContent =
-          '.workspace-leaf-content[data-type="pdf"] .view-header-title-parent{display:none}';
+          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
       });
       // The reader installs ZotLit Companion in step 3: the walk takes the
       // Paired Run's Companion out of the Fixture's Zotero profile first.
@@ -1331,7 +1331,7 @@ describe.skipIf(!reachable)(
       await obRun(walk.vaultId, () => {
         const style = document.head.createEl("style");
         style.textContent =
-          '.workspace-leaf-content[data-type="pdf"] .view-header-title-parent{display:none}';
+          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
       });
     }, 1200000);
 
@@ -1541,7 +1541,7 @@ describe.skipIf(!reachable)(
             const leaf = app.workspace.getLeavesOfType(
               "zotlit-library",
             )[0] as LibraryLeaf;
-            const pdf = app.workspace.getLeavesOfType("pdf")[0];
+            const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0];
             if (!pdf) return null;
             const marks = [
               ...pdf.view.containerEl.querySelectorAll<HTMLElement>(
@@ -1553,9 +1553,10 @@ describe.skipIf(!reachable)(
               active: app.workspace.getMostRecentLeaf() === pdf,
               ownTab:
                 pdf !== leaf && leaf.view.getViewType() === "zotlit-library",
-              page:
-                (pdf.view as PagePdfView).viewer?.child?.pdfViewer?.pdfViewer
-                  ?.currentPageNumber ?? null,
+              page: (pdf.view as PagePdfReaderView).reader
+                ? (pdf.view as PagePdfReaderView).reader!.state.get()
+                    .pageIndex + 1
+                : null,
               marks: new Set(marks.map((n) => n.dataset.zoteroAnnotationKey))
                 .size,
               colours: new Set(
@@ -1582,7 +1583,7 @@ describe.skipIf(!reachable)(
         );
         // The step ends on the highlights and the sidebar that lists them.
         await obRun(walk.vaultId, async ({ app, page }) => {
-          const pdf = app.workspace.getLeavesOfType("pdf")[0]!;
+          const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0]!;
           await page.scratch.docsWalkPointer?.look([
             ...pdf.view.containerEl.querySelectorAll(".zt-pdf-annotation-mark"),
             ...app.workspace
@@ -1613,7 +1614,7 @@ describe.skipIf(!reachable)(
             walk.vaultId,
             async ({ app, page }, { note, labels }) => {
               const pointer = page.scratch.docsWalkPointer;
-              const pdf = app.workspace.getLeavesOfType("pdf")[0]!;
+              const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0]!;
               app.workspace.setActiveLeaf(pdf, { focus: true });
               const button = await page.until(
                 "the PDF view's literature note action",

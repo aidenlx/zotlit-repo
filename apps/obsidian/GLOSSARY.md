@@ -317,7 +317,7 @@ One live Annotation presented as a card in the annotation-view sidebar — type 
 _Avoid_: annotation item, annotation row
 
 **Card Selection**:
-The Annotation Cards an Annotation View has selected — none, one, or several; each view holds its own, whatever its Follow Mode. It is kept in step with the Obsidian PDF view the Follow Mode follows, and each Zotero Reader selection replaces it. It holds only cards the list draws: a card the Annotation Filter hides, or one in a collapsed group, leaves it. ↑ and ↓ step through the cards in the order they are drawn, so a card shown under two group headings is reached at each.
+The Annotation Cards an Annotation View has selected — none, one, or several; each view holds its own, whatever its Follow Mode. It is kept in step with the ZotLit PDF Reader the Follow Mode follows, and each Zotero Reader selection replaces it. It holds only cards the list draws: a card the Annotation Filter hides, or one in a collapsed group, leaves it. ↑ and ↓ step through the cards in the order they are drawn, so a card shown under two group headings is reached at each.
 _Avoid_: selected annotations (the reader's are selected Annotation Marks), multi-selection (as a separate thing), primary card
 
 **Card Place**:
@@ -344,12 +344,16 @@ _Avoid_: excerpt edit, quote edit, highlight text edit
 The raster image representation of an image or ink Annotation's PDF region, including its ink strokes where applicable. A ZotLit Excerpt Image and a Zotero Excerpt Image have separate ownership; an image embedded in a Child Note belongs to that note's frozen snapshot.
 _Avoid_: cache image, cache PNG, annotation image (ambiguous with an image Annotation)
 
+**ZotLit PDF Reader**:
+ZotLit's own PDF reader inside Obsidian: every Attachment ZotLit opens in Obsidian opens in it, and it alone hosts ZotLit's annotation tools. Once the user turns on opening all PDFs in it, it also shows every other PDF of the vault, and PDF embeds, hover previews and canvas cards, in place of Obsidian's own PDF view.
+_Avoid_: Obsidian's PDF view (Obsidian's own, which shows no ZotLit tools), PDF viewer, new reader, the overlay (the retired annotation layer on Obsidian's view)
+
 **Reader Session**:
-One open reading of an Attachment, whichever reader hosts it — the Zotero Reader or Obsidian's PDF view. Names its source, the Attachment's Indexed Key, the parent Item's Indexed Key, and the selected Annotations' Indexed Keys, and accepts navigation and selection.
+One open reading of an Attachment, whichever reader hosts it — the Zotero Reader or the ZotLit PDF Reader. Names its source, the Attachment's Indexed Key, the parent Item's Indexed Key, and the selected Annotations' Indexed Keys, and accepts navigation and selection.
 _Avoid_: reader target, PDF reader target, annotation target
 
 **Obsidian-Openable Attachment**:
-An Attachment whose file is a PDF on this device, so Obsidian's PDF view can host a Reader Session for it. The reader decides the rule rather than the concept: Obsidian's view renders PDFs alone, which is what separates this from a Zotero-Openable Attachment, where any file the path names qualifies.
+An Attachment whose file is a PDF on this device, so the ZotLit PDF Reader can host a Reader Session for it. The reader decides the rule rather than the concept: the ZotLit PDF Reader renders PDFs alone, which is what separates this from a Zotero-Openable Attachment, where any file the path names qualifies.
 _Avoid_: Openable Attachment (the Zotero-reader sense), Readable Attachment, reader target (see Reader Session)
 
 **Attachment File Link**:
@@ -361,7 +365,7 @@ Zotero's own open link to one Annotation, `zotero://open/library/items/<attachme
 _Avoid_: annotation backlink (in prose), zotero link, deep link
 
 **Open Target**:
-What one ZotLit gesture or followed link opens: an Attachment, or one Annotation in it, named by its Indexed Key. It opens in Obsidian's PDF view when it names an Obsidian-Openable Attachment whose file is on this device, and in Zotero otherwise; every ZotLit surface that opens an Attachment decides by this one rule, and an explicit "Open in Zotero" bypasses it. An Annotation opens in Zotero while the user turns File Link Capture or annotation link opening off, as a Durable Annotation Link does.
+What one ZotLit gesture or followed link opens: an Attachment, or one Annotation in it, named by its Indexed Key. It opens in the ZotLit PDF Reader when it names an Obsidian-Openable Attachment whose file is on this device, and in Zotero otherwise; every ZotLit surface that opens an Attachment decides by this one rule, and an explicit "Open in Zotero" bypasses it. An Annotation opens in Zotero while the user turns File Link Capture or annotation link opening off, as a Durable Annotation Link does.
 _Avoid_: reader target (see Reader Session), table reader, PDF target
 
 **File Link Capture**:
@@ -395,11 +399,11 @@ Why an Annotation is locked. `external` — imported from the PDF file, so every
 An Annotation that Zotero imported from the PDF file itself rather than one made in Zotero. It is not synced, and a re-import from the file rebuilds it.
 
 **Follow Mode**:
-The one rule an Annotation View instance uses to choose the Attachment it shows: Active Tab (the Item of the active Literature Note, or the Attachment of the active Obsidian PDF view), Zotero Reader (the Attachment of the Reader Session the Zotero Reader has in front), or Pinned (one Item the user chose, with the attachment choice remembered). Chosen and changed by the user alone; a source that cannot answer shows its reason in place.
+The one rule an Annotation View instance uses to choose the Attachment it shows: Active Tab (the Item of the active Literature Note, or the Attachment of the active ZotLit PDF Reader), Zotero Reader (the Attachment of the Reader Session the Zotero Reader has in front), or Pinned (one Item the user chose, with the attachment choice remembered). Chosen and changed by the user alone; a source that cannot answer shows its reason in place.
 _Avoid_: follow target, link mode, linked item (the old name of Pinned), auto-follow
 
 **Annotation Mark**:
-The painted region of one Annotation on a page of Obsidian's PDF reader. Paint, not a control: hit-tested by geometry, selected by class, rebuilt with the page.
+The painted region of one Annotation on a page of the ZotLit PDF Reader. Paint, not a control: hit-tested by geometry, selected by class, rebuilt with the page.
 _Avoid_: overlay element, highlight box, mark widget
 
 **Mark Popup**:
@@ -416,7 +420,7 @@ _Avoid_: move, resize, drag (the gestures, not the edit), position edit
 
 **Creation Toolbar**:
 The controls ZotLit adds to the reader's own toolbar: the armed tool (highlight, underline, note, text, image, or ink), its colour and, for ink, its pen width and, for text, its font size, Annotation Mark visibility, and the Editing Capability affordance. Holds the defaults; the Mark Popup decides for one Annotation.
-_Avoid_: reader toolbar (that is Obsidian's), PDF toolbar, tool bar
+_Avoid_: reader toolbar (that is the ZotLit PDF Reader's own), PDF toolbar, tool bar
 
 **Ink Stroke**:
 One continuous pointer gesture with the ink tool armed, from press to release, stored as one path of an ink Annotation: its points smoothed as Zotero's reader smooths them, in PDF points on the page it was pressed on.
@@ -435,7 +439,7 @@ A text box the text tool opened on a page, typed into in Obsidian and created in
 _Avoid_: text box (Zotero's, which exists in Zotero while it is typed), text editor, Annotation Draft (that is a comment)
 
 **Reader Surface State**:
-What the surfaces of one Reader Session in Obsidian's PDF view draw from: the armed tool, each tool's colour, Annotation Mark visibility, the Editing Capability, the clock a cooldown is read against, the one floating surface (nothing, the selected Annotation Mark, a text selection about to become one, an image capture, or a Text Draft), the Live Stroke and the Pending Strokes, and the Attachment's Annotations with the write state and Annotation Draft of each. One per bound PDF view; outside signals enter it through the binding alone, and each surface redraws only when its own part changed.
+What the surfaces of one Reader Session in the ZotLit PDF Reader draw from: the armed tool, each tool's colour, Annotation Mark visibility, the Editing Capability, the clock a cooldown is read against, the one floating surface (nothing, the selected Annotation Mark, a text selection about to become one, an image capture, or a Text Draft), the Live Stroke and the Pending Strokes, and the Attachment's Annotations with the write state and Annotation Draft of each. One per ZotLit PDF Reader bound to an Attachment; outside signals enter it through the binding alone, and each surface redraws only when its own part changed.
 _Avoid_: reader store, toolbar state, view state (that is the Annotation View's)
 
 **Annotation Draft**:
@@ -451,7 +455,7 @@ A conflict between the user's intended Annotation change and a different change 
 _Avoid_: 412 (also a changed server or a reused write token), version mismatch, stale write, merge conflict
 
 **Annotation History**:
-The ephemeral, ordered record of ZotLit's own confirmed edits to one Attachment's Annotations that can be undone and redone. It lives while a PDF view of that Attachment is open; Zotero keeps no such record.
+The ephemeral, ordered record of ZotLit's own confirmed edits to one Attachment's Annotations that can be undone and redone. It lives while a ZotLit PDF Reader of that Attachment is open; Zotero keeps no such record.
 _Avoid_: undo stack, edit log, history (alone; Obsidian's workspace History is navigation)
 
 **History Step**:
@@ -464,7 +468,7 @@ _Avoid_: sort key, reading position, annotation order
 
 **Structured Characters**:
 One page's glyphs in the reading order Zotero's reader assigns, after its dedupe and line grouping. The single input for the Sort Index offset, the Page Label, and outline extraction.
-_Avoid_: char array, text layer (that is Obsidian's DOM), page text
+_Avoid_: char array, text layer (that is the reader's DOM), page text
 
 **Page Label**:
 The printed page number Zotero shows for a page, predicted from the document's characters and catalog, then aligned to the user's earlier Annotations on the Attachment.
@@ -993,4 +997,4 @@ release locations, consent copy, notices, and settings UI.
 ### Protocol
 
 **Protocol Action**:
-A URL-scheme verb (`obsidian://zotlit/<action>`) sent by the Companion to trigger an operation in Obsidian. Single-item actions: `open` (open or create), `update` (update or create). Batch actions: `update-many`, `import-notes`. Note-import action: `import-note`. Explorer action: `explore` (open the Template Data Explorer at an Item or an Annotation). Attachment action: `open-attachment` (open an Obsidian-Openable Attachment in Obsidian's PDF view). Library action: `show-in-library` (Show in Library for the Item an Indexed Key names; the Library Link that `zt.librarylink` writes into a note, so it carries no `source-id`). Long URLs fall back to HTTP PUT on the plugin's local server, which also serves the Companion's `GET /literature-notes` note-status query from the Note Index.
+A URL-scheme verb (`obsidian://zotlit/<action>`) sent by the Companion to trigger an operation in Obsidian. Single-item actions: `open` (open or create), `update` (update or create). Batch actions: `update-many`, `import-notes`. Note-import action: `import-note`. Explorer action: `explore` (open the Template Data Explorer at an Item or an Annotation). Attachment action: `open-attachment` (open an Obsidian-Openable Attachment in the ZotLit PDF Reader). Library action: `show-in-library` (Show in Library for the Item an Indexed Key names; the Library Link that `zt.librarylink` writes into a note, so it carries no `source-id`). Long URLs fall back to HTTP PUT on the plugin's local server, which also serves the Companion's `GET /literature-notes` note-status query from the Note Index.

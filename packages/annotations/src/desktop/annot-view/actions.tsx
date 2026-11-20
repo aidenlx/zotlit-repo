@@ -126,7 +126,7 @@ export interface AnnotActions {
   onViewMenu(evt: MouseEvent<HTMLElement>): void;
   /** Choose another Attachment of the Item on screen, in a suggester. */
   onChooseAttachment(): void;
-  /** Open the Attachment on screen in Obsidian's own PDF view. */
+  /** Open the Attachment on screen in the ZotLit PDF Reader. */
   onOpenPdf(): void;
   /** Ask Zotero for write authorization, from the header menu. */
   onAllowEditing(): void;
@@ -153,7 +153,7 @@ export interface AnnotActions {
   onRefresh(): void;
   /** Follow the active tab or the Zotero reader, from a user gesture. */
   onSetFollowMode(mode: Exclude<FollowMode, "pinned">): void;
-  /** Pin the Item on screen, releasing an Obsidian PDF view's lock. */
+  /** Pin the Item on screen, releasing a ZotLit PDF Reader's lock. */
   onPinCurrentItem(): void;
   /** Search Zotero for an Item to pin. */
   onPinItem(): void;
@@ -164,7 +164,7 @@ export interface AnnotActions {
   /**
    * Change the Card Selection from a click on this card: alone for a plain
    * click, toggled for Cmd/Ctrl-click, a range for Shift-click. A bound
-   * Obsidian PDF view lands quietly on the Annotation Mark of a card the click
+   * ZotLit PDF Reader lands quietly on the Annotation Mark of a card the click
    * adds.
    *
    * @param place where the clicked card stands in the list: a card under two

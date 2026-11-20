@@ -1,33 +1,39 @@
-// Obsidian's own PDF view, as the Target Opener opens a file in it.
+// The ZotLit PDF Reader, as the Target Opener opens a file in it.
 import { Effect } from "effect";
 
-import { createObsidianAttachmentReader } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
+import { obsidianAttachmentReader } from "@zotlit/annotations/desktop/attachment-open/obsidian-reader.ts";
 import type { TargetReader } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
+import type {
+  ReaderOpenFailed,
+  ReaderUnavailable,
+} from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
+import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { activateAnnotView } from "./register.ts";
 
 /**
- * Obsidian's PDF view as the Target Opener drives it: the file opens, and the
- * annotation view comes forward beside it so the Item's Annotations are on
+ * The ZotLit PDF Reader as the Target Opener drives it: the file opens, and
+ * the annotation view comes forward beside it so the Item's Annotations are on
  * screen. `reader.focus-annot-view` drops the second step for a user who
  * keeps the sidebar arranged their own way.
  */
 export const pdfReader: Effect.Effect<
-  TargetReader,
+  TargetReader<ReaderUnavailable | ReaderOpenFailed>,
   never,
-  ObsidianApp | PluginSettings
+  ObsidianApp | PluginSettings | ZotlitPdfReader | Vault
 > = Effect.gen(function* () {
   const app = yield* ObsidianApp;
   const settings = yield* PluginSettings;
-  // The reader's `onOpened` is a callback from Obsidian's open.
-  const run = Effect.runSyncWith(yield* Effect.context<never>());
-  return createObsidianAttachmentReader(app, {
-    onOpened: () => {
-      if (run(settings.current)["reader.focus-annot-view"]) {
-        void activateAnnotView(app);
-      }
-    },
+  const reader = yield* ZotlitPdfReader;
+  return yield* obsidianAttachmentReader({
+    open: (file, subpath, pane) => reader.open(file, subpath, pane),
+    onOpened: Effect.flatMap(settings.current, (current) =>
+      current["reader.focus-annot-view"]
+        ? Effect.sync(() => void activateAnnotView(app))
+        : Effect.void,
+    ),
   });
 });

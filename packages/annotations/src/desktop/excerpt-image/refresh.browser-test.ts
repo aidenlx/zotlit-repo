@@ -20,9 +20,10 @@ import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
 // own IndexedDB, so a saved edit's replacement, a restart, an eviction, and a
 // manual clear are the plugin's own code and the plugin's own store.
 //
-// The host seams the same module tree reaches — Obsidian's PDF.js loader, the
-// filesystem, Node's hashing and zlib, the Zotero database — are aliased to
-// `src/__fixtures__/excerpt-image/renderer-host.ts` and `renderer-hash.ts`: nothing
+// The host seams the same module tree reaches — the filesystem, Node's hashing
+// and zlib, the Zotero database — are aliased to
+// `src/__fixtures__/excerpt-image/renderer-host.ts` and `renderer-hash.ts`, and
+// the PDF engine is a stub that throws on use: nothing
 // here opens a PDF, reads a file, or hashes for real, and every crop is a real
 // Chromium canvas encoded as lossless WebP. Note-asset and Zotero-cache
 // survival need a vault and a Zotero data directory, so they are covered where

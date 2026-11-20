@@ -15,6 +15,7 @@ export default defineConfig({
     "packages/scripts/lib/fixture/vault-pages/**",
     "packages/scripts/lib/fixture/graph-pages/**",
     "packages/pdfjs-dist/**",
+    "packages/pdfjs/dist/**",
     "packages/pdf-structure/src/vendor/*.js",
     "packages/zotero-types/zotero-schema/**",
     "packages/workbench/src/samples/*.json",

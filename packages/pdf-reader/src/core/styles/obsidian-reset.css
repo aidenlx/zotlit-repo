@@ -1,0 +1,13 @@
+.zpr-root .textLayer {
+  text-rendering: auto;
+  scrollbar-color: auto;
+  -webkit-tap-highlight-color: initial;
+}
+
+.zpr-root [data-zpr-control] {
+  all: revert-layer;
+}
+
+.zpr-root [data-zpr-part="outline"] :is(ul, li) {
+  list-style: none;
+}

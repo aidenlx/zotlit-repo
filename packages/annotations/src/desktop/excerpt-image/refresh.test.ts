@@ -26,6 +26,7 @@ const ALIAS = {
   ),
   "node:fs/promises": HOST,
   "node:zlib": HOST,
+  "@zotlit/item-query": HOST,
   "@zotlit/db/path": HOST,
   "@zotlit/db/client/node": HOST,
   "@zotlit/db": HOST,

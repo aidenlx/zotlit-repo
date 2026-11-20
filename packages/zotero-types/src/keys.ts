@@ -44,7 +44,6 @@ export function formatIndexedKey(
  * constraint and answer `200` with another attachment's annotations, while a
  * valid key Zotero holds nothing under answers an empty list.
  *
- * @see docs/pdf-annotation-probes.md — "Two wire facts about the children route"
  */
 export function parseIndexedKey(indexedKey: string): ParsedIndexedKey | null {
   const parts = indexedKey.split("g");

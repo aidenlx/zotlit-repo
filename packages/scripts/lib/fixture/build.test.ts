@@ -460,6 +460,13 @@ describe("the generated Zotero database", () => {
         url: null,
       },
       {
+        key: "FRMXPDF2",
+        path: join(layout.vaultDir, "attachments", "form-xobject.pdf"),
+        charsetID: null,
+        title: "Form XObject PDF",
+        url: null,
+      },
+      {
         key: "DMRGRPDF",
         path: join(
           layout.vaultDir,

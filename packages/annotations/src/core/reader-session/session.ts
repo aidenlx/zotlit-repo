@@ -43,7 +43,7 @@ export interface ReaderSession {
   readonly selected: readonly string[];
   /**
    * Bring the reader to this Annotation. Called when a card is clicked; an
-   * Obsidian PDF view answers with a quiet Mark Landing.
+   * ZotLit PDF Reader answers with a quiet Mark Landing.
    */
   navigateToAnnotation(annotationKey: string): void;
   /**

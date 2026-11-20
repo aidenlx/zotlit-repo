@@ -1,0 +1,10 @@
+.internal-embed.pdf-embed.zpr-fit-height:not(.image-embed),
+.markdown-source-view.mod-cm6 .cm-content > .pdf-embed.zpr-fit-height,
+.internal-embed.pdf-embed.zpr-static:not(.image-embed) {
+  height: auto;
+}
+
+.pdf-embed.zpr-fit-height [data-zpr-part="content"] {
+  flex: none;
+  height: var(--zpr-embed-height);
+}

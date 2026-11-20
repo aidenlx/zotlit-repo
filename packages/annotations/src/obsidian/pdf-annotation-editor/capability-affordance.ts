@@ -1,8 +1,8 @@
-// The Editing Capability inside Obsidian's PDF reader: what its toolbar draws,
+// The Editing Capability inside the ZotLit PDF Reader: what its toolbar draws,
 // and which keystroke counts as an edit gesture the block has to answer for.
 //
 // The status uses layout utilities without `.zt-root`, so preflight stays
-// outside Obsidian's toolbar. The Annotation View renders the same copy in Preact.
+// outside the reader's toolbar. The Annotation View renders the same copy in Preact.
 //
 // @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
 

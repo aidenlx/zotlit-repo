@@ -2,7 +2,7 @@
   "name": "@zotlit/annotations",
   "version": "0.0.0",
   "private": true,
-  "description": "The reading and annotating feature of the ZotLit Obsidian plugins: the Annotation Repository, the surfaces in Obsidian's PDF reader, Excerpt Images, the Annotation View's cards, Reader Sessions and Open Targets",
+  "description": "The reading and annotating feature of the ZotLit Obsidian plugins: the Annotation Repository, the surfaces in the ZotLit PDF Reader, Excerpt Images, the Annotation View's cards, Reader Sessions and Open Targets",
   "type": "module",
   "imports": {
     "#*": "./src/*"
@@ -29,6 +29,7 @@
     "@zotlit/item-query": "workspace:*",
     "@zotlit/obsidian-desktop": "workspace:*",
     "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/pdf-reader": "workspace:*",
     "@zotlit/pdf-structure": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
@@ -59,6 +60,7 @@
     "@types/react-dom": "catalog:",
     "@zotlit/config": "workspace:*",
     "@zotlit/db-testing": "workspace:*",
+    "@zotlit/pdfjs": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "happy-dom": "catalog:",
     "obsidian": "catalog:",

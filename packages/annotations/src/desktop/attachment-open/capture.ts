@@ -1,5 +1,5 @@
 // File Link Capture: a clicked Attachment File Link, or a Durable Annotation
-// Link, reaches Obsidian's own PDF view instead of the system handler, when it
+// Link, reaches the ZotLit PDF Reader instead of the system handler, when it
 // names an Obsidian-Openable Attachment. The patch is the opener's entry point
 // for links Obsidian rendered; which links it takes is the opener's to decide.
 
@@ -18,7 +18,7 @@ import type { TargetOpener } from "./open-target.ts";
 /**
  * The target Obsidian's own "Open in default browser" context-menu item passes
  * to `window.open`. Capture hands it straight back, so that item stays the
- * per-link way out of Obsidian's reader, and the opener hands Zotero a link
+ * per-link way out of the ZotLit PDF Reader, and the opener hands Zotero a link
  * through it, past this patch.
  */
 export const EXTERNAL_TARGET = "_external";

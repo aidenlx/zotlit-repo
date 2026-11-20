@@ -1,0 +1,9 @@
+{
+  "id": "zotlit-reader-probe",
+  "name": "Reader probe",
+  "version": "0.0.0",
+  "minAppVersion": "1.14.4",
+  "description": "A plugin with no Zotero features that hosts the ZotLit PDF reader, for the End-to-end Run.",
+  "author": "ZotLit",
+  "isDesktopOnly": true
+}

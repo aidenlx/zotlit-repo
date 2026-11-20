@@ -4,23 +4,20 @@ import type {
   AnnotationRecord,
   AnnotationSource,
 } from "#obsidian/annotation-repository/service.ts";
-import type {
-  ExcerptPdfJs,
-  ExcerptRendererDiagnosticSnapshot,
-} from "#obsidian/excerpt-image/renderer.ts";
+import type { ExcerptRendererDiagnosticSnapshot } from "#obsidian/excerpt-image/renderer.ts";
 import type {
   ExcerptEntry,
   ExcerptIdentity,
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { open } from "node:fs/promises";
 // The live display read of one Annotation, as a card demands it and a saved
 // edit replaces it.
 import type { FileHandle } from "node:fs/promises";
-import { loadPdfJs } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
+import type { HeadlessDocument } from "@zotlit/pdf-reader";
 import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 
 import { EXCERPT_DISPLAY } from "./display.ts";
@@ -34,21 +31,19 @@ import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/ex
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
+import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
 import { PNG_FORMAT, WEBP_FORMAT } from "#core/excerpt-image/format.ts";
 import {
   excerptAnnotationRecord,
   excerptFingerprint,
 } from "#obsidian/excerpt-image/service.ts";
+import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 // The one read below that goes through the service's own renderer doubles the
 // PDF file and the canvas that renderer needs, and nothing else.
 vi.mock("node:fs/promises", async (original) => ({
   ...(await original<typeof import("node:fs/promises")>()),
   open: vi.fn(),
-}));
-vi.mock("obsidian", async (original) => ({
-  ...(await original<typeof import("obsidian")>()),
-  loadPdfJs: vi.fn(),
 }));
 
 const SOURCE: AnnotationSource = {
@@ -284,13 +279,13 @@ function resident(): Resident {
       return task;
     },
   };
-  const pdf: ExcerptPdfJs = {
-    getDocument: () => ({
-      promise: Promise.resolve({ getPage: async () => page }),
-      destroy: async () => {},
-    }),
-  };
-  vi.mocked(loadPdfJs).mockImplementation(async () => pdf);
+  const engine = fakePdfEngine(
+    async () =>
+      ({
+        page: async () => page,
+        [Symbol.asyncDispose]: async () => {},
+      }) as unknown as HeadlessDocument,
+  );
   const canvas = {
     width: 0,
     height: 0,
@@ -323,6 +318,7 @@ function resident(): Resident {
         stamp: async () => ({ size: bytes.length, mtimeMs: 1 }),
       },
       layerExcerptFiles(open),
+      Layer.succeed(PdfEngine, engine),
     ),
   );
   const queries = stack.use(queryClientsFixture());

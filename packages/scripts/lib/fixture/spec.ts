@@ -1311,7 +1311,15 @@ export type FixtureAsset =
   | "sandve-2013/sandve-2013.pdf"
   | "wilson-2014/wilson-2014.pdf"
   | "sakimas-song/sakimas-song.html"
-  | "sakimas-song/sakimas-song.pdf";
+  | "sakimas-song/sakimas-song.pdf"
+  | "pdf-reader/mock-form.pdf"
+  | "pdf-reader/chrome.pdf"
+  | "pdf-reader/navigation.pdf"
+  | "pdf-reader/forms.pdf"
+  | "pdf-reader/password.pdf"
+  | "pdf-reader/standard-fonts.pdf"
+  | "pdf-reader/jbig2.pdf"
+  | "pdf-reader/jpx.pdf";
 
 /** One line-grouping branch of Zotero's PDF text-structuring algorithm. */
 export type FixtureParityBranch =
@@ -1354,8 +1362,27 @@ export const PARITY_PDFS: readonly FixtureParityPdf[] = [
   },
 ];
 
+export const SELECTION_LINK_VAULT_DIR = "attachments/selection-links";
+
+export const SELECTION_LINK_PDFS: readonly FixtureAsset[] = [
+  "sakimas-song/sakimas-song.pdf",
+  "pdf-reader/mock-form.pdf",
+];
+
 /** Stable vault directory for the excerpt-rendering acceptance inputs. */
 export const EXCERPT_RENDERING_VAULT_DIR = "attachments/excerpt-acceptance";
+
+export const PDF_READER_VAULT_DIR = "attachments/pdf-reader";
+
+export const PDF_READER_PDFS: readonly FixtureAsset[] = [
+  "pdf-reader/chrome.pdf",
+  "pdf-reader/navigation.pdf",
+  "pdf-reader/forms.pdf",
+  "pdf-reader/password.pdf",
+  "pdf-reader/standard-fonts.pdf",
+  "pdf-reader/jbig2.pdf",
+  "pdf-reader/jpx.pdf",
+];
 
 export interface FixtureExcerptPdf {
   readonly asset: FixtureAsset;
@@ -1819,6 +1846,20 @@ export const ATTACHMENTS: readonly FixtureAttachment[] = [
     url: null,
     sourceAsset: "external-annotation/external-annotation.pdf",
     dateModified: "2025-01-02 12:00:00",
+  },
+  {
+    itemID: 151,
+    libraryID: 1,
+    key: "FRMXPDF2",
+    parentItemID: 57,
+    linkMode: "linked_file",
+    fileRoot: "vault",
+    contentType: "application/pdf",
+    title: "Form XObject PDF",
+    path: "attachments/form-xobject.pdf",
+    url: null,
+    sourceAsset: "pdf-reader/mock-form.pdf",
+    dateModified: "2025-01-03 12:00:00",
   },
   ...DEMO_ATTACHMENTS,
 ];

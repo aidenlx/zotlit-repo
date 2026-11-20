@@ -23,7 +23,11 @@ export async function verifyMarkPopupWindow(
       const leaf = cleanup.adopt(app.workspace.openPopoutLeaf(), (leaf) =>
         leaf.detach(),
       );
-      await leaf.openFile(pdf);
+      await leaf.setViewState({
+        type: "zotlit-pdf",
+        state: { file: pdf.path },
+        active: true,
+      });
       const container = leaf.view.containerEl;
       const own = container.doc;
       const where = () => {
@@ -83,7 +87,7 @@ export async function verifyMarkPopupWindow(
       activeWindow = window;
       activeDocument = document;
       const scroller = container.querySelector<HTMLElement>(
-        ".pdf-viewer-container",
+        '.zpr-root [data-zpr-part="scroller"]',
       );
       if (!scroller) throw new Error("PDF scroller missing");
       const top = scroller.scrollTop;

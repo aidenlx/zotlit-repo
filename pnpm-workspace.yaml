@@ -52,6 +52,7 @@ catalog:
   "@std/collections": jsr:1.2.0
   "@std/async": jsr:1.4.0
   "@std/assert": jsr:1.0.19
+  "@tailwindcss/node": ^4.3.0
   "@tailwindcss/vite": ^4.3.0
   "@preact/preset-vite": ^2.10.6
   "@tanstack/query-core": ^5.102.8

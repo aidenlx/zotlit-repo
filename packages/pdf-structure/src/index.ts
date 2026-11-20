@@ -1,12 +1,10 @@
 export type {
-  ObsidianGlyph,
-  ObsidianTextItem,
   Rect,
   StructuredChar,
   StructuredPage,
   ZoteroChar,
 } from "#chars.ts";
-export { structurePage, toZoteroChars } from "#chars.ts";
+export { structureChars } from "#chars.ts";
 export type { PageLabelSource, PreviousAnnotation } from "#page-label.ts";
 export { alignPageLabel, extractPageLabels } from "#page-label.ts";
 export type { PdfPageSource } from "#session.ts";

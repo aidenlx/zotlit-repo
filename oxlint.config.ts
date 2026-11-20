@@ -23,6 +23,7 @@ export default defineConfig({
     "tests/fixture-vault-*/**",
     "packages/scripts/lib/fixture/vault-plugins/**",
     "packages/pdfjs-dist/**",
+    "packages/pdfjs/dist/**",
     "video/**",
   ],
   overrides: [

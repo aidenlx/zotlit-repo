@@ -3,12 +3,7 @@
 // produces; the Sort Index strings Zotero itself wrote into the Fixture are the
 // oracle for the Sort Index.
 
-import type {
-  ObsidianTextItem,
-  Rect,
-  StructuredPage,
-  ZoteroChar,
-} from "#chars.ts";
+import type { Rect, StructuredPage, ZoteroChar } from "#chars.ts";
 import type { PdfPosition } from "#sort-index.ts";
 import type { RangeEnd, RangeStep } from "#text-selection.ts";
 import { execFile } from "node:child_process";
@@ -28,8 +23,7 @@ import {
   getWorkspaceRoot,
 } from "@zotlit/scripts/package-roots";
 
-import { structurePage, toZoteroChars } from "#chars.ts";
-import { fingerprint } from "#oracle/fingerprint.mjs";
+import { structureChars } from "#chars.ts";
 import { PdfTextStructure } from "#session.ts";
 import { computeSortIndex } from "#sort-index.ts";
 import { adjustRange, offsetsByRects, textRange } from "#text-selection.ts";
@@ -114,7 +108,6 @@ describe("the golden oracle", () => {
 });
 
 interface OracleItem {
-  readonly transform: readonly number[];
   readonly chars: readonly ZoteroChar[];
 }
 
@@ -153,43 +146,10 @@ function askZotero(asset: string): Promise<Oracle> {
   return pending;
 }
 
-/**
- * The shape Obsidian hands the adapter, rebuilt from what Zotero recorded:
- * Zotero's `u` is the raw glyph Obsidian puts in `c`, and the per-glyph
- * metrics are what the adapter has to derive from the item's text matrix.
- */
-function asObsidianItems(
-  items: readonly OracleItem[],
-): readonly ObsidianTextItem[] {
-  return items.map(({ transform, chars }) => ({
-    transform,
-    fontName: chars[0]!.fontName,
-    chars: chars.map(({ u, rect }) => ({ c: u, u, r: rect })),
-  }));
-}
-
-interface Difference {
-  readonly where: string;
-  readonly index: number;
-  readonly got: string | undefined;
-  readonly want: string | undefined;
-}
-
-function differences(
-  where: string,
-  got: readonly string[],
-  want: readonly string[],
-): readonly Difference[] {
-  const found: Difference[] = [];
-  for (
-    let i = 0;
-    i < Math.max(got.length, want.length) && found.length < 5;
-    i++
-  ) {
-    if (got[i] !== want[i])
-      found.push({ where, index: i, got: got[i], want: want[i] });
-  }
-  return found;
+function zoteroChars(items: readonly OracleItem[]): ZoteroChar[] {
+  return items
+    .flatMap((item) => item.chars)
+    .map((char) => ({ ...char, rect: [...char.rect] }));
 }
 
 /** Every Fixture PDF, so the parity claim covers every layout the Fixture has. */
@@ -202,47 +162,6 @@ const PDFS = [
 
 describe.skipIf(skip)("Structured Characters and Page Labels", () => {
   it.each(PDFS)(
-    "match Zotero index for index on %s",
-    async (asset) => {
-      const oracle = await askZotero(asset);
-      const adapterDifferences: Difference[] = [];
-      const structureDifferences: Difference[] = [];
-      const structuredCounts: number[] = [];
-
-      for (const [pageIndex, page] of oracle.pages.entries()) {
-        const items = asObsidianItems(page.items);
-        const expected = page.items
-          .flatMap((item) => item.chars)
-          .map((char) => JSON.stringify(char));
-        adapterDifferences.push(
-          ...differences(
-            `${asset} page ${pageIndex} chars`,
-            toZoteroChars(items).map((char) => JSON.stringify(char)),
-            expected,
-          ),
-        );
-
-        const structured = structurePage(pageIndex, page.viewBox, items);
-        structuredCounts.push(structured.chars.length);
-        structureDifferences.push(
-          ...differences(
-            `${asset} page ${pageIndex} structure`,
-            structured.chars.map((char) => fingerprint(char)),
-            page.structured,
-          ),
-        );
-      }
-
-      expect(adapterDifferences).toEqual([]);
-      expect(structureDifferences).toEqual([]);
-      expect(structuredCounts).toEqual(
-        oracle.pages.map((page) => page.structured.length),
-      );
-    },
-    180_000,
-  );
-
-  it.each(PDFS)(
     "match Zotero's Page Labels on %s",
     async (asset) => {
       const oracle = await askZotero(asset);
@@ -250,8 +169,8 @@ describe.skipIf(skip)("Structured Characters and Page Labels", () => {
         numPages: oracle.numPages,
         getViewBox: (pageIndex) =>
           Promise.resolve(oracle.pages[pageIndex]!.viewBox),
-        getTextItems: (pageIndex) =>
-          Promise.resolve(asObsidianItems(oracle.pages[pageIndex]!.items)),
+        getChars: (pageIndex) =>
+          Promise.resolve(zoteroChars(oracle.pages[pageIndex]!.items)),
         getCatalogPageLabels: () => Promise.resolve(oracle.catalogPageLabels),
       });
 
@@ -282,10 +201,10 @@ describe.skipIf(skip)("the Sort Index", () => {
 
     const computed = recorded.map(({ key, position }) => {
       const page = oracle.pages[position.pageIndex]!;
-      const structured = structurePage(
+      const structured = structureChars(
         position.pageIndex,
         page.viewBox,
-        asObsidianItems(page.items),
+        zoteroChars(page.items),
       );
       return `${key} ${computeSortIndex(structured, position)}`;
     });
@@ -308,10 +227,10 @@ describe.skipIf(skip)("the parity PDFs the Fixture declares", () => {
     "exercise the branches $branches",
     async ({ asset }) => {
       const [page] = (await askZotero(asset)).pages;
-      const chars = structurePage(
+      const chars = structureChars(
         0,
         page!.viewBox,
-        asObsidianItems(page!.items),
+        zoteroChars(page!.items),
       ).chars;
 
       const branches = new Set<string>();
@@ -408,10 +327,10 @@ describe.skipIf(skip)("text ranges", () => {
       const want: string[] = [];
 
       for (const [pageIndex, page] of oracle.pages.entries()) {
-        const { chars } = structurePage(
+        const { chars } = structureChars(
           pageIndex,
           page.viewBox,
-          asObsidianItems(page.items),
+          zoteroChars(page.items),
         );
         if (!chars.length) continue;
         for (const [anchor, head] of pairs(chars.length)) {
@@ -467,7 +386,7 @@ describe.skipIf(skip)("dragged range ends", () => {
       )) as ZoteroSelection;
       const oracle = await askZotero(asset);
       const pages = oracle.pages.map((page, pageIndex) =>
-        structurePage(pageIndex, page.viewBox, asObsidianItems(page.items)),
+        structureChars(pageIndex, page.viewBox, zoteroChars(page.items)),
       );
       const byIndex = new Map(pages.map((page) => [page.pageIndex, page]));
       const round = (rects: readonly Rect[]) =>
@@ -564,7 +483,7 @@ describe.skipIf(skip)("stepped range ends", () => {
       )) as ZoteroSelection;
       const oracle = await askZotero(asset);
       const pages = oracle.pages.map((page, pageIndex) =>
-        structurePage(pageIndex, page.viewBox, asObsidianItems(page.items)),
+        structureChars(pageIndex, page.viewBox, zoteroChars(page.items)),
       );
       const byIndex = new Map(pages.map((page) => [page.pageIndex, page]));
       const round = (rects: readonly Rect[]) =>

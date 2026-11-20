@@ -1,0 +1,8 @@
+.probe-band {
+  position: absolute;
+  left: var(--probe-left);
+  top: var(--probe-top);
+  width: var(--probe-width);
+  height: var(--probe-height);
+  background-color: rgba(var(--color-blue-rgb), 0.3);
+}

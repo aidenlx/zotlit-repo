@@ -1,0 +1,106 @@
+---
+title: "在 ZotLit 阅读器中阅读 PDF"
+searchTitle: "在 ZotLit 的 PDF 阅读器中阅读和搜索 PDF"
+description: "在 ZotLit 的 PDF 阅读器中翻阅、搜索和复制文献内容，并选择是否让仓库中的所有 PDF 都在其中打开。"
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { SettingsPath } from "@/components/settings-path";
+import { UiLabel } from "@/components/ui-label";
+import { m } from "@/paraglide/messages.js";
+
+在 Obsidian 标签页中阅读文献，查找段落，并将引文和链接复制到笔记中。
+
+ZotLit 在 Obsidian 内有自己的 PDF 阅读器，即 <UiLabel name={m.pdf_reader_view_name()} />。ZotLit 打开的每个 PDF 都显示在这里，并带有你的 Zotero 标注和标注工具。所有含文本的 PDF 都可以选择文本和高亮，包括早期版本的 ZotLit 无法高亮的 PDF。
+
+如需打开文献的 PDF，请参阅[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。如需高亮和评论，请参阅[在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
+
+## 翻阅文献 [#navigate]
+
+阅读器顶部的工具栏包含页面控件。
+
+- 在页码框中输入页码并按 `Enter`。如果 PDF 印有自己的页码（如 `iv` 或 `213`），页码框会显示这些页码。
+- 选择 <UiLabel name={m.pdf_reader_zoom_out()} /> 或 <UiLabel name={m.pdf_reader_zoom_in()} />。也可以按住 `Ctrl`（Windows）或 `Command`（macOS）并滚动，或在触控板上双指缩放。
+- 选择 <UiLabel name={m.pdf_reader_display_options()} />，然后选择 <UiLabel name={m.pdf_reader_fit_width()} />、<UiLabel name={m.pdf_reader_fit_height()} />、<UiLabel name={m.pdf_reader_single_page()} />、<UiLabel name={m.pdf_reader_two_page_odd()} /> 或 <UiLabel name={m.pdf_reader_two_page_even()} />。
+
+在 <UiLabel name={m.pdf_reader_fit_width()} /> 或 <UiLabel name={m.pdf_reader_fit_height()} /> 模式下，左右方向键可以翻页。
+
+如需关闭印刷页码，请在同一菜单中取消勾选 <UiLabel name={m.pdf_reader_show_page_labels()} />。只有印有页码的 PDF 才会在菜单中显示此项。
+
+### 使用侧栏 [#sidebar]
+
+选择 <UiLabel name={m.pdf_reader_toggle_sidebar()} /> 可显示页面缩略图。选择 <UiLabel name={m.pdf_reader_sidebar_options()} /> 可在 <UiLabel name={m.pdf_reader_thumbnails()} /> 和 <UiLabel name={m.pdf_reader_outline()} /> 之间切换。
+
+选择缩略图或标题即可跳转到该处。如需找到当前页所属的标题，请选择 <UiLabel name={m.pdf_reader_sidebar_options()} />，然后选择 <UiLabel name={m.pdf_reader_reveal_in_outline()} />。拖动侧栏边缘可以调整其宽度。
+
+阅读器会记住每个 PDF 的页码和双页布局，以及你上次使用的侧栏。
+
+## 查找文本 [#find]
+
+1. 在阅读器获得焦点时，按 `Ctrl+F`（Windows）或 `Command+F`（macOS）。
+2. 在 <UiLabel name={m.pdf_reader_find_placeholder()} /> 框中输入内容。计数会显示文献中的匹配数量。
+3. 按 `Enter` 或 `F3` 跳到下一个匹配项。按 `Shift+Enter` 或 `Shift+F3` 跳到上一个匹配项。也可以使用 `Ctrl+G` 和 `Ctrl+Shift+G`（macOS 上为 `Command`）。
+
+选择 <UiLabel name={m.pdf_reader_find_options()} /> 可开启 <UiLabel name={m.pdf_reader_match_case()} />、<UiLabel name={m.pdf_reader_highlight_all()} />、<UiLabel name={m.pdf_reader_match_diacritics()} /> 或 <UiLabel name={m.pdf_reader_whole_words()} />。阅读器会为下次搜索保留这些选项。按 `Escape` 关闭搜索。
+
+## 复制文本和链接 [#copy]
+
+在页面上选中文本，然后右键点击。
+
+- <UiLabel name={m.pdf_reader_copy()} /> 只复制文本。
+- <UiLabel name={m.pdf_reader_copy_as_quote()} />
+  将文本复制为引文，并附带指回该段落的链接。
+- <UiLabel name={m.pdf_reader_copy_selection_link()} />
+  复制一个链接，打开时会高亮该段落。
+- 在 macOS 上，菜单还提供查询所选文本的选项。
+
+右键点击缩略图可复制指向该页的链接。右键点击目录中的标题可复制指向该章节的链接。
+
+在这里复制的链接在 Obsidian 自带的 PDF 查看器中同样有效。如果两个阅读器对某页文本的读取方式不同，阅读器会改为复制指向该页的链接，菜单中也不会出现 <UiLabel name={m.pdf_reader_copy_selection_link()} />。
+
+## 在深色模式下阅读 [#theme]
+
+打开 <UiLabel name={m.pdf_reader_display_options()} /> 并选择 <UiLabel name={m.pdf_reader_adapt_to_theme()} />。使用深色 Obsidian 主题时，页面变暗，文字变亮。绘制的图形保留原有色相，例如深蓝色变为浅蓝色。照片和其他图片保持不变。
+
+## 在 ZotLit 阅读器中打开所有 PDF [#open-all-pdfs]
+
+默认情况下，ZotLit 阅读器只显示 ZotLit 打开的 PDF。从文件列表打开的 PDF 会在 Obsidian 自带的 PDF 查看器中打开。
+
+如需在 ZotLit 阅读器中阅读仓库中的所有 PDF，请开启 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_all_pdfs_name()} />。之后以下内容都会使用 ZotLit 阅读器：
+
+- 从文件列表、搜索或链接打开的 PDF。
+- 笔记中嵌入的 PDF，例如 `![[paper.pdf#page=3]]`。
+- PDF 链接的悬停预览。
+- 白板上的 PDF 卡片。
+
+关闭此设置后，这些 PDF 会交还给 Obsidian 自带的查看器。关闭 ZotLit 插件时也是如此。
+
+嵌入的 PDF 带有 <UiLabel name={m.pdf_reader_embed_more_options()} /> 按钮。选择 <UiLabel name={m.pdf_reader_embed_open()} /> 可阅读完整的 PDF。同一菜单中还有 Obsidian 自带的链接选项，例如**在新标签页中打开**。
+
+## 限制 [#limits]
+
+- Obsidian 自带的 PDF 查看器不显示 ZotLit 的标注工具。即使 <UiLabel name={m.settings_reader_open_all_pdfs_name()} /> 处于关闭状态，ZotLit 写入笔记的链接（如标注链接）仍会在 ZotLit 阅读器中打开。
+- 在 Obsidian 自带查看器中用**复制到选区的链接**创建的链接，打开时会高亮该段落。如果两个阅读器对该页文本的读取方式不同，链接只会打开到该页，不显示高亮。
+- 白板上的 PDF 卡片没有**保存文档中的当前位置**按钮。
+- 在实时预览中，PDF 嵌入没有**编辑这个区块**按钮。要修改嵌入的链接，请将笔记切换到源码模式。
+- 如果 ZotLit 显示 <UiLabel name={m.pdf_reader_takeover_unavailable()} />，说明你的 Obsidian 版本不允许 ZotLit 打开所有 PDF。ZotLit 仍会在其阅读器中打开它自己的 PDF。
+
+## 另请参阅
+
+<Cards>
+  <Card
+    title="在 Obsidian 中打开条目的 PDF"
+    description="从笔记、文库视图或 Zotero 打开 Zotero PDF 附件。"
+    href="/docs/how-to/open-pdf-in-obsidian"
+  />
+  <Card
+    title="在 Obsidian 中编辑 PDF 标注"
+    description="在 Obsidian 中阅读时创建或修改 Zotero 标注。"
+    href="/docs/how-to/edit-pdf-annotations"
+  />
+  <Card
+    title="设置"
+    description="ZotLit 设置中阅读器页面的每个选项。"
+    href="/docs/reference/settings#reader"
+  />
+</Cards>

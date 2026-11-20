@@ -62,7 +62,7 @@ async function readBundleInputs(
   workspaceRoot: string,
   appDir: string,
 ): Promise<BundleInput[]> {
-  const pathspecs = [
+  return gitInputs(workspaceRoot, [
     join(appDir, "src"),
     join(appDir, "package.json"),
     join(appDir, "vite.config.ts"),
@@ -70,7 +70,14 @@ async function readBundleInputs(
     join(workspaceRoot, "project.inlang", "settings.json"),
     join(workspaceRoot, "assets", "logo"),
     ...(await bundledPackageDirs(appDir)).map((dir) => join(dir, "src")),
-  ].map((path) => relative(workspaceRoot, path));
+  ]);
+}
+
+export async function gitInputs(
+  workspaceRoot: string,
+  paths: readonly string[],
+): Promise<BundleInput[]> {
+  const pathspecs = paths.map((path) => relative(workspaceRoot, path));
   const { stdout } = await execFileAsync(
     "git",
     [
@@ -84,9 +91,9 @@ async function readBundleInputs(
     ],
     { cwd: workspaceRoot, maxBuffer: 64 * 1024 * 1024, windowsHide: true },
   );
-  const paths = [...new Set(stdout.split("\0").filter(Boolean))];
+  const files = [...new Set(stdout.split("\0").filter(Boolean))];
   const inputs = await Promise.all(
-    paths.map(async (path) => {
+    files.map(async (path) => {
       // A tracked file deleted in the working tree is no longer an input.
       const stats = await stat(join(workspaceRoot, path)).catch(
         (error: NodeJS.ErrnoException) => {

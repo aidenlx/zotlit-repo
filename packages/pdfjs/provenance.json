@@ -1,0 +1,54 @@
+{
+  "fork": "~/repo/zotlit-repo/pdf.js-zotlit",
+  "branch": "zotlit/v6.5.438",
+  "tag": "v6.5.438-zotlit.3",
+  "commit": "4ef2758b9684618e14f847615235c29fe1ca16aa",
+  "upstreamTag": "v6.5.438",
+  "patches": [
+    {
+      "sha": "d8b91e7114c8f25c2a1ef8f4b6fd3dff9a0fe399",
+      "subject": "Add per-glyph chars to text content items"
+    },
+    {
+      "sha": "907ea2c84090e49de3b7fd5eb6631d10c3364007",
+      "subject": "Make per-glyph chars opt-in with includeChars"
+    },
+    {
+      "sha": "2007351b9b1d03cbc37da92980612a254705e21e",
+      "subject": "Add API tests for per-glyph chars"
+    },
+    {
+      "sha": "8c936a93330567cd6624102d0002979ca514186b",
+      "subject": "Add a zotlit-dist build without pdfjsLib and pdfjsViewer globals"
+    },
+    {
+      "sha": "be3f63124f8ace5507040fbe4194a897b5f7263c",
+      "subject": "Add a docBaseId option to getDocument"
+    },
+    {
+      "sha": "4ef2758b9684618e14f847615235c29fe1ca16aa",
+      "subject": "Add an invert render option for themed pages (P6)"
+    }
+  ],
+  "modifiedFiles": [
+    "gulpfile.mjs",
+    "src/core/document.js",
+    "src/core/evaluator.js",
+    "src/core/worker.js",
+    "src/display/api.js",
+    "src/display/canvas.js",
+    "src/display/renderer_worker.js",
+    "src/display/renderer_worker_proxy.js",
+    "src/pdf.js",
+    "test/benchmarks/vitest.config.mjs",
+    "test/pdfs/.gitignore",
+    "test/pdfs/zotlit_chars_forms.pdf",
+    "test/pdfs/zotlit_chars_vertical.pdf",
+    "test/unit/api_spec.js",
+    "web/pdf_page_view.js",
+    "web/pdf_viewer.component.js",
+    "web/pdf_viewer.js"
+  ],
+  "buildCommand": "npx gulp zotlit-dist",
+  "vendoredAt": "2026-11-18T04:56:11Z"
+}

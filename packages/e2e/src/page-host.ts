@@ -24,6 +24,7 @@ export type PageApp = App & {
     isAttached(leaf: import("obsidian").WorkspaceLeaf): boolean;
   };
   cli: { handlers: Map<string, unknown> };
+  changeTheme(theme: "obsidian" | "moonstone" | "system"): void;
   viewRegistry: { viewByType: Record<string, unknown> };
   plugins: App["plugins"] & {
     plugins: App["plugins"]["plugins"] & {
@@ -33,6 +34,7 @@ export type PageApp = App & {
       };
     };
     manifests: Record<string, import("obsidian").PluginManifest>;
+    loadManifests(): Promise<void>;
     disablePlugin(id: string): Promise<void>;
     enablePlugin(id: string): Promise<void>;
   };
@@ -47,6 +49,7 @@ export type PageApp = App & {
     readPluginData(dir: string): Promise<unknown>;
     setConfig(key: "trashOption", value: "local" | "system" | "none"): void;
     getConfig(key: "nativeMenus" | "settingsPopoutWindow"): boolean;
+    getConfig(key: "theme"): "obsidian" | "moonstone" | "system";
     setConfig(
       key: "nativeMenus" | "settingsPopoutWindow",
       value: boolean,

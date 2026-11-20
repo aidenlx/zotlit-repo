@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { WorkspaceLeaf, MarkdownView, PDFFileView } from "obsidian";
+import type { WorkspaceLeaf, MarkdownView } from "obsidian";
 import { describe, expect, it } from "vitest";
 
 import type { StoredLibraryViewDocument } from "@zotlit/library-view/desktop/library/document.ts";
@@ -39,6 +39,7 @@ import { cli } from "./obsidian-cli.ts";
 import type { LibraryLeaf } from "./page-library-types.ts";
 import type { LibraryWorkerMessage } from "./page-library-types.ts";
 import type {} from "./page-library-types.ts";
+import type { PagePdfReaderView } from "./page-notes-types.ts";
 import { verifyPdfReads } from "./pdf-reads.ts";
 import { verifyRecentUses } from "./recent-uses.ts";
 
@@ -5664,8 +5665,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             "the PDF opens",
             () =>
               (
-                app.workspace.getLeavesOfType("pdf") as (WorkspaceLeaf & {
-                  view: PDFFileView;
+                app.workspace.getLeavesOfType(
+                  "zotlit-pdf",
+                ) as (WorkspaceLeaf & {
+                  view: PagePdfReaderView;
                 })[]
               ).find((l) => l.view.file?.name === pdfname),
             10000,

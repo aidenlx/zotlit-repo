@@ -38,6 +38,7 @@
   },
   "exports": {
     "./desktop-slot": "./lib/desktop-slot.ts",
+    "./electron-renderer": "./lib/electron-renderer.ts",
     "./fixture": "./lib/fixture/build.ts",
     "./fixture/paired-run-node": "./lib/fixture/paired-run-node.ts",
     "./fixture/spec": "./lib/fixture/spec.ts",

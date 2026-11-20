@@ -8,7 +8,7 @@
 // AGENTS.md.
 
 import { obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
-import type { PagePdfView } from "@e2e/page-notes-types.ts";
+import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import {
   clickAuthorizationDialog,
   denyAnyAuthorizationDialog,
@@ -85,7 +85,7 @@ const PRIVATE = { menuBarFrom: 600 };
 /** The closest a view of the Zotero shot comes in: the clip's own zoom. */
 const ZOOM = clipSettings().zoom;
 
-type PdfLeaf = WorkspaceLeaf & { view: PagePdfView };
+type PdfLeaf = WorkspaceLeaf & { view: PagePdfReaderView };
 type AnnotationLeaf = WorkspaceLeaf & { view: AnnotationView };
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
 type NoteLeaf = WorkspaceLeaf & { view: MarkdownView };
@@ -180,7 +180,7 @@ describe.skipIf(!reachable)(
           // The PDF tab's path runs through the Fixture's folders; the images show the file name alone.
           const style = document.head.createEl("style");
           style.textContent =
-            '.workspace-leaf-content[data-type="pdf"] .view-header-title-parent{display:none}';
+            '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
         },
         undefined,
         STEP,
@@ -261,8 +261,8 @@ describe.skipIf(!reachable)(
             const pdf = await page.until(
               "PDF tab",
               () =>
-                (app.workspace.getLeavesOfType("pdf") as PdfLeaf[]).find((l) =>
-                  decodeURI(l.view.file?.path ?? "").endsWith(file),
+                (app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]).find(
+                  (l) => decodeURI(l.view.file?.path ?? "").endsWith(file),
                 ),
               20000,
             );
@@ -366,7 +366,7 @@ describe.skipIf(!reachable)(
             await pointer?.point(item);
             page.press(item, "Allow editing");
             const pdf = (
-              app.workspace.getLeavesOfType("pdf") as PdfLeaf[]
+              app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]
             ).find((l) => decodeURI(l.view.file?.path ?? "").endsWith(file))!;
             const status = await page.until(
               "waiting status",
@@ -395,7 +395,7 @@ describe.skipIf(!reachable)(
           walk.vaultId,
           async ({ app, page }, { file }) => {
             const pdf = (
-              app.workspace.getLeavesOfType("pdf") as PdfLeaf[]
+              app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]
             ).find((l) => decodeURI(l.view.file?.path ?? "").endsWith(file))!;
             const tools = await page.until(
               "tools on",
@@ -606,7 +606,7 @@ describe.skipIf(!reachable)(
           async ({ app, page }, { file, from, to, pageNumber }) => {
             const pointer = page.scratch.docsWalkPointer;
             const pdf = (
-              app.workspace.getLeavesOfType("pdf") as PdfLeaf[]
+              app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]
             ).find((l) => decodeURI(l.view.file?.path ?? "").endsWith(file))!;
             app.workspace.setActiveLeaf(pdf, { focus: true });
             const pageEl = pdf.view.containerEl.querySelector<HTMLElement>(
@@ -791,7 +791,7 @@ describe.skipIf(!reachable)(
             const key = card.dataset.zoteroAnnotationKey!;
             getSelection()!.removeAllRanges();
             const pdf = (
-              app.workspace.getLeavesOfType("pdf") as PdfLeaf[]
+              app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]
             ).find((l) => decodeURI(l.view.file?.path ?? "").endsWith(file))!;
             const mark = await page.until(
               "mark on the page",
@@ -880,7 +880,7 @@ describe.skipIf(!reachable)(
           async ({ app, page }, { note, name }) => {
             const pointer = page.scratch.docsWalkPointer;
             app.workspace.setActiveLeaf(
-              app.workspace.getLeavesOfType("pdf")[0]!,
+              app.workspace.getLeavesOfType("zotlit-pdf")[0]!,
               {
                 focus: true,
               },

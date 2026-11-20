@@ -1,4 +1,4 @@
-// One open Obsidian PDF view bound to the Zotero attachment it shows.
+// One open ZotLit reader view bound to the Zotero attachment it shows.
 
 import type { PdfReads } from "#core/pdf-annotation-editor/reads.ts";
 import type { ReaderSession } from "#core/reader-session/session.ts";
@@ -15,23 +15,17 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { Platform, TExternalFile } from "obsidian";
-import type {
-  FileSystemAdapter,
-  HoverParent,
-  HoverPopover,
-  PDFDocumentProxy,
-  PDFFileView,
-  PDFPageRenderedListener,
-  PDFPageView,
-  PDFViewerController,
-} from "obsidian";
+import type { FileSystemAdapter, HoverParent, HoverPopover } from "obsidian";
 
+import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import {
   registerDomEvent,
   registerMigratingWindowEvent,
 } from "@zotlit/obsidian-kit/disposables.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { watch } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { ReaderDocument } from "@zotlit/pdf-reader";
+import type { PdfReaderView } from "@zotlit/pdf-reader/obsidian";
 import { PdfTextStructure } from "@zotlit/pdf-structure";
 import type {
   PdfPosition,
@@ -48,7 +42,6 @@ import type {
 } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
-import { dropPendingAnchor, peekPendingAnchor } from "./anchor-capture.ts";
 import { borrowReaderDocument } from "./borrow.ts";
 import {
   isEditGesture,
@@ -59,6 +52,7 @@ import { MarkCreation } from "./creation.ts";
 import type { ReaderPage } from "./creation.ts";
 import { isRangeGrip, rangeHandles } from "./geometry-edit.ts";
 import type { TextRotation } from "./geometry-edit.ts";
+import type { HostedReader } from "./hosted-reader.ts";
 import { decideMarkLanding } from "./mark-landing.ts";
 import type { MarkLandingMiss, MarkLandingTarget } from "./mark-landing.ts";
 import { MarkPopupHost } from "./mark-popup-host.ts";
@@ -104,28 +98,6 @@ import {
   withPosition,
 } from "./render.ts";
 import type { PdfPageAnnotation } from "./render.ts";
-import {
-  initialViewSet,
-  loadedPageOf,
-  onPageRendered,
-  onDocumentClosed,
-  onInitialView,
-  onPageChanged,
-  openFileOf,
-  pageViewOf,
-  scrollOffsetOf,
-  pdfDocumentOf,
-  PdfSeamProbeLog,
-  probeController,
-  probeFileView,
-  probePageView,
-  probeRenderEvent,
-  probeTextContent,
-  renderedPagesOf,
-  toolbarSlotOf,
-  whenViewerReady,
-} from "./seam.ts";
-import type { PdfSeamProbeResult } from "./seam.ts";
 import { MarkSelection } from "./selection.ts";
 import type { MarkGestures } from "./selection.ts";
 import {
@@ -133,7 +105,7 @@ import {
   placeTextDraft,
   removeTextDraftArea,
 } from "./text-draft.ts";
-import { pdfPageSource } from "./text-structure.ts";
+import { readerPageSource } from "./text-structure.ts";
 import type { MarkTool, ToolColorStore } from "./tools.ts";
 
 import { ReaderSessionHost } from "#core/reader-session/session.ts";
@@ -221,7 +193,8 @@ export interface CapabilityGestures {
 type CommentNotes = Pick<NoteIndex["Service"], "getNotesByItemKey">;
 
 export interface PdfViewBindingDeps {
-  view: PDFFileView;
+  view: PdfReaderView;
+  reader: HostedReader;
   adapter: Pick<FileSystemAdapter, "getFullPath">;
   attachments: AttachmentReads;
   annotations: AnnotationReads;
@@ -251,6 +224,7 @@ export interface PdfViewBindingDeps {
   /** The tag names of an Annotation's Library, which the tag editor suggests. */
   libraryTagNames: (annotationKey: string) => Promise<readonly string[]>;
   reads?: PdfReads;
+  anchor?: ParsedAnnotationSubpath | null;
   /** Null for a view restored at startup or already open at plugin reload. */
   openedAt?: Temporal.Instant | null;
   /** The clock the affordance's cooldown countdown is read against. */
@@ -267,13 +241,9 @@ export interface PdfViewBindingDeps {
 }
 
 /**
- * Runs the seam probes for one PDF view, resolves the file it shows, and holds
- * every listener and node the reader surfaces add, so a file switch, a closed
- * leaf, and plugin unload each remove all of them.
- *
- * A probe miss fails closed to the reader surfaces alone: the attachment still
- * resolves, and the annotation repository, the attachment resolver, and the
- * Annotation View never see the difference.
+ * Resolves the file one reader view shows, and holds every listener and node
+ * the reader surfaces add, so a file switch, a closed leaf, and plugin unload
+ * each remove all of them.
  */
 export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   /**
@@ -283,6 +253,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    */
   hoverPopover: HoverPopover | null = null;
   readonly #view;
+  readonly #reader;
   readonly #adapter;
   readonly #attachments;
   readonly #annotations;
@@ -298,7 +269,6 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   readonly #reads;
   readonly #openedAt;
   readonly #registry;
-  readonly #probes = new PdfSeamProbeLog(() => this.filePath);
   /** Drags the selected mark out of this view and into a note. */
   readonly #dragOut: ReturnType<typeof createDragInsertHandler<never>>;
   /**
@@ -335,9 +305,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   #attachment: AttachmentResolution = { kind: "pending" };
   #filePath: string | null = null;
   #absolutePath: string | null = null;
-  #pageProbed = false;
-  #probing = Promise.resolve();
-  #controller: PDFViewerController | null = null;
+  #attached = false;
   #marks: ReadonlyMap<number, readonly PdfPageAnnotation[]> = new Map();
   #records: readonly AnnotationRecord[] = [];
   /** Where the last read of {@link #records} came from; `null` before one. */
@@ -351,6 +319,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * render. `null` while no Landing is in flight.
    */
   #landing: MarkLandingTarget | null = null;
+  #anchor: ParsedAnnotationSubpath | null;
   /** The frame a Landing's scroll is waiting on; `null` while none is. */
   #landingFrame: number | null = null;
   /**
@@ -374,7 +343,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
    */
   #held: {
-    document: PDFDocumentProxy;
+    document: ReaderDocument;
     structure: PdfTextStructure;
     /** The Page Label pass, scheduled in idle time on `win`. */
     idle: number;
@@ -405,6 +374,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
 
   constructor({
     view,
+    reader,
     adapter,
     attachments,
     annotations,
@@ -419,11 +389,14 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     now = () => Temporal.Now.instant(),
     reads,
     openedAt = null,
+    anchor = null,
     registry,
     inserts,
     sourceScope,
   }: PdfViewBindingDeps) {
     this.#view = view;
+    this.#anchor = anchor;
+    this.#reader = reader;
     this.#adapter = adapter;
     this.#attachments = attachments;
     this.#annotations = annotations;
@@ -518,10 +491,10 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * @see apps/obsidian/docs/adr/0054-reader-and-detached-excerpts-share-cache-publication.md
    */
   borrow(): BorrowedExcerptDocument | null {
-    return borrowReaderDocument({
-      controller: () => this.#controller,
-      path: this.#absolutePath,
-    });
+    return borrowReaderDocument(
+      this.#reader.document.get(),
+      this.#absolutePath,
+    );
   }
 
   /**
@@ -549,25 +522,6 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   async adjustRange(adjustment: RangeAdjustment): Promise<SelectedText | null> {
     const structure = this.#structure();
     return structure ? await structure.adjustRange(adjustment) : null;
-  }
-
-  /** Whether the reader surfaces may mount: every probe so far passed. */
-  get supported(): boolean {
-    return this.#probes.ok && !this.#surfaces.disposed;
-  }
-
-  get probes(): readonly PdfSeamProbeResult[] {
-    return this.#probes.results;
-  }
-
-  /**
-   * Settles when the page-stage probes have finished against the page the
-   * binding last saw, so a caller that mounts reader surfaces knows when
-   * {@link supported} stops moving. Already settled while no page has reached
-   * the binding. Never rejects.
-   */
-  get probed(): Promise<void> {
-    return this.#probing;
   }
 
   /**
@@ -626,8 +580,12 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     }
   }
 
+  aim(anchor: ParsedAnnotationSubpath | null): void {
+    this.#anchor = anchor;
+  }
+
   /**
-   * Honour the Annotation Anchor waiting on this view's leaf, once the marks on
+   * Honour the Annotation Anchor this view holds, once the marks on
    * screen match the last read. Safe to call for a view that has none: each
    * Anchor is honoured once, and one that cannot be placed leaves the reader on
    * the page Obsidian already jumped to.
@@ -637,8 +595,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   }
 
   load(): void {
-    this.#probes.record(probeFileView(this.#view));
-    const file = openFileOf(this.#view);
+    const file = this.#view.file;
     this.#filePath = file?.path ?? null;
     if (file === null) {
       logger.debug("PDF view holds no file yet");
@@ -655,10 +612,6 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       ),
     );
     this.#resolve(absolutePath);
-    if (!this.supported) return;
-    whenViewerReady(this.#view.viewer, (controller) =>
-      this.#attach(controller),
-    );
   }
 
   /** A workspace close or file replacement, distinct from plugin teardown. */
@@ -674,7 +627,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   }
 
   /**
-   * Whether the open waiting on this view's leaf named another Attachment of
+   * Whether the open this view holds named another Attachment of
    * this file than the one bound — two Attachments keep one file, and the open
    * asked for the one the path does not choose. The view then needs a binding
    * of its own for it.
@@ -682,7 +635,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   get renamed(): boolean {
     if (this.#attachment.kind !== "resolved" || this.#absolutePath === null)
       return false;
-    const named = peekPendingAnchor(this.#view.leaf)?.attachment ?? null;
+    const named = this.#anchor?.attachment ?? null;
     if (named === null || named === this.#attachment.attachmentKey)
       return false;
     const resolution = this.#bridge.runSync(
@@ -706,7 +659,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     if (this.#surfaces.disposed || this.#attachment.kind !== "pending") return;
     this.#attachment = this.#bridge.runSync(
       this.#attachments.resolve(absolutePath, {
-        attachmentKey: peekPendingAnchor(this.#view.leaf)?.attachment ?? null,
+        attachmentKey: this.#anchor?.attachment ?? null,
       }),
     );
     logger.debug("PDF view resolved", {
@@ -715,9 +668,6 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     });
     if (this.#attachment.kind === "resolved" && this.#openedAt)
       this.#reads?.record(this.#attachment, "open", this.#openedAt);
-    // The session names the Attachment even when a probe failed: a probe miss
-    // costs this view its own surfaces, and leaves every consumer that only
-    // follows what the view holds — the Annotation View — reading as before.
     this.#session.setTarget(
       this.#attachment.kind === "resolved"
         ? {
@@ -726,8 +676,8 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
           }
         : null,
     );
-    if (!this.supported || this.#attachment.kind !== "resolved") {
-      // No read runs for this view, so an Anchor waiting on its leaf is
+    if (this.#attachment.kind !== "resolved") {
+      // No read runs for this view, so an Anchor this view holds is
       // answered here rather than off a refresh that never comes.
       this.land();
       return;
@@ -779,115 +729,49 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   }
 
   /**
-   * Obsidian's own page subpath is what moves the reader, so an Annotation the
-   * marks do not place — a position this build draws nowhere — moves nothing.
+   * The reader's own page jump is what moves it, so an Annotation the marks do
+   * not place — a position this build draws nowhere — moves nothing.
    */
   #navigate(annotationKey: string): void {
     const pageIndex = pageOfMark(this.#marks, annotationKey);
-    if (pageIndex === null || !this.#controller) {
+    if (pageIndex === null || !this.#attached) {
       logger.debug("No page holds this annotation", {
         path: this.filePath,
         annotationKey,
       });
       return;
     }
-    this.#controller.applySubpath(`#page=${pageIndex + 1}`);
+    void this.#reader.navigate({ pageIndex });
   }
 
-  #attach(controller: PDFViewerController): void {
-    if (this.#surfaces.disposed) return;
-    this.#probes.record(probeController(this.#view.viewer, controller));
-    if (!this.supported) return;
-
-    this.#controller = controller;
+  attachDocument(): void {
+    if (this.#surfaces.disposed || this.#attached) return;
+    this.#attached = true;
+    const reader = this.#reader;
     this.#surfaces.defer(() => this.#closeStructure());
     this.#structure();
     this.#mountToolbar();
-
-    const onRender: PDFPageRenderedListener = (event) => {
-      this.#probes.record(probeRenderEvent(event));
-      this.#probePage(pageViewOf(controller, event.pageNumber));
-      if (!this.supported) {
-        this[Symbol.dispose]();
-        return;
-      }
-      // A document that opened after the attach, or replaced the one this
-      // binding read, is painted before it is asked about.
-      this.#structure();
-      // PDF.js drops every child it does not keep on a zoom, a rotation and a
-      // page recycle, so each render rebuilds this page's marks from data.
-      this.#paint(event.pageNumber - 1);
-      // A Landing waiting on this page has its Mark now that the page is
-      // painted, which is the catch-up Obsidian's own subpath highlight lacks.
-      if (this.#landing?.pageIndex === event.pageNumber - 1)
-        this.#applyLanding();
-      // The re-render can have wiped the mark the popup hangs over, so its
-      // anchor is taken from the page as it now stands.
-      this.#popupHost?.sync();
-    };
-    this.#surfaces.use(onPageRendered(controller, onRender));
-    // The move to the position a document reopens at is PDF.js's own, not a
-    // page turn: page changes count from the initial view on. PDF.js sets its
-    // flag before that move, so the binding keeps its own. It turns on at
-    // `documentinit`, or at the first page change after PDF.js set its flag,
-    // which is not counted; it turns off when the document closes for a
-    // reload in place.
-    // PDF.js names the page that move shows on its next scroll update, which
-    // can come after `documentinit`; that change leaves the reader where the
-    // initial view put it. So the reopen position is kept until the reader
-    // leaves it, and a page change that leaves the reader there is not a
-    // turn. A link or subpath turn names its page before it scrolls in the
-    // same task, so the position is read once that task's work is done.
-    let initialView = initialViewSet(controller);
-    let reopenedAt = initialView ? scrollOffsetOf(controller) : null;
-    this.#surfaces.use(
-      onInitialView(controller, () => {
-        initialView = true;
-        reopenedAt = scrollOffsetOf(controller);
+    this.#surfaces.defer(
+      reader.on("page-rendered", ({ page }) => {
+        // A document that opened after the attach, or replaced the one this
+        // binding read, is painted before it is asked about.
+        this.#structure();
+        // PDF.js drops every child it does not keep on a zoom, a rotation and a
+        // page recycle, so each render rebuilds this page's marks from data.
+        this.#paint(page.pageIndex);
+        if (this.#landing?.pageIndex === page.pageIndex) this.#applyLanding();
+        // The re-render can have wiped the mark the popup hangs over, so its
+        // anchor is taken from the page as it now stands.
+        this.#popupHost?.sync();
       }),
     );
-    this.#surfaces.use(
-      onDocumentClosed(controller, () => {
-        initialView = false;
-        reopenedAt = null;
+    this.#surfaces.defer(
+      reader.on("page-change", ({ cause }) => {
+        if (cause !== "restore" && this.#attachment.kind === "resolved")
+          this.#reads?.record(this.#attachment, "page");
       }),
     );
-    this.#surfaces.use(
-      onPageChanged(controller, () => {
-        // PDF.js 5.3.34 sets the initial view from the `.catch` of
-        // `load` when its open handler throws, and `documentinit` never
-        // follows. A page change after PDF.js set its flag is that move or a
-        // later one, so the binding takes the view as set and counts from the
-        // next change. On the usual path this is the move `documentinit`
-        // follows in the same task, which stays uncounted.
-        if (!initialView && initialViewSet(controller)) {
-          initialView = true;
-          return;
-        }
-        if (!initialView) return;
-        const turned = () => {
-          if (this.#attachment.kind === "resolved" && this.#pageProbed)
-            this.#reads?.record(this.#attachment, "page");
-        };
-        const reopened = reopenedAt;
-        if (!reopened) return turned();
-        queueMicrotask(() => {
-          if (this.#surfaces.disposed || reopenedAt !== reopened) return;
-          const at = scrollOffsetOf(controller);
-          if (at?.top === reopened.top && at.left === reopened.left) return;
-          reopenedAt = null;
-          turned();
-        });
-      }),
-    );
-    this.#probePage(loadedPageOf(controller));
-    if (!this.supported) {
-      this[Symbol.dispose]();
-      return;
-    }
     this.#repaint();
-    // An Anchor that arrived before the viewer did waited for this: the pages
-    // it asks about exist only once the controller stands.
     this.land();
   }
 
@@ -896,8 +780,8 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * always-present Editing Capability affordance in its own slot, beside the
    * keystrokes that ask to edit under a block.
    *
-   * Runs once, when both halves stand: the viewer child that owns the toolbar,
-   * and an Attachment this view can edit. A PDF Zotero does not know is left
+   * Runs once, when both halves stand: the reader's first document, and an
+   * Attachment this view can edit. A PDF Zotero does not know is left
    * exactly as Obsidian opened it, because there is nothing there to edit and
    * nothing to say about it.
    *
@@ -913,9 +797,8 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     const surface = this.#surface;
     if (this.#toolbarMounted || !creation || !surface) return;
     const { registry, model } = surface;
-    const controller = this.#controller;
-    const slot = controller && toolbarSlotOf(controller);
-    if (!slot) return;
+    if (!this.#attached) return;
+    const slot = this.#reader.slot("toolbar-end");
     this.#toolbarMounted = true;
     let ticking: number | null = null;
     const stopTicking = (): void => {
@@ -1023,11 +906,12 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         this.#capabilitySlot = slot;
         this.#drawCapability(registry.get(model.capabilityAffordance));
       },
-      // Obsidian's own way into a view: the PDF view focuses its pages.
-      focusReader: () =>
+      focusReader: () => {
         this.#view.app.workspace.setActiveLeaf(this.#view.leaf, {
           focus: true,
-        }),
+        });
+        this.#reader.focus();
+      },
       colors: this.#toolColors,
       surface,
       annotations: this.#annotations,
@@ -1049,8 +933,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       selectionSurfaces: this.#session,
       marks: () => this.#visibleMarks(),
       records: () => this.#records,
-      pageAt: (pageIndex) =>
-        this.#controller && pageViewOf(this.#controller, pageIndex + 1),
+      pageAt: (pageIndex) => this.#pageAt(pageIndex),
       repaint: () => this.#repaint(),
       navigate: (annotationKey) => this.#navigate(annotationKey),
       report: (annotationKeys) => this.#session.reportSelection(annotationKeys),
@@ -1177,12 +1060,11 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
    */
   #structure(): PdfTextStructure | null {
-    const controller = this.#controller;
-    const document_ = controller && pdfDocumentOf(controller);
-    if (!document_) return null;
+    const document_ = this.#attached ? this.#reader.document.get() : null;
+    if (!document_?.current()) return null;
     if (this.#held?.document === document_) return this.#held.structure;
     this.#closeStructure();
-    const structure = new PdfTextStructure(pdfPageSource(document_));
+    const structure = new PdfTextStructure(readerPageSource(document_));
     const win = this.#view.containerEl.win;
     const idle = win.requestIdleCallback(() => {
       void structure.pageLabels().catch((error: unknown) => {
@@ -1215,12 +1097,14 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * the whole search space of selection capture and the popup's anchor walk.
    */
   #pages(): ReaderPage[] {
-    const controller = this.#controller;
-    if (!controller) return [];
-    return renderedPagesOf(controller).flatMap((pageIndex) => {
-      const view = pageViewOf(controller, pageIndex + 1);
-      return view ? [{ pageIndex, view }] : [];
-    });
+    if (!this.#attached) return [];
+    return this.#reader
+      .renderedPages()
+      .map((page) => ({ pageIndex: page.pageIndex, view: page }));
+  }
+
+  #pageAt(pageIndex: number) {
+    return this.#attached ? this.#reader.pageAt(pageIndex) : null;
   }
 
   /** The Reader Surface State; `undefined` until the surfaces are mounted. */
@@ -1255,17 +1139,16 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * repaints a page whose overlay cannot be patched.
    */
   #patchSelected(): void {
-    const controller = this.#controller;
     const state = this.#state();
     const key = state ? selectSelectedKey(state) : null;
-    if (!controller || key === null) return;
+    if (!this.#attached || key === null) return;
     const drawn = new Set<number>();
     for (const [pageIndex, placements] of this.#visibleMarks()) {
       const placement = placements.find(
         ({ annotation }) => annotation.key === key,
       );
       if (placement) drawn.add(pageIndex);
-      const page = placement && pageViewOf(controller, pageIndex + 1);
+      const page = placement && this.#pageAt(pageIndex);
       if (!page) continue;
       if (
         !patchSelectedMark(page, placement, {
@@ -1291,18 +1174,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * page it was last drawn on once it ends.
    */
   #drawCapture(): void {
-    const controller = this.#controller;
     const state = this.#state();
     const capture = state ? selectCapture(state) : null;
     const held = this.#capturedOn;
     this.#capturedOn = capture?.pageIndex ?? null;
-    if (!controller) return;
+    if (!this.#attached) return;
     if (held !== null && held !== capture?.pageIndex) {
-      const page = pageViewOf(controller, held + 1);
+      const page = this.#pageAt(held);
       if (page) renderCapture(page, null);
     }
     if (!capture || !state) return;
-    const page = pageViewOf(controller, capture.pageIndex + 1);
+    const page = this.#pageAt(capture.pageIndex);
     if (page)
       renderCapture(page, { rect: capture.rect, color: state.colors.image });
   }
@@ -1313,15 +1195,14 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * back, still focused. It goes with the draft.
    */
   #drawTextDraft(): void {
-    const controller = this.#controller;
     const creation = this.#creation;
     const state = this.#state();
     const draft = state ? selectTextDraft(state) : null;
-    if (!draft || !controller || !creation) {
+    if (!draft || !this.#attached || !creation) {
       this.#dropTextDraftArea();
       return;
     }
-    const page = pageViewOf(controller, draft.pageIndex + 1);
+    const page = this.#pageAt(draft.pageIndex);
     if (!page) return;
     const area = (this.#draftArea ??= createTextDraftArea(
       page.div.doc,
@@ -1351,17 +1232,16 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
 
   /** Draws the Live Stroke on its page, as {@link #drawCapture} does. */
   #drawLiveStroke(): void {
-    const controller = this.#controller;
     const stroke = this.#state()?.liveStroke ?? null;
     const held = this.#strokeOn;
     this.#strokeOn = stroke?.pageIndex ?? null;
-    if (!controller) return;
+    if (!this.#attached) return;
     if (held !== null && held !== stroke?.pageIndex) {
-      const page = pageViewOf(controller, held + 1);
+      const page = this.#pageAt(held);
       if (page) renderLiveStroke(page, null);
     }
     if (!stroke) return;
-    const page = pageViewOf(controller, stroke.pageIndex + 1);
+    const page = this.#pageAt(stroke.pageIndex);
     if (page) renderLiveStroke(page, stroke);
   }
 
@@ -1475,7 +1355,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
    * one whose card was clicked in the Annotation View — once the marks on
    * screen match the last read.
    *
-   * A page PDF.js has not built yet is reached by Obsidian's own page jump,
+   * A page PDF.js has not built yet is reached by the reader's own page jump,
    * and the render it triggers is what the waiting Landing lands on — the
    * Annotation Anchor's own path.
    */
@@ -1483,9 +1363,8 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     const ask = this.#landingAsk;
     return this.refreshed.then(() => {
       if (this.#surfaces.disposed || ask !== this.#landingAsk) return;
-      const controller = this.#controller;
       const pageIndex = pageOfMark(this.#marks, annotationKey);
-      if (pageIndex === null || !controller) {
+      if (pageIndex === null || !this.#attached) {
         logger.debug("No page holds this annotation", {
           path: this.filePath,
           annotationKey,
@@ -1493,17 +1372,17 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         return;
       }
       this.#landing = { annotationKey, pageIndex };
-      if (renderedPagesOf(controller).includes(pageIndex)) {
+      if (this.#rendered().has(pageIndex)) {
         this.#applyLanding();
         return;
       }
-      controller.applySubpath(`#page=${pageIndex + 1}`);
+      void this.#reader.navigate({ pageIndex });
     });
   }
 
   /**
    * Bring the reader back to where the Annotation a History Step took away
-   * was. Nothing is left to select, so the selection goes and Obsidian's own
+   * was. Nothing is left to select, so the selection goes and the reader's own
    * page jump answers for the scroll.
    */
   #landOnPage(pageIndex: number): Promise<void> {
@@ -1513,28 +1392,27 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       // step erased, so it goes rather than selecting one on the next render.
       this.#landing = null;
       this.#selection?.select(null, { popup: false });
-      this.#controller?.applySubpath(`#page=${pageIndex + 1}`);
+      if (this.#attached) void this.#reader.navigate({ pageIndex });
     });
   }
 
   /**
-   * Decide the Anchor this view's leaf carries, and act on it. The Annotation's
+   * Decide the Anchor this view holds, and act on it. The Annotation's
    * own page wins over the page the link recorded, so a link written before the
    * PDF was replaced still lands on its passage.
    *
-   * An Anchor that cannot be honoured leaves the reader on Obsidian's own page
+   * An Anchor that cannot be honoured leaves the reader on its own page
    * jump, in silence: a `debug` record names the reason, and nothing is drawn
    * or announced. A miss waiting on a source that has not answered is kept for
    * it; every other miss is final and the Anchor goes with it.
    */
   #land(): void {
-    if (this.#surfaces.disposed || !this.supported) return;
-    const { leaf } = this.#view;
-    const anchor = peekPendingAnchor(leaf);
-    const controller = this.#controller;
-    // The pages a Landing asks about exist only behind the viewer child, so an
-    // Anchor that arrived first waits where it is; `#attach` asks again.
-    if (!anchor || !controller) return;
+    if (this.#surfaces.disposed) return;
+    const anchor = this.#anchor;
+    // The pages a Landing asks about exist only once the reader holds its
+    // document, so an Anchor that arrived first waits where it is;
+    // `attachDocument` asks again.
+    if (!anchor || !this.#attached) return;
 
     const landing = decideMarkLanding({
       anchor,
@@ -1542,7 +1420,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       read: this.#read,
       records: this.#records,
       marks: this.#marks,
-      rendered: new Set(renderedPagesOf(controller)),
+      rendered: this.#rendered(),
     });
     if (landing.kind === "drop") return;
     if (landing.kind === "page") {
@@ -1551,11 +1429,11 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
         annotationKey: anchor.annotation,
         reason: landing.reason,
       });
-      if (!KEPT_MISSES.has(landing.reason)) dropPendingAnchor(leaf);
+      if (!KEPT_MISSES.has(landing.reason)) this.#anchor = null;
       return;
     }
 
-    dropPendingAnchor(leaf);
+    this.#anchor = null;
     this.#landing = {
       annotationKey: landing.annotationKey,
       pageIndex: landing.pageIndex,
@@ -1566,10 +1444,10 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
       page: landing.pageIndex + 1,
       rendered: landing.kind === "select",
     });
-    // A page PDF.js has not built yet is Obsidian's own jump to make; the
+    // A page PDF.js has not built yet is the reader's own jump to make; the
     // render it triggers is what the waiting Landing lands on.
     if (landing.kind === "wait")
-      controller.applySubpath(`#page=${landing.pageIndex + 1}`);
+      void this.#reader.navigate({ pageIndex: landing.pageIndex });
     else this.#applyLanding();
   }
 
@@ -1589,7 +1467,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   /**
    * Brings the landed Mark on screen, a frame after the selection.
    *
-   * Obsidian's own `#page=N` rides the same open and scrolls on its own
+   * The reader's own `#page=N` rides the same open and scrolls on its own
    * schedule — on a reader that is already showing the file, after this. A Mark
    * placed before that jump is scrolled off again, so the Landing takes the
    * frame after it and has the last word, which is what makes the Annotation
@@ -1600,8 +1478,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     this.#cancelScroll();
     this.#landingFrame = win.requestAnimationFrame(() => {
       this.#landingFrame = null;
-      const controller = this.#controller;
-      const page = controller && pageViewOf(controller, target.pageIndex + 1);
+      const page = this.#pageAt(target.pageIndex);
       if (page) scrollMarkIntoView(page, target.annotationKey);
     });
   }
@@ -1706,8 +1583,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   }
 
   #paint(pageIndex: number): void {
-    const controller = this.#controller;
-    const page = controller && pageViewOf(controller, pageIndex + 1);
+    const page = this.#pageAt(pageIndex);
     if (!page) return;
     const annotations = this.#visibleMarks().get(pageIndex) ?? [];
     const pending = (this.#state()?.pendingStrokes ?? []).filter(
@@ -1742,27 +1618,11 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     this.#records = [];
     this.#source = null;
     this.#repaint();
-    this.#controller = null;
+    this.#attached = false;
   }
 
-  /** The page-stage probes, run against the first page that reaches them. */
-  #probePage(page: PDFPageView | null): void {
-    const controller = this.#controller;
-    if (this.#pageProbed || !page || !controller) return;
-    this.#pageProbed = true;
-    this.#probes.record(probePageView(page));
-    if (this.supported)
-      this.#probing = this.#probeTextContent(controller, page);
-  }
-
-  async #probeTextContent(
-    controller: PDFViewerController,
-    page: PDFPageView,
-  ): Promise<void> {
-    const result = await probeTextContent(controller, page);
-    if (this.#surfaces.disposed) return;
-    this.#probes.record([result]);
-    if (!this.supported) this[Symbol.dispose]();
+  #rendered(): Set<number> {
+    return new Set(this.#reader.renderedPages().map((page) => page.pageIndex));
   }
 }
 

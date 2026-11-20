@@ -1,5 +1,5 @@
 // The verbs over one Annotation or a group that both surfaces share: the
-// Annotation View's menus and keys, and the Obsidian PDF view's keys and Mark
+// Annotation View's menus and keys, and the ZotLit PDF Reader's keys and Mark
 // Popup. A delete asks once, and a group names its count; one mark in the PDF
 // is erased with no question.
 

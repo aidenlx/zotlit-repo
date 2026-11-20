@@ -1,5 +1,5 @@
 // What a copy of Annotation Cards puts on the clipboard: one rule for one card
-// and for a group, from the Annotation View and from the Obsidian PDF view.
+// and for a group, from the Annotation View and from the ZotLit PDF Reader.
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 
 import { commentPlainText } from "#core/annot-view/comment-format.ts";

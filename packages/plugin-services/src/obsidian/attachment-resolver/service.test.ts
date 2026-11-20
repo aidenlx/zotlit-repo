@@ -90,7 +90,7 @@ it.effect(
           itemKey: "SAKIMA22",
           openable: true,
         },
-        // A web snapshot resolves, but Obsidian's PDF view cannot host it.
+        // A web snapshot resolves, but the ZotLit PDF Reader cannot host it.
         {
           kind: "resolved",
           serverID: null,

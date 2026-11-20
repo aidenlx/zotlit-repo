@@ -76,7 +76,7 @@ async function host(
 }
 
 describe("registerFileLinkCapture", () => {
-  it("sends a link the opener takes to Obsidian's reader, in the pane the click asked for", async () => {
+  it("sends a link the opener takes to the ZotLit PDF Reader, in the pane the click asked for", async () => {
     await using stack = new AsyncDisposableStack();
     const capture = await host(stack);
 

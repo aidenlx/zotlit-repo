@@ -1,0 +1,104 @@
+.zpr-root .pdfViewer .page {
+  --page-border: calc(4px * var(--scale-factor)) solid transparent;
+  --page-margin: 0 auto;
+  --page-bg-color: transparent;
+  box-sizing: content-box;
+  flex-shrink: 0;
+}
+
+.zpr-root .pdfViewer .canvasWrapper {
+  box-shadow: var(--zpr-shadow);
+  background-color: var(--zpr-page-background);
+}
+
+.zpr-root .pdfViewer.removePageBorders .page + .page {
+  border-top: 4px solid transparent;
+}
+
+.zpr-root .pdfViewer.removePageBorders .spread .canvasWrapper {
+  box-shadow: var(--zpr-spread-shadow);
+}
+
+.zpr-root .pdfViewer .page.loadingIcon::after {
+  background: none;
+}
+
+.zpr-root .textLayer {
+  user-select: text;
+  opacity: 0.2;
+}
+
+.zpr-root .textLayer ::selection {
+  background-color: var(--zpr-accent);
+}
+
+.zpr-root .textLayer br::selection {
+  background-color: transparent;
+}
+
+.zpr-root .textLayer .highlight {
+  --highlight-bg-color: var(--zpr-find-match);
+  --highlight-selected-bg-color: var(--zpr-find-selected);
+  --highlight-backdrop-filter: none;
+  --highlight-selected-backdrop-filter: none;
+  margin: -1px;
+  padding: 1px;
+  border-radius: var(--zpr-radius-s);
+}
+
+.zpr-root .textLayer .highlight.appended {
+  position: static;
+  display: inline-block;
+}
+
+.zpr-root [data-zpr-highlight="text"] {
+  background-color: var(--zpr-focused-text);
+  border-radius: var(--zpr-radius-s);
+  position: static;
+}
+
+.zpr-root [data-zpr-highlight="annotation"] {
+  box-sizing: content-box;
+  margin: -8px;
+  padding: 4px;
+  border: 4px solid color-mix(in srgb, var(--zpr-focused-text) 80%, transparent);
+  border-radius: var(--zpr-radius-s);
+  background-color: color-mix(
+    in srgb,
+    var(--zpr-focused-text) 10%,
+    transparent
+  );
+}
+
+.zpr-root .annotationLayer .popup,
+.zpr-root .annotationLayer .popupTriggerArea::after {
+  display: none;
+}
+
+.zpr-root[data-zpr-inverted]
+  .annotationLayer
+  .textWidgetAnnotation
+  :is(input, textarea) {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+.zpr-root[data-zpr-inverted] {
+  --zpr-popup-background: var(--background-secondary-alt, var(--zpr-surface));
+}
+
+.zpr-root .annotationLayer > section.hasPopup:not(.textAnnotation) {
+  pointer-events: none;
+}
+
+.zpr-root
+  .annotationLayer
+  :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton):not(.hasBorder)
+  > a:hover {
+  opacity: 1;
+  background-color: color-mix(in oklch, var(--zpr-accent) 10%, transparent);
+  box-shadow: none;
+}
+
+.zpr-root[data-zpr-kind="hover"] [data-zpr-part="toolbar"] {
+  display: none;
+}

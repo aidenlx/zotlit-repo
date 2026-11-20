@@ -109,7 +109,9 @@ body {
 
 ## PDF reader hooks [#pdf-reader]
 
-Obsidian's PDF reader shows a Zotero attachment's Annotations as an overlay, and offers its own toolbar and popups for creating and editing them. ZotLit draws every one of these surfaces itself, on Obsidian's own toolbar and popover primitives.
+ZotLit's PDF reader shows a Zotero attachment's Annotations as an overlay, and offers a toolbar and popups for creating and editing them. ZotLit draws every one of these surfaces itself, on Obsidian's own toolbar and popover primitives.
+
+The reader takes its page and sidebar colors from the variables that Obsidian's own PDF viewer reads: `--pdf-background`, `--pdf-page-background`, `--pdf-sidebar-background`, `--pdf-shadow`, `--pdf-spread-shadow`, `--pdf-thumbnail-shadow`, and `--pdf-popup-width`. A theme that sets them styles both readers.
 
 | Class                                 | Marks                                                                                                                                              |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -123,7 +125,7 @@ Obsidian's PDF reader shows a Zotero attachment's Annotations as an overlay, and
 | `zt-pdf-annotation-note-crease`       | The two segments creasing the folded bottom-right corner of a note Annotation Mark's icon. Stroked, with no fill of its own.                       |
 | `zt-pdf-text-draft`                   | The textarea a free-text Annotation is typed into on its page. It stays there until the saved mark takes its place.                                |
 | `zt-pdf-capability`                   | The editing indicator in the reader's own toolbar, shown only while ZotLit waits for Zotero and during a cooldown.                                 |
-| `zt-pdf-creation-toolbar`             | The Creation Toolbar in the reader's own right toolbar slot, which also holds the editing indicator.                                               |
+| `zt-pdf-creation-toolbar`             | The Creation Toolbar at the end of the reader's toolbar, which also holds the editing indicator.                                                   |
 | `zt-pdf-tool`                         | One tool of that toolbar: its toggle and the chevron opening its colors, joined as one split button. Carries `is-active` while that tool is armed. |
 | `zt-pdf-mark-popup`                   | The Mark Popup, on Obsidian's own hover popover, in both of its modes.                                                                             |
 | `zt-pdf-comment-sheet`                | The comment sheet the Mark Popup opens under its row, in either mode.                                                                              |

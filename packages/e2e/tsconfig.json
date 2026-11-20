@@ -14,12 +14,14 @@
     "paths": {
       "@/*": ["../../apps/obsidian/src/*"],
       "@e2e/*": ["./src/*"],
+      "@e2e-fixtures/*": ["./fixtures/*"],
       "@brand/*": ["../../assets/logo/*"]
     },
     "jsx": "react-jsx"
   },
   "include": [
     "./src/**/*.ts",
+    "./fixtures/**/*.ts",
     "../../apps/obsidian/src/typings/**/*.d.ts",
     "../../packages/obsidian-kit/src/typings/*.d.ts",
     "../../apps/obsidian/src/env.d.ts"

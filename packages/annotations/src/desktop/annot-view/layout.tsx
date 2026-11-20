@@ -293,7 +293,7 @@ export class AnnotationsLayout extends Component {
    */
   #readerPending = false;
   /**
-   * The keys the layout is sending to the bound Obsidian PDF view, while the
+   * The keys the layout is sending to the bound ZotLit PDF Reader, while the
    * send runs. The reader reports them straight back, and that echo is the
    * layout's own change: it leaves the anchor and the focus where they are.
    */
@@ -902,7 +902,7 @@ export class AnnotationsLayout extends Component {
           // A list that is loading shows nothing yet, and hides nothing.
           if (this.store.getState().annotations === null) return;
           const { selection, changed } = this.#setSelection({ kind: "prune" });
-          // The bound Obsidian PDF view drops the marks the list now hides,
+          // The bound ZotLit PDF Reader drops the marks the list now hides,
           // so its keys never act on a card the list does not show. A reader
           // selection still waiting is the reader's own, and stays. A second
           // view bound to the same PDF takes the pruned selection through
@@ -1246,7 +1246,7 @@ export class AnnotationsLayout extends Component {
 
   /**
    * A gesture on the cards changes the Card Selection, and a change saves and
-   * closes an open card editor. A bound Obsidian PDF view takes the
+   * closes an open card editor. A bound ZotLit PDF Reader takes the
    * selection; the Zotero Reader takes nothing from ZotLit (ADR 0036).
    *
    * @param landOn the Annotation whose Mark the PDF view lands on quietly: a
@@ -1264,7 +1264,7 @@ export class AnnotationsLayout extends Component {
     return selection;
   }
 
-  /** Sends the Card Selection to the bound Obsidian PDF view. */
+  /** Sends the Card Selection to the bound ZotLit PDF Reader. */
   #pushToPdf(session: ReaderSession, keys: readonly string[]): void {
     this.#pushing = keys;
     try {
@@ -1297,7 +1297,7 @@ export class AnnotationsLayout extends Component {
 
   /**
    * A click on a card: alone, or with Cmd/Ctrl or Shift held. A bound
-   * Obsidian PDF view lands quietly on the mark of a card that a plain click
+   * ZotLit PDF Reader lands quietly on the mark of a card that a plain click
    * or a Cmd/Ctrl-click adds; a card that leaves, and a range, only repaint.
    */
   #clickFromView(change: Extract<SelectionChange, { kind: CardClick }>): void {
@@ -1320,7 +1320,7 @@ export class AnnotationsLayout extends Component {
   }
 
   /**
-   * A key moves the Card Selection to one card, and a bound Obsidian PDF view
+   * A key moves the Card Selection to one card, and a bound ZotLit PDF Reader
    * lands quietly on its mark, as a click does.
    *
    * @returns whether the selection moved; at either end of the list it stays.
@@ -1415,7 +1415,7 @@ export class AnnotationsLayout extends Component {
   }
 
   /**
-   * The bound reader, while it is an Obsidian PDF view: the one reader the
+   * The bound reader, while it is a ZotLit PDF Reader: the one reader the
    * layout can select in. Zotero owns every gesture on its own reader.
    */
   #boundPdfSession(): ReaderSession | null {

@@ -1,22 +1,32 @@
 import { it } from "@effect/vitest";
-import { Effect, Exit, Fiber } from "effect";
-import type { FileSystem, Layer } from "effect";
+import { Effect, Exit, Fiber, Layer } from "effect";
+import type { FileSystem } from "effect";
 import { TestClock } from "effect/testing";
 // Host doubles measure resource ownership without allocating a browser canvas or a large PDF.
 import { open } from "node:fs/promises";
-import { loadPdfJs } from "obsidian";
 import { expect, vi } from "vitest";
+
+import type {
+  DocumentSource,
+  HeadlessDocument,
+  PdfEngine as ReaderPdfEngine,
+} from "@zotlit/pdf-reader";
 
 import { layerExcerptFiles } from "#__fixtures__/excerpt-image/files.ts";
 import { NodeExcerptImageFixture } from "#__fixtures__/excerpt-image/node-service.ts";
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
 import { ExcerptRendererFixture as ExcerptRenderer } from "#__fixtures__/excerpt-image/renderer.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
+import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
+import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 let platform: Layer.Layer<FileSystem.FileSystem>;
 class ExcerptImageService extends NodeExcerptImageFixture {
-  constructor(deps: ConstructorParameters<typeof NodeExcerptImageFixture>[0]) {
-    super(deps, platform);
+  constructor(
+    deps: ConstructorParameters<typeof NodeExcerptImageFixture>[0],
+    engine?: ReaderPdfEngine,
+  ) {
+    super(deps, platform, engine && Layer.succeed(PdfEngine, engine));
   }
 }
 import type { ExcerptRequest } from "./service.ts";
@@ -24,10 +34,6 @@ import type { ExcerptRequest } from "./service.ts";
 vi.mock("node:fs/promises", async (original) => ({
   ...(await original<typeof import("node:fs/promises")>()),
   open: vi.fn(),
-}));
-vi.mock("obsidian", async (original) => ({
-  ...(await original<typeof import("obsidian")>()),
-  loadPdfJs: vi.fn(),
 }));
 
 function fixture() {
@@ -91,7 +97,7 @@ function fixture() {
   const owned: { task: unknown; _useRequestAnimationFrame: boolean }[] = [];
   const destroys: ReturnType<typeof vi.fn>[] = [];
   const pageCleanups: ReturnType<typeof vi.fn>[] = [];
-  const pages = vi.fn(async () => {
+  const pages = vi.fn(async (_pageNumber: number) => {
     if (state.stage === "page") {
       started.resolve();
       await never;
@@ -143,22 +149,43 @@ function fixture() {
       },
     };
   });
-  const load = vi.fn(async () => ({
-    getDocument: getDocument,
-  }));
-  const getDocument = vi.fn(() => {
-    const destroy = vi.fn(async () => {
-      destroyStarted.resolve();
-      await state.destroyGate;
-    });
-    destroys.push(destroy);
-    if (state.stage === "load") started.resolve();
-    return {
-      promise:
-        state.stage === "load" ? never : Promise.resolve({ getPage: pages }),
-      destroy,
-    };
-  });
+  const signals: AbortSignal[] = [];
+  const load = vi.fn(
+    async (
+      source: DocumentSource,
+      options?: { readonly signal?: AbortSignal },
+    ): Promise<HeadlessDocument> => {
+      const signal = options!.signal!;
+      signals.push(signal);
+      await source.read(signal);
+      if (state.stage === "load") {
+        started.resolve();
+        await new Promise<never>((_, reject) => {
+          signal.addEventListener(
+            "abort",
+            () =>
+              reject(
+                Object.assign(
+                  new Error("The PDF could not be loaded: aborted"),
+                  { name: "PdfLoadError", reason: "aborted" },
+                ),
+              ),
+            { once: true },
+          );
+        });
+      }
+      const destroy = vi.fn(async () => {
+        destroyStarted.resolve();
+        await state.destroyGate;
+      });
+      destroys.push(destroy);
+      return {
+        page: (pageIndex: number) => pages(pageIndex + 1),
+        [Symbol.asyncDispose]: destroy,
+      } as unknown as HeadlessDocument;
+    },
+  );
+  const engine = fakePdfEngine(load);
 
   const canvas = () => {
     const canvas = {
@@ -182,7 +209,7 @@ function fixture() {
   platform = layerExcerptFiles(open);
   const renderer = new ExcerptRenderer(
     {
-      load,
+      engine,
       canvas,
     },
     platform,
@@ -220,8 +247,9 @@ function fixture() {
     foreign,
     owned,
     destroys,
+    signals,
+    engine,
     load,
-    getDocument,
     pages,
     pageCleanups,
     canvases,
@@ -246,7 +274,7 @@ it("loads one document for distinct annotations and closes it once at shutdown",
       position: { kind: "pdf-rects", pageIndex: 2, rects: [[10, 10, 30, 40]] },
     },
   });
-  expect(f.getDocument).toHaveBeenCalledTimes(1);
+  expect(f.load).toHaveBeenCalledTimes(1);
   expect(f.pages.mock.calls).toEqual([[1], [3]]);
   expect(f.pageCleanups.map((cleanup) => cleanup.mock.calls.length)).toEqual([
     1, 1,
@@ -284,11 +312,13 @@ it("reuses its renderer within one operation and releases it when the operation 
     vi.unstubAllGlobals();
   });
   vi.stubGlobal("document", { createElement: f.canvas });
-  vi.mocked(loadPdfJs).mockImplementation(f.load);
   const service = cleanup.use(
-    new ExcerptImageService({
-      stamp: async () => ({ size: 4, mtimeMs: 1 }),
-    }),
+    new ExcerptImageService(
+      {
+        stamp: async () => ({ size: 4, mtimeMs: 1 }),
+      },
+      f.engine,
+    ),
   );
   {
     await using operation = service.operation();
@@ -301,7 +331,7 @@ it("reuses its renderer within one operation and releases it when the operation 
         annotation: { ...f.request.annotation, key: "ANNOT002" },
       }),
     ).toMatchObject({ provenance: "rendered" });
-    expect(f.getDocument).toHaveBeenCalledTimes(1);
+    expect(f.load).toHaveBeenCalledTimes(1);
     expect(f.tasks).toHaveLength(2);
     expect(f.destroys[0]).not.toHaveBeenCalled();
   }
@@ -316,11 +346,13 @@ it("releases its renderer after a standalone resolution", async () => {
     vi.unstubAllGlobals();
   });
   vi.stubGlobal("document", { createElement: f.canvas });
-  vi.mocked(loadPdfJs).mockImplementation(f.load);
   const service = cleanup.use(
-    new ExcerptImageService({
-      stamp: async () => ({ size: 4, mtimeMs: 1 }),
-    }),
+    new ExcerptImageService(
+      {
+        stamp: async () => ({ size: 4, mtimeMs: 1 }),
+      },
+      f.engine,
+    ),
   );
   expect(await service.resolve(f.request)).toMatchObject({
     provenance: "rendered",
@@ -336,15 +368,17 @@ it("renders only after the resident document has been destroyed", async () => {
     vi.unstubAllGlobals();
   });
   vi.stubGlobal("document", { createElement: f.canvas });
-  vi.mocked(loadPdfJs).mockImplementation(f.load);
   const destroying = Promise.withResolvers<void>();
   f.state.destroyGate = destroying.promise;
   // Whatever this test asserts, the fixture's document must be allowed to close.
   cleanup.defer(() => destroying.resolve());
   const service = cleanup.use(
-    new ExcerptImageService({
-      stamp: async () => ({ size: 4, mtimeMs: 1 }),
-    }),
+    new ExcerptImageService(
+      {
+        stamp: async () => ({ size: 4, mtimeMs: 1 }),
+      },
+      f.engine,
+    ),
   );
 
   const operation = service.operation();
@@ -369,7 +403,7 @@ it("renders only after the resident document has been destroyed", async () => {
   // render that waited loaded the file itself instead of reusing the closing
   // session — which it could only do once the document was gone.
   expect(renderedWhileDestroying).toBe(1);
-  expect(f.getDocument).toHaveBeenCalledTimes(2);
+  expect(f.load).toHaveBeenCalledTimes(2);
   expect(f.tasks).toHaveLength(2);
 });
 
@@ -387,7 +421,7 @@ it.each(["scope", "source", "library", "attachment", "path", "stamp"])(
     if (change === "path") next.pdfPath = "/other.pdf";
     if (change === "stamp") f.state.mtimeMs++;
     await f.render(next);
-    expect(f.getDocument).toHaveBeenCalledTimes(2);
+    expect(f.load).toHaveBeenCalledTimes(2);
     expect(f.destroys[0]).toHaveBeenCalledTimes(1);
     expect(f.destroys[1]).not.toHaveBeenCalled();
   },
@@ -405,7 +439,7 @@ it("keeps one resident document across the two representations of a database", a
       libraryRevision: 3,
     },
   });
-  expect(f.getDocument).toHaveBeenCalledTimes(1);
+  expect(f.load).toHaveBeenCalledTimes(1);
   // The first request reads the file it loads; the second reads no bytes of its
   // own, because the resident document already holds this revision.
   expect(f.files[0]!.read).toHaveBeenCalled();
@@ -474,7 +508,10 @@ it.each(["load", "page", "render", "encode"] as const)(
     await f.started.promise;
     controller.abort();
     await rejection;
-    expect(f.destroys[0]).toHaveBeenCalledTimes(1);
+    expect(f.signals[0]!.aborted).toBe(stage === "load");
+    expect(f.destroys.map((destroy) => destroy.mock.calls.length)).toEqual(
+      stage === "load" ? [] : [1],
+    );
     expect(f.tasks.every((task) => task.cancel.mock.calls.length === 1)).toBe(
       true,
     );
@@ -483,7 +520,7 @@ it.each(["load", "page", "render", "encode"] as const)(
     ).toBe(true);
     f.state.stage = "";
     await f.render();
-    expect(f.getDocument).toHaveBeenCalledTimes(2);
+    expect(f.load).toHaveBeenCalledTimes(2);
   },
 );
 
@@ -492,7 +529,7 @@ it.each([
   {
     phase: "document-loading",
     stage: "load",
-    active: { fileOpen: true, documentOpen: true, worker: "pending" },
+    active: { fileOpen: true, documentOpen: true },
     released: {},
   },
   {
@@ -640,7 +677,7 @@ it.each(["next request", "shutdown"])(
       await closing.promise;
       expect(completed).toBe(false);
       expect(render).toHaveBeenCalledTimes(1);
-      expect(f.getDocument).not.toHaveBeenCalled();
+      expect(f.load).not.toHaveBeenCalled();
     } finally {
       releaseClose.resolve();
     }
@@ -669,7 +706,7 @@ it.effect(
         .render(f.request)
         .pipe(Effect.provide(platform), Effect.flip);
       expect(next).toMatchObject({ message: "Excerpt renderer is closed" });
-      expect(f.getDocument).toHaveBeenCalledTimes(1);
+      expect(f.load).toHaveBeenCalledTimes(1);
       expect(f.tasks[0]!.cancel).toHaveBeenCalledTimes(1);
       expect(f.canvases[0]).toMatchObject({ width: 0, height: 0 });
     }),

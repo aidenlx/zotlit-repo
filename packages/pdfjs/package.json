@@ -1,0 +1,37 @@
+{
+  "name": "@zotlit/pdfjs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vendored build of pdf.js-zotlit, ZotLit's fork of PDF.js",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./lib": {
+      "types": "./dist/types/src/pdf.d.ts",
+      "default": "./dist/pdf.mjs"
+    },
+    "./viewer": {
+      "types": "./dist/types/web/pdf_viewer.component.d.ts",
+      "default": "./dist/pdf_viewer.mjs"
+    },
+    "./viewer.css": "./dist/pdf_viewer.css",
+    "./worker": "./dist/pdf.worker.mjs",
+    "./wasm/jbig2.wasm": "./dist/wasm/jbig2.wasm",
+    "./wasm/openjpeg.wasm": "./dist/wasm/openjpeg.wasm",
+    "./cmaps/*": "./dist/cmaps/*",
+    "./standard_fonts/*": "./dist/standard_fonts/*",
+    "./types/*": "./dist/types/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "vendor": "node scripts/vendor.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/yargs": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "typescript": "catalog:",
+    "yargs": "catalog:"
+  }
+}

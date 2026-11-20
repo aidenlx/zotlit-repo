@@ -1,0 +1,106 @@
+---
+title: "Read PDFs in the ZotLit reader"
+searchTitle: "Read and search PDFs in ZotLit's PDF reader"
+description: "Page through, search, and copy from a paper in ZotLit's PDF reader, and choose whether every PDF in your vault opens there."
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { SettingsPath } from "@/components/settings-path";
+import { UiLabel } from "@/components/ui-label";
+import { m } from "@/paraglide/messages.js";
+
+Read a paper in an Obsidian tab, find passages, and copy quotes and links into your notes.
+
+ZotLit has its own PDF reader inside Obsidian, the <UiLabel name={m.pdf_reader_view_name()} />. Each PDF that ZotLit opens shows there, with your Zotero annotations and the annotation tools. You can select and highlight text in every PDF that has text. This includes PDFs that earlier versions of ZotLit could not highlight.
+
+To open a paper's PDF, see [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian). To highlight and comment, see [How to edit PDF annotations in Obsidian](/docs/how-to/edit-pdf-annotations).
+
+## Move through the paper [#navigate]
+
+The toolbar at the top of the reader holds the page controls.
+
+- Type a page number in the page box and press `Enter`. When the PDF prints its own page numbers, such as `iv` or `213`, the box shows them.
+- Select <UiLabel name={m.pdf_reader_zoom_out()} /> or <UiLabel name={m.pdf_reader_zoom_in()} />. You can also hold `Ctrl` (Windows) or `Command` (macOS) and scroll, or pinch on a trackpad.
+- Select <UiLabel name={m.pdf_reader_display_options()} /> to choose <UiLabel name={m.pdf_reader_fit_width()} />, <UiLabel name={m.pdf_reader_fit_height()} />, <UiLabel name={m.pdf_reader_single_page()} />, <UiLabel name={m.pdf_reader_two_page_odd()} />, or <UiLabel name={m.pdf_reader_two_page_even()} />.
+
+In <UiLabel name={m.pdf_reader_fit_width()} /> or <UiLabel name={m.pdf_reader_fit_height()} />, the left and right arrow keys turn the page.
+
+To turn off the printed page numbers, clear <UiLabel name={m.pdf_reader_show_page_labels()} /> in the same menu. The menu shows this item only for a PDF that has printed page numbers.
+
+### Use the sidebar [#sidebar]
+
+Select <UiLabel name={m.pdf_reader_toggle_sidebar()} /> to show the page thumbnails. Select <UiLabel name={m.pdf_reader_sidebar_options()} /> to switch between <UiLabel name={m.pdf_reader_thumbnails()} /> and <UiLabel name={m.pdf_reader_outline()} />.
+
+Select a thumbnail or a heading to go there. To find the heading of the page you are reading, select <UiLabel name={m.pdf_reader_sidebar_options()} />, then <UiLabel name={m.pdf_reader_reveal_in_outline()} />. Drag the sidebar's edge to change its width.
+
+The reader remembers the page and the two-page layout of each PDF, and the sidebar you used last.
+
+## Find text [#find]
+
+1. With the reader in focus, press `Ctrl+F` (Windows) or `Command+F` (macOS).
+2. Type in the <UiLabel name={m.pdf_reader_find_placeholder()} /> box. The count shows how many matches the paper has.
+3. Press `Enter` or `F3` for the next match. Press `Shift+Enter` or `Shift+F3` for the previous one. `Ctrl+G` and `Ctrl+Shift+G` (`Command` on macOS) work too.
+
+Select <UiLabel name={m.pdf_reader_find_options()} /> to turn on <UiLabel name={m.pdf_reader_match_case()} />, <UiLabel name={m.pdf_reader_highlight_all()} />, <UiLabel name={m.pdf_reader_match_diacritics()} />, or <UiLabel name={m.pdf_reader_whole_words()} />. The reader keeps your choices for the next search. Press `Escape` to close the search.
+
+## Copy text and links [#copy]
+
+Select text on the page, then right-click it.
+
+- <UiLabel name={m.pdf_reader_copy()} /> copies the text alone.
+- <UiLabel name={m.pdf_reader_copy_as_quote()} /> copies the text as a quote,
+  with a link back to the passage.
+- <UiLabel name={m.pdf_reader_copy_selection_link()} /> copies a link that opens
+  the PDF with the passage highlighted.
+- On macOS, the menu also offers to look up the selected text.
+
+Right-click a thumbnail to copy a link to its page. Right-click a heading in the table of contents to copy a link to that section.
+
+A link that you copy here works in Obsidian's own PDF viewer too. Some pages have text that the two readers read differently. There, the reader copies a link to the page instead, and the menu has no <UiLabel name={m.pdf_reader_copy_selection_link()} />.
+
+## Read in dark mode [#theme]
+
+Open <UiLabel name={m.pdf_reader_display_options()} /> and select <UiLabel name={m.pdf_reader_adapt_to_theme()} />. With a dark Obsidian theme, the pages turn dark and the text turns light. Drawn shapes keep their hue, so dark blue turns light blue. Photos and other pictures stay as they are.
+
+## Open every PDF in the ZotLit reader [#open-all-pdfs]
+
+By default, the ZotLit reader shows only the PDFs that ZotLit opens. A PDF that you open from the file explorer opens in Obsidian's own PDF viewer.
+
+To read every PDF of your vault in the ZotLit reader, turn on <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_all_pdfs_name()} />. These then use the ZotLit reader:
+
+- PDFs that you open from the file explorer, a search, or a link.
+- PDF embeds in your notes, such as `![[paper.pdf#page=3]]`.
+- Hover previews of PDF links.
+- PDF cards on a canvas.
+
+Turn the setting off to give these PDFs back to Obsidian's own viewer. They also go back when you turn ZotLit off.
+
+An embed has a <UiLabel name={m.pdf_reader_embed_more_options()} /> button. Select <UiLabel name={m.pdf_reader_embed_open()} /> to read the whole PDF. The same menu has Obsidian's own link items, such as **Open in new tab**.
+
+## Limits [#limits]
+
+- Obsidian's own PDF viewer shows no ZotLit annotation tools. A link that ZotLit wrote into a note, such as an annotation link, still opens in the ZotLit reader. This is true while <UiLabel name={m.settings_reader_open_all_pdfs_name()} /> is off too.
+- A link made with **Copy link to selection** in Obsidian's own viewer opens with the passage highlighted. When the two readers read that page's text differently, the link opens on its page without the highlight.
+- A PDF card on a canvas has no **Save current position in document** button.
+- In Live Preview, a PDF embed has no **Edit this block** button. To change the embed's link, switch the note to Source mode.
+- If ZotLit shows <UiLabel name={m.pdf_reader_takeover_unavailable()} />, your Obsidian version does not let ZotLit open all PDFs. ZotLit still opens its own PDFs in its reader.
+
+## See also
+
+<Cards>
+  <Card
+    title="Open an item's PDF in Obsidian"
+    description="Open a Zotero PDF attachment from a note, the Library View, or Zotero."
+    href="/docs/how-to/open-pdf-in-obsidian"
+  />
+  <Card
+    title="How to edit PDF annotations in Obsidian"
+    description="Create or change Zotero annotations while reading in Obsidian."
+    href="/docs/how-to/edit-pdf-annotations"
+  />
+  <Card
+    title="Settings"
+    description="Every option on the Reader page of ZotLit's settings."
+    href="/docs/reference/settings#reader"
+  />
+</Cards>

@@ -1,0 +1,57 @@
+{
+  "name": "@zotlit/pdf-reader",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A portable PDF reader on pdf.js-zotlit, with an Obsidian host layer",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#/*": "./src/*",
+    "#test/*": "./test/*"
+  },
+  "exports": {
+    ".": "./src/core/index.ts",
+    "./obsidian": "./src/obsidian/index.ts",
+    "./pdfjs": "./src/pdfjs.ts",
+    "./package.json": "./package.json",
+    "./styles.css": "./src/generated/styles.css"
+  },
+  "scripts": {
+    "generate": "node build/embed-assets.ts && node build/gen-strings.ts && node build/build-css.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@effect/atom-react": "catalog:",
+    "effect": "catalog:",
+    "preact": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/node": "catalog:",
+    "@tailwindcss/oxide": "4.3.0",
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/pdfjs": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "arkregex": "catalog:",
+    "lightningcss": "1.32.0",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "obsidian": ">=1.14.4"
+  },
+  "peerDependenciesMeta": {
+    "obsidian": {
+      "optional": true
+    }
+  }
+}

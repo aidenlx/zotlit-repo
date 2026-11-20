@@ -1,6 +1,6 @@
 # @zotlit/annotations
 
-Reading and annotating in Obsidian: the Annotation Repository and the annotation model, the surfaces in Obsidian's PDF reader (Annotation Marks, the Mark Popup, the Creation Toolbar, Mark Landing), Excerpt Images, the Annotation View's cards and the Annotations Layout, Reader Sessions, and Open Targets with File Link Capture. The desktop plugin and ZotLit Reader compose it. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`, "Annotation view").
+Reading and annotating in Obsidian: the Annotation Repository and the annotation model, the surfaces in the ZotLit PDF Reader (Annotation Marks, the Mark Popup, the Creation Toolbar, Mark Landing), Excerpt Images, the Annotation View's cards and the Annotations Layout, Reader Sessions, and Open Targets with File Link Capture. The desktop plugin and ZotLit Reader compose it. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`, "Annotation view").
 
 The package imports no other feature. A capability of another feature comes in as a port that the host fills: `AnnotationNoteActions` (`obsidian/annot-view/note-actions.ts`) inserts an Annotation into a note and renders its citation, and the notes feature provides its layer. `@zotlit/query-views` holds the sidebar Annotation View, which shows the cards in a Query View (`desktop/annot-view/`).
 

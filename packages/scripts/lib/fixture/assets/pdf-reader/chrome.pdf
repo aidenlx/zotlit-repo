@@ -1,0 +1,96 @@
+%PDF-1.7
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /Outlines 3 0 R /PageLabels << /Nums [0 << /S /r >> 1 << /S /D >>] >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [12 0 R 14 0 R 16 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Outlines /First 4 0 R /Last 6 0 R /Count 3 >>
+endobj
+4 0 obj
+<< /Title (Introduction) /Parent 3 0 R /Next 5 0 R /Dest [12 0 R /XYZ 72 720 0] >>
+endobj
+5 0 obj
+<< /Title (Methods) /Parent 3 0 R /Prev 4 0 R /Next 6 0 R /First 7 0 R /Last 7 0 R /Count -1 /Dest [14 0 R /XYZ 72 700 null] >>
+endobj
+6 0 obj
+<< /Title (Project site) /Parent 3 0 R /Prev 5 0 R /A << /S /URI /URI (https://example.org/zotlit) >> >>
+endobj
+7 0 obj
+<< /Title (Sampling) /Parent 5 0 R /Dest [16 0 R /FitH 500] >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Highlight /Rect [70 594 340 614] /QuadPoints [70 614 340 614 70 594 340 594] /Contents (Check this sentence.) /T (Ada Lovelace) /M (D:20240102030405Z) /C [1 1 0] /P 14 0 R >>
+endobj
+10 0 obj
+<< /Type /Annot /Subtype /Link /Rect [72 596 190 612] /Border [0 0 0] /A << /S /URI /URI (https://example.org/paper) >> >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Link /Rect [72 576 160 592] /Border [0 0 0] /Dest [16 0 R /Fit] >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 8 0 R >> >> /Annots [10 0 R 11 0 R] /Contents 13 0 R >>
+endobj
+13 0 obj
+<< /Length 358 >>
+stream
+BT /F1 24 Tf 72 740 Td (Introduction) Tj ET
+BT /F1 11 Tf 72 700 Td (Caf\351 r\351sum\351 na\357ve) Tj ET
+BT /F1 11 Tf 72 680 Td (Cafe resume naive) Tj ET
+BT /F1 11 Tf 72 660 Td (The fox and the Fox.) Tj ET
+BT /F1 11 Tf 72 640 Td (foxes are not a fox) Tj ET
+BT /F1 11 Tf 72 600 Td (Visit the project page) Tj ET
+BT /F1 11 Tf 72 580 Td (Go to page three) Tj ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 8 0 R >> >> /Annots [9 0 R] /Contents 15 0 R >>
+endobj
+15 0 obj
+<< /Length 172 >>
+stream
+BT /F1 24 Tf 72 740 Td (Methods) Tj ET
+BT /F1 11 Tf 72 700 Td (Sampling starts on the next page.) Tj ET
+BT /F1 11 Tf 72 600 Td (The highlighted sentence on page two.) Tj ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 8 0 R >> >> /Contents 17 0 R >>
+endobj
+17 0 obj
+<< /Length 107 >>
+stream
+BT /F1 24 Tf 72 740 Td (Sampling) Tj ET
+BT /F1 11 Tf 72 700 Td (Page three holds the sampling notes.) Tj ET
+endstream
+endobj
+xref
+0 18
+0000000000 65535 f 
+0000000015 00000 n 
+0000000134 00000 n 
+0000000206 00000 n 
+0000000277 00000 n 
+0000000375 00000 n 
+0000000518 00000 n 
+0000000638 00000 n 
+0000000716 00000 n 
+0000000813 00000 n 
+0000001029 00000 n 
+0000001168 00000 n 
+0000001277 00000 n 
+0000001429 00000 n 
+0000001839 00000 n 
+0000001983 00000 n 
+0000002207 00000 n 
+0000002335 00000 n 
+trailer
+<< /Size 18 /Root 1 0 R >>
+startxref
+2494
+%%EOF

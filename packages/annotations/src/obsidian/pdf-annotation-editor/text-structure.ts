@@ -1,70 +1,42 @@
-// The open PDF as the Sort Index and Page Label port reads it: Obsidian's
-// per-glyph text content, the page boxes, and the catalog's page labels.
+// The open PDF as the Sort Index and Page Label port reads it: per-glyph text
+// content from the fork, the page boxes, and the catalog's page labels.
 //
 // @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
-import type { PDFDocumentProxy, PDFPageProxy } from "obsidian";
+import type { ReaderDocument } from "@zotlit/pdf-reader";
+import type { TextChar } from "@zotlit/pdf-reader/pdfjs";
+import type { PdfPageSource, Rect, ZoteroChar } from "@zotlit/pdf-structure";
 
-import type {
-  ObsidianTextItem,
-  PdfPageSource,
-  Rect,
-} from "@zotlit/pdf-structure";
-import { getLogger } from "@zotlit/plugin-kernel/log.ts";
-
-const logger = getLogger("pdf-annotation-editor");
-
-/**
- * The document as the port's source, page indexes zero-based throughout.
- *
- * Every page is read from the document rather than from a rendered page view,
- * because the Page Label heuristic walks the first 25 pages and a reader shows
- * one of them at a time.
- */
-export function pdfPageSource(document_: PDFDocumentProxy): PdfPageSource {
+export function readerPageSource(document_: ReaderDocument): PdfPageSource {
   return {
-    numPages: document_.numPages,
+    numPages: document_.proxy.numPages,
     getViewBox: async (pageIndex) =>
-      (await document_.getPage(pageIndex + 1)).view as unknown as Rect,
-    getTextItems: async (pageIndex) => {
-      const page = await document_.getPage(pageIndex + 1);
-      const { items } = await page.getTextContent({ includeChars: true });
-      return items.map((item) => textItem(page, item));
+      (await requireOpen(document_.page(pageIndex))).view as unknown as Rect,
+    getChars: async (pageIndex) => {
+      const { items } = await requireOpen(document_.textContent(pageIndex));
+      return items.flatMap((item) =>
+        "chars" in item ? (item.chars ?? []).map(zoteroChar) : [],
+      );
     },
-    getCatalogPageLabels: () => document_.getPageLabels(),
+    getCatalogPageLabels: () => document_.proxy.getPageLabels(),
   };
 }
 
-/**
- * One chunk of text content in the shape the port's four filter rules take.
- *
- * `fontName` is the **base** font name, which is what Zotero's own extraction
- * records: PDF.js names a chunk by the loaded name it gave that font object,
- * and two loaded names can stand for one base font. The port compares font
- * names for equality alone, and only to decide whether two paragraphs are
- * really one, so a font whose object has not reached the store yet keeps its
- * loaded name — a page's operator list resolves the font, which is to say the
- * page's own render does.
- */
-function textItem(
-  page: PDFPageProxy,
-  item: { chars?: { c: string; u: string; r: number[] }[] } & {
-    transform: number[];
-    fontName: string;
-  },
-): ObsidianTextItem {
+async function requireOpen<A>(read: Promise<A | null>): Promise<A> {
+  const value = await read;
+  if (value === null)
+    throw new Error("The PDF closed before its page was read");
+  return value;
+}
+
+function zoteroChar(char: TextChar): ZoteroChar {
+  const [x1, y1, x2, y2] = char.rect as [number, number, number, number];
   return {
-    transform: item.transform,
-    fontName: baseFontName(page, item.fontName),
-    chars: item.chars as ObsidianTextItem["chars"],
+    c: char.c,
+    u: char.u,
+    rect: [x1, y1, x2, y2],
+    fontSize: char.fontSize,
+    fontName: char.fontName,
+    rotation: char.rotation,
+    baseline: char.baseline,
   };
-}
-
-function baseFontName(page: PDFPageProxy, loadedName: string): string {
-  if (!page.commonObjs.has(loadedName)) {
-    logger.debug("PDF font is not resolved yet; keeping its loaded name", {
-      loadedName,
-    });
-    return loadedName;
-  }
-  return page.commonObjs.get(loadedName)?.name ?? loadedName;
 }

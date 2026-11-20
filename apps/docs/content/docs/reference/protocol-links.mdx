@@ -1,6 +1,6 @@
 ---
 title: "Protocol links"
-description: "Every obsidian://zotlit/* action and its parameters, and the Zotero open links ZotLit opens in Obsidian's reader."
+description: "Every obsidian://zotlit/* action and its parameters, and the Zotero open links ZotLit opens in its PDF reader."
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
@@ -11,7 +11,7 @@ import { m } from "@/paraglide/messages.js";
 
 This page documents every `obsidian://zotlit/*` protocol action. These deep links allow ZotLit Companion, the Zotero add-on, and external tools such as scripts and launchers to trigger ZotLit operations in Obsidian.
 
-It also documents which `zotero://` links ZotLit opens in Obsidian's reader when you click them in a note. See [Zotero open links](#zotero-open-links).
+It also documents which `zotero://` links ZotLit opens in its PDF reader when you click them in a note. See [Zotero open links](#zotero-open-links).
 
 ## Common parameters
 
@@ -210,7 +210,7 @@ obsidian://zotlit/explore?item=<id>&source-id=<hash>
 
 ### open-attachment [#open-attachment]
 
-Opens a Zotero PDF attachment in Obsidian's own PDF reader.
+Opens a Zotero PDF attachment in ZotLit's PDF reader.
 
 ```
 obsidian://zotlit/open-attachment?item=<id>&source-id=<hash>
@@ -277,7 +277,7 @@ The link appears wherever ZotLit writes an annotation: <UiLabel name={m.annot_vi
 
 ### Opened in Obsidian [#zotero-open-links-captured]
 
-While <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_file_links_name()} /> and <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_annotation_links_name()} /> are on, which is the default, ZotLit opens a durable annotation link in Obsidian's reader. The PDF opens with the annotation selected and scrolled into view. This applies to a link clicked in Live Preview, in Reading view, or in a Properties value, and to an annotation's page link in the annotation view, a query block, or the Query View.
+While <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_file_links_name()} /> and <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_annotation_links_name()} /> are on, which is the default, ZotLit opens a durable annotation link in its PDF reader. The PDF opens with the annotation selected and scrolled into view. This applies to a link clicked in Live Preview, in Reading view, or in a Properties value, and to an annotation's page link in the annotation view, a query block, or the Query View.
 
 When Zotero no longer has the annotation, the PDF opens on the annotation's page alone. If that annotation's page label differs from the PDF's page number, the page jump can miss.
 
@@ -296,7 +296,7 @@ ZotLit hands the link to Zotero, unchanged, in these cases:
 
 ### Older file links [#zotero-open-links-file-links]
 
-Notes written by an earlier ZotLit link an annotation to the attachment file instead, in the form `file:///…/paper.pdf#page=N&zt-annotation=<key>`. These links keep opening in Obsidian's reader on the annotation, as before. They hold the file path of the computer that wrote them, so they open nothing on a computer whose Zotero storage folder sits elsewhere. See [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian#file-links).
+Notes written by an earlier ZotLit link an annotation to the attachment file instead, in the form `file:///…/paper.pdf#page=N&zt-annotation=<key>`. These links keep opening in ZotLit's PDF reader on the annotation, as before. They hold the file path of the computer that wrote them, so they open nothing on a computer whose Zotero storage folder sits elsewhere. See [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian#file-links).
 
 ## See also
 

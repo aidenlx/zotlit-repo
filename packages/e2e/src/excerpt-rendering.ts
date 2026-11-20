@@ -64,7 +64,6 @@ interface ProbeResult {
     renderTaskActive: boolean;
     canvas: { width: number; height: number } | null;
     lastCanvas: { width: number; height: number } | null;
-    worker: string | null;
   };
   toBlobRestored: boolean;
 }
@@ -562,7 +561,8 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               assertActive();
               return outcome;
             };
-            const pdfLeavesBefore = app.workspace.getLeavesOfType("pdf").length;
+            const pdfLeavesBefore =
+              app.workspace.getLeavesOfType("zotlit-pdf").length;
             const cases = acceptance.cases;
             const file = app.vault.getAbstractFileByPath(relative);
             if (!file)
@@ -751,7 +751,7 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               failures,
               pdfLeaves: {
                 before: pdfLeavesBefore,
-                after: app.workspace.getLeavesOfType("pdf").length,
+                after: app.workspace.getLeavesOfType("zotlit-pdf").length,
               },
               electron: { before, during, after },
             };
@@ -926,30 +926,8 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
 
   for (const phase of ["document-loading", "page-rendering"] as const) {
     await using probe = await startRenderProbe(vaultId, 0, phase);
-    let workerTimeout: unknown;
-    if (phase === "document-loading") {
-      try {
-        await obRunUntil(
-          vaultId,
-          async ({ page: helpers }) => {
-            return helpers.scratch.__zotlitExcerptProbe!.diagnostics.snapshot()
-              .worker;
-          },
-          undefined,
-          {
-            ready: (value) => value === "web-worker",
-            tries: 80,
-            what: "the excerpt renderer to run on a web worker",
-          },
-        );
-      } catch (error) {
-        workerTimeout = error;
-      }
-    }
     const active = await probe.snapshot();
     expect(active.jobActive).toBe(true);
-    expect(workerTimeout, JSON.stringify(active)).toBeUndefined();
-    if (phase === "document-loading") expect(active.worker).toBe("web-worker");
     if (phase === "page-rendering") {
       expect(active.renderTaskActive).toBe(true);
       expect(active.canvas).not.toBeNull();

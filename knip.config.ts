@@ -8,7 +8,7 @@ const config: KnipConfig = {
   include: ["exports", "types", "enumMembers"],
   // A symbol read in its own file has a reader; only its `export` is spare.
   ignoreExportsUsedInFile: true,
-  ignoreWorkspaces: ["packages/pdfjs-dist", "video"],
+  ignoreWorkspaces: ["packages/pdfjs-dist", "packages/pdfjs", "video"],
   ignore: ["packages/pdf-structure/src/vendor/**"],
   ignoreIssues: {
     // shadcn/ui components: each file ships the component's whole API.
@@ -108,6 +108,16 @@ const config: KnipConfig = {
       entry: ["scripts/*.ts"],
       // Loading drizzle.config.js needs a local packages/db/.env.
       drizzle: false,
+    },
+    "packages/pdf-reader": {
+      entry: [
+        "src/core/index.ts",
+        "src/obsidian/index.ts",
+        "src/pdfjs.ts",
+        "src/**/*.browser-test.ts",
+        "test/host.ts",
+        "build/*.ts",
+      ],
     },
     "packages/scripts": {
       entry: ["scripts/*.ts"],

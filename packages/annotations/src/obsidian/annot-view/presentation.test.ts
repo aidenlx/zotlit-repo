@@ -526,7 +526,7 @@ describe("the header's menu", () => {
     expect(rows(groups[2]!)).toStrictEqual([["Open PDF", "open-pdf"]]);
   });
 
-  it("offers no PDF to open while an Obsidian PDF view shows it", () => {
+  it("offers no PDF to open while a ZotLit PDF Reader shows it", () => {
     const groups = headerMenu(
       state({ attachmentLock: "obsidian-pdf", capability: WRITABLE }),
       NOW,

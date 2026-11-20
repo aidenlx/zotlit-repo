@@ -1,7 +1,7 @@
 # @zotlit/pdf-structure
 
-The pinned port of Zotero's PDF text structure, its adapter, and the golden
-parity test that keeps them honest. `README.md` describes the public surface.
+The pinned port of Zotero's PDF text structure and the golden parity test that
+keeps it honest. `README.md` describes the public surface.
 
 ## The port is upstream code
 
@@ -50,24 +50,27 @@ sides of the comparison.
 
 ## Two oracles, not one
 
-- **Zotero's modules** decide the Structured Characters and Page Labels. The
-  test compares index for index, because `offset` is an index: one extra or
-  missing character misplaces every Annotation after it on that page.
+- **Zotero's modules** decide the Page Labels, which the test compares page
+  for page. The Structured Characters come from the checkout's own
+  extraction and are the input of both sides, so the test does not compare
+  them.
   The reader's own `selection.js` decides the text ranges: `src/text-selection.ts`
   gets the same Structured Characters, and the test compares the rectangles,
   the text and the highlight-to-characters lookup range for range. Vitest loads
   that module straight from the checkout.
 - **The Fixture's own `sortIndex` strings** on Attachment `RGRPDF24` are what
   Zotero's reader wrote for real Annotations of all six types. They check the
-  whole chain — extraction, adapter, line grouping, offset — against output this
-  package took no part in producing. The Annotations on the other Attachments
+  line grouping and the offset against output this package took no part in
+  producing. The Annotations on the other Attachments
   carry reviewed anchors instead, so they are not an oracle.
 
-## What the adapter cannot cover here
+## Where the characters come from
 
-Obsidian's pdf.js is not available in Node, so the parity test feeds the adapter
-a reconstruction of Obsidian's glyph shape built from Zotero's own records. That
-exercises the normalisation and the derived item metrics over every glyph of the
-Fixture PDFs, but not the space and control-character rules, whose inputs Zotero
-never records. Those two rules are covered by worked examples in
-`src/chars.test.ts`.
+pdf.js-zotlit carries Zotero's per-glyph extraction, so a host hands the port
+its characters in Zotero's shape, and the parity test feeds Zotero's own
+records to the line grouping. The byte-identity case proves the vendored
+`structure.js`. ZotLit reads the fork's records through
+`readerPageSource` in `packages/annotations/src/obsidian/pdf-annotation-editor/text-structure.ts`.
+The End-to-end Run case E-1 in `packages/e2e/src/paired-run.e2e.ts` checks the
+result against Zotero: a highlight made in the ZotLit PDF Reader gets the Sort
+Index and Page Label that Zotero's own reader computes for it.

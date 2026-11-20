@@ -673,27 +673,34 @@ ZotLit 仅将此授权保存在本设备上该仓库的 Obsidian 密钥链（Key
 
 ## 阅读器 [#reader]
 
-从 <SettingsPath page={m.settings_page_reader()} /> 打开此页面。它控制 ZotLit 在 Obsidian 阅读器中打开 PDF 时的行为。
+从 <SettingsPath page={m.settings_page_reader()} /> 打开此页面。它控制 ZotLit 如何在其 [PDF 阅读器](/docs/how-to/read-pdfs-in-zotlit-reader)中打开 PDF。
 
 | 标签                                                              | 键名                           | 控件 | 默认值 | 依赖                                                             | 存储   |
 | ----------------------------------------------------------------- | ------------------------------ | ---- | ------ | ---------------------------------------------------------------- | ------ |
 | <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | 开关 | 开启   | 无                                                               | 已同步 |
 | <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | 开关 | 开启   | 无                                                               | 已同步 |
 | <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | 开关 | 开启   | <UiLabel name={m.settings_reader_open_file_links_name()} /> 开启 | 已同步 |
+| <UiLabel name={m.settings_reader_open_all_pdfs_name()} />         | `reader.open-all-pdfs`         | 开关 | 关闭   | 无                                                               | 已同步 |
 
 <UiLabel name={m.settings_reader_focus_annot_view_name()} />
 ：每次 ZotLit 打开 PDF 时，在侧栏中打开标注视图。关闭它可保持侧栏现状不变。
 
 <UiLabel name={m.settings_reader_open_file_links_name()} />
-：当笔记中的文件链接指向 Zotero 文库中的 PDF 时，在 Obsidian 的 PDF
+：当笔记中的文件链接指向 Zotero 文库中的 PDF 时，在 ZotLit 的 PDF
 阅读器中打开该链接。其他所有文件链接均在系统应用中打开。右键点击并选择在系统应用中打开的链接也会在系统应用中打开。关闭此设置将在系统应用中打开所有文件链接。关闭时，标注卡片或查询视图行中的页码链接将在
 Zotero 中打开标注。
 
 <UiLabel name={m.settings_reader_open_annotation_links_name()} />
-：在 Obsidian 的 PDF
+：在 ZotLit 的 PDF
 阅读器中打开持久标注链接并选中该标注。标注卡片或查询视图行中的页码链接也会以相同方式打开。关闭时，该链接将在
 Zotero 中打开。悬停在链接上仍会显示标注。必须同时开启
 <UiLabel name={m.settings_reader_open_file_links_name()} />。
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} />
+：在 ZotLit 的 PDF 阅读器中打开仓库中的所有 PDF，包括嵌入的
+PDF、悬停预览和白板卡片。关闭时，只有 ZotLit 打开的 PDF 使用其阅读器，其余 PDF
+在 Obsidian 自带的 PDF 查看器中打开。参见[在 ZotLit 阅读器中打开所有
+PDF](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs)。
 
 参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。
 

@@ -4,7 +4,10 @@ import { expect } from "vitest";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { cli } from "./obsidian-cli.ts";
-import type { PagePdfView, FileExplorerView } from "./page-notes-types.ts";
+import type {
+  PagePdfReaderView,
+  FileExplorerView,
+} from "./page-notes-types.ts";
 
 const path = "attachments/rougier-2014.pdf";
 const itemKey = "RUGIER24";
@@ -84,15 +87,17 @@ export async function verifyPdfReads(
         const s = zotlit.services;
         (
           app.workspace.getLeavesOfType(
-            "pdf",
+            "zotlit-pdf",
           ) as (import("obsidian").WorkspaceLeaf & {
-            view: PagePdfView;
+            view: PagePdfReaderView;
           })[]
         ).forEach((l) => l.detach());
         const saved = JSON.parse(savedJson);
         s.bridge.runSync(
           s.settings.update({
             "library.document": saved.settings["library.document"] ?? null,
+            "reader.open-all-pdfs":
+              saved.settings["reader.open-all-pdfs"] ?? false,
           }),
         );
         await s.bridge.runPromise(s.settings.flush);
@@ -109,9 +114,9 @@ export async function verifyPdfReads(
       const s = zotlit.services;
       (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
       ).forEach((l) => l.detach());
       (
@@ -161,15 +166,14 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "pdf",
+              "zotlit-pdf",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: PagePdfView;
+              view: PagePdfReaderView;
             })[]
           ).find((l) => l.view.file?.path === notePath);
           return (
-            (leaf?.view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) >
-              0 &&
-            leaf!.view.viewer.child.getPage(1)?.pdfPage &&
+            (leaf?.view.reader?.state.get().pageCount ?? 0) > 0 &&
+            leaf!.view.reader!.state.get().status === "ready" &&
             s.bridge
               .runSync(s.pdfAnnotationEditor.bindings)
               .find((b) => b.filePath === notePath)?.session?.target
@@ -297,10 +301,6 @@ export async function verifyPdfReads(
       undefined,
     )
   )[itemKey]!;
-  // A real page transition reaches PDF.js's pagechanging event; rendering and
-  // immediate turns stay inside the five-minute limit established by open.
-  // PDF.js reopens a document at its last position, which every vault of the
-  // app shares through localStorage, so the target is a page the reader is not on.
   await obRun(
     vaultId,
     async ({ app, page }) => {
@@ -308,28 +308,26 @@ export async function verifyPdfReads(
 
       const view = (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
       )[0]!.view;
-      const reader = view.viewer.child;
-      // PDF.js's own move to the reopen position belongs to its initial view.
-      await until(
-        "PDF initial view",
-        () => reader.pdfViewer.isInitialViewSet === true,
-      );
+      const reader = view.reader!;
+      await reader.whenReady();
       page.scratch.pageChanges = 0;
-      reader.on("pagechanging", () => page.scratch.pageChanges!++);
-      const from = reader.pdfViewer.pdfViewer.currentPageNumber;
-      const target = from === 1 ? 2 : 1;
-      reader.applySubpath(`#page=${target}`);
+      reader.on("page-change", ({ cause }) => {
+        if (cause !== "restore") page.scratch.pageChanges!++;
+      });
+      const from = reader.state.get().pageIndex + 1;
+      const pageOtherThanRestored = from === 1 ? 2 : 1;
+      await reader.navigate(`#page=${pageOtherThanRestored}`);
       try {
         await until("real page change", () => page.scratch.pageChanges! > 0);
       } catch (error) {
-        const now = reader.pdfViewer.pdfViewer.currentPageNumber;
+        const now = reader.state.get().pageIndex + 1;
         throw new Error(
-          `No pagechanging from page ${from} to ${target}: now on page ${now} (renderingState ${reader.getPage(now)?.renderingState}), isInitialViewSet ${reader.pdfViewer.isInitialViewSet}, ${page.scratch.pageChanges} events`,
+          `No page change from page ${from} to ${pageOtherThanRestored}: now on page ${now} (rendered ${reader.pageAt(now - 1)?.rendered}), ${page.scratch.pageChanges} events`,
           { cause: error },
         );
       }
@@ -373,15 +371,14 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "pdf",
+              "zotlit-pdf",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: PagePdfView;
+              view: PagePdfReaderView;
             })[]
           ).find((l) => l.view.file?.path === notePath);
           return (
-            (leaf?.view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) >
-              0 &&
-            leaf!.view.viewer.child.getPage(1)?.pdfPage &&
+            (leaf?.view.reader?.state.get().pageCount ?? 0) > 0 &&
+            leaf!.view.reader!.state.get().status === "ready" &&
             s.bridge
               .runSync(s.pdfAnnotationEditor.bindings)
               .find((b) => b.filePath === notePath)?.session?.target
@@ -430,15 +427,14 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "pdf",
+              "zotlit-pdf",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: PagePdfView;
+              view: PagePdfReaderView;
             })[]
           ).find((l) => l.view.file?.path === notePath);
           return (
-            (leaf?.view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) >
-              0 &&
-            leaf!.view.viewer.child.getPage(1)?.pdfPage &&
+            (leaf?.view.reader?.state.get().pageCount ?? 0) > 0 &&
+            leaf!.view.reader!.state.get().status === "ready" &&
             s.bridge
               .runSync(s.pdfAnnotationEditor.bindings)
               .find((b) => b.filePath === notePath)?.session?.target
@@ -447,23 +443,17 @@ export async function verifyPdfReads(
         },
         20000,
       );
-      // The restored reader settles: PDF.js moves it to the position the
-      // document reopens at, then paints that page.
       const reader = (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
-      ).find((l) => l.view.file?.path === notePath)!.view.viewer.child;
-      // PDF.js `RenderingStates.FINISHED`.
-      const RENDERING_FINISHED = 3;
+      ).find((l) => l.view.file?.path === notePath)!.view.reader!;
+      await reader.whenReady();
       await until(
         "restored PDF settled",
-        () =>
-          reader.pdfViewer.isInitialViewSet === true &&
-          reader.getPage(reader.pdfViewer.pdfViewer.currentPageNumber)
-            ?.renderingState === RENDERING_FINISHED,
+        () => reader.pageAt(reader.state.get().pageIndex)?.rendered,
         20000,
       );
     },
@@ -500,16 +490,12 @@ export async function verifyPdfReads(
     async ({ app }) => {
       const reader = (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
-      )[0]!.view.viewer.child;
-      const pdfPage = reader.getPage(
-        reader.pdfViewer.pdfViewer.currentPageNumber,
-      );
-      pdfPage!.reset();
-      await pdfPage!.draw();
+      )[0]!.view.reader!;
+      await reader.redraw(reader.state.get().pageIndex);
     },
     undefined,
   );
@@ -548,15 +534,13 @@ export async function verifyPdfReads(
       const s = zotlit.services;
       const reader = (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
-      )[0]!.view.viewer.child;
-      reader.applySubpath(
-        reader.pdfViewer.pdfViewer.currentPageNumber === 1
-          ? "#page=2"
-          : "#page=1",
+      )[0]!.view.reader!;
+      await reader.navigate(
+        reader.state.get().pageIndex === 0 ? "#page=2" : "#page=1",
       );
       await until(
         "page read",
@@ -597,9 +581,9 @@ export async function verifyPdfReads(
     async ({ app }) => {
       (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
       ).forEach((l) => l.detach());
       app.workspace.requestActiveLeafEvents.run();
@@ -658,8 +642,14 @@ export async function verifyPdfReads(
   )[itemKey]!;
   await obRun(
     vaultId,
-    async ({ app, page }, { path }) => {
+    async ({ app, zotlit, page }, { path }) => {
       const { until } = page;
+      const s = zotlit.services;
+      s.bridge.runSync(s.settings.update({ "reader.open-all-pdfs": true }));
+      await until(
+        "the takeover",
+        () => s.pdfReaderPort.registration!.takeover.get() === "on",
+      );
 
       const leaf = (
         app.workspace.getLeavesOfType(
@@ -689,15 +679,14 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "pdf",
+              "zotlit-pdf",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: PagePdfView;
+              view: PagePdfReaderView;
             })[]
           ).find((l) => l.view.file?.path === notePath);
           return (
-            (leaf?.view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) >
-              0 &&
-            leaf!.view.viewer.child.getPage(1)?.pdfPage &&
+            (leaf?.view.reader?.state.get().pageCount ?? 0) > 0 &&
+            leaf!.view.reader!.state.get().status === "ready" &&
             s.bridge
               .runSync(s.pdfAnnotationEditor.bindings)
               .find((b) => b.filePath === notePath)?.session?.target
@@ -740,9 +729,9 @@ export async function verifyPdfReads(
     async ({ app }) => {
       (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
       ).forEach((l) => l.detach());
       app.workspace.requestActiveLeafEvents.run();
@@ -794,15 +783,14 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "pdf",
+              "zotlit-pdf",
             ) as (import("obsidian").WorkspaceLeaf & {
-              view: PagePdfView;
+              view: PagePdfReaderView;
             })[]
           ).find((l) => l.view.file?.path === notePath);
           return (
-            (leaf?.view.viewer?.child?.pdfViewer?.pdfViewer?.pagesCount ?? 0) >
-              0 &&
-            leaf!.view.viewer.child.getPage(1)?.pdfPage &&
+            (leaf?.view.reader?.state.get().pageCount ?? 0) > 0 &&
+            leaf!.view.reader!.state.get().status === "ready" &&
             s.bridge
               .runSync(s.pdfAnnotationEditor.bindings)
               .find((b) => b.filePath === notePath)?.session?.target
@@ -827,14 +815,19 @@ export async function verifyPdfReads(
   ).toMatchObject({ attachmentKey, itemKey: null });
   await obRun(
     vaultId,
-    async ({ app }) => {
-      (
+    async ({ app, page }) => {
+      const reader = (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
-      )[0]!.view.viewer.child.applySubpath("#page=2");
+      )[0]!.view.reader!;
+      await reader.navigate("#page=2");
+      await page.until(
+        "the standalone Attachment on page 2",
+        () => reader.state.get().pageIndex === 1,
+      );
     },
     undefined,
   );
@@ -843,9 +836,9 @@ export async function verifyPdfReads(
     async ({ app }) => {
       (
         app.workspace.getLeavesOfType(
-          "pdf",
+          "zotlit-pdf",
         ) as (import("obsidian").WorkspaceLeaf & {
-          view: PagePdfView;
+          view: PagePdfReaderView;
         })[]
       ).forEach((l) => l.detach());
       app.workspace.requestActiveLeafEvents.run();

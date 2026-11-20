@@ -1,18 +1,11 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { TFile } from "obsidian";
-import type { App, Vault, Workspace, WorkspaceLeaf } from "obsidian";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { App, Workspace } from "obsidian";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Keymap, Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import {
-  createObsidianAttachmentReader,
-  openAttachments,
-} from "./open-attachments.ts";
+import { openAttachments } from "./open-attachments.ts";
 import type {
   AttachmentOpenClickEvent,
   AttachmentReader,
@@ -166,133 +159,5 @@ describe("openAttachments", () => {
       menu,
       { attachments: [a, b] },
     );
-  });
-});
-
-describe("createObsidianAttachmentReader", () => {
-  let dir: string;
-
-  beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), "zotlit-attachment-open-"));
-  });
-
-  afterEach(async () => {
-    await rm(dir, { recursive: true, force: true });
-  });
-
-  function fakeApp(getFile: (path: string) => TFile | null): {
-    app: App;
-    openFile: ReturnType<typeof vi.fn>;
-  } {
-    const openFile = vi.fn();
-    const app = stubService<App>("App", {
-      vault: stubService<Vault>("Vault", { getFileByPath: getFile }),
-      workspace: stubService<Workspace>("Workspace", {
-        getLeaf: () =>
-          stubService<WorkspaceLeaf>("WorkspaceLeaf", { openFile }),
-      }),
-    });
-    return { app, openFile };
-  }
-
-  // Two Attachments can keep one file, so every open names the one it means,
-  // and the reader binds that one rather than the one the path chooses.
-  it("opens the resolved vault file, naming the Attachment it opens", async () => {
-    const absolutePath = join(dir, "Doe 2024.pdf");
-    await writeFile(absolutePath, "");
-    const file = new TFile();
-    const { app, openFile } = fakeApp((path) =>
-      path === "papers/Doe 2024.pdf" ? file : null,
-    );
-    const reader = createObsidianAttachmentReader(app);
-    const attachment: ObsidianOpenableAttachment = {
-      indexedKey: "ATCH2345",
-      label: "Doe 2024.pdf",
-      openPath: "papers/Doe 2024.pdf",
-      absolutePath,
-    };
-
-    await expect(reader.open(attachment, false)).resolves.toBe("opened");
-
-    expect(openFile).toHaveBeenCalledWith(file, {
-      eState: { subpath: "#zt-attachment=ATCH2345" },
-    });
-  });
-
-  it("lands on the page a subpath names, naming the Attachment beside it", async () => {
-    const absolutePath = join(dir, "Doe 2024.pdf");
-    await writeFile(absolutePath, "");
-    const file = new TFile();
-    const { app, openFile } = fakeApp(() => file);
-    const reader = createObsidianAttachmentReader(app);
-
-    await reader.open(
-      {
-        indexedKey: "ATCH2345",
-        label: "Doe 2024.pdf",
-        openPath: "papers/Doe 2024.pdf",
-        absolutePath,
-        subpath: "#page=7",
-      },
-      false,
-    );
-
-    expect(openFile).toHaveBeenCalledWith(file, {
-      eState: { subpath: "#page=7&zt-attachment=ATCH2345" },
-    });
-  });
-
-  // Whoever opened it decides what a missing file means — Zotero opens the
-  // Attachment in its stead, or the caller says the file is gone — so the
-  // reader only reports it.
-  it("reports a missing file and opens nothing when Obsidian resolves no file for the open path, whether the path never existed or Zotero moved it away since the read", async () => {
-    const { app, openFile } = fakeApp(() => null);
-    const reader = createObsidianAttachmentReader(app);
-
-    await expect(reader.open(row("Doe 2024.pdf"), false)).resolves.toBe(
-      "file-missing",
-    );
-
-    expect(openFile).not.toHaveBeenCalled();
-  });
-
-  it("runs onOpened once the file is on screen", async () => {
-    const absolutePath = join(dir, "Doe 2024.pdf");
-    await writeFile(absolutePath, "");
-    const { app } = fakeApp(() => new TFile());
-    const onOpened = vi.fn();
-    const reader = createObsidianAttachmentReader(app, { onOpened });
-
-    await reader.open(
-      {
-        indexedKey: "ATCH2345",
-        label: "Doe 2024.pdf",
-        openPath: "papers/Doe 2024.pdf",
-        absolutePath,
-      } satisfies ObsidianOpenableAttachment,
-      false,
-    );
-
-    expect(onOpened).toHaveBeenCalledOnce();
-  });
-
-  it("leaves onOpened unrun when no file resolves, so follow-up UI never answers a failed open", async () => {
-    const absolutePath = join(dir, "Doe 2024.pdf");
-    await writeFile(absolutePath, "");
-    const { app } = fakeApp(() => null);
-    const onOpened = vi.fn();
-    const reader = createObsidianAttachmentReader(app, { onOpened });
-
-    await reader.open(
-      {
-        indexedKey: "ATCH2345",
-        label: "Doe 2024.pdf",
-        openPath: "papers/Doe 2024.pdf",
-        absolutePath,
-      } satisfies ObsidianOpenableAttachment,
-      false,
-    );
-
-    expect(onOpened).not.toHaveBeenCalled();
   });
 });

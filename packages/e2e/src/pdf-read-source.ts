@@ -44,7 +44,7 @@ export async function verifyPdfReadSource(
     await obRun(
       vaultId,
       async ({ app, zotlit }, { override, log }) => {
-        app.workspace.getLeavesOfType("pdf").forEach((l) => l.detach());
+        app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
         zotlit.services.bridge.runSync(
           zotlit.services.zoteroPref.setDataDir(override),
         );
@@ -83,7 +83,7 @@ export async function verifyPdfReadSource(
   await obRun(
     vaultId,
     async ({ app, zotlit }, { oldDir }) => {
-      app.workspace.getLeavesOfType("pdf").forEach((l) => l.detach());
+      app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
       zotlit.services.bridge.runSync(
         zotlit.services.settings.update({
           "log.level": "trace",
@@ -138,10 +138,11 @@ export async function verifyPdfReadSource(
   const before = await read();
   await obRun(
     vaultId,
-    async ({ app }) => {
-      await app.workspace
-        .getLeaf("tab")
-        .openFile(app.vault.getFileByPath("old-source.pdf")!);
+    async ({ app, zotlit }) => {
+      const s = zotlit.services;
+      await s.bridge.runPromise(
+        s.pdfReader.open(app.vault.getFileByPath("old-source.pdf")!, "", "tab"),
+      );
     },
     undefined,
   );
@@ -202,7 +203,7 @@ export async function verifyPdfReadSource(
   await obRun(
     vaultId,
     async ({ app }) => {
-      app.workspace.getLeavesOfType("pdf").forEach((l) => l.detach());
+      app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
     },
     undefined,
   );

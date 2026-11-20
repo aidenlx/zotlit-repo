@@ -44,7 +44,11 @@ import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
  * it first: a service the test reads, merged after it, takes its place.
  */
 export const layerUnreadViewServices = Layer.mergeAll(
-  Layer.mock(PdfAnnotationEditor, { sessions: Stream.make(new Map()), sessionAdded: Stream.empty }),
+  Layer.mock(PdfAnnotationEditor, {
+    extension: { id: "zotlit-annotation-editor" },
+    sessions: Stream.make(new Map()),
+    sessionAdded: Stream.empty,
+  }),
   Layer.mock(CitationParse, {}),
   Layer.mock(PandocEngine, {}),
   Layer.mock(BibliographyRender, {}),

@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    {
+      "id": "pdf-reader-card",
+      "type": "file",
+      "file": "attachments/excerpt-acceptance/excerpt-rendering.pdf",
+      "subpath": "#page=2",
+      "x": -240,
+      "y": -320,
+      "width": 480,
+      "height": 640
+    }
+  ],
+  "edges": []
+}

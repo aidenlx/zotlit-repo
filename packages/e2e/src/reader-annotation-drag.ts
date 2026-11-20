@@ -31,7 +31,11 @@ export async function verifyReaderAnnotationDrag(
       const pdfLeaf = cleanup.adopt(app.workspace.getLeaf("tab"), (leaf) =>
         leaf.detach(),
       );
-      await pdfLeaf.openFile(pdf);
+      await pdfLeaf.setViewState({
+        type: "zotlit-pdf",
+        state: { file: pdf.path },
+        active: true,
+      });
       await app.workspace.revealLeaf(pdfLeaf);
       const noteLeaf = cleanup.adopt(
         app.workspace.createLeafBySplit(pdfLeaf, "vertical"),

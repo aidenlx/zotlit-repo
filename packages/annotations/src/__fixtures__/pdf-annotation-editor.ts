@@ -1,5 +1,3 @@
-// The fake Obsidian PDF reader — viewer host, viewer child, toolbar slot and
-// page view — that both pdf-annotation-editor suites drive the seam through.
 // Needs a DOM, so every consumer runs under `// @vitest-environment happy-dom`.
 import {
   DateTime,
@@ -12,16 +10,26 @@ import {
 import type { Duration } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
-import type { HoverParent, PDFPageViewport, Scope } from "obsidian";
+import type { HoverParent, Scope } from "obsidian";
 import { vi } from "vitest";
 import type { Mock } from "vitest";
 
 import { parseAnnotationPosition } from "@zotlit/db";
 import type { AnnotationPositionRaw } from "@zotlit/db";
+import type {
+  Observable,
+  PageChangeCause,
+  ReaderDocument,
+  ReaderEvents,
+  ReaderPage,
+  Subpath,
+} from "@zotlit/pdf-reader";
+import type { PageViewport } from "@zotlit/pdf-reader/pdfjs";
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
 import { dispatchKey } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { PdfPosition, PdfTextStructure } from "@zotlit/pdf-structure";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
 import { withRecentColor } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -53,6 +61,7 @@ import { defaults } from "./settings.ts";
 import type { AttachmentReads } from "#obsidian/pdf-annotation-editor/binding.ts";
 import { MarkCreation } from "#obsidian/pdf-annotation-editor/creation.ts";
 import type { AnnotationCreates } from "#obsidian/pdf-annotation-editor/creation.ts";
+import type { HostedReader } from "#obsidian/pdf-annotation-editor/hosted-reader.ts";
 import { MarkPopupHost } from "#obsidian/pdf-annotation-editor/mark-popup-host.ts";
 import { bindingResources } from "#obsidian/pdf-annotation-editor/operations.ts";
 import { mountReaderKeymap } from "#obsidian/pdf-annotation-editor/reader-keymap.ts";
@@ -82,29 +91,18 @@ import type {
   ToolColorStore,
 } from "#obsidian/pdf-annotation-editor/tools.ts";
 
-/** One glyph as Obsidian's patched worker answers it, from the 1.14.2 reading. */
 export const GLYPH = {
   c: "E",
   u: "E",
-  r: [58.0535, 726.9241, 64.1506, 737.4685],
+  rect: [58.0535, 726.9241, 64.1506, 737.4685],
+  fontSize: 9.9626,
+  fontName: "NimbusRomNo9L-Regu",
+  rotation: 0,
+  baseline: 726.9241,
 };
 
-/** The chunk fields the port derives each glyph's metrics and grouping from. */
-export const TEXT_CHUNK = {
-  transform: [9.9626, 0, 0, 9.9626, 58.0535, 726.9241],
-  fontName: "g_d0_f1",
-};
+export const GLYPH_CONTENT = { items: [{ str: "E", chars: [GLYPH] }] };
 
-/** One page of text content carrying that glyph. */
-export const GLYPH_CONTENT = { items: [{ ...TEXT_CHUNK, chars: [GLYPH] }] };
-
-/** A scanned page: the worker answers with no text item at all. */
-export const SCANNED_CONTENT = { items: [] };
-
-/** What a build that lost the `includeChars` patch answers: items, but no `chars`. */
-export const UNPATCHED_CONTENT = { items: [{ ...TEXT_CHUNK, str: "E" }] };
-
-/** A US Letter page box, `[x1, y1, x2, y2]` in PDF points. */
 export const PAGE_BOX = [0, 0, 612, 792] as const;
 
 export interface ViewportOptions {
@@ -114,22 +112,21 @@ export interface ViewportOptions {
   box?: readonly [number, number, number, number];
 }
 
-/**
- * A PDF.js `PageViewport` built from the matrix its constructor writes, so the
- * conversions every suite reads come from PDF.js's own rule and not from the
- * module under test. Rotation and `/UserUnit` are carried, and a `clone` keeps
- * both — a double that dropped them would let a rotated page pass untested.
- *
- * @see https://github.com/mozilla/pdf.js/blob/v5.3.31/src/display/display_utils.js
- *   `PageViewport` — the nearest tagged release below the 5.3.34 build Obsidian
- *   bundles, whose constructor is unchanged between the two.
- */
+export type FakeViewport = Omit<
+  PageViewport,
+  "convertToViewportPoint" | "convertToPdfPoint" | "clone"
+> & {
+  convertToViewportPoint(x: number, y: number): [number, number];
+  convertToPdfPoint(x: number, y: number): [number, number];
+  clone(options?: { scale?: number; rotation?: number }): FakeViewport;
+};
+
 export function viewport({
   rotation = 0,
   scale = 1,
   userUnit = 1,
   box = PAGE_BOX,
-}: ViewportOptions = {}): PDFPageViewport {
+}: ViewportOptions = {}): FakeViewport {
   const total = scale * userUnit;
   const [x1, y1, x2, y2] = box;
   const axesSwap = rotation === 90 || rotation === 270;
@@ -157,205 +154,224 @@ export function viewport({
         return [x1 + x / total, y2 - y / total];
     }
   };
-  // PDF.js's `transform` is the affine map `convertToViewportPoint` applies,
-  // so it is read off that map, rotation included.
   const [e, f] = convertToViewportPoint(0, 0);
   const [ax, bx] = convertToViewportPoint(1, 0);
   const [cy, dy] = convertToViewportPoint(0, 1);
+  const width = total * (axesSwap ? y2 - y1 : x2 - x1);
+  const height = total * (axesSwap ? x2 - x1 : y2 - y1);
   return {
-    viewBox: box,
+    viewBox: [...box],
     userUnit,
     scale,
     rotation,
     offsetX: 0,
     offsetY: 0,
     transform: [ax - e, bx - f, cy - e, dy - f, e, f],
-    width: total * (axesSwap ? y2 - y1 : x2 - x1),
-    height: total * (axesSwap ? x2 - x1 : y2 - y1),
+    width,
+    height,
+    rawDims: { pageWidth: width, pageHeight: height, pageX: 0, pageY: 0 },
     convertToViewportPoint,
     convertToPdfPoint,
-    clone: ({ scale: next = scale, rotation: turned = rotation }) =>
+    clone: ({ scale: next = scale, rotation: turned = rotation } = {}) =>
       viewport({ rotation: turned, scale: next, userUnit, box }),
   };
 }
 
 export interface FakePageView {
   div: HTMLElement;
-  viewport: PDFPageViewport;
-  /** Deleted to stand for a page Obsidian has not finished loading. */
-  pdfPage?: {
+  viewport: FakeViewport;
+  pdfPage: {
     view: number[];
-    commonObjs: { has: Mock; get: Mock };
     getTextContent: Mock;
   };
-  /** PDF.js `RenderingStates`: `3` once the page has finished painting. */
-  renderingState?: number;
 }
 
-/**
- * A PDF.js page view whose proxy answers `content`.
- *
- * The font store answers the base name Zotero's own extraction records, which
- * is what a page whose operator list has been fetched — that is, one that has
- * rendered — answers in the reader.
- *
- * @param content what `getTextContent({ includeChars: true })` resolves with.
- */
 export function pageView(content: unknown = GLYPH_CONTENT): FakePageView {
   return {
     div: createDiv(),
     viewport: viewport({ scale: 1.5 }),
     pdfPage: {
       view: [0, 0, 612, 792],
-      commonObjs: {
-        has: vi.fn(() => true),
-        get: vi.fn(() => ({ name: "NimbusRomNo9L-Regu" })),
-      },
       getTextContent: vi.fn(async () => content),
     },
   };
 }
 
-/** The viewer child, its toolbar slot, and the page renders it dispatches. */
-export function pdfReader(page = pageView()) {
-  const toolbarRightEl = createDiv();
-  /** PDF.js's scroller; a page turn and the reopen move both scroll it. */
-  const container = { scrollTop: 0, scrollLeft: 0 };
-  const listeners: { event: string; listener: (event: unknown) => void }[] = [];
-  const child: Record<string, unknown> = {
-    // `on` and `off` read the event bus through this, and Obsidian's `unload`
-    // closes it and nulls it — see `closeViewer` below.
-    pdfViewer: {
-      eventBus: {},
-      isInitialViewSet: true,
-      pdfViewer: { container },
-      pdfDocument: {
-        numPages: 1,
-        getPage: vi.fn(async () => page.pdfPage),
-        getPageLabels: vi.fn(async () => null),
-      },
-    },
-    on: vi.fn((event: string, listener: (event: unknown) => void) => {
-      listeners.push({ event, listener });
+export function readerDocument(
+  page: FakePageView,
+  { bytes = new Uint8Array([37, 80, 68, 70]) }: { bytes?: Uint8Array } = {},
+) {
+  let live = true;
+  const whileLive = <A>(value: () => A) =>
+    vi.fn(async (pageIndex?: number) =>
+      live && (pageIndex === undefined || pageIndex === 0) ? value() : null,
+    );
+  const document_ = stubService<ReaderDocument>("ReaderDocument", {
+    proxy: stubService<ReaderDocument["proxy"]>("PDFDocumentProxy", {
+      numPages: 1,
+      getPageLabels: vi.fn(async () => null),
     }),
-    off: vi.fn(),
-    getPage: vi.fn((pageNumber: number) =>
-      pageNumber === 1 ? page : undefined,
-    ),
-    applySubpath: vi.fn(),
-    toolbar: { toolbarRightEl },
-  };
-
+    fingerprint: "fake-fingerprint",
+    key: "attachments/rougier-2014.pdf",
+    current: () => live,
+    bytes: whileLive(() => bytes),
+    page: whileLive(() => page.pdfPage) as unknown as ReaderDocument["page"],
+    textContent: whileLive(() => page.pdfPage.getTextContent()),
+  });
   return {
-    child,
-    container,
+    document: document_,
+    retire: () => {
+      live = false;
+    },
+  };
+}
+
+type Listeners = {
+  [K in keyof ReaderEvents]: Set<ReaderEvents[K]>;
+};
+
+function observable<T>(initial: T) {
+  let value = initial;
+  const listeners = new Set<(next: T, previous: T) => void>();
+  return {
+    observable: {
+      get: () => value,
+      subscribe: (listener: (next: T, previous: T) => void) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    } satisfies Observable<T>,
+    set(next: T) {
+      const previous = value;
+      value = next;
+      for (const listener of Array.from(listeners)) listener(next, previous);
+    },
+  };
+}
+
+function subpathOf(raw: string): Subpath {
+  const params = new Map<string, string>(
+    new URLSearchParams(raw.replace(/^#/, "")),
+  );
+  const page = params.has("page") ? Number(params.get("page")) : null;
+  return {
+    raw,
     page,
-    toolbarRightEl,
-    viewer: host(child),
-    /** What Obsidian dispatches once PDF.js paints page one. */
-    renderFirstPage: () => {
-      page.renderingState = 3;
-      for (const { event, listener } of listeners) {
-        if (event === "pagerendered") listener({ pageNumber: 1, source: page });
-      }
-    },
-    /** A page turn: the reader scrolls to the page, and PDF.js names it. */
-    turnPage: () => {
-      container.scrollTop += 1200;
-      for (const { event, listener } of listeners) {
-        if (event === "pagechanging") listener({});
-      }
-    },
-    /**
-     * What PDF.js's `setInitialView` does on a reader still opening: it marks
-     * the view set, moves to the position the document reopens at, which
-     * dispatches `pagechanging`, and then dispatches `documentinit`.
-     */
-    setInitialView: () => {
-      (child.pdfViewer as { isInitialViewSet: boolean }).isInitialViewSet =
-        true;
-      container.scrollTop = 300;
-      for (const name of ["pagechanging", "documentinit"]) {
-        for (const { event, listener } of listeners) {
-          if (event === name) listener({});
-        }
-      }
-    },
-    /**
-     * A turn by a link or subpath: PDF.js names the new page first, and then
-     * scrolls to it in the same task.
-     */
-    navigate: () => {
-      for (const { event, listener } of listeners) {
-        if (event === "pagechanging") listener({});
-      }
-      container.scrollTop += 1200;
-    },
-    /**
-     * What PDF.js's scroll update after `setInitialView` does: it names the
-     * page the reopen position shows most of, with no scroll of its own.
-     */
-    settle: () => {
-      for (const { event, listener } of listeners) {
-        if (event === "pagechanging") listener({});
-      }
-    },
-    /**
-     * What PDF.js 5.3.34's `load` does when its document-open handler throws
-     * before `documentinit`: its `.catch` calls `setInitialView()`, which marks
-     * the view set and can move the reader to a waiting bookmark. Only a move
-     * to a page other than the one showing dispatches `pagechanging`
-     * (`move`). `documentinit` never follows.
-     */
-    failInitialView: ({ move }: { move: boolean }) => {
-      (child.pdfViewer as { isInitialViewSet: boolean }).isInitialViewSet =
-        true;
-      if (!move) return;
-      for (const { event, listener } of listeners) {
-        if (event === "pagechanging") listener({});
-      }
-    },
-    /**
-     * What PDF.js's `close` does when Obsidian reloads a changed file into the
-     * same reader: `setDocument(null)` dispatches `pagesdestroy`, and then the
-     * initial view is unset for the document that opens next.
-     */
-    closeDocument: () => {
-      for (const { event, listener } of listeners) {
-        if (event === "pagesdestroy") listener({});
-      }
-      container.scrollTop = 0;
-      (child.pdfViewer as { isInitialViewSet: boolean }).isInitialViewSet =
-        false;
-    },
-    /**
-     * What the child's `unload` does before a closing leaf reaches ZotLit's
-     * disposal: the viewer is closed, and every listener goes with it.
-     */
-    closeViewer: () => {
-      listeners.length = 0;
-      child.pdfViewer = null;
-      child.toolbar = null;
-    },
+    offset: null,
+    selection: null,
+    annotation: null,
+    height: null,
+    dest: null,
+    zoom: null,
+    search: null,
+    params,
   };
 }
 
-/** A reader whose page one is loaded and whose initial view is not set yet. */
-export function openingReader() {
-  const reader = pdfReader();
-  (reader.child.pdfViewer as { isInitialViewSet: boolean }).isInitialViewSet =
-    false;
-  return reader;
-}
-
-/** Obsidian's deferred viewer host, resolved on the child it was given. */
-export function host(child: unknown) {
+export function pdfReader(page = pageView()) {
+  const root = createDiv();
+  const toolbarEl = root.createDiv();
+  const container = root.createDiv();
+  const listeners: Listeners = {
+    document: new Set(),
+    ready: new Set(),
+    "page-rendered": new Set(),
+    "page-change": new Set(),
+    subpath: new Set(),
+    "window-migrated": new Set(),
+  };
+  const emit = <K extends keyof ReaderEvents>(
+    event: K,
+    payload: Parameters<ReaderEvents[K]>[0],
+  ) => {
+    for (const listener of Array.from(listeners[event]))
+      (listener as (event: typeof payload) => void)(payload);
+  };
+  const document_ = observable<ReaderDocument | null>(null);
+  let held: ReturnType<typeof readerDocument> | null = null;
+  let rendered = false;
+  let first = true;
+  const readerPage = stubService<ReaderPage>("ReaderPage", {
+    pageIndex: 0,
+    get div() {
+      return page.div as HTMLDivElement;
+    },
+    get viewport() {
+      return page.viewport;
+    },
+    get rendered() {
+      return rendered;
+    },
+  });
+  const open = (next: ReturnType<typeof readerDocument>) => {
+    held = next;
+    document_.set(next.document);
+    emit("document", { document: next.document });
+    emit("ready", { document: next.document, first });
+    first = false;
+  };
+  const navigate = vi.fn<HostedReader["navigate"]>(async () => "shown");
+  const focus = vi.fn();
+  const reader: HostedReader = {
+    root,
+    container,
+    state: stubService<HostedReader["state"]>("ReaderState", {}),
+    document: document_.observable,
+    pageAt: (pageIndex) => (held && pageIndex === 0 ? readerPage : null),
+    renderedPages: () => (held && rendered ? [readerPage] : []),
+    navigate,
+    slot: () => toolbarEl,
+    focus,
+    on: (event, listener) => {
+      listeners[event].add(listener as never);
+      return () => listeners[event].delete(listener as never);
+    },
+  };
   return {
-    // oxlint-disable-next-line unicorn/no-thenable -- mirrors Obsidian's own deferred host.
-    then: (callback: (value: unknown) => void) => callback(child),
-    child,
+    reader,
+    page,
+    container,
+    toolbarEl,
+    navigate,
+    focus,
+    get document() {
+      return held?.document ?? null;
+    },
+    get listening(): number {
+      return Object.values(listeners).reduce((sum, set) => sum + set.size, 0);
+    },
+    openDocument: (next = readerDocument(page)) => open(next),
+    paintBeforeReady: () => {
+      rendered = true;
+    },
+    renderFirstPage: () => {
+      rendered = true;
+      emit("page-rendered", { page: readerPage });
+    },
+    turnPage: (cause: PageChangeCause = "user") => {
+      emit("page-change", { pageIndex: 1, previous: 0, cause });
+    },
+    navigateTo: (subpath: string) => {
+      emit("subpath", { subpath: subpathOf(subpath) });
+    },
+    reloadDocument: (next = readerDocument(page)) => {
+      held?.retire();
+      held = null;
+      rendered = false;
+      document_.set(null);
+      emit("document", { document: null });
+      open(next);
+    },
+    closeDocument: () => {
+      held?.retire();
+      held = null;
+      rendered = false;
+      document_.set(null);
+    },
   };
 }
+
+export type FakeReader = ReturnType<typeof pdfReader>;
 
 /**
  * One Annotation as the repository answers it, from the Fixture's own rows on
@@ -620,13 +636,6 @@ export function toolColors(): ToolColorStore {
       textFontSize = size;
     },
   };
-}
-
-/** The ids of the probes that failed, in the order they were recorded. */
-export function failedIn(
-  results: readonly { probe: string; ok: boolean }[],
-): string[] {
-  return results.filter(({ ok }) => !ok).map(({ probe }) => probe);
 }
 
 export { dispatchKey };

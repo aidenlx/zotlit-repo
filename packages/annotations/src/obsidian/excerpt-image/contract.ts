@@ -17,7 +17,7 @@ export interface ExcerptRequest {
 }
 
 // Persisted version: packages/scripts/lib/format-versions.ts.
-export const EXCERPT_RENDERER_VERSION = 2;
+export const EXCERPT_RENDERER_VERSION = 3;
 
 /** Canonical pixel inputs exclude revision, text, labels, comments, and tags. */
 export function excerptFingerprint(annotation: AnnotationRecord): string {

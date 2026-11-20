@@ -1,11 +1,13 @@
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
-import type { App, Vault, Workspace, WorkspaceLeaf } from "obsidian";
+import type { App, Workspace, WorkspaceLeaf } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import type { ObsidianOpenableAttachment } from "@zotlit/annotations/core/attachment-open/resolve.ts";
+import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -28,9 +30,6 @@ function appWithSidebar() {
   const sidebar = stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   const revealed: WorkspaceLeaf[] = [];
   const app = stubService<App>("App", {
-    vault: stubService<Vault>("Vault", {
-      getFileByPath: () => new TFile(),
-    }),
     workspace: stubService<Workspace>("Workspace", {
       getLeaf: () =>
         stubService<WorkspaceLeaf>("WorkspaceLeaf", {
@@ -49,8 +48,11 @@ function appWithSidebar() {
 describe("pdfReader", () => {
   /** Open one Attachment through the reader the settings configure. */
   async function openWith(app: App, settings: Settings = defaults) {
-    const reader = Effect.runSync(
-      pdfReader.pipe(
+    const outcome = await Effect.runPromise(
+      Effect.gen(function* () {
+        const reader = yield* pdfReader;
+        return yield* reader.open(ATTACHMENT, false);
+      }).pipe(
         Effect.provideService(ObsidianApp, app),
         Effect.provideService(
           PluginSettings,
@@ -58,9 +60,20 @@ describe("pdfReader", () => {
             current: Effect.succeed(settings),
           }),
         ),
+        Effect.provideService(
+          ZotlitPdfReader,
+          stubService<ZotlitPdfReader["Service"]>("ZotlitPdfReader", {
+            open: () => Effect.succeed("opened"),
+          }),
+        ),
+        Effect.provide(
+          Layer.mock(Vault, {
+            getFileByPath: () => Effect.succeed(new TFile()),
+          }),
+        ),
       ),
     );
-    expect(await reader.open(ATTACHMENT, false)).toBe("opened");
+    expect(outcome).toBe("opened");
   }
 
   it("brings the annotation view forward beside the PDF by default", async () => {

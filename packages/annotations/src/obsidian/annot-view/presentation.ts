@@ -150,7 +150,7 @@ export type AttachmentLineState = Pick<
 >;
 
 /**
- * An Obsidian PDF view is already in front of the user, so its lock shows
+ * A ZotLit PDF Reader is already in front of the user, so its lock shows
  * nothing here; the Zotero Reader is not, so its lock shows the name and says
  * who holds it. With neither holding the choice, one Attachment is no choice.
  */
@@ -506,7 +506,7 @@ function followGroups(state: HeaderMenuState): HeaderMenuEntry[][] {
  * The Attachment choice, where there is one to make or one to report: the
  * suggester while the choice is the user's, and the name plus the reason while
  * a reader holds it. Then the Attachment on screen opens in Obsidian's own PDF
- * view, except where an Obsidian PDF view already shows it. Nothing where the
+ * view, except where a ZotLit PDF Reader already shows it. Nothing where the
  * pane has nothing to say.
  */
 function attachmentGroup(state: HeaderState): HeaderMenuEntry[] {

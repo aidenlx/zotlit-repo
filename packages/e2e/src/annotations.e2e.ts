@@ -15,7 +15,7 @@ import { readQueryViewUntil, revealQueryView } from "./note-query-view.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type {
   AnnotationLeaf,
-  PagePdfView,
+  PagePdfReaderView,
   CodeMirrorElement,
 } from "./page-notes-types.ts";
 
@@ -36,7 +36,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         async ({ app }, { annotationAttachmentPath }) => {
           const file = app.vault.getFileByPath(annotationAttachmentPath)!;
           const leaf = app.workspace.getLeaf("tab");
-          await leaf.openFile(file);
+          await leaf.setViewState({
+            type: "zotlit-pdf",
+            state: { file: file.path },
+            active: true,
+          });
           app.workspace.setActiveLeaf(leaf, { focus: true });
           app.commands.executeCommandById("zotlit:open-annot-view");
           app.commands.executeCommandById(
@@ -554,9 +558,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ) => {
             const pdfView = (
               app.workspace.getLeavesOfType(
-                "pdf",
+                "zotlit-pdf",
               ) as (import("obsidian").WorkspaceLeaf & {
-                view: PagePdfView;
+                view: PagePdfReaderView;
               })[]
             ).find(
               ({ view }) => view.file?.path === annotationAttachmentPath,
@@ -651,7 +655,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app }, { annotationAttachmentPath }) => {
         const file = app.vault.getFileByPath(annotationAttachmentPath)!;
         const leaf = app.workspace.getLeaf("tab");
-        await leaf.openFile(file);
+        await leaf.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         app.workspace.setActiveLeaf(leaf, { focus: true });
         app.commands.executeCommandById("zotlit:open-annot-view");
         app.commands.executeCommandById("zotlit:annot-view-follow-active-tab");
@@ -1271,7 +1279,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       async ({ app }, { annotationAttachmentPath }) => {
         const file = app.vault.getFileByPath(annotationAttachmentPath)!;
         const leaf = app.workspace.getLeaf("tab");
-        await leaf.openFile(file);
+        await leaf.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         app.workspace.setActiveLeaf(leaf, { focus: true });
         app.commands.executeCommandById("zotlit:open-annot-view");
         app.commands.executeCommandById("zotlit:annot-view-follow-active-tab");

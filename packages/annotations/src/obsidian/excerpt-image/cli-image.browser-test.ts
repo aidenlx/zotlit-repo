@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Cause, Effect } from "effect";
 
 import { answerAnnotationImage } from "./cli-image.ts";
 import type { AnnotationImagePorts } from "./cli-image.ts";
@@ -145,7 +145,7 @@ export async function run(): Promise<string[]> {
               ),
             resolve: () =>
               code === "render-timeout"
-                ? Effect.fail(new DOMException("Deadline", "TimeoutError"))
+                ? Effect.fail(new Cause.TimeoutError("Deadline"))
                 : Effect.succeed({ kind: "unavailable" }),
             exists: () => Effect.succeed(code !== "file-unavailable"),
           },

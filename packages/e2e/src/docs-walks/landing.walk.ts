@@ -11,7 +11,7 @@
 // `pnpm --filter @zotlit/e2e docs-walk src/docs-walks/landing.walk.ts`.
 
 import { obRun } from "@e2e/obsidian-cli.ts";
-import type { PagePdfView } from "@e2e/page-notes-types.ts";
+import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import { raiseWindow } from "@e2e/reader-gestures.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 import { execFile } from "node:child_process";
@@ -93,7 +93,7 @@ const APA_TITLE = "APA Style 7th edition";
 
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
 type AnnotationLeaf = WorkspaceLeaf & { view: AnnotationView };
-type PdfLeaf = WorkspaceLeaf & { view: PagePdfView };
+type PdfLeaf = WorkspaceLeaf & { view: PagePdfReaderView };
 type DraftLeaf = WorkspaceLeaf & {
   view: MarkdownView & {
     hoverPopover: (HoverPopover & { hide(): void }) | null;
@@ -265,7 +265,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         // the status bar are not part of any clip.
         const style = document.head.createEl("style");
         style.textContent =
-          '.workspace-leaf-content[data-type="pdf"] .view-header-title-parent{display:none} .notice-container{visibility:hidden} .status-bar{display:none}';
+          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none} .notice-container{visibility:hidden} .status-bar{display:none}';
       },
       { apa: APA },
       STEP,
@@ -478,7 +478,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           "PDF",
           () =>
             app.workspace
-              .getLeavesOfType("pdf")
+              .getLeavesOfType("zotlit-pdf")
               .find((l) =>
                 decodeURI((l.view as MarkdownView).file?.path ?? "").includes(
                   attachmentKey,
@@ -522,15 +522,11 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     await obRun(
       walk.vaultId,
       async ({ app, page }, { from, pageNumber, zoom }) => {
-        const pdf = app.workspace.getLeavesOfType("pdf")[0] as PdfLeaf;
-        const scroller = pdf.view.viewer.child.pdfViewer.pdfViewer;
-        const viewer = scroller as unknown as {
-          currentScale: number;
-          currentScaleValue: string;
-        };
-        viewer.currentScaleValue = "page-width";
+        const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0] as PdfLeaf;
+        const reader = pdf.view.reader!;
+        reader.set({ zoom: "page-width" });
         await new Promise((r) => setTimeout(r, 300));
-        viewer.currentScale *= zoom;
+        reader.set({ zoom: reader.state.get().scale * zoom });
         const pageEl = await page.until(
           "the page",
           () =>
@@ -562,12 +558,12 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           const start = startOf();
           if (!start) continue;
           const box = start.getBoundingClientRect();
-          const pane = scroller.container.getBoundingClientRect();
+          const pane = reader.container.getBoundingClientRect();
           const dx = box.left - (pane.left + 48);
           const dy = box.top - (pane.top + pane.height / 3);
           placed = Math.abs(dx) < 6 && Math.abs(dy) < 6;
-          scroller.container.scrollLeft += dx;
-          scroller.container.scrollTop += dy;
+          reader.container.scrollLeft += dx;
+          reader.container.scrollTop += dy;
         }
         if (!placed) throw new Error("the sentence did not come into view");
         await new Promise((r) => setTimeout(r, 1500));
@@ -584,7 +580,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         walk.vaultId,
         async ({ app, page }, { from, to, pageNumber, before, opening }) => {
           const pointer = page.scratch.docsWalkPointer;
-          const pdf = app.workspace.getLeavesOfType("pdf")[0] as PdfLeaf;
+          const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0] as PdfLeaf;
           const view = pdf.view.containerEl.getBoundingClientRect();
           if (pointer) {
             await pointer.park(view.right - 40, view.top + view.height * 0.7);

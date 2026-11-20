@@ -12,6 +12,7 @@ import type { ExcerptEntry, ExcerptRequest } from "./service.ts";
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { availableOutcome } from "#__fixtures__/excerpt-image/outcome.ts";
 import { redPng } from "#__fixtures__/excerpt-image/png.ts";
+import { layerNoPdfEngine } from "#__fixtures__/pdf-engine.ts";
 import { ExcerptCacheWriteError } from "#core/excerpt-image/error.ts";
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";
 import { layerExcerptImage } from "#desktop/excerpt-image/layer.ts";
@@ -322,9 +323,10 @@ describe("Excerpt outcome scope", () => {
         });
         const context = yield* Layer.build(
           layerExcerptImage({ render }).pipe(
-            Layer.provide(
+            Layer.provide([
               Layer.succeed(FileSystem.FileSystem, FileSystem.makeNoop({})),
-            ),
+              layerNoPdfEngine,
+            ]),
           ),
         );
         const service = Context.get(context, ExcerptImages);

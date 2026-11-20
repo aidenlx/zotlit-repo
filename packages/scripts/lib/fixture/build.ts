@@ -45,6 +45,8 @@ import {
   DEMO_PROFILE_DOCUMENT,
   EXCERPT_RENDERING_PDFS,
   EXCERPT_RENDERING_VAULT_DIR,
+  PDF_READER_PDFS,
+  PDF_READER_VAULT_DIR,
   findScopeCase,
   findVaultCase,
   FIXTURE_ITEM_FIELDS,
@@ -60,6 +62,8 @@ import {
   LIBRARIES,
   LIBRARY_SCOPE_SETTING_KEY,
   NOTES,
+  SELECTION_LINK_PDFS,
+  SELECTION_LINK_VAULT_DIR,
   SHARED_PARTIAL_DOCUMENTS,
   UPGRADER_FRONTMATTER_FIELDS,
   UPGRADER_LEGACY_TEMPLATES,
@@ -70,6 +74,7 @@ import {
 } from "./spec.ts";
 import type {
   FixtureAnnotation,
+  FixtureAsset,
   FixtureAttachment,
   FixtureCreator,
   FixtureItem,
@@ -330,8 +335,15 @@ export async function buildFixture(
   await writePrefs(layout, options);
   await writeLocalApiAuthorizations(layout, options);
   await writeVault(layout, options);
-  if (vaultCase.ownItems === undefined)
+  if (vaultCase.ownItems === undefined) {
     await writeExcerptAcceptanceFiles(layout);
+    await writeVaultAssets(layout, PDF_READER_VAULT_DIR, PDF_READER_PDFS);
+    await writeVaultAssets(
+      layout,
+      SELECTION_LINK_VAULT_DIR,
+      SELECTION_LINK_PDFS,
+    );
+  }
 }
 
 /** Rewrite only the saved Library Scope of an already-built vault. */
@@ -436,6 +448,20 @@ async function writeExcerptAcceptanceFiles(
   const destination = join(layout.vaultDir, EXCERPT_RENDERING_VAULT_DIR);
   await mkdir(destination, { recursive: true });
   for (const { asset } of EXCERPT_RENDERING_PDFS)
+    await cp(
+      join(ASSET_DIR, asset),
+      join(destination, asset.split("/").at(-1)!),
+    );
+}
+
+async function writeVaultAssets(
+  layout: FixtureLayout,
+  directory: string,
+  assets: readonly FixtureAsset[],
+): Promise<void> {
+  const destination = join(layout.vaultDir, directory);
+  await mkdir(destination, { recursive: true });
+  for (const asset of assets)
     await cp(
       join(ASSET_DIR, asset),
       join(destination, asset.split("/").at(-1)!),

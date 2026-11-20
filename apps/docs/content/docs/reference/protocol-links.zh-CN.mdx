@@ -1,6 +1,6 @@
 ---
 title: "协议链接"
-description: "所有 obsidian://zotlit/* 操作及其参数，以及 ZotLit 在 Obsidian 阅读器中打开的 Zotero 打开链接。"
+description: "所有 obsidian://zotlit/* 操作及其参数，以及 ZotLit 在其 PDF 阅读器中打开的 Zotero 打开链接。"
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
@@ -11,7 +11,7 @@ import { m } from "@/paraglide/messages.js";
 
 本页记录了每个 `obsidian://zotlit/*` 协议操作。这些深度链接允许 ZotLit Companion（Zotero 插件）以及脚本和启动器等外部工具在 Obsidian 中触发 ZotLit 操作。
 
-本页还记录了当你在笔记中点击 `zotero://` 链接时，ZotLit 会在 Obsidian 阅读器中打开哪些链接。参见 [Zotero 打开链接](#zotero-open-links)。
+本页还记录了当你在笔记中点击 `zotero://` 链接时，ZotLit 会在其 PDF 阅读器中打开哪些链接。参见 [Zotero 打开链接](#zotero-open-links)。
 
 ## 通用参数 [#common-parameters]
 
@@ -210,7 +210,7 @@ obsidian://zotlit/explore?item=<id>&source-id=<hash>
 
 ### open-attachment [#open-attachment]
 
-在 Obsidian 自身的 PDF 阅读器中打开 Zotero PDF 附件。
+在 ZotLit 的 PDF 阅读器中打开 Zotero PDF 附件。
 
 ```
 obsidian://zotlit/open-attachment?item=<id>&source-id=<hash>
@@ -277,7 +277,7 @@ zotero://open/library/items/<attachmentKey>?annotation=<annotationKey>&page=<pag
 
 ### 在 Obsidian 中打开 [#zotero-open-links-captured]
 
-当 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_file_links_name()} /> 和 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_annotation_links_name()} /> 开启时（此为默认状态），ZotLit 会在 Obsidian 阅读器中打开持久标注链接。打开 PDF 时会自动选中该标注并滚动到视野中。这适用于在实时预览（Live Preview）、阅读视图（Reading view）或属性值中点击链接，也适用于在标注视图、查询块或查询视图中点击标注的页码链接。
+当 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_file_links_name()} /> 和 <SettingsPath page={m.settings_page_reader()} setting={m.settings_reader_open_annotation_links_name()} /> 开启时（此为默认状态），ZotLit 会在其 PDF 阅读器中打开持久标注链接。打开 PDF 时会自动选中该标注并滚动到视野中。这适用于在实时预览（Live Preview）、阅读视图（Reading view）或属性值中点击链接，也适用于在标注视图、查询块或查询视图中点击标注的页码链接。
 
 当 Zotero 中不再存在该标注时，PDF 将仅打开到该标注所在的页面。如果该标注的页码标签与 PDF 的实际页码不一致，页面跳转可能会出现偏差。
 
@@ -296,7 +296,7 @@ zotero://open/library/items/<attachmentKey>?annotation=<annotationKey>&page=<pag
 
 ### 旧版文件链接 [#zotero-open-links-file-links]
 
-由早期 ZotLit 编写的笔记则将标注链接到附件文件，形式为 `file:///…/paper.pdf#page=N&zt-annotation=<key>`。这些链接仍会像以前一样在 Obsidian 阅读器中打开并定位到该标注。由于它们包含编写它们的那台计算机上的文件路径，因此在 Zotero 存储文件夹位于不同路径的计算机上无法打开任何内容。参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian#file-links)。
+由早期 ZotLit 编写的笔记则将标注链接到附件文件，形式为 `file:///…/paper.pdf#page=N&zt-annotation=<key>`。这些链接仍会在 ZotLit 的 PDF 阅读器中打开并定位到该标注。由于它们包含编写它们的那台计算机上的文件路径，因此在 Zotero 存储文件夹位于不同路径的计算机上无法打开任何内容。参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian#file-links)。
 
 ## 另请参阅 [#see-also]
 

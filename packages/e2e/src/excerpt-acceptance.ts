@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import type { FileSystemAdapter, PDFFileView } from "obsidian";
+import type { FileSystemAdapter } from "obsidian";
 import { expect } from "vitest";
 
 import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
@@ -27,6 +27,7 @@ import type { FixtureAnnotation } from "@zotlit/scripts/fixture";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { ExcerptImportState } from "./page-excerpt-types.ts";
+import type { PagePdfReaderView } from "./page-notes-types.ts";
 
 /** The Fixture Attachment the reader opens and every excerpt here resolves. */
 const attachment = ATTACHMENTS.find(({ key }) => key === "RGRPDF24")!;
@@ -226,13 +227,16 @@ async function installUrlProbe(vaultId: string): Promise<void> {
           created: [] as string[],
           revoked: [] as string[],
         };
+        const others = new Set<string>();
         URL.createObjectURL = (blob) => {
           const url = create(blob);
-          state.created.push(url);
+          if (blob instanceof Blob && blob.type.startsWith("image/"))
+            state.created.push(url);
+          else others.add(url);
           return url;
         };
         URL.revokeObjectURL = (url) => {
-          state.revoked.push(url);
+          if (!others.delete(url)) state.revoked.push(url);
           return revoke(url);
         };
         helpers.scratch.__zotlitExcerptUrlProbe = state;
@@ -365,7 +369,11 @@ export async function verifyReaderBackedExcerpts(
         if (!file)
           throw new Error("The Fixture PDF is not in the Fixture Vault");
         const leaf = app.workspace.getLeaf("tab");
-        await leaf.openFile(file);
+        await leaf.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         app.workspace.setActiveLeaf(leaf, { focus: true });
         return true;
       },
@@ -377,10 +385,10 @@ export async function verifyReaderBackedExcerpts(
     async ({ app, zotlit }, { vaultPath, pageNumber }) => {
       const state = JSON.parse(
         (function () {
-          const leaves = app.workspace.getLeavesOfType("pdf");
+          const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
           const leaf = leaves.find(
             (candidate) =>
-              (candidate.view as PDFFileView).file?.path === vaultPath,
+              (candidate.view as PagePdfReaderView).file?.path === vaultPath,
           );
           const page = leaf?.view.containerEl.querySelector(
             `.page[data-page-number="${pageNumber}"]`,
@@ -411,9 +419,10 @@ export async function verifyReaderBackedExcerpts(
   const held = await obRun(
     vaultId,
     async ({ app, zotlit }, { vaultPath, pageNumber }) => {
-      const leaves = app.workspace.getLeavesOfType("pdf");
+      const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
       const leaf = leaves.find(
-        (candidate) => (candidate.view as PDFFileView).file?.path === vaultPath,
+        (candidate) =>
+          (candidate.view as PagePdfReaderView).file?.path === vaultPath,
       );
       const page = leaf?.view.containerEl.querySelector(
         `.page[data-page-number="${pageNumber}"]`,
@@ -593,10 +602,10 @@ export async function verifyReaderBackedExcerpts(
     await obRun(
       vaultId,
       async ({ app, zotlit }, { vaultPath, pageNumber }) => {
-        const leaves = app.workspace.getLeavesOfType("pdf");
+        const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
         const leaf = leaves.find(
           (candidate) =>
-            (candidate.view as PDFFileView).file?.path === vaultPath,
+            (candidate.view as PagePdfReaderView).file?.path === vaultPath,
         );
         const page = leaf?.view.containerEl.querySelector(
           `.page[data-page-number="${pageNumber}"]`,
@@ -1195,7 +1204,8 @@ export async function verifyReaderBackedExcerpts(
         await zotlit.services.bridge.runPromise(
           zotlit.services.excerptImage.clear,
         );
-        for (const leaf of app.workspace.getLeavesOfType("pdf")) leaf.detach();
+        for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          leaf.detach();
         return true;
       },
       undefined,
@@ -1205,7 +1215,7 @@ export async function verifyReaderBackedExcerpts(
     vaultId,
     async ({ app, zotlit }, { vaultPath }) => {
       return (
-        app.workspace.getLeavesOfType("pdf").length === 0 &&
+        app.workspace.getLeavesOfType("zotlit-pdf").length === 0 &&
         !zotlit.services.bridge.runSync(
           zotlit.services.pdfAnnotationEditor.borrowDocument(
             (app.vault.adapter as FileSystemAdapter).getFullPath(vaultPath!),

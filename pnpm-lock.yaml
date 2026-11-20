@@ -167,6 +167,9 @@ catalogs:
     '@std/collections':
       specifier: jsr:1.2.0
       version: 1.2.0
+    '@tailwindcss/node':
+      specifier: ^4.3.0
+      version: 4.3.2
     '@tailwindcss/vite':
       specifier: ^4.3.0
       version: 4.3.0
@@ -689,6 +692,9 @@ importers:
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../../packages/obsidian-kit
+      '@zotlit/pdf-reader':
+        specifier: workspace:*
+        version: link:../../packages/pdf-reader
       '@zotlit/pdf-structure':
         specifier: workspace:*
         version: link:../../packages/pdf-structure
@@ -778,7 +784,7 @@ importers:
         specifier: 'catalog:'
         version: 2.10.6(@babel/core@7.29.7(supports-color@10.2.2))(preact@11.0.0-rc.2)(supports-color@10.2.2)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@tailwindcss/node':
-        specifier: ^4.3.0
+        specifier: 'catalog:'
         version: 4.3.2
       '@tailwindcss/vite':
         specifier: 'catalog:'
@@ -807,6 +813,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../../packages/db-testing
+      '@zotlit/pdfjs':
+        specifier: workspace:*
+        version: link:../../packages/pdfjs
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../../packages/scripts
@@ -967,6 +976,9 @@ importers:
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../obsidian-kit
+      '@zotlit/pdf-reader':
+        specifier: workspace:*
+        version: link:../pdf-reader
       '@zotlit/pdf-structure':
         specifier: workspace:*
         version: link:../pdf-structure
@@ -1052,6 +1064,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
+      '@zotlit/pdfjs':
+        specifier: workspace:*
+        version: link:../pdfjs
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../scripts
@@ -1374,6 +1389,9 @@ importers:
       '@zotlit/obsidian-kit':
         specifier: workspace:*
         version: link:../obsidian-kit
+      '@zotlit/pdf-reader':
+        specifier: workspace:*
+        version: link:../pdf-reader
       '@zotlit/plugin-kernel':
         specifier: workspace:*
         version: link:../plugin-kernel
@@ -1407,6 +1425,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
@@ -2014,6 +2035,61 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/pdf-reader:
+    dependencies:
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)(react@19.2.7)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
+      preact:
+        specifier: 'catalog:'
+        version: 11.0.0-rc.2
+    devDependencies:
+      '@tailwindcss/node':
+        specifier: 'catalog:'
+        version: 4.3.2
+      '@tailwindcss/oxide':
+        specifier: 4.3.0
+        version: 4.3.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      '@zotlit/pdfjs':
+        specifier: workspace:*
+        version: link:../pdfjs
+      '@zotlit/scripts':
+        specifier: workspace:*
+        version: link:../scripts
+      arkregex:
+        specifier: 'catalog:'
+        version: 0.0.5
+      lightningcss:
+        specifier: 1.32.0
+        version: 1.32.0
+      obsidian:
+        specifier: 'catalog:'
+        version: 1.14.4(@codemirror/state@6.7.6)(@codemirror/view@6.43.13)
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.93.0(oxlint-tsgolint@7.0.2006)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.2
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vite:
+        specifier: 'catalog:'
+        version: 8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/pdf-structure:
     dependencies:
       '@logtape/logtape':
@@ -2038,6 +2114,24 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/pdfjs:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.1.2
+      '@types/yargs':
+        specifier: 'catalog:'
+        version: 17.0.35
+      '@zotlit/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      yargs:
+        specifier: 'catalog:'
+        version: 18.1.0
 
   packages/pdfjs-dist: {}
 

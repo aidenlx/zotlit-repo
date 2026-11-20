@@ -48,7 +48,7 @@
     },
     "test": {
       "dependsOn": ["transit"],
-      "env": ["GITHUB_ACTIONS"]
+      "env": ["GITHUB_ACTIONS", "ZOTLIT_TEST_ELECTRON_PATH"]
     },
     "fixture": {
       "dependsOn": [
@@ -72,6 +72,7 @@
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types",
         "@zotlit/item-query#generate:schema",
+        "@zotlit/pdf-reader#generate",
         "@zotlit/docs#generate:messages",
         "@zotlit/docs#cf-typegen:check"
       ]
@@ -91,7 +92,8 @@
     "//#review:plugin:deps": {
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/workbench#generate:message-types",
+        "@zotlit/pdf-reader#generate"
       ]
     },
     "//#review:plugin": {

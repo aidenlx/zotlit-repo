@@ -11,22 +11,18 @@ import {
   Stream,
 } from "effect";
 import { FileSystemAdapter, Scope as ObsidianScope } from "obsidian";
-import type {
-  App,
-  PDFFileView,
-  PDFViewerController,
-  TFile,
-  Vault,
-  WorkspaceLeaf,
-} from "obsidian";
+import type { App, TFile, Vault } from "obsidian";
 import { beforeEach, afterEach, expect } from "vitest";
 
 import {
   resetMockPlatform,
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import type { PdfReaderView } from "@zotlit/pdf-reader/obsidian";
 beforeEach(() => setMockPlatform({ isMacOS: false }));
 afterEach(() => resetMockPlatform());
+
+import type { OpenReaderView } from "#__fixtures__/pdf-annotation-editor/editor.ts";
 
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -41,26 +37,24 @@ import {
   pdfReader,
   readerSettings,
 } from "#__fixtures__/pdf-annotation-editor.ts";
-import { editorFixtureLayer } from "#__fixtures__/pdf-annotation-editor/editor.ts";
+import {
+  attachReader,
+  editorFixtureLayer,
+} from "#__fixtures__/pdf-annotation-editor/editor.ts";
 
 const host = () => {
   const workspace = new MemoryWorkspace();
   const reader = pdfReader();
-  const controller = stubService<PDFViewerController>(
-    "PDFViewerController",
-    reader.child,
-  );
-  const view = stubService<PDFFileView>("PDFFileView", {
-    file: null,
+  const view = stubService<PdfReaderView & OpenReaderView>("PdfReaderView", {
+    file: stubService<TFile>("TFile", {
+      path: "attachments/rougier-2014.pdf",
+    }),
     leaf: undefined,
     app: stubService<App>("App", {}),
-    viewer: { child: controller, then: (callback) => callback(controller) },
+    fake: reader,
     containerEl: document.createElement("div"),
     scope: new ObsidianScope(),
   });
-  workspace.leaves.set("pdf", [
-    stubService<WorkspaceLeaf>("WorkspaceLeaf", { view }),
-  ]);
   const app = stubService<App>("App", {
     vault: stubService<Vault>("Vault", { adapter: new FileSystemAdapter() }),
   });
@@ -92,9 +86,7 @@ it.effect(
       const announced = yield* Stream.runCollect(editor.sessionAdded).pipe(
         Effect.forkScoped({ startImmediately: true }),
       );
-      h.view.file = stubService<TFile>("TFile", {
-        path: "attachments/rougier-2014.pdf",
-      });
+      const attached = attachReader(editor, h.view);
       h.workspace.layoutReady();
       expect(yield* editor.bindings).toHaveLength(1);
       yield* Scope.close(scope, Exit.succeed(undefined));
@@ -102,34 +94,38 @@ it.effect(
       expect(yield* Fiber.join(announced)).toEqual([
         "attachments/rougier-2014.pdf",
       ]);
-      h.workspace.trigger("layout-change");
+      h.reader.navigateTo("#page=1&zt-annotation=PUPR5FG5");
+      attached?.[Symbol.dispose]();
       expect(yield* editor.bindings).toEqual([]);
     }),
 );
 
-it.effect("leaves a delayed layout callback inert after scope close", () =>
-  Effect.gen(function* () {
-    const h = host();
-    const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
-      Scope.close(scope, Exit.void),
-    );
-    const context = yield* Layer.build(
-      editorFixtureLayer({
-        app: h.app,
-        workspace: h.workspace,
-        attachments: attachmentReads(),
-        annotations: annotationReads(),
-        capabilityGestures: capabilityGestures(),
-        markGestures: markGestures(),
-        noteIndex: { getNotesByItemKey: () => Effect.succeed([]) },
-        settings: readerSettings(),
-      }),
-    ).pipe(Effect.provideService(Scope.Scope, scope));
-    const editor = Context.get(context, PdfAnnotationEditor);
-    yield* Scope.close(scope, Exit.succeed(undefined));
-    h.workspace.layoutReady();
-    expect(yield* editor.bindings).toEqual([]);
-  }),
+it.effect(
+  "leaves a delayed layout callback and a late attach inert after scope close",
+  () =>
+    Effect.gen(function* () {
+      const h = host();
+      const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
+        Scope.close(scope, Exit.void),
+      );
+      const context = yield* Layer.build(
+        editorFixtureLayer({
+          app: h.app,
+          workspace: h.workspace,
+          attachments: attachmentReads(),
+          annotations: annotationReads(),
+          capabilityGestures: capabilityGestures(),
+          markGestures: markGestures(),
+          noteIndex: { getNotesByItemKey: () => Effect.succeed([]) },
+          settings: readerSettings(),
+        }),
+      ).pipe(Effect.provideService(Scope.Scope, scope));
+      const editor = Context.get(context, PdfAnnotationEditor);
+      yield* Scope.close(scope, Exit.succeed(undefined));
+      h.workspace.layoutReady();
+      expect(attachReader(editor, h.view)).toBeUndefined();
+      expect(yield* editor.bindings).toEqual([]);
+    }),
 );
 
 it.effect(
@@ -137,9 +133,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const h = host();
-      h.view.file = stubService<TFile>("TFile", {
-        path: "attachments/rougier-2014.pdf",
-      });
       const started = yield* Deferred.make<void>();
       const stopped = yield* Deferred.make<void>();
       const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
@@ -171,6 +164,7 @@ it.effect(
         }),
       ).pipe(Effect.provideService(Scope.Scope, scope));
       const editor = Context.get(context, PdfAnnotationEditor);
+      attachReader(editor, h.view);
       h.workspace.layoutReady();
       expect(annotations.read).toHaveBeenCalledOnce();
       yield* Deferred.await(started);

@@ -86,7 +86,7 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
         // The PDF tab's path runs through the Fixture's folders; the images show the file name alone.
         const style = document.head.createEl("style");
         style.textContent =
-          '.workspace-leaf-content[data-type="pdf"] .view-header-title-parent{display:none}';
+          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
         const leaf = app.workspace.getLeaf("tab");
         await leaf.openFile(app.vault.getFileByPath(draftPath)!);
         app.workspace.iterateRootLeaves((l) => {
@@ -615,8 +615,9 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           const pdf = await page.until(
             "PDF",
             () =>
-              (app.workspace.getLeavesOfType("pdf") as PdfLeaf[]).find((l) =>
-                decodeURI(l.view.file?.path ?? "").includes(attachmentKey),
+              (app.workspace.getLeavesOfType("zotlit-pdf") as PdfLeaf[]).find(
+                (l) =>
+                  decodeURI(l.view.file?.path ?? "").includes(attachmentKey),
               ),
             20000,
           );

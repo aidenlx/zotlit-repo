@@ -27,7 +27,12 @@ import type {
   LinkSettings,
 } from "./page-links-types.ts";
 import type { LinkMarkdownView } from "./page-links-types.ts";
-import type { PagePdfView } from "./page-notes-types.ts";
+import type { PagePdfReaderView } from "./page-notes-types.ts";
+import {
+  addSharedFileAttachment,
+  reindexed,
+  SHARED,
+} from "./shared-attachment.ts";
 
 const PDF_PATH = annotationAttachment.path!;
 const NOTE = "Annotation links.md";
@@ -49,12 +54,6 @@ const INK = attachmentAnnotations.find(({ key }) => key === "TYY6Z6ZF")!;
 const RICH = attachmentAnnotations.find(({ key }) => key === "K3JRFLFQ")!;
 /** A PDF the Fixture's Zotero holds a row for, and never a file. */
 const MISSING_PDF = ATTACHMENTS.find(({ key }) => key === "MISSNG22")!;
-
-/**
- * A second Attachment of the Rougier PDF's own file, which the Fixture does
- * not hold: the case that needs it adds it, with one Annotation of its own.
- */
-const SHARED = { attachmentKey: "RGRSHRD2", annotationKey: "SHRDANN2" };
 
 /** Stands in a note for the Rougier PDF's own `file://` URL on this computer. */
 const FILE_URL = "%FILE_URL%";
@@ -452,16 +451,14 @@ async function follow({
       const s = zotlit.services;
       const observe = () => {
         const pdf = app.workspace
-          .getLeavesOfType("pdf")
-          .map(({ view }) => view as PagePdfView)
+          .getLeavesOfType("zotlit-pdf")
+          .map(({ view }) => view as PagePdfReaderView)
           .find((view) => view.file?.path === observedPdfPath);
         return {
           drawn: !!pdf?.containerEl.querySelector(".zt-pdf-annotation-mark"),
           reader: pdf
             ? {
-                page:
-                  pdf.viewer.child?.pdfViewer?.pdfViewer?.currentPageNumber ??
-                  null,
+                page: pdf.reader ? pdf.reader.state.get().pageIndex + 1 : null,
                 selected: [
                   ...new Set(
                     [
@@ -489,7 +486,7 @@ async function follow({
         links.restoreLedger(cleanup);
         const layout = app.workspace.getLayout();
         cleanup.defer(async () => {
-          for (const leaf of app.workspace.getLeavesOfType("pdf"))
+          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
             leaf.detach();
           await app.workspace.changeLayout(layout);
         });
@@ -696,115 +693,6 @@ async function follow({
   return reply;
 }
 
-/**
- * Adds {@link SHARED} to the Fixture's Zotero database the way Zotero keeps a
- * second Attachment of one linked file: a copy of the Rougier PDF's
- * Attachment row under its own key, and a copy of `annotationKey` as its
- * one Annotation. Each row copies every column of its model but the id, the
- * key and the parent. Disposing deletes the rows it wrote.
- */
-function addSharedFileAttachment(
-  databasePath: string,
-  annotationKey: string,
-): Disposable {
-  using database = new DatabaseSync(databasePath);
-  const itemIDOf = (key: string) =>
-    (
-      database.prepare("select itemID from items where key = ?").get(key) as {
-        itemID: number;
-      }
-    ).itemID;
-  /** Inserts a copy of `table`'s row for `itemID`, with `set` in place. */
-  const copy = (
-    table: string,
-    itemID: number,
-    set: Record<string, string | number>,
-  ) => {
-    const columns = (
-      database.prepare(`pragma table_info(${table})`).all() as {
-        name: string;
-      }[]
-    ).map(({ name }) => name);
-    database
-      .prepare(
-        `insert into ${table} (${columns.join(", ")}) select ${columns.map((name) => (name in set ? "?" : name)).join(", ")} from ${table} where itemID = ?`,
-      )
-      .run(
-        ...columns.filter((name) => name in set).map((name) => set[name]!),
-        itemID,
-      );
-  };
-  const attachmentID = Number(
-    Object.values(
-      database.prepare("select max(itemID) + 1 from items").get()!,
-    )[0],
-  );
-  const annotationID = attachmentID + 1;
-
-  // One transaction: a failed write leaves no row behind.
-  database.exec("begin");
-  using rollback = new DisposableStack();
-  rollback.defer(() => database.exec("rollback"));
-  const source = itemIDOf(annotationAttachment.key);
-  copy("items", source, { itemID: attachmentID, key: SHARED.attachmentKey });
-  copy("itemAttachments", source, { itemID: attachmentID });
-  const annotation = itemIDOf(annotationKey);
-  copy("items", annotation, {
-    itemID: annotationID,
-    key: SHARED.annotationKey,
-  });
-  copy("itemAnnotations", annotation, {
-    itemID: annotationID,
-    parentItemID: attachmentID,
-  });
-  database.exec("commit");
-  rollback.move();
-
-  return {
-    [Symbol.dispose]() {
-      using database = new DatabaseSync(databasePath);
-      database.exec("begin");
-      for (const table of ["itemAnnotations", "itemAttachments", "items"])
-        database
-          .prepare(`delete from ${table} where itemID between ? and ?`)
-          .run(attachmentID, annotationID);
-      database.exec("commit");
-    },
-  };
-}
-
-/**
- * Has ZotLit read the database again and waits, bounded, until its Attachment
- * index answers `kind` for {@link SHARED}'s Attachment. Answers which
- * Attachment the Rougier PDF's path names then.
- */
-async function reindexed(
-  kind: "resolved" | "unresolved",
-): Promise<string | null> {
-  return obRun(
-    run.vaultId,
-    async ({ app, zotlit, page }, { kind, attachmentKey, pdfPath }) => {
-      const { until } = page.annotationLinkTools(() => zotlit.services);
-      const s = zotlit.services;
-      await s.bridge.runPromise(s.zoteroReads.refresh);
-      await until(
-        () =>
-          s.bridge.runSync(s.attachmentResolver.lookup(attachmentKey)).kind ===
-          kind,
-        () =>
-          `The Attachment index never answered ${kind} for ${attachmentKey}`,
-      );
-      const adapter = app.vault.adapter as import("obsidian").FileSystemAdapter;
-      const resolution = s.bridge.runSync(
-        s.attachmentResolver.resolve(adapter.getFullPath(pdfPath)),
-      );
-      return resolution.kind === "resolved" ? resolution.attachmentKey : null;
-    },
-    { kind, attachmentKey: SHARED.attachmentKey, pdfPath: PDF_PATH },
-    { timeoutMs: 60000 },
-  );
-}
-
 /** What two tabs on the Rougier PDF's one file showed, as {@link sharedTabs} read it. */
 interface SharedTabsOutcome {
   /**
@@ -869,14 +757,18 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
         links.restoreLedger(cleanup);
         const layout = app.workspace.getLayout();
         cleanup.defer(async () => {
-          for (const leaf of app.workspace.getLeavesOfType("pdf"))
+          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
             leaf.detach();
           await app.workspace.changeLayout(layout);
         });
         page.scratch.links!.passed = [];
         const restored = app.workspace.getLeaf("tab");
         cleanup.adopt(restored, (leaf) => leaf.detach());
-        await restored.openFile(file);
+        await restored.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         await boundTo(restored, initialKey, "The first tab");
         // ZotLit loads with the tab already open, as at startup.
         await app.plugins.disablePlugin("zotlit");
@@ -935,7 +827,11 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
         await boundTo(restored, followedKey, "The tab ZotLit found open");
         const second = app.workspace.getLeaf("tab");
         cleanup.adopt(second, (leaf) => leaf.detach());
-        await second.openFile(file);
+        await second.setViewState({
+          type: "zotlit-pdf",
+          state: { file: file.path },
+          active: true,
+        });
         await boundTo(second, secondKey, "The second tab");
         const sidebar = app.workspace.getRightLeaf(false)!;
         cleanup.adopt(sidebar, (leaf) => leaf.detach());

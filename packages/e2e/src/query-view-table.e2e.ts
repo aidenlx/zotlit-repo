@@ -383,7 +383,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("pdf")
+          .getLeavesOfType("zotlit-pdf")
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,
@@ -418,7 +418,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("pdf")
+          .getLeavesOfType("zotlit-pdf")
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,
@@ -455,7 +455,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.vaultId,
       async ({ app }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("pdf")
+          .getLeavesOfType("zotlit-pdf")
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,

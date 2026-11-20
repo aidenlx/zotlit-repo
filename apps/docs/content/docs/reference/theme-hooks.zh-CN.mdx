@@ -109,7 +109,9 @@ body {
 
 ## PDF 阅读器钩子 [#pdf-reader]
 
-Obsidian 的 PDF 阅读器以覆盖层的形式展示 Zotero 附件的标注，并提供专有工具栏和弹窗用于创建和编辑标注。ZotLit 借助 Obsidian 原生的工具栏和浮动弹窗基元，自行绘制了所有这些界面。
+ZotLit 的 PDF 阅读器以覆盖层的形式展示 Zotero 附件的标注，并提供工具栏和弹窗用于创建和编辑标注。ZotLit 借助 Obsidian 原生的工具栏和浮动弹窗基元，自行绘制了所有这些界面。
+
+阅读器的页面和侧栏颜色取自 Obsidian 自带 PDF 查看器读取的变量：`--pdf-background`、`--pdf-page-background`、`--pdf-sidebar-background`、`--pdf-shadow`、`--pdf-spread-shadow`、`--pdf-thumbnail-shadow` 和 `--pdf-popup-width`。设置这些变量的主题会同时作用于两个阅读器。
 
 | 类                                    | 标记目标                                                                                               |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -123,7 +125,7 @@ Obsidian 的 PDF 阅读器以覆盖层的形式展示 Zotero 附件的标注，�
 | `zt-pdf-annotation-note-crease`       | 笔记标注标记图标右下角折叠处形成折痕的两条线段。仅描边，无自身填充。                                   |
 | `zt-pdf-text-draft`                   | 页面上用于输入自由文本标注的文本区域（textarea）。在保存的标记替换它之前一直保留。                     |
 | `zt-pdf-capability`                   | 阅读器自身工具栏中的编辑指示器，仅在 ZotLit 等待 Zotero 响应和冷却期间显示。                           |
-| `zt-pdf-creation-toolbar`             | 阅读器自带的右侧工具栏插槽中的创建工具栏，同时容纳编辑指示器。                                         |
+| `zt-pdf-creation-toolbar`             | 位于阅读器工具栏末端的创建工具栏，同时容纳编辑指示器。                                                 |
 | `zt-pdf-tool`                         | 该工具栏中的一个工具：由激活开关与展开其颜色的折叠箭头组合而成的拆分按钮。工具激活时带有 `is-active`。 |
 | `zt-pdf-mark-popup`                   | 标记弹窗，基于 Obsidian 原生悬停浮层构建，具备两种模式。                                               |
 | `zt-pdf-comment-sheet`                | 标记弹窗在其按钮行下方打开的评论面板，两种模式下均可使用。                                             |

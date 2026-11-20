@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { loadPdfJs } from "obsidian";
 
+import type { HeadlessDocument, PdfEngine } from "@zotlit/pdf-reader";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
@@ -26,11 +26,6 @@ import {
   readBounded,
 } from "#core/excerpt-image/file.ts";
 
-declare module "obsidian" {
-  /** Cold-loads the host PDF.js module and configures its worker. Internal. */
-  export function loadPdfJs(): Promise<ExcerptPdfJs>;
-}
-
 export interface ExcerptRenderTask {
   promise: Promise<void>;
   cancel(): void;
@@ -40,13 +35,6 @@ export interface ExcerptRenderTask {
 interface PdfPage extends ExcerptCropPage {
   cleanup(): boolean;
 }
-export interface ExcerptPdfJs {
-  getDocument(options: Record<string, unknown>): {
-    promise: Promise<{ getPage(number: number): Promise<PdfPage> }>;
-    destroy(): Promise<void>;
-  };
-}
-
 /** Only the exact task created by this renderer may change scheduling. */
 export function usePromiseScheduling(
   page: unknown,
@@ -74,8 +62,6 @@ export function usePromiseScheduling(
   if (matches.length !== 1) throw new Error("Unsupported PDF.js render task");
   matches[0]!._useRequestAnimationFrame = false;
 }
-
-type LoadingTask = ReturnType<ExcerptPdfJs["getDocument"]>;
 
 export type ExcerptRendererPhase =
   | "pdf-reading"
@@ -111,12 +97,6 @@ export interface ExcerptRendererDiagnosticSnapshot {
   canvas: { width: number; height: number } | null;
   lastCanvas: { width: number; height: number } | null;
   loads: ExcerptRendererLoads;
-  worker: "web-worker" | "fake-worker" | "pending" | null;
-  workerEvidence: {
-    taskKeys: string[];
-    workerKeys: string[];
-    portType: string | null;
-  } | null;
 }
 
 interface DiagnosticGate {
@@ -131,7 +111,7 @@ export class ExcerptRendererDiagnostics {
   #phase: ExcerptRendererPhase | "idle" = "idle";
   #jobActive = false;
   #fileOpen = false;
-  #task?: LoadingTask;
+  #documentOpen = false;
   #renderTaskActive = false;
   #canvas?: HTMLCanvasElement;
   #lastCanvas?: { width: number; height: number };
@@ -144,37 +124,17 @@ export class ExcerptRendererDiagnostics {
   #gate?: DiagnosticGate;
 
   snapshot(): ExcerptRendererDiagnosticSnapshot {
-    const worker = (
-      this.#task as
-        | { _worker?: { _webWorker?: unknown; port?: unknown } }
-        | undefined
-    )?._worker;
-    const portType = worker?.port?.constructor?.name ?? null;
     return {
       phase: this.#phase,
       jobActive: this.#jobActive,
       fileOpen: this.#fileOpen,
-      documentOpen: !!this.#task,
+      documentOpen: this.#documentOpen,
       renderTaskActive: this.#renderTaskActive,
       canvas: this.#canvas
         ? { width: this.#canvas.width, height: this.#canvas.height }
         : null,
       lastCanvas: this.#lastCanvas ? { ...this.#lastCanvas } : null,
       loads: { ...this.#loads },
-      worker: !this.#task
-        ? null
-        : worker?._webWorker || portType === "Worker"
-          ? "web-worker"
-          : portType === "LoopbackPort"
-            ? "fake-worker"
-            : "pending",
-      workerEvidence: this.#task
-        ? {
-            taskKeys: Object.keys(this.#task),
-            workerKeys: worker ? Object.keys(worker) : [],
-            portType,
-          }
-        : null,
     };
   }
 
@@ -234,8 +194,8 @@ export class ExcerptRendererDiagnostics {
     this.#loads.documentLoads++;
   }
 
-  document(task?: LoadingTask): void {
-    this.#task = task;
+  document(open: boolean): void {
+    this.#documentOpen = open;
   }
 
   renderTask(active: boolean): void {
@@ -262,7 +222,7 @@ export class ExcerptRendererDiagnostics {
     this.#phase = "idle";
     this.#jobActive = false;
     this.#fileOpen = false;
-    this.#task = undefined;
+    this.#documentOpen = false;
     this.#renderTaskActive = false;
     this.#canvas = undefined;
   }
@@ -272,24 +232,24 @@ export class ExcerptRendererDiagnostics {
 export class ExcerptRenderer {
   readonly diagnostics = new ExcerptRendererDiagnostics();
   readonly #host;
-  #session?: { key: string; task: LoadingTask };
+  #session?: { key: string; document: HeadlessDocument };
   #unusable = false;
   #active = false;
 
-  constructor(
-    host: {
-      load?: typeof loadPdfJs;
-      canvas?: () => HTMLCanvasElement;
-      readers?: ExcerptReaderDocuments;
-    } = {},
-  ) {
+  constructor(host: {
+    engine: Pick<PdfEngine, "load">;
+    canvas?: () => HTMLCanvasElement;
+    readers?: ExcerptReaderDocuments;
+  }) {
     this.#host = host;
   }
 
   readonly #close = Effect.gen({ self: this }, function* () {
     const session = this.#session;
     if (!session) return;
-    yield* Effect.tryPromise(() => session.task.destroy()).pipe(
+    yield* Effect.tryPromise(() =>
+      session.document[Symbol.asyncDispose](),
+    ).pipe(
       Effect.timeout(5_000),
       Effect.catch((error) => {
         const transitionedToUnusable = !this.#unusable;
@@ -306,7 +266,7 @@ export class ExcerptRenderer {
     );
     if (this.#session === session) {
       this.#session = undefined;
-      this.diagnostics.document();
+      this.diagnostics.document(false);
     }
   });
 
@@ -402,33 +362,36 @@ export class ExcerptRenderer {
         return yield* new ExcerptImageError({
           message: "PDF changed while reading",
         });
-      const lib = yield* Effect.tryPromise(() =>
-        (this.#host.load ?? loadPdfJs)(),
-      );
-      this.#session = {
-        key,
-        task: lib.getDocument({
-          data,
-          cMapUrl: "/lib/pdfjs/cmaps/",
-          cMapPacked: true,
-          standardFontDataUrl: "/lib/pdfjs/standard_fonts/",
-          wasmUrl: "/lib/pdfjs/wasm/",
-          iccUrl: "/lib/pdfjs/iccs/",
-          isEvalSupported: false,
-        }),
-      };
-      this.diagnostics.document(this.#session.task);
+      const path = request.pdfPath!;
+      const bridge = yield* scopedBridge;
+      this.diagnostics.document(true);
       this.diagnostics.loadedDocument();
-    }
-    const task = this.#session.task;
-    return yield* this.diagnostics
-      .enter("document-loading")
-      .pipe(
-        Effect.andThen(Effect.tryPromise(() => task.promise)),
+      const document = yield* Effect.tryPromise((signal) =>
+        this.#host.engine.load(
+          {
+            key: path,
+            name: path,
+            read: (readSignal) =>
+              bridge.runPromise(
+                this.diagnostics
+                  .enter("document-loading")
+                  .pipe(Effect.as(data)),
+                { signal: readSignal },
+              ),
+          },
+          { signal },
+        ),
+      ).pipe(
+        Effect.onError(() =>
+          Effect.sync(() => this.diagnostics.document(false)),
+        ),
         Effect.ensuring(
           Effect.sync(() => this.diagnostics.leave("document-loading")),
         ),
       );
+      this.#session = { key, document };
+    }
+    return this.#session.document;
   }, Effect.scoped);
 
   readonly #render = Effect.fnUntraced(function* (
@@ -473,13 +436,19 @@ export class ExcerptRenderer {
         message: "Excerpt renderer is closed",
       });
     const page = yield* Effect.acquireRelease(
-      Effect.tryPromise(() => pdf.getPage(position.pageIndex + 1)),
+      Effect.tryPromise(
+        () => pdf.page(position.pageIndex) as Promise<PdfPage | null>,
+      ),
       (page) =>
         Effect.sync(() => {
-          page.cleanup();
+          page?.cleanup();
         }),
       { interruptible: true },
     );
+    if (!page)
+      return yield* new ExcerptImageError({
+        message: "Excerpt renderer is closed",
+      });
     const image = yield* this.#crop(request, page);
     this.diagnostics.detached();
     return image;

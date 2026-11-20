@@ -657,7 +657,9 @@ function pageAnnotations(records: readonly AnnotationRecord[]) {
   return groupAnnotationsByPage(records).get(0) ?? [];
 }
 
-function pageView(built = viewport()): OverlayPageView {
+function pageView(
+  built: OverlayPageView["viewport"] = viewport(),
+): OverlayPageView {
   return { div: document.createElement("div"), viewport: built };
 }
 

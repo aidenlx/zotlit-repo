@@ -23,6 +23,7 @@
     "@zotlit/notes": "workspace:*",
     "@zotlit/obsidian": "workspace:*",
     "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/pdf-reader": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/plugin-services": "workspace:*",
@@ -34,6 +35,7 @@
     "arkregex": "catalog:",
     "obsidian": "catalog:",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
     "yargs": "catalog:",
     "zx": "catalog:"

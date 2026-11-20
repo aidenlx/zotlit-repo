@@ -9,12 +9,18 @@
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/workbench#generate:message-types",
+        "@zotlit/pdf-reader#generate"
       ]
     },
-    // The ZotLit Query CLI cases read the generated Query Schema file.
+    // The ZotLit Query CLI cases read the generated Query Schema file, and the
+    // reader probe plugin bundles the reader's generated assets.
     "e2e": {
-      "dependsOn": ["$TURBO_EXTENDS$", "@zotlit/item-query#generate:schema"],
+      "dependsOn": [
+        "$TURBO_EXTENDS$",
+        "@zotlit/item-query#generate:schema",
+        "@zotlit/pdf-reader#generate"
+      ],
       "env": ["ANNOTATION_SUGGESTER_ENABLED", "WEB_WORKBENCH_ENABLED"],
       "passThroughEnv": ["ZOTLIT_E2E_RESULTS", "ZOTLIT_E2E_REQUIRED"]
     }

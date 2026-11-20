@@ -160,7 +160,7 @@ const VIEW_MENU_SECTIONS = [
 export interface AnnotViewDeps extends QueryViewDeps {
   /** The shared item picker still consumes settings through its bridge. */
   bridge: Pick<EffectBridge, "runSync">;
-  /** Every open Obsidian PDF view, as the Reader Session it exposes. */
+  /** Every open ZotLit PDF Reader, as the Reader Session it exposes. */
   itemLookup: Pick<ItemLookupHandle, "openSession">;
   settings: Pick<PluginSettings["Service"], "current">;
   /** The plugin's view registry, which holds each leaf's Follow Mode state. */
@@ -649,7 +649,7 @@ export class AnnotationView extends ItemView implements HistorySurface {
   }
 
   /**
-   * Pins the Item on screen. Taken from an Obsidian PDF view this releases that
+   * Pins the Item on screen. Taken from a ZotLit PDF Reader this releases that
    * view's attachment lock, so the choice the PDF made becomes the remembered
    * one and the picker starts there.
    */
@@ -663,7 +663,7 @@ export class AnnotationView extends ItemView implements HistorySurface {
   }
 
   /**
-   * Open the Attachment on screen in Obsidian's own PDF view. A non-PDF
+   * Open the Attachment on screen in the ZotLit PDF Reader. A non-PDF
    * Attachment or a missing file is answered by the reader's own notice.
    */
   #openPdf(): void {

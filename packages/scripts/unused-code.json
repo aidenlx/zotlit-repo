@@ -79,8 +79,6 @@
     "packages/plugin-services/src/obsidian/note-index/service.ts: ResolvedLiteratureNote",
     "packages/citations/src/desktop/pandoc/integration.ts: SavePandocIntegrationOptions",
     "packages/citations/src/desktop/pandoc/integration.ts: SavePandocIntegrationResult",
-    "packages/annotations/src/obsidian/pdf-annotation-editor/service.ts: PdfSeamProbeId",
-    "packages/annotations/src/obsidian/pdf-annotation-editor/service.ts: PdfSeamProbeResult",
     "packages/annotations/src/obsidian/pdf-annotation-editor/service.ts: ReaderSessionTarget",
     "packages/template-workbench/src/desktop/cli/cli.ts: WorkbenchIdentity",
     "packages/plugin-services/src/obsidian/zotero-local-api/service.ts: AuthorizationGrant",

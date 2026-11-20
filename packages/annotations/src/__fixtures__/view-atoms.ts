@@ -28,6 +28,7 @@ import { ExcerptDisplays } from "#desktop/excerpt-image/display.ts";
 export const layerUnreadViewServices = Layer.mergeAll(
   layerUnreadKitViewServices,
   Layer.mock(PdfAnnotationEditor, {
+    extension: { id: "zotlit-annotation-editor" },
     sessions: Stream.make(new Map()),
     sessionAdded: Stream.empty,
   }),

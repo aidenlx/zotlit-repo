@@ -46,8 +46,7 @@ for (let pageIndex = 0; pageIndex < pdfDocument.numPages; pageIndex++) {
     viewBox: page.view,
     items: items
       .filter((item) => item.chars?.length)
-      .map(({ transform, chars }) => ({
-        transform,
+      .map(({ chars }) => ({
         chars: chars.map(
           ({ c, u, rect, fontSize, fontName, rotation, baseline }) => ({
             c,

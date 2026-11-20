@@ -1559,7 +1559,7 @@ function closingDocument() {
   const source: PdfPageSource = {
     numPages: 1,
     getViewBox: () => read([0, 0, 612, 792]),
-    getTextItems: () => read([]),
+    getChars: () => read([]),
     getCatalogPageLabels: () => read(null),
   };
   const structure = new PdfTextStructure(source);
@@ -1672,7 +1672,7 @@ it("creates a Text Draft the view closes on before the Page Label pass ends, wit
   const structure = new PdfTextStructure({
     numPages: 1,
     getViewBox: async () => [0, 0, 612, 792],
-    getTextItems: async () => [],
+    getChars: async () => [],
     getCatalogPageLabels: () => new Promise(() => {}),
   });
   await using open = await toolReader("text", undefined, {

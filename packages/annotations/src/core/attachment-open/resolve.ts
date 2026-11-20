@@ -1,4 +1,4 @@
-// Narrows an Item's Attachments to the ones Obsidian's own PDF reader can host, and spells the path Obsidian opens each by.
+// Narrows an Item's Attachments to the ones the ZotLit PDF Reader can host, and spells the path Obsidian opens each by.
 
 import type { Attachment } from "@zotlit/db";
 import {
@@ -10,7 +10,7 @@ import type { AttachmentPathContext } from "@zotlit/db/path";
 import { EXTERNAL_FILE_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
 import { isPdfAttachment } from "@zotlit/plugin-services/core/attachment-resolver/pdf-attachment.ts";
 
-/** One Attachment Obsidian's PDF view can host a Reader Session for. */
+/** One Attachment the ZotLit PDF Reader can host a Reader Session for. */
 export interface ObsidianOpenableAttachment {
   /** The Attachment's Indexed Key. */
   indexedKey: string;

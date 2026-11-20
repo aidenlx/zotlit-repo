@@ -36,6 +36,7 @@ export default defineConfig({
           .resolve("@zotlit/query-views/package.json")
           .replace(/package\.json$/, "__mocks__/pretext.ts"),
       ),
+      "@zotlit/pdfjs/viewer": resolve(packageRoot, "__mocks__/pdfjs-viewer.ts"),
       "virtual:citation-parse-worker": resolve(
         packageRoot,
         "__mocks__/worker-source.ts",

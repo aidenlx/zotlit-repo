@@ -7,31 +7,28 @@ import type {
   ExcerptEntry,
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 // The render seam: a crop drawn from the reader's own document once that
 // document proves it holds the file's bytes, and from the file otherwise.
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadPdfJs } from "obsidian";
 import { afterEach, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
+
+import type { HeadlessDocument } from "@zotlit/pdf-reader";
 
 import { excerptKey } from "./key.ts";
 
 import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/node-service.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
-
-vi.mock("obsidian", async (original) => ({
-  ...(await original<typeof import("obsidian")>()),
-  loadPdfJs: vi.fn(),
-}));
+import { fakePdfEngine } from "#__fixtures__/pdf-engine.ts";
+import { PdfEngine } from "#obsidian/pdf-engine/service.ts";
 
 const folders: string[] = [];
 
 afterEach(async () => {
   vi.unstubAllGlobals();
-  vi.mocked(loadPdfJs).mockReset();
   await Promise.all(
     folders
       .splice(0)
@@ -148,18 +145,21 @@ function canvasFixture() {
 /** A page the detached path renders: the loader's own, cleanup and all. */
 type LoadedCropPage = ExcerptCropPage & { cleanup: Mock };
 
-/** The renderer's own path: a PDF.js library that counts its document loads. */
+/** The renderer's own path: a PDF engine that counts its document loads. */
 function detachedLibrary(options: { page?: () => LoadedCropPage } = {}) {
-  const pages = vi.fn(async (_pageNumber: number) =>
+  const pages = vi.fn(async (_pageIndex: number) =>
     options.page ? options.page() : cropPage().page,
   );
   const destroy = vi.fn(async () => undefined);
-  const getDocument = vi.fn(() => ({
-    promise: Promise.resolve({ getPage: pages }),
-    destroy,
-  }));
-  const load = vi.fn(async () => ({ getDocument }));
-  return { load, getDocument, pages, destroy };
+  const load = vi.fn(
+    async () =>
+      ({
+        page: pages,
+        [Symbol.asyncDispose]: destroy,
+      }) as unknown as HeadlessDocument,
+  );
+  const engine = fakePdfEngine(load);
+  return { load, engine, pages, destroy };
 }
 
 /** The reader's document for the file, with the bytes it answers for itself. */
@@ -217,23 +217,26 @@ async function harness(options: {
   const { canvas, canvases } = canvasFixture();
   const detached = detachedLibrary({ page: options.detachedPage });
   vi.stubGlobal("document", { createElement: canvas });
-  vi.mocked(loadPdfJs).mockImplementation(detached.load);
   const service = cleanup.use(
-    new ExcerptImageService({
-      cache: {
-        get: async (key) => entries.get(key),
-        put: (key, entry) =>
-          Effect.sync(() => {
-            entries.set(key, entry);
-          }),
+    new ExcerptImageService(
+      {
+        cache: {
+          get: async (key) => entries.get(key),
+          put: (key, entry) =>
+            Effect.sync(() => {
+              entries.set(key, entry);
+            }),
+        },
+        // Every request's own file, so a harness can carry more than one PDF.
+        stamp: async (path) => {
+          const info = await stat(path);
+          return { size: info.size, mtimeMs: info.mtimeMs };
+        },
+        readers: options.reader?.(pdfPath),
       },
-      // Every request's own file, so a harness can carry more than one PDF.
-      stamp: async (path) => {
-        const info = await stat(path);
-        return { size: info.size, mtimeMs: info.mtimeMs };
-      },
-      readers: options.reader?.(pdfPath),
-    }),
+      undefined,
+      Layer.succeed(PdfEngine, detached.engine),
+    ),
   );
   return {
     service,

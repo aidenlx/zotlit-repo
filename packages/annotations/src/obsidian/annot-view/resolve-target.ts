@@ -16,7 +16,7 @@ export interface LoadTarget {
    */
   itemKey: string | null;
   /**
-   * The Attachment an Obsidian PDF view or the Zotero Reader chose. It is the
+   * The Attachment a ZotLit PDF Reader or the Zotero Reader chose. It is the
    * one on screen and the picker stands down while it stands.
    */
   lockedAttachmentKey: string | null;
@@ -42,7 +42,7 @@ export function resolveLibraryID(
 export type ActiveLeafTarget =
   /** A Literature Note, by the Indexed Key in its frontmatter. */
   | { kind: "note"; itemKey: string }
-  /** An Obsidian PDF view ZotLit resolved to a Zotero Attachment. */
+  /** A ZotLit PDF Reader ZotLit resolved to a Zotero Attachment. */
   | { kind: "pdf"; target: ReaderSessionTarget };
 
 /**

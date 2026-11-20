@@ -19,7 +19,7 @@ const ANNOTATION: OpenTarget = {
 
 describe("open", () => {
   it.effect(
-    "opens an Obsidian-Openable Attachment in Obsidian's reader, in the pane asked for",
+    "opens an Obsidian-Openable Attachment in the ZotLit PDF Reader, in the pane asked for",
     () =>
       Effect.gen(function* () {
         const { opener, opened, handed } = yield* openerFixture();
@@ -331,7 +331,7 @@ describe("open", () => {
   );
 
   it.effect(
-    "opens an Attachment in Obsidian's reader while the Reader settings are off",
+    "opens an Attachment in the ZotLit PDF Reader while the Reader settings are off",
     () =>
       Effect.gen(function* () {
         const { opener, opened, handed } = yield* openerFixture({
@@ -427,7 +427,7 @@ describe("follow", () => {
   );
 
   it.effect(
-    "opens an Attachment File Link in Obsidian's reader at the page it names",
+    "opens an Attachment File Link in the ZotLit PDF Reader at the page it names",
     () =>
       Effect.gen(function* () {
         const { opener, opened } = yield* openerFixture();

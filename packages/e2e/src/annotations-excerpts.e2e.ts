@@ -421,9 +421,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await obRun(
         id,
         async ({ app }) => {
-          for (const leaf of app.workspace.getLeavesOfType("pdf"))
+          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
             leaf.detach();
-          return app.workspace.getLeavesOfType("pdf").length;
+          return app.workspace.getLeavesOfType("zotlit-pdf").length;
         },
         undefined,
       ),
@@ -649,7 +649,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await obRun(
         id,
         async ({ app }) => {
-          return app.workspace.getLeavesOfType("pdf").length;
+          return app.workspace.getLeavesOfType("zotlit-pdf").length;
         },
         undefined,
       ),

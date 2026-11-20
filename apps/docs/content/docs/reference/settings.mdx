@@ -689,30 +689,37 @@ The sub-page's first row is <UiLabel name={m.settings_attachment_approved_policy
 
 ## Reader [#reader]
 
-Open this page from <SettingsPath page={m.settings_page_reader()} />. It controls what ZotLit does when it opens a PDF in Obsidian's reader.
+Open this page from <SettingsPath page={m.settings_page_reader()} />. It controls how ZotLit opens PDFs in its [PDF reader](/docs/how-to/read-pdfs-in-zotlit-reader).
 
 | Label                                                             | Key                            | Control | Default | Dependency                                                        | Storage |
 | ----------------------------------------------------------------- | ------------------------------ | ------- | ------- | ----------------------------------------------------------------- | ------- |
 | <UiLabel name={m.settings_reader_focus_annot_view_name()} />      | `reader.focus-annot-view`      | Toggle  | On      | None                                                              | Synced  |
 | <UiLabel name={m.settings_reader_open_file_links_name()} />       | `reader.open-file-links`       | Toggle  | On      | None                                                              | Synced  |
 | <UiLabel name={m.settings_reader_open_annotation_links_name()} /> | `reader.open-annotation-links` | Toggle  | On      | <UiLabel name={m.settings_reader_open_file_links_name()} /> is on | Synced  |
+| <UiLabel name={m.settings_reader_open_all_pdfs_name()} />         | `reader.open-all-pdfs`         | Toggle  | Off     | None                                                              | Synced  |
 
 <UiLabel name={m.settings_reader_focus_annot_view_name()} /> opens the
 annotation view in the sidebar each time ZotLit opens a PDF. Turn it off to keep
 the sidebar as it is.
 
 <UiLabel name={m.settings_reader_open_file_links_name()} /> opens a file link in
-a note in Obsidian's PDF viewer when the link points to a PDF in your Zotero
+a note in ZotLit's PDF reader when the link points to a PDF in your Zotero
 library. Every other file link opens in your system app. A link you right-click
 and send to your system app also opens there. Turn it off to open all file links
 in your system app. While it is off, the page link on an annotation card or a
 Query View row opens the annotation in Zotero.
 
 <UiLabel name={m.settings_reader_open_annotation_links_name()} /> opens a
-durable annotation link in Obsidian's PDF viewer with the annotation selected.
-The page link on an annotation card or a Query View row opens the same way. When
+durable annotation link in ZotLit's PDF reader with the annotation selected. The
+page link on an annotation card or a Query View row opens the same way. When
 off, the link opens in Zotero. Hovering the link still shows the annotation.
 <UiLabel name={m.settings_reader_open_file_links_name()} /> must also be on.
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} /> opens every PDF of the
+vault in ZotLit's PDF reader, with PDF embeds, hover previews and canvas cards.
+When off, only the PDFs that ZotLit opens use its reader, and the rest open in
+Obsidian's own PDF viewer. See [Open every PDF in the ZotLit
+reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
 
 See [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian).
 
