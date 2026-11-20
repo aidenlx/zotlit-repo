@@ -20,6 +20,7 @@ import {
 import type { View } from "obsidian";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
+import { attachmentPathKey } from "@zotlit/db/path";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -326,8 +327,13 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       const borrowDocument = Effect.fn("PdfAnnotationEditor.borrowDocument")(
         (absolutePath: string) =>
           Effect.sync(() => {
+            const key = attachmentPathKey(absolutePath, process.platform);
             for (const binding of bindings.values()) {
-              if (binding.absolutePath === absolutePath)
+              if (
+                binding.absolutePath !== null &&
+                attachmentPathKey(binding.absolutePath, process.platform) ===
+                  key
+              )
                 return binding.borrow();
             }
             return null;

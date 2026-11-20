@@ -1,5 +1,3 @@
-import { join, posix } from "node:path";
-
 import { annotationHasCacheImage } from "./zt-annot.ts";
 import type { AnnotationType, ResolvedAnnotationTypeName } from "./zt-annot.ts";
 import { parseAttachmentPath } from "./zt-attach.ts";
@@ -8,6 +6,50 @@ import type { Attachment } from "./zt-attach.ts";
 // Re-exported so a consumer resolving an absolute path can also classify it —
 // the Obsidian plugin's source-decision seam needs both.
 export { parseAttachmentPath, type AttachmentPath } from "./zt-attach.ts";
+
+const POSIX_SEPARATOR_RE = /\/+/;
+const WINDOWS_SEPARATOR_RE = /[\\/]+/;
+const WINDOWS_DRIVE_RE = /^[A-Za-z]:[\\/]/;
+const WINDOWS_UNC_RE = /^\\\\([^\\/]+)[\\/]+([^\\/]+)/;
+
+function foldSegments(
+  rest: string,
+  separatorRe: RegExp,
+  rooted: boolean,
+): string[] {
+  const segments: string[] = [];
+  for (const segment of rest.split(separatorRe)) {
+    if (segment === "" || segment === ".") continue;
+    if (segment !== "..") segments.push(segment);
+    else if (segments.length > 0 && segments.at(-1) !== "..") segments.pop();
+    else if (!rooted) segments.push("..");
+  }
+  return segments;
+}
+
+function normalizePosix(path: string): string {
+  const rooted = path.startsWith("/");
+  const joined = foldSegments(path, POSIX_SEPARATOR_RE, rooted).join("/");
+  if (rooted) return `/${joined}`;
+  return joined === "" ? "." : joined;
+}
+
+function normalizeWindows(root: string, rest: string): string {
+  return root + foldSegments(rest, WINDOWS_SEPARATOR_RE, true).join("\\");
+}
+
+function join(...parts: string[]): string {
+  const joined = parts.filter((part) => part !== "").join("/");
+  const unc = WINDOWS_UNC_RE.exec(joined);
+  if (unc !== null)
+    return normalizeWindows(
+      `\\\\${unc[1]}\\${unc[2]}\\`,
+      joined.slice(unc[0].length),
+    );
+  if (WINDOWS_DRIVE_RE.test(joined))
+    return normalizeWindows(`${joined.slice(0, 2)}\\`, joined.slice(3));
+  return normalizePosix(joined);
+}
 
 export interface AttachmentPathContext {
   /** Zotero data directory, for resolving `storage:` paths. */
@@ -121,9 +163,10 @@ const TRAILING_SEPARATOR_RE = /(?<=.)\/+$/;
  * @see apps/obsidian/docs/adr/0035-the-attachment-resolver-case-folds-on-case-insensitive-platforms.md
  */
 export function normalizeAbsolutePath(path: string): string {
-  return posix
-    .normalize(path.replaceAll(SEPARATOR_RUN_RE, "/"))
-    .replace(TRAILING_SEPARATOR_RE, "");
+  return normalizePosix(path.replaceAll(SEPARATOR_RUN_RE, "/")).replace(
+    TRAILING_SEPARATOR_RE,
+    "",
+  );
 }
 
 /**

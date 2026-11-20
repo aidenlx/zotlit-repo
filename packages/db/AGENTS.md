@@ -10,7 +10,7 @@ Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Package-specifi
 
 ## Clients
 
-Every query, reader and context takes a `ZoteroDatabase` (`src/client/database.ts`, exported from `@zotlit/db`): the Drizzle SQLite database in the synchronous result mode over the Zotero relations. It names no driver, so the engine runs on any synchronous SQLite driver. An adapter makes the client: `@zotlit/db/client/node` over `node:sqlite` is the only one, and only a desktop host and Node tests import it. A new adapter runs `describeDriverConformance` from `@zotlit/db-testing/conformance` in its test, as `src/client/node.test.ts` does. The lint rules of the package allow Node modules only in `src/client/node.ts` and `src/lib/zt-path.ts` (the `./path` export).
+Every query, reader and context takes a `ZoteroDatabase` (`src/client/database.ts`, exported from `@zotlit/db`): the Drizzle SQLite database in the synchronous result mode over the Zotero relations. It names no driver, so the engine runs on any synchronous SQLite driver. An adapter makes the client: `@zotlit/db/client/node` over `node:sqlite` is the only one, and only a desktop host and Node tests import it. A new adapter runs `describeDriverConformance` from `@zotlit/db-testing/conformance` in its test, as `src/client/node.test.ts` does. The lint rules of the package allow Node modules only in `src/client/node.ts`; the `./path` export (`src/lib/zt-path.ts`) joins and normalises paths in pure code with `/` separators.
 
 ## Item fields
 
