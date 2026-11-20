@@ -1368,6 +1368,7 @@ export {
   capability,
   editingCapability,
   announceReadPixels,
+  holding,
   sessionHolding,
   writeHolding,
   handOff,

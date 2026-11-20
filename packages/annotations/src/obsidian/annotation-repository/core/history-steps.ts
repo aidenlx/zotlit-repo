@@ -17,7 +17,7 @@ import type {
 import { Effect } from "effect";
 
 import { autosaveDue, draftFor } from "./draft-store.ts";
-import { handOff, writeHolding } from "./lists.ts";
+import { holding, writeHolding } from "./lists.ts";
 import { DRAFT_FIELDS, proposedTags } from "./model.ts";
 import type { AnnotationRecord } from "./model.ts";
 import type { CoreState } from "./state.ts";
@@ -184,12 +184,7 @@ const stepHistory = Effect.fnUntraced(function* (
 
   return yield* Effect.acquireUseRelease(
     Effect.sync(() => core.steppingAttachments.add(attachmentKey)),
-    () =>
-      handOff(core, attachmentKey).pipe(
-        Effect.andThen(
-          takeStep(core, step, { attachmentKey, direction, history }),
-        ),
-      ),
+    () => takeStep(core, step, { attachmentKey, direction, history }),
     () =>
       Effect.sync(() => {
         core.steppingAttachments.delete(attachmentKey);
@@ -314,7 +309,7 @@ const takeStep = Effect.fnUntraced(function* (
       history.drop(direction, step);
       return { kind: "changed", annotationKey };
     }
-    const settled = yield* heldRecord(core, annotationKey);
+    const settled = (yield* holding(core, annotationKey))?.record;
     left.push({
       annotationKey,
       before,
@@ -449,7 +444,7 @@ const takeTagStep = Effect.fnUntraced(function* (
   if (outcome.kind === "failed") {
     return { kind: "failed", failure: outcome.failure };
   }
-  const settled = yield* heldRecord(core, annotationKey);
+  const settled = (yield* holding(core, annotationKey))?.record;
   const left =
     settled && tagChange(annotationTags(sent), annotationTags(settled));
   if (left && !noTagChange(left)) {
@@ -543,7 +538,7 @@ const takeExistenceStep = Effect.fnUntraced(function* (
     // Zotero named the restored Annotation itself, so every step of both
     // stacks that asked after the old key asks after this one now.
     history.rename(change.annotationKey, made.annotationKey);
-    const settled = (yield* heldRecord(core, made.annotationKey)) ?? null;
+    const settled = (yield* holding(core, made.annotationKey))?.record ?? null;
     left.push({
       annotationKey: made.annotationKey,
       before: { content: null },
