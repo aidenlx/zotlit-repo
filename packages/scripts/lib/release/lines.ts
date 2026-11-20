@@ -56,7 +56,7 @@ export const PRODUCTS = {
     app: "apps/reader",
     tagPrefix: "reader-",
     plugin: "reader",
-    publish: false,
+    publish: true,
   },
 } as const satisfies Record<
   string,
