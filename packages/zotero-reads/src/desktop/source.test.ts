@@ -340,7 +340,7 @@ describe("ZoteroReads source", () => {
     expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
   });
 
-  it("holds the first open of the settings it starts with until a refresh", async () => {
+  it("holds the first open through a Configure until a refresh, then opens the latest settings once", async () => {
     const { ports } = testPorts();
     const version = await Effect.runPromise(
       Effect.gen(function* () {
@@ -348,17 +348,23 @@ describe("ZoteroReads source", () => {
         const pending = yield* Effect.forkChild(reads.Libraries({}), {
           startImmediately: true,
         });
+        yield* reads.Configure(config());
+        yield* Effect.sleep("200 millis");
         yield* reads.Refresh();
         return yield* Fiber.join(pending);
       }).pipe(
         Effect.scoped,
         Effect.provide(
-          testSource({ ports, initial: config(), deferOpen: true }),
+          testSource({
+            ports,
+            initial: config({ readMode: "immutable" }),
+            deferOpen: true,
+          }),
         ),
       ),
     );
     expect(version.find((l) => l.libraryID === 1)?.version).toBe(1);
-    expect(ports.prepareRead).toHaveBeenCalledOnce();
+    expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
   });
 
   it("waits for Configure before it opens anything", async () => {

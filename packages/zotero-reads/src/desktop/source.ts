@@ -205,6 +205,9 @@ export function layerSource(
       const refreshRequests = yield* Queue.unbounded<RefreshRequest>();
       /** Completes once the first refresh settled, either way. */
       const firstSettled = yield* Deferred.make<void>();
+      const held = yield* Ref.make(
+        Boolean(options?.initial && options.deferOpen),
+      );
 
       const closeWatcherScopes = Effect.gen(function* () {
         const main = yield* Ref.getAndSet(mainWatcherScope, null);
@@ -576,6 +579,7 @@ export function layerSource(
       > =>
         Effect.gen(function* () {
           const done = yield* Deferred.make<void, DbUnavailable>();
+          yield* Ref.set(held, false);
           yield* Queue.offer(refreshRequests, { skipUnchanged, done });
           return done;
         });
@@ -827,6 +831,7 @@ export function layerSource(
           current.config,
           { ...current, config: next },
         ]);
+        if (yield* Ref.get(held)) return;
         if (!previous) {
           yield* enqueueRefresh();
           return;
@@ -849,13 +854,7 @@ export function layerSource(
         }
       });
 
-      const initial = options?.initial;
-      if (initial && options.deferOpen)
-        yield* Ref.update(state, (current) => ({
-          ...current,
-          config: initial,
-        }));
-      else if (initial) yield* configure(initial);
+      if (options?.initial) yield* configure(options.initial);
 
       return Connection.of({
         // A read before the first open waits for it, as callers once waited on
