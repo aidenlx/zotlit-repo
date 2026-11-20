@@ -30,7 +30,6 @@ export interface PublishedPlugin {
 export interface PluginBudget {
   readonly mainJsBytes: number;
   readonly stylesCssBytes: number;
-  readonly startupWarmMs?: number;
   readonly startupDailyMs?: number;
   readonly startupUpdateMs?: number;
 }
@@ -49,7 +48,6 @@ export const PUBLISHED_PLUGINS = {
     budget: {
       mainJsBytes: 5_000_000,
       stylesCssBytes: 146_143,
-      startupWarmMs: 90,
     },
     allowedRequires: [
       "obsidian",

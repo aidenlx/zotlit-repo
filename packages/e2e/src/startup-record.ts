@@ -20,9 +20,12 @@ export type StartupSummary = Record<
   Partial<Record<StartupMode, ModeStartup>>
 >;
 
+export const GATED_MODES = ["daily", "update"] as const;
+export type GatedMode = (typeof GATED_MODES)[number];
+
 export type StartupBudgets = Record<
   string,
-  Partial<Record<StartupMode, number | undefined>>
+  Partial<Record<GatedMode, number | undefined>>
 >;
 
 export const BUSY_LOAD_LIMIT = 10;
@@ -70,11 +73,13 @@ export function summarize(runs: readonly number[]): PluginStartup {
   };
 }
 
-const MODE_BUDGET_NAME: Record<StartupMode, string> = {
+export const MODE_BUDGET_NAME = {
   daily: "startupDailyMs",
   update: "startupUpdateMs",
-  reload: "startupWarmMs",
-};
+} as const satisfies Record<GatedMode, string>;
+
+const isGated = (mode: StartupMode): mode is GatedMode =>
+  (GATED_MODES as readonly string[]).includes(mode);
 
 export function startupCheck(
   summary: StartupSummary,
@@ -85,7 +90,7 @@ export function startupCheck(
   for (const [id, modes] of Object.entries(summary)) {
     for (const mode of STARTUP_MODES) {
       const measured = modes[mode];
-      const budget = budgets[id]?.[mode];
+      const budget = isGated(mode) ? budgets[id]?.[mode] : undefined;
       if (!measured) {
         if (budget !== undefined) {
           failures.push(
@@ -98,7 +103,7 @@ export function startupCheck(
         ? `, layout ready to snapshot gone ${measured.layoutToSnapshot.median} ms`
         : "";
       lines.push(
-        `${id} ${mode}: median ${measured.plugin.median} ms (${measured.plugin.min}-${measured.plugin.max})${snapshot}, ${budget === undefined ? `no ${MODE_BUDGET_NAME[mode]}` : `${MODE_BUDGET_NAME[mode]} ${budget} ms`}`,
+        `${id} ${mode}: median ${measured.plugin.median} ms (${measured.plugin.min}-${measured.plugin.max})${snapshot}, ${isGated(mode) ? (budget === undefined ? `no ${MODE_BUDGET_NAME[mode]}` : `${MODE_BUDGET_NAME[mode]} ${budget} ms`) : "trend, no budget"}`,
       );
       if (budget !== undefined && measured.plugin.median > budget) {
         failures.push(

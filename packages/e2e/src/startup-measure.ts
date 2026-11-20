@@ -44,6 +44,8 @@ import type { CpuProfile, ProfileSplit } from "./startup-profile.ts";
 import {
   BUSY_LOAD_LIMIT,
   busyReason,
+  GATED_MODES,
+  MODE_BUDGET_NAME,
   pluginStartupMs,
   STARTUP_MODES,
   startupCheck,
@@ -70,16 +72,10 @@ const MODE_TEXT: Record<StartupMode, string> = {
   reload: `reload: reload the window with the same bytes, after ${PRIMING_LOADS} priming reloads; a trend, not a cold start`,
 };
 
-const BUDGET_FIELD = {
-  daily: "startupDailyMs",
-  update: "startupUpdateMs",
-  reload: "startupWarmMs",
-} as const satisfies Record<StartupMode, string>;
-
 function renderReference(): string {
   const budgets = Object.values<PublishedPlugin>(PUBLISHED_PLUGINS).map(
     ({ app, budget }) =>
-      `  ${app}: ${STARTUP_MODES.map((mode) => `${mode} ${budget[BUDGET_FIELD[mode]] ?? "unset"}`).join(", ")}`,
+      `  ${app}: ${GATED_MODES.map((mode) => `${mode} ${budget[MODE_BUDGET_NAME[mode]] ?? "unset"}`).join(", ")}`,
   );
   return [
     "Needs desktop Obsidian 1.15.1 installed and the production builds in",
@@ -163,7 +159,7 @@ const budgets: StartupBudgets = Object.fromEntries(
     return [
       id,
       Object.fromEntries(
-        STARTUP_MODES.map((mode) => [mode, budget?.[BUDGET_FIELD[mode]]]),
+        GATED_MODES.map((mode) => [mode, budget?.[MODE_BUDGET_NAME[mode]]]),
       ),
     ];
   }),
