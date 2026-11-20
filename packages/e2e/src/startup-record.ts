@@ -1,4 +1,5 @@
-export type StartupMode = "cold" | "warm";
+export const STARTUP_MODES = ["daily", "update", "reload"] as const;
+export type StartupMode = (typeof STARTUP_MODES)[number];
 
 export interface PluginStartup {
   readonly median: number;
@@ -7,10 +8,32 @@ export interface PluginStartup {
   readonly runs: readonly number[];
 }
 
+export interface ModeStartup {
+  readonly plugin: PluginStartup;
+  readonly layoutToSnapshot?: PluginStartup;
+  readonly layoutToCallbacksDone?: PluginStartup;
+  readonly snapshotCapped: number;
+}
+
 export type StartupSummary = Record<
   string,
-  Partial<Record<StartupMode, PluginStartup>>
+  Partial<Record<StartupMode, ModeStartup>>
 >;
+
+export type StartupBudgets = Record<
+  string,
+  Partial<Record<StartupMode, number | undefined>>
+>;
+
+export const BUSY_LOAD_LIMIT = 10;
+
+export function busyReason(
+  loadAverage: number,
+  limit = BUSY_LOAD_LIMIT,
+): string | undefined {
+  if (loadAverage < limit) return undefined;
+  return `the machine is busy: the 1-minute load average is ${loadAverage.toFixed(1)}, at or above ${limit}, so a start-up time would measure the other work. Nothing was measured; run again when the machine is idle.`;
+}
 
 export function pluginStartupMs(
   devStartupJson: string,
@@ -47,25 +70,41 @@ export function summarize(runs: readonly number[]): PluginStartup {
   };
 }
 
+const MODE_BUDGET_NAME: Record<StartupMode, string> = {
+  daily: "startupDailyMs",
+  update: "startupUpdateMs",
+  reload: "startupWarmMs",
+};
+
 export function startupCheck(
   summary: StartupSummary,
-  budgets: Record<string, number | undefined>,
+  budgets: StartupBudgets,
 ): { lines: string[]; failures: string[] } {
   const lines: string[] = [];
   const failures: string[] = [];
   for (const [id, modes] of Object.entries(summary)) {
-    const { cold, warm } = modes;
-    const budget = budgets[id];
-    lines.push(
-      `${id}: warm median ${warm?.median ?? "?"} ms, cold median ${cold?.median ?? "?"} ms, ${budget === undefined ? "no warm budget" : `warm budget ${budget} ms`}`,
-    );
-    if (budget === undefined) continue;
-    if (!warm) {
-      failures.push(`${id}: no warm measurement to compare with ${budget} ms`);
-    } else if (warm.median > budget) {
-      failures.push(
-        `${id}: warm median ${warm.median} ms is above its budget of ${budget} ms by ${Math.round((warm.median - budget) * 10) / 10} ms`,
+    for (const mode of STARTUP_MODES) {
+      const measured = modes[mode];
+      const budget = budgets[id]?.[mode];
+      if (!measured) {
+        if (budget !== undefined) {
+          failures.push(
+            `${id} ${mode}: no measurement to compare with ${budget} ms`,
+          );
+        }
+        continue;
+      }
+      const snapshot = measured.layoutToSnapshot
+        ? `, layout ready to snapshot gone ${measured.layoutToSnapshot.median} ms`
+        : "";
+      lines.push(
+        `${id} ${mode}: median ${measured.plugin.median} ms (${measured.plugin.min}-${measured.plugin.max})${snapshot}, ${budget === undefined ? `no ${MODE_BUDGET_NAME[mode]}` : `${MODE_BUDGET_NAME[mode]} ${budget} ms`}`,
       );
+      if (budget !== undefined && measured.plugin.median > budget) {
+        failures.push(
+          `${id} ${mode}: median ${measured.plugin.median} ms is above its budget of ${budget} ms by ${Math.round((measured.plugin.median - budget) * 10) / 10} ms`,
+        );
+      }
     }
   }
   return { lines, failures };

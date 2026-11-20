@@ -1,6 +1,8 @@
+import { randomBytes } from "node:crypto";
 import {
   appendFile,
   copyFile,
+  cp,
   mkdir,
   readFile,
   rm,
@@ -8,6 +10,7 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
+import { loadavg } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import yargs from "yargs";
@@ -15,10 +18,15 @@ import { hideBin } from "yargs/helpers";
 
 import {
   acquireDesktopSlotOrExit,
+  EXIT_ADMISSION_BLOCKED,
   reportDesktopProgress,
   SILENCE_LIMIT_MS,
 } from "@zotlit/scripts/desktop-slot";
-import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
+import {
+  buildFixture,
+  discardFixture,
+  getFixtureLayout,
+} from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { PUBLISHED_PLUGINS } from "@zotlit/scripts/shell/plugins";
 import type { PublishedPlugin } from "@zotlit/scripts/shell/plugins";
@@ -27,62 +35,103 @@ import {
   resolveVaultPlugins,
 } from "@zotlit/scripts/vault-plugins";
 
-import { prepareRunWindow } from "./background-throttling.ts";
-import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
-import { pluginStartupMs, startupCheck, summarize } from "./startup-record.ts";
-import type { StartupMode, StartupSummary } from "./startup-record.ts";
+import { cdpEval, instanceLayout, launchInstance } from "./startup-instance.ts";
+import type { InstanceLayout } from "./startup-instance.ts";
+import { probePluginFiles } from "./startup-probe.ts";
+import type { ProbeConfig, ProbeResult } from "./startup-probe.ts";
+import { splitProfile } from "./startup-profile.ts";
+import type { CpuProfile, ProfileSplit } from "./startup-profile.ts";
 import {
-  clearVault,
-  e2eVaultDir,
-  isObsidianReachable,
-  vaultScript,
-} from "./vault-script.ts";
+  BUSY_LOAD_LIMIT,
+  busyReason,
+  pluginStartupMs,
+  STARTUP_MODES,
+  startupCheck,
+  summarize,
+} from "./startup-record.ts";
+import type {
+  ModeStartup,
+  StartupBudgets,
+  StartupMode,
+  StartupSummary,
+} from "./startup-record.ts";
 
-const WARM_PRIMING_LOADS = 2;
+const PRIMING_LOADS = 2;
 const SETTLE_MS = 3000;
 const DEFAULT_RUNS = 5;
-const MODES = ["cold", "warm"] as const;
+const SAMPLING_INTERVAL_US = 100;
+const SNAPSHOT_DELAY_MS = 100;
+const ZOTERO_PATHS_KEY = "zotlit-zotero-paths";
+
+const MODE_TEXT: Record<StartupMode, string> = {
+  daily: `daily: quit and launch Obsidian again with the same main.js bytes, after ${PRIMING_LOADS} priming launches, so the V8 code cache on disk applies`,
+  update:
+    "update: quit and launch Obsidian again with new main.js bytes each time, the first start after a plugin update",
+  reload: `reload: reload the window with the same bytes, after ${PRIMING_LOADS} priming reloads; a trend, not a cold start`,
+};
+
+const BUDGET_FIELD = {
+  daily: "startupDailyMs",
+  update: "startupUpdateMs",
+  reload: "startupWarmMs",
+} as const satisfies Record<StartupMode, string>;
 
 function renderReference(): string {
   const budgets = Object.values<PublishedPlugin>(PUBLISHED_PLUGINS).map(
     ({ app, budget }) =>
-      `  ${app}: ${budget.startupWarmMs === undefined ? "no warm budget, medians recorded only" : `warm median at most ${budget.startupWarmMs} ms`}`,
+      `  ${app}: ${STARTUP_MODES.map((mode) => `${mode} ${budget[BUDGET_FIELD[mode]] ?? "unset"}`).join(", ")}`,
   );
   return [
-    "Needs desktop Obsidian with the CLI enabled and the production builds",
-    "in apps/<app>/dist (pnpm check:bundle). Takes an Exclusive Hold.",
+    "Needs desktop Obsidian 1.15.1 installed and the production builds in",
+    "apps/<app>/dist (pnpm check:bundle). Takes an Exclusive Hold, and starts",
+    "an Obsidian instance of its own, with its own HOME and user data folder;",
+    "the Obsidian windows already open stay as they are.",
     "",
-    "Modes, in this order:",
-    "  cold: a new comment in each main.js per load, so no V8 code cache matches",
-    `  warm: the same bytes each load, after ${WARM_PRIMING_LOADS} priming loads that are not counted`,
-    "Each load reloads the window and waits for the layout and every plugin,",
-    `then waits ${SETTLE_MS} ms and reads communityPlugins.<id> from dev:startup.`,
+    "Each plugin is measured alone, in a vault that enables only that plugin and",
+    "a probe plugin after it. Modes, in this order:",
+    ...STARTUP_MODES.map((mode) => `  ${MODE_TEXT[mode]}`),
+    "Each start reads communityPlugins.<id> from dev:startup and the time from",
+    "layout ready until the start-up snapshot goes.",
     "",
-    "Warm budgets (--check, from PUBLISHED_PLUGINS budget.startupWarmMs):",
+    `Refuses with exit ${EXIT_ADMISSION_BLOCKED} while the 1-minute load average is at or above --max-load (${BUSY_LOAD_LIMIT}).`,
+    "",
+    "Budgets (--check, from PUBLISHED_PLUGINS budget):",
     ...budgets,
     "",
     "Output:",
-    "  .scratch/startup-measure/<time>/summary.json and dev-startup.jsonl",
+    "  .scratch/startup-measure/<time>/summary.json, dev-startup.jsonl,",
+    "  and with --profile, <id>.cpuprofile and profile.json",
   ].join("\n");
 }
 
 const options = await yargs(hideBin(process.argv))
   .usage(
-    "measure:startup: the cold and warm start-up of each plugin's production build, from `dev:startup` after fresh window loads",
+    "measure:startup: the cold start of each plugin's production build, as Obsidian records it, on a quit and a new launch of Obsidian",
   )
   .option("plugins", pluginsOption)
   .option("runs", {
-    describe: "counted window loads per mode",
+    describe: "counted starts per mode",
     type: "number",
     default: DEFAULT_RUNS,
   })
   .option("check", {
-    describe: "fail when a warm median is above its plugin's startupWarmMs",
+    describe: "fail when a median is above the plugin's budget for its mode",
     type: "boolean",
     default: false,
   })
+  .option("profile", {
+    describe:
+      "after the modes, take a CPU profile of one daily start per plugin",
+    type: "boolean",
+    default: false,
+  })
+  .option("max-load", {
+    describe: "refuse to measure at or above this 1-minute load average",
+    type: "number",
+    default: BUSY_LOAD_LIMIT,
+  })
   .option("keep", {
-    describe: "keep the vault and the Fixture after the run",
+    describe: "keep the instance folders and the Fixture after the run",
     type: "boolean",
     default: false,
   })
@@ -91,26 +140,34 @@ const options = await yargs(hideBin(process.argv))
   .version(false)
   .parse();
 
-const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
-const scratch = join(workspaceRoot, ".scratch", "startup-measure");
-const fixture = getFixtureLayout(join(scratch, "fixture"));
-const vaultPath = e2eVaultDir(workspaceRoot, "startup-measure");
-const runVaultScript = vaultScript(workspaceRoot, fixture.root);
-const plugins = await resolveVaultPlugins(workspaceRoot, options.plugins);
-const ids = plugins.map(({ id }) => id);
-const budgets = Object.fromEntries(
-  plugins.map(({ id, app }) => [
-    id,
-    Object.values<PublishedPlugin>(PUBLISHED_PLUGINS).find(
-      (plugin) => plugin.app === app,
-    )?.budget.startupWarmMs,
-  ]),
-);
-
 const log = (message: string): void => {
   console.error(message);
   reportDesktopProgress(message);
 };
+
+function refuseWhenBusy(): void {
+  const reason = busyReason(loadavg()[0]!, options.maxLoad);
+  if (!reason) return;
+  console.error(`measure:startup: ${reason}`);
+  process.exit(EXIT_ADMISSION_BLOCKED);
+}
+
+const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
+const scratch = join(workspaceRoot, ".scratch", "startup-measure");
+const plugins = await resolveVaultPlugins(workspaceRoot, options.plugins);
+const budgets: StartupBudgets = Object.fromEntries(
+  plugins.map(({ id, app }) => {
+    const budget = Object.values<PublishedPlugin>(PUBLISHED_PLUGINS).find(
+      (plugin) => plugin.app === app,
+    )?.budget;
+    return [
+      id,
+      Object.fromEntries(
+        STARTUP_MODES.map((mode) => [mode, budget?.[BUDGET_FIELD[mode]]]),
+      ),
+    ];
+  }),
+);
 
 const bundles = await Promise.all(
   plugins.map(async ({ id, app }) => {
@@ -123,24 +180,20 @@ const bundles = await Promise.all(
     return {
       id,
       dist,
-      dir: join(vaultPath, ".obsidian", "plugins", id),
       mainJs: mainJs.replace(/\n?\/\/# sourceMappingURL=\S+\s*$/, "\n"),
     };
   }),
 );
+type Bundle = (typeof bundles)[number];
 
-if (!(await isObsidianReachable(workspaceRoot))) {
-  log(
-    "No desktop Obsidian answers the CLI. Start Obsidian with the command line interface enabled, then run the script again. Nothing was measured.",
-  );
-  process.exit(1);
-}
+refuseWhenBusy();
 using _desktopSlot = await acquireDesktopSlotOrExit({
   cwd: workspaceRoot,
   command: "measure:startup",
   silenceMs: SILENCE_LIMIT_MS.e2e,
   exclusive: true,
 });
+refuseWhenBusy();
 
 await using offlineZotero = createServer((socket) => socket.destroy());
 await new Promise<void>((resolve, reject) => {
@@ -154,97 +207,290 @@ const outDir = join(
   Temporal.Now.instant().toString().replaceAll(":", "-").slice(0, 19),
 );
 await mkdir(outDir, { recursive: true });
+const fixture = getFixtureLayout(join(outDir, "fixture"));
 
-let vaultId = "";
-
-async function install(nonce: string): Promise<void> {
-  for (const { dir, dist, mainJs } of bundles) {
-    await rm(join(dir, ".hotreload"), { force: true });
-    await rm(join(dir, "main.js.map"), { force: true });
-    await writeFile(join(dir, "main.js"), `${mainJs}/* ${nonce} */\n`);
-    for (const file of ["styles.css", "manifest.json"]) {
-      await copyFile(join(dist, file), join(dir, file));
-    }
-  }
-  await writeFile(
-    join(vaultPath, ".obsidian", "community-plugins.json"),
-    JSON.stringify(ids),
-  );
+interface Start {
+  readonly ms: number;
+  readonly layoutToSnapshot?: number;
+  readonly layoutToCallbacksDone?: number;
+  readonly capped: boolean;
 }
 
-async function loadWindow(): Promise<Record<string, number>> {
-  await obRun(vaultId, () => {
-    setTimeout(() => location.reload(), 50);
-  });
-  await delay(1500);
-  await obRunUntil(
-    vaultId,
-    ({ app }, { ids }) =>
-      app.workspace.layoutReady &&
-      ids.every((id) => app.plugins.plugins[id] !== undefined),
-    { ids },
-    { what: "the reloaded window to load every plugin", tries: 240 },
-  );
-  await delay(SETTLE_MS);
-  const capture = await cli([`vault=${vaultId}`, "dev:startup", "format=json"]);
-  await appendFile(
-    join(outDir, "dev-startup.jsonl"),
-    `${capture.replaceAll("\n", "")}\n`,
-  );
-  return pluginStartupMs(capture, ids);
-}
-
-async function measure(mode: StartupMode): Promise<Record<string, number[]>> {
-  const runs: Record<string, number[]> = Object.fromEntries(
-    ids.map((id) => [id, []]),
-  );
-  const warmNonce = `warm-${Temporal.Now.instant().epochMilliseconds}`;
-  const prime = mode === "warm" ? WARM_PRIMING_LOADS : 0;
-  for (let run = 1 - prime; run <= options.runs; run++) {
-    await install(
-      mode === "warm"
-        ? warmNonce
-        : `cold-${Temporal.Now.instant().epochMilliseconds}-${run}`,
+function readStart(id: string, mode: StartupMode, result: ProbeResult): Start {
+  const ms = pluginStartupMs(result.devStartup, [id])[id]!;
+  const { layoutReady, callbacksDone, snapshotGone } = result.times;
+  const shown = result.times.snapshotShown && snapshotGone !== undefined;
+  if (mode !== "reload" && !shown) {
+    log(
+      `${id} ${mode}: the start-up snapshot was not on screen at layout ready`,
     );
-    await delay(500);
-    const loaded = await loadWindow();
-    log(`${mode} load ${run}: ${JSON.stringify(loaded)}`);
-    if (run < 1) continue;
-    for (const id of ids) runs[id]!.push(loaded[id]!);
   }
-  return runs;
+  return {
+    ms,
+    layoutToSnapshot:
+      shown && layoutReady !== undefined
+        ? snapshotGone - layoutReady
+        : undefined,
+    layoutToCallbacksDone:
+      layoutReady !== undefined && callbacksDone !== undefined
+        ? callbacksDone - layoutReady
+        : undefined,
+    capped:
+      shown &&
+      callbacksDone !== undefined &&
+      snapshotGone < callbacksDone + SNAPSHOT_DELAY_MS - 5,
+  };
 }
 
-const summary: StartupSummary = Object.fromEntries(ids.map((id) => [id, {}]));
+function modeStartup(starts: readonly Start[]): ModeStartup {
+  const values = (pick: (start: Start) => number | undefined): number[] =>
+    starts.flatMap((start) => {
+      const value = pick(start);
+      return value === undefined ? [] : [Math.round(value * 10) / 10];
+    });
+  const snapshot = values((start) => start.layoutToSnapshot);
+  const callbacks = values((start) => start.layoutToCallbacksDone);
+  return {
+    plugin: summarize(starts.map(({ ms }) => ms)),
+    layoutToSnapshot: snapshot.length ? summarize(snapshot) : undefined,
+    layoutToCallbacksDone: callbacks.length ? summarize(callbacks) : undefined,
+    snapshotCapped: starts.filter(({ capped }) => capped).length,
+  };
+}
+
+async function setUp(
+  layout: InstanceLayout,
+  holdsZotLit: boolean,
+): Promise<void> {
+  await using instance = await launchInstance(layout, { devtools: true, log });
+  using page = await instance.devtools();
+  for (let tries = 0; ; tries++) {
+    if (
+      await cdpEval<boolean>(
+        page,
+        "!!window.app?.workspace?.layoutReady",
+      ).catch(() => false)
+    )
+      break;
+    if (tries > 300)
+      throw new Error("the measure vault never reached layout ready");
+    await delay(100);
+  }
+  const version = await cdpEval<string>(
+    page,
+    `require("@electron/remote").app.getVersion()`,
+  );
+  if (version !== "1.15.1") {
+    throw new Error(
+      `the measure instance runs Obsidian ${version}; it needs 1.15.1`,
+    );
+  }
+  const paths = { profileDir: fixture.profileDir, dataDir: fixture.dataDir };
+  const stored = await cdpEval<unknown>(
+    page,
+    `(() => {
+      ${holdsZotLit ? `app.saveLocalStorage(${JSON.stringify(ZOTERO_PATHS_KEY)}, ${JSON.stringify(paths)});` : ""}
+      localStorage.setItem("enable-plugin-" + app.appId, "true");
+      return app.loadLocalStorage(${JSON.stringify(ZOTERO_PATHS_KEY)});
+    })()`,
+  );
+  if (holdsZotLit && JSON.stringify(stored) !== JSON.stringify(paths)) {
+    throw new Error(
+      `the Fixture paths did not reach the measure vault: ${JSON.stringify(stored)}`,
+    );
+  }
+  await cdpEval(
+    page,
+    `setTimeout(() => require("@electron/remote").app.quit(), 0), true`,
+  );
+  await instance.exited;
+}
+
+async function measurePlugin(bundle: Bundle): Promise<{
+  modes: Partial<Record<StartupMode, ModeStartup>>;
+  profile?: ProfileSplit;
+}> {
+  const { id } = bundle;
+  const layout = instanceLayout(
+    join(outDir, id),
+    randomBytes(8).toString("hex"),
+  );
+  const pluginsDir = join(layout.vaultPath, ".obsidian", "plugins");
+  const holdsZotLit = id === "zotlit";
+  const report = holdsZotLit
+    ? `(() => { const services = app.plugins.plugins.zotlit.services; return services.bridge.runSync(services.zoteroPref.current).databasePath; })()`
+    : "";
+  const probe = (role: ProbeConfig["role"]) =>
+    probePluginFiles({
+      role,
+      resultDir: layout.resultDir,
+      settleMs: SETTLE_MS,
+      samplingIntervalUs: SAMPLING_INTERVAL_US,
+      report,
+    });
+  const probes = { probe: probe("probe"), gate: probe("gate") };
+
+  await cp(fixture.vaultDir, layout.vaultPath, { recursive: true });
+  await rm(join(pluginsDir, "hot-reload"), { recursive: true, force: true });
+  for (const files of Object.values(probes)) {
+    await mkdir(join(pluginsDir, files.id), { recursive: true });
+    await writeFile(
+      join(pluginsDir, files.id, "manifest.json"),
+      files.manifest,
+    );
+    await writeFile(join(pluginsDir, files.id, "main.js"), files.mainJs);
+  }
+  const pluginDir = join(pluginsDir, id);
+  await mkdir(pluginDir, { recursive: true });
+  for (const file of ["styles.css", "manifest.json"]) {
+    await copyFile(join(bundle.dist, file), join(pluginDir, file));
+  }
+
+  const enable = async (gate: boolean) =>
+    writeFile(
+      join(layout.vaultPath, ".obsidian", "community-plugins.json"),
+      JSON.stringify([...(gate ? [probes.gate.id] : []), id, probes.probe.id]),
+    );
+  const install = async (nonce?: string) => {
+    await writeFile(
+      join(pluginDir, "main.js"),
+      nonce === undefined ? bundle.mainJs : `${bundle.mainJs}/* ${nonce} */\n`,
+    );
+  };
+  const check = (result: ProbeResult) => {
+    if (holdsZotLit && result.report !== fixture.databasePath) {
+      throw new Error(
+        `ZotLit read ${String(result.report)}, not the Fixture database ${fixture.databasePath}`,
+      );
+    }
+  };
+  const record = async (mode: string, result: ProbeResult) => {
+    await appendFile(
+      join(outDir, "dev-startup.jsonl"),
+      `${JSON.stringify({ id, mode, devStartup: JSON.parse(result.devStartup), times: result.times })}\n`,
+    );
+  };
+
+  await setUp(layout, holdsZotLit);
+  await install();
+  await enable(false);
+
+  const launchOnce = async (
+    mode: StartupMode,
+    label: string,
+  ): Promise<ProbeResult> => {
+    await using instance = await launchInstance(layout, { log });
+    const result = await instance.nextResult();
+    await instance.next("quit");
+    check(result);
+    await record(mode, result);
+    log(
+      `${id} ${mode} ${label}: ${pluginStartupMs(result.devStartup, [id])[id]} ms`,
+    );
+    return result;
+  };
+
+  const modes: Partial<Record<StartupMode, ModeStartup>> = {};
+  for (const mode of STARTUP_MODES) {
+    const starts: Start[] = [];
+    if (mode === "reload") {
+      await install();
+      await using instance = await launchInstance(layout, { log });
+      check(await instance.nextResult());
+      for (let run = 1 - PRIMING_LOADS; run <= options.runs; run++) {
+        await instance.next("reload");
+        const result = await instance.nextResult();
+        check(result);
+        await record(mode, result);
+        log(
+          `${id} reload ${run}: ${pluginStartupMs(result.devStartup, [id])[id]} ms`,
+        );
+        if (run >= 1) starts.push(readStart(id, mode, result));
+      }
+      await instance.next("quit");
+    } else {
+      const prime = mode === "daily" ? PRIMING_LOADS : 0;
+      for (let run = 1 - prime; run <= options.runs; run++) {
+        if (mode === "update")
+          await install(
+            `update-${Temporal.Now.instant().epochMilliseconds}-${run}`,
+          );
+        const result = await launchOnce(mode, `start ${run}`);
+        if (run >= 1) starts.push(readStart(id, mode, result));
+      }
+    }
+    modes[mode] = modeStartup(starts);
+  }
+
+  let profile: ProfileSplit | undefined;
+  if (options.profile) {
+    await install();
+    await enable(true);
+    await launchOnce("daily", "profile warm-up");
+    const result = await launchOnce("daily", "profile");
+    const recorded = JSON.parse(
+      await readFile(join(layout.resultDir, result.profile!), "utf8"),
+    ) as CpuProfile;
+    await writeFile(join(outDir, `${id}.cpuprofile`), JSON.stringify(recorded));
+    profile = splitProfile(
+      recorded,
+      result.times,
+      pluginStartupMs(result.devStartup, [id])[id]!,
+    );
+    await enable(false);
+  }
+  return { modes, profile };
+}
+
+const summary: StartupSummary = {};
+const profiles: Record<string, ProfileSplit> = {};
+const loadAtStart = loadavg()[0]!;
 try {
-  await clearVault(runVaultScript, vaultPath);
-  for (const { dir } of bundles) await mkdir(dir, { recursive: true });
-  await install("seed");
-  const created = await runVaultScript([
-    "open",
-    vaultPath,
-    `--plugins=${ids.join(",")}`,
-    `--zotero-http-port=${offlinePort}`,
-  ]);
-  vaultId = created.stdout.trim().split("\n")[0]!.trim();
-  await prepareRunWindow(vaultId);
-  for (const mode of MODES) {
-    const runs = await measure(mode);
-    for (const id of ids) summary[id]![mode] = summarize(runs[id]!);
+  await buildFixture(fixture, { zoteroHttpPort: offlinePort });
+  for (const bundle of bundles) {
+    const measured = await measurePlugin(bundle);
+    summary[bundle.id] = measured.modes;
+    if (measured.profile) profiles[bundle.id] = measured.profile;
   }
 } finally {
   if (!options.keep) {
-    await runVaultScript(["remove", vaultPath, "--purge"]).catch(
-      (error: unknown) => log(`could not remove the vault: ${String(error)}`),
-    );
+    for (const { id } of bundles) {
+      await rm(join(outDir, id), { recursive: true, force: true });
+    }
     await discardFixture(fixture);
   }
 }
 
-await writeFile(join(outDir, "summary.json"), JSON.stringify(summary, null, 2));
+await writeFile(
+  join(outDir, "summary.json"),
+  JSON.stringify(
+    { load: { start: loadAtStart, end: loadavg()[0] }, summary },
+    null,
+    2,
+  ),
+);
+if (Object.keys(profiles).length) {
+  await writeFile(
+    join(outDir, "profile.json"),
+    JSON.stringify(profiles, null, 2),
+  );
+  for (const [id, split] of Object.entries(profiles)) {
+    console.log(
+      `${id} profile, communityPlugins ${split.pluginMs} ms, clock within ${split.clockErrorMs} ms:`,
+    );
+    for (const window of split.windows) {
+      console.log(
+        `  ${window.name}: ${window.wallMs} ms wall, ${window.busyMs} ms sampled; ${window.top.map(({ frame, ms }) => `${frame} ${ms}`).join("; ")}`,
+      );
+    }
+  }
+}
 console.log(JSON.stringify(summary, null, 2));
 const { lines, failures } = startupCheck(summary, budgets);
 for (const line of lines) console.log(line);
+console.log(
+  `load average ${loadAtStart.toFixed(1)} at the start, ${loadavg()[0]!.toFixed(1)} at the end`,
+);
 if (options.check) {
   for (const failure of failures) console.error(`✖ ${failure}`);
   if (failures.length) process.exitCode = 1;

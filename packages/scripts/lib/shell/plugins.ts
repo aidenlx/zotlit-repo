@@ -31,6 +31,8 @@ export interface PluginBudget {
   readonly mainJsBytes: number;
   readonly stylesCssBytes: number;
   readonly startupWarmMs?: number;
+  readonly startupDailyMs?: number;
+  readonly startupUpdateMs?: number;
 }
 
 export const PUBLISHED_PLUGINS = {
