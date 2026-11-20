@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Cause, Effect, Exit, Fiber, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Fiber, Layer, Option, Stream } from "effect";
 import type { App } from "obsidian";
 import { describe, expect } from "vitest";
 
@@ -43,6 +43,11 @@ function servicesWith(
     Layer.mock(ZoteroReads, {
       current: Effect.succeed(
         stubService<ZoteroReadsState>("ZoteroReadsState", { state }),
+      ),
+      changes: Stream.fromEffect(
+        Effect.succeed(
+          stubService<ZoteroReadsState>("ZoteroReadsState", { state }),
+        ),
       ),
       reads: stubService<ZoteroReadsApi>("ZoteroReads.reads", {}),
       snapshot,

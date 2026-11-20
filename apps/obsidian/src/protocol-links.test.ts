@@ -316,6 +316,11 @@ function servicesFor(setup: Setup = {}) {
           state: setup.state ?? "ready",
         }),
       ),
+      changes: Stream.make(
+        stubService<ZoteroReadsState>("ZoteroReadsState", {
+          state: setup.state ?? "ready",
+        }),
+      ),
       reads: readsApi,
       snapshot: Effect.succeed(readsApi),
     }),
@@ -591,7 +596,7 @@ describe("open-attachment protocol link", () => {
 
   it.effect("resolves no Attachments while the database is not ready", () =>
     Effect.gen(function* () {
-      yield* registerOpener("loading");
+      yield* registerOpener("degraded");
 
       expect(yield* dispatch("zotlit/open-attachment", { item: "9" })).toEqual(
         LinkOutcome.DatabaseUnavailable(),
@@ -1170,7 +1175,7 @@ describe("batch protocol links", () => {
 
   it.effect("opens no import while the database is not ready", () =>
     Effect.gen(function* () {
-      yield* register({ state: "loading" });
+      yield* register({ state: "degraded" });
 
       const outcome = yield* dispatch("zotlit/import-note", {
         item: "8",

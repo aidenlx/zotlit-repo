@@ -172,6 +172,35 @@ describe.skipIf(!reachable)("Window reload", () => {
     expect(startup.cached).toContain(false);
   }, 120000);
 
+  it("opens a zotlit/open link that arrives while the database is still opening", async () => {
+    const answer = await obRun(
+      vaultId,
+      async ({ app, zotlit, page }) => {
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({ type: "empty" });
+        await app.plugins.disablePlugin("zotlit");
+        await app.plugins.enablePlugin("zotlit");
+        const s = zotlit.services;
+        const atDispatch = s.bridge.runSync(s.zoteroReads.current).state;
+        app.workspace.protocolHandler.handlers.get("zotlit/open")!({
+          action: "zotlit/open",
+          item: "1",
+          "source-id": s.bridge.runSync(s.zoteroPref.current).sourceId!,
+        });
+        const opened = await page.until(
+          "the literature note of the link",
+          () => app.workspace.getActiveFile()?.path,
+          30000,
+        );
+        return { atDispatch, opened };
+      },
+      undefined,
+      { timeoutMs: 60000 },
+    );
+    expect(answer.atDispatch).toBe("loading");
+    expect(answer.opened).toMatch(/\.md$/);
+  }, 120000);
+
   it("uses page helpers after reload and on popout elements without helper setup", async () => {
     await reloadWindow(vaultId);
     const proof = await obRun(vaultId, async ({ app, page }) => {

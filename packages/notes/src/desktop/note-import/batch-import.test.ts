@@ -442,6 +442,13 @@ function layerOver(deps: ImportDeps): Layer.Layer<BatchImportServices> {
           state: deps.dbState,
         }),
       ),
+      changes: Stream.fromEffect(
+        Effect.sync(() =>
+          stubService<ZoteroReadsState>("ZoteroReadsState", {
+            state: deps.dbState,
+          }),
+        ),
+      ),
       reads: deps.zoteroReads.reads,
       snapshot: deps.zoteroReads.snapshot,
     }),

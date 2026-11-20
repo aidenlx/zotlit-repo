@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
-import { Effect, Layer, Logger, References } from "effect";
+import { Effect, Layer, Logger, References, Stream } from "effect";
 import { ButtonComponent, ConfirmationModal, TFile } from "obsidian";
 import type { App, Workspace } from "obsidian";
 import { expect, vi } from "vitest";
@@ -108,6 +108,13 @@ function actions(
         stubService<ZoteroReadsState>("ZoteroReadsState", {
           state: database.state,
         }),
+      ),
+      changes: Stream.fromEffect(
+        Effect.succeed(
+          stubService<ZoteroReadsState>("ZoteroReadsState", {
+            state: database.state,
+          }),
+        ),
       ),
       reads,
       snapshot: Effect.succeed(reads),

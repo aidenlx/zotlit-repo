@@ -1,7 +1,7 @@
 // The checks every `obsidian://zotlit/<action>` link passes before its
 // handler acts: the query parses, it names this Zotero, the database is
 // ready, and the item it names is live.
-import { Effect, Result } from "effect";
+import { Effect, Option, Result, Stream } from "effect";
 import type { ObsidianProtocolData } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
@@ -55,10 +55,13 @@ export function parseProtocolData<Query extends { sourceId: string }>(
 
 /** Whether the database is ready; when it is not, log it and say so. */
 export const databaseReady = Effect.fn("protocol.databaseReady")(function* (
-  zoteroReads: Pick<ZoteroReads["Service"], "current">,
+  zoteroReads: Pick<ZoteroReads["Service"], "changes">,
   action: string,
 ) {
-  if ((yield* zoteroReads.current).state === "ready") return true;
+  const settled = yield* Stream.runHead(
+    Stream.filter(zoteroReads.changes, (state) => state.state !== "loading"),
+  );
+  if (Option.isSome(settled) && settled.value.state === "ready") return true;
   yield* Effect.logWarning("Protocol handler: database not ready").pipe(
     Effect.annotateLogs({ action }),
     withLogCategory("protocol"),

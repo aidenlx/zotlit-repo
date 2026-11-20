@@ -33,6 +33,7 @@ import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/servic
 import type { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { lastmodFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { databaseReady as sharedDatabaseReady } from "@zotlit/plugin-services/obsidian/protocol/link.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ImportMode } from "@zotlit/protocol";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
@@ -150,10 +151,10 @@ export type BatchImportResult =
   | { outcome: "single"; write: WriteOutcome; title: string }
   | { outcome: "cancelled" };
 
-/** Whether the database answers reads now. */
-const databaseReady = Effect.gen(function* () {
-  return (yield* (yield* ZoteroReads).current).state === "ready";
-});
+/** Whether the database answers reads, once its first open settled. */
+const databaseReady = Effect.flatMap(ZoteroReads, (zoteroReads) =>
+  sharedDatabaseReady(zoteroReads, "batch-import"),
+);
 
 /**
  * Explicitly import notes by `itemIDs`, routing on mode + count (mirrors

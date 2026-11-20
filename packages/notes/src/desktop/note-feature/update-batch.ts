@@ -38,6 +38,7 @@ import {
   itemKeyFromFrontmatter,
   NoteIndex,
 } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { databaseReady as sharedDatabaseReady } from "@zotlit/plugin-services/obsidian/protocol/link.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { readDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
 import type { ItemDisplayRef } from "@zotlit/zotero-reads/client/display-ref.ts";
@@ -204,10 +205,10 @@ export interface BatchUpdateOptions {
 /** `value` as a {@link BatchUpdateResult}, so each branch returns one type. */
 const updateResult = (value: BatchUpdateResult): BatchUpdateResult => value;
 
-/** Whether the database answers reads now. */
-const databaseReady = Effect.gen(function* () {
-  return (yield* (yield* ZoteroReads).current).state === "ready";
-});
+/** Whether the database answers reads, once its first open settled. */
+const databaseReady = Effect.flatMap(ZoteroReads, (zoteroReads) =>
+  sharedDatabaseReady(zoteroReads, "batch-update"),
+);
 
 /** The first of `notes`, after a notice when the Item has more than one. */
 const literatureNoteWithWarning = Effect.fnUntraced(function* (

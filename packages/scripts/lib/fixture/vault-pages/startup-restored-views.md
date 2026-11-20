@@ -32,3 +32,10 @@ Expected, for each view, in this order:
 | Cited by | a short message, such as "Resolving citations…" | "4 notes · 4 citations" and the citing notes |
 
 The Cited by view never shows "Some citations that use citation keys may be unavailable." The developer console shows no ZotLit warning or error from the start-up.
+
+## A ZotLit link that starts Obsidian
+
+1. Quit Obsidian.
+2. Open an `obsidian://zotlit/open` link to an Item that has a literature note in this vault, for example from a Paired Run's Zotero, or paste `obsidian://zotlit/open?item=1&source-id=<id>` into a browser address bar, with `<id>` the `sourceId` that `zoteroPref.current` reports in this vault.
+
+Expected: Obsidian starts, restores its layout, and then opens the literature note of the Item. No notice says that the Zotero database is not ready, even though the link arrives before ZotLit has read the database.

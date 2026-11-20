@@ -383,6 +383,13 @@ function makeDeps(
             state: deps.dbState,
           }),
         ),
+        changes: Stream.fromEffect(
+          Effect.sync(() =>
+            stubService<ZoteroReadsState>("ZoteroReadsState", {
+              state: deps.dbState,
+            }),
+          ),
+        ),
         reads: zoteroReads.reads,
         snapshot: Effect.suspend(() => deps.snapshot),
       }),
@@ -1168,6 +1175,13 @@ describe("one item without additional Profiles", () => {
           stubService<ZoteroReadsState>("ZoteroReadsState", {
             state: "ready",
           }),
+        ),
+        changes: Stream.fromEffect(
+          Effect.succeed(
+            stubService<ZoteroReadsState>("ZoteroReadsState", {
+              state: "ready",
+            }),
+          ),
         ),
         reads,
         snapshot: Effect.succeed(reads),
