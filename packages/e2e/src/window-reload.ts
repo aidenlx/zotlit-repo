@@ -15,8 +15,8 @@ import { cli, obRun, obRunUntil, waitFor } from "./obsidian-cli.ts";
  * renamed path. A plugin reload (`plugin:reload`, the plugin toggle) subscribes
  * after the cache and hides such bugs.
  *
- * Pending ZotLit settings are flushed first, as a plugin reload does on
- * unload. The window's {@link prepareRunWindow} hooks die with it, so they are
+ * Pending ZotLit settings and the workspace layout are written first, as a
+ * plugin unload and an Obsidian quit do. The window's {@link prepareRunWindow} hooks die with it, so they are
  * taken down before the reload and put back after it.
  */
 export async function reloadWindow(vaultId: string): Promise<void> {
