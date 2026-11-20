@@ -106,13 +106,23 @@ describe("the handshake between a client and ZotLit Reader", () => {
 
   it("refuses a Reader whose minor is lower than the client needs", () => {
     const workspace = new Events();
-    answerConnect(workspace, new Map([[1, readerApi(1, 0)]]));
+    answerConnect(workspace, new Map([[1, readerApi(1, 1)]]));
 
-    const { answers } = client(workspace, { major: 1, minor: 1 });
+    const { answers } = client(workspace, { major: 1, minor: 2 });
 
     expect(answers).toEqual([
       { kind: "refuse", reason: { supported: [1], readerVersion: "1.2.0" } },
     ]);
+  });
+
+  it("accepts a Reader at the minor that adds the root part", () => {
+    const workspace = new Events();
+    const api = readerApi(1, 2);
+    answerConnect(workspace, new Map([[1, api]]));
+
+    const { answers } = client(workspace, { major: 1, minor: 2 });
+
+    expect(answers).toEqual([{ kind: "accept", api }]);
   });
 
   it("stops connecting after the client unsubscribes", () => {

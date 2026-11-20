@@ -145,6 +145,7 @@ class Reader<H> {
     this.#root = document.createElement("div");
     this.#root.className =
       "zpr-root zpr:relative zpr:flex zpr:h-full zpr:flex-col";
+    this.#root.dataset.zprPart = "root";
     this.#root.dataset.zprKind = options.kind;
     element.append(this.#root);
     this.#restoreSettings();

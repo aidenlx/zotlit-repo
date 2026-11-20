@@ -29,6 +29,7 @@ A listener that throws does not stop the other side: Obsidian's `Events` calls e
 - Major: a member goes or changes meaning, or a name in `READER_CSS_PARTS` is renamed or goes. Minor: a member is added.
 - A new name in `READER_CSS_PARTS` is a minor change; a rename is a major change.
 - Minor 1 adds the `onRefuse` option of `answerConnect`.
+- Minor 2 adds the `root` part: the Reader's root element in every kind (tab, embed, hover, canvas).
 - `apiByMajor` maps each supported major to an adapter of the current implementation. It holds N and N-1 for one release after a major change.
 - `onRefuse` names the plugin to update: when `supported` holds the client's major, or only majors below it, update ZotLit Reader; when it holds only majors above it, update the client.
 

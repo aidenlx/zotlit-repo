@@ -2927,6 +2927,20 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { attachmentPath }: { attachmentPath: string },
               ) => {
                 return getComputedStyle(
+                  pageHelpers.pdfView(attachmentPath)!.reader!.container,
+                ).cursor;
+              },
+              { attachmentPath },
+            ),
+          ).toBe("crosshair");
+          expect(
+            await obRun(
+              vaultId!,
+              async (
+                { page: pageHelpers },
+                { attachmentPath }: { attachmentPath: string },
+              ) => {
+                return getComputedStyle(
                   pageHelpers
                     .pdfView(attachmentPath)!
                     .reader!.pageAt(0)!

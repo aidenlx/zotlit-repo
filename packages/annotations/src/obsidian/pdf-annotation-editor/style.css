@@ -83,7 +83,7 @@
  * container, the element PDF.js scrolls, whose pages take it from there; the
  * toolbar and the sidebars keep their own touch scrolling.
  */
-:where([data-zt-inking] .zpr-root [data-zpr-part="scroller"]) {
+:where([data-zt-inking] [data-zpr-part="root"] [data-zpr-part="scroller"]) {
   touch-action: none;
 }
 
@@ -97,43 +97,46 @@
  * layer's own cursors, `.textLayer span[role="img"]` included, so they are
  * not under `:where()`.
  */
-[data-zt-armed="highlight"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="highlight"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="highlight"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]),
-[data-zt-armed="underline"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="underline"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="underline"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]),
-[data-zt-armed="text"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="text"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="text"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]) {
   cursor: text;
 }
 
-[data-zt-armed="note"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="note"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="note"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]) {
   cursor: copy;
 }
 
-[data-zt-armed="image"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="image"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="image"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]),
-[data-zt-armed="ink"] .zpr-root [data-zpr-part="scroller"],
+[data-zt-armed="ink"] [data-zpr-part="root"] [data-zpr-part="scroller"],
 [data-zt-armed="ink"]
-  .zpr-root
+  [data-zpr-part="root"]
   [data-zpr-part="scroller"]
   :not([data-zt-cursor]),
-[data-zt-armed="ink"] .zpr-root [data-zpr-part="scroller"] [data-zt-cursor] {
+[data-zt-armed="ink"]
+  [data-zpr-part="root"]
+  [data-zpr-part="scroller"]
+  [data-zt-cursor] {
   cursor: crosshair;
 }
 

@@ -1,7 +1,7 @@
 import type { PaneType, TFile, View } from "obsidian";
 
-export const READER_API = { major: 1, minor: 1 } as const;
-export const READER_CSS_PARTS = ["scroller", "toolbar"] as const;
+export const READER_API = { major: 1, minor: 2 } as const;
+export const READER_CSS_PARTS = ["root", "scroller", "toolbar"] as const;
 
 export type ReaderCssPart = (typeof READER_CSS_PARTS)[number];
 

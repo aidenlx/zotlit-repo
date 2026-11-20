@@ -39,7 +39,7 @@ it.skipIf(!testElectron)(
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 
     expect(report.identity).toEqual({
-      api: { major: 1, minor: 1 },
+      api: { major: 1, minor: 2 },
       readerVersion: "9.9.9-trial",
       pdfjsBuild: provenance.commit,
       viewType: "trial-pdf",
