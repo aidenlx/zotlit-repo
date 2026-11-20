@@ -1,3 +1,4 @@
+import type {} from "#core/library-scope/settings.ts";
 import type {
   SettingsKey,
   SettingTabContext,

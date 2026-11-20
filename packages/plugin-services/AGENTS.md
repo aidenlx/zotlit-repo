@@ -17,7 +17,7 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 ## Settings
 
-The settings are one flat key→value map, built from slices. A slice (`settingsSlice` in `core/settings/slice.ts`) holds the keys one owner keeps, their schemas and their defaults, and lives beside its owner. The type of every key comes from `SettingsRegistry` (`core/settings/schema.ts`): this package registers its own slices there, and each feature registers its own slices there the same way. The host composes the same slices into the `SettingsDefinition` that it gives `PluginSettings`, with the migrations of its `data.json` history (`apps/obsidian/src/services/settings/`). A feature adds a key to its own slice; it never adds one here.
+The settings are one flat key→value map, built from slices. A slice (`settingsSlice` in `core/settings/slice.ts`) holds the keys one owner keeps, their schemas and their defaults, and lives beside its owner. The type of every key comes from `SettingsRegistry` (`core/settings/schema.ts`): its base holds the log slice, which every host keeps, and each other slice, this package's and each feature's, registers itself by declaration merging in its own file. A key exists only in a program that holds its slice, so a module that reads a key and imports nothing from its slice imports it as a type: `import type {} from "#core/attachment-import/settings.ts";`. The host composes the same slices into the `SettingsDefinition` that it gives `PluginSettings`, with the migrations of its `data.json` history (`apps/obsidian/src/services/settings/`). A feature adds a key to its own slice; it never adds one here.
 
 ## Module resolution
 

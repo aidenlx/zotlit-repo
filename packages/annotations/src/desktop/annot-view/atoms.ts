@@ -21,6 +21,7 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import type {} from "@zotlit/plugin-services/core/local-server/settings.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { libraryTagNames } from "@zotlit/plugin-services/obsidian/database/library-tag-names.ts";
 import { readerTargetAtom } from "@zotlit/plugin-services/obsidian/local-server/atoms.ts";

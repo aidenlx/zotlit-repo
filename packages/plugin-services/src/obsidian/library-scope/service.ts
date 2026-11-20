@@ -1,5 +1,6 @@
 /** The live Library Scope, resolved against the Libraries held by QueryClients. */
 
+import type {} from "#core/library-scope/settings.ts";
 import type { Settings } from "#core/settings/schema.ts";
 import {
   Cause,

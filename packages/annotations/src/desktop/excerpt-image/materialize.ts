@@ -20,6 +20,7 @@ import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts"
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 

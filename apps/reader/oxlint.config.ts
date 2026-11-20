@@ -6,14 +6,18 @@ import {
   pluginCodeOverrides,
   pluginCodeRules,
   pluginTestImports,
-  runtimeImports,
+  readerImports,
 } from "@zotlit/config/oxlint-plugin-code";
 
 export default defineConfig({
   extends: [baseConfig],
   jsPlugins: pluginCodeJsPlugins,
-  rules: pluginCodeRules(runtimeImports),
+  rules: pluginCodeRules(readerImports),
   overrides: [
+    {
+      files: ["src/**"],
+      rules: { "import/no-nodejs-modules": "error" },
+    },
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     ...testBaselineOverrides("apps/reader"),
     {

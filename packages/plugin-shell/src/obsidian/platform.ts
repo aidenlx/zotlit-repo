@@ -1,18 +1,19 @@
-// The platform services as a feature every host composes: what of
-// `@zotlit/plugin-services` loads on every Obsidian, and the ports it reads
-// that a host's platform fills (the Zotero preferences, the Local Server, the
-// Zotero HTTP client, ZoteroReads).
+// The platform services as a feature every ZotLit host composes: the
+// Zotero-free `platformBase`, and what of `@zotlit/plugin-services` loads on
+// every Obsidian over Zotero, with the ports it reads that a host's platform
+// fills (the Zotero preferences, the Local Server, the Zotero HTTP client,
+// ZoteroReads).
 import { Effect, Layer, Stream } from "effect";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { attachmentSettings } from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import { databaseSettings } from "@zotlit/plugin-services/core/database/settings.ts";
 import { itemLookupSettings } from "@zotlit/plugin-services/core/item-lookup/settings.ts";
 import { libraryScopeSettings } from "@zotlit/plugin-services/core/library-scope/settings.ts";
 import { LocalServer } from "@zotlit/plugin-services/core/local-server/service.ts";
 import { serverSettings } from "@zotlit/plugin-services/core/local-server/settings.ts";
-import { logSettings } from "@zotlit/plugin-services/core/log/settings.ts";
 import {
   layerQueryClients,
   QueryClients,
@@ -35,8 +36,6 @@ import {
   ItemLookup,
   layerItemLookup,
 } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-import { layerLanguagePackNotices } from "@zotlit/plugin-services/obsidian/language-pack/notices.ts";
-import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { layerLibraryScopeCli } from "@zotlit/plugin-services/obsidian/library-scope/cli.ts";
 import { layerLibraryScopeNotices } from "@zotlit/plugin-services/obsidian/library-scope/notices.ts";
 import {
@@ -44,11 +43,7 @@ import {
   LibraryScope,
   scopeChanges,
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
-import {
-  decodeLogLevel,
-  encodeLogLevel,
-  LOG_LEVEL_KEY,
-} from "@zotlit/plugin-services/obsidian/log/settings-rows.ts";
+import { localServerItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
 import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
 import { layerManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
 import {
@@ -67,15 +62,13 @@ import { SecretWriteAuthorizationStore } from "@zotlit/plugin-services/obsidian/
 import { acquireReadLease } from "@zotlit/zotero-reads/client/lease.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { defineFeature, registration, serviceGroup } from "./feature.ts";
-import { advancedPage } from "./setting-pages/advanced.ts";
+import { extendFeature, registration, serviceGroup } from "./feature.ts";
+import { platformBase } from "./platform-base.ts";
+import { advancedPageSlots } from "./setting-pages/advanced.ts";
 import { zoteroPage } from "./setting-pages/zotero.ts";
-import { settingCodec } from "./setting-tab/controls.ts";
 
-export const platform = defineFeature({
-  name: "platform",
+export const platform = extendFeature(platformBase, {
   settings: [
-    logSettings,
     itemLookupSettings,
     serverSettings,
     databaseSettings,
@@ -138,26 +131,24 @@ export const platform = defineFeature({
   ],
   registrations: [
     registration("DatabaseActions", layerDatabaseActions),
-    registration("LanguagePackNotices", layerLanguagePackNotices),
     registration("LibraryScopeCli", layerLibraryScopeCli),
     registration("LibraryScopeNotices", layerLibraryScopeNotices),
   ],
   settingTab: {
     entries: {
       zotero: (ctx) => [zoteroPage(ctx)],
-      advanced: (ctx) => [advancedPage(ctx)],
     },
-    controls: [
-      // Log level stores `LogLevel | null`; its dropdown reads a string.
-      settingCodec(
-        (key) => key === LOG_LEVEL_KEY,
-        encodeLogLevel,
-        decodeLogLevel,
-      ),
-    ],
+    slots: {
+      [advancedPageSlots.localServer]: (ctx) => [
+        {
+          type: "group",
+          id: "settings_advanced_local_server",
+          heading: m.settings_advanced_local_server_heading(),
+          items: localServerItems(ctx),
+        },
+      ],
+    },
     rebuild: [
-      // The Language Pack row stands only while a pack is offered.
-      Effect.map(LanguagePack, (pack) => Stream.drop(pack.changes, 1)),
       Effect.map(ChineseSegmenter, (segmenter) =>
         Stream.drop(segmenter.changes, 1),
       ),

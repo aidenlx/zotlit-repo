@@ -1,3 +1,4 @@
+import type {} from "#core/item-lookup/settings.ts";
 import type { PluginSettings } from "#obsidian/settings/service.ts";
 import { renderMatches } from "obsidian";
 import type { SearchMatches } from "obsidian";

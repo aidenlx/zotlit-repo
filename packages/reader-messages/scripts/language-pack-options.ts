@@ -12,11 +12,13 @@ export const INCLUDE_MESSAGE_PREFIXES = [
 ] as const;
 
 export const INCLUDE_MESSAGES = [
+  "modal_cancel",
   "settings_failed_save",
   "settings_failed_language_pack_reset",
   "settings_page_advanced",
   "settings_page_advanced_desc",
   "settings_advanced_logging_heading",
+  "settings_advanced_recovery_heading",
   "notice_export_log_file_failed",
   "notice_open_log_file_failed",
 ] as const;

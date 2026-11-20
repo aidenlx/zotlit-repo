@@ -1,7 +1,8 @@
 // The lint rules of the ZotLit Obsidian plugin's code: the app
 // (apps/obsidian) and the plugin packages it bundles (plugin-kernel,
 // obsidian-kit, obsidian-desktop, zotero-reads, plugin-services, annotations,
-// citations, notes, template-workbench, query-views, library-view).
+// citations, notes, template-workbench, query-views, library-view), and
+// ZotLit Reader (apps/reader, reader-feature).
 // Each of those lint configs spreads these and adds the overrides that name its
 // own files.
 import { join } from "node:path";
@@ -153,6 +154,56 @@ export function withPatterns(
 ): RestrictedImports {
   return { ...options, patterns: [...options.patterns, ...patterns] };
 }
+
+export const readerImports: RestrictedImports = withPatterns(runtimeImports, [
+  {
+    group: [
+      "electron",
+      "electron/**",
+      "@electron/remote",
+      "@electron/remote/**",
+      "@effect/platform-node",
+      "@effect/platform-node/**",
+      "@zotlit/obsidian-desktop",
+      "@zotlit/obsidian-desktop/**",
+      "@zotlit/plugin-services/desktop/**",
+      "@zotlit/plugin-shell/desktop/**",
+    ],
+    message:
+      "ZotLit Reader loads on Obsidian Mobile, where Node and Electron are absent.",
+  },
+  {
+    group: [
+      "@zotlit/annotations",
+      "@zotlit/annotations/**",
+      "@zotlit/citations",
+      "@zotlit/citations/**",
+      "@zotlit/db",
+      "@zotlit/db/**",
+      "@zotlit/item-lookup",
+      "@zotlit/item-lookup/**",
+      "@zotlit/item-query",
+      "@zotlit/item-query/**",
+      "@zotlit/library-view",
+      "@zotlit/library-view/**",
+      "@zotlit/notes",
+      "@zotlit/notes/**",
+      "@zotlit/protocol",
+      "@zotlit/protocol/**",
+      "@zotlit/query-views",
+      "@zotlit/query-views/**",
+      "@zotlit/template-workbench",
+      "@zotlit/template-workbench/**",
+      "@zotlit/zotero-reads",
+      "@zotlit/zotero-reads/**",
+      "@zotlit/zotero-types",
+      "@zotlit/zotero-types/**",
+      "@zotlit/plugin-shell/obsidian/platform.ts",
+    ],
+    message:
+      "ZotLit Reader works without Zotero: it composes platformBase, and ZotLit adds its Zotero features through the reader's extensions.",
+  },
+]);
 
 /** The top-level rules of plugin code; `imports` is its `no-restricted-imports`. */
 export function pluginCodeRules(imports: RestrictedImports): DummyRuleMap {

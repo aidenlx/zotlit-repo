@@ -6,7 +6,7 @@ import { withHost } from "./services/settings/layer.ts";
 export const host = defineHost({
   features,
   settings: withHost({}),
-  settingTab: { top: [], pages: [] },
+  settingTab: { top: [], pages: ["advanced"] },
   fileMenu: [],
   folderMenu: [],
 });

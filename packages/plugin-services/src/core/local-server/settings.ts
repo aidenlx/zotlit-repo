@@ -1,4 +1,6 @@
 // The Local Server keys of the plugin settings.
+
+import type { SliceSettings } from "#core/settings/slice.ts";
 import * as v from "valibot";
 
 import { settingsNumber, settingsSlice } from "#core/settings/slice.ts";
@@ -26,3 +28,8 @@ export const serverSettings = settingsSlice(
     "server.hostname": "127.0.0.1",
   },
 );
+
+declare module "#core/settings/schema.ts" {
+  // oxlint-disable-next-line typescript/no-empty-object-type -- the slice adds its keys by declaration merging
+  interface SettingsRegistry extends SliceSettings<typeof serverSettings> {}
+}

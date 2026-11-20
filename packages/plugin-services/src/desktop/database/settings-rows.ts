@@ -1,3 +1,4 @@
+import type {} from "#core/database/settings.ts";
 import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,

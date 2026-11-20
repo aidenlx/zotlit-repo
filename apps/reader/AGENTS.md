@@ -6,11 +6,10 @@ The app is a thin host: it composes feature values and holds no feature code. Th
 
 ## Files
 
-- `src/features.ts` — the feature list, in start-up order: `readerBase`, then `reader`.
-- `src/base.ts` — `readerBase`: the log settings slice and a Node-free `FileSystem` group. It stands in for a Zotero-free platform part of the shell.
-- `src/host.ts` — `defineHost`: the features, the settings, the setting tab order, the file and folder menu order.
+- `src/features.ts` — the feature list, in start-up order: `platformBase` (the Zotero-free platform part of the shell), a `FileSystem` group over the vault adapter (`@zotlit/obsidian-kit/vault-file-system.ts`), then `reader`.
+- `src/host.ts` — `defineHost`: the features, the settings, the setting tab order (the Advanced page of `platformBase`), the file and folder menu order.
 - `src/main.ts` — the plugin class, `shellPlugin(host)`.
-- `src/services/settings/` — the settings definition composed from the features (`schema.ts`) and the settings options (`layer.ts`). The plugin has no `data.json` history, so it has no migration.
+- `src/services/settings/` — the settings definition composed from the features (`schema.ts`), with the type check that it equals the Reader's `SettingsRegistry`, and the settings options (`layer.ts`). The plugin has no `data.json` history, so it has no migration.
 - `src/e2e.ts` — the type of `plugin.services` for the End-to-end Run.
 - `src/main.css` — the Tailwind theme over the plugin packages this host bundles.
 - `versions.json`, `README.md` — what the publish repository `aidenlx/zotlit-reader` shows (`PUBLISHED_PLUGINS.reader`, `packages/scripts/lib/shell/plugins.ts`).
@@ -24,8 +23,8 @@ The app is a thin host: it composes feature values and holds no feature code. Th
 
 ## Type check
 
-`tsconfig.app.json` checks the app with `types: []`: the host is Node-free.
+`tsconfig.app.json` checks the app with `types: []`: the host is Node-free. `oxlint.config.ts` bans Node, Electron, the desktop layers and the Zotero packages (`@zotlit/plugin-shell/obsidian/platform.ts` included) in the app's imports.
 
 ## Tests
 
-`pnpm exec vitest run src/host.test.ts` builds the Reader's services from its features over the shell base, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest` and `@zotlit/pdfjs/viewer` to `__mocks__/pdfjs-viewer.ts`.
+`pnpm exec vitest run src/host.test.ts` builds the Reader's services from its features over the shell base and reads the rows of its setting tab, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest` and `@zotlit/pdfjs/viewer` to `__mocks__/pdfjs-viewer.ts`.

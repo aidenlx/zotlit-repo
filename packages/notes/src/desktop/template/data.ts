@@ -23,6 +23,7 @@ import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts"
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
+import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";

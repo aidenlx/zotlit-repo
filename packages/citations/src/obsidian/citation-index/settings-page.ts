@@ -10,6 +10,7 @@ import type {
 } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type {} from "@zotlit/plugin-services/core/item-lookup/settings.ts";
 import type {
   SettingsKey,
   SettingTabContext,

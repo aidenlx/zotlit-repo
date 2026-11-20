@@ -18,6 +18,7 @@ import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts"
 import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";

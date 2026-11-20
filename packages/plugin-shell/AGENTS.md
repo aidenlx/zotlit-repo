@@ -11,7 +11,8 @@ The plugin shell: the plugin class a host extends, its lifecycle, the runtime, s
   - `base.ts` — the shell base every group reads without naming it (`ShellBase`): settings, logging, the Obsidian capability tags, `PluginHost`, `LanguagePack`, `GraphBuilt`.
   - `runtime.ts`, `plugin.ts`, `lifecycle.ts`, `startup-notice.ts` — the runtime, the plugin class (`shellPlugin(host)`), and unload.
   - `setting-tab/` — the tab shell (`tab.ts`), its layer (`layer.ts`) and the declarative control store (`controls.ts`).
-  - `platform.ts` — the `platform` feature: the services every host needs (settings slices, Item Lookup, Library Scope, the Zotero Local API, the note index), and the Zotero and Advanced pages (`setting-pages/`), whose slots the features fill.
+  - `platform-base.ts` — the `platformBase` feature, Zotero-free, which every host composes: the log settings slice, the Language Pack notices, the Advanced page (`setting-pages/advanced.ts`) with the logging rows and the Language Pack reset, the log level codec and the Language Pack rebuild stream. A host without `platform` fills `FileSystem` itself (the Reader: `@zotlit/obsidian-kit/vault-file-system.ts`).
+  - `platform.ts` — the `platform` feature, `extendFeature(platformBase, …)` for a ZotLit host: the Zotero services (settings slices, Item Lookup, Library Scope, the Zotero Local API, the note index), the Zotero page (`setting-pages/zotero.ts`) and the Local Server group in the Advanced page's `advanced.local-server` slot. The pages' slots are what the features fill.
   - `protocol.ts` — the registration of every feature's `obsidian://` handlers. The checks every link shares (parsing, source id, database ready, item) and the shared outcomes and notices live in `@zotlit/plugin-services/obsidian/protocol/`.
 - `src/desktop/platform.ts` — the `desktopPlatform` feature: the Node-backed capabilities (file system, Zotero preferences, Zotero HTTP, the local server, attachment import).
 
@@ -35,6 +36,10 @@ A cross-feature port is a tag: the reading feature owns the tag and lists it in 
 - Registrations, handles and start-up hooks run in host feature order, and in declaration order inside each feature.
 - The file menu, the folder menu and the setting tab follow the host's lists, not feature order.
 
+## Settings registry
+
+`@zotlit/plugin-services/core/settings/schema.ts` holds the slice of `platformBase` in `SettingsRegistry`; each other slice adds itself beside its owner by declaration merging. A host checks its composed settings against the registry of its own program (`Equals<ComposedSettings<typeof features>, Settings>`), so a slice of a feature the host does not compose fails the check when its module enters the host's program. A module that reads a key and imports nothing from its slice imports the slice as a type (`import type {} from "<slice>"`), so the key exists in every program that reads it.
+
 ## Tests
 
-`packages/annotations/src/desktop/reader-host.test.ts` is the second host: the platform, the annotations and stub capabilities. `apps/obsidian/src/mobile-host.test.ts` is the third: the platform and every feature's Obsidian value over stub ports (`apps/obsidian/src/__fixtures__/mobile-host/`). Both build through `featureServices`, the same path the plugin graph uses.
+`packages/annotations/src/desktop/reader-host.test.ts` is the second host: the platform, the annotations and stub capabilities. `apps/obsidian/src/mobile-host.test.ts` is the third: the platform and every feature's Obsidian value over stub ports (`apps/obsidian/src/__fixtures__/mobile-host/`). Both build through `featureServices`, the same path the plugin graph uses. `src/obsidian/platform-base.test.ts` builds `platformBase` and a `FileSystem` group with no Zotero service; `apps/reader/src/host.test.ts` is the Reader on it.

@@ -1,6 +1,7 @@
 // The "Advanced" page: the rows a user touches once — update notices, the
-// template engine, the local server, logging, and recovery actions. The
-// features that own a row give it through the page's slots.
+// template engine, the local server, logging, and recovery actions. The page
+// holds the logging rows and the Language Pack reset; the features that own
+// another row give it through the page's slots.
 import type {
   SettingDefinitionItem,
   SettingDefinitionPage,
@@ -9,7 +10,6 @@ import type {
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { languagePackResetItem } from "@zotlit/plugin-services/obsidian/language-pack/reset.ts";
-import { localServerItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
 import { loggingItems } from "@zotlit/plugin-services/obsidian/log/settings-rows.ts";
 import type {
   SettingsKey,
@@ -22,6 +22,7 @@ declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
     "advanced.general": unknown;
     /** The Advanced page, after the lead rows: the template engine group. */
     "advanced.template-engine": unknown;
+    "advanced.local-server": unknown;
     /** The Recovery group, above the Language Pack reset. */
     "advanced.recovery": unknown;
   }
@@ -31,6 +32,7 @@ declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
 export const advancedPageSlots = {
   general: "advanced.general",
   templateEngine: "advanced.template-engine",
+  localServer: "advanced.local-server",
   recovery: "advanced.recovery",
 } as const;
 
@@ -52,12 +54,7 @@ function advancedPageItems(
   return [
     ...ctx.slot(advancedPageSlots.general),
     ...ctx.slot(advancedPageSlots.templateEngine),
-    {
-      type: "group",
-      id: "settings_advanced_local_server",
-      heading: m.settings_advanced_local_server_heading(),
-      items: localServerItems(ctx),
-    },
+    ...ctx.slot(advancedPageSlots.localServer),
     {
       type: "group",
       id: "settings_advanced_logging",

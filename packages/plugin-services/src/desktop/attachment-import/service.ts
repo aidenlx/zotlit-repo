@@ -1,5 +1,6 @@
 // Attachment Import: decides which files a note may copy into the vault, against
 // the trusted roots and the folders approved on this device, and copies them.
+import type {} from "#core/attachment-import/settings.ts";
 import {
   Context,
   Duration,
