@@ -16,6 +16,8 @@ and ink cards are the subjects of these checks.
 | In a Paired Run, close the card, save an ink colour change, then reopen the card. | A previously displayed image is refreshed even while its card is closed. |
 | Clear the excerpt cache in ZotLit settings. | Mounted cards release their images. A new demand can load them again. |
 | Refresh, then disable ZotLit while a read is pending. Enable ZotLit and reopen the card. | The pending read stops at unload. The new card displays the current saved excerpt. |
+| Turn off ZotLit Reader in **Settings → Community plugins**, clear the excerpt cache, then show the image and ink cards. | Each card displays its excerpt, drawn with Obsidian's own PDF engine. |
+| Turn ZotLit Reader on again and refresh the Annotation View. | Each card displays its excerpt again, drawn with ZotLit Reader's PDF engine. The image from Obsidian's engine is not reused. |
 
 Saved edits require the disposable Fixture's Paired Zotero and editing permission.
 The deterministic unload checks also run in `display-lifecycle.test.ts`; the

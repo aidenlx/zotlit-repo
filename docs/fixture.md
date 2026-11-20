@@ -52,7 +52,7 @@ The Fixture Vault contains generated Literature Notes, imported-note mirrors, co
 
 `help-links.md` checks three documentation links in the default `configured` Fixture Vault, with no Zotero data needed: the Welcome banner's **Getting started** tile (opened with **ZotLit: Open welcome view**, because a configured vault hides the banner) opening `/learn`, Settings → ZotLit → **Documentation** → **Browse docs** opening `/docs`, and Settings → ZotLit → Citations → **Native Pandoc workflow** → **Pandoc citation workflow** → **Open guide** opening `/docs/how-to/pandoc-citation-workflow`. Follow the page's steps and expected outcomes.
 
-`excerpt-display.md` checks live excerpt display, refresh, reopening, saved-edit replacement, cache clear, and unload. Use the `all` Scope Case and follow its action and expected-result table; the saved-edit cases require a Paired Run.
+`excerpt-display.md` checks live excerpt display, refresh, reopening, saved-edit replacement, cache clear, unload, and excerpts with ZotLit Reader off and on again. Use the `all` Scope Case and follow its action and expected-result table; the saved-edit cases require a Paired Run.
 
 `citekey-smoke-test.md` checks both citation pickers in its **Citation search and insertion** section: cited-item priority, main and alternate insertion, a changed destination, unload, the 150 ms index wait, and closing a pending picker. Use the `all` Scope Case and follow the action and expected-outcome table.
 
