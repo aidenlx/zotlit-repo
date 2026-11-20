@@ -231,7 +231,11 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);
-    const created = await runVaultScript(["create", vaultPath]);
+    const created = await runVaultScript([
+      "create",
+      vaultPath,
+      "--plugins=zotlit",
+    ]);
     vaultId = created.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(vaultId);
   }, 180000);
