@@ -1,9 +1,12 @@
+import "#test/inflate.ts";
 import type { PdfEngine } from "#/core/index.ts";
 import type { FixturePdf } from "#test/fixtures.ts";
+import type { Inflation } from "#test/inflate.ts";
 
 import { createPdfEngine, PdfLoadError } from "#/core/index.ts";
 import { testFetchData } from "#test/data.ts";
 import { fixturePdf } from "#test/fixtures.ts";
+import { inflateSpy, inflations } from "#test/inflate.ts";
 
 export interface EngineReport {
   readonly fonts: { readonly a: string[]; readonly b: string[] };
@@ -11,6 +14,16 @@ export interface EngineReport {
   readonly jpx: PixelCounts;
   readonly failures: Readonly<Record<string, string>>;
   readonly interrupted: Interrupted;
+  readonly assets: Assets;
+}
+
+interface Assets {
+  readonly inflatesAtPluginLoad: number;
+  readonly firstInflate: Inflation | undefined;
+  readonly concurrentFirstLoads: {
+    readonly workers: number;
+    readonly inflates: number;
+  };
 }
 
 interface Interrupted {
@@ -152,6 +165,35 @@ function watchPosts(onPost: (action: unknown) => void): Disposable {
   };
 }
 
+function countWorkers(): { readonly count: number } & Disposable {
+  const original = globalThis.Worker;
+  const counter = {
+    count: 0,
+    [Symbol.dispose]: () => {
+      globalThis.Worker = original;
+    },
+  };
+  globalThis.Worker = class extends original {
+    constructor(url: string | URL, options?: WorkerOptions) {
+      super(url, options);
+      counter.count++;
+    }
+  };
+  return counter;
+}
+
+async function concurrentFirstLoads() {
+  using engine = createPdfEngine({ idPrefix: "w", fetchData: testFetchData });
+  using workers = countWorkers();
+  const before = inflations.started;
+  const loaded = await Promise.all([
+    engine.load(source("sandve-2013/sandve-2013.pdf")),
+    engine.load(source("sandve-2013/sandve-2013.pdf")),
+  ]);
+  for (const document of loaded) await document[Symbol.asyncDispose]();
+  return { workers: workers.count, inflates: inflations.started - before };
+}
+
 async function disposedDuringRead(): Promise<string> {
   using engine = createPdfEngine({ idPrefix: "r", fetchData: testFetchData });
   const reading = Promise.withResolvers<void>();
@@ -206,8 +248,10 @@ async function currentAfterDispose(): Promise<boolean> {
 }
 
 export async function run(): Promise<EngineReport> {
+  using _spy = inflateSpy;
   using a = createPdfEngine({ idPrefix: "a", fetchData: testFetchData });
   using b = createPdfEngine({ idPrefix: "b", fetchData: testFetchData });
+  const inflatesAtPluginLoad = inflations.started;
   const before = families();
   await using _first = await render(a, "sandve-2013/sandve-2013.pdf");
   const afterA = families();
@@ -229,6 +273,11 @@ export async function run(): Promise<EngineReport> {
       disposedDuringLoad: await disposedDuringLoad(),
       ...(await abortedDuringLoad()),
       currentAfterDispose: await currentAfterDispose(),
+    },
+    assets: {
+      inflatesAtPluginLoad,
+      firstInflate: inflations.finished[0],
+      concurrentFirstLoads: await concurrentFirstLoads(),
     },
   };
 }

@@ -49,6 +49,18 @@ const WASM: Readonly<Record<string, string>> = {
   "openjpeg.wasm": openjpeg,
 };
 
+async function inflate(packed: string): Promise<Uint8Array<ArrayBuffer>> {
+  const binary = atob(packed);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  const inflated = new Blob([bytes])
+    .stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(inflated).arrayBuffer());
+}
+
 function classify(cause: unknown): PdfLoadError {
   if (cause instanceof PasswordException) {
     return new PdfLoadError(
@@ -69,17 +81,18 @@ export function createPdfEngine(options: PdfEngineOptions): PdfEngine {
   const destroy = (task: { destroy(): Promise<void> }) =>
     Promise.race([task.destroy(), disposed]);
   const retirements = new Set<() => void>();
-  const wasm = new Map<string, Uint8Array>();
+  const wasm = new Map<string, Promise<Uint8Array>>();
+  let workerScript: Promise<Uint8Array<ArrayBuffer>> | null = null;
   let spawned: {
     readonly url: string;
     readonly worker: Worker;
     readonly port: PDFWorker;
   } | null = null;
 
-  const pdfWorker = (): PDFWorker => {
+  const pdfWorker = (script: Uint8Array<ArrayBuffer>): PDFWorker => {
     if (!spawned) {
       const url = URL.createObjectURL(
-        new Blob([workerSource], { type: "text/javascript" }),
+        new Blob([script], { type: "text/javascript" }),
       );
       const worker = new Worker(url, { name: `${options.idPrefix}-pdfjs` });
       spawned = { url, worker, port: PDFWorker.create({ port: worker }) };
@@ -87,14 +100,16 @@ export function createPdfEngine(options: PdfEngineOptions): PdfEngine {
     return spawned.port;
   };
 
-  const wasmBytes = (filename: string): Uint8Array => {
+  const wasmBytes = (filename: string): Promise<Uint8Array> => {
     let bytes = wasm.get(filename);
     if (!bytes) {
-      const base64 = WASM[filename];
-      if (base64 === undefined) {
-        throw new Error(`No embedded wasm file named ${filename}`);
+      const packed = WASM[filename];
+      if (packed === undefined) {
+        return Promise.reject(
+          new Error(`No embedded wasm file named ${filename}`),
+        );
       }
-      bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+      bytes = inflate(packed);
       wasm.set(filename, bytes);
     }
     return bytes;
@@ -109,7 +124,7 @@ export function createPdfEngine(options: PdfEngineOptions): PdfEngine {
         readonly kind: string;
         readonly filename: string;
       }): Promise<Uint8Array> {
-        if (kind === "wasmUrl") return Promise.resolve(wasmBytes(filename));
+        if (kind === "wasmUrl") return wasmBytes(filename);
         return options.fetchData(
           kind === "cMapUrl" ? "cmap" : "standard-font",
           filename,
@@ -127,15 +142,17 @@ export function createPdfEngine(options: PdfEngineOptions): PdfEngine {
   ): Effect.Effect<HeadlessDocument, PdfLoadError> => {
     const lifetime = new AbortController();
     return Effect.gen(function* () {
+      const script = (workerScript ??= inflate(workerSource));
       const data = yield* Effect.tryPromise({
         try: (signal) => source.read(signal),
         catch: (cause) => new PdfLoadError("unreadable", { cause }),
       });
+      const worker = pdfWorker(yield* Effect.promise(() => script));
       const task = getDocument({
         data,
         password: access.password,
         ownerDocument: access.ownerDocument,
-        worker: pdfWorker(),
+        worker,
         docBaseId: options.idPrefix,
         useWorkerFetch: false,
         BinaryDataFactory: binaryDataFactory(

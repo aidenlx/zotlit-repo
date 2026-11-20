@@ -2,6 +2,7 @@ import { regex } from "arkregex";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
+import { constants, deflateRawSync } from "node:zlib";
 import { build } from "vite";
 
 const packageRoot = resolve(import.meta.dirname, "..");
@@ -54,11 +55,16 @@ async function workerSource(): Promise<string> {
   return chunk.code;
 }
 
-async function wasmBase64(name: string): Promise<string> {
-  const bytes = await readFile(
-    require.resolve(`@zotlit/pdfjs/wasm/${name}.wasm`),
+function packed(bytes: Uint8Array): string {
+  return deflateRawSync(bytes, {
+    level: constants.Z_BEST_COMPRESSION,
+  }).toString("base64");
+}
+
+async function wasmPacked(name: string): Promise<string> {
+  return packed(
+    await readFile(require.resolve(`@zotlit/pdfjs/wasm/${name}.wasm`)),
   );
-  return bytes.toString("base64");
 }
 
 async function annotationIcons(): Promise<Record<string, string>> {
@@ -78,11 +84,11 @@ async function annotationIcons(): Promise<Record<string, string>> {
 await mkdir(output, { recursive: true });
 await writeFile(
   join(output, "worker-source.ts"),
-  `export default ${JSON.stringify(await workerSource())};\n`,
+  `export default ${JSON.stringify(packed(Buffer.from(await workerSource())))};\n`,
 );
 await writeFile(
   join(output, "wasm.ts"),
-  `export const jbig2 = ${JSON.stringify(await wasmBase64("jbig2"))};\nexport const openjpeg = ${JSON.stringify(await wasmBase64("openjpeg"))};\n`,
+  `export const jbig2 = ${JSON.stringify(await wasmPacked("jbig2"))};\nexport const openjpeg = ${JSON.stringify(await wasmPacked("openjpeg"))};\n`,
 );
 await writeFile(
   join(output, "images.ts"),

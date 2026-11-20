@@ -8,7 +8,7 @@ import type { EngineReport } from "./engine.browser-test.ts";
 import { binaryAssets, readerAlias } from "#test/vite.ts";
 
 it.skipIf(!testElectron)(
-  "keeps each engine's fonts apart, decodes JBIG2 and JPX through the embedded wasm, and settles every load as a PdfLoadError",
+  "keeps each engine's fonts apart, decodes JBIG2 and JPX through the embedded wasm, inflates the embedded assets once at the first load, and settles every load as a PdfLoadError",
   async () => {
     const report = (await runInElectron({
       entry: resolve(import.meta.dirname, "engine.browser-test.ts"),
@@ -46,6 +46,12 @@ it.skipIf(!testElectron)(
       terminatedOnAbort: true,
       loadAfterAbort: "loaded",
       currentAfterDispose: false,
+    });
+    expect(report.assets.inflatesAtPluginLoad).toBe(0);
+    expect(report.assets.firstInflate?.bytes).toBeGreaterThan(1_000_000);
+    expect(report.assets.concurrentFirstLoads).toEqual({
+      workers: 1,
+      inflates: 1,
     });
   },
   90_000,
