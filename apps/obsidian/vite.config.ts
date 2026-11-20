@@ -1,11 +1,10 @@
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir } from "node:fs/promises";
 import { builtinModules } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
-import type { Plugin } from "vite";
 import { analyzer, unstableRolldownAdapter } from "vite-bundle-analyzer";
 
 import { pandocFilterVariants } from "@zotlit/citations/vite";
@@ -17,18 +16,11 @@ import {
   SCOPED_MESSAGE_MODULES,
   TARGET_LOCALE_MESSAGE_PREFIXES,
 } from "@zotlit/plugin-messages/language-pack-options";
-import { DEV_VAULT_CASE_ENV, getDevVaultDir } from "@zotlit/scripts/dev-vault";
-import {
-  parseManifest,
-  parseMinElectronVersion,
-} from "@zotlit/scripts/obsidian-manifest";
+import { parseMinElectronVersion } from "@zotlit/scripts/obsidian-manifest";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
-import { buildPlugin, HOST_MODULES } from "@zotlit/scripts/shell/build";
-import {
-  writeBundlePackage,
-  writeShellEntry,
-} from "@zotlit/scripts/shell/bundle-package";
+import { HOST_MODULES } from "@zotlit/scripts/shell/build";
+import { obsidianBuildPlugin } from "@zotlit/scripts/shell/host-build";
 import {
   BUNDLE_PACKAGE_DIR,
   PUBLISHED_PLUGINS,
@@ -39,7 +31,6 @@ import {
   chineseSegmenterGlue,
   resolveChineseSegmenterPin,
 } from "./scripts/chinese-segmenter.ts";
-import { deriveDevVersion } from "./scripts/dev-version.ts";
 import { embeddedWorker } from "./scripts/embedded-worker.ts";
 import { resolvePandocEnginePin } from "./scripts/pandoc-engine.ts";
 
@@ -83,16 +74,6 @@ const chineseSegmenter = await resolveChineseSegmenterPin();
 console.log(
   `Pinning jieba-wasm ${chineseSegmenter.version}: ${chineseSegmenter.url}`,
 );
-
-/** `obsidian-vault.ts create` seeds and registers this folder with Obsidian. */
-function getDevVaultPluginDir(pluginId: string) {
-  return join(
-    getDevVaultDir(workspaceRoot, process.env[DEV_VAULT_CASE_ENV]),
-    ".obsidian",
-    "plugins",
-    pluginId,
-  );
-}
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
@@ -231,6 +212,10 @@ export default defineConfig(({ mode }) => {
         },
       }),
       obsidianBuildPlugin({
+        packageRoot: import.meta.dirname,
+        workspaceRoot,
+        plugin: publishedPlugin,
+        stageResources,
         isDev,
         isProd,
         outDir: resolve(import.meta.dirname, outDir),
@@ -247,32 +232,6 @@ export default defineConfig(({ mode }) => {
     ],
   };
 });
-
-/**
- * Completes the bundle package in `bundleDir`, beside the main.js and
- * styles.css Vite wrote there, and builds `outDir`'s main.js and styles.css
- * from it with the publish repository's own build script.
- */
-async function buildFromBundlePackage(
-  packageJson: { version: string; description: string; author: string },
-  bundleDir: string,
-  outDir: string,
-): Promise<void> {
-  await writeBundlePackage({
-    plugin: publishedPlugin,
-    app: packageJson,
-    dir: bundleDir,
-    workspaceRoot,
-  });
-  await stageResources(join(bundleDir, "resources"));
-  const entry = await writeShellEntry(join(outDir, "shell"), publishedPlugin);
-  await buildPlugin({
-    entry,
-    styles: join(bundleDir, "styles.css"),
-    outDir,
-    alias: { [publishedPlugin.bundlePackage]: join(bundleDir, "main.js") },
-  });
-}
 
 /**
  * Everything the installed plugin downloads at runtime from the Resource
@@ -318,60 +277,4 @@ function parseI18nDevServerPort(value: string | undefined): number | undefined {
   if (!value || value === "false") return undefined;
   const port = Number(value);
   return Number.isInteger(port) && port > 0 ? port : 9092;
-}
-
-function obsidianBuildPlugin({
-  isDev,
-  isProd,
-  outDir,
-  bundleDir,
-}: {
-  isDev: boolean;
-  isProd: boolean;
-  /** The folder Obsidian loads the plugin from. */
-  outDir: string;
-  /** The folder Vite writes this build's main.js and styles.css into. */
-  bundleDir: string;
-}): Plugin {
-  const packageJsonPath = join(import.meta.dirname, "package.json");
-  return {
-    name: "obsidian-build",
-    buildStart() {
-      this.addWatchFile(packageJsonPath);
-    },
-    async writeBundle() {
-      const packageJson = JSON.parse(await readFile(packageJsonPath, "utf-8"));
-      if (isProd) await buildFromBundlePackage(packageJson, bundleDir, outDir);
-
-      const manifestJson = parseManifest(packageJson);
-      if (isDev) manifestJson.version = deriveDevVersion(manifestJson.version);
-      await writeFile(
-        join(outDir, "manifest.json"),
-        JSON.stringify(manifestJson, null, 2),
-      );
-      console.log(`Using manifest v${manifestJson.version}`);
-
-      await writeFile(join(outDir, ".hotreload"), "");
-
-      const devVaultPluginDir = getDevVaultPluginDir(manifestJson.id);
-      try {
-        await mkdir(devVaultPluginDir, { recursive: true });
-        const assets = ["main.js", "manifest.json", ".hotreload"];
-        await Promise.all(
-          assets.map((name) =>
-            cp(join(outDir, name), join(devVaultPluginDir, name)),
-          ),
-        );
-        await cp(
-          join(outDir, "styles.css"),
-          join(devVaultPluginDir, "styles.css"),
-        ).catch((err) => {
-          if (err.code !== "ENOENT") throw err;
-        });
-        console.log(`Copied to dev vault: ${devVaultPluginDir}`);
-      } catch (err) {
-        console.warn("Failed to copy to dev vault:", err);
-      }
-    },
-  };
 }

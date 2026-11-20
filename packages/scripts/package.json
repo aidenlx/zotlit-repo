@@ -53,6 +53,7 @@
     "./scanner-eslint": "./lib/scanner-eslint.ts",
     "./shell/build": "./lib/shell/templates/scripts/build.mjs",
     "./shell/bundle-package": "./lib/shell/bundle-package.ts",
+    "./shell/host-build": "./lib/shell/host-build.ts",
     "./shell/plugins": "./lib/shell/plugins.ts"
   },
   "scripts": {

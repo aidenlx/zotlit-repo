@@ -32,6 +32,14 @@ export const PUBLISHED_PLUGINS = {
     readme: "README.md",
     giscus: true,
   },
+  reader: {
+    app: "apps/reader",
+    bundlePackage: "@zotlit/reader-plugin",
+    repository: "aidenlx/zotlit-reader",
+    versions: "apps/reader/versions.json",
+    readme: "apps/reader/README.md",
+    giscus: false,
+  },
 } as const satisfies Record<string, PublishedPlugin>;
 
 export type PublishedPluginName = keyof typeof PUBLISHED_PLUGINS;

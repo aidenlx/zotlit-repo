@@ -1,0 +1,32 @@
+{
+  "name": "@zotlit/reader-feature",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The reader feature of ZotLit Reader: the ZotLit PDF Reader mounted on the plugin shell, with no Zotero",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/pdf-reader": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-shell": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@zotlit/config": "workspace:*",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

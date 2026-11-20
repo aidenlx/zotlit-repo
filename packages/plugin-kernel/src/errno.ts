@@ -5,7 +5,7 @@ export function isErrno(error: unknown, code: string): boolean {
   return (
     Error.isError(error) &&
     "code" in error &&
-    (error as NodeJS.ErrnoException).code === code
+    (error as { code?: unknown }).code === code
   );
 }
 
@@ -60,7 +60,7 @@ export const nodeFileSystemCall = <A>(
         module: "FileSystem",
         method,
         syscall: Error.isError(cause)
-          ? (cause as NodeJS.ErrnoException).syscall
+          ? (cause as { syscall?: string }).syscall
           : undefined,
         pathOrDescriptor: path,
         cause,

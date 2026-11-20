@@ -1,0 +1,23 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "effectFn": ["inferred-span"],
+        "allowedUnstableApis": ["@effect/vitest", "effect/FileSystem"]
+      }
+    ],
+    "types": ["node"]
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./__mocks__/**/*.ts",
+    "../../packages/obsidian-kit/src/typings/*.d.ts",
+    "../../packages/plugin-services/src/typings/*.d.ts",
+    "../../packages/plugin-kernel/src/typings/*.d.ts"
+  ],
+  "exclude": ["./node_modules", "./dist", "./dist-dev"]
+}

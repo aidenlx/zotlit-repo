@@ -12,7 +12,8 @@
     ],
     "noEmit": true,
     "types": ["node"],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "allowJs": true
   },
   "include": ["./lib/**/*.ts", "./scripts/**/*.ts"],
   "exclude": ["./node_modules"]

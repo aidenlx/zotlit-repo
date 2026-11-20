@@ -20,13 +20,7 @@ type SqliteAnyOut =
   // | bigint enable this if ever enable readBigInts
   | string
   | Uint8Array;
-type SqliteAnyIn =
-  | null
-  | number
-  | bigint
-  | string
-  | NodeJS.TypedArray
-  | DataView;
+type SqliteAnyIn = null | number | bigint | string | ArrayBufferView;
 
 export const sqliteAny = customType<{
   data: SqliteAnyOut;

@@ -1,7 +1,7 @@
 import { gt, lt } from "semver";
 import { describe, expect, it } from "vitest";
 
-import { deriveDevVersion } from "./dev-version.ts";
+import { deriveDevVersion } from "./host-build.ts";
 
 describe("deriveDevVersion", () => {
   it.each([

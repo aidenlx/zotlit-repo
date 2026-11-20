@@ -1,0 +1,24 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": ["@zotlit/config/tsconfig", "@zotlit/config/tsconfig.obsidian"],
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "isolatedDeclarations": false,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "effectFn": ["inferred-span"]
+      }
+    ],
+    "types": []
+  },
+  "include": [
+    "./src/**/*.ts",
+    "../obsidian-kit/src/typings/*.d.ts",
+    "../plugin-services/src/typings/*.d.ts",
+    "../obsidian-kit/src/view-atoms.ts"
+  ],
+  "exclude": ["./node_modules"]
+}

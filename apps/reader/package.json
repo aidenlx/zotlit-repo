@@ -1,0 +1,61 @@
+{
+  "name": "@zotlit/reader",
+  "version": "1.0.0-beta.0",
+  "private": true,
+  "description": "Read PDFs in Obsidian with the ZotLit PDF Reader: link to a selection, embed and preview pages, and place PDFs on a canvas.",
+  "author": "AidenLx",
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    "./e2e": {
+      "types": "./src/e2e.ts"
+    }
+  },
+  "scripts": {
+    "build": "vite build && npm run typecheck",
+    "build:dev": "vite build --mode development",
+    "dev": "vite build --watch --mode development",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@zotlit/obsidian-kit": "workspace:*",
+    "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/plugin-messages": "workspace:*",
+    "@zotlit/plugin-services": "workspace:*",
+    "@zotlit/plugin-shell": "workspace:*",
+    "@zotlit/reader-feature": "workspace:*",
+    "effect": "catalog:",
+    "preact": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@preact/preset-vite": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "happy-dom": "catalog:",
+    "obsidian": "catalog:",
+    "oxlint": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "authorUrl": "https://github.com/aidenlx",
+  "obsidian": {
+    "id": "zotlit-reader",
+    "name": "ZotLit Reader",
+    "minAppVersion": "1.15.1",
+    "isDesktopOnly": true,
+    "fundingUrl": {
+      "GitHub Sponsor": "https://github.com/sponsors/aidenlx"
+    }
+  }
+}
