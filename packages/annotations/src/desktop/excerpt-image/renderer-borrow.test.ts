@@ -24,9 +24,19 @@ import { NodeExcerptImageFixture as ExcerptImageService } from "#__fixtures__/ex
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
 import {
   fakePdfEngine,
+  fakeReaderApi,
   fakeReaderEngine,
   layerReaderLoading,
 } from "#__fixtures__/pdf-engine.ts";
+import { OBSIDIAN_PDFJS_ENGINE } from "#obsidian/excerpt-image/obsidian-pdfjs.ts";
+import { layerReaderConnection } from "#obsidian/reader-connection/service.ts";
+
+const obsidian = vi.hoisted(() => ({ loadPdfJs: vi.fn() }));
+
+vi.mock("obsidian", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  loadPdfJs: obsidian.loadPdfJs,
+}));
 
 const folders: string[] = [];
 
@@ -210,6 +220,8 @@ async function harness(options: {
   path?: string;
   /** The page the detached path renders, when a test holds its crops open. */
   detachedPage?: () => LoadedCropPage;
+  /** The pdf.js build the connected Reader reports. */
+  pdfjsBuild?: string;
 }) {
   const cleanup = new AsyncDisposableStack();
   const folder = await mkdtemp(join(tmpdir(), "zotlit-borrow-crop-"));
@@ -238,7 +250,14 @@ async function harness(options: {
         readers: options.reader?.(pdfPath),
       },
       undefined,
-      layerReaderLoading(detached.engine),
+      options.pdfjsBuild === undefined
+        ? layerReaderLoading(detached.engine)
+        : layerReaderConnection((handlers) => {
+            handlers.onAccept(
+              fakeReaderApi(detached.engine, options.pdfjsBuild),
+            );
+            return () => {};
+          }),
     ),
   );
   return {
@@ -706,4 +725,35 @@ it("gives a waiting PDF its turn after four borrowed crops of another", async ()
   expect([...f.entries.keys()].sort()).toEqual(
     requests.map((request) => excerptKey(request, fakeReaderEngine)).sort(),
   );
+});
+
+it("draws through Obsidian's pdf.js and leaves the Reader's page alone when the Reader's build is untested", async () => {
+  const reader = readerDocument({ bytes: PDF_BYTES });
+  await using f = await harness({
+    reader: holdingReader(reader),
+    pdfjsBuild: "untested-build",
+  });
+  const obsidianPage = cropPage();
+  const getDocument = vi.fn(() => ({
+    promise: Promise.resolve({ getPage: async () => obsidianPage.page }),
+    destroy: async () => undefined,
+  }));
+  obsidian.loadPdfJs.mockResolvedValue({ getDocument });
+
+  const outcome = await f.service.resolve(f.request);
+
+  expect(outcome).toMatchObject({
+    kind: "available",
+    provenance: "rendered",
+    identity: { key: excerptKey(f.request, OBSIDIAN_PDFJS_ENGINE) },
+  });
+  expect(reader.borrow).not.toHaveBeenCalled();
+  expect(reader.answered.tasks).toHaveLength(0);
+  expect(f.detached.load).not.toHaveBeenCalled();
+  expect(getDocument).toHaveBeenCalledTimes(1);
+  expect(obsidianPage.tasks).toHaveLength(1);
+  expect(f.service.rendererDiagnostics?.snapshot()).toMatchObject({
+    engine: OBSIDIAN_PDFJS_ENGINE,
+    loads: { borrowed: 0, detached: 1 },
+  });
 });

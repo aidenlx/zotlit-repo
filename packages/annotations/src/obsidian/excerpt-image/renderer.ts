@@ -39,6 +39,7 @@ export type ExcerptDocument = Pick<HeadlessDocument, "page"> & AsyncDisposable;
 
 export interface ExcerptEngine {
   readonly id: string;
+  readonly borrows: boolean;
   load(source: DocumentSource, options?: LoadOptions): Promise<ExcerptDocument>;
 }
 
@@ -425,11 +426,13 @@ export class ExcerptRenderer {
       )
     )
       return yield* new ExcerptImageError({ message: "Unsupported excerpt" });
-    const borrowed = yield* borrowedExcerptPage({
-      readers: this.#host.readers,
-      path: request.pdfPath,
-      pageIndex: position.pageIndex,
-    });
+    const borrowed = engine.borrows
+      ? yield* borrowedExcerptPage({
+          readers: this.#host.readers,
+          path: request.pdfPath,
+          pageIndex: position.pageIndex,
+        })
+      : null;
     if (borrowed) {
       const image = yield* this.#crop(request, borrowed.page).pipe(
         Effect.catch((error) =>

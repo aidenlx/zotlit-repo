@@ -16,6 +16,7 @@ export function obsidianPdfJsEngine(
 ): ExcerptEngine {
   return {
     id: OBSIDIAN_PDFJS_ENGINE,
+    borrows: false,
     async load(source, options) {
       const signal = options?.signal ?? new AbortController().signal;
       const data = await source.read(signal);

@@ -14,6 +14,7 @@ export function readerEngine(api: ReaderApi): ExcerptEngine | null {
   if (!TESTED_READER_PDFJS_BUILDS.includes(api.pdfjsBuild)) return null;
   return {
     id: readerEngineId(api.pdfjsBuild),
+    borrows: true,
     load: (source, options) => api.loadDocument(source, options),
   };
 }

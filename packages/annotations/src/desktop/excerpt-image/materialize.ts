@@ -24,6 +24,7 @@ import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts"
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
+import { excerptAssetKey } from "./key.ts";
 import { usableExcerptPng } from "./png.ts";
 
 import {
@@ -317,7 +318,7 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
       options.notePath,
     );
     const digest = createHash("sha256")
-      .update(outcome.identity.key)
+      .update(excerptAssetKey(request))
       .update(outcome.bytes)
       .digest("hex");
     const [identity] = excerptAssetIdentities(request);

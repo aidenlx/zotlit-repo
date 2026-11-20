@@ -16,11 +16,11 @@ export class ExcerptRendererFixture implements AsyncDisposable {
   readonly #ready;
   readonly engine: ExcerptEngine;
   constructor(
-    { engine, ...host }: ConstructorParameters<typeof ExcerptRenderer>[0] & { engine: Pick<ExcerptEngine, "load"> & { id?: string } },
+    { engine, ...host }: ConstructorParameters<typeof ExcerptRenderer>[0] & { engine: Pick<ExcerptEngine, "load"> & Partial<Pick<ExcerptEngine, "id" | "borrows">> },
     fs: Layer.Layer<FileSystem.FileSystem>,
   ) {
     this.native = new ExcerptRenderer(host);
-    this.engine = { id: engine.id ?? "fixture", load: (source, options) => engine.load(source, options) };
+    this.engine = { id: engine.id ?? "fixture", borrows: engine.borrows ?? true, load: (source, options) => engine.load(source, options) };
     this.#runtime = buildRuntime(Layer.effectDiscard(
       Effect.addFinalizer(() => this.native.dispose),
     ).pipe(Layer.provideMerge(fs)), this.#stack);

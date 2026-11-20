@@ -5,7 +5,7 @@ import type {
 } from "#obsidian/excerpt-image/service.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
-import { Cause, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
+import { Cause, Context, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
 import { createHash } from "node:crypto";
 import {
   mkdir,
@@ -29,6 +29,7 @@ import type {
 import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import type { ConnectHandlers } from "@zotlit/reader-api";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import {
@@ -50,9 +51,13 @@ import {
   chromiumLosslessWebp,
   sizedWebp,
 } from "#__fixtures__/excerpt-image/webp.ts";
+import { fakePdfEngine, fakeReaderApi } from "#__fixtures__/pdf-engine.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 import { PNG_FORMAT, WEBP_FORMAT } from "#core/excerpt-image/format.ts";
 import { usableExcerptWebp } from "#core/excerpt-image/webp.ts";
+import { layerExcerptImage } from "#desktop/excerpt-image/layer.ts";
+import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
+import { layerReaderConnection } from "#obsidian/reader-connection/service.ts";
 
 const pngImage: ExcerptImage = { bytes: png, format: PNG_FORMAT };
 const otherImage: ExcerptImage = { bytes: bluePng, format: PNG_FORMAT };
@@ -693,5 +698,51 @@ it.effect.each(["truncated", "idat", "scanline"] as const)(
         }),
       );
       expect(yield* f.retain(request, [path])).toBeUndefined();
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "keeps a durable excerpt's file name across a ZotLit Reader toggle",
+  () =>
+    Effect.gen(function* () {
+      const f = yield* fixture;
+      let connect: ConnectHandlers | undefined;
+      const context = yield* Layer.build(
+        layerExcerptImage({
+          render: async () => pngImage,
+          stamp: async () => ({ size: 1, mtimeMs: 1 }),
+        }).pipe(
+          Layer.provide([
+            NodeFileSystem.layer,
+            layerReaderConnection((handlers) => {
+              connect = handlers;
+              handlers.onAccept(
+                fakeReaderApi(
+                  fakePdfEngine(async () => {
+                    throw new Error("No PDF engine in this test");
+                  }),
+                ),
+              );
+              return () => {};
+            }),
+          ]),
+        ),
+      );
+      const images = Context.get(context, ExcerptImageService);
+
+      const withReader = yield* images.resolve(request);
+      const first = savedPath(yield* f.publish(withReader));
+      connect!.onAbsent();
+      const withoutReader = yield* images.resolve(request);
+      const second = savedPath(yield* f.publish(withoutReader));
+
+      expect(withoutReader).toMatchObject({ provenance: "rendered" });
+      if (withReader.kind !== "available" || withoutReader.kind !== "available")
+        throw new Error("both resolutions answer an available image");
+      expect(withoutReader.identity.key).not.toBe(withReader.identity.key);
+      expect(second).toBe(first);
+      expect(yield* read(() => readdir(join(f.root, "Images")))).toEqual([
+        first.split("/").at(-1),
+      ]);
     }).pipe(Effect.scoped),
 );
