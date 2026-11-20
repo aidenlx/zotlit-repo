@@ -1130,11 +1130,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     // the citekey-created note is the one existing Books note. The three
     // remaining group items (8, 9, 10, 79) are created under Default, the batch's
     // fallback: the Books choice made in the citekey picker stayed with that
-    // operation. The demo papers have no seeded note, so they are created
-    // under Default too.
+    // operation. The demo items have no seeded note: the demo book matches
+    // Books and is created there, the demo papers are created under Default.
     const defaultCount =
       ITEMS.filter((item) => item.libraryID === 1 && !DEMO_ITEMS.includes(item))
         .length + 1;
+    const demoBookCount = DEMO_ITEMS.filter(
+      (item) => item.itemType === "book",
+    ).length;
     const summary = await obRun(
       run.vaultId,
       async (_context) => {
@@ -1150,12 +1153,17 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect(summary).toContain(updated);
       expect((await notices.read()).join("\n")).toContain(updated);
     }
-    const created = run.m.batch_profile_created({
-      count: 4 + DEMO_ITEMS.length,
-      label: run.m.settings_profile_default_name(),
-    });
-    expect(summary).toContain(created);
-    expect((await notices.read()).join("\n")).toContain(created);
+    for (const [label, count] of [
+      [
+        run.m.settings_profile_default_name(),
+        4 + DEMO_ITEMS.length - demoBookCount,
+      ],
+      [booksProfile.label, demoBookCount],
+    ] as const) {
+      const created = run.m.batch_profile_created({ count, label });
+      expect(summary).toContain(created);
+      expect((await notices.read()).join("\n")).toContain(created);
+    }
     expect(summary).toContain(
       run.m.batch_profile_group({
         group: run.m.batch_update_group_update({ count: 1 }),
