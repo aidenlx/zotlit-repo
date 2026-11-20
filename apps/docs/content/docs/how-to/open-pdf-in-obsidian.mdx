@@ -1,7 +1,7 @@
 ---
 title: "Open an item's PDF in Obsidian"
 searchTitle: "Open a Zotero PDF in Obsidian"
-description: "Open a Zotero PDF attachment in ZotLit's PDF reader inside Obsidian, from a literature note, the quick switcher, or Zotero."
+description: "Open a Zotero PDF attachment in ZotLit Reader inside Obsidian, from a literature note, the quick switcher, or Zotero."
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
@@ -15,9 +15,9 @@ If you are opening your first PDF, follow <LessonLink slug="annotate-zotero-pdfs
 
 Read a Zotero item's PDF in an Obsidian tab instead of switching to Zotero.
 
-ZotLit opens the PDF in its own [PDF reader](/docs/how-to/read-pdfs-in-zotlit-reader) inside Obsidian, whether the file sits inside your vault or in Zotero's storage folder. Only PDF attachments open this way; EPUBs, web snapshots, and other file types stay in Zotero.
+ZotLit opens the PDF in [ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader), a separate plugin, whether the file sits inside your vault or in Zotero's storage folder. Without ZotLit Reader, the PDF opens in Obsidian's own PDF view with no Zotero annotations; see [ZotLit without ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader#without-reader). Only PDF attachments open this way; EPUBs, web snapshots, and other file types stay in Zotero.
 
-You need Obsidian 1.15.1 or later, which ZotLit 2.2.3 requires.
+You need Obsidian 1.15.1 or later, which this version of ZotLit and ZotLit Reader require.
 
 ## From a literature note
 
@@ -47,7 +47,7 @@ These entry points need ZotLit Companion, the Zotero add-on, at the version rele
 
 ## From a link in a note [#file-links]
 
-Each annotation ZotLit writes into a note links back to Zotero with a durable link. Click one and the PDF opens in Obsidian, with that annotation selected and scrolled into view. The link works on every computer: when this one does not hold the PDF, Zotero opens the annotation instead. An annotation Zotero no longer has still opens the PDF on its page. See [Zotero open links](/docs/reference/protocol-links#zotero-open-links) for every case.
+Each annotation ZotLit writes into a note links back to Zotero with a durable link. Click one and the PDF opens in ZotLit Reader, with that annotation selected and scrolled into view. Without ZotLit Reader, it opens in Obsidian's own PDF view at the annotation's page. The link works on every computer: when this one does not hold the PDF, Zotero opens the annotation instead. An annotation Zotero no longer has still opens the PDF on its page. See [Zotero open links](/docs/reference/protocol-links#zotero-open-links) for every case.
 
 A literature note's `fileLink` writes a link straight to the attachment file, and a click opens that PDF in Obsidian. Notes from an earlier ZotLit link each annotation to the file as well. Those links keep opening in Obsidian on the annotation.
 

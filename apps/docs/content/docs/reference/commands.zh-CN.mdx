@@ -321,7 +321,7 @@ Zotero 入口将导入范围限制在你右键点击的行（包含子分类）�
 
 <Command name={m.command_open_pdf_name()} />
 
-在 [ZotLit 的 PDF 阅读器](/docs/how-to/read-pdfs-in-zotlit-reader)中打开该条目的 PDF 附件，无论该文件位于仓库内还是 Zotero 的存储文件夹中。若只有一个 PDF 则直接打开；若有多个则会打开选择器，其搜索框提示为 <UiLabel name={m.modal_select_pdf_placeholder()} />。
+在 [ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader) 中打开该条目的 PDF 附件（没有 ZotLit Reader 时在 Obsidian 自带的 PDF 视图中打开），无论该文件位于仓库内还是 Zotero 的存储文件夹中。若只有一个 PDF 则直接打开；若有多个则会打开选择器，其搜索框提示为 <UiLabel name={m.modal_select_pdf_placeholder()} />。
 
 仅提供 PDF 附件。若条目没有 PDF 附件，则显示 <UiLabel name={m.notice_no_pdf_attachment()} />；若 PDF 文件已不在磁盘上，则显示 <UiLabel name={m.notice_pdf_file_missing()} />。这两种情况均不会回退到 Zotero 自身的阅读器。参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。
 

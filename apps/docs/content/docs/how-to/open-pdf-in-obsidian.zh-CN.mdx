@@ -1,7 +1,7 @@
 ---
 title: "在 Obsidian 中打开条目的 PDF"
 searchTitle: "在 Obsidian 中打开 Zotero PDF"
-description: "从文献笔记、快速切换器或 Zotero，在 Obsidian 内的 ZotLit PDF 阅读器中打开 Zotero PDF 附件。"
+description: "从文献笔记、快速切换器或 Zotero，在 Obsidian 内的 ZotLit Reader 中打开 Zotero PDF 附件。"
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
@@ -15,9 +15,9 @@ import { m } from "@/paraglide/messages.js";
 
 在 Obsidian 标签页中阅读 Zotero 条目的 PDF，无需切换到 Zotero。
 
-无论文件位于仓库内部还是 Zotero 的存储文件夹中，ZotLit 都会在 Obsidian 内它自己的 [PDF 阅读器](/docs/how-to/read-pdfs-in-zotlit-reader)中打开。此方式仅支持 PDF 附件；EPUB、网页快照和其他文件类型仍保留在 Zotero 中。
+无论文件位于仓库内部还是 Zotero 的存储文件夹中，ZotLit 都会在独立插件 [ZotLit Reader](/docs/how-to/read-pdfs-in-zotlit-reader) 中打开。没有 ZotLit Reader 时，PDF 会在 Obsidian 自带的 PDF 视图中打开，不显示 Zotero 标注；参见[没有 ZotLit Reader 时的 ZotLit](/docs/how-to/read-pdfs-in-zotlit-reader#without-reader)。此方式仅支持 PDF 附件；EPUB、网页快照和其他文件类型仍保留在 Zotero 中。
 
-需要 Obsidian 1.15.1 或更高版本（ZotLit 2.2.3 的最低要求）。
+需要 Obsidian 1.15.1 或更高版本（此版本的 ZotLit 和 ZotLit Reader 的最低要求）。
 
 ## 从文献笔记打开 [#from-a-literature-note]
 
@@ -47,7 +47,7 @@ import { m } from "@/paraglide/messages.js";
 
 ## 从笔记中的链接打开 [#file-links]
 
-ZotLit 写入笔记的每条标注都带有一个指向 Zotero 的持久链接。点击链接即可在 Obsidian 中打开对应的 PDF，并自动选中该标注且滚动到对应位置。该链接在任何电脑上都有效：如果当前电脑没有该 PDF 文件，则会在 Zotero 中打开标注。若某条标注已在 Zotero 中删除，点击链接仍会打开 PDF 并定位到对应页面。各类情况详见 [Zotero 打开链接](/docs/reference/protocol-links#zotero-open-links)。
+ZotLit 写入笔记的每条标注都带有一个指向 Zotero 的持久链接。点击链接即可在 ZotLit Reader 中打开对应的 PDF，并自动选中该标注且滚动到对应位置。没有 ZotLit Reader 时，会在 Obsidian 自带的 PDF 视图中打开到标注所在页。该链接在任何电脑上都有效：如果当前电脑没有该 PDF 文件，则会在 Zotero 中打开标注。若某条标注已在 Zotero 中删除，点击链接仍会打开 PDF 并定位到对应页面。各类情况详见 [Zotero 打开链接](/docs/reference/protocol-links#zotero-open-links)。
 
 文献笔记中的 `fileLink` 会生成直接指向附件文件的链接，点击后在 Obsidian 中打开该 PDF。旧版 ZotLit 生成的笔记也会将每条标注链接到文件。这些链接同样会继续在 Obsidian 中打开并定位到标注。
 
