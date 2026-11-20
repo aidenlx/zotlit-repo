@@ -18,7 +18,6 @@ export interface ProbeConfig {
   readonly role: "gate" | "probe";
   readonly resultDir: string;
   readonly settleMs: number;
-  readonly samplingIntervalUs: number;
   readonly report: string;
 }
 
@@ -27,7 +26,6 @@ export interface ProbeResult {
   readonly devStartup: string;
   readonly times: StartupPageTimes;
   readonly report?: unknown;
-  readonly profile?: string;
 }
 
 interface Workspace {
@@ -47,18 +45,10 @@ type ModuleFunction = (
   exports: unknown,
 ) => unknown;
 
-interface InspectorSession {
-  connect(): void;
-  post(
-    method: string,
-    params: Record<string, unknown>,
-    callback: (error: Error | null, result: Record<string, unknown>) => void,
-  ): void;
-}
-
 interface ProbeState {
   times: StartupPageTimes;
-  session?: InspectorSession;
+  gateWaiting?: boolean;
+  profilerReady?: boolean;
 }
 
 type NodeRequire = (id: string) => unknown;
@@ -80,13 +70,6 @@ export function startupProbePlugin(
   const mark = (name: string): void => {
     times.marks[name] ??= now();
   };
-
-  const post = (method: string, params: Record<string, unknown> = {}) =>
-    new Promise<Record<string, unknown>>((resolve, reject) => {
-      state.session!.post(method, params, (error, result) =>
-        error ? reject(error) : resolve(result),
-      );
-    });
 
   function __ztClockSync(): number {
     const start = now();
@@ -147,16 +130,8 @@ export function startupProbePlugin(
   };
 
   const gate = async (): Promise<void> => {
-    const { Session } = nodeRequire("node:inspector") as {
-      Session: new () => InspectorSession;
-    };
-    state.session = new Session();
-    state.session.connect();
-    await post("Profiler.enable");
-    await post("Profiler.setSamplingInterval", {
-      interval: config.samplingIntervalUs,
-    });
-    await post("Profiler.start");
+    state.gateWaiting = true;
+    while (!state.profilerReady) await sleep(5);
     __ztClockSync();
     const pluginScript = scope.__obsidianPluginScript as PluginScript;
     scope.__obsidianPluginScript = ((script, fn) =>
@@ -223,19 +198,12 @@ export function startupProbePlugin(
     await settled(workspace);
     const startup = await devStartup();
     await sleep(config.settleMs);
-    let profile: string | undefined;
-    if (state.session) {
-      const { profile: recorded } = await post("Profiler.stop");
-      profile = `profile-${performance.timeOrigin}.cpuprofile`;
-      write(profile, JSON.stringify(recorded));
-    }
     const report = config.report ? await (0, eval)(config.report) : undefined;
     const result: ProbeResult = {
       timeOrigin: performance.timeOrigin,
       devStartup: startup,
       times,
       report,
-      profile,
     };
     write(`result-${performance.timeOrigin}.json`, JSON.stringify(result));
     const next = path.join(config.resultDir, "next");

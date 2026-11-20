@@ -321,7 +321,6 @@ async function measurePlugin(bundle: Bundle): Promise<{
       role,
       resultDir: layout.resultDir,
       settleMs: SETTLE_MS,
-      samplingIntervalUs: SAMPLING_INTERVAL_US,
       report,
     });
   const probes = { probe: probe("probe"), gate: probe("gate") };
@@ -386,6 +385,49 @@ async function measurePlugin(bundle: Bundle): Promise<{
     return result;
   };
 
+  const profileOnce = async (): Promise<{
+    result: ProbeResult;
+    recorded: CpuProfile;
+  }> => {
+    await using instance = await launchInstance(layout, {
+      devtools: true,
+      log,
+    });
+    using page = await instance.devtools();
+    for (let tries = 0; ; tries++) {
+      if (
+        await cdpEval<boolean>(
+          page,
+          "window.__ztStartup?.gateWaiting === true",
+        ).catch(() => false)
+      )
+        break;
+      if (tries > 3000) throw new Error("the gate plugin never started");
+      await delay(10);
+    }
+    await page.send("Profiler.enable");
+    await page.send("Profiler.setSamplingInterval", {
+      interval: SAMPLING_INTERVAL_US,
+    });
+    await page.send("Profiler.start");
+    await cdpEval(page, "window.__ztStartup.profilerReady = true");
+    const result = await instance.nextResult();
+    const { profile: recorded } = (await page.send(
+      "Profiler.stop",
+      {},
+      { timeoutMs: 120_000 },
+    )) as {
+      profile: CpuProfile;
+    };
+    await instance.next("quit");
+    check(result);
+    await record("daily", result);
+    log(
+      `${id} daily profile: ${pluginStartupMs(result.devStartup, [id])[id]} ms`,
+    );
+    return { result, recorded };
+  };
+
   const modes: Partial<Record<StartupMode, ModeStartup>> = {};
   for (const mode of STARTUP_MODES) {
     const starts: Start[] = [];
@@ -422,11 +464,7 @@ async function measurePlugin(bundle: Bundle): Promise<{
   if (options.profile) {
     await install();
     await enable(true);
-    await launchOnce("daily", "profile warm-up");
-    const result = await launchOnce("daily", "profile");
-    const recorded = JSON.parse(
-      await readFile(join(layout.resultDir, result.profile!), "utf8"),
-    ) as CpuProfile;
+    const { result, recorded } = await profileOnce();
     await writeFile(join(outDir, `${id}.cpuprofile`), JSON.stringify(recorded));
     profile = splitProfile(
       recorded,
