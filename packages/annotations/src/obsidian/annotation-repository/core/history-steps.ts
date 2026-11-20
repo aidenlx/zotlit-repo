@@ -17,7 +17,7 @@ import type {
 import { Effect } from "effect";
 
 import { autosaveDue, draftFor } from "./draft-store.ts";
-import { holding } from "./lists.ts";
+import { handOff, holding } from "./lists.ts";
 import { DRAFT_FIELDS, proposedTags } from "./model.ts";
 import type { AnnotationRecord } from "./model.ts";
 import type { CoreState } from "./state.ts";
@@ -184,7 +184,12 @@ const stepHistory = Effect.fnUntraced(function* (
 
   return yield* Effect.acquireUseRelease(
     Effect.sync(() => core.steppingAttachments.add(attachmentKey)),
-    () => takeStep(core, step, { attachmentKey, direction, history }),
+    () =>
+      handOff(core, attachmentKey).pipe(
+        Effect.andThen(
+          takeStep(core, step, { attachmentKey, direction, history }),
+        ),
+      ),
     () =>
       Effect.sync(() => {
         core.steppingAttachments.delete(attachmentKey);

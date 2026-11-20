@@ -6,11 +6,13 @@ import { expect, vi } from "vitest";
 import {
   annotationItem,
   annotationPage,
+  freshnessSignal,
   localApiDisabled,
   notFound,
   rootOk,
   ROUGIER_ANNOTATIONS,
   staleVersion,
+  unreachable,
   writeAccepted,
 } from "@zotlit/plugin-services/obsidian/zotero-local-api/__fixtures__.ts";
 import type {
@@ -33,6 +35,7 @@ import {
   DRAFT,
   zoteroHolding,
   moved,
+  nextChangeOf,
   zoteroTagging,
   TAGGED,
 } from "#__fixtures__/annotation-repository.ts";
@@ -198,6 +201,63 @@ it.effect("drops a step whose Annotation Zotero no longer holds", () =>
     });
     expect(yield* service.canUndo("RGRPDF24")).toBe(false);
   }),
+);
+
+it.effect(
+  "undoes a colour pick on a list read from the database after Zotero came back",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroHolding("PUPR5FG5");
+      let answering = true;
+      let rereads: Promise<void> | null = null;
+      const { service, client, serverEvents, dbEvents } = yield* Effect.promise(
+        () =>
+          writable(stack, {
+            ...zotero.answers,
+            root: () => (answering ? rootOk() : unreachable()),
+            children: async () => {
+              await rereads;
+              return zotero.answers.children();
+            },
+          }),
+      );
+      yield* service.openHistory("RGRPDF24");
+      yield* service.patchColor("PUPR5FG5", "#ff6666");
+
+      answering = false;
+      const lost = yield* nextChangeOf(service);
+      freshnessSignal(serverEvents);
+      yield* lost;
+      client.$client.exec(`
+    update libraries set clientVersion = 38 where libraryID = 1;
+    update itemAnnotations set color = '#ff6666' where itemID = 48;
+    update items set clientVersion = 38 where itemID = 48;
+  `);
+      dbEvents.emit("changed");
+      expect((yield* service.read("RGRPDF24"))?.source.kind).toBe("zotero-db");
+
+      let release!: () => void;
+      rereads = new Promise((resolve) => (release = resolve));
+      answering = true;
+      const restored = yield* nextChangeOf(service);
+      freshnessSignal(serverEvents);
+      yield* restored;
+      expect(yield* service.capabilityFor("RGRPDF24")).toEqual({
+        kind: "writable",
+      });
+
+      const undo = yield* Effect.forkChild(service.undo("RGRPDF24"), {
+        startImmediately: true,
+      });
+      release();
+
+      expect(yield* Fiber.join(undo)).toEqual({
+        kind: "stepped",
+        annotationKey: "PUPR5FG5",
+      });
+      expect(zotero.held?.color).toBe("#2ea8e5");
+    }),
 );
 
 it.effect("sends the undo again after a 412 that only moved the version", () =>
