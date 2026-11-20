@@ -152,7 +152,8 @@ aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the t
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
    - **Docs:** after a stable version, the `docs` job deploys the production
      docs site from the release tag (`docs-deploy.yml`).
-4. The tag starts the shell's own `plugin-release.yml` in `aidenlx/zotlit`. It runs
+4. The tag starts the shell's own `plugin-release.yml` in the publish
+   repository (`aidenlx/zotlit` or `aidenlx/zotlit-reader`). It runs
    the official Obsidian action (scanner lint, attestation, draft release),
    creates and checks the Resource Release `res-<version>`, and publishes the
    release (a pre-release for a beta). See
@@ -218,6 +219,20 @@ the fix from the latest stable release instead. The hotfix commits reach
    run `pnpm land`. Then remove the hotfix worktree with
    `wt remove hotfix/2.3.1`.
 
+### ZotLit and ZotLit Reader
+
+ZotLit no longer draws its annotation tools on Obsidian's PDF view; they come
+with ZotLit Reader. Before you start a ZotLit release, check this item:
+
+- [ ] A ZotLit release that has no overlay on Obsidian's PDF view waits until the community directory lists ZotLit Reader.
+
+The release order is: a ZotLit Reader beta on BRAT, then the community
+directory listing of ZotLit Reader, then that ZotLit release.
+
+ZotLit Reader `1.0.0-beta.0` proved the Reader's release pipeline. The Reader
+is still in development: its next version waits for the maintainer, and fixes
+land on `main` with no Reader version bump.
+
 ### Distribution channels
 
 | Channel     | Obsidian                                             | Zotero                                         |
@@ -229,27 +244,46 @@ the fix from the latest stable release instead. The hotfix commits reach
 
 A plugin's npm bundle package does not exist before its first release, so
 trusted publishing cannot be set for it yet. That one release publishes from
-the lead's machine, logged in to npm as the owner of the scope. The desktop
-plugin's first release in this flow was `2.3.0-beta.0`.
+the lead's machine, logged in to npm as the owner of the scope, while the
+`Release` workflow is disabled. The desktop plugin's first release in this
+flow was `2.3.0-beta.0`. ZotLit Reader's was `1.0.0-beta.0`: product `reader`,
+source tag `reader-1.0.0-beta.0`, publish repository `aidenlx/zotlit-reader`,
+npm bundle package `@zotlit/reader-plugin`, on BRAT.
 
 1. Add the plugin to `PUBLISHED_PLUGINS`
-   (`packages/scripts/lib/shell/plugins.ts`) and do the settings in
+   (`packages/scripts/lib/shell/plugins.ts`), its product to `PRODUCTS`
+   (`packages/scripts/lib/release/lines.ts`) with the `publish` switch off,
+   and its publish job to `release.yml`. Create the publish repository and do
+   the settings in
    [docs/CI_SETUP.md](docs/CI_SETUP.md#settings-outside-the-repository) that
    come before a first publish.
-2. Disable the `Release` workflow in `aidenlx/zotlit-repo`, so that the push
-   of the version commit starts no publish from CI. Then land the version
-   commit with `pnpm release`.
+2. Disable the `Release` workflow in `aidenlx/zotlit-repo`
+   (`gh workflow disable Release -R aidenlx/zotlit-repo`), so that the push
+   to `main` starts no publish from CI. Then land the commit that turns the
+   product's `publish` switch on, with the app at its first version: with
+   `pnpm land` when the app already holds that version (`apps/reader` started
+   at `1.0.0-beta.0`), else in the version commit of `pnpm release`.
 3. On that commit of `origin/main`, with a clean tree, run
    `pnpm release:publish <product> --dry-run`, read its output, then
    `pnpm release:publish <product>`. npm asks for a one-time password: pass
    the code as `npm_config_otp=<code>` in front of the command, or run it in
    a terminal that npm can prompt in. The run publishes the npm package
    without provenance, pushes the shell commit and the version tag to the
-   publish repository, and pushes the same tag here.
-4. Watch the shell's `plugin-release.yml` in the publish repository publish
+   publish repository, and pushes the source tag here.
+4. Make sure that `main` of the publish repository holds the shell's
+   `.github/workflows/plugin-release.yml`. GitHub starts a tag's workflow
+   only when the default branch has that workflow file, and a new repository
+   holds only its first commit. For a first beta, fast-forward `main` to the
+   shell commit (it descends from `main`), then delete the version tag in the
+   publish repository and push it again on the same commit. The tag push then
+   starts the run.
+5. Watch the shell's `plugin-release.yml` in the publish repository publish
    the release and its Resource Release.
-5. Set trusted publishing for the npm package (docs/CI_SETUP.md) and enable
-   the `Release` workflow again. Later releases publish from `release.yml`.
+6. Set trusted publishing for the npm package from the lead's machine:
+   `npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml`
+   (docs/CI_SETUP.md). Then enable the `Release` workflow again
+   (`gh workflow enable Release -R aidenlx/zotlit-repo`). Later releases
+   publish from `release.yml`.
 
 ### A step failed half way
 

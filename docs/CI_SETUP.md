@@ -30,8 +30,10 @@ Lefthook pre-push hook lets only `pnpm land` push `main`
 version commit with the release gate.
 
 `.github/workflows/release.yml` runs on every push to `main`, and on manual
-dispatch on `main`. It publishes to the publish repository, `aidenlx/zotlit`
-(`RELEASE_REPOSITORY`), and keeps its steps in `packages/scripts/lib/release/`:
+dispatch on `main`. It publishes ZotLit and the Companion to the publish
+repository `aidenlx/zotlit` (`RELEASE_REPOSITORY`) and ZotLit Reader to
+`aidenlx/zotlit-reader` (`PUBLISHED_PLUGINS.reader`), and keeps its steps in
+`packages/scripts/lib/release/`:
 
 | Job        | Runs                                                     | Credential                                                                                                         |
 | ---------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -39,6 +41,7 @@ dispatch on `main`. It publishes to the publish repository, `aidenlx/zotlit`
 | `verify`   | `pnpm verify --release`, the desktop checks skipped      | none                                                                                                               |
 | `obsidian` | `pnpm release:publish obsidian`                          | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
 | `zotero`   | `pnpm release:publish zotero`, then the attestation      | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
+| `reader`   | `pnpm release:publish reader`                            | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
 | `docs`     | `docs-deploy.yml` for production, after a stable version | the Cloudflare secrets (`secrets: inherit`)                                                                        |
 
 The `plan` job installs no dependencies. A product publishes when
@@ -52,7 +55,8 @@ publishes a stable version, the `docs` job deploys the production docs site
 from its release tag, after every publish job of the run passed.
 
 The `obsidian` job pushes the shell commit and the version tag to
-`aidenlx/zotlit` with `RELEASE_REPO_TOKEN`. A tag pushed with a token, not with
+`aidenlx/zotlit` with `RELEASE_REPO_TOKEN`, and the `reader` job pushes them
+to `aidenlx/zotlit-reader` with the same token. A tag pushed with a token, not with
 that repository's own `GITHUB_TOKEN`, starts the shell's `plugin-release.yml` there,
 which runs with its own `GITHUB_TOKEN`: the official Obsidian action
 (`mode: release`, `strict: true`), the Resource Release `res-<version>`, an
@@ -155,7 +159,15 @@ changes a channel.
 
 ## Settings outside the repository
 
-Before the first release of a plugin. For the desktop plugin they are done:
+Before the first release of a plugin. For the desktop plugin (`aidenlx/zotlit`,
+`@zotlit/obsidian-plugin`) and ZotLit Reader (`aidenlx/zotlit-reader`,
+`@zotlit/reader-plugin`) they are done:
+
+- [ ] **Publish repository.** Create the repository that
+      `PUBLISHED_PLUGINS` names, public, with a first commit on `main`. Before
+      the first tag, `main` must hold the shell's
+      `.github/workflows/plugin-release.yml`, or the tag starts no run
+      (CONTRIBUTING.md "First release of a new plugin", step 4).
 
 - [ ] **npm scope.** Create the npm organization of the scope in the bundle
       package's name (`PUBLISHED_PLUGINS` in
@@ -164,14 +176,15 @@ Before the first release of a plugin. For the desktop plugin they are done:
 - [ ] **First npm publish** from the lead's machine
       (CONTRIBUTING.md "First release of a new plugin"); a package must
       exist before trusted publishing can be set for it.
-- [ ] **Trusted publishing**, after that first publish: on npmjs.com, package
-      settings → Trusted publishing → GitHub Actions, organization or user
-      `aidenlx`, repository `zotlit-repo`, workflow `release.yml`, no
+- [ ] **Trusted publishing**, after that first publish: run
+      `npm trust github <bundle package> --repo aidenlx/zotlit-repo --file release.yml`
+      as the owner of the scope: GitHub Actions, workflow `release.yml`, no
       environment. Then set "Require two-factor authentication and disallow
       tokens" for the package. The workflow needs npm 11.5.1 or later; the
       Node of `mise.toml` brings it.
 - [ ] **`RELEASE_REPO_TOKEN`**: the fine-grained token needs **Contents: read
-      and write** and **Workflows: read and write** on `aidenlx/zotlit`. Git
+      and write** and **Workflows: read and write** on each publish
+      repository (`aidenlx/zotlit`, `aidenlx/zotlit-reader`). Git
       refuses a push of a commit that adds or changes
       `.github/workflows/*.yml` without the Workflows permission, and every
       shell commit carries the shell's `plugin-release.yml`. It also needs Metadata:
@@ -179,6 +192,8 @@ Before the first release of a plugin. For the desktop plugin they are done:
 - [ ] **Actions in `aidenlx/zotlit-repo`**: enable Actions; keep workflow
       permissions read-only (each job grants its own). `id-token: write` is
       granted in the job, which needs no repository setting.
+- [ ] **Actions in `aidenlx/zotlit-reader`**: Actions stay enabled for the
+      shell's `plugin-release.yml`; the repository has no other workflow.
 - [ ] **Actions in `aidenlx/zotlit`**: Actions stay enabled for the shell's
       `plugin-release.yml`. Its old monorepo workflows run from the branch
       they are on: `Docs Deploy` and `Release` are disabled there
@@ -193,7 +208,8 @@ Before the first release of a plugin. For the desktop plugin they are done:
       fast-forwards only. Leave `beta` without a ruleset, or give it the same
       one. Delete or archive the old `next` when it is no longer needed.
 - [ ] **Directory pre-scan**: run the community directory's "Review branch"
-      pre-scan on `beta` of `aidenlx/zotlit` after the first shell commit.
+      pre-scan on `beta` of the publish repository after its first shell
+      commit.
 
 ## Verification
 

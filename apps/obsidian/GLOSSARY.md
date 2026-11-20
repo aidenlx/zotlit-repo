@@ -345,8 +345,8 @@ The raster image representation of an image or ink Annotation's PDF region, incl
 _Avoid_: cache image, cache PNG, annotation image (ambiguous with an image Annotation)
 
 **ZotLit PDF Reader**:
-ZotLit's own PDF reader inside Obsidian: every Attachment ZotLit opens in Obsidian opens in it, and it alone hosts ZotLit's annotation tools. Once the user turns on opening all PDFs in it, it also shows every other PDF of the vault, and PDF embeds, hover previews and canvas cards, in place of Obsidian's own PDF view.
-_Avoid_: Obsidian's PDF view (Obsidian's own, which shows no ZotLit tools), PDF viewer, new reader, the overlay (the retired annotation layer on Obsidian's view)
+The PDF reader that ZotLit Reader (`apps/reader/GLOSSARY.md`) adds to Obsidian, and the one reader that hosts ZotLit's annotation tools. While ZotLit Reader is installed, turned on and compatible, every Attachment ZotLit opens in Obsidian opens in it, and ZotLit adds its annotation tools to it through the Reader API; otherwise ZotLit opens the Attachment in Obsidian's own PDF view, with no ZotLit tools.
+_Avoid_: Obsidian's PDF view (Obsidian's own, which shows no ZotLit tools), PDF viewer, new reader, the overlay (the retired annotation layer on Obsidian's view), ZotLit Reader (that is the plugin)
 
 **Reader Session**:
 One open reading of an Attachment, whichever reader hosts it — the Zotero Reader or the ZotLit PDF Reader. Names its source, the Attachment's Indexed Key, the parent Item's Indexed Key, and the selected Annotations' Indexed Keys, and accepts navigation and selection.
@@ -365,7 +365,7 @@ Zotero's own open link to one Annotation, `zotero://open/library/items/<attachme
 _Avoid_: annotation backlink (in prose), zotero link, deep link
 
 **Open Target**:
-What one ZotLit gesture or followed link opens: an Attachment, or one Annotation in it, named by its Indexed Key. It opens in the ZotLit PDF Reader when it names an Obsidian-Openable Attachment whose file is on this device, and in Zotero otherwise; every ZotLit surface that opens an Attachment decides by this one rule, and an explicit "Open in Zotero" bypasses it. An Annotation opens in Zotero while the user turns File Link Capture or annotation link opening off, as a Durable Annotation Link does.
+What one ZotLit gesture or followed link opens: an Attachment, or one Annotation in it, named by its Indexed Key. It opens in Obsidian when it names an Obsidian-Openable Attachment whose file is on this device (in the ZotLit PDF Reader, or in Obsidian's own PDF view while ZotLit Reader is not available), and in Zotero otherwise; every ZotLit surface that opens an Attachment decides by this one rule, and an explicit "Open in Zotero" bypasses it. An Annotation opens in Zotero while the user turns File Link Capture or annotation link opening off, as a Durable Annotation Link does.
 _Avoid_: reader target (see Reader Session), table reader, PDF target
 
 **File Link Capture**:
@@ -997,4 +997,4 @@ release locations, consent copy, notices, and settings UI.
 ### Protocol
 
 **Protocol Action**:
-A URL-scheme verb (`obsidian://zotlit/<action>`) sent by the Companion to trigger an operation in Obsidian. Single-item actions: `open` (open or create), `update` (update or create). Batch actions: `update-many`, `import-notes`. Note-import action: `import-note`. Explorer action: `explore` (open the Template Data Explorer at an Item or an Annotation). Attachment action: `open-attachment` (open an Obsidian-Openable Attachment in the ZotLit PDF Reader). Library action: `show-in-library` (Show in Library for the Item an Indexed Key names; the Library Link that `zt.librarylink` writes into a note, so it carries no `source-id`). Long URLs fall back to HTTP PUT on the plugin's local server, which also serves the Companion's `GET /literature-notes` note-status query from the Note Index.
+A URL-scheme verb (`obsidian://zotlit/<action>`) sent by the Companion to trigger an operation in Obsidian. Single-item actions: `open` (open or create), `update` (update or create). Batch actions: `update-many`, `import-notes`. Note-import action: `import-note`. Explorer action: `explore` (open the Template Data Explorer at an Item or an Annotation). Attachment action: `open-attachment` (open an Obsidian-Openable Attachment in Obsidian, by the rule of its Open Target). Library action: `show-in-library` (Show in Library for the Item an Indexed Key names; the Library Link that `zt.librarylink` writes into a note, so it carries no `source-id`). Long URLs fall back to HTTP PUT on the plugin's local server, which also serves the Companion's `GET /literature-notes` note-status query from the Note Index.

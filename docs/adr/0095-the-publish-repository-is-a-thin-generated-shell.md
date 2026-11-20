@@ -33,3 +33,15 @@ A plain one-stage Vite build of the source and a rebuild of a published package 
 - A release publishes the bundle package to npm before it pushes the shell commit and tag; the lockfile is then resolved from the registry (`pnpm install --lockfile-only` in the generated shell).
 - Adding the Reader or Mobile plugin is one entry in `PUBLISHED_PLUGINS`, a host app that writes its own `dist/package/`, and a publish repository.
 - `giscus.json` lives in the shell templates; the source repository has none.
+
+## Update: a product registry (2026-11-20)
+
+ZotLit Reader is the second published plugin. A plugin is one entry in each of two registries, not one entry in `PUBLISHED_PLUGINS` alone:
+
+- **`PUBLISHED_PLUGINS`** (`packages/scripts/lib/shell/plugins.ts`) names what the shell needs per plugin: the host app, the bundle package (`@zotlit/obsidian-plugin`, `@zotlit/reader-plugin`), the publish repository (`aidenlx/zotlit`, `aidenlx/zotlit-reader`), the `versions.json` and the README the shell shows, and whether the repository hosts the Giscus discussions. `pnpm release:check-shell` and the manifest check run for each entry.
+- **`PRODUCTS`** (`packages/scripts/lib/release/lines.ts`) names what a release publishes: the app, the tag prefix in the source repository (none for ZotLit, `zt-` for the Companion, `reader-` for the Reader), the plugin entry, and a `publish` switch. The release plan skips a product whose switch is off, so a new plugin can land before its outward steps are done. `release.yml` has one publish job per product.
+
+Consequences:
+
+- Adding a plugin is an entry in both registries, a publish job in `release.yml`, a host app that writes its own `dist/package/`, and a publish repository whose `main` holds the shell's workflow before the first tag (CONTRIBUTING.md "First release of a new plugin").
+- Each publish repository tags the bare version on its shell commit; the source repository tells the plugins apart by the tag prefix.
