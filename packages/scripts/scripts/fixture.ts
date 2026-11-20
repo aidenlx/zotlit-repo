@@ -3,6 +3,7 @@
 // Builds, re-scopes, stops, and discards the Fixture.
 
 import type { DesktopSlot } from "#desktop-slot";
+import type { VaultPlugin } from "#vault-plugins";
 import { access } from "node:fs/promises";
 import { join } from "node:path";
 import yargs from "yargs";
@@ -66,6 +67,7 @@ import {
   PINNED_ZOTERO_VERSION,
   ZOTERO_APP_ENV,
 } from "#paired-zotero";
+import { pluginsOption, resolveVaultPlugins } from "#vault-plugins";
 
 const scopeCaseIds = SCOPE_CASES.map((c) => c.id).join(", ");
 const vaultCaseIds = VAULT_CASES.map((c) => c.id).join(", ");
@@ -139,15 +141,21 @@ async function holdDesktopSlot(mode: "open" | "dev"): Promise<DesktopSlot> {
 }
 
 /**
- * The dev build of the plugin. `pnpm fixture` builds it first, so it is missing
- * only when this script runs on its own.
+ * The dev build of each plugin. `pnpm fixture` builds them first, so one is
+ * missing only when this script runs on its own.
  */
-async function findPluginBundle(): Promise<string | undefined> {
-  const dir = join(workspaceRoot, "apps", "obsidian", "dist-dev");
-  return access(join(dir, "main.js")).then(
-    () => dir,
-    () => undefined,
-  );
+async function findPluginBundles(
+  plugins: readonly VaultPlugin[],
+): Promise<{ id: string; bundleDir: string }[]> {
+  const bundles = [];
+  for (const { id, devBundleDir } of plugins) {
+    const built = await access(join(devBundleDir, "main.js")).then(
+      () => true,
+      () => false,
+    );
+    if (built) bundles.push({ id, bundleDir: devBundleDir });
+  }
+  return bundles;
 }
 
 function kilobytes(bytes: number): string {
@@ -179,6 +187,7 @@ async function build({
   stressGroupLibraryItemCount,
   stressSparseLibraryID,
   localApi = false,
+  plugins: requestedPlugins,
 }: {
   scopeCase: string;
   vaultCase?: string;
@@ -187,8 +196,12 @@ async function build({
   stressGroupLibraryItemCount?: number;
   stressSparseLibraryID?: number;
   localApi?: boolean;
+  plugins?: readonly VaultPlugin[];
 }): Promise<void> {
-  const pluginBundleDir = await findPluginBundle();
+  const plugins =
+    requestedPlugins ??
+    (await resolveVaultPlugins(workspaceRoot, pluginsOption.default));
+  const bundles = await findPluginBundles(plugins);
   // The Local API needs one port both sides name, and the shipped 23119 belongs
   // to whatever Zotero the machine already runs. The profile carries this one,
   // so Paired Zotero serves on it and ZotLit reads it back from the same file.
@@ -202,7 +215,7 @@ async function build({
     stressLibraryItemCount,
     stressGroupLibraryItemCount,
     stressSparseLibraryID,
-    pluginBundleDir,
+    plugins: bundles,
     zoteroHttpPort,
     localApi,
   });
@@ -229,11 +242,16 @@ async function build({
       `Opened Zotero's Local API at http://127.0.0.1:${zoteroHttpPort}/api/`,
     );
   }
-  console.log(
-    pluginBundleDir
-      ? "Installed ZotLit in the vault and enabled it."
-      : "No plugin bundle found, so the vault has ZotLit neither installed nor enabled. Run 'pnpm fixture' from the workspace root to build it first.",
-  );
+  for (const { id } of bundles) {
+    console.log(`Installed ${id} in the vault and enabled it.`);
+  }
+  for (const { id } of plugins.filter(
+    (plugin) => !bundles.some((bundle) => bundle.id === plugin.id),
+  )) {
+    console.log(
+      `No ${id} bundle found, so the vault has ${id} neither installed nor enabled. Run 'pnpm fixture' from the workspace root to build it first.`,
+    );
+  }
 }
 
 const removed = removedLeaseFlag(hideBin(process.argv));
@@ -260,12 +278,14 @@ const cli = yargs(hideBin(process.argv))
           choices: VAULT_CASES.map(({ id }) => id),
           default: DEFAULT_VAULT_CASE,
         })
-        .option("local-api", localApiOption),
+        .option("local-api", localApiOption)
+        .option("plugins", pluginsOption),
     async (argv) => {
       await build({
         scopeCase: argv["scope-case"],
         vaultCase: argv["vault-case"],
         localApi: argv["local-api"],
+        plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
       });
     },
   )
@@ -468,8 +488,11 @@ const cli = yargs(hideBin(process.argv))
           default: false,
         }),
     async (argv) => {
-      const pluginBundleDir = await findPluginBundle();
-      await buildFixture(layout, { pluginBundleDir });
+      await buildFixture(layout, {
+        plugins: await findPluginBundles(
+          await resolveVaultPlugins(workspaceRoot, pluginsOption.default),
+        ),
+      });
       const bridge = startMockLocalBridge({
         layout,
         allowedOrigin: argv.origin,

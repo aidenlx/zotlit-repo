@@ -54,6 +54,7 @@
       "dependsOn": [
         "transit",
         "@zotlit/obsidian#build:dev",
+        "@zotlit/reader#build:dev",
         "@zotlit/zotero#build:dev"
       ],
       "cache": false,

@@ -29,6 +29,7 @@
     "#snapshot-size": "./lib/snapshot-size.ts",
     "#zotero-rdp": "./lib/zotero-rdp.ts",
     "#dev-vault": "./lib/dev-vault.ts",
+    "#vault-plugins": "./lib/vault-plugins.ts",
     "#message-usage": "./lib/message-usage.ts",
     "#plugin-packages": "./lib/plugin-packages.ts",
     "#scanner-eslint": "./lib/scanner-eslint.ts",

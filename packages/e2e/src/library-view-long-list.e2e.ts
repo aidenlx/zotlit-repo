@@ -69,7 +69,7 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     await cli([`vault=${vaultId}`, "plugin:disable", "id=zotlit"]);
     await buildFixture(fixture, {
       stressItemCount: STRESS_ITEMS,
-      pluginBundleDir,
+      plugins: [{ id: "zotlit", bundleDir: pluginBundleDir }],
       linkedAttachmentVaultDir: vaultPath,
     });
     await cli([`vault=${vaultId}`, "plugin:enable", "id=zotlit"]);

@@ -88,7 +88,7 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
     await cli([`vault=${vaultId}`, "plugin:disable", "id=zotlit"]);
     await buildFixture(fixture, {
       stressLibraryItemCount: STRESS_ITEMS,
-      pluginBundleDir,
+      plugins: [{ id: "zotlit", bundleDir: pluginBundleDir }],
       linkedAttachmentVaultDir: vaultPath,
     });
     await cli([`vault=${vaultId}`, "plugin:enable", "id=zotlit"]);

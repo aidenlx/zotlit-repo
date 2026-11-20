@@ -563,7 +563,7 @@ async function loadTier(items: number, groupItems?: number): Promise<void> {
   await buildFixture(fixture, {
     stressLibraryItemCount: items,
     stressGroupLibraryItemCount: groupItems,
-    pluginBundleDir,
+    plugins: [{ id: "zotlit", bundleDir: pluginBundleDir }],
     linkedAttachmentVaultDir: vaultPath,
   });
   await cli([`vault=${vaultId}`, "plugin:enable", "id=zotlit"]);

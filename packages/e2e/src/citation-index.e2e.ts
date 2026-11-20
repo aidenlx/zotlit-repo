@@ -126,7 +126,7 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
       // Shared Reading keeps Stress Items at both ends of the 100,000-Item corpus.
       stressItemCount: 100_000 - ITEMS.length,
       stressSparseLibraryID: 2,
-      pluginBundleDir,
+      plugins: [{ id: "zotlit", bundleDir: pluginBundleDir }],
       linkedAttachmentVaultDir: vaultPath,
     });
     await cli([`vault=${vaultId}`, "plugin:enable", "id=zotlit"]);

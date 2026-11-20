@@ -17,7 +17,7 @@ import {
 } from "@zotlit/templates/facade";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import { FIXTURE_PLUGIN_ID } from "./layout.ts";
+import { holdsZotLit } from "./layout.ts";
 import type { FixtureLayout } from "./layout.ts";
 import {
   BETTER_BIBTEX_PREFS,
@@ -185,6 +185,11 @@ export {
 } from "./run-state.ts";
 export type { PairedRunState } from "./run-state.ts";
 
+export interface FixturePlugin {
+  id: string;
+  bundleDir: string;
+}
+
 export interface BuildOptions {
   /** Scope case the fresh vault starts on. */
   scopeCase?: string;
@@ -210,11 +215,12 @@ export interface BuildOptions {
    */
   stressGroupLibraryItemCount?: number;
   /**
-   * Built plugin bundle to copy into the vault (`apps/obsidian/dist-dev`).
-   * Absent, the vault carries the Fixture's data with ZotLit neither installed
-   * nor enabled, so it opens but verifies no tracer.
+   * Built plugin bundles to copy into the vault, each into
+   * `.obsidian/plugins/<id>`, enabled in this order. Absent or empty, the
+   * vault carries the Fixture's data with no plugin of ours installed nor
+   * enabled, so it opens but verifies no tracer.
    */
-  pluginBundleDir?: string;
+  plugins?: readonly FixturePlugin[];
   /**
    * TCP port for this build's Live Updates channel, on
    * {@link LIVE_UPDATE_HOSTNAME}. The vault binds it and the profile points the
@@ -1222,7 +1228,7 @@ function workspacePreset(options: BuildOptions): Record<string, unknown> {
           type: "tabs",
           currentTab: 0,
           children: [
-            ...(options.pluginBundleDir
+            ...(holdsZotLit(options.plugins ?? [])
               ? ZOTLIT_SIDEBAR_VIEW_TYPES.map(workspaceLeaf)
               : []),
             workspaceLeaf("backlink"),
@@ -1328,10 +1334,10 @@ async function writeVaultConfig(
   // Windows, so the seed disables them.
   await writeJson(join(configDir, "appearance.json"), { nativeMenus: false });
   // Obsidian errors on an enabled plugin whose folder holds no bundle, so the
-  // enabled list names ZotLit only when the copy below installs it.
+  // enabled list names only the plugins the copy below installs.
   await writeJson(join(configDir, "community-plugins.json"), [
     "hot-reload",
-    ...(options.pluginBundleDir ? [FIXTURE_PLUGIN_ID] : []),
+    ...(options.plugins ?? []).map(({ id }) => id),
   ]);
   await writeJson(join(configDir, "core-plugins.json"), {
     "file-explorer": true,
@@ -1362,8 +1368,8 @@ async function writeVaultConfig(
     { recursive: true },
   );
 
-  if (options.pluginBundleDir) {
-    await cp(options.pluginBundleDir, layout.pluginDir, { recursive: true });
+  for (const { id, bundleDir } of options.plugins ?? []) {
+    await cp(bundleDir, join(configDir, "plugins", id), { recursive: true });
   }
 }
 

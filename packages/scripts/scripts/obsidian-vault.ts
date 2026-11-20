@@ -18,6 +18,7 @@
 // sandbox vault first.
 
 import type { VaultEntry } from "#obsidian-vault-registry";
+import type { VaultPlugin } from "#vault-plugins";
 import { execFile } from "node:child_process";
 import { access, cp, mkdir, readFile, rm } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -48,6 +49,7 @@ import {
   SCOPE_CASES,
   VAULT_CASES,
 } from "#fixture";
+import { holdsZotLit } from "#fixture/layout";
 import { createObsidianCall, isObsidianUnreachable } from "#obsidian-cli";
 import {
   createObsidianHostReadiness,
@@ -57,6 +59,7 @@ import {
 } from "#obsidian-host-readiness";
 import { findVaultId, unregisterVaultFile } from "#obsidian-vault-registry";
 import { getWorkspaceRoot } from "#package-roots";
+import { pluginsOption, resolveVaultPlugins } from "#vault-plugins";
 
 const execFileAsync = promisify(execFile);
 
@@ -69,6 +72,7 @@ let fixtureVault = getFixtureVaultDir(workspaceRoot);
 // `--inactive` opens vault windows behind the app that has the OS focus.
 let inactive = false;
 const pluginId = "zotlit";
+const defaultPlugins = await resolveVaultPlugins(workspaceRoot, pluginId);
 /** The folder in Obsidian's user data that holds its sandbox vault. */
 const sandboxFolder = "Obsidian Sandbox";
 
@@ -272,6 +276,7 @@ interface SeedOptions {
   grantLocalApiWrites?: boolean;
   /** The upgrader case's `note.frontmatter-fields`, in place of its built-in list. */
   upgraderFields?: readonly FrontmatterField[];
+  plugins?: readonly VaultPlugin[];
 }
 
 async function create(
@@ -285,6 +290,7 @@ async function create(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins = defaultPlugins,
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -314,6 +320,7 @@ async function create(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins,
   });
   if (purge) {
     const exists = await access(abs).then(
@@ -332,12 +339,14 @@ async function create(
 
   // Obsidian loads the plugin from the vault, so the bundle has to be in place
   // before the window opens; registering first would only show an empty vault.
-  const bundle = join(abs, ".obsidian", "plugins", pluginId, "main.js");
-  await access(bundle).catch(() => {
-    throw new Error(
-      `${pluginId} is not built into ${abs}. Run 'pnpm --filter @zotlit/obsidian build:dev' first.`,
-    );
-  });
+  for (const { id, app } of plugins) {
+    const bundle = join(abs, ".obsidian", "plugins", id, "main.js");
+    await access(bundle).catch(() => {
+      throw new Error(
+        `${id} is not built into ${abs}. Run 'pnpm --filter ./${app} build:dev' first.`,
+      );
+    });
+  }
 
   // `vault-open` registers the path and opens its window. Pass create=false
   // because the folder is already there; create=true rejects an existing one.
@@ -394,9 +403,10 @@ async function create(
   // Confirm the plugin object exists — `enabledPlugins` only mirrors
   // `community-plugins.json` and says nothing about what actually loaded.
   let reloaded = !reloads;
+  const ids = JSON.stringify(plugins.map((plugin) => plugin.id));
   const loaded = await waitFor(async () => {
     const answer = await obEval(
-      `JSON.stringify([String(performance.timeOrigin),${JSON.stringify(pluginId)} in app.plugins.plugins])`,
+      `JSON.stringify([String(performance.timeOrigin),${ids}.every(function(id){return id in app.plugins.plugins})])`,
       id,
     ).catch(rethrowUnreachable);
     if (!answer) return false;
@@ -411,10 +421,10 @@ async function create(
   }
   if (!loaded) {
     throw new Error(
-      `${pluginId} did not load in ${id}. Run 'pnpm --filter @zotlit/obsidian build:dev' and create again.`,
+      `${plugins.map((plugin) => plugin.id).join(", ")} did not load in ${id}. Run ${plugins.map((plugin) => `'pnpm --filter ./${plugin.app} build:dev'`).join(" and ")} and create again.`,
     );
   }
-  await linkFixture(id);
+  if (holdsZotLit(plugins)) await linkFixture(id);
   if (localApi) {
     await setFixtureWriteAuthorization(id, grantLocalApiWrites ?? true);
   }
@@ -428,6 +438,7 @@ async function create(
  */
 async function suspendLoadedPlugin(
   abs: string,
+  plugins: readonly VaultPlugin[],
   { always = false }: { always?: boolean } = {},
 ): Promise<AsyncDisposableStack> {
   await using suspension = new AsyncDisposableStack();
@@ -443,30 +454,32 @@ async function suspendLoadedPlugin(
   const id = findVaultId(vaults, abs);
   if (!id || vaults[id]?.open !== true) return suspension.move();
 
-  const loaded = await obEval(
-    `String(${JSON.stringify(pluginId)} in app.plugins.plugins)`,
-    id,
-  ).catch(rethrowUnreachable);
-  if (loaded !== "true") return suspension.move();
+  for (const { id: plugin } of [...plugins].reverse()) {
+    const loaded = await obEval(
+      `String(${JSON.stringify(plugin)} in app.plugins.plugins)`,
+      id,
+    ).catch(rethrowUnreachable);
+    if (loaded !== "true") continue;
 
-  const disabled = await cli([
-    `vault=${id}`,
-    "plugin:disable",
-    `id=${pluginId}`,
-  ]);
-  if (!disabled.toLowerCase().startsWith("disabled:")) {
-    throw new Error(`could not disable ZotLit in ${id}: ${disabled}`);
-  }
-  suspension.defer(async () => {
-    const enabled = await cli([
+    const disabled = await cli([
       `vault=${id}`,
-      "plugin:enable",
-      `id=${pluginId}`,
+      "plugin:disable",
+      `id=${plugin}`,
     ]);
-    if (!enabled.toLowerCase().startsWith("enabled:")) {
-      throw new Error(`could not re-enable ZotLit in ${id}: ${enabled}`);
+    if (!disabled.toLowerCase().startsWith("disabled:")) {
+      throw new Error(`could not disable ${plugin} in ${id}: ${disabled}`);
     }
-  });
+    suspension.defer(async () => {
+      const enabled = await cli([
+        `vault=${id}`,
+        "plugin:enable",
+        `id=${plugin}`,
+      ]);
+      if (!enabled.toLowerCase().startsWith("enabled:")) {
+        throw new Error(`could not re-enable ${plugin} in ${id}: ${enabled}`);
+      }
+    });
+  }
   return suspension.move();
 }
 
@@ -485,6 +498,7 @@ async function sync(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins = defaultPlugins,
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -495,7 +509,7 @@ async function sync(
   });
 
   {
-    await using _pluginSuspension = await suspendLoadedPlugin(abs, {
+    await using _pluginSuspension = await suspendLoadedPlugin(abs, plugins, {
       always: purge,
     });
     // Build before a purge so the generated seed captures the current dev bundle.
@@ -507,6 +521,7 @@ async function sync(
       localApi,
       grantLocalApiWrites,
       upgraderFields,
+      plugins,
     });
 
     // `--purge` deletes the folder first, so renamed or removed Fixture files
@@ -542,6 +557,7 @@ async function rebuildFixtureVault(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins = defaultPlugins,
   }: SeedOptions = {},
 ): Promise<void> {
   if (resolve(target) === resolve(fixtureVault)) return;
@@ -552,23 +568,22 @@ async function rebuildFixtureVault(
   // target's own bundle first would recycle it forever — the seed would carry
   // the vault's old bundle, and `--purge` would copy that same bundle straight
   // back, so a new build could never reach the vault.
-  const distDev = join(workspaceRoot, "apps", "obsidian", "dist-dev");
-  const hasDistDev = await access(join(distDev, "main.js")).then(
-    () => true,
-    () => false,
-  );
-  // The target's own bundle stands in when this script runs on its own, with
-  // no dev build in the worktree.
-  const vaultBundleDir = join(
-    resolve(target),
-    ".obsidian",
-    "plugins",
-    pluginId,
-  );
-  const hasVaultBundle = await access(join(vaultBundleDir, "main.js")).then(
-    () => true,
-    () => false,
-  );
+  const hasBundle = (dir: string) =>
+    access(join(dir, "main.js")).then(
+      () => true,
+      () => false,
+    );
+  const bundles = [];
+  for (const { id, devBundleDir } of plugins) {
+    // The target's own bundle stands in when this script runs on its own, with
+    // no dev build in the worktree.
+    const vaultBundleDir = join(resolve(target), ".obsidian", "plugins", id);
+    if (await hasBundle(devBundleDir)) {
+      bundles.push({ id, bundleDir: devBundleDir });
+    } else if (await hasBundle(vaultBundleDir)) {
+      bundles.push({ id, bundleDir: vaultBundleDir });
+    }
+  }
   await buildFixture(fixtureLayout, {
     scopeCase,
     vaultCase,
@@ -578,11 +593,7 @@ async function rebuildFixtureVault(
     grantLocalApiWrites,
     upgraderFields,
     linkedAttachmentVaultDir: resolve(target),
-    pluginBundleDir: hasDistDev
-      ? distDev
-      : hasVaultBundle
-        ? vaultBundleDir
-        : undefined,
+    plugins: bundles,
   });
 }
 
@@ -598,6 +609,7 @@ async function open(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins = defaultPlugins,
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -613,6 +625,7 @@ async function open(
     localApi,
     grantLocalApiWrites,
     upgraderFields,
+    plugins,
   };
   if (!registered) {
     await create(abs, seed);
@@ -644,31 +657,35 @@ async function open(
   // registry can lag a beat behind `vault-list`'s `open` flag, so the first
   // `plugin:reload` sometimes answers "not found" even though the plugin is
   // enabled. Retry a few times before treating it as a real failure.
-  let reloaded = "";
-  for (let attempt = 0; attempt < 4; attempt++) {
-    reloaded = await cli([
-      `vault=${registered}`,
-      "plugin:reload",
-      `id=${pluginId}`,
-    ]);
-    if (reloaded.toLowerCase().startsWith("reloaded:")) break;
-    await delay(250);
-  }
-  if (!reloaded.toLowerCase().startsWith("reloaded:")) {
-    throw new Error(`could not reload ZotLit in ${registered}: ${reloaded}`);
-  }
+  for (const { id } of plugins) {
+    let reloaded = "";
+    for (let attempt = 0; attempt < 4; attempt++) {
+      reloaded = await cli([
+        `vault=${registered}`,
+        "plugin:reload",
+        `id=${id}`,
+      ]);
+      if (reloaded.toLowerCase().startsWith("reloaded:")) break;
+      await delay(250);
+    }
+    if (!reloaded.toLowerCase().startsWith("reloaded:")) {
+      throw new Error(`could not reload ${id} in ${registered}: ${reloaded}`);
+    }
 
-  const loaded = await waitFor(async () => {
-    const answer = await obEval(
-      `String(${JSON.stringify(pluginId)} in app.plugins.plugins)`,
-      registered,
-    ).catch(rethrowUnreachable);
-    return answer === "true";
-  });
-  if (!loaded) {
-    throw new Error(`ZotLit did not load in ${registered}`);
+    const loaded = await waitFor(async () => {
+      const answer = await obEval(
+        `String(${JSON.stringify(id)} in app.plugins.plugins)`,
+        registered,
+      ).catch(rethrowUnreachable);
+      return answer === "true";
+    });
+    if (!loaded) {
+      throw new Error(`${id} did not load in ${registered}`);
+    }
   }
-  await linkFixture(registered);
+  if (holdsZotLit(plugins)) {
+    await linkFixture(registered);
+  }
   if (localApi) {
     await setFixtureWriteAuthorization(registered, grantLocalApiWrites ?? true);
   }
@@ -1098,7 +1115,8 @@ const vaultCli = yargs(hideBin(process.argv))
         .option("zotero-http-port", zoteroHttpPortOption)
         .option("local-api", localApiOption)
         .option("grant-local-api-writes", grantLocalApiWritesOption)
-        .option("upgrader-fields", upgraderFieldsOption),
+        .option("upgrader-fields", upgraderFieldsOption)
+        .option("plugins", pluginsOption),
     async (argv) => {
       await open(
         argv["vault-path"] ?? getDevVaultDir(workspaceRoot, argv["vault-case"]),
@@ -1114,6 +1132,7 @@ const vaultCli = yargs(hideBin(process.argv))
             argv["upgrader-fields"],
             argv["vault-case"],
           ),
+          plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
         },
       );
     },
@@ -1138,7 +1157,8 @@ const vaultCli = yargs(hideBin(process.argv))
         .option("zotero-http-port", zoteroHttpPortOption)
         .option("local-api", localApiOption)
         .option("grant-local-api-writes", grantLocalApiWritesOption)
-        .option("upgrader-fields", upgraderFieldsOption),
+        .option("upgrader-fields", upgraderFieldsOption)
+        .option("plugins", pluginsOption),
     async (argv) => {
       await sync(
         argv["vault-path"] ?? getDevVaultDir(workspaceRoot, argv["vault-case"]),
@@ -1153,6 +1173,7 @@ const vaultCli = yargs(hideBin(process.argv))
             argv["upgrader-fields"],
             argv["vault-case"],
           ),
+          plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
         },
       );
     },

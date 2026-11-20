@@ -2566,7 +2566,7 @@ describe("the generated Obsidian vault", () => {
     );
 
     await buildFixture(bundledLayout, {
-      pluginBundleDir: bundleDir,
+      plugins: [{ id: "zotlit", bundleDir }],
       liveUpdatePort: 54_322,
     });
 
@@ -2578,6 +2578,66 @@ describe("the generated Obsidian vault", () => {
     await expect(
       readFile(join(bundledLayout.pluginDir, "main.js"), "utf-8"),
     ).resolves.toBe("// stale bundle\n");
+  });
+
+  async function buildWithPlugins(ids: readonly string[]) {
+    const pluginLayout = getFixtureLayout(
+      await mkdtemp(join(dirname(layout.root), "fixture-test-plugins-")),
+    );
+    fixture.defer(() =>
+      rm(pluginLayout.root, { recursive: true, force: true }),
+    );
+    const plugins = [];
+    for (const id of ids) {
+      const bundleDir = await mkdtemp(join(dirname(layout.root), "bundle-"));
+      fixture.defer(() => rm(bundleDir, { recursive: true, force: true }));
+      await writeFile(join(bundleDir, "main.js"), `// ${id} bundle\n`);
+      plugins.push({ id, bundleDir });
+    }
+    await buildFixture(pluginLayout, { plugins });
+    const configDir = join(pluginLayout.vaultDir, ".obsidian");
+    const workspace = JSON.parse(
+      await readFile(join(configDir, "workspace.json"), "utf-8"),
+    ) as {
+      right: { children: { children: { state: { type: string } }[] }[] };
+    };
+    return {
+      configDir,
+      enabled: JSON.parse(
+        await readFile(join(configDir, "community-plugins.json"), "utf-8"),
+      ) as unknown,
+      rightLeaves: workspace.right.children[0]!.children.map(
+        (leaf) => leaf.state.type,
+      ),
+    };
+  }
+
+  it("installs each listed plugin and enables the list in its order", async () => {
+    const { configDir, enabled, rightLeaves } = await buildWithPlugins([
+      "zotlit-reader",
+      "zotlit",
+    ]);
+
+    expect(enabled).toEqual(["hot-reload", "zotlit-reader", "zotlit"]);
+    for (const id of ["zotlit-reader", "zotlit"]) {
+      await expect(
+        readFile(join(configDir, "plugins", id, "main.js"), "utf-8"),
+      ).resolves.toBe(`// ${id} bundle\n`);
+    }
+    expect(rightLeaves).toEqual([
+      "zotero-annotation-view",
+      "zotlit-references",
+      "zotlit-cited-by",
+      "backlink",
+      "outgoing-link",
+    ]);
+  });
+
+  it("gives a Reader-only list no ZotLit sidebar tabs", async () => {
+    const { enabled, rightLeaves } = await buildWithPlugins(["zotlit-reader"]);
+
+    expect(enabled).toEqual(["hot-reload", "zotlit-reader"]);
+    expect(rightLeaves).toEqual(["backlink", "outgoing-link"]);
   });
 
   it("saves a Library Scope the plugin can load", async () => {
@@ -2738,7 +2798,7 @@ describe("a Vault Case", () => {
     await buildFixture(caseLayout, {
       ...options,
       vaultCase,
-      pluginBundleDir: bundleDir,
+      plugins: [{ id: "zotlit", bundleDir }],
     });
     return caseLayout;
   }
