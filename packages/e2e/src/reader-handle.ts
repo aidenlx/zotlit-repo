@@ -1,21 +1,30 @@
-import type { TFile, View } from "obsidian";
+import type { TFile } from "obsidian";
 
 import type { E2eServices } from "@zotlit/obsidian/e2e";
+import type {
+  PdfReaderRegistration,
+  PdfReaderView,
+} from "@zotlit/pdf-reader/obsidian";
 import type { ReaderApi } from "@zotlit/reader-api";
 import type { E2eServices as ReaderServices } from "@zotlit/reader/e2e";
 
 import type { PageApp } from "./page-host.ts";
 
+export const READER_VIEW_TYPE = "zotlit-pdf";
+
 export interface ReaderHandle {
   readonly viewType: string;
   open: ReaderApi["open"];
   openNew(
+    cleanup: AsyncDisposableStack,
     file: TFile,
     options?: Parameters<ReaderApi["open"]>[1],
-  ): Promise<View>;
+  ): Promise<PdfReaderView>;
+  takeover(): boolean;
   setTakeover(on: boolean): Promise<void>;
-  views(): View[];
-  readerOf: ReaderApi["readerOf"];
+  withTakeover(cleanup: AsyncDisposableStack, on: boolean): Promise<void>;
+  views(): PdfReaderView[];
+  readerOf: PdfReaderRegistration["readerOf"];
   loadDocument: ReaderApi["loadDocument"];
 }
 
@@ -48,21 +57,27 @@ export function createReaderHandle(
       return api().viewType;
     },
     open: (file, options) => api().open(file, options),
-    openNew: async (file, options) => {
+    openNew: async (cleanup, file, options) => {
       const known = new Set(handle.views());
+      cleanup.defer(() => {
+        for (const view of handle.views())
+          if (!known.has(view) && view.file === file) view.leaf.detach();
+      });
       await api().open(file, options);
-      let opened: View | undefined;
+      let opened: PdfReaderView | undefined;
       await until(`${file.path} in a new reader view`, () => {
         opened = handle
           .views()
-          .find(
-            (view) =>
-              !known.has(view) &&
-              (view as View & { file?: TFile | null }).file === file,
-          );
+          .find((view) => !known.has(view) && view.file === file);
         return opened !== undefined;
       });
       return opened!;
+    },
+    takeover: () => {
+      const services = zotlit();
+      if (services)
+        return services.pdfReaderPort.registration?.takeover.get() === "on";
+      return app.viewRegistry.typeByExtension.pdf !== "pdf";
     },
     setTakeover: async (on) => {
       const wanted = on ? "on" : "off";
@@ -90,6 +105,11 @@ export function createReaderHandle(
         () => (app.viewRegistry.typeByExtension.pdf === "pdf") !== on,
       );
     },
+    withTakeover: async (cleanup, on) => {
+      const before = handle.takeover();
+      cleanup.defer(() => handle.setTakeover(before));
+      await handle.setTakeover(on);
+    },
     views: () => {
       const services = zotlit();
       if (services) return [...registration(services).views()];
@@ -97,9 +117,10 @@ export function createReaderHandle(
       return app.workspace
         .getLeavesOfType(viewType)
         .filter((leaf) => !leaf.isDeferred)
-        .map((leaf) => leaf.view);
+        .map((leaf) => leaf.view as PdfReaderView);
     },
-    readerOf: (view) => api().readerOf(view),
+    readerOf: (view) =>
+      api().readerOf(view) as ReturnType<PdfReaderRegistration["readerOf"]>,
     loadDocument: (source, options) => api().loadDocument(source, options),
   };
   return handle;

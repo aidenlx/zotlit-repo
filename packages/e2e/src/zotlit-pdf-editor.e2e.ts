@@ -10,6 +10,7 @@ import {
 } from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import { obRun } from "./obsidian-cli.ts";
+import { READER_VIEW_TYPE } from "./reader-handle.ts";
 import {
   addSharedFileAttachment,
   reindexed,
@@ -37,13 +38,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const services = () => zotlit.services;
           page.annotationLinkTools(services).restoreLedger(cleanup);
           cleanup.defer(async () => {
-            for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            for (const leaf of app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ))
               await leaf.setViewState({ type: "empty" });
           });
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             await leaf.setViewState({ type: "empty" });
           const s = services();
-          const registration = s.pdfReaderPort.registration!;
           const file = app.vault.getFileByPath(path)!;
           const anchor = (mark: string) =>
             `#page=3&zt-annotation=${mark}&zt-attachment=${attachmentKey}`;
@@ -69,7 +73,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const opened = await s.bridge.runPromise(
             s.pdfReader.open(file, anchor(pageTwoMark), "tab"),
           );
-          const leaf = registration.views().find((v) => v.file === file)!.leaf;
+          const leaf = page.reader.views().find((v) => v.file === file)!.leaf;
           const cold = {
             ...(await landed(leaf, pageTwoMark, 2)),
             subpath: attached.splice(0),
@@ -81,7 +85,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             .setSelectedAnnotations([]);
           app.workspace.setActiveLeaf(leaf, { focus: true });
           const navigated: ReturnType<typeof keysOf>[] = [];
-          const offSubpath = registration
+          const offSubpath = page.reader
             .readerOf(view)!
             .on("subpath", ({ subpath }) => navigated.push(keysOf(subpath)));
           cleanup.defer(offSubpath);
@@ -91,7 +95,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const warm = {
             ...(await landed(leaf, pageOneMark, 1)),
             sameView: leaf.view === view,
-            views: registration.views().length,
+            views: page.reader.views().length,
             subpath: navigated.splice(0),
             attached: attached.splice(0),
           };
@@ -100,7 +104,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             .runSync(s.pdfAnnotationEditor.sessionFor(view))!
             .setSelectedAnnotations([]);
           await s.bridge.runPromise(s.pdfReader.open(file, "#page=2", false));
-          const reader = registration.readerOf(leaf.view)!;
+          const reader = page.reader.readerOf(leaf.view)!;
           await page.until(
             "the plain page link",
             () => reader.state.get().pageIndex === 1,
@@ -116,7 +120,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           app.workspace.setActiveLeaf(leaf, { focus: true });
           const deferredState = {
-            type: "zotlit-pdf",
+            type: page.reader.viewType,
             state: { file: path },
             icon: "lucide-file-text",
             title: file.basename,
@@ -143,7 +147,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await app.workspace.revealLeaf(later);
           const laterReader = await page.until(
             "the reader of the later leaf",
-            () => registration.readerOf(later.view),
+            () => page.reader.readerOf(later.view),
             10000,
           );
           await page.until(
@@ -170,7 +174,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect(outcome).toEqual({
         opened: "opened",
         cold: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 2,
           selected: [PAGE_TWO_MARK],
           attachment: annotationAttachment.key,
@@ -182,7 +186,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ],
         },
         warm: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 1,
           selected: [PAGE_ONE_MARK],
           attachment: annotationAttachment.key,
@@ -197,13 +201,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           attached: [],
         },
         plain: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 2,
           selected: [],
           attachment: annotationAttachment.key,
         },
         deferred: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 2,
           selected: [PAGE_TWO_MARK],
           attachment: annotationAttachment.key,
@@ -216,7 +220,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ],
         },
         plainAfterAnchor: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 2,
           selected: [],
           attachment: annotationAttachment.key,
@@ -251,12 +255,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             tools.restoreLedger(cleanup);
             const s = services();
             cleanup.defer(async () => {
-              for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+              for (const leaf of app.workspace.getLeavesOfType(
+                page.reader.viewType,
+              ))
                 await leaf.setViewState({ type: "empty" });
             });
-            for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            for (const leaf of app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ))
               await leaf.setViewState({ type: "empty" });
-            await tools.withTakeover(cleanup, takeover);
+            await page.reader.withTakeover(cleanup, takeover);
             const selectedIn = async (
               leaf: WorkspaceLeaf,
               mark: string,
@@ -273,7 +281,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               "tab",
             );
             const leaf = cleanup.adopt(
-              app.workspace.getLeavesOfType("zotlit-pdf")[0]!,
+              app.workspace.getLeavesOfType(page.reader.viewType)[0]!,
               (tab) => tab.detach(),
             );
             const { binding: first, ...linked } = await selectedIn(
@@ -292,7 +300,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               sharedAnnotation,
               1,
             );
-            const leaves = app.workspace.getLeavesOfType("zotlit-pdf").length;
+            const leaves = app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ).length;
             await s.bridge.runPromise(
               s.pdfReader.open(
                 app.vault.getFileByPath(path)!,
@@ -302,7 +312,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             );
             const coldLeaf = cleanup.adopt(
               app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(page.reader.viewType)
                 .find((other) => other !== leaf)!,
               (tab) => tab.detach(),
             );
@@ -337,13 +347,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
         expect(outcome).toEqual({
           linked: {
-            viewType: "zotlit-pdf",
+            viewType: READER_VIEW_TYPE,
             page: 2,
             selected: [PAGE_TWO_MARK],
             attachment: annotationAttachment.key,
           },
           renamed: {
-            viewType: "zotlit-pdf",
+            viewType: READER_VIEW_TYPE,
             page: 1,
             selected: [SHARED.annotationKey],
             attachment: SHARED.attachmentKey,
@@ -351,7 +361,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           },
           leaves: 1,
           cold: {
-            viewType: "zotlit-pdf",
+            viewType: READER_VIEW_TYPE,
             page: 1,
             selected: [SHARED.annotationKey],
             attachment: SHARED.attachmentKey,
@@ -370,15 +380,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const services = () => zotlit.services;
           const tools = page.annotationLinkTools(services);
           tools.restoreLedger(cleanup);
-          const registration = services().pdfReaderPort.registration!;
           const closeAll = async () => {
-            for (const type of ["pdf", "zotlit-pdf"])
+            for (const type of ["pdf", page.reader.viewType])
               for (const leaf of app.workspace.getLeavesOfType(type))
                 await leaf.setViewState({ type: "empty" });
           };
           cleanup.defer(closeAll);
           await closeAll();
-          await tools.withTakeover(cleanup, false);
+          await page.reader.withTakeover(cleanup, false);
           const { landedIn: landed } = tools;
           await app.workspace.openLinkText(`${path}#page=2`, "", "tab");
           const nativeLeaf = cleanup.adopt(
@@ -394,7 +403,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           const plain = {
             viewType: nativeLeaf.view.getViewType(),
-            readers: registration.views().length,
+            readers: page.reader.views().length,
           };
           app.workspace.setActiveLeaf(nativeLeaf, { focus: true });
           await app.workspace.openLinkText(
@@ -404,7 +413,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           const moved = {
             sameLeaf:
-              app.workspace.getLeavesOfType("zotlit-pdf")[0] === nativeLeaf,
+              app.workspace.getLeavesOfType(page.reader.viewType)[0] ===
+              nativeLeaf,
             ...(await landed(nativeLeaf, pageTwoMark, 2)),
           };
           app.workspace.setActiveLeaf(nativeLeaf, { focus: true });
@@ -412,7 +422,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const stays = {
             viewType: nativeLeaf.view.getViewType(),
             page:
-              nativeLeaf.view.getViewType() === "zotlit-pdf"
+              nativeLeaf.view.getViewType() === page.reader.viewType
                 ? (await landed(nativeLeaf, null, 1)).page
                 : null,
           };
@@ -426,14 +436,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               "the ZotLit reader of the Attachment link",
               () =>
                 app.workspace
-                  .getLeavesOfType("zotlit-pdf")
+                  .getLeavesOfType(page.reader.viewType)
                   .find((leaf) => leaf !== nativeLeaf),
               10000,
             ),
             (tab) => tab.detach(),
           );
           const landing = await landed(attachmentLeaf, null, 1);
-          const attachmentReader = registration.readerOf(attachmentLeaf.view)!;
+          const attachmentReader = page.reader.readerOf(attachmentLeaf.view)!;
           const toolbar = await page.until(
             "the Creation Toolbar of the Attachment link",
             () =>
@@ -462,14 +472,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         plain: { viewType: "pdf", readers: 0 },
         moved: {
           sameLeaf: true,
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 2,
           selected: [PAGE_TWO_MARK],
           attachment: annotationAttachment.key,
         },
-        stays: { viewType: "zotlit-pdf", page: 1 },
+        stays: { viewType: READER_VIEW_TYPE, page: 1 },
         attachmentOnly: {
-          viewType: "zotlit-pdf",
+          viewType: READER_VIEW_TYPE,
           page: 1,
           selected: [],
           attachment: annotationAttachment.key,
@@ -490,18 +500,21 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const services = () => zotlit.services;
           page.annotationLinkTools(services).restoreLedger(cleanup);
           const s = services();
-          const registration = s.pdfReaderPort.registration!;
           cleanup.defer(async () => {
-            for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            for (const leaf of app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ))
               await leaf.setViewState({ type: "empty" });
           });
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             await leaf.setViewState({ type: "empty" });
           const viewOf = (file: import("obsidian").TFile) =>
             page.until(
               `the reader view of ${file.path}`,
               () =>
-                registration.views().find((v) => v.file === file && v.reader),
+                page.reader.views().find((v) => v.file === file && v.reader),
               10000,
             );
           const markOn = (
@@ -668,7 +681,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           app.workspace.setActiveLeaf(front, { focus: true });
           await background.setViewState({
-            type: "zotlit-pdf",
+            type: page.reader.viewType,
             state: { file: path },
           });
           const hiddenView = await viewOf(file);
@@ -752,16 +765,17 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         async ({ app, zotlit, page }, { storagePath }) => {
           await using cleanup = new AsyncDisposableStack();
           const s = zotlit.services;
-          const registration = s.pdfReaderPort.registration!;
           cleanup.defer(async () => {
-            for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            for (const leaf of app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ))
               await leaf.setViewState({ type: "empty" });
           });
           const file = app.vault.getFileByPath(`file:${storagePath}`)!;
           await s.bridge.runPromise(s.pdfReader.open(file, "#page=2", "tab"));
           const view = await page.until(
             "the reader of the storage file",
-            () => registration.views().find((v) => v.file === file && v.reader),
+            () => page.reader.views().find((v) => v.file === file && v.reader),
             10000,
           );
           const reader = view.reader!;
@@ -834,18 +848,21 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const services = () => zotlit.services;
           page.annotationLinkTools(services).restoreLedger(cleanup);
           cleanup.defer(async () => {
-            for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            for (const leaf of app.workspace.getLeavesOfType(
+              page.reader.viewType,
+            ))
               await leaf.setViewState({ type: "empty" });
           });
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             await leaf.setViewState({ type: "empty" });
           const bound = async () => {
             const s = services();
-            const registration = s.pdfReaderPort.registration!;
             const view = await page.until(
               "the reader view",
               () =>
-                registration
+                page.reader
                   .views()
                   .find((v) => v.file?.path === path && v.reader),
               20000,
@@ -889,7 +906,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           app.workspace.setActiveLeaf(before.leaf, { focus: true });
           const deferredState = {
-            type: "zotlit-pdf",
+            type: page.reader.viewType,
             state: { file: path },
             icon: "lucide-file-text",
             title: file.basename,
@@ -949,7 +966,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await app.workspace.revealLeaf(hidden);
           const shown = await page.until(
             "the reader of the background tab",
-            () => services().pdfReaderPort.registration!.readerOf(hidden.view),
+            () => page.reader.readerOf(hidden.view),
             20000,
           );
           await shown.whenReady();
@@ -985,7 +1002,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         openRecorded: false,
         sameLeaf: true,
         painted: true,
-        viewType: "zotlit-pdf",
+        viewType: READER_VIEW_TYPE,
         errors: [],
         background: {
           deferredBefore: true,

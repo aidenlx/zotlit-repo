@@ -43,8 +43,10 @@ export async function verifyPdfReadSource(
   cleanup.defer(async () => {
     await obRun(
       vaultId,
-      async ({ app, zotlit }, { override, log }) => {
-        app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
+      async ({ app, zotlit, page }, { override, log }) => {
+        app.workspace
+          .getLeavesOfType(page.reader.viewType)
+          .forEach((l) => l.detach());
         zotlit.services.bridge.runSync(
           zotlit.services.zoteroPref.setDataDir(override),
         );
@@ -82,8 +84,10 @@ export async function verifyPdfReadSource(
   }
   await obRun(
     vaultId,
-    async ({ app, zotlit }, { oldDir }) => {
-      app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
+    async ({ app, zotlit, page }, { oldDir }) => {
+      app.workspace
+        .getLeavesOfType(page.reader.viewType)
+        .forEach((l) => l.detach());
       zotlit.services.bridge.runSync(
         zotlit.services.settings.update({
           "log.level": "trace",
@@ -202,8 +206,10 @@ export async function verifyPdfReadSource(
   // retained binding adopting the newly selected database's identity.
   await obRun(
     vaultId,
-    async ({ app }) => {
-      app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
+    async ({ app, page }) => {
+      app.workspace
+        .getLeavesOfType(page.reader.viewType)
+        .forEach((l) => l.detach());
     },
     undefined,
   );

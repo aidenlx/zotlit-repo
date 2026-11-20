@@ -25,10 +25,10 @@ src/reader.e2e.ts -t R-3` checks the three embeds, **More options**, the hover
 preview, the Live Preview embed of `#height=300`, the move to a new window and
 the canvas card's reader in ZotLit Reader alone, and `-t R-5` checks the turn
 back to Obsidian's PDF embed when **Open all PDFs** is off.
-`pnpm e2e --project=desktop src/zotlit-pdf-reader.e2e.ts` turns on ZotLit's
-setting and checks a real text drag in a Live Preview embed with the note's
+`-t E-15` checks a real text drag in a Live Preview embed with the note's
 cursor kept, the hover preview, a real text drag on the canvas card, and the
-turn back to Obsidian's embed when the setting is off. The export to PDF stays
+turn back to Obsidian's embed when the setting is off, also in ZotLit Reader
+alone. The export to PDF stays
 a manual check.
 
 ## Embeds

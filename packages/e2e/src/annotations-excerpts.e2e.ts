@@ -420,10 +420,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(
       await obRun(
         id,
-        async ({ app }) => {
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+        async ({ app, page }) => {
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             leaf.detach();
-          return app.workspace.getLeavesOfType("zotlit-pdf").length;
+          return app.workspace.getLeavesOfType(page.reader.viewType).length;
         },
         undefined,
       ),
@@ -648,8 +650,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(
       await obRun(
         id,
-        async ({ app }) => {
-          return app.workspace.getLeavesOfType("zotlit-pdf").length;
+        async ({ app, page }) => {
+          return app.workspace.getLeavesOfType(page.reader.viewType).length;
         },
         undefined,
       ),

@@ -128,7 +128,7 @@ export async function reopenPdfView(
         const file = view.file!;
         await view.leaf.setViewState({ type: "empty" });
         await view.leaf.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });

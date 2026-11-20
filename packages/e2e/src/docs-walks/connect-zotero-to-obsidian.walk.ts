@@ -159,10 +159,9 @@ describe.skipIf(!reachable)(
       });
       // The PDF tab's path runs through the Fixture's folders; the images
       // show the file name alone.
-      await obRun(walk.vaultId, () => {
+      await obRun(walk.vaultId, ({ page }) => {
         const style = document.head.createEl("style");
-        style.textContent =
-          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
+        style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none}`;
       });
       // The reader installs ZotLit Companion in step 3: the walk takes the
       // Paired Run's Companion out of the Fixture's Zotero profile first.
@@ -1328,10 +1327,9 @@ describe.skipIf(!reachable)(
       );
       console.log("[walk] after reload", JSON.stringify(reloaded));
       expect(reloaded).toEqual({ banner: false, steps: 4 });
-      await obRun(walk.vaultId, () => {
+      await obRun(walk.vaultId, ({ page }) => {
         const style = document.head.createEl("style");
-        style.textContent =
-          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none}';
+        style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none}`;
       });
     }, 1200000);
 
@@ -1537,11 +1535,11 @@ describe.skipIf(!reachable)(
         );
         const opened = await obRunUntil(
           walk.vaultId,
-          ({ app }) => {
+          ({ app, page }) => {
             const leaf = app.workspace.getLeavesOfType(
               "zotlit-library",
             )[0] as LibraryLeaf;
-            const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0];
+            const pdf = app.workspace.getLeavesOfType(page.reader.viewType)[0];
             if (!pdf) return null;
             const marks = [
               ...pdf.view.containerEl.querySelectorAll<HTMLElement>(
@@ -1583,7 +1581,7 @@ describe.skipIf(!reachable)(
         );
         // The step ends on the highlights and the sidebar that lists them.
         await obRun(walk.vaultId, async ({ app, page }) => {
-          const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0]!;
+          const pdf = app.workspace.getLeavesOfType(page.reader.viewType)[0]!;
           await page.scratch.docsWalkPointer?.look([
             ...pdf.view.containerEl.querySelectorAll(".zt-pdf-annotation-mark"),
             ...app.workspace
@@ -1614,7 +1612,9 @@ describe.skipIf(!reachable)(
             walk.vaultId,
             async ({ app, page }, { note, labels }) => {
               const pointer = page.scratch.docsWalkPointer;
-              const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0]!;
+              const pdf = app.workspace.getLeavesOfType(
+                page.reader.viewType,
+              )[0]!;
               app.workspace.setActiveLeaf(pdf, { focus: true });
               const button = await page.until(
                 "the PDF view's literature note action",

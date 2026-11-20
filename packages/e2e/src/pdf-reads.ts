@@ -22,12 +22,13 @@ export async function verifyPdfReads(
 ) {
   const saved = await obRun(
     vaultId,
-    async ({ app, zotlit }) => {
+    async ({ app, zotlit, page }) => {
       return JSON.stringify({
         layout: app.workspace.getLayout(),
         settings: zotlit.services.bridge.runSync(
           zotlit.services.settings.current,
         ),
+        takeover: page.reader.takeover(),
         ledger: app.loadLocalStorage("zotlit-use-ledger") ?? null,
       });
     },
@@ -83,11 +84,11 @@ export async function verifyPdfReads(
     );
     await obRun(
       vaultId,
-      async ({ app, zotlit }, { savedJson }) => {
+      async ({ app, zotlit, page }, { savedJson }) => {
         const s = zotlit.services;
         (
           app.workspace.getLeavesOfType(
-            "zotlit-pdf",
+            page.reader.viewType,
           ) as (import("obsidian").WorkspaceLeaf & {
             view: PagePdfReaderView;
           })[]
@@ -96,10 +97,9 @@ export async function verifyPdfReads(
         s.bridge.runSync(
           s.settings.update({
             "library.document": saved.settings["library.document"] ?? null,
-            "reader.open-all-pdfs":
-              saved.settings["reader.open-all-pdfs"] ?? false,
           }),
         );
+        await page.reader.setTakeover(saved.takeover);
         await s.bridge.runPromise(s.settings.flush);
         await app.workspace.changeLayout(saved.layout);
         await s.bridge.runPromise(s.zoteroReads.refresh);
@@ -114,7 +114,7 @@ export async function verifyPdfReads(
       const s = zotlit.services;
       (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -166,7 +166,7 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "zotlit-pdf",
+              page.reader.viewType,
             ) as (import("obsidian").WorkspaceLeaf & {
               view: PagePdfReaderView;
             })[]
@@ -308,7 +308,7 @@ export async function verifyPdfReads(
 
       const view = (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -371,7 +371,7 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "zotlit-pdf",
+              page.reader.viewType,
             ) as (import("obsidian").WorkspaceLeaf & {
               view: PagePdfReaderView;
             })[]
@@ -427,7 +427,7 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "zotlit-pdf",
+              page.reader.viewType,
             ) as (import("obsidian").WorkspaceLeaf & {
               view: PagePdfReaderView;
             })[]
@@ -445,7 +445,7 @@ export async function verifyPdfReads(
       );
       const reader = (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -487,10 +487,10 @@ export async function verifyPdfReads(
   ).toEqual(firstRead);
   await obRun(
     vaultId,
-    async ({ app }) => {
+    async ({ app, page }) => {
       const reader = (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -534,7 +534,7 @@ export async function verifyPdfReads(
       const s = zotlit.services;
       const reader = (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -578,10 +578,10 @@ export async function verifyPdfReads(
   )[itemKey]!;
   await obRun(
     vaultId,
-    async ({ app }) => {
+    async ({ app, page }) => {
       (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -642,14 +642,9 @@ export async function verifyPdfReads(
   )[itemKey]!;
   await obRun(
     vaultId,
-    async ({ app, zotlit, page }, { path }) => {
+    async ({ app, page }, { path }) => {
       const { until } = page;
-      const s = zotlit.services;
-      s.bridge.runSync(s.settings.update({ "reader.open-all-pdfs": true }));
-      await until(
-        "the takeover",
-        () => s.pdfReaderPort.registration!.takeover.get() === "on",
-      );
+      await page.reader.setTakeover(true);
 
       const leaf = (
         app.workspace.getLeavesOfType(
@@ -679,7 +674,7 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "zotlit-pdf",
+              page.reader.viewType,
             ) as (import("obsidian").WorkspaceLeaf & {
               view: PagePdfReaderView;
             })[]
@@ -726,10 +721,10 @@ export async function verifyPdfReads(
   ).not.toBe(closed.instant);
   await obRun(
     vaultId,
-    async ({ app }) => {
+    async ({ app, page }) => {
       (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -783,7 +778,7 @@ export async function verifyPdfReads(
         () => {
           const leaf = (
             app.workspace.getLeavesOfType(
-              "zotlit-pdf",
+              page.reader.viewType,
             ) as (import("obsidian").WorkspaceLeaf & {
               view: PagePdfReaderView;
             })[]
@@ -818,7 +813,7 @@ export async function verifyPdfReads(
     async ({ app, page }) => {
       const reader = (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]
@@ -833,10 +828,10 @@ export async function verifyPdfReads(
   );
   await obRun(
     vaultId,
-    async ({ app }) => {
+    async ({ app, page }) => {
       (
         app.workspace.getLeavesOfType(
-          "zotlit-pdf",
+          page.reader.viewType,
         ) as (import("obsidian").WorkspaceLeaf & {
           view: PagePdfReaderView;
         })[]

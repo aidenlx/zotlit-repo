@@ -1,6 +1,7 @@
-import { afterAll, afterEach, beforeAll, expect } from "vitest";
+import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { prepareRunWindow } from "./background-throttling.ts";
+import { expectNothingLeftOpen } from "./case-leftovers.ts";
 import {
   e2eVaultPath,
   runVaultScript,
@@ -120,61 +121,5 @@ export function registerEndToEndRunHooks(): void {
     }
   }, 120000);
 
-  // A case leaves no menu, dialog or popover open, and its notices go with
-  // it: a notice stays 4 s at the top right, over the toolbar the next case
-  // presses ("PDF Saved" after an export).
-  afterEach(async () => {
-    const left = await obRun(
-      run.vaultId,
-      async ({ app, page }) => {
-        const { until } = page;
-        const docs = () => [
-          document,
-          ...(
-            app.workspace as import("obsidian").Workspace & {
-              floatingSplit: { children: { win: Window }[] };
-            }
-          ).floatingSplit.children.map((split) => split.win.document),
-        ];
-        const notices = () =>
-          docs().flatMap((doc) => [
-            ...doc.querySelectorAll<HTMLElement>(".notice"),
-          ]);
-        for (const notice of notices()) notice.click();
-        await until("notices hide", () => notices().length === 0, 2000);
-        const open = () =>
-          docs().flatMap((doc) => [
-            ...doc.querySelectorAll<HTMLElement>(
-              ".menu, .modal-container, .zt-pinned-popover",
-            ),
-          ]);
-        const left = open().map(
-          (el) =>
-            `${
-              el.matches(".zt-pinned-popover")
-                ? "popover"
-                : el.classList.contains("menu")
-                  ? "menu"
-                  : "dialog"
-            }: ${el.textContent.trim().slice(0, 60)}`,
-        );
-        for (const doc of docs()) page.closePopovers(doc);
-        await until(
-          "menus and dialogs close",
-          async () => {
-            if (open().length === 0) return true;
-            await page.menuReady();
-            activeDocument.body.dispatchEvent(
-              new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-            );
-            return false;
-          },
-          5000,
-        );
-        return left;
-      },
-      undefined,
-    );
-    expect(left, "menus, dialogs and popovers the case left open").toEqual([]);
-  });
+  afterEach(() => expectNothingLeftOpen(run.vaultId));
 }

@@ -177,12 +177,12 @@ export async function activeTab(vaultId: string): Promise<ActiveTab> {
 export function pdfOpened(vaultId: string, path: string): Promise<boolean> {
   return obRunUntil(
     vaultId,
-    async ({ app }, { expectedPath }) => {
+    async ({ app, page }, { expectedPath }) => {
       const view = app.workspace.activeLeaf?.view as
         | PagePdfReaderView
         | undefined;
       return (
-        view?.getViewType() === "zotlit-pdf" &&
+        view?.getViewType() === page.reader.viewType &&
         view.file?.path === expectedPath &&
         (view.reader?.state.get().pageCount ?? 0) > 0
       );

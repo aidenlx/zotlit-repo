@@ -94,6 +94,7 @@ export function createPageHelpers(
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
   }
+  const readerHandle = createReader(app, until);
   function stands<T extends HTMLElement>(
     el: T | null | undefined,
     what: string,
@@ -631,7 +632,7 @@ export function createPageHelpers(
   }
   function pdfView(path: string): PagePdfReaderView | undefined {
     return app.workspace
-      .getLeavesOfType("zotlit-pdf")
+      .getLeavesOfType(readerHandle.viewType)
       .map(({ view }) => view as PagePdfReaderView)
       .find(
         (view) =>
@@ -923,46 +924,18 @@ export function createPageHelpers(
         );
       return { link, x, y };
     }
-    async function withTakeover(
-      cleanup: AsyncDisposableStack,
-      takeover: boolean,
-    ): Promise<void> {
-      const services = getServices();
-      const registration = services.pdfReaderPort.registration!;
-      const mode = (on: boolean) => (on ? "on" : "off");
-      const before = services.bridge.runSync(services.settings.current)[
-        "reader.open-all-pdfs"
-      ];
-      cleanup.defer(async () => {
-        await services.bridge.runPromise(
-          services.settings.update({ "reader.open-all-pdfs": before }),
-        );
-        await until(
-          () => registration.takeover.get() === mode(before),
-          () => "The takeover did not follow the setting back",
-        );
-      });
-      await services.bridge.runPromise(
-        services.settings.update({ "reader.open-all-pdfs": takeover }),
-      );
-      await until(
-        () => registration.takeover.get() === mode(takeover),
-        () => `The takeover did not turn ${mode(takeover)}`,
-      );
-    }
     async function landedIn(
       leaf: WorkspaceLeaf,
       mark: string | null,
       pageNumber: number,
     ) {
       const services = getServices();
-      const registration = services.pdfReaderPort.registration!;
       const bindingOf = () =>
         services.bridge.runSync(
           services.pdfAnnotationEditor.bindingFor(leaf.view),
         );
       const reader = await until(
-        () => registration.readerOf(leaf.view),
+        () => readerHandle.readerOf(leaf.view),
         () => "The leaf has no reader",
       );
       await reader.whenReady();
@@ -999,7 +972,6 @@ export function createPageHelpers(
       past,
       within,
       until,
-      withTakeover,
       landedIn,
       restoreLedger,
       draft,
@@ -1105,9 +1077,8 @@ export function createPageHelpers(
     }
   }
 
-  const reader = createReader(app, until);
   return {
-    reader,
+    reader: readerHandle,
     leavesOfType,
     measure,
     waitFor,

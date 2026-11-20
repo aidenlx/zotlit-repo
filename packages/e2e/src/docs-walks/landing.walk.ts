@@ -245,7 +245,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     await closeWelcome(walk.vaultId);
     await obRun(
       walk.vaultId,
-      async ({ zotlit }, { apa }) => {
+      async ({ zotlit, page }, { apa }) => {
         const s = zotlit.services;
         // The chapter's style is APA, as the journal asks.
         await s.bridge.runPromise(
@@ -264,8 +264,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         // The PDF tab's path runs through the Fixture's folders; notices and
         // the status bar are not part of any clip.
         const style = document.head.createEl("style");
-        style.textContent =
-          '.workspace-leaf-content[data-type="zotlit-pdf"] .view-header-title-parent{display:none} .notice-container{visibility:hidden} .status-bar{display:none}';
+        style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none} .notice-container{visibility:hidden} .status-bar{display:none}`;
       },
       { apa: APA },
       STEP,
@@ -478,7 +477,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           "PDF",
           () =>
             app.workspace
-              .getLeavesOfType("zotlit-pdf")
+              .getLeavesOfType(page.reader.viewType)
               .find((l) =>
                 decodeURI((l.view as MarkdownView).file?.path ?? "").includes(
                   attachmentKey,
@@ -522,7 +521,9 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     await obRun(
       walk.vaultId,
       async ({ app, page }, { from, pageNumber, zoom }) => {
-        const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0] as PdfLeaf;
+        const pdf = app.workspace.getLeavesOfType(
+          page.reader.viewType,
+        )[0] as PdfLeaf;
         const reader = pdf.view.reader!;
         reader.set({ zoom: "page-width" });
         await new Promise((r) => setTimeout(r, 300));
@@ -580,7 +581,9 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         walk.vaultId,
         async ({ app, page }, { from, to, pageNumber, before, opening }) => {
           const pointer = page.scratch.docsWalkPointer;
-          const pdf = app.workspace.getLeavesOfType("zotlit-pdf")[0] as PdfLeaf;
+          const pdf = app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          )[0] as PdfLeaf;
           const view = pdf.view.containerEl.getBoundingClientRect();
           if (pointer) {
             await pointer.park(view.right - 40, view.top + view.height * 0.7);

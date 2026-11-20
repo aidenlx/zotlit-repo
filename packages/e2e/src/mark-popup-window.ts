@@ -24,7 +24,7 @@ export async function verifyMarkPopupWindow(
         leaf.detach(),
       );
       await leaf.setViewState({
-        type: "zotlit-pdf",
+        type: page.reader.viewType,
         state: { file: pdf.path },
         active: true,
       });

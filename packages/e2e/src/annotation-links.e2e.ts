@@ -451,7 +451,7 @@ async function follow({
       const s = zotlit.services;
       const observe = () => {
         const pdf = app.workspace
-          .getLeavesOfType("zotlit-pdf")
+          .getLeavesOfType(page.reader.viewType)
           .map(({ view }) => view as PagePdfReaderView)
           .find((view) => view.file?.path === observedPdfPath);
         return {
@@ -486,7 +486,9 @@ async function follow({
         links.restoreLedger(cleanup);
         const layout = app.workspace.getLayout();
         cleanup.defer(async () => {
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             leaf.detach();
           await app.workspace.changeLayout(layout);
         });
@@ -757,7 +759,9 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
         links.restoreLedger(cleanup);
         const layout = app.workspace.getLayout();
         cleanup.defer(async () => {
-          for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+          for (const leaf of app.workspace.getLeavesOfType(
+            page.reader.viewType,
+          ))
             leaf.detach();
           await app.workspace.changeLayout(layout);
         });
@@ -765,7 +769,7 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
         const restored = app.workspace.getLeaf("tab");
         cleanup.adopt(restored, (leaf) => leaf.detach());
         await restored.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });
@@ -828,7 +832,7 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
         const second = app.workspace.getLeaf("tab");
         cleanup.adopt(second, (leaf) => leaf.detach());
         await second.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });

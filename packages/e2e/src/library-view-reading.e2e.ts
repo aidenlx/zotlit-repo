@@ -1553,10 +1553,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     // The PDF no Attachment keeps carries no control once it has resolved.
     await obRun(
       run.vaultId,
-      async ({ app }, { path }) => {
+      async ({ app, page }, { path }) => {
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: path },
           active: true,
         });
@@ -1567,9 +1567,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(
       await obRunUntil(
         run.vaultId,
-        async ({ app, zotlit }, { path, labels }) => {
+        async ({ app, zotlit, page }, { path, labels }) => {
           const leaf = app.workspace
-            .getLeavesOfType("zotlit-pdf")
+            .getLeavesOfType(page.reader.viewType)
             .find((leaf) => leaf.getViewState().state?.file === path)!;
           app.workspace.setActiveLeaf(leaf, { focus: true });
           const binding = zotlit.services.bridge.runSync(
@@ -1602,12 +1602,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     // The paper has no literature note yet, and its PDF is the only tab.
     await obRun(
       run.vaultId,
-      async ({ app, zotlit }, { path, attachmentKey }) => {
+      async ({ app, zotlit, page }, { path, attachmentKey }) => {
         await app.vault.delete(app.vault.getFileByPath(path)!);
         const tab = app.workspace.getLeaf("tab");
         app.workspace.setActiveLeaf(tab, { focus: true });
         for (const leaf of [
-          ...app.workspace.getLeavesOfType("zotlit-pdf"),
+          ...app.workspace.getLeavesOfType(page.reader.viewType),
           ...app.workspace.getLeavesOfType("markdown"),
         ])
           leaf.detach();
@@ -1627,23 +1627,25 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       actionLabelUntil(expected).catch(async (error: unknown) => {
         const state = await obRun(
           run.vaultId,
-          async ({ app, zotlit }) => {
+          async ({ app, zotlit, page }) => {
             return JSON.stringify(
-              app.workspace.getLeavesOfType("zotlit-pdf").map((leaf) => ({
-                file: leaf.getViewState().state?.file,
-                target:
-                  zotlit.services.bridge.runSync(
-                    zotlit.services.pdfAnnotationEditor.bindingFor(leaf.view),
-                  )?.session.target ?? null,
-                actions: [
-                  ...leaf.view.containerEl.querySelectorAll<HTMLElement>(
-                    ".view-action",
-                  ),
-                ].map((el) => [
-                  el.getAttribute("aria-label"),
-                  el.style.display,
-                ]),
-              })),
+              app.workspace
+                .getLeavesOfType(page.reader.viewType)
+                .map((leaf) => ({
+                  file: leaf.getViewState().state?.file,
+                  target:
+                    zotlit.services.bridge.runSync(
+                      zotlit.services.pdfAnnotationEditor.bindingFor(leaf.view),
+                    )?.session.target ?? null,
+                  actions: [
+                    ...leaf.view.containerEl.querySelectorAll<HTMLElement>(
+                      ".view-action",
+                    ),
+                  ].map((el) => [
+                    el.getAttribute("aria-label"),
+                    el.style.display,
+                  ]),
+                })),
             );
           },
           undefined,
@@ -1653,9 +1655,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const actionLabelUntil = (expected: string) =>
       obRunUntil(
         run.vaultId,
-        async ({ app, zotlit }, { attachmentKey, labels }) => {
+        async ({ app, zotlit, page }, { attachmentKey, labels }) => {
           const leaf = app.workspace
-            .getLeavesOfType("zotlit-pdf")
+            .getLeavesOfType(page.reader.viewType)
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(
@@ -1687,7 +1689,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app, zotlit, page }, { attachmentKey, gesture, label }) => {
           const leaf = app.workspace
-            .getLeavesOfType("zotlit-pdf")
+            .getLeavesOfType(page.reader.viewType)
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(
@@ -1742,9 +1744,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const panes = (what: string) =>
       obRunUntil(
         run.vaultId,
-        async ({ app, zotlit }, { attachmentKey, key }) => {
+        async ({ app, zotlit, page }, { attachmentKey, key }) => {
           const pdfLeaf = app.workspace
-            .getLeavesOfType("zotlit-pdf")
+            .getLeavesOfType(page.reader.viewType)
             .find(
               (leaf) =>
                 zotlit.services.bridge.runSync(

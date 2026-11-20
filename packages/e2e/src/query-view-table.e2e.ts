@@ -381,9 +381,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
     const before = await obRun(
       run.vaultId,
-      async ({ app }, { pdfName }) => {
+      async ({ app, page }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("zotlit-pdf")
+          .getLeavesOfType(page.reader.viewType)
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,
@@ -416,9 +416,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await obRunUntil(
       run.vaultId,
-      async ({ app }, { pdfName }) => {
+      async ({ app, page }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("zotlit-pdf")
+          .getLeavesOfType(page.reader.viewType)
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,
@@ -453,9 +453,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await obRunUntil(
       run.vaultId,
-      async ({ app }, { pdfName }) => {
+      async ({ app, page }, { pdfName }) => {
         return app.workspace
-          .getLeavesOfType("zotlit-pdf")
+          .getLeavesOfType(page.reader.viewType)
           .filter(
             (l) =>
               (l.view as import("obsidian").FileView).file?.name === pdfName,

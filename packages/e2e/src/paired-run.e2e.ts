@@ -95,6 +95,7 @@ import {
   settledGesture,
   watchExcerptPixels,
 } from "./reader-gestures.ts";
+import { READER_VIEW_TYPE } from "./reader-handle.ts";
 
 const effectPath = createRequire(
   join(
@@ -298,8 +299,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
     await obRun(
       vaultId!,
-      async ({ app, zotlit }) => {
-        app.workspace.getLeavesOfType("zotlit-pdf").forEach((l) => l.detach());
+      async ({ app, zotlit, page }) => {
+        app.workspace
+          .getLeavesOfType(page.reader.viewType)
+          .forEach((l) => l.detach());
         await zotlit.services.bridge.runPromise(
           zotlit.services.zoteroLocalApi.probe,
         );
@@ -1504,9 +1507,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         // The Obsidian page: an overlay mark carrying the Annotation's key.
         await obRunUntil(
           vaultId!,
-          async ({ app }, { createdKey }: { createdKey: string }) => {
+          async ({ app, page }, { createdKey }: { createdKey: string }) => {
             return app.workspace
-              .getLeavesOfType("zotlit-pdf")
+              .getLeavesOfType(page.reader.viewType)
               .some(({ view }) =>
                 view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -1579,9 +1582,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         // The Obsidian page's overlay mark paints it.
         await obRunUntil(
           vaultId!,
-          async ({ app }, { createdKey }: { createdKey: string }) => {
+          async ({ app, page }, { createdKey }: { createdKey: string }) => {
             return app.workspace
-              .getLeavesOfType("zotlit-pdf")
+              .getLeavesOfType(page.reader.viewType)
               .map((leaf) =>
                 leaf.view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -5025,9 +5028,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         // 703.723 - 395.509 high.
         await obRun(
           vaultId!,
-          async ({ app }, { attachmentPath }: { attachmentPath: string }) => {
+          async (
+            { app, page },
+            { attachmentPath }: { attachmentPath: string },
+          ) => {
             const leaf = app.workspace
-              .getLeavesOfType("zotlit-pdf")
+              .getLeavesOfType(page.reader.viewType)
               .find(
                 ({ view }) => (view as FileView).file?.path === attachmentPath,
               );
@@ -5039,9 +5045,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         await obRunUntil(
           vaultId!,
-          async ({ app }, { imageKey }: { imageKey: "FDRFQ7C2" }) => {
+          async ({ app, page }, { imageKey }: { imageKey: "FDRFQ7C2" }) => {
             const mark = app.workspace
-              .getLeavesOfType("zotlit-pdf")
+              .getLeavesOfType(page.reader.viewType)
               .map(({ view }) =>
                 view.containerEl.querySelector<SVGGraphicsElement>(
                   `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(imageKey)}]`,
@@ -6217,8 +6223,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         local.defer(async () => {
           await obRun(
             vaultId!,
-            ({ app }, { formPath }: { formPath: string }) => {
-              for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+            ({ app, page }, { formPath }: { formPath: string }) => {
+              for (const leaf of app.workspace.getLeavesOfType(
+                page.reader.viewType,
+              ))
                 if ((leaf.view as FileView).file?.path === formPath)
                   leaf.detach();
             },
@@ -6533,10 +6541,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         // The PDF's tab in front again: the highlight is still selected.
         await obRun(
           vaultId!,
-          ({ app }, { attachmentPath }: { attachmentPath: string }) => {
+          ({ app, page }, { attachmentPath }: { attachmentPath: string }) => {
             app.workspace.setActiveLeaf(
               app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(page.reader.viewType)
                 .find(
                   (leaf) =>
                     (leaf.view as FileView).file?.path === attachmentPath,
@@ -6563,7 +6571,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ready: (value) => value.shown,
             },
           ),
-        ).toEqual({ shown: true, tab: "zotlit-pdf" });
+        ).toEqual({ shown: true, tab: READER_VIEW_TYPE });
         // Escape closes it, as before.
         await obRun(vaultId!, async ({ page: pageHelpers }) => {
           await pageHelpers.trusted(window).key("Escape");
@@ -6702,10 +6710,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         ).toEqual({ shown: false, tab: "empty" });
         await obRun(
           vaultId!,
-          ({ app }, { attachmentPath }: { attachmentPath: string }) => {
+          ({ app, page }, { attachmentPath }: { attachmentPath: string }) => {
             app.workspace.setActiveLeaf(
               app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(page.reader.viewType)
                 .find(
                   (leaf) =>
                     (leaf.view as FileView).file?.path === attachmentPath,
@@ -10768,7 +10776,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await obRun(
             vaultId!,
             async (
-              { app },
+              { app, page },
               {
                 modifiers,
                 attachmentPath,
@@ -10776,7 +10784,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               }: { modifiers: []; attachmentPath: string; markKey: "PUPR5FG5" },
             ) => {
               const target = app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(page.reader.viewType)
                 .map(({ view }) => view)
                 .find(
                   (view) =>
@@ -13604,7 +13612,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         await obRunUntil(
           vaultId!,
-          async ({ app }, { createdKey }: { createdKey: string }) => {
+          async ({ app, page }, { createdKey }: { createdKey: string }) => {
             return (() => {
               const cardWin = app.workspace
                 .getLeavesOfType("zotero-annotation-view")
@@ -13617,7 +13625,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 !!cardWin &&
                 cardWin !==
                   app.workspace
-                    .getLeavesOfType("zotlit-pdf")
+                    .getLeavesOfType(page.reader.viewType)
                     .find(({ view }) =>
                       view.containerEl.querySelector<SVGGraphicsElement>(
                         `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -13731,7 +13739,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         const shortcut = await obRun(
           vaultId!,
-          async ({ app }, { createdKey }: { createdKey: string }) => {
+          async ({ app, page }, { createdKey }: { createdKey: string }) => {
             const editor = app.workspace
               .getLeavesOfType("zotero-annotation-view")
               .map((leaf) =>
@@ -13758,7 +13766,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               owned:
                 editor!.win !==
                 app.workspace
-                  .getLeavesOfType("zotlit-pdf")
+                  .getLeavesOfType(page.reader.viewType)
                   .find(({ view }) =>
                     view.containerEl.querySelector<SVGGraphicsElement>(
                       `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -14095,7 +14103,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         await obRunUntil(
           vaultId!,
-          async ({ app }, { createdKey }: { createdKey: string }) => {
+          async ({ app, page }, { createdKey }: { createdKey: string }) => {
             return (() => {
               const card = app.workspace
                 .getLeavesOfType("zotero-annotation-view")
@@ -14106,7 +14114,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 )
                 .find(Boolean);
               const mark = app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(page.reader.viewType)
                 .map((leaf) =>
                   leaf.view.containerEl.querySelector<SVGGraphicsElement>(
                     `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(createdKey)}]`,
@@ -14397,7 +14405,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             vaultId!,
             async ({ app, page: pageHelpers }) => {
               app.workspace
-                .getLeavesOfType("zotlit-pdf")
+                .getLeavesOfType(pageHelpers.reader.viewType)
                 .forEach((leaf) => leaf.detach());
               app.workspace.detachLeavesOfType("zotero-annotation-view");
               pageHelpers.scratch.__zotlitWriteOutcomeProbe!.release!();
@@ -14435,12 +14443,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await obRun(
           vaultId!,
           async (
-            { app, zotlit },
+            { app, zotlit, page },
             { attachmentPath }: { attachmentPath: string },
           ) => {
             const file = app.vault.getFileByPath(attachmentPath);
             const s = zotlit.services;
-            if (!app.workspace.getLeavesOfType("zotlit-pdf").length)
+            if (!app.workspace.getLeavesOfType(page.reader.viewType).length)
               await s.bridge.runPromise(s.pdfReader.open(file!, "", "tab"));
             app.commands.executeCommandById("zotlit:open-annot-view");
             app.commands.executeCommandById(
@@ -16681,7 +16689,7 @@ function visibleAnnotationColors(
 ): Promise<{ card: string | null; mark: string | null }> {
   return obRun(
     vaultId,
-    async ({ app }, { annotationKey }: { annotationKey: string }) => {
+    async ({ app, page }, { annotationKey }: { annotationKey: string }) => {
       const card = app.workspace
         .getLeavesOfType("zotero-annotation-view")
         .map((leaf) =>
@@ -16691,7 +16699,7 @@ function visibleAnnotationColors(
         )
         .find(Boolean);
       const mark = app.workspace
-        .getLeavesOfType("zotlit-pdf")
+        .getLeavesOfType(page.reader.viewType)
         .map((leaf) =>
           leaf.view.containerEl.querySelector<SVGGraphicsElement>(
             `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(annotationKey)}]`,

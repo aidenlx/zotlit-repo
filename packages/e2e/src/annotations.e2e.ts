@@ -33,11 +33,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     try {
       await obRun(
         run.vaultId,
-        async ({ app }, { annotationAttachmentPath }) => {
+        async ({ app, page }, { annotationAttachmentPath }) => {
           const file = app.vault.getFileByPath(annotationAttachmentPath)!;
           const leaf = app.workspace.getLeaf("tab");
           await leaf.setViewState({
-            type: "zotlit-pdf",
+            type: page.reader.viewType,
             state: { file: file.path },
             active: true,
           });
@@ -553,12 +553,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await obRunUntil(
           run.vaultId,
           async (
-            { app },
+            { app, page },
             { annotationAttachmentPath, pageNumber, pageKeys },
           ) => {
             const pdfView = (
               app.workspace.getLeavesOfType(
-                "zotlit-pdf",
+                page.reader.viewType,
               ) as (import("obsidian").WorkspaceLeaf & {
                 view: PagePdfReaderView;
               })[]
@@ -652,11 +652,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await obRun(
       run.vaultId,
-      async ({ app }, { annotationAttachmentPath }) => {
+      async ({ app, page }, { annotationAttachmentPath }) => {
         const file = app.vault.getFileByPath(annotationAttachmentPath)!;
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });
@@ -1276,11 +1276,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await obRun(
       run.vaultId,
-      async ({ app }, { annotationAttachmentPath }) => {
+      async ({ app, page }, { annotationAttachmentPath }) => {
         const file = app.vault.getFileByPath(annotationAttachmentPath)!;
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });

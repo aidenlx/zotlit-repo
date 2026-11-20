@@ -12,8 +12,9 @@ again.
 
 The ZotLit opens are covered by the desktop check
 `pnpm e2e --project=desktop src/zotlit-pdf-reader.e2e.ts -t E-18`, the keyboard
-focus and the tab behind the **Zotero library** view by the cases "opens a PDF
-from the Library View card" and "keeps the focus" in the same file, and the
+focus and the tab behind the **Zotero library** view by the case "opens a PDF
+from the Library View card" in the same file, the focus that moves away while a
+PDF loads by the case "keeps the focus" in `src/reader.e2e.ts`, and the
 Form XObject PDF by the Paired Run check
 `pnpm e2e --project=paired src/paired-run.e2e.ts -t E-1`, which compares the
 highlight's Page Label and Sort Index with the values Zotero's own reader

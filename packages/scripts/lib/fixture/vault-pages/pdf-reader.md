@@ -8,8 +8,9 @@ reader. First go to **Settings → ZotLit → Reader** and turn on **Open all PD
 in the ZotLit reader**. Then select each link below. Turn the setting off again
 at the end.
 
-The desktop check, `pnpm e2e --project=desktop src/zotlit-pdf-reader.e2e.ts`,
-covers each table below except the password prompt.
+The desktop check, `pnpm e2e --project=desktop src/reader.e2e.ts`, covers each
+table below in ZotLit Reader alone, with its own **Open all PDFs** setting
+(`-t R-5`) and the password prompt (`-t E-14`).
 
 ## The setting
 

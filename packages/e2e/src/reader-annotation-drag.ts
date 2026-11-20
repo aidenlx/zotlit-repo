@@ -32,7 +32,7 @@ export async function verifyReaderAnnotationDrag(
         leaf.detach(),
       );
       await pdfLeaf.setViewState({
-        type: "zotlit-pdf",
+        type: page.reader.viewType,
         state: { file: pdf.path },
         active: true,
       });

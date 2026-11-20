@@ -5666,7 +5666,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             () =>
               (
                 app.workspace.getLeavesOfType(
-                  "zotlit-pdf",
+                  page.reader.viewType,
                 ) as (WorkspaceLeaf & {
                   view: PagePdfReaderView;
                 })[]

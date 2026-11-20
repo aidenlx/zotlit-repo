@@ -561,8 +561,9 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               assertActive();
               return outcome;
             };
-            const pdfLeavesBefore =
-              app.workspace.getLeavesOfType("zotlit-pdf").length;
+            const pdfLeavesBefore = app.workspace.getLeavesOfType(
+              helpers.reader.viewType,
+            ).length;
             const cases = acceptance.cases;
             const file = app.vault.getAbstractFileByPath(relative);
             if (!file)
@@ -751,7 +752,8 @@ export async function verifyExcerptRendering(vaultId: string): Promise<void> {
               failures,
               pdfLeaves: {
                 before: pdfLeavesBefore,
-                after: app.workspace.getLeavesOfType("zotlit-pdf").length,
+                after: app.workspace.getLeavesOfType(helpers.reader.viewType)
+                  .length,
               },
               electron: { before, during, after },
             };

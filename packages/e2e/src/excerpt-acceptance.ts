@@ -357,7 +357,7 @@ export async function verifyReaderBackedExcerpts(
   expect(
     await obRun(
       vaultId,
-      async ({ app, zotlit }, { vaultPath }) => {
+      async ({ app, zotlit, page }, { vaultPath }) => {
         for (const leaf of app.workspace.getLeavesOfType(
           "zotero-annotation-view",
         ))
@@ -370,7 +370,7 @@ export async function verifyReaderBackedExcerpts(
           throw new Error("The Fixture PDF is not in the Fixture Vault");
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
-          type: "zotlit-pdf",
+          type: page.reader.viewType,
           state: { file: file.path },
           active: true,
         });
@@ -382,21 +382,21 @@ export async function verifyReaderBackedExcerpts(
   ).toBe(true);
   await obRunUntil(
     vaultId,
-    async ({ app, zotlit }, { vaultPath, pageNumber }) => {
+    async ({ app, zotlit, page }, { vaultPath, pageNumber }) => {
       const state = JSON.parse(
         (function () {
-          const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
+          const leaves = app.workspace.getLeavesOfType(page.reader.viewType);
           const leaf = leaves.find(
             (candidate) =>
               (candidate.view as PagePdfReaderView).file?.path === vaultPath,
           );
-          const page = leaf?.view.containerEl.querySelector(
+          const pageEl = leaf?.view.containerEl.querySelector(
             `.page[data-page-number="${pageNumber}"]`,
           );
-          const canvas = page?.querySelector("canvas");
+          const canvas = pageEl?.querySelector("canvas");
           return JSON.stringify({
             leaves: leaves.length,
-            page: !!page,
+            page: !!pageEl,
             canvas: !!canvas && canvas.width > 0 && canvas.height > 0,
             borrowed: !!zotlit.services.bridge.runSync(
               zotlit.services.pdfAnnotationEditor.borrowDocument(
@@ -418,19 +418,19 @@ export async function verifyReaderBackedExcerpts(
   );
   const held = await obRun(
     vaultId,
-    async ({ app, zotlit }, { vaultPath, pageNumber }) => {
-      const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
+    async ({ app, zotlit, page }, { vaultPath, pageNumber }) => {
+      const leaves = app.workspace.getLeavesOfType(page.reader.viewType);
       const leaf = leaves.find(
         (candidate) =>
           (candidate.view as PagePdfReaderView).file?.path === vaultPath,
       );
-      const page = leaf?.view.containerEl.querySelector(
+      const pageEl = leaf?.view.containerEl.querySelector(
         `.page[data-page-number="${pageNumber}"]`,
       );
-      const canvas = page?.querySelector("canvas");
+      const canvas = pageEl?.querySelector("canvas");
       return {
         leaves: leaves.length,
-        page: !!page,
+        page: !!pageEl,
         canvas: !!canvas && canvas.width > 0 && canvas.height > 0,
         borrowed: !!zotlit.services.bridge.runSync(
           zotlit.services.pdfAnnotationEditor.borrowDocument(
@@ -601,19 +601,19 @@ export async function verifyReaderBackedExcerpts(
   expect(
     await obRun(
       vaultId,
-      async ({ app, zotlit }, { vaultPath, pageNumber }) => {
-        const leaves = app.workspace.getLeavesOfType("zotlit-pdf");
+      async ({ app, zotlit, page }, { vaultPath, pageNumber }) => {
+        const leaves = app.workspace.getLeavesOfType(page.reader.viewType);
         const leaf = leaves.find(
           (candidate) =>
             (candidate.view as PagePdfReaderView).file?.path === vaultPath,
         );
-        const page = leaf?.view.containerEl.querySelector(
+        const pageEl = leaf?.view.containerEl.querySelector(
           `.page[data-page-number="${pageNumber}"]`,
         );
-        const canvas = page?.querySelector("canvas");
+        const canvas = pageEl?.querySelector("canvas");
         return {
           leaves: leaves.length,
-          page: !!page,
+          page: !!pageEl,
           canvas: !!canvas && canvas.width > 0 && canvas.height > 0,
           borrowed: !!zotlit.services.bridge.runSync(
             zotlit.services.pdfAnnotationEditor.borrowDocument(
@@ -1200,11 +1200,11 @@ export async function verifyReaderBackedExcerpts(
   expect(
     await obRun(
       vaultId,
-      async ({ app, zotlit }) => {
+      async ({ app, zotlit, page }) => {
         await zotlit.services.bridge.runPromise(
           zotlit.services.excerptImage.clear,
         );
-        for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+        for (const leaf of app.workspace.getLeavesOfType(page.reader.viewType))
           leaf.detach();
         return true;
       },
@@ -1213,9 +1213,9 @@ export async function verifyReaderBackedExcerpts(
   ).toBe(true);
   await obRunUntil(
     vaultId,
-    async ({ app, zotlit }, { vaultPath }) => {
+    async ({ app, zotlit, page }, { vaultPath }) => {
       return (
-        app.workspace.getLeavesOfType("zotlit-pdf").length === 0 &&
+        app.workspace.getLeavesOfType(page.reader.viewType).length === 0 &&
         !zotlit.services.bridge.runSync(
           zotlit.services.pdfAnnotationEditor.borrowDocument(
             (app.vault.adapter as FileSystemAdapter).getFullPath(vaultPath!),

@@ -26,7 +26,9 @@ display menu of the reader toolbar and in **More options** of the reader view.
 
 The desktop check, `pnpm e2e --project=desktop src/reader.e2e.ts -t R-4`,
 covers the first three rows, the change back to the light theme and the
-background tab on this PDF in the reader view of ZotLit Reader alone. The Electron test
+background tab on this PDF in the reader view of ZotLit Reader alone, and
+`-t E-13` checks the `--pdf-*` variables and that **Adapt to theme** stays on
+for the next reader. The Electron test
 `packages/pdf-reader/src/core/theme/theme.test.ts` checks the colour of each
 part on a light, a sepia and a dark page, the text field, the thumbnail, and
 that a theme event with no colour change does not repaint the page;

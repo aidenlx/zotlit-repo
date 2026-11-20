@@ -59,7 +59,7 @@ export async function verifyAnnotationInsert(
         services.bridge.runSync(
           services.settings.update({ "attachment.import": true }),
         );
-        for (const leaf of app.workspace.getLeavesOfType("zotlit-pdf"))
+        for (const leaf of app.workspace.getLeavesOfType(page.reader.viewType))
           leaf.detach();
         const file =
           app.vault.getFileByPath(hostNotePath)! ??
