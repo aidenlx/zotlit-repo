@@ -720,26 +720,6 @@ Zotero 中打开。悬停在链接上仍会显示标注。必须同时开启
 
 参见[在 Obsidian 中打开条目的 PDF](/docs/how-to/open-pdf-in-obsidian)。
 
-## ZotLit Reader [#zotlit-reader]
-
-ZotLit Reader 是一个独立的插件，有自己的设置标签页。从 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} /> 打开它的页面。该标签页还有一个 <UiLabel name={m.settings_page_advanced()} /> 页面。
-
-| 标签                                                      | 键名                   | 控件 | 默认值 | 依赖 | 存储   |
-| --------------------------------------------------------- | ---------------------- | ---- | ------ | ---- | ------ |
-| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | 开关 | 开启   | 无   | 已同步 |
-
-<UiLabel name={m.reader_settings_open_all_pdfs_name()} />
-：在 ZotLit Reader 中打开仓库中的所有 PDF，包括嵌入的
-PDF、悬停预览和白板卡片。关闭时，PDF 在 Obsidian 自带的 PDF 查看器中打开；ZotLit
-打开的 PDF 仍使用 ZotLit Reader。ZotLit Reader 将该值保存在它自己的 `data.json`
-中。参见[在 ZotLit Reader 中打开所有
-PDF](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs)。
-
-早期版本的 ZotLit 在自己的阅读器页面上有此设置，名为
-
-<UiLabel name={m.settings_reader_open_all_pdfs_name()} />
-。ZotLit Reader 不会读取该值：它安装后此设置为开启。
-
 ## 高级 [#advanced]
 
 从 <SettingsPath page={m.settings_page_advanced()} /> 打开此页面。
@@ -858,6 +838,26 @@ ZotLit 缓存摘录图片。在确认提示中选择
 即可进行清除。保存的笔记图片和 Zotero 的图片缓存保持不变。
 
 该缓存重启后依然保留，容量上限为 256 MiB。空间不足时，ZotLit 会清除最久未使用的条目。被清除的图片在再次被请求时会重新生成。关于 PDF 文件检查机制及其限制，请参阅[缓存与新鲜度](/docs/reference/excerpt-images#freshness)。
+
+## ZotLit Reader [#zotlit-reader]
+
+ZotLit Reader 是一个独立的插件，有自己的设置标签页。从 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} /> 打开它的页面。该标签页还有一个 <UiLabel name={m.settings_page_advanced()} /> 页面。
+
+| 标签                                                      | 键名                   | 控件 | 默认值 | 依赖 | 存储   |
+| --------------------------------------------------------- | ---------------------- | ---- | ------ | ---- | ------ |
+| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | 开关 | 开启   | 无   | 已同步 |
+
+<UiLabel name={m.reader_settings_open_all_pdfs_name()} />
+：在 ZotLit Reader 中打开仓库中的所有 PDF，包括嵌入的
+PDF、悬停预览和白板卡片。关闭时，PDF 在 Obsidian 自带的 PDF 查看器中打开；ZotLit
+打开的 PDF 仍使用 ZotLit Reader。ZotLit Reader 将该值保存在它自己的 `data.json`
+中。参见[在 ZotLit Reader 中打开所有
+PDF](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs)。
+
+早期版本的 ZotLit 在自己的阅读器页面上有此设置，名为
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} />
+。ZotLit Reader 不会读取该值：它安装后此设置为开启。
 
 ## 设置项位置变动 [#moved]
 

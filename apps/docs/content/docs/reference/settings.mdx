@@ -735,26 +735,6 @@ off, the link opens in Zotero. Hovering the link still shows the annotation.
 
 See [Open an item's PDF in Obsidian](/docs/how-to/open-pdf-in-obsidian).
 
-## ZotLit Reader [#zotlit-reader]
-
-ZotLit Reader is a separate plugin with its own settings tab. Open its page from <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} />. The tab also has an <UiLabel name={m.settings_page_advanced()} /> page.
-
-| Label                                                     | Key                    | Control | Default | Dependency | Storage |
-| --------------------------------------------------------- | ---------------------- | ------- | ------- | ---------- | ------- |
-| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | Toggle  | On      | None       | Synced  |
-
-<UiLabel name={m.reader_settings_open_all_pdfs_name()} /> opens every PDF of the
-vault in ZotLit Reader, with PDF embeds, hover previews and canvas cards. When
-off, PDFs open in Obsidian's own PDF viewer; the PDFs that ZotLit opens still
-use ZotLit Reader. ZotLit Reader keeps the value in its own `data.json`. See
-[Open every PDF in ZotLit
-Reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
-
-Earlier versions of ZotLit had this setting on their own Reader page, as
-
-<UiLabel name={m.settings_reader_open_all_pdfs_name()} />. ZotLit Reader does
-not read that value: it starts with the setting on.
-
 ## Advanced [#advanced]
 
 Open this page from <SettingsPath page={m.settings_page_advanced()} />.
@@ -874,6 +854,26 @@ excerpt images for this vault on this device. Select
 to clear it. Saved note images and Zotero's image cache remain unchanged.
 
 The cache survives restarts and has a 256 MiB limit. ZotLit removes the least recently used entries when it needs space. Cleared images are generated again when requested. See [Cache and freshness](/docs/reference/excerpt-images#freshness) for the PDF file checks and their limits.
+
+## ZotLit Reader [#zotlit-reader]
+
+ZotLit Reader is a separate plugin with its own settings tab. Open its page from <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} />. The tab also has an <UiLabel name={m.settings_page_advanced()} /> page.
+
+| Label                                                     | Key                    | Control | Default | Dependency | Storage |
+| --------------------------------------------------------- | ---------------------- | ------- | ------- | ---------- | ------- |
+| <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> | `reader.open-all-pdfs` | Toggle  | On      | None       | Synced  |
+
+<UiLabel name={m.reader_settings_open_all_pdfs_name()} /> opens every PDF of the
+vault in ZotLit Reader, with PDF embeds, hover previews and canvas cards. When
+off, PDFs open in Obsidian's own PDF viewer; the PDFs that ZotLit opens still
+use ZotLit Reader. ZotLit Reader keeps the value in its own `data.json`. See
+[Open every PDF in ZotLit
+Reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
+
+Earlier versions of ZotLit had this setting on their own Reader page, as
+
+<UiLabel name={m.settings_reader_open_all_pdfs_name()} />. ZotLit Reader does
+not read that value: it starts with the setting on.
 
 ## Where settings moved [#moved]
 
