@@ -45,16 +45,31 @@ export const DOCS_SITE_URL = {
 
 /** The products a release publishes, each from its own app. */
 export const PRODUCTS = {
-  obsidian: { app: "apps/obsidian", tagPrefix: "" },
-  zotero: { app: "apps/zotero", tagPrefix: "zt-" },
-} as const satisfies Record<string, { app: string; tagPrefix: string }>;
+  obsidian: {
+    app: "apps/obsidian",
+    tagPrefix: "",
+    plugin: "desktop",
+    publish: true,
+  },
+  zotero: { app: "apps/zotero", tagPrefix: "zt-", publish: true },
+  reader: {
+    app: "apps/reader",
+    tagPrefix: "reader-",
+    plugin: "reader",
+    publish: false,
+  },
+} as const satisfies Record<
+  string,
+  { app: string; tagPrefix: string; plugin?: string; publish: boolean }
+>;
 
 export type Product = keyof typeof PRODUCTS;
 
 /**
- * The release tag of a product version: `2.3.0` for the plugin, `zt-2.3.0`
- * for the Companion. Both repositories carry it; in the source repository it
- * names the commit the release was built from.
+ * The release tag of a product version in the source repository, on the
+ * commit the release was built from: `2.3.0` for ZotLit, `zt-2.3.0` for the
+ * Companion, `reader-1.0.0` for ZotLit Reader. A plugin's publish repository
+ * tags the bare version, which Obsidian reads as the release name.
  */
 export function releaseTag(product: Product, version: string): string {
   return `${PRODUCTS[product].tagPrefix}${version}`;

@@ -95,6 +95,7 @@
     "//#review:plugin:deps": {
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/reader-messages#generate:language-packs",
         "@zotlit/workbench#generate:message-types",
         "@zotlit/pdf-reader#generate"
       ]
@@ -104,6 +105,8 @@
       "inputs": [
         "eslint.config.js",
         "manifest.json",
+        "packages/scripts/lib/scanner-eslint.ts",
+        "packages/scripts/lib/shell/plugins.ts",
         "apps/obsidian/src/**",
         "apps/obsidian/package.json",
         "apps/obsidian/tsconfig*.json",
@@ -133,12 +136,41 @@
         "packages/library-view/tsconfig*.json"
       ]
     },
+    "//#review:reader": {
+      "dependsOn": ["//#review:plugin:deps"],
+      "inputs": [
+        "eslint.config.js",
+        "packages/scripts/lib/scanner-eslint.ts",
+        "packages/scripts/lib/shell/plugins.ts",
+        "apps/reader/src/**",
+        "apps/reader/package.json",
+        "apps/reader/tsconfig*.json",
+        "packages/obsidian-desktop/src/**",
+        "packages/obsidian-desktop/tsconfig*.json",
+        "packages/obsidian-kit/src/**",
+        "packages/obsidian-kit/tsconfig*.json",
+        "packages/pdf-reader/src/**",
+        "packages/pdf-reader/tsconfig*.json",
+        "packages/plugin-kernel/src/**",
+        "packages/plugin-kernel/tsconfig*.json",
+        "packages/plugin-services/src/**",
+        "packages/plugin-services/tsconfig*.json",
+        "packages/plugin-shell/src/**",
+        "packages/plugin-shell/tsconfig*.json",
+        "packages/reader-feature/src/**",
+        "packages/reader-feature/tsconfig*.json",
+        "packages/zotero-reads/src/**",
+        "packages/zotero-reads/tsconfig*.json"
+      ]
+    },
     "//#review:manifest": {
       "inputs": [
         "eslint.config.js",
         "pnpm-lock.yaml",
         "apps/obsidian/package.json",
+        "apps/reader/package.json",
         "packages/scripts/lib/obsidian-manifest.ts",
+        "packages/scripts/lib/shell/plugins.ts",
         "packages/scripts/scripts/check-manifest.ts"
       ]
     }

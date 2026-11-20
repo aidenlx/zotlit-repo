@@ -73,14 +73,19 @@ generated shell that builds the plugin from the npm bundle package
 
 Each app's `apps/{app}/package.json#version` is the sole version source.
 
-| Product                       | Tag format   | Example                       |
-| ----------------------------- | ------------ | ----------------------------- |
-| Obsidian (`@zotlit/obsidian`) | bare semver  | `2.0.0`, `2.1.0-beta.1`       |
-| Zotero (`@zotlit/zotero`)     | `zt-` prefix | `zt-2.0.0`, `zt-2.1.0-beta.1` |
+| Product                       | Tag format       | Example                               |
+| ----------------------------- | ---------------- | ------------------------------------- |
+| Obsidian (`@zotlit/obsidian`) | bare semver      | `2.0.0`, `2.1.0-beta.1`               |
+| Zotero (`@zotlit/zotero`)     | `zt-` prefix     | `zt-2.0.0`, `zt-2.1.0-beta.1`         |
+| Reader (`@zotlit/reader`)     | `reader-` prefix | `reader-1.0.0`, `reader-1.0.0-beta.0` |
 
-Both repositories carry each tag. In `aidenlx/zotlit-repo` it names the
-commit the release was built from; in `aidenlx/zotlit` it names the shell
-commit (plugin) or the release (Companion).
+Both repositories carry the tags of ZotLit and the Companion. In
+`aidenlx/zotlit-repo` a tag names the commit the release was built from; in
+`aidenlx/zotlit` it names the shell commit (plugin) or the release
+(Companion). ZotLit Reader publishes to its own publish repository,
+`aidenlx/zotlit-reader`, and the npm bundle package `@zotlit/reader-plugin`:
+`aidenlx/zotlit-repo` tags `reader-<version>` on the source commit, and
+`aidenlx/zotlit-reader` tags the bare version on the shell commit.
 
 ### Version policy
 
@@ -97,9 +102,10 @@ person          pnpm release ─▶ version commit ─▶ Land Queue ─▶ main
                                 (release gate in the Land Turn)
 aidenlx/zotlit-repo  release.yml on the push to main:
                 plan ─▶ verify ─▶ obsidian: npm ─▶ shell commit + tag ─▶ tag here
-                               └▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
+                               ├▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
+                               └▶ reader:   npm ─▶ shell commit + tag ─▶ reader-<v> here
                 stable version ─▶ docs: production docs site from the tag
-aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
+aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the tag:
                 official Obsidian action ─▶ res-<v> ─▶ publish the release
 ```
 
@@ -119,12 +125,15 @@ aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
    pnpm release --obsidian prerelease --zotero prerelease   # the next beta
    pnpm release --obsidian 2.3.0-beta.0 --zotero 2.3.0-beta.0
    pnpm release --obsidian minor --zotero minor             # a stable release
+   pnpm release --reader prerelease                         # the next Reader beta
    ```
 
    On a failure the script deletes its release branch and returns to `main`.
 
 3. `release.yml` in `aidenlx/zotlit-repo` runs on the push. Its `plan` job
-   publishes each product whose version has no release tag in
+   publishes each product whose `publish` switch in
+   `packages/scripts/lib/release/lines.ts` is on and whose version has no
+   release tag in
    `aidenlx/zotlit-repo` yet. The `verify` job runs the release gate on the
    pushed tree (the desktop checks skip there). Then each product runs
    `pnpm release:publish <product>`:
@@ -134,6 +143,11 @@ aidenlx/zotlit  plugin-release.yml of the shell, on the tag:
      clean folder that must reproduce the app's `main.js` and `styles.css`,
      the shell commit on `beta` or `main` of `aidenlx/zotlit` with the version
      tag (one atomic push), and the tag in `aidenlx/zotlit-repo`.
+   - **Reader:** the same steps as Obsidian, for `apps/reader`: the npm
+     bundle package `@zotlit/reader-plugin`, the shell commit and the bare
+     version tag in `aidenlx/zotlit-reader`, and the tag `reader-<version>`
+     in `aidenlx/zotlit-repo`. A stable Reader release also writes
+     `apps/reader/versions.json` in step 2.
    - **Companion:** the XPI on the release `zt-<version>`, the update
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
    - **Docs:** after a stable version, the `docs` job deploys the production

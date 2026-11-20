@@ -72,7 +72,7 @@ jobs:
         run: |
           if ! gh release view "${{ steps.meta.outputs.res_tag }}" >/dev/null 2>&1; then
             notes=$(printf '%s\n\n%s\n%s' \
-              "Runtime resources for ${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}: Language Packs, template data JSON Schemas, and the Item Query Schema." \
+              "Runtime resources for ${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}: @@RESOURCES@@." \
               "The installed plugin downloads these on its own. There is nothing to install by hand." \
               "Get the plugin from the ${{ steps.meta.outputs.version }} release.")
             gh release create "${{ steps.meta.outputs.res_tag }}" \
@@ -121,9 +121,7 @@ jobs:
       # manifest.json of the last stable release.
       - name: Publish release
         run: |
-          notes=$(printf '%s\n\n%s' \
-            "${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}" \
-            "Release notes: https://zotlit.aidenlx.site/changelog/${{ steps.meta.outputs.version }}")
+          @@RELEASE_NOTES@@
           gh release edit "${{ steps.meta.outputs.version }}" \
             --draft=false \
             --notes "$notes" \

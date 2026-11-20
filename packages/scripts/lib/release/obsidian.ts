@@ -14,7 +14,8 @@ import type { PublishedPluginName } from "#shell/plugins";
 //   commit      the shell commit on the line's branch of the publish repository
 //   push        the commit and the version tag, in one atomic push; the tag
 //               starts the publish repository's release workflow
-//   source tag  the same tag in the source repository, on the source commit
+//   source tag  the product's release tag in the source repository, on the
+//               source commit
 //
 // Each step that reaches outside (npm, push, source tag) is injected, so the
 // same code runs in release.yml, on the lead's machine, in the dry run and in
@@ -57,6 +58,7 @@ export interface ObsidianPublish {
   version: string;
   /** The source repository commit the release is built from. */
   sourceCommit: string;
+  sourceTag: string;
   /** A folder of this run's files; its old content is removed. */
   workDir: string;
   /** The host app's production build, with `env` set. */
@@ -208,10 +210,12 @@ ${SOURCE_REPOSITORY}@${options.sourceCommit}.
     await options.pushShell(shell);
   }
 
-  step(`source tag: ${shell.tag} on ${options.sourceCommit.slice(0, 12)}`);
+  step(
+    `source tag: ${options.sourceTag} on ${options.sourceCommit.slice(0, 12)}`,
+  );
   await pushSourceTag({
     tags: options.sourceTags,
-    tag: shell.tag,
+    tag: options.sourceTag,
     commit: options.sourceCommit,
     say,
   });

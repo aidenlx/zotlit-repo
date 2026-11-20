@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Runs the community directory's `obsidianmd/validate-manifest` rule over the
-// manifest that `parseManifest` derives from apps/obsidian/package.json. The
+// manifest that `parseManifest` derives from each plugin's package.json. The
 // root manifest.json only refreshes on a stable release, after the release
 // gate, so this check reads the source the next release ships from.
 import { execFileSync } from "node:child_process";
@@ -9,35 +9,42 @@ import { join } from "node:path";
 
 import { parseManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
+import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
-const pkg = JSON.parse(
-  await readFile(join(workspaceRoot, "apps/obsidian/package.json"), "utf8"),
-);
-const manifest = `${JSON.stringify(parseManifest(pkg), null, 2)}\n`;
-
-try {
-  // eslint.config.js applies the rule to `manifest.json`; `--quiet` keeps the
-  // scanner's warn-level rules from running on the JSON.
-  execFileSync(
-    "pnpm",
-    [
-      "exec",
-      "eslint",
-      "--quiet",
-      "--stdin",
-      "--stdin-filename",
-      "manifest.json",
-    ],
-    {
-      cwd: workspaceRoot,
-      input: manifest,
-      stdio: ["pipe", "inherit", "inherit"],
-    },
+const failed: string[] = [];
+for (const { app } of Object.values(PUBLISHED_PLUGINS)) {
+  const pkg = JSON.parse(
+    await readFile(join(workspaceRoot, app, "package.json"), "utf8"),
   );
-} catch {
+  const manifest = `${JSON.stringify(parseManifest(pkg), null, 2)}\n`;
+
+  try {
+    // eslint.config.js applies the rule to `manifest.json`; `--quiet` keeps the
+    // scanner's warn-level rules from running on the JSON.
+    execFileSync(
+      "pnpm",
+      [
+        "exec",
+        "eslint",
+        "--quiet",
+        "--stdin",
+        "--stdin-filename",
+        "manifest.json",
+      ],
+      {
+        cwd: workspaceRoot,
+        input: manifest,
+        stdio: ["pipe", "inherit", "inherit"],
+      },
+    );
+  } catch {
+    failed.push(app);
+  }
+}
+if (failed.length > 0) {
   console.error(
-    "The manifest generated from apps/obsidian/package.json fails the Obsidian manifest rules above.",
+    `The manifest generated from ${failed.map((app) => `${app}/package.json`).join(" and ")} fails the Obsidian manifest rules above.`,
   );
   process.exit(1);
 }

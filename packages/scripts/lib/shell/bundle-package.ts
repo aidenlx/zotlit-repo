@@ -15,6 +15,7 @@ interface AppPackage {
   readonly version: string;
   readonly description: string;
   readonly author: string;
+  readonly obsidian: { readonly name: string };
 }
 
 /** The license of the workspace, from its root package.json. */
@@ -76,13 +77,15 @@ declare const plugin: abstract new (...args: never[]) => object;
 export default plugin;
 `;
 
-function bundleReadme(plugin: PublishedPlugin, version: string): string {
+function bundleReadme(plugin: PublishedPlugin, app: AppPackage): string {
+  const { name } = app.obsidian;
+  const version = app.version;
   return `# ${plugin.bundlePackage}
 
-The bundle of the ZotLit Obsidian plugin, version ${version}, for its publish
+The bundle of the ${name} Obsidian plugin, version ${version}, for its publish
 repository, [${plugin.repository}](https://github.com/${plugin.repository}).
 
-- \`main.js\`: the plugin as one ES module. It holds ZotLit's code and its
+- \`main.js\`: the plugin as one ES module. It holds ${name}'s code and its
   third-party code. It imports only the modules Obsidian provides at runtime.
 - \`styles.css\`: the plugin's stylesheet.
 - \`resources/\`: the files the plugin downloads at runtime from the Resource
@@ -103,7 +106,7 @@ function bundleManifest(
   return {
     name: plugin.bundlePackage,
     version: app.version,
-    description: `The bundle of the ZotLit Obsidian plugin that its publish repository builds from. ${app.description}`,
+    description: `The bundle of the ${app.obsidian.name} Obsidian plugin that its publish repository builds from. ${app.description}`,
     author: app.author,
     license,
     homepage: `https://github.com/${plugin.repository}`,
@@ -141,7 +144,7 @@ export async function writeBundlePackage(options: {
     `${JSON.stringify(bundleManifest(plugin, app, await workspaceLicense(workspaceRoot)), null, 2)}\n`,
   );
   await writeFile(join(dir, "main.d.ts"), BUNDLE_TYPES);
-  await writeFile(join(dir, "README.md"), bundleReadme(plugin, app.version));
+  await writeFile(join(dir, "README.md"), bundleReadme(plugin, app));
   for (const file of LEGAL_FILES) {
     await copyFile(join(workspaceRoot, file), join(dir, file));
   }

@@ -123,8 +123,8 @@ await step("Test", async () => {
 if (release) {
   await desktopChecks();
   await step("Obsidian guideline review", () => sh`pnpm review`);
-  // The publish repository's shell, built from the packed bundle package,
-  // must reproduce the release build and pass the scanner's lint.
+  // Each publish repository's shell, built from the packed bundle package,
+  // must reproduce its plugin's release build and pass the scanner's lint.
   await step("Publish shell", () => sh`pnpm release:check-shell`);
 }
 

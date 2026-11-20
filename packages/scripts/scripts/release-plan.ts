@@ -2,7 +2,8 @@
 import type { Product } from "#release/lines";
 // The plan job of release.yml: which products a push to `main` publishes.
 //   node packages/scripts/scripts/release-plan.ts
-// Prints `obsidian=true|false` and `zotero=true|false` on stdout, for
+// Prints `<product>=true|false` for each product of PRODUCTS (`obsidian`,
+// `zotero`, `reader`) on stdout, for
 // $GITHUB_OUTPUT, and the reason for each on stderr. It also prints
 // `docs-tag=<tag>`: the release tag of a stable version that this push
 // publishes, from which the production docs site deploys; empty when the push
@@ -33,7 +34,7 @@ for (const product of Object.keys(PRODUCTS) as Product[]) {
   const plan = planProduct({ product, version, tags });
   console.error(`${product}: ${plan.reason}`);
   console.log(`${product}=${plan.publish}`);
-  // Both products tag the same commit, so either stable tag serves.
+  // Every product of a push tags the same commit, so any stable tag serves.
   if (plan.publish && releaseLine(version) === "stable" && !docsTag) {
     docsTag = plan.tag;
   }

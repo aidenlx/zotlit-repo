@@ -1,10 +1,11 @@
-// Which products a push to `main` publishes. A product publishes when the
-// source repository has no release tag for its version yet; the version picks
+// Which products a push to `main` publishes. A product publishes when its
+// `publish` switch in PRODUCTS is on and the source repository has no release
+// tag for its version yet; the version picks
 // its line (lib/release/lines.ts). The source tag is the last step of each product's publish
 // (lib/release/obsidian.ts, lib/release/zotero.ts), so a run that failed half
 // way publishes again, and every step before the tag skips what is done.
 
-import { releaseTag } from "./lines.ts";
+import { PRODUCTS, releaseTag } from "./lines.ts";
 import type { Product } from "./lines.ts";
 
 export interface ProductPlan {
@@ -25,6 +26,13 @@ export function planProduct(options: {
   const { product, version, tags } = options;
   const tag = releaseTag(product, version);
   const plan = { product, version, tag };
+  if (!PRODUCTS[product].publish) {
+    return {
+      ...plan,
+      publish: false,
+      reason: `${product} has its publish switch off.`,
+    };
+  }
   if (tags.has(tag)) {
     return { ...plan, publish: false, reason: `${tag} is released.` };
   }

@@ -1,17 +1,24 @@
 import json from "@eslint/json";
 import obsidianmd from "eslint-plugin-obsidianmd";
 import { globalIgnores } from "eslint/config";
+import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import tseslint from "typescript-eslint";
 
-import { pluginPackages } from "@zotlit/scripts/plugin-packages";
-import { SCANNER_IGNORES } from "@zotlit/scripts/scanner-eslint";
+import { reviewedPluginPackages } from "@zotlit/scripts/plugin-packages";
+import {
+  reviewedPlugin,
+  SCANNER_IGNORES,
+} from "@zotlit/scripts/scanner-eslint";
 
-import pkg from "./apps/obsidian/package.json" with { type: "json" };
+const plugin = reviewedPlugin();
+const pkg = JSON.parse(
+  readFileSync(join(import.meta.dirname, plugin.app, "package.json"), "utf8"),
+);
 
 /**
  * The community directory scanner's ESLint run, for the plugin's source:
- * `apps/obsidian/src` and the plugin packages it bundles (PLUGIN_SOURCES).
+ * the host app's `src` and the plugin packages it bundles (PLUGIN_SOURCES).
  *
  * Mirrors the type-aware branch of `buildScannerEslintConfig` in
  * obsidianmd/obsidian-workflows `src/lint.ts` at
@@ -48,8 +55,8 @@ function toWarns(config) {
 
 /** The source that ships in the plugin: the app and the plugin packages. */
 const PLUGIN_SOURCES = [
-  "apps/obsidian/src",
-  ...pluginPackages(join(import.meta.dirname, "apps/obsidian")).map(
+  `${plugin.app}/src`,
+  ...reviewedPluginPackages(join(import.meta.dirname, plugin.app)).map(
     ({ root }) => `${relative(import.meta.dirname, root)}/src`,
   ),
 ];
@@ -79,7 +86,7 @@ export default [
         // One program for every review target, with the host app's compiler
         // options. The project service would open each package's own
         // tsconfig: about 25 programs, each holding its imports' source again.
-        project: "./apps/obsidian/tsconfig.review.json",
+        project: `./${plugin.app}/tsconfig.review.json`,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -102,7 +109,10 @@ export default [
       "no-implied-eval": "error",
       "no-unsanitized/method": "error",
       "no-unsanitized/property": "error",
-      "obsidianmd/regex-lookbehind": "error",
+      "obsidianmd/regex-lookbehind": [
+        "error",
+        { isDesktopOnly: pkg.obsidian.isDesktopOnly },
+      ],
       "obsidianmd/no-forbidden-elements": "error",
 
       "no-undef": "off",
@@ -124,7 +134,10 @@ export default [
       "eslint-comments/require-description": "error",
 
       "obsidianmd/settings-tab/no-manual-html-headings": "error",
-      "obsidianmd/settings-tab/no-problematic-settings-headings": "error",
+      "obsidianmd/settings-tab/no-problematic-settings-headings": [
+        "error",
+        { pluginName: pkg.obsidian.name },
+      ],
       "obsidianmd/sample-names": "error",
       "obsidianmd/no-sample-code": "error",
       "obsidianmd/platform": "error",

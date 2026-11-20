@@ -12,6 +12,7 @@ import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
 import { bumpOptions, preidOf, resolveVersionSpec } from "#release/bump";
+import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 /**
  * `pnpm release`: the version commit of a release, landed onto `main` through
@@ -23,10 +24,11 @@ import { bumpOptions, preidOf, resolveVersionSpec } from "#release/bump";
  * pre-release version is a beta, any other version a stable release.
  *
  * The release gate (`pnpm verify --release`) runs once per release, in a Land
- * Turn, on the tree that is pushed. `--obsidian <bump|version>` and
- * `--zotero <bump|version>` name the apps and versions and run without
- * prompts. On a failure the release branch goes away and the checkout is back
- * on its branch; nothing reached the remote unless the output says so.
+ * Turn, on the tree that is pushed. `--obsidian <bump|version>`,
+ * `--zotero <bump|version>` and `--reader <bump|version>` name the apps and
+ * versions and run without prompts. On a failure the release branch goes
+ * away and the checkout is back on its branch; nothing reached the remote
+ * unless the output says so.
  *
  * @see CONTRIBUTING.md "Releasing"
  * @see docs/adr/0097-main-is-the-one-trunk.md
@@ -34,7 +36,7 @@ import { bumpOptions, preidOf, resolveVersionSpec } from "#release/bump";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 
-type AppName = "obsidian" | "zotero";
+type AppName = "obsidian" | "zotero" | "reader";
 
 interface AppMeta {
   name: AppName;
@@ -53,6 +55,11 @@ const APPS: Record<AppName, AppMeta> = {
     display: "@zotlit/zotero",
     pkgPath: join(workspaceRoot, "apps/zotero/package.json"),
   },
+  reader: {
+    name: "reader",
+    display: "@zotlit/reader",
+    pkgPath: join(workspaceRoot, "apps/reader/package.json"),
+  },
 };
 
 interface Bump {
@@ -65,6 +72,7 @@ const { values: flags } = parseArgs({
   options: {
     obsidian: { type: "string" },
     zotero: { type: "string" },
+    reader: { type: "string" },
   },
 });
 
@@ -72,6 +80,7 @@ const { values: flags } = parseArgs({
 const requested: Partial<Record<AppName, string>> = {
   ...(flags.obsidian !== undefined && { obsidian: flags.obsidian }),
   ...(flags.zotero !== undefined && { zotero: flags.zotero }),
+  ...(flags.reader !== undefined && { reader: flags.reader }),
 };
 const interactive = Object.keys(requested).length === 0;
 const git = $({ cwd: workspaceRoot, quiet: true });
@@ -130,6 +139,7 @@ async function completeRelease(): Promise<void> {
       stagedPaths.add(app.pkgPath);
     }
     await syncObsidian(bumps, stagedPaths);
+    await syncReader(bumps, stagedPaths);
     s.stop("Versions bumped");
 
     s.start("Refreshing lockfile");
@@ -155,7 +165,7 @@ async function completeRelease(): Promise<void> {
   await returnTo(releaseRef);
   const stable = bumps.some((bump) => prerelease(bump.next) === null);
   p.outro(
-    `Landed ${summary}. release.yml publishes it from ${releaseBranch}: the npm package, the shell and the tag in aidenlx/zotlit, and the release tags here.${stable ? " A stable release then deploys the production docs site from its tag." : ""}`,
+    `Landed ${summary}. release.yml publishes it from ${releaseBranch}: each plugin's npm package, shell and tag in its publish repository, and the release tags here.${stable ? " A stable release then deploys the production docs site from its tag." : ""}`,
   );
 }
 
@@ -197,7 +207,8 @@ async function pickApps(): Promise<AppMeta[]> {
     options: [
       { value: "obsidian", label: "Obsidian (@zotlit/obsidian)" },
       { value: "zotero", label: "Zotero (@zotlit/zotero)" },
-      { value: "both", label: "Both" },
+      { value: "both", label: "Obsidian and Zotero" },
+      { value: "reader", label: "ZotLit Reader (@zotlit/reader)" },
     ] as const,
   });
   if (p.isCancel(selection)) cancel();
@@ -282,6 +293,25 @@ async function syncObsidian(
   staged.add(manifestPath);
 
   const versionsPath = join(workspaceRoot, "versions.json");
+  const versions = JSON.parse(await readFile(versionsPath, "utf-8")) as Record<
+    string,
+    string
+  >;
+  versions[manifest.version] = manifest.minAppVersion;
+  await writeFile(versionsPath, `${JSON.stringify(versions, null, 2)}\n`);
+  staged.add(versionsPath);
+}
+
+async function syncReader(
+  releases: Bump[],
+  staged: Set<string>,
+): Promise<void> {
+  const reader = releases.find((b) => b.app.name === "reader");
+  if (!reader || prerelease(reader.next) !== null) return;
+  const pkg = await readPackageJson(APPS.reader.pkgPath);
+  pkg.version = reader.next;
+  const manifest = parseObsidianManifest(pkg);
+  const versionsPath = join(workspaceRoot, PUBLISHED_PLUGINS.reader.versions);
   const versions = JSON.parse(await readFile(versionsPath, "utf-8")) as Record<
     string,
     string

@@ -15,7 +15,7 @@ import type { ReaderExtension, ReaderHostContext } from "@zotlit/reader-api";
 import { registerPdfReader } from "#/obsidian/register.ts";
 import { fixturePdf } from "#test/fixtures.ts";
 import { bytesSource } from "#test/pdf.ts";
-import { installStyles, testEngine, within } from "#test/reader.ts";
+import { addStyle, installStyles, testEngine, within } from "#test/reader.ts";
 
 const NAVIGATION = fixturePdf("pdf-reader/navigation.pdf");
 
@@ -115,8 +115,7 @@ async function embed(
   subpath: string,
 ): Promise<{ readonly reader: PdfReader; readonly containerEl: HTMLElement }> {
   const containerEl = document.createElement("div");
-  containerEl.style.cssText =
-    "position: relative; width: 600px; height: 400px;";
+  addStyle(containerEl, "position: relative; width: 600px; height: 400px;");
   document.body.append(containerEl);
   const creator = (
     app as unknown as {

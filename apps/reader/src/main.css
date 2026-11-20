@@ -1,7 +1,9 @@
 @import "@zotlit/obsidian-kit/theme.css";
 
+@source "../../../packages/obsidian-desktop/src";
 @source "../../../packages/obsidian-kit/src";
 @source "../../../packages/plugin-kernel/src";
 @source "../../../packages/plugin-services/src";
 @source "../../../packages/plugin-shell/src";
 @source "../../../packages/reader-feature/src";
+@source "../../../packages/zotero-reads/src";

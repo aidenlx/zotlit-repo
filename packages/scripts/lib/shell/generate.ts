@@ -21,10 +21,8 @@ import { parseManifest } from "#obsidian-manifest";
 
 const TEMPLATES = join(import.meta.dirname, "templates");
 /** The template files the shell carries as they are. */
-const STATIC_FILES = [
-  "scripts/build.mjs",
-  ".github/workflows/plugin-release.yml",
-];
+const STATIC_FILES = ["scripts/build.mjs"];
+const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
@@ -106,6 +104,19 @@ function shellVersions(
   return prerelease(manifest.version) === null
     ? { ...versions, [manifest.version]: manifest.minAppVersion }
     : versions;
+}
+
+function releaseWorkflow(template: string, plugin: PublishedPlugin): string {
+  const title =
+    '"${{ steps.meta.outputs.name }} v${{ steps.meta.outputs.version }}"';
+  const notes = plugin.changelog
+    ? `notes=$(printf '%s\\n\\n%s' \\
+            ${title} \\
+            "Release notes: ${plugin.changelog}\${{ steps.meta.outputs.version }}")`
+    : `notes=${title}`;
+  return template
+    .replace("@@RESOURCES@@", plugin.resources)
+    .replace("@@RELEASE_NOTES@@", notes);
 }
 
 const GITIGNORE = `node_modules/
@@ -196,6 +207,13 @@ overrides:
     await mkdir(dirname(join(outDir, file)), { recursive: true });
     await copyFile(join(TEMPLATES, file), join(outDir, file));
   }
+  await write(
+    RELEASE_WORKFLOW,
+    releaseWorkflow(
+      await readFile(join(TEMPLATES, RELEASE_WORKFLOW), "utf8"),
+      plugin,
+    ),
+  );
 }
 
 /**

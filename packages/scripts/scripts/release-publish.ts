@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// `pnpm release:publish <obsidian|zotero>`: publishes the checked-out
-// version of one product (lib/release/obsidian.ts, lib/release/zotero.ts).
+// `pnpm release:publish <obsidian|zotero|reader>`: publishes the checked-out
+// version of one product (lib/release/obsidian.ts for each Obsidian plugin,
+// lib/release/zotero.ts for the Companion).
 // release.yml runs it for each product its plan job names; the lead runs the
 // same command for a first publish, for a stable hotfix, or to finish a run
 // by hand. `--help` prints the contract.
 import type { Product } from "#release/lines";
 import type { PublishRepoOptions } from "#release/publish-repo";
+import type { PublishedPluginName } from "#shell/plugins";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import yargs from "yargs";
@@ -16,7 +18,7 @@ import { RELEASE_REPOSITORY, SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 import { getWorkspaceRoot } from "#package-roots";
 import { ghReleaseHost, gitSourceTags } from "#release/github";
-import { PRODUCTS, releaseLine } from "#release/lines";
+import { PRODUCTS, releaseLine, releaseTag } from "#release/lines";
 import { startLocalRegistry } from "#release/local-registry";
 import { publishObsidian } from "#release/obsidian";
 import { makeOutward } from "#release/outward";
@@ -30,26 +32,33 @@ import {
 import { NPM_REGISTRY, Registry } from "#release/registry";
 import { offTrunkRelease } from "#release/source";
 import { publishZotero } from "#release/zotero";
+import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-const PUBLISH_URL = `https://github.com/${RELEASE_REPOSITORY}.git`;
-/** The local stand-in of the publish repository in a dry run. */
-const STAND_IN = join(root, ".scratch/publish-remote.git");
+const PRODUCT_NAMES = Object.keys(PRODUCTS).join(", ");
+const publishUrl = (plugin: PublishedPluginName) =>
+  `https://github.com/${PUBLISHED_PLUGINS[plugin].repository}.git`;
+const standInOf = (plugin: PublishedPluginName) =>
+  join(root, `.scratch/publish-remote/${plugin}.git`);
 
-const epilogue = `Steps of obsidian: build, pack, npm, registry, shell, check, commit, push, source tag. Steps of zotero: build, release zt-<version>, update manifests, update channel, source tag. Each step skips what an earlier run finished, so a run that failed half way is run again as it is.
+const epilogue = `Steps of obsidian and reader: build, pack, npm, registry, shell, check, commit, push, source tag. Steps of zotero: build, release zt-<version>, update manifests, update channel, source tag. Each step skips what an earlier run finished, so a run that failed half way is run again as it is.
 
 A real run publishes the version that apps/<app>/package.json names, from a clean checkout of a commit of origin/${SOURCE_BRANCH}: a beta or a stable version. A stable hotfix publishes from a commit that origin/${SOURCE_BRANCH} lacks: its version is a patch of the latest stable release, greater than it, and HEAD descends from that release's tag. Credentials:
   npm             trusted publishing in GitHub Actions (provenance); elsewhere the npm login
-  ${RELEASE_REPOSITORY}  RELEASE_REPO_TOKEN when set; elsewhere the Git and gh login
+  publish repos   RELEASE_REPO_TOKEN when set; elsewhere the Git and gh login
   source tags     the remote origin of this checkout
 
---dry-run publishes nothing: it reports the check of HEAD in place of refusing it, npm publish becomes pnpm pack into a local registry, the publish repository becomes the bare clone ${STAND_IN} (cloned and refreshed from ${PUBLISH_URL}, read-only), and no tag is pushed. It prints each command a real run executes.`;
+Publish repositories: obsidian ${PUBLISHED_PLUGINS.desktop.repository}, reader ${PUBLISHED_PLUGINS.reader.repository}, zotero ${RELEASE_REPOSITORY}. Source tags: obsidian <version>, zotero zt-<version>, reader reader-<version>.
+
+--dry-run publishes nothing: it reports the check of HEAD in place of refusing it, npm publish becomes pnpm pack into a local registry, a plugin's publish repository becomes the bare clone ${join(root, ".scratch/publish-remote/<plugin>.git")} (cloned and refreshed from the publish repository, read-only), and no tag is pushed. It prints each command a real run executes.`;
 
 const argv = await yargs(hideBin(process.argv))
   .scriptName("release:publish")
   .version(false)
-  .usage("pnpm release:publish <obsidian|zotero> [--dry-run [--version <v>]]")
-  .demandCommand(1, "Name the product: obsidian or zotero.")
+  .usage(
+    "pnpm release:publish <obsidian|zotero|reader> [--dry-run [--version <v>]]",
+  )
+  .demandCommand(1, `Name the product: ${PRODUCT_NAMES}.`)
   .option("dry-run", {
     type: "boolean",
     default: false,
@@ -68,7 +77,7 @@ const argv = await yargs(hideBin(process.argv))
 const product = String(argv._[0]) as Product;
 if (!(product in PRODUCTS)) {
   console.error(
-    `release:publish: the product is obsidian or zotero, not ${product}.`,
+    `release:publish: the product is one of ${PRODUCT_NAMES}, not ${product}.`,
   );
   process.exit(2);
 }
@@ -82,9 +91,9 @@ if (argv.version && !dryRun) {
 const say = (line: string) => console.log(line);
 const git = $({ cwd: root, quiet: true });
 const appPackage = join(root, PRODUCTS[product].app, "package.json");
-const committed = (
-  JSON.parse(await readFile(appPackage, "utf8")) as { version: string }
-).version;
+const { name: appName, version: committed } = JSON.parse(
+  await readFile(appPackage, "utf8"),
+) as { name: string; version: string };
 const version = argv.version ?? committed;
 const line = releaseLine(version);
 const sourceCommit = (await git`git rev-parse HEAD`).stdout.trim();
@@ -120,7 +129,8 @@ say(
 );
 
 await withVersion(appPackage, argv.version, async () => {
-  if (product === "obsidian") await obsidian();
+  const productInfo = PRODUCTS[product];
+  if ("plugin" in productInfo) await obsidianPlugin(productInfo.plugin);
   else await zotero();
 });
 
@@ -169,34 +179,35 @@ async function checkSource(): Promise<
   return { ok: true, hotfix: true };
 }
 
-async function obsidian() {
+async function obsidianPlugin(plugin: PublishedPluginName) {
   const token = process.env.RELEASE_REPO_TOKEN;
-  const workDir = join(root, ".scratch/release-publish/obsidian");
+  const workDir = join(root, ".scratch/release-publish", product);
+  const gitDir = join(workDir, "..", `${product}-publish-work.git`);
+  const remoteUrl = publishUrl(plugin);
+  const standIn = standInOf(plugin);
   const local = dryRun ? await startLocalRegistry() : undefined;
   const publishRepo: PublishRepoOptions = dryRun
-    ? {
-        gitDir: join(workDir, "..", "publish-work.git"),
-        remote: await refreshStandIn(),
-      }
+    ? { gitDir, remote: await refreshStandIn(remoteUrl, standIn) }
     : {
-        gitDir: join(workDir, "..", "publish-work.git"),
-        remote: PUBLISH_URL,
+        gitDir,
+        remote: remoteUrl,
         ...(token ? { remoteConfig: githubTokenConfig(token) } : {}),
       };
   const ci = process.env.GITHUB_ACTIONS === "true";
   try {
     const result = await publishObsidian({
       workspaceRoot: root,
-      plugin: "desktop",
+      plugin,
       version,
       sourceCommit,
+      sourceTag: releaseTag(product, version),
       workDir,
       build: async (env) => {
         await $({
           cwd: root,
           stdio: "inherit",
           env: { ...process.env, ...env },
-        })`pnpm exec turbo run build --filter=@zotlit/obsidian`;
+        })`pnpm exec turbo run build --filter=${appName}`;
       },
       registry: new Registry(local?.url ?? NPM_REGISTRY),
       publishPackage: (tarball, distTag) =>
@@ -223,7 +234,7 @@ async function obsidian() {
             "git",
             "push",
             "--atomic",
-            PUBLISH_URL,
+            remoteUrl,
             ...releaseRefspecs(shell),
           ],
           ...(token ? { env: gitConfigEnv(githubTokenConfig(token)) } : {}),
@@ -234,7 +245,9 @@ async function obsidian() {
       sourceTags: gitSourceTags({ cwd: root, outward }),
       say,
     });
-    if (dryRun) await reportDryRun(result.shell.branch, result.shell.commit);
+    if (dryRun) {
+      await reportDryRun(standIn, result.shell.branch, result.shell.commit);
+    }
   } finally {
     await local?.close();
   }
@@ -280,24 +293,27 @@ async function zotero() {
  * branches and tags the publish repository has now; a branch an earlier dry
  * run pushed is gone again.
  */
-async function refreshStandIn(): Promise<string> {
+async function refreshStandIn(
+  remoteUrl: string,
+  standIn: string,
+): Promise<string> {
   const exists =
     (
       await git({
         nothrow: true,
-      })`git --git-dir ${STAND_IN} rev-parse --git-dir`
+      })`git --git-dir ${standIn} rev-parse --git-dir`
     ).exitCode === 0;
   if (!exists) {
-    say(`Clone ${PUBLISH_URL} into ${STAND_IN} (read-only).`);
-    await git`git clone -q --bare ${PUBLISH_URL} ${STAND_IN}`;
+    say(`Clone ${remoteUrl} into ${standIn} (read-only).`);
+    await git`git clone -q --bare ${remoteUrl} ${standIn}`;
   }
-  await git`git --git-dir ${STAND_IN} fetch -q --prune --prune-tags ${PUBLISH_URL} +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/*`;
-  return STAND_IN;
+  await git`git --git-dir ${standIn} fetch -q --prune --prune-tags ${remoteUrl} +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/*`;
+  return standIn;
 }
 
-async function reportDryRun(branch: string, commit: string) {
+async function reportDryRun(standIn: string, branch: string, commit: string) {
   const inStandIn = (...args: string[]) =>
-    git`git --git-dir ${STAND_IN} ${args}`;
+    git`git --git-dir ${standIn} ${args}`;
   say(`\n▸ The stand-in's ${branch} after the dry run`);
   say(
     (

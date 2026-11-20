@@ -21,6 +21,8 @@ export interface PublishedPlugin {
   readonly readme: string;
   /** Whether the publish repository hosts the docs site's Giscus discussions. */
   readonly giscus: boolean;
+  readonly resources: string;
+  readonly changelog?: string;
 }
 
 export const PUBLISHED_PLUGINS = {
@@ -31,6 +33,9 @@ export const PUBLISHED_PLUGINS = {
     versions: "versions.json",
     readme: "README.md",
     giscus: true,
+    resources:
+      "Language Packs, template data JSON Schemas, and the Item Query Schema",
+    changelog: "https://zotlit.aidenlx.site/changelog/",
   },
   reader: {
     app: "apps/reader",
@@ -39,6 +44,7 @@ export const PUBLISHED_PLUGINS = {
     versions: "apps/reader/versions.json",
     readme: "apps/reader/README.md",
     giscus: false,
+    resources: "Language Packs",
   },
 } as const satisfies Record<string, PublishedPlugin>;
 

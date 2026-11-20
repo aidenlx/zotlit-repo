@@ -1,0 +1,22 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "./tsconfig.app.json",
+  "include": [
+    "./src",
+    "../../packages/obsidian-desktop/src",
+    "../../packages/obsidian-kit/src",
+    "../../packages/pdf-reader/src",
+    "../../packages/plugin-kernel/src",
+    "../../packages/plugin-services/src",
+    "../../packages/plugin-shell/src",
+    "../../packages/reader-feature/src",
+    "../../packages/zotero-reads/src"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./src/**/*.test.ts",
+    "./src/**/*.test.tsx",
+    "../../packages/*/src/**/*.test.ts",
+    "../../packages/*/src/**/*.test.tsx"
+  ]
+}

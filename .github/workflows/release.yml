@@ -40,6 +40,7 @@ jobs:
     outputs:
       obsidian: ${{ steps.plan.outputs.obsidian }}
       zotero: ${{ steps.plan.outputs.zotero }}
+      reader: ${{ steps.plan.outputs.reader }}
       docs-tag: ${{ steps.plan.outputs.docs-tag }}
     steps:
       - uses: actions/checkout@v7
@@ -56,7 +57,7 @@ jobs:
   # `pnpm release` ran them in its Land Turn.
   verify:
     needs: plan
-    if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true'
+    if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true' || needs.plan.outputs.reader == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -122,11 +123,31 @@ jobs:
         with:
           subject-path: ${{ steps.publish.outputs.attest }}
 
+  reader:
+    needs: [plan, verify]
+    if: needs.plan.outputs.reader == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Publish
+        run: pnpm release:publish reader
+        env:
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+
   # A stable release deploys the production docs site from its release tag,
   # once every product of the run published. A tag pushed with GITHUB_TOKEN
   # starts no workflow, so this job calls the deploy itself.
   docs:
-    needs: [plan, obsidian, zotero]
+    needs: [plan, obsidian, zotero, reader]
     if: >-
       always() && needs.plan.outputs.docs-tag != '' &&
       !contains(needs.*.result, 'failure') &&

@@ -49,7 +49,12 @@ interface HostBuild {
  */
 async function buildFromBundlePackage(
   host: HostBuild & { readonly bundleDir: string; readonly outDir: string },
-  packageJson: { version: string; description: string; author: string },
+  packageJson: {
+    version: string;
+    description: string;
+    author: string;
+    obsidian: { name: string };
+  },
 ): Promise<void> {
   const { plugin, workspaceRoot, bundleDir, outDir } = host;
   await writeBundlePackage({
