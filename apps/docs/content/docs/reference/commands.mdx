@@ -106,7 +106,7 @@ A result takes five chords, listed along the bottom of the modal:
 | ----------------------------------------------- | -------------------------------------------------------------- |
 | `Enter`                                         | Opens the literature note, creating it first when none exists. |
 | `Ctrl+Enter` (`Cmd+Enter` on macOS)             | The same, in a new pane.                                       |
-| `Shift+Enter`                                   | Opens the item's PDF in ZotLit's PDF reader, without the note. |
+| `Shift+Enter`                                   | Opens the item's PDF in ZotLit Reader, without the note.       |
 | `Ctrl+Shift+Enter` (`Cmd+Shift+Enter` on macOS) | The same, in a new pane.                                       |
 | `Alt+Enter` (`Option+Enter` on macOS)           | Shows the item in the [Library View](#library-view).           |
 
@@ -334,7 +334,7 @@ Only PDF attachments are offered. An item with none shows <UiLabel name={m.notic
 | Quick switcher  | `Shift+Enter` on a result. See [Literature note quick switcher](#quick-switcher).                                                       |
 | Zotero          | Right-click a PDF attachment, or an item that has one > <UiLabel name={m["zotero.menu_item_open_pdf.label"]()} /> in the top-level menu |
 | Zotero reader   | Right-click inside the PDF you are reading > <UiLabel name={m["zotero.menu_reader_page_open_pdf"]()} />                                 |
-| Annotation view | Pane menu > <UiLabel name={m.command_open_pdf_name()} />. Absent when ZotLit's PDF reader already shows the attachment.                 |
+| Annotation view | Pane menu > <UiLabel name={m.command_open_pdf_name()} />. Absent when ZotLit Reader already shows the attachment.                       |
 | File link       | Click a link to a PDF in your Zotero library, when <UiLabel name={m.settings_reader_open_file_links_name()} /> is on                    |
 
 ## Imported note actions
@@ -421,7 +421,7 @@ When the item has more than one attachment, a picker under the toolbar names the
 
 A Zotero PDF tab and the Zotero reader each choose the attachment themselves, so the picker stands down while one of them does.
 
-To read the attachment on screen in Obsidian, open the menu at the top of the view, then select <UiLabel name={m.command_open_pdf_name()} />. The same item is in the view's pane menu. It is not shown when a ZotLit PDF reader tab already shows that attachment.
+To read the attachment on screen in Obsidian, open the menu at the top of the view, then select <UiLabel name={m.command_open_pdf_name()} />. The same item is in the view's pane menu. It is not shown when a ZotLit Reader tab already shows that attachment.
 
 ### Sort, group, and save the view [#more-options]
 

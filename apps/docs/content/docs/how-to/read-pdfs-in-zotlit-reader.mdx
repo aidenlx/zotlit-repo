@@ -17,8 +17,8 @@ ZotLit Reader is a separate Obsidian plugin that reads the PDFs in your vault. I
 You need Obsidian 1.15.1 or later on a desktop computer; ZotLit Reader is desktop only. You do not need ZotLit or Zotero just to read PDFs.
 
 <Callout type="info">
-  ZotLit Reader is in development. It is not yet in Obsidian's community plugin
-  directory. Its only release so far, `1.0.0-beta.0`, tests the release process.
+  ZotLit Reader is in beta and in development. It is not yet in Obsidian's
+  community plugin directory, so install it through BRAT.
 </Callout>
 
 ## Install ZotLit Reader [#install]
@@ -76,7 +76,7 @@ Annotation links that ZotLit writes into notes open in ZotLit Reader with the an
 
 ## ZotLit without ZotLit Reader [#without-reader]
 
-ZotLit opens PDFs in Obsidian's own PDF view when ZotLit Reader is not installed or is turned off. It does the same when the two versions do not work together. A link that names a page, such as an annotation link, opens that view at its page. The page shows no Zotero annotations and no annotation tools.
+A PDF that ZotLit opens shows in Obsidian's own PDF view when ZotLit Reader is not installed or is turned off. You see the same when ZotLit Reader does not work with this version of ZotLit. A link that names a page, such as an annotation link, opens that view on its page. You see the PDF without Zotero annotations and without annotation tools.
 
 The first time this happens, a notice stays on screen until you close it. Its title is <UiLabel name={m.notice_reader_fallback()} /> Below it are one sentence and one button:
 
@@ -88,7 +88,7 @@ The first time this happens, a notice stays on screen until you close it. Its ti
 
 When ZotLit is the older plugin, the last sentence names ZotLit instead. ZotLit shows each notice once per vault on this computer, so a second PDF opens without one.
 
-The button opens ZotLit Reader in Obsidian's community plugins, or ZotLit when ZotLit needs the update. To install ZotLit Reader, follow the [BRAT steps](#install) above. To turn it on, go to **Settings > Community plugins**. To update either plugin, update it through BRAT or the community directory, wherever you installed it from.
+The button opens ZotLit Reader in Obsidian's community plugins, or ZotLit when ZotLit needs the update. The community plugins find ZotLit Reader only once the directory lists it. Until then, install it with the [BRAT steps](#install) above. To turn it on, go to **Settings > Community plugins**. To update either plugin, update it through BRAT or the community directory, wherever you installed it from.
 
 ### See the connection [#status]
 
@@ -158,13 +158,13 @@ To give these PDFs back to Obsidian's own PDF viewer, turn off <SettingsPath plu
 
 An embed has a <UiLabel name={m.pdf_reader_embed_more_options()} /> button. Select <UiLabel name={m.pdf_reader_embed_open()} /> to read the whole PDF. The same menu has Obsidian's own link items, such as **Open in new tab**.
 
-## Limits [#limits]
+## What you see in other views [#limits]
 
-- Obsidian's own PDF viewer shows no ZotLit annotation tools. A link that ZotLit wrote into a note, such as an annotation link, still opens in ZotLit Reader. This is true while <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> is off too.
-- A link made with **Copy link to selection** in Obsidian's own viewer opens with the passage highlighted. When the two readers read that page's text differently, the link opens on its page without the highlight.
-- A PDF card on a canvas has no **Save current position in document** button.
-- In Live Preview, a PDF embed has no **Edit this block** button. To change the embed's link, switch the note to Source mode.
-- If ZotLit Reader shows <UiLabel name={m.reader_takeover_unavailable()} />, your Obsidian version does not let it open all PDFs. ZotLit still opens its own PDFs in ZotLit Reader.
+- Obsidian's own PDF viewer shows no ZotLit annotation tools. An annotation link that ZotLit wrote into a note opens in ZotLit Reader, also while <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> is off.
+- A link made with **Copy link to selection** in Obsidian's own viewer opens with the passage highlighted. On a page whose text the two readers read differently, the link opens on its page without the highlight.
+- A PDF card on a canvas shows no **Save current position in document** button.
+- In Live Preview, a PDF embed shows no **Edit this block** button. To change the embed's link, switch the note to Source mode.
+- When your Obsidian version does not let ZotLit Reader open all PDFs, ZotLit Reader shows <UiLabel name={m.reader_takeover_unavailable()} /> The PDFs that ZotLit opens still show in ZotLit Reader.
 
 ## See also
 

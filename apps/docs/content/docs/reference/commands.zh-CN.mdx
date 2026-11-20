@@ -101,13 +101,13 @@ Zotero 入口将导入范围限制在你右键点击的行（包含子分类）�
 
 搜索结果支持 5 种快捷键组合，列在弹窗底部：
 
-| 快捷键                                             | 结果                                                    |
-| -------------------------------------------------- | ------------------------------------------------------- |
-| `Enter`                                            | 打开文献笔记；若不存在则先创建。                        |
-| `Ctrl+Enter`（macOS 上为 `Cmd+Enter`）             | 同上，但在新分栏中打开。                                |
-| `Shift+Enter`                                      | 在 ZotLit 的 PDF 阅读器中打开该条目的 PDF，不打开笔记。 |
-| `Ctrl+Shift+Enter`（macOS 上为 `Cmd+Shift+Enter`） | 同上，但在新分栏中打开。                                |
-| `Alt+Enter`（macOS 上为 `Option+Enter`）           | 在[文库视图](#library-view)中显示该条目。               |
+| 快捷键                                             | 结果                                             |
+| -------------------------------------------------- | ------------------------------------------------ |
+| `Enter`                                            | 打开文献笔记；若不存在则先创建。                 |
+| `Ctrl+Enter`（macOS 上为 `Cmd+Enter`）             | 同上，但在新分栏中打开。                         |
+| `Shift+Enter`                                      | 在 ZotLit Reader中打开该条目的 PDF，不打开笔记。 |
+| `Ctrl+Shift+Enter`（macOS 上为 `Cmd+Shift+Enter`） | 同上，但在新分栏中打开。                         |
+| `Alt+Enter`（macOS 上为 `Option+Enter`）           | 在[文库视图](#library-view)中显示该条目。        |
 
 `Alt+Enter` 会在条目的第一个分类中（若不属于任何分类则在其文库中）打开文库视图，并选中其所在行。它会清除视图中的搜索并关闭阅读状态筛选，确保该行不会被隐藏。当条目超出视图 1000 篇文献的限制时，不会选中任何条目并会显示相应提示。
 
@@ -332,7 +332,7 @@ Zotero 入口将导入范围限制在你右键点击的行（包含子分类）�
 | 快速切换      | 在结果上按 `Shift+Enter`。参见[文献笔记快速切换](#quick-switcher)。                                         |
 | Zotero        | 右键点击 PDF 附件或包含 PDF 的条目 > 顶层菜单中的 <UiLabel name={m["zotero.menu_item_open_pdf.label"]()} /> |
 | Zotero 阅读器 | 在正在阅读的 PDF 内部右键点击 > <UiLabel name={m["zotero.menu_reader_page_open_pdf"]()} />                  |
-| 标注视图      | 面板菜单 > <UiLabel name={m.command_open_pdf_name()} />。当 ZotLit 的 PDF 阅读器已显示该附件时不会出现。    |
+| 标注视图      | 面板菜单 > <UiLabel name={m.command_open_pdf_name()} />。当 ZotLit Reader已显示该附件时不会出现。           |
 | 文件链接      | 开启 <UiLabel name={m.settings_reader_open_file_links_name()} /> 时，点击 Zotero 文库中指向 PDF 的链接      |
 
 ## 导入笔记操作 [#imported-note-actions]
@@ -418,7 +418,7 @@ Zotero 中没有所属父条目的 PDF 无法被固定；菜单不会为其提�
 
 Zotero PDF 标签页和 Zotero 阅读器各自会自行选择附件，因此当其中之一生效时选择器会暂停生效。
 
-如需在 Obsidian 中阅读当前屏幕上的附件，请打开视图顶部的菜单，然后选择 <UiLabel name={m.command_open_pdf_name()} />。视图面板菜单中也包含相同条目。当 ZotLit 的 PDF 阅读器标签页已显示该附件时不会显示。
+如需在 Obsidian 中阅读当前屏幕上的附件，请打开视图顶部的菜单，然后选择 <UiLabel name={m.command_open_pdf_name()} />。视图面板菜单中也包含相同条目。当 ZotLit Reader 标签页已显示该附件时不会显示。
 
 ### 排序、分组与保存视图 [#more-options]
 

@@ -17,8 +17,8 @@ ZotLit Reader 是一个独立的 Obsidian 插件，用于阅读仓库中的 PDF�
 你需要在桌面电脑上使用 Obsidian 1.15.1 或更高版本；ZotLit Reader 仅支持桌面端。只阅读 PDF 时，不需要 ZotLit 或 Zotero。
 
 <Callout type="info">
-  ZotLit Reader 仍在开发中，尚未进入 Obsidian 的第三方插件市场。目前唯一的版本
-  `1.0.0-beta.0` 用于测试发布流程。
+  ZotLit Reader 目前为测试版，仍在开发中。它尚未进入 Obsidian
+  的第三方插件市场，因此请通过 BRAT 安装。
 </Callout>
 
 ## 安装 ZotLit Reader [#install]
@@ -76,7 +76,7 @@ ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，并选中该�
 
 ## 没有 ZotLit Reader 时的 ZotLit [#without-reader]
 
-如果 ZotLit Reader 未安装或已停用，ZotLit 会在 Obsidian 自带的 PDF 视图中打开 PDF。两个插件的版本无法协同工作时也是如此。指向某一页的链接（例如标注链接）会在该视图中打开到该页。页面上不显示 Zotero 标注，也没有标注工具。
+如果 ZotLit Reader 未安装或已停用，ZotLit 打开的 PDF 会显示在 Obsidian 自带的 PDF 视图中。ZotLit Reader 与此版本的 ZotLit 无法协同工作时，你看到的也是如此。指向某一页的链接（例如标注链接）会在该视图中打开到该页。你看到的 PDF 不带 Zotero 标注，也没有标注工具。
 
 第一次出现这种情况时，会弹出一条通知，直到你关闭它为止。通知标题为 <UiLabel name={m.notice_reader_fallback()} /> 下方有一句说明和一个按钮：
 
@@ -88,7 +88,7 @@ ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，并选中该�
 
 如果较旧的是 ZotLit，最后一句会改为要求更新 ZotLit。每种通知在这台电脑上的每个仓库中只显示一次，之后再打开 PDF 不会再出现。
 
-该按钮会在 Obsidian 的第三方插件中打开 ZotLit Reader；需要更新 ZotLit 时则打开 ZotLit。如需安装 ZotLit Reader，请按照上方的 [BRAT 步骤](#install)操作。如需启用它，请前往**设置 > 第三方插件**。如需更新任一插件，请通过你当初安装它的途径（BRAT 或第三方插件市场）更新。
+该按钮会在 Obsidian 的第三方插件中打开 ZotLit Reader；需要更新 ZotLit 时则打开 ZotLit。只有在插件市场收录 ZotLit Reader 之后，第三方插件中才能找到它。在此之前，请按照上方的 [BRAT 步骤](#install)安装。如需启用它，请前往**设置 > 第三方插件**。如需更新任一插件，请通过你当初安装它的途径（BRAT 或第三方插件市场）更新。
 
 ### 查看连接状态 [#status]
 
@@ -158,13 +158,13 @@ ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，并选中该�
 
 嵌入的 PDF 带有 <UiLabel name={m.pdf_reader_embed_more_options()} /> 按钮。选择 <UiLabel name={m.pdf_reader_embed_open()} /> 可阅读完整的 PDF。同一菜单中还有 Obsidian 自带的链接选项，例如**在新标签页中打开**。
 
-## 限制 [#limits]
+## 在其他视图中看到的内容 [#limits]
 
-- Obsidian 自带的 PDF 查看器不显示 ZotLit 的标注工具。即使 <UiLabel name={m.reader_settings_open_all_pdfs_name()} /> 处于关闭状态，ZotLit 写入笔记的链接（如标注链接）仍会在 ZotLit Reader 中打开。
-- 在 Obsidian 自带查看器中用**复制到选区的链接**创建的链接，打开时会高亮该段落。如果两个阅读器对该页文本的读取方式不同，链接只会打开到该页，不显示高亮。
-- 白板上的 PDF 卡片没有**保存文档中的当前位置**按钮。
-- 在实时预览中，PDF 嵌入没有**编辑这个区块**按钮。要修改嵌入的链接，请将笔记切换到源码模式。
-- 如果 ZotLit Reader 显示 <UiLabel name={m.reader_takeover_unavailable()} />，说明你的 Obsidian 版本不允许它打开所有 PDF。ZotLit 仍会在 ZotLit Reader 中打开它自己的 PDF。
+- Obsidian 自带的 PDF 查看器不显示 ZotLit 的标注工具。ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，<UiLabel name={m.reader_settings_open_all_pdfs_name()} /> 关闭时也是如此。
+- 在 Obsidian 自带查看器中用**复制到选区的链接**创建的链接，打开时会高亮该段落。如果两个阅读器对该页文本的读取方式不同，链接会打开到该页，不显示高亮。
+- 白板上的 PDF 卡片不显示**保存文档中的当前位置**按钮。
+- 在实时预览中，PDF 嵌入不显示**编辑这个区块**按钮。要修改嵌入的链接，请将笔记切换到源码模式。
+- 如果你的 Obsidian 版本不允许 ZotLit Reader 打开所有 PDF，ZotLit Reader 会显示 <UiLabel name={m.reader_takeover_unavailable()} /> ZotLit 打开的 PDF 仍显示在 ZotLit Reader 中。
 
 ## 另请参阅
 
