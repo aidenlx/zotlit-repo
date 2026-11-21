@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
 import { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   completionEdit,
@@ -10,8 +11,6 @@ import {
   suggestions,
 } from "./suggestions.ts";
 import type { SuggestionConfig } from "./suggestions.ts";
-
-import { m } from "#core/headless-ui/test-messages.ts";
 
 const note: SuggestionConfig = { root: "note", partials: ["cite", "content"] };
 const eta: SuggestionConfig = { ...note, language: "eta" };

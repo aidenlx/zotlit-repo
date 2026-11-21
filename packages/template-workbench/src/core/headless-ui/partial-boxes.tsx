@@ -23,11 +23,11 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { PreviewWidget, boxAt, boxField, boxRanges } from "./editor-boxes.ts";
 import { useTooltip, useWorkbenchHost, WorkbenchHostError } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { useIcon, useParts } from "./theme.tsx";
 
 import { documentRevision } from "#core/document/atoms.ts";
@@ -195,7 +195,6 @@ function PartialPlaceholder({
   previewId: string;
   onToggle: (pressed: boolean) => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("notePane");
   const icon = useIcon();
   const previewTooltip = useTooltip(m.workbench_partial_preview());
@@ -259,7 +258,6 @@ function PartialPreview({
   id: string;
   preview: Atom.Atom<AsyncResult.AsyncResult<string, unknown>>;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("notePane");
   const { markdown: Markdown } = useWorkbenchHost();
   const result = useAtomValue(preview);

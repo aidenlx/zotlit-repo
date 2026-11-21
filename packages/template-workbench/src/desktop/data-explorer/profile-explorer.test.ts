@@ -23,7 +23,6 @@ import { answerOf, makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 
 import { Explorer } from "./Explorer.tsx";
@@ -196,8 +195,6 @@ describe("independent native Explorer", () => {
           WorkbenchHostProvider,
           {
             host: stubService<WorkbenchHost>("WorkbenchHost", {
-              messages: workbenchM,
-              getLocale: () => "en",
               persistence: { read: () => null, write: () => {} },
             }),
           },
@@ -248,8 +245,6 @@ describe("independent native Explorer", () => {
             WorkbenchHostProvider,
             {
               host: stubService<WorkbenchHost>("WorkbenchHost", {
-                messages: workbenchM,
-                getLocale: () => "en",
                 persistence: { read: () => null, write: () => {} },
               }),
             },
@@ -312,8 +307,6 @@ describe("independent native Explorer", () => {
           WorkbenchHostProvider,
           {
             host: stubService<WorkbenchHost>("WorkbenchHost", {
-              messages: workbenchM,
-              getLocale: () => "en",
               persistence: { read: () => null, write: () => {} },
             }),
           },
@@ -390,8 +383,6 @@ it("switches annotation data locally through the annotation chooser", async () =
         WorkbenchHostProvider,
         {
           host: stubService<WorkbenchHost>("WorkbenchHost", {
-            messages: m,
-            getLocale: () => "en",
             tooltip: (text: string) => ({ title: text }),
             persistence: { read: () => null, write: () => {} },
             suggester,

@@ -1,11 +1,12 @@
-// One field's details in the Fields Panel: its full value, its template path,
-// and what the note gets, with Insert and Copy. A wide view shows them in the
-// host's popover beside the panel; a narrow one in a bar of fixed height at
-// the panel's foot.
 import type { DisplayNode, SnippetKind } from "#core/data-tree/index.ts";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Ref } from "react";
 
+// One field's details in the Fields Panel: its full value, its template path,
+// and what the note gets, with Insert and Copy. A wide view shows them in the
+// host's popover beside the panel; a narrow one in a bar of fixed height at
+// the panel's foot.
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
@@ -13,7 +14,6 @@ import { fieldValueText } from "./explorer-fields.ts";
 import type { FieldForm, FieldInsertOptions } from "./field-insertion.ts";
 import { useFieldsPanelRows } from "./fields-panel.tsx";
 import { useOptionalHost, useTooltip } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import type { ViewSize } from "./panel-layout.ts";
 import { useIcon, useParts } from "./theme.tsx";
 
@@ -146,7 +146,6 @@ function DetailsBody({
   readonly surface: Ref<HTMLElement>;
   readonly state: FieldDetailsPlacement;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("fieldDetails");
   const icon = useIcon();
   const closeLabel = m.workbench_fields_details_close();

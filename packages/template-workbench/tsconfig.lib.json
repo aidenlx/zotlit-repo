@@ -57,8 +57,6 @@
     // The test support of the Workbench core.
     "./src/core/data-tree/test-records.ts",
     "./src/core/render/test-profiles.ts",
-    "./src/core/headless-ui/test-host.tsx",
-    "./src/core/headless-ui/test-messages.ts",
-    "./src/core/headless-ui/generated/test-en.json"
+    "./src/core/headless-ui/test-host.tsx"
   ]
 }

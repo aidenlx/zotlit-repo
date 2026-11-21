@@ -5,7 +5,8 @@
 import type { RenderedProperty } from "#core/render/result.ts";
 import { regex } from "arkregex";
 
-import { useWorkbenchMessages } from "./messages.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useIcon, useParts } from "./theme.tsx";
 
 /** The property types Obsidian's own Properties editor tells apart. */
@@ -84,7 +85,6 @@ export function PropertyList({
 
 /** A produced value, or the reason it has none. */
 export function PropertyValue({ property }: { property: RenderedProperty }) {
-  const m = useWorkbenchMessages();
   const part = useParts("propertyList");
   const { value } = property;
   if (

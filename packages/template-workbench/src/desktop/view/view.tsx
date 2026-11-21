@@ -106,7 +106,6 @@ import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import type { ItemSearchDeps } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
@@ -746,7 +745,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       insertTarget: () => this.insertTarget,
     });
     this.#cleanup.defer(deps.registry.mount(this.fields.local));
-    this.fieldsActions = makeFieldsActions(this, this.#host, (target) =>
+    this.fieldsActions = makeFieldsActions(this, (target) =>
       this.exportTemplateData(target),
     );
     this.#cleanup.defer(this.#follow());
@@ -2009,7 +2008,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         for (const id of CITATION_EXAMPLE_IDS)
           submenu.addItem((entry) =>
             entry
-              .setTitle(citationExampleLabel(workbenchM, id))
+              .setTitle(citationExampleLabel(id))
               .setChecked(citationExample === id)
               .onClick(() => setCitation({ citationExample: id })),
           );
@@ -2125,7 +2124,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     for (const { label, path } of HELP_PAGES)
       menu.addItem((entry) =>
         entry
-          .setTitle(workbenchM[label]())
+          .setTitle(label())
           .setIcon("book-open")
           .onClick(() => window.open(docsUrl(path))),
       );
@@ -2844,7 +2843,6 @@ function EditorContent({
     // A parser problem never reached a render, so the area captures its report
     // itself, naming this Workbench the way a failed render's report does.
     capture: {
-      messages: workbenchM,
       source: controller.source,
       context: () =>
         view.reportContext(view.registry.get(view.model.view).root),
@@ -3128,9 +3126,7 @@ function EditorContent({
                   annotation ? null : m.workbench_preview_choose_annotation()
                 }
                 formatProblem={
-                  formatProblem
-                    ? diagnosticText(workbenchM, formatProblem)
-                    : null
+                  formatProblem ? diagnosticText(formatProblem) : null
                 }
                 annotationSelector={
                   view.nativeRenderDeps ? (
@@ -3166,7 +3162,6 @@ function EditorContent({
                   properties={result?.properties ?? []}
                   fold={result?.fold ?? []}
                   diagnostics={entryDiagnostics(
-                    workbenchM,
                     result?.diagnostics ?? [],
                     controller.problems,
                   )}
@@ -3204,11 +3199,7 @@ function EditorContent({
               )}
               <AnnotationPane
                 controller={controller}
-                problem={
-                  formatProblem
-                    ? diagnosticText(workbenchM, formatProblem)
-                    : null
-                }
+                problem={formatProblem ? diagnosticText(formatProblem) : null}
                 partials={partialsFor("annotation")}
                 reveal={advanced ? null : reveal}
                 onSelection={selection("annotation")}

@@ -14,13 +14,11 @@ import type {
 } from "#core/render/result.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { ExampleActions, useExampleState } from "./example-state.tsx";
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import { useContainerName, useOptionalHost } from "./host.tsx";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { diagnosticText, documentDiagnosis, problemText } from "./problems.ts";
 import { PropertyList, propertyText } from "./property-list.tsx";
 import { indexAfterMove, useListReorder } from "./reorder.ts";
@@ -36,10 +34,10 @@ import {
   sliceShownText,
 } from "#core/document/index.ts";
 
-const MERGE_LABEL: Record<string, WorkbenchMessageLabel> = {
-  replace: "workbench_properties_merge_replace",
-  append: "workbench_properties_merge_append",
-  keep: "workbench_properties_merge_keep",
+const MERGE_LABEL: Record<string, () => string> = {
+  replace: m.workbench_properties_merge_replace,
+  append: m.workbench_properties_merge_append,
+  keep: m.workbench_properties_merge_keep,
 };
 
 /** A problem one row carries: the text to show, and the entry it names. */
@@ -54,7 +52,6 @@ export interface EntryDiagnostic {
  * the manifest errors the parser pinned to one entry.
  */
 export function entryDiagnostics(
-  m: WorkbenchMessages,
   diagnostics: readonly RenderDiagnostic[],
   problems: readonly WorkbenchProblem[],
 ): EntryDiagnostic[] {
@@ -65,7 +62,7 @@ export function entryDiagnostics(
         : [
             {
               position: diagnostic.position,
-              message: diagnosticText(m, diagnostic),
+              message: diagnosticText(diagnostic),
             },
           ],
     ),
@@ -73,7 +70,7 @@ export function entryDiagnostics(
       const position = entryPosition(problem.slice);
       return position === null
         ? []
-        : [{ position, message: problemText(m, problem).message }];
+        : [{ position, message: problemText(problem).message }];
     }),
   ];
 }
@@ -110,18 +107,15 @@ function byEntry(
 }
 
 /** A static entry shows its own value; a spread shows what it produced. */
-function summarize(
-  m: WorkbenchMessages,
-  {
-    entry,
-    produced,
-    fold,
-  }: {
-    entry: ManagedEntrySource;
-    produced: readonly RenderedProperty[];
-    fold: readonly RenderedProperty[];
-  },
-): string {
+function summarize({
+  entry,
+  produced,
+  fold,
+}: {
+  entry: ManagedEntrySource;
+  produced: readonly RenderedProperty[];
+  fold: readonly RenderedProperty[];
+}): string {
   if (entry.key !== undefined) {
     const property = produced[0];
     if (!property || property.missing) return m.workbench_property_unset();
@@ -171,7 +165,6 @@ export function PropertiesPane({
   onSelection,
   suggest,
 }: PropertiesPaneProps) {
-  const m = useWorkbenchMessages();
   const part = useParts("properties");
   const example = useExampleState("properties");
   const exampleMessage = example.message;
@@ -301,7 +294,7 @@ export function PropertiesPane({
               ? entry.language === "expr"
                 ? sliceShownText(controller, entrySlice(entry.position))
                 : controller.sliceText(entrySlice(entry.position))
-              : summarize(m, { entry, produced: fields, fold: standing.fold }));
+              : summarize({ entry, produced: fields, fold: standing.fold }));
           return (
             <li
               key={entry.position}
@@ -472,7 +465,6 @@ function EntryForm({
   suggest,
   hidden = false,
 }: EntryFormProps) {
-  const m = useWorkbenchMessages();
   const part = useParts("properties");
   // Named as the expression editor is, by a hidden element: no tooltip.
   const textName = useContainerName(m.workbench_properties_expression());
@@ -691,7 +683,7 @@ function EntryForm({
           >
             {Object.entries(MERGE_LABEL).map(([value, label]) => (
               <WorkbenchOption key={value} value={value}>
-                {m[label]()}
+                {label()}
               </WorkbenchOption>
             ))}
           </WorkbenchSelect>

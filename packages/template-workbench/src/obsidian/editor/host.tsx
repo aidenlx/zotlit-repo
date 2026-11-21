@@ -29,7 +29,6 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
-import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
 import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { awaitModal, openModalIn } from "@zotlit/obsidian-kit/effect-modal.ts";
@@ -38,8 +37,6 @@ import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { runtime } from "@zotlit/plugin-messages/runtime.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import {
   CurrentAnswer,
   takeEnter,
@@ -60,7 +57,6 @@ import { nativeCompletion } from "#core/editor/native-completion.ts";
 import {
   WorkbenchClipboardError,
   WorkbenchHostError,
-  WorkbenchMessagesProvider,
 } from "#core/headless-ui/index.tsx";
 import {
   completionSuggestion,
@@ -400,11 +396,6 @@ export function createTemplateWorkbenchHost(
       for (const close of open) close();
     },
     ...rest,
-    messages: {
-      ...workbenchM,
-      workbench_name_value_no_style: citationStyleLabel,
-    },
-    getLocale: () => runtime.getLocale(),
     inputSuggestions(request) {
       const popup = new MatchInputSuggest(app, request);
       return { close: track(() => popup.close()) };
@@ -451,11 +442,7 @@ export function createTemplateWorkbenchHost(
     dialog(request) {
       const modal = new EditorDialog(app, {
         ...request,
-        content: wrap(
-          <WorkbenchMessagesProvider messages={workbenchM}>
-            {request.content}
-          </WorkbenchMessagesProvider>,
-        ),
+        content: wrap(request.content),
         onClose() {
           open.delete(close);
           request.onClose?.();

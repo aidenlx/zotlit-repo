@@ -1,13 +1,12 @@
 import { forEachDiagnostic } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
-import { act, cleanup, fireEvent } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 
 import { ProblemsFooter, useWorkbenchProblems } from "./problems-footer.tsx";
 import { workbenchDiagnoses } from "./problems.ts";
 import { SliceEditor } from "./slice-editor.tsx";
 import { WorkbenchDiagnosticsProvider } from "./source-diagnostics.tsx";
-import { renderWithMessages as render } from "./test-host.tsx";
 
 import {
   entrySlice,

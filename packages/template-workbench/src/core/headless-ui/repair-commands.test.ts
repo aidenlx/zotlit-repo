@@ -2,13 +2,14 @@ import type { RenderDiagnostic } from "#core/render/result.ts";
 import * as Atom from "effect/reactivity/Atom";
 import { describe, expect, it } from "vitest";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { INITIAL_PANELS } from "./panel-layout.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
 import { renderDiagnosis } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import { repairCommands } from "./repair-commands.ts";
 import { mount } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
 
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 

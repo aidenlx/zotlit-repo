@@ -7,6 +7,8 @@ import { useEffect, useLayoutEffect, useMemo, useState, useRef } from "react";
 import { composeFilterTree } from "@zotlit/filter-expression";
 import type { FilterPath } from "@zotlit/filter-expression";
 import { ITEMS } from "@zotlit/item-query";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
@@ -49,7 +51,6 @@ import { filterVocabulary } from "./match.fields.tsx";
 import type { FilterValues } from "./match.fields.tsx";
 import { MatchSelect } from "./match.rows.tsx";
 // One Match tree over the document controller; rows write through the master history.
-import { useWorkbenchMessages } from "./messages.tsx";
 import { useReorder } from "./reorder.ts";
 import type { Reorder } from "./reorder.ts";
 import { TabDocsLink } from "./tab-bar.tsx";
@@ -90,8 +91,6 @@ export function MatchPane({
   onRetry?: () => void;
   onChooseItem?: () => void;
 }) {
-  const m = useWorkbenchMessages();
-  const host = useWorkbenchHost();
   const part = useParts("match");
   const model = useWorkbenchModel();
   const item = useAtomValue(model.item);
@@ -139,7 +138,7 @@ export function MatchPane({
         : null,
     [filter, faulty, span],
   );
-  const locale = host.getLocale();
+  const locale = runtime.getLocale();
   const custom = useCustomFieldNames(revision);
   // What a condition reads: the fields of an Item, labelled as Zotero labels
   // them, and the source's custom fields. A Profile binds no Query Context,
@@ -155,7 +154,6 @@ export function MatchPane({
   const vocabulary = useMemo(
     () => ({
       ...filterVocabulary("items", {
-        m,
         values,
         label: (field) =>
           isDatasetFieldKind(field.kind)
@@ -174,7 +172,7 @@ export function MatchPane({
       }),
       expression,
     }),
-    [m, values, schema, faulty, answer, placed, expression],
+    [values, schema, faulty, answer, placed, expression],
   );
   function write(next: MatchTree | undefined) {
     const saved = controller.setMatch(next);
@@ -395,7 +393,6 @@ function Group<Row extends LabelledRow>({
   reorder: Reorder;
   onChange: (root: ConditionGroup<Row>) => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("match");
   const icon = useIcon();
   const host = useWorkbenchHost();
@@ -535,7 +532,6 @@ function Row<Row extends LabelledRow>({
   onChange: (condition: RowCondition<Row>) => void;
   onRemove: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("match");
   const icon = useIcon();
   const host = useWorkbenchHost();

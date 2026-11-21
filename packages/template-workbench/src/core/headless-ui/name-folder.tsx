@@ -10,14 +10,13 @@ import type {
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
+import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { joinNotePath } from "@zotlit/templates";
 import { useUniqueId } from "@zotlit/ui";
 
 import { ExampleActions, useExampleState } from "./example-state.tsx";
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import { useOptionalHost } from "./host.tsx";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { renderDiagnosis } from "./problems.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
@@ -39,7 +38,7 @@ type BindingKey =
 
 interface Binding {
   readonly key: BindingKey;
-  readonly label: WorkbenchMessageLabel;
+  readonly label: () => string;
   /**
    * The control the value is edited through. A style is picked from the vault's
    * installed styles while the host lists them, and typed as its CSL ID when no
@@ -51,7 +50,7 @@ interface Binding {
 /** The folder part of the note path, which the note path group holds. */
 const FOLDER_BINDING: Binding = {
   key: "folder",
-  label: "workbench_name_binding_folder",
+  label: m.workbench_name_binding_folder,
   kind: "path",
 };
 
@@ -59,22 +58,22 @@ const FOLDER_BINDING: Binding = {
 const BINDINGS: readonly Binding[] = [
   {
     key: "citationStyle",
-    label: "workbench_name_binding_citation_style",
+    label: m.workbench_name_binding_citation_style,
     kind: "style",
   },
   {
     key: "importFolder",
-    label: "workbench_name_binding_import_folder",
+    label: m.workbench_name_binding_import_folder,
     kind: "path",
   },
   {
     key: "importColoredHighlights",
-    label: "workbench_name_binding_colored_highlights",
+    label: m.workbench_name_binding_colored_highlights,
     kind: "toggle",
   },
   {
     key: "importAnnotationsAsTemplate",
-    label: "workbench_name_binding_annotation_template",
+    label: m.workbench_name_binding_annotation_template,
     kind: "toggle",
   },
 ];
@@ -126,12 +125,9 @@ function fieldId(prefix: string, key: string): string {
 }
 
 /** One binding value in the words the tab reads it in. */
-function valueText(
-  m: WorkbenchMessages,
-  value: string | boolean | null | undefined,
-): string {
+function valueText(value: string | boolean | null | undefined): string {
   if (value === undefined) return m.workbench_name_unset();
-  if (value === null) return m.workbench_name_value_no_style();
+  if (value === null) return citationStyleLabel();
   if (typeof value === "boolean") {
     return value ? m.workbench_name_value_on() : m.workbench_name_value_off();
   }
@@ -207,7 +203,6 @@ export function NameFolderPane({
   onSelection,
   onShowProblem,
 }: NameFolderPaneProps) {
-  const m = useWorkbenchMessages();
   const example = useExampleState("filename");
   const prefix = useUniqueId();
   const statusId = useUniqueId();
@@ -599,7 +594,6 @@ function TextValue({
   optional?: boolean;
   onCommit: (value: string | undefined) => void;
 }) {
-  const m = useWorkbenchMessages();
   const { prefix } = useContext(FieldIdContext);
   return (
     <DraftText
@@ -621,16 +615,15 @@ function DefaultBindings({
   defaults: ProfileBindingDefaults;
   note: string;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("nameFolder");
   return (
     <>
       <dl {...part("defaults")}>
         {bindings.map((binding) => (
           <div key={binding.key} {...part("actions")}>
-            <dt {...part("default-label")}>{m[binding.label]()}</dt>
+            <dt {...part("default-label")}>{binding.label()}</dt>
             <dd {...part("default-value")}>
-              {valueText(m, defaults[binding.key])}
+              {valueText(defaults[binding.key])}
             </dd>
           </div>
         ))}
@@ -655,14 +648,13 @@ function BindingRow({
   citationStyles: readonly InstalledCitationStyle[] | null;
   onWrite: (value: ManifestScalar | undefined) => void;
 }) {
-  const m = useWorkbenchMessages();
   const { prefix } = useContext(FieldIdContext);
   const part = useParts("nameFolder");
   const readOnly = useContext(FieldIdContext).readOnly;
   const host = useOptionalHost();
   const Toggle = host?.toggle;
   const icon = useIcon();
-  const label = m[binding.label]();
+  const label = binding.label();
   const inherits = value === undefined;
   const effective = inherits ? fallback : value;
   const id = fieldId(prefix, binding.key);
@@ -728,7 +720,7 @@ function BindingRow({
               />
             </button>
           )}
-          <span {...part("muted")}>{valueText(m, effective)}</span>
+          <span {...part("muted")}>{valueText(effective)}</span>
         </span>
       ) : (
         <DraftText
@@ -767,7 +759,6 @@ function StylePicker({
   styles: readonly InstalledCitationStyle[];
   onWrite: (value: ManifestScalar) => void;
 }) {
-  const m = useWorkbenchMessages();
   const readOnly = useContext(FieldIdContext).readOnly;
   const options =
     value !== null &&
@@ -786,9 +777,7 @@ function StylePicker({
         )
       }
     >
-      <WorkbenchOption value="">
-        {m.workbench_name_value_no_style()}
-      </WorkbenchOption>
+      <WorkbenchOption value="">{citationStyleLabel()}</WorkbenchOption>
       {options.map((style) => (
         <WorkbenchOption key={style.id} value={style.id}>
           {style.title}
@@ -810,7 +799,6 @@ function LanguageGroup({
   language: string;
   onWrite: (key: string, value: ManifestScalar) => void;
 }) {
-  const m = useWorkbenchMessages();
   const { prefix } = useContext(FieldIdContext);
   const part = useParts("nameFolder");
   const readOnly = useContext(FieldIdContext).readOnly;

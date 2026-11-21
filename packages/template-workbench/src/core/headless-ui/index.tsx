@@ -13,8 +13,6 @@ export type { MatchFilter } from "./match.tsx";
 // document controller in use, the reader's choices, and the one Render
 // Scheduler its result surfaces share.
 
-export { WorkbenchMessagesProvider } from "./messages.tsx";
-
 export { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor.tsx";
 export type { WorkbenchEditorInstance } from "./editor.tsx";
 export {

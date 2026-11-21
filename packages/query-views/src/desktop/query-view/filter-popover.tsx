@@ -261,7 +261,6 @@ export function FilterEditor({
   const vocabulary = (section: FilterSection) => {
     const of = section === "all" ? shared : dataset;
     const conditions = filterVocabulary(of, {
-      m: host.messages,
       values,
       issue: (_, path) => faultsOf.issueAt(section, path)?.message ?? null,
       fault: faultsOf[section],

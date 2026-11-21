@@ -1,7 +1,15 @@
 import { EditorView } from "@codemirror/view";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  render,
+} from "@testing-library/react";
 import { Effect } from "effect";
 import { afterEach, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { annotationSamples } from "./annotation-samples.ts";
 import {
@@ -11,8 +19,7 @@ import {
 } from "./annotation.tsx";
 import { WorkbenchHostProvider } from "./host.tsx";
 import { SampleSuggester } from "./sample-suggester.tsx";
-import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { fakeHost } from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
@@ -68,7 +75,7 @@ it("hands annotation choice to the host with current annotations first and empty
   const trigger = screen.getByRole("button", {
     name: m.workbench_choose_annotation(),
   });
-  expect(screen.getByText(annotationOption(m, example).label)).toBeTruthy();
+  expect(screen.getByText(annotationOption(example).label)).toBeTruthy();
   await act(async () => {
     fireEvent.click(trigger);
   });
@@ -106,7 +113,7 @@ it.each(["compact", "hideLabel"] as const)(
         />
       </WorkbenchHostProvider>,
     );
-    expect(screen.queryByText(annotationOption(m, example).label)).toBeNull();
+    expect(screen.queryByText(annotationOption(example).label)).toBeNull();
     const trigger = screen.getByRole("button", {
       name: m.workbench_change_annotation(),
     });
@@ -116,8 +123,8 @@ it.each(["compact", "hideLabel"] as const)(
     expect(request.selected).toBe(example.id);
     expect(request.groups[0]?.options[0]).toMatchObject({
       id: example.id,
-      label: annotationOption(m, example).label,
-      hint: annotationOption(m, example).description,
+      label: annotationOption(example).label,
+      hint: annotationOption(example).description,
     });
     expect(selected).toHaveBeenCalledWith(SAMPLE_ANNOTATIONS[1]!.id);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");

@@ -2922,9 +2922,6 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
-      '@zotlit/obsidian-i18n':
-        specifier: workspace:*
-        version: link:../obsidian-i18n
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../scripts

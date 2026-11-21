@@ -14,7 +14,6 @@ import { isChildItemFields } from "@zotlit/db";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { awaitItem } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
 import type { ItemSearchDeps } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
 import {
@@ -172,7 +171,7 @@ export const workbenchAnnotationChoice = (
 ): Effect.Effect<string | null> => {
   const options = (examples: readonly AnnotationChoice[]) =>
     examples.map((example) => {
-      const option = annotationOption(workbenchM, example);
+      const option = annotationOption(example);
       return {
         id: option.value,
         label: option.label,

@@ -9,6 +9,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
@@ -37,8 +39,6 @@ import type {
 } from "./host.tsx";
 // The field discovery tree. The host owns clipboard, insertion,
 // export, popup presentation, and the controlled filtering/expansion state.
-import { useWorkbenchMessages } from "./messages.tsx";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
 import { announceFields } from "./model.ts";
 import type { TemplateRoot } from "./model.ts";
 import { useIcon, useParts } from "./theme.tsx";
@@ -101,19 +101,19 @@ export interface DataExplorerProps {
 }
 
 /** The name each root goes by in the Explorer's header. */
-const ROOT_LABELS: Record<TemplateRoot, WorkbenchMessageLabel> = {
-  note: "workbench_fields_root_note",
-  annotation: "workbench_fields_root_annotation",
-  filename: "workbench_fields_root_filename",
-  citation: "workbench_fields_root_citation",
+const ROOT_LABELS: Record<TemplateRoot, () => string> = {
+  note: m.workbench_fields_root_note,
+  annotation: m.workbench_fields_root_annotation,
+  filename: m.workbench_fields_root_filename,
+  citation: m.workbench_fields_root_citation,
 };
 
 /** What each root's field search says it searches. */
-const SEARCH_LABELS: Record<TemplateRoot, WorkbenchMessageLabel> = {
-  note: "workbench_fields_search_note",
-  annotation: "workbench_fields_search_annotation",
-  filename: "workbench_fields_search_filename",
-  citation: "workbench_fields_search_citation",
+const SEARCH_LABELS: Record<TemplateRoot, () => string> = {
+  note: m.workbench_fields_search_note,
+  annotation: m.workbench_fields_search_annotation,
+  filename: m.workbench_fields_search_filename,
+  citation: m.workbench_fields_search_citation,
 };
 
 export function DataExplorer({
@@ -155,7 +155,6 @@ export function DataExplorer({
     }
     onRestored?.();
   }, [restore, data, onRestored]);
-  const m = useWorkbenchMessages();
   const host = useWorkbenchHost();
   const model = useWorkbenchModel();
   const startCopy = useAtomSet(model.copy(useUniqueId()));
@@ -187,10 +186,10 @@ export function DataExplorer({
       );
       if (!keepOpen) setFields("to-editor");
     });
-  const locale = host.getLocale();
+  const locale = runtime.getLocale();
   const reader = useMemo<ExplorerReader>(
-    () => ({ m, root, locale }),
-    [m, root, locale],
+    () => ({ root, locale }),
+    [root, locale],
   );
   // The names top-level fields and the properties of list items show,
   // which the filter also searches.
@@ -251,7 +250,7 @@ export function DataExplorer({
     const text = m.workbench_fields_no_matches();
     if (noMatches) setStatus(announceFields(text));
     else setStatus((last) => (last?.text === text ? null : last));
-  }, [noMatches, setStatus, m]);
+  }, [noMatches, setStatus]);
   const detailsSurface = useRef<HTMLElement>(null);
   const [openRow, setOpenRow] = useState<HTMLElement | null>(null);
   const viewSize = useAtomValue(model.viewSize);
@@ -497,14 +496,14 @@ export function DataExplorer({
       {icon(allCollapsed ? "expand-all" : "collapse-all")}
     </button>
   );
-  const search = m[SEARCH_LABELS[root]]();
+  const search = SEARCH_LABELS[root]();
   // The placeholder shows the name, so the field takes no tooltip.
   const searchName = useContainerName(search);
   return (
     <section {...part("explorer")}>
       <div {...part("header")}>
         <h2 {...part("heading")}>{m.workbench_fields_heading()}</h2>
-        <span {...part("root-label")}>{m[ROOT_LABELS[root]]()}</span>
+        <span {...part("root-label")}>{ROOT_LABELS[root]()}</span>
       </div>
       <div {...part("search-row")}>
         <input

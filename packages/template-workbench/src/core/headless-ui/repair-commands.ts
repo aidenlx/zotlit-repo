@@ -4,6 +4,8 @@ import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { RenderDiagnostic } from "#core/render/result.ts";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { WorkbenchHost, WorkbenchInsertTarget } from "./host.tsx";
 import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
 import { routeDiagnosis, routeProblem } from "./problem-route.ts";
@@ -55,7 +57,7 @@ export interface RepairCommandsInput {
   readonly model: Pick<WorkbenchModel, "view" | "fieldsPanel">;
   readonly controller: RoutedDocument &
     Pick<WorkbenchDocumentController, "hasSlice">;
-  readonly host: Pick<WorkbenchHost, "notice" | "messages">;
+  readonly host: Pick<WorkbenchHost, "notice">;
   readonly problems: Pick<
     WorkbenchProblemsState,
     "diagnoses" | "select" | "setOpen" | "announce"
@@ -111,11 +113,11 @@ export function repairCommands({
     openDiagnosis(diagnosis) {
       const transition = routeDiagnosis(diagnosis, controller);
       if (transition) go(transition);
-      else host.notice(host.messages.workbench_problems_location_unknown());
+      else host.notice(m.workbench_problems_location_unknown());
     },
     showProblem(diagnostic) {
       closeFields();
-      const unknown = host.messages.workbench_problems_location_unknown();
+      const unknown = m.workbench_problems_location_unknown();
       if (diagnostic === null) {
         problems.setOpen(true);
         problems.announce(unknown);
@@ -134,7 +136,7 @@ export function repairCommands({
         : null;
       // Focus goes to the call in the editor, away from the explanation, so
       // the area's status says why the call fails.
-      const { condition } = diagnosisExplanation(host.messages, shown);
+      const { condition } = diagnosisExplanation(shown);
       problems.announce(transition ? condition : `${condition} ${unknown}`);
       if (transition) route(transition);
     },

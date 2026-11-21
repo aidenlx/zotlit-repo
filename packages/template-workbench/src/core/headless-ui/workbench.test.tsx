@@ -1,7 +1,15 @@
 import { EditorView } from "@codemirror/view";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  render,
+} from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { AnnotationPane } from "./annotation.tsx";
 import { EditToolbar } from "./edit-toolbar.tsx";
@@ -12,8 +20,7 @@ import { SliceEditor } from "./slice-editor.tsx";
 import { TabBar, TabPanel } from "./tab-bar.tsx";
 import type { WorkbenchTab } from "./tabs.ts";
 // The shared panes together, under a fake adapter and theme in both runtimes.
-import { mount, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { mount } from "./test-host.tsx";
 
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 import { ANNOTATION_LIST_PROFILE_SOURCE } from "#core/render/test-profiles.ts";

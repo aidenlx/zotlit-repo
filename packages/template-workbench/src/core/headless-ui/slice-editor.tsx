@@ -14,13 +14,13 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { completionFields } from "./completion-fields.ts";
 import { useWorkbenchModel } from "./editor.tsx";
 import { HiddenName, useOptionalHost } from "./host.tsx";
 import type { WorkbenchInsertTarget } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { partialSuggestions } from "./partial-suggestions.ts";
 import {
   sourceDiagnostics,
@@ -148,7 +148,6 @@ export function SliceEditor({
   const revealDiagnosis = useRevealSourceDiagnosis();
   const readOnly = controller.readOnly;
   const engine = controller.templateLanguage;
-  const m = useWorkbenchMessages();
   const part = useParts("sliceEditor");
   const adapter = useOptionalHost();
   const editorExtension = useEditorExtension();
@@ -190,7 +189,6 @@ export function SliceEditor({
     start,
     editorExtension,
     syntax,
-    m,
     visible: onScreen,
   });
   report.current = {
@@ -202,14 +200,13 @@ export function SliceEditor({
     start,
     editorExtension,
     syntax,
-    m,
     visible: onScreen,
   };
 
   useEffect(() => {
     problemGutter.current = sourceProblemGutter(
       (id) => report.current.revealDiagnosis?.(id),
-      () => report.current.m.workbench_problem_show(),
+      () => m.workbench_problem_show(),
     );
     const read: SuggestionSource = (position) => {
       const sliceRange = controller.sliceRange(slice);
@@ -230,7 +227,7 @@ export function SliceEditor({
       const expression = region?.expression ?? false;
       const supplied = report.current.suggest?.(masterPosition);
       return {
-        ...partialSuggestions(report.current.m, controller.dependencies, {
+        ...partialSuggestions(controller.dependencies, {
           partials: report.current.adapter?.partials,
           start: report.current.start,
         }),
@@ -248,10 +245,9 @@ export function SliceEditor({
                   to: region!.to - sliceRange.from,
                 }
               : { from: 0, to: sliceShownText(controller, slice).length },
-        fields: completionFields(report.current.m, root),
-        tagDescription: (name) => tagDescription(report.current.m, name),
-        filterDescription: (name) =>
-          report.current.m.workbench_filter_description({ name }),
+        fields: completionFields(root),
+        tagDescription: (name) => tagDescription(name),
+        filterDescription: (name) => m.workbench_filter_description({ name }),
       };
     };
     const view = new EditorView({
@@ -378,7 +374,6 @@ export function SliceEditor({
       slice,
       source: view.state.doc.toString(),
       diagnoses,
-      messages: m,
       json: language === "json-e",
     });
     view.dispatch(setDiagnostics(view.state, diagnostics));
@@ -397,7 +392,6 @@ export function SliceEditor({
     slice,
     revision,
     diagnoses,
-    m,
     language,
     invalid,
     describedBy,

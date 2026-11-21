@@ -2,7 +2,6 @@ import type { DisplayNode } from "#core/data-tree/index.ts";
 
 import { COMMON_FIELDS } from "./completion-fields.ts";
 // Common field labels and values shared by the Explorer and its hosts.
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import type { TemplateRoot } from "./model.ts";
 
 import { fieldMatches, outputText } from "#core/data-tree/index.ts";
@@ -19,7 +18,6 @@ export interface FieldRow {
  * empty.
  */
 export function commonRows(
-  m: WorkbenchMessages,
   root: TemplateRoot,
   nodes: readonly DisplayNode[],
 ): FieldRow[] {
@@ -27,7 +25,7 @@ export function commonRows(
   return COMMON_FIELDS[root].flatMap((field) => {
     const node = byKey.get(field.key);
     return node
-      ? [{ node, label: m[field.label](), value: fieldValueText(node) }]
+      ? [{ node, label: field.label(), value: fieldValueText(node) }]
       : [];
   });
 }

@@ -6,7 +6,6 @@ import type {
   RenderDiagnostic,
   TemplateRenderResult,
 } from "#core/render/result.ts";
-import { render as renderUI } from "@testing-library/react";
 import { Effect, Layer, Queue } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
@@ -27,7 +26,6 @@ import type {
   WorkbenchPreferenceScope,
   WorkbenchSuggesterRequest,
 } from "./host.tsx";
-import { WorkbenchMessagesProvider } from "./messages.tsx";
 import { patch } from "./model.ts";
 import type {
   WorkbenchItemData,
@@ -35,7 +33,6 @@ import type {
   WorkbenchViewState,
 } from "./model.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
-import { m } from "./test-messages.ts";
 import { WorkbenchThemeProvider } from "./theme.tsx";
 import type { WorkbenchClassMap, WorkbenchTheme } from "./theme.tsx";
 
@@ -138,8 +135,6 @@ export function fakeHost(): FakeHost {
     );
   }
   const host: FakeHost = {
-    messages: m,
-    getLocale: () => "en",
     calls: {
       menus: [],
       suggesters: [],
@@ -360,21 +355,6 @@ export function reportFailure(
 /** The state the preview reads. */
 export function schedulerState({ registry, model }: Driven) {
   return registry.get(model.scheduler.state);
-}
-
-/** Supply messages for component tests that exercise the optional-host surface. */
-export function renderWithMessages(
-  ui: ReactNode,
-  options?: Parameters<typeof renderUI>[1],
-): ReturnType<typeof renderUI> {
-  return renderUI(ui, {
-    wrapper: ({ children }) => (
-      <WorkbenchMessagesProvider messages={m}>
-        {children}
-      </WorkbenchMessagesProvider>
-    ),
-    ...options,
-  });
 }
 
 /**

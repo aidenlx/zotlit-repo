@@ -9,9 +9,7 @@ import type {
 import type { RenderDiagnostic } from "#core/render/result.ts";
 
 import type { RenderReport } from "@zotlit/notes/core/template/render-report.ts";
-
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { entryPosition } from "#core/document/controller.ts";
 
@@ -22,10 +20,7 @@ export interface ProblemText {
   readonly recovery?: string;
 }
 
-export function problemText(
-  m: WorkbenchMessages,
-  problem: WorkbenchProblem,
-): ProblemText {
+export function problemText(problem: WorkbenchProblem): ProblemText {
   switch (problem.code) {
     case "invalid-document":
       return {
@@ -85,10 +80,7 @@ export function problemText(
 }
 
 /** The one line a render diagnostic reads as. */
-export function diagnosticText(
-  m: WorkbenchMessages,
-  diagnostic: RenderDiagnostic,
-): string {
+export function diagnosticText(diagnostic: RenderDiagnostic): string {
   const params = diagnostic.params ?? {};
   switch (diagnostic.code) {
     case "contract-version-mismatch":
@@ -150,29 +142,25 @@ export function diagnosticText(
  * Where a problem is repaired, named for the reader. Every other slice is one
  * Managed Frontmatter row, which reads as the entry it is.
  */
-const PROBLEM_WHERE: Partial<Record<WorkbenchSliceId, WorkbenchMessageLabel>> =
-  {
-    advanced: "workbench_problems_where_advanced",
-    note: "workbench_problems_where_note",
-    filename: "workbench_problems_where_filename",
-    details: "workbench_problems_where_details",
-    annotation: "workbench_annotation_label",
-  };
+const PROBLEM_WHERE: Partial<Record<WorkbenchSliceId, () => string>> = {
+  advanced: m.workbench_problems_where_advanced,
+  note: m.workbench_problems_where_note,
+  filename: m.workbench_problems_where_filename,
+  details: m.workbench_problems_where_details,
+  annotation: m.workbench_annotation_label,
+};
 
 /** What the Problems area's button reads: the pane `problem` is repaired in. */
-export function problemWhere(
-  m: WorkbenchMessages,
-  problem: WorkbenchProblem,
-): string {
+export function problemWhere(problem: WorkbenchProblem): string {
   if (problem.code === "missing-annotation-section") {
     return m.workbench_annotation_label();
   }
   if (entryPosition(problem.slice) !== null) {
     return m.workbench_problems_where_entry();
   }
-  return m[
-    PROBLEM_WHERE[problem.slice] ?? "workbench_problems_where_advanced"
-  ]();
+  return (
+    PROBLEM_WHERE[problem.slice] ?? m.workbench_problems_where_advanced
+  )();
 }
 
 /**
@@ -363,10 +351,7 @@ export interface DiagnosisExplanation {
 }
 
 /** The object a document problem is about, named as its own pane is. */
-function problemObject(
-  m: WorkbenchMessages,
-  problem: WorkbenchProblem,
-): string {
+function problemObject(problem: WorkbenchProblem): string {
   if (problem.code === "missing-annotation-section") {
     return m.workbench_annotation_label();
   }
@@ -387,10 +372,7 @@ function problemObject(
 }
 
 /** The object a render diagnostic is about, named by what the render read. */
-function diagnosticObject(
-  m: WorkbenchMessages,
-  diagnostic: RenderDiagnostic,
-): string {
+function diagnosticObject(diagnostic: RenderDiagnostic): string {
   const params = diagnostic.params ?? {};
   switch (diagnostic.code) {
     case "missing-partial":
@@ -440,10 +422,7 @@ function diagnosticObject(
 }
 
 /** What to check or change for a render diagnostic; never a repair the app performs. */
-function diagnosticSuggestion(
-  m: WorkbenchMessages,
-  diagnostic: RenderDiagnostic,
-): string {
+function diagnosticSuggestion(diagnostic: RenderDiagnostic): string {
   switch (diagnostic.code) {
     case "liquid-syntax-error":
       return diagnostic.params?.tag === "for"
@@ -474,13 +453,12 @@ function diagnosticSuggestion(
 
 /** The whole explanation one diagnosis reads as. */
 export function diagnosisExplanation(
-  m: WorkbenchMessages,
   diagnosis: WorkbenchDiagnosis,
 ): DiagnosisExplanation {
   if (diagnosis.kind === "document") {
-    const text = problemText(m, diagnosis.problem);
+    const text = problemText(diagnosis.problem);
     return {
-      object: problemObject(m, diagnosis.problem),
+      object: problemObject(diagnosis.problem),
       condition: text.message,
       suggestion:
         text.recovery ?? m.workbench_diagnostic_render_error_suggestion(),
@@ -488,7 +466,7 @@ export function diagnosisExplanation(
   }
   const { diagnostic } = diagnosis;
   return {
-    object: diagnosticObject(m, diagnostic),
+    object: diagnosticObject(diagnostic),
     // An unclassified failure still has evidence. Keep its first message line
     // visible; stack traces and source excerpts stay in the complete report.
     condition:
@@ -500,8 +478,8 @@ export function diagnosisExplanation(
           )
             ?.trim()
             .split("\n", 1)[0]
-        : undefined) || diagnosticText(m, diagnostic),
-    suggestion: diagnosticSuggestion(m, diagnostic),
+        : undefined) || diagnosticText(diagnostic),
+    suggestion: diagnosticSuggestion(diagnostic),
     ...(diagnostic.message === undefined
       ? {}
       : { evidence: diagnostic.message }),
@@ -509,11 +487,8 @@ export function diagnosisExplanation(
 }
 
 /** The pane a diagnosis is repaired in, which its one navigation control opens. */
-export function diagnosisWhere(
-  m: WorkbenchMessages,
-  diagnosis: WorkbenchDiagnosis,
-): string {
-  if (diagnosis.kind === "document") return problemWhere(m, diagnosis.problem);
+export function diagnosisWhere(diagnosis: WorkbenchDiagnosis): string {
+  if (diagnosis.kind === "document") return problemWhere(diagnosis.problem);
   const { part, position, callSite, sourceSite } = diagnosis.diagnostic;
   if (sourceSite) return m.workbench_problems_highlight_error();
   // A verified call is where the reader repairs it, whichever template the
@@ -533,7 +508,6 @@ export function diagnosisWhere(
  * from the navigation control. Empty when no occurrence named a template.
  */
 export function diagnosisEngineSources(
-  m: WorkbenchMessages,
   diagnosis: WorkbenchDiagnosis,
 ): string[] {
   if (diagnosis.kind === "document") return [];
@@ -556,11 +530,8 @@ export function diagnosisEngineSources(
  * How one problem reads in the selector: the object it is about, which is what
  * the explanation itself leads with.
  */
-export function diagnosisLabel(
-  m: WorkbenchMessages,
-  diagnosis: WorkbenchDiagnosis,
-): string {
-  return diagnosisExplanation(m, diagnosis).object;
+export function diagnosisLabel(diagnosis: WorkbenchDiagnosis): string {
+  return diagnosisExplanation(diagnosis).object;
 }
 
 /**

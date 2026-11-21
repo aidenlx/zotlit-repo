@@ -9,7 +9,6 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { sampleTypeLabel, useRecentItems } from "./item-choice.ts";
@@ -237,7 +236,7 @@ export function AnnotationSelectionList({
                 onSelect={() => onSelect(example.id)}
               >
                 <span className={selectionOptionLabel}>
-                  {annotationOption(workbenchM, example).label}
+                  {annotationOption(example).label}
                 </span>
               </SelectionOption>
             ))}

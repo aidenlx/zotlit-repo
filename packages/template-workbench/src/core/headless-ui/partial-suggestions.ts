@@ -2,7 +2,8 @@
 
 import type { ResolveStart, SuggestionConfig } from "#core/language/index.ts";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { WorkbenchHost } from "./host.tsx";
 
 /**
@@ -15,7 +16,6 @@ import type { WorkbenchHost } from "./host.tsx";
  * @param host.start Starts the create flow as the pane's command.
  */
 export function partialSuggestions(
-  m: WorkbenchMessages,
   dependencies: readonly string[],
   {
     partials,

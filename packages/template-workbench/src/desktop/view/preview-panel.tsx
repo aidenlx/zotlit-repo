@@ -12,7 +12,6 @@ import type { ComponentProps } from "react";
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 
 import type { TemplateWorkbenchView } from "./view.tsx";
 
@@ -184,10 +183,8 @@ export function PreviewPanel({
           ? m.workbench_annotation_example()
           : m.workbench_result_heading();
   const caption = [
-    ...(mode === "partial"
-      ? [partialContextLabel(workbenchM, partialContext)]
-      : []),
-    ...(citationSet ? [citationVariantLabel(workbenchM, variant)] : []),
+    ...(mode === "partial" ? [partialContextLabel(partialContext)] : []),
+    ...(citationSet ? [citationVariantLabel(variant)] : []),
     ...(mode === "note"
       ? [
           preview.showManaged

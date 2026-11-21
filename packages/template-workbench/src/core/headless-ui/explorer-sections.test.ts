@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import {
   explorerSections,
   fieldLabel,
@@ -7,14 +9,12 @@ import {
   visibleSectionIds,
 } from "./explorer-sections.ts";
 import type { TemplateRoot } from "./model.ts";
-import { m } from "./test-messages.ts";
 
 import { buildDisplayTree } from "#core/data-tree/index.ts";
 
 const nodesOf = (data: Record<string, unknown>) =>
   buildDisplayTree(data, { expanded: new Set() });
 const reader = (root: TemplateRoot, locale = "en") => ({
-  m,
   root,
   locale,
 });

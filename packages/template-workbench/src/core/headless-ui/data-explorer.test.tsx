@@ -4,10 +4,13 @@ import {
   fireEvent,
   screen,
   within,
+  render,
 } from "@testing-library/react";
 import { Effect } from "effect";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { DataExplorer as ControlledDataExplorer } from "./data-explorer.tsx";
 import type { DataExplorerProps } from "./data-explorer.tsx";
@@ -38,8 +41,7 @@ function DataExplorer(
     />
   );
 }
-import { mount, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { mount } from "./test-host.tsx";
 
 afterEach(cleanup);
 

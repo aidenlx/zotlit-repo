@@ -1,5 +1,6 @@
 import type { DisplayNode } from "#core/data-tree/index.ts";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 // Which fields a root lists, in which section and order, and the name a
 // reader sees for each. Common fields lead; every other field has one home.
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
@@ -8,8 +9,6 @@ import type { FieldLabelLocale } from "@zotlit/zotero-types/field-labels";
 import { COMMON_FIELDS } from "./completion-fields.ts";
 import { commonRows, fieldValueText } from "./explorer-fields.ts";
 import type { FieldRow } from "./explorer-fields.ts";
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
 import type { TemplateRoot } from "./model.ts";
 
 import { buildDisplayTree, listPropertiesOf } from "#core/data-tree/index.ts";
@@ -37,17 +36,17 @@ interface SectionSpec {
   readonly keys: readonly string[];
 }
 
-const SECTION_LABELS: Record<ExplorerSectionId, WorkbenchMessageLabel> = {
-  common: "workbench_explorer_section_common",
-  reference: "workbench_explorer_section_reference",
-  identifiers: "workbench_explorer_section_identifiers",
-  content: "workbench_explorer_section_content",
-  organization: "workbench_explorer_section_organization",
-  links: "workbench_explorer_section_links",
-  record: "workbench_explorer_section_record",
-  annotation: "workbench_explorer_section_annotation",
-  source: "workbench_explorer_section_source",
-  citation: "workbench_explorer_section_citation",
+const SECTION_LABELS: Record<ExplorerSectionId, () => string> = {
+  common: m.workbench_explorer_section_common,
+  reference: m.workbench_explorer_section_reference,
+  identifiers: m.workbench_explorer_section_identifiers,
+  content: m.workbench_explorer_section_content,
+  organization: m.workbench_explorer_section_organization,
+  links: m.workbench_explorer_section_links,
+  record: m.workbench_explorer_section_record,
+  annotation: m.workbench_explorer_section_annotation,
+  source: m.workbench_explorer_section_source,
+  citation: m.workbench_explorer_section_citation,
 };
 
 /** Item fields follow Zotero's Info pane order inside each section. */
@@ -153,36 +152,36 @@ const HIDDEN: Record<TemplateRoot, ReadonlySet<string>> = {
 };
 
 /** ZotLit's own fields on an item root, which Zotero has no label for. */
-const ITEM_LABELS: Readonly<Record<string, WorkbenchMessageLabel>> = {
-  authorsShort: "workbench_field_authors_short",
-  creators: "workbench_field_creators",
-  primaryCreatorType: "workbench_field_primary_creator_type",
-  citekey: "workbench_field_citekey",
-  relatedItems: "workbench_field_related_items",
-  notes: "workbench_field_notes",
-  weblink: "workbench_field_weblink",
-  librarylink: "workbench_field_librarylink",
-  key: "workbench_field_key",
-  indexedKey: "workbench_field_indexed_key",
-  libraryID: "workbench_field_library_id",
-  groupID: "workbench_field_group_id",
-  notePath: "workbench_field_note_path",
-  noteLink: "workbench_field_note_link",
+const ITEM_LABELS: Readonly<Record<string, () => string>> = {
+  authorsShort: m.workbench_field_authors_short,
+  creators: m.workbench_field_creators,
+  primaryCreatorType: m.workbench_field_primary_creator_type,
+  citekey: m.workbench_field_citekey,
+  relatedItems: m.workbench_field_related_items,
+  notes: m.workbench_field_notes,
+  weblink: m.workbench_field_weblink,
+  librarylink: m.workbench_field_librarylink,
+  key: m.workbench_field_key,
+  indexedKey: m.workbench_field_indexed_key,
+  libraryID: m.workbench_field_library_id,
+  groupID: m.workbench_field_group_id,
+  notePath: m.workbench_field_note_path,
+  noteLink: m.workbench_field_note_link,
 };
 
-const ANNOTATION_LABELS: Readonly<Record<string, WorkbenchMessageLabel>> = {
-  type: "workbench_field_annotation_type",
-  commentHtml: "workbench_field_comment_html",
-  colorHex: "workbench_field_color_hex",
-  page: "workbench_field_page_number",
-  parentAttachment: "workbench_field_parent_attachment",
-  fileLink: "workbench_field_file_link",
-  citation: "workbench_field_citation",
-  authorName: "workbench_field_author_name",
-  isExternal: "workbench_field_is_external",
-  key: "workbench_field_key",
-  indexedKey: "workbench_field_indexed_key",
-  libraryID: "workbench_field_library_id",
+const ANNOTATION_LABELS: Readonly<Record<string, () => string>> = {
+  type: m.workbench_field_annotation_type,
+  commentHtml: m.workbench_field_comment_html,
+  colorHex: m.workbench_field_color_hex,
+  page: m.workbench_field_page_number,
+  parentAttachment: m.workbench_field_parent_attachment,
+  fileLink: m.workbench_field_file_link,
+  citation: m.workbench_field_citation,
+  authorName: m.workbench_field_author_name,
+  isExternal: m.workbench_field_is_external,
+  key: m.workbench_field_key,
+  indexedKey: m.workbench_field_indexed_key,
+  libraryID: m.workbench_field_library_id,
 };
 
 /** `zt` names that differ from the Zotero field they carry. */
@@ -208,7 +207,6 @@ export function sentenceCase(label: string): string {
 
 /** The reader a label or section is resolved for. */
 export interface ExplorerReader {
-  readonly m: WorkbenchMessages;
   readonly root: TemplateRoot;
   readonly locale: string;
 }
@@ -220,12 +218,12 @@ export interface ExplorerReader {
  */
 export function fieldLabel(
   key: string,
-  { m, root, locale }: ExplorerReader,
+  { root, locale }: ExplorerReader,
 ): string {
   const common = COMMON_FIELDS[root].find((field) => field.key === key);
-  if (common) return m[common.label]();
+  if (common) return common.label();
   const own = (root === "annotation" ? ANNOTATION_LABELS : ITEM_LABELS)[key];
-  if (own) return m[own]();
+  if (own) return own();
   const schema = schemaLocale(locale);
   const zotero = FIELD_LABELS[schema][ZOTERO_FIELD[key] ?? key];
   if (zotero === undefined) return key;
@@ -284,7 +282,7 @@ export function explorerSections(
   nodes: readonly DisplayNode[],
   reader: ExplorerReader,
 ): ExplorerSection[] {
-  const { m, root } = reader;
+  const { root } = reader;
   const hidden = HIDDEN[root];
   const byKey = new Map(
     nodes.filter((node) => !hidden.has(node.key)).map((n) => [n.key, n]),
@@ -294,7 +292,7 @@ export function explorerSections(
     label: fieldLabel(node.key, reader),
     value: fieldValueText(node),
   });
-  const common = commonRows(m, root, [...byKey.values()]);
+  const common = commonRows(root, [...byKey.values()]);
   const placed = new Set(common.map(({ node }) => node.key));
   const specs = SECTIONS[root];
   const rowsOf = new Map(specs.map((spec) => [spec.id, [] as FieldRow[]]));
@@ -309,12 +307,12 @@ export function explorerSections(
   for (const node of byKey.values())
     if (!placed.has(node.key)) first.push(row(node));
   const sections: ExplorerSection[] = [
-    { id: "common", label: m[SECTION_LABELS.common](), rows: common },
+    { id: "common", label: SECTION_LABELS.common(), rows: common },
   ];
   for (const spec of specs)
     sections.push({
       id: spec.id,
-      label: m[SECTION_LABELS[spec.id]](),
+      label: SECTION_LABELS[spec.id](),
       rows: rowsOf.get(spec.id)!,
     });
   return sections.filter((section) => section.rows.length > 0);

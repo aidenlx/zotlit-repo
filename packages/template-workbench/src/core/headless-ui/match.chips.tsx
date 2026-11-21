@@ -1,11 +1,11 @@
 import { useRef } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TagsInput, useTagsInput } from "@zotlit/ui";
 
 import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import { useInputSuggestions } from "./match.input.tsx";
 // Wrapping list values retain free text and optional host suggestions.
-import { useWorkbenchMessages } from "./messages.tsx";
 import { useIcon, useParts } from "./theme.tsx";
 export interface ChipInputProps {
   values: readonly string[];
@@ -25,7 +25,6 @@ export function ChipInput({
   suggestions,
   hint,
 }: ChipInputProps) {
-  const m = useWorkbenchMessages();
   const part = useParts("match");
   const host = useWorkbenchHost();
   const icon = useIcon();
@@ -75,7 +74,6 @@ function ChipField({
   suggestions,
   hint,
 }: Pick<ChipInputProps, "placeholder" | "suggestions" | "hint">) {
-  const m = useWorkbenchMessages();
   const part = useParts("match");
   const { value: values, add } = useTagsInput();
   const inputRef = useRef<HTMLInputElement>(null);

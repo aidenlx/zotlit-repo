@@ -89,7 +89,6 @@ export default defineConfig({
     setupFiles: [obsidianSetupFile],
     globalSetup: [
       ...testDefaults.globalSetup,
-      "./scripts/message-types-setup.ts",
       fileURLToPath(
         import.meta.resolve("@zotlit/plugin-messages/vitest-setup"),
       ),

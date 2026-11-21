@@ -132,8 +132,7 @@ every component marks its parts with `data-part` and their state with
 by component and part (`WorkbenchParts` lists them), plus an icon renderer.
 Call sites pass no classes. `WorkbenchHostProvider` takes the host adapter —
 `menu`, `dialog`, `confirm`, `suggester`, `tooltip`, `notice`,
-`render`, `matchData`, `insertTarget`, `persistence`, `messages`, and
-`getLocale` — so
+`render`, `matchData`, `insertTarget`, and `persistence` — so
 Obsidian shows its own `Menu`, `Modal`, `SuggestModal`, and `Notice`. `WorkbenchEditorProvider` carries one editor instance and
 puts its atom registry in context (`@effect/atom-react`); `useWorkbenchModel`
 and `useWorkbenchController` read it. Components read the model's atoms and
@@ -235,17 +234,12 @@ own render failure, never a scan, so the box's short Missing marker appears
 only for a name a render reported, and selects that problem in the editor's
 Problems area.
 
-The host supplies `messages` and `getLocale` through `WorkbenchHostProvider`.
-Obsidian passes its Language Pack facade. Components read
-`useWorkbenchMessages()`, and pure text helpers take the message functions as
-an argument. A host without overlays can use `WorkbenchMessagesProvider`
-directly.
-
-`pnpm generate:message-types` reads the root `workbench_*` catalog through the
-existing message compiler and emits the `WorkbenchMessages` type contract.
-The English pack it emits is used only by the core's tests. Turbo runs generation
-before `test`, `typecheck`, and `typecheck:test` here and in each package whose
-type check reads the contract; direct package-tool runs need those generated files first. The tree stays inside the
+The tree reads its text from the plugin's Language Pack: components and pure
+text helpers call the `workbench_*` messages of
+`@zotlit/plugin-messages/messages.ts`, and a locale-dependent label reads
+`runtime.getLocale()` from `@zotlit/plugin-messages/runtime.ts`, as every
+feature package does. Turbo generates the facade before `test`, `typecheck`, and
+`typecheck:test`. The tree stays inside the
 `preact/compat` surface, and its suite under `src/core/headless-ui/` runs in the `ui` Vitest
 project with React aliased to `preact/compat` and Testing Library to its Preact
 build, as Obsidian runs it.

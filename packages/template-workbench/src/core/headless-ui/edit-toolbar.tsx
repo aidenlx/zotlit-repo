@@ -5,9 +5,10 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { ReactNode } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
 import { useContainerName, useTooltip } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { setAdvanced as advancedTransition } from "./model.ts";
 import { useIcon, useParts } from "./theme.tsx";
 
@@ -24,7 +25,6 @@ export function EditToolbar({
   layout?: "grouped" | "linear";
   onModeChange?: (advanced: boolean) => void;
 }) {
-  const m = useWorkbenchMessages();
   const editor = useOptionalEditor();
   const model = useWorkbenchModel();
   const current = useAtomValue(model.controller);

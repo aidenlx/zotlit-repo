@@ -17,7 +17,6 @@ import {
 } from "./panel-layout.ts";
 import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout.ts";
 import { panelSizeMenus } from "./panel-menu.ts";
-import { m } from "./test-messages.ts";
 
 /** The panels at their initial sizes, with the Preview shown as `preview` says. */
 const shown = (preview: boolean): WorkbenchPanels => ({
@@ -398,7 +397,7 @@ describe.each([
     it("is drawn in the view and offers its menu, whose entries take the same path", () => {
       expect(panelHandles(panels, size)).toContain(handle);
       expect(sizing.drawn(panels, size)).toBe(drawn);
-      const sizeMenu = panelSizeMenus(m, panels, bounds).find(
+      const sizeMenu = panelSizeMenus(panels, bounds).find(
         (each) => each.handle === handle,
       );
       expect(sizeMenu?.axis).toBe(axis);

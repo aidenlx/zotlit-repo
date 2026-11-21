@@ -2,15 +2,13 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The suite reads the plugin's generated Message facade, and the plugin
-    // source it reaches reads the Workbench message contract, so the type
-    // check needs both first.
+    // The suite reads the plugin's generated Message facade, so the type
+    // check needs it first.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/pdf-reader#generate"
       ]
     },

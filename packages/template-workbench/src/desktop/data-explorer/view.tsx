@@ -32,6 +32,7 @@ import type {
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { MENU_SECTION } from "@zotlit/plugin-kernel/menu-section.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { indexedKeyForClipboard } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
 import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
@@ -219,28 +220,23 @@ export class TemplateDataExplorerView extends ItemView {
   }
   /** Judged on the sections the reader can see, so the action's label matches the pane. */
   #allSectionsCollapsed(): boolean {
-    const host = this.#host;
-    if (!host) return false;
+    if (!this.#host) return false;
     return allSectionsCollapsed(
-      this.#shownSections(host),
+      this.#shownSections(),
       this.#state().collapsedSections,
     );
   }
   /** The sections the reader can see. */
-  #shownSections(
-    host: ReturnType<typeof createTemplateWorkbenchHost>,
-  ): readonly string[] {
+  #shownSections(): readonly string[] {
     const { root, data } = this.#state();
     return visibleSectionIds(data, {
-      m: host.messages,
       root,
-      locale: host.getLocale(),
+      locale: runtime.getLocale(),
     });
   }
   /** Closes every section, or opens every section once all are closed. */
   #toggleSections(): void {
-    const host = this.#host;
-    if (host) this.#update(toggleSections(this.#shownSections(host)));
+    if (this.#host) this.#update(toggleSections(this.#shownSections()));
   }
   override async setState(
     state: unknown,

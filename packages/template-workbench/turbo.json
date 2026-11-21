@@ -2,40 +2,23 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The Workbench message contract the headless UI reads, and the English
-    // fixture of its tests.
-    "generate:message-types": {
-      "inputs": [
-        "scripts/generate-message-types.ts",
-        "$TURBO_ROOT$/packages/obsidian-i18n/src/**",
-        "$TURBO_ROOT$/packages/scripts/lib/package-roots.ts",
-        "$TURBO_ROOT$/project.inlang/settings.json",
-        "$TURBO_ROOT$/messages/**"
-      ],
-      "outputs": ["src/core/headless-ui/generated/**"],
-      "outputLogs": "errors-only"
-    },
-    // The source reads the plugin's Message facade and the Workbench message
-    // contract, both generated.
+    // The source reads the plugin's generated Message facade.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     }
   }

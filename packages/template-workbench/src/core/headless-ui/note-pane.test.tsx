@@ -1,12 +1,19 @@
 import { EditorView } from "@codemirror/view";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  render,
+} from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { WorkbenchHostProvider } from "./host.tsx";
 import { NotePane } from "./note-pane.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
-import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { fakeHost } from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { ANNOTATION_LIST_PROFILE_SOURCE } from "#core/render/test-profiles.ts";

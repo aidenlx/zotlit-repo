@@ -6,7 +6,8 @@
 // at the view's right edge while the reader has it open, at every width.
 // Pinned, it docks as a column at the leading edge where the view has room.
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { patchAt } from "./patch.ts";
 
 /**
@@ -242,9 +243,9 @@ export interface SideColumn {
   /** Whether `placement` puts the column beside the editor. */
   readonly placed: (placement: PanelPlacement) => boolean;
   /** The panel's name, as a size status reads it. */
-  readonly label: (m: WorkbenchMessages) => string;
+  readonly label: () => string;
   /** The name of the handle and the size menu that size the column. */
-  readonly resizeLabel: (m: WorkbenchMessages) => string;
+  readonly resizeLabel: () => string;
 }
 
 /** Each side column: the docked Fields Panel and the Preview. */
@@ -255,8 +256,8 @@ export const PANEL_SIDES: Readonly<Record<PanelSide, SideColumn>> = {
     edge: "leading",
     limit: (panels, size) => fieldsLimit(panels, size),
     placed: (placement) => placement.fields === "docked",
-    label: (m) => m.workbench_view_fields(),
-    resizeLabel: (m) => m.workbench_fields_resize(),
+    label: m.workbench_view_fields,
+    resizeLabel: m.workbench_fields_resize,
   },
   preview: {
     width: PANEL_WIDTH,
@@ -264,8 +265,8 @@ export const PANEL_SIDES: Readonly<Record<PanelSide, SideColumn>> = {
     edge: "trailing",
     limit: (panels, size) => previewLimit(panels, size),
     placed: (placement) => placement.preview === "side",
-    label: (m) => m.workbench_view_preview(),
-    resizeLabel: (m) => m.workbench_preview_resize(),
+    label: m.workbench_view_preview,
+    resizeLabel: m.workbench_preview_resize,
   },
 };
 

@@ -6,7 +6,6 @@
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/item-query#generate:schema"
       ],
       "env": [
@@ -55,22 +54,19 @@
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "typecheck:node": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "test": {

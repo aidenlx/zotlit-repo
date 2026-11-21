@@ -83,13 +83,6 @@ function setup(leafWindow: Window = window) {
 }
 
 describe("Template Workbench host", () => {
-  it("names the built-in citation style the same way as native citation settings", () => {
-    using host = setup().host;
-    expect(host.messages.workbench_name_value_no_style()).toBe(
-      m.settings_citation_references_style_default(),
-    );
-  });
-
   it("opens an Obsidian menu at its control and executes the selected action", () => {
     const { host } = setup();
     const anchor = document.createElement("button");

@@ -13,7 +13,7 @@ The Workbench core, host-free, all in `core/`:
 - `filter-fields/` — the conditions a filter offers over a Query Dataset, which the Profile Match and the Query View's Filter both offer.
 - `document/` — the Profile document: the document controller and its slices, the manifest patches, the note regions and the document atoms.
 - `render/` — rendering a Profile against an Item Snapshot, and the render diagnostics, failure attribution and reports.
-- `headless-ui/` — the headless Workbench UI: the component tree with no look, the Workbench model and the Render Scheduler, the host adapter contract (`host.tsx`), the theme class map (`theme.tsx`) and the generated message contract (`generated/messages.ts`).
+- `headless-ui/` — the headless Workbench UI: the component tree with no look, the Workbench model and the Render Scheduler, the host adapter contract (`host.tsx`) and the theme class map (`theme.tsx`). Its text comes from the plugin's Message facade (`@zotlit/plugin-messages/messages.ts`).
 - `lint/` — the package's own oxlint plugin (`no-controller-source-slice`), which `oxlint.config.ts` loads.
 
 The Obsidian host and its surfaces:
@@ -23,7 +23,7 @@ The Obsidian host and its surfaces:
 - `view/` — the Template Workbench View, its Preview, its Match data, its opens, and the Customize flow (`desktop/view/customize.ts`).
 - `cli/` — the Template Workbench CLI: commands, the contract envelope, checks, inspection and the guide (`desktop/cli/guide.ts`).
 
-A unit's source imports the units listed before it; a test may also read the headless UI's test host and messages.
+A unit's source imports the units listed before it; a test may also read the headless UI's test host.
 
 ## Layers
 

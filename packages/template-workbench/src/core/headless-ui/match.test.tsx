@@ -1,5 +1,3 @@
-// The Match pane's own undo: Mod+Z in the pane steps the document's history,
-// and a popup the host draws in it keeps the key by stopping it at its edge.
 import { EditorView } from "@codemirror/view";
 import {
   act,
@@ -7,14 +5,18 @@ import {
   fireEvent,
   screen,
   waitFor,
+  render,
 } from "@testing-library/react";
 import { Effect } from "effect";
 import { afterEach, expect, it } from "vitest";
 
+// The Match pane's own undo: Mod+Z in the pane steps the document's history,
+// and a popup the host draws in it keeps the key by stopping it at its edge.
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useWorkbenchController } from "./editor.tsx";
 import { MatchPane } from "./match.tsx";
-import { mount, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { mount } from "./test-host.tsx";
 
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 

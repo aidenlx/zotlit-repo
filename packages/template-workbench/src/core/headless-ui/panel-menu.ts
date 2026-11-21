@@ -4,7 +4,8 @@
 
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { WorkbenchModel } from "./model.ts";
 import {
   canResizePanel,
@@ -44,7 +45,6 @@ const RESIZES: readonly PanelResize[] = ["grow", "shrink", "reset"];
 
 /** The size menus for the handles the view draws for `panels`. */
 export function panelSizeMenus(
-  m: WorkbenchMessages,
   panels: WorkbenchPanels,
   bounds: PanelBounds,
 ): readonly PanelSizeMenu[] {
@@ -65,7 +65,7 @@ export function panelSizeMenus(
     return {
       handle,
       axis,
-      label: PANEL_SIDES[side].resizeLabel(m),
+      label: PANEL_SIDES[side].resizeLabel(),
       items: RESIZES.map((resize) => ({
         handle,
         resize,

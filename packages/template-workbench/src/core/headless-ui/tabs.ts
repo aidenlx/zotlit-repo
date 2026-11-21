@@ -6,8 +6,8 @@ import type {
   WorkbenchProblem,
 } from "#core/document/controller.ts";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 export type WorkbenchTab =
   | "note"
   | "annotation"
@@ -56,80 +56,77 @@ export function tabsFor(kind: WorkbenchDocumentKind): readonly WorkbenchTab[] {
   return KIND_TABS[kind];
 }
 
-const TAB_LABEL: Record<WorkbenchTab, WorkbenchMessageLabel> = {
-  note: "workbench_tab_note",
-  annotation: "workbench_tab_annotation",
-  properties: "workbench_tab_properties",
-  match: "workbench_tab_match",
-  name: "workbench_tab_name_and_folder",
-  profile: "workbench_tab_profile",
-  citation: "workbench_tab_citation",
-  partial: "workbench_tab_partial",
+const TAB_LABEL: Record<WorkbenchTab, () => string> = {
+  note: m.workbench_tab_note,
+  annotation: m.workbench_tab_annotation,
+  properties: m.workbench_tab_properties,
+  match: m.workbench_tab_match,
+  name: m.workbench_tab_name_and_folder,
+  profile: m.workbench_tab_profile,
+  citation: m.workbench_tab_citation,
+  partial: m.workbench_tab_partial,
 };
 
-const TAB_LEDE: Record<WorkbenchTab, WorkbenchMessageLabel> = {
-  note: "workbench_note_lede",
-  annotation: "workbench_annotation_lede",
-  properties: "workbench_properties_lede",
-  match: "workbench_match_conditions_desc",
-  name: "workbench_name_lede",
-  profile: "workbench_profile_lede",
-  citation: "workbench_citation_lede",
-  partial: "workbench_partial_lede",
+const TAB_LEDE: Record<WorkbenchTab, () => string> = {
+  note: m.workbench_note_lede,
+  annotation: m.workbench_annotation_lede,
+  properties: m.workbench_properties_lede,
+  match: m.workbench_match_conditions_desc,
+  name: m.workbench_name_lede,
+  profile: m.workbench_profile_lede,
+  citation: m.workbench_citation_lede,
+  partial: m.workbench_partial_lede,
 };
 
 /** The docs page that shows how to write each tab's part of the template. */
 const TAB_DOCS: Record<
   WorkbenchTab,
-  { readonly label: WorkbenchMessageLabel; readonly path: string }
+  { readonly label: () => string; readonly path: string }
 > = {
   note: {
-    label: "workbench_docs_note",
+    label: m.workbench_docs_note,
     path: "/docs/reference/templates/syntax",
   },
   annotation: {
-    label: "workbench_docs_annotation",
+    label: m.workbench_docs_annotation,
     path: "/docs/how-to/customize-template",
   },
   properties: {
-    label: "workbench_docs_properties",
+    label: m.workbench_docs_properties,
     path: "/docs/how-to/configure-frontmatter-properties",
   },
   match: {
-    label: "workbench_docs_match",
+    label: m.workbench_docs_match,
     path: "/docs/how-to/use-different-templates",
   },
   name: {
-    label: "workbench_docs_name",
+    label: m.workbench_docs_name,
     path: "/docs/how-to/customize-a-template",
   },
   profile: {
-    label: "workbench_docs_profile",
+    label: m.workbench_docs_profile,
     path: "/docs/reference/templates/how-templates-work#profiles",
   },
   citation: {
-    label: "workbench_docs_citation",
+    label: m.workbench_docs_citation,
     path: "/docs/how-to/customize-a-template#citation-text",
   },
   partial: {
-    label: "workbench_docs_partial",
+    label: m.workbench_docs_partial,
     path: "/docs/how-to/customize-a-template#share-a-partial",
   },
 };
 
 /** The guide link for `tab`: its text and its path under the docs site. */
-export function tabDocs(
-  m: WorkbenchMessages,
-  tab: WorkbenchTab,
-): { label: string; path: string } {
+export function tabDocs(tab: WorkbenchTab): { label: string; path: string } {
   const { label, path } = TAB_DOCS[tab];
-  return { label: m[label](), path };
+  return { label: label(), path };
 }
 
-export function tabLabel(m: WorkbenchMessages, tab: WorkbenchTab): string {
-  return m[TAB_LABEL[tab]]();
+export function tabLabel(tab: WorkbenchTab): string {
+  return TAB_LABEL[tab]();
 }
 
-export function tabLede(m: WorkbenchMessages, tab: WorkbenchTab): string {
-  return m[TAB_LEDE[tab]]();
+export function tabLede(tab: WorkbenchTab): string {
+  return TAB_LEDE[tab]();
 }

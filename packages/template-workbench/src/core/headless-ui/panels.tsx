@@ -1,3 +1,7 @@
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
+import { useLayoutEffect, useRef, useState } from "react";
+import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
+
 // The side panels around the editor, headless: the pinned Fields Panel docked
 // at the leading edge, the Preview Panel at the trailing edge or under the
 // editor, each a labelled region the reader sizes with its handle, and the
@@ -5,10 +9,8 @@
 // unpinned. The model says which panels show and where they go; the host's
 // theme draws the parts and names the custom properties that carry each
 // drawn size.
-import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useLayoutEffect, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
-
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
@@ -18,7 +20,6 @@ import {
   FieldsPopoverPanel,
 } from "./fields-panel.tsx";
 import { useContainerName, useOptionalHost } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import {
   drawnMax,
   PANEL_HANDLES,
@@ -362,9 +363,7 @@ function useSizeText(): (
   panels: WorkbenchPanels,
   size: ViewSize | null,
 ) => string {
-  const m = useWorkbenchMessages();
-  const host = useOptionalHost();
-  const percent = new Intl.NumberFormat(host?.getLocale(), {
+  const percent = new Intl.NumberFormat(runtime.getLocale(), {
     style: "percent",
   });
   return (handle, panels, size) => {
@@ -405,7 +404,6 @@ function SizeStatus({
   labels: Record<PanelSide, string>;
 }) {
   const model = useWorkbenchModel();
-  const m = useWorkbenchMessages();
   const part = useParts("panels");
   const sized = useAtomValue(model.sizedFromMenu);
   const panels = useAtomValue(model.panels);

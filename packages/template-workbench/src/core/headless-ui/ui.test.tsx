@@ -1,8 +1,16 @@
 import type { RenderDiagnostic } from "#core/render/result.ts";
-import { act, cleanup, fireEvent, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  render,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { EditToolbar } from "./edit-toolbar.tsx";
 import { setAdvanced, setTab } from "./model.ts";
@@ -11,8 +19,7 @@ import type { WorkbenchDiagnosis } from "./problems.ts";
 import { workbenchDiagnoses } from "./problems.ts";
 import type { RenderTrigger } from "./scheduler-atoms.ts";
 import { TabBar, TabPanel } from "./tab-bar.tsx";
-import { mount, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { mount } from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
@@ -1195,7 +1202,6 @@ describe("the error report", () => {
           trigger: null,
           attempt: 0,
           capture: {
-            messages: m,
             source: controller.source,
             context: () => ({}),
           },

@@ -1,6 +1,7 @@
 // The Refresh setting drives scheduling; the host starts an on-demand render.
 
-import { useWorkbenchMessages } from "./messages.tsx";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import type { PreviewSettings } from "./model.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
 import { useParts } from "./theme.tsx";
@@ -18,7 +19,6 @@ export function PreviewControls({
   disabled?: boolean;
   onRun: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("previewControls");
   return (
     <div {...part("controls")}>

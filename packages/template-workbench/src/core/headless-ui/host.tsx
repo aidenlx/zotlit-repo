@@ -26,8 +26,6 @@ import type {
 
 import { useUniqueId } from "@zotlit/ui";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import { WorkbenchMessagesProvider } from "./messages.tsx";
 import type { WorkbenchIcon } from "./theme.tsx";
 
 import { WorkbenchHostError } from "#core/language/host-effects.ts";
@@ -304,10 +302,7 @@ export interface WorkbenchPartials {
 }
 
 export interface WorkbenchHost {
-  readonly messages: WorkbenchMessages;
   readonly toggle?: ComponentType<WorkbenchToggleProps>;
-  /** The locale currently used by the host's displayed messages. */
-  getLocale(): string;
   menu(request: WorkbenchMenuRequest): void;
   dialog(request: WorkbenchDialogRequest): WorkbenchDialogHandle;
   /**
@@ -383,13 +378,7 @@ export function WorkbenchHostProvider({
   host: WorkbenchHost;
   children?: ReactNode;
 }) {
-  return (
-    <HostContext.Provider value={host}>
-      <WorkbenchMessagesProvider messages={host.messages}>
-        {children}
-      </WorkbenchMessagesProvider>
-    </HostContext.Provider>
-  );
+  return <HostContext.Provider value={host}>{children}</HostContext.Provider>;
 }
 
 export function useWorkbenchHost(): WorkbenchHost {

@@ -14,6 +14,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import {
@@ -24,7 +25,6 @@ import {
   revealSourceOnClick,
 } from "./editor-boxes.ts";
 import { useOptionalHost, useTooltip } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
@@ -61,7 +61,6 @@ export function NotePane({
   partials,
   ...example
 }: NotePaneProps) {
-  const m = useWorkbenchMessages();
   useAtomValue(documentRevision(controller));
   const part = useParts("notePane");
   const managedClass = part("managed-line").className;
@@ -187,7 +186,6 @@ function AnnotationPlaceholder({
   onToggle: (pressed: boolean) => void;
   onOpenAnnotation: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("notePane");
   const icon = useIcon();
   const previewTooltip = useTooltip(m.workbench_annotation_preview());
@@ -233,7 +231,6 @@ function AnnotationPreview({
 > & {
   id: string;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("notePane");
   const Markdown = useOptionalHost()?.markdown;
   return (

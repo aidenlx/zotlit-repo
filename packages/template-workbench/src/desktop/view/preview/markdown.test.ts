@@ -3,17 +3,14 @@ import { Component } from "obsidian";
 import type { App } from "obsidian";
 import { h, render } from "preact";
 import { act } from "preact/test-utils";
-import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { NativeMarkdown } from "./markdown.tsx";
 import type { NativeRenderResult } from "./render.ts";
 
-import { WorkbenchMessagesProvider } from "#core/headless-ui/index.tsx";
 import { emptyRender } from "#core/render/index.ts";
 
 const renderer = vi.hoisted(() => ({ render: vi.fn() }));
@@ -231,17 +228,13 @@ it("shows a placeholder instead of a blank sheet when there is nothing to previe
   expect(renderer.render).not.toHaveBeenCalled();
   await act(async () => {
     render(
-      h(WorkbenchMessagesProvider, {
-        messages: m,
-        // A preact node is the React node under `preact/compat`.
-        children: h(NativeMarkdown, {
-          app,
-          markdown: "",
-          result: null,
-          properties: [
-            { key: "title", value: "A study", missing: false, position: 1 },
-          ],
-        }) as unknown as ReactNode,
+      h(NativeMarkdown, {
+        app,
+        markdown: "",
+        result: null,
+        properties: [
+          { key: "title", value: "A study", missing: false, position: 1 },
+        ],
       }),
       container,
     );
@@ -323,17 +316,14 @@ it("opens the Properties block when the Properties tab asks, and leaves the togg
   const container = document.createElement("div");
   document.body.append(container);
   const sheet = (expandProperties: boolean) =>
-    h(WorkbenchMessagesProvider, {
-      messages: m,
-      children: h(NativeMarkdown, {
-        app,
-        markdown: "",
-        result: null,
-        properties: [
-          { key: "title", value: "A study", missing: false, position: 1 },
-        ],
-        expandProperties,
-      }) as unknown as ReactNode,
+    h(NativeMarkdown, {
+      app,
+      markdown: "",
+      result: null,
+      properties: [
+        { key: "title", value: "A study", missing: false, position: 1 },
+      ],
+      expandProperties,
     });
   const heading = () =>
     container.querySelector<HTMLElement>(".metadata-properties-heading")!;

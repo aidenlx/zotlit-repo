@@ -6,15 +6,17 @@ import {
   fireEvent,
   screen,
   within,
+  render,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { WorkbenchHostProvider } from "./host.tsx";
 import { NameFolderPane } from "./name-folder.tsx";
 import type { NameFolderPaneProps } from "./name-folder.tsx";
 // The form writes only the chosen manifest value, alongside filename edits in one history.
-import { fakeHost, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { fakeHost } from "./test-host.tsx";
 
 import { documentRevision } from "#core/document/atoms.ts";
 import { WorkbenchDocumentController } from "#core/document/index.ts";
@@ -325,7 +327,9 @@ it("shows Default bindings as read-only inherited values", () => {
   expect(screen.queryByRole("switch")).toBeNull();
   expect(screen.getByText("literatures")).toBeDefined();
   expect(screen.getByText(m.workbench_name_default_lede())).toBeDefined();
-  expect(screen.getByText(m.workbench_name_value_no_style())).toBeDefined();
+  expect(
+    screen.getByText(m.settings_citation_references_style_default()),
+  ).toBeDefined();
   expect(
     screen.queryByRole("button", { name: m.workbench_name_use_default() }),
   ).toBeNull();

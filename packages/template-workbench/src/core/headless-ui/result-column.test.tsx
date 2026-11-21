@@ -2,9 +2,11 @@ import type {
   RenderDiagnostic,
   TemplateRenderResult,
 } from "#core/render/result.ts";
-import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen, render } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PreviewSettings } from "./model.ts";
 import { PreviewControls } from "./preview-controls.tsx";
@@ -16,8 +18,7 @@ import {
   ResultColumn,
 } from "./result-column.tsx";
 import type { ResultColumnProps } from "./result-column.tsx";
-import { mount, renderWithMessages as render } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
+import { mount } from "./test-host.tsx";
 
 import { failedRender } from "#core/render/result.ts";
 

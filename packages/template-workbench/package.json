@@ -17,8 +17,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "lint": "oxlint",
     "test": "vitest run",
-    "generate:eta": "lezer-generator src/core/language/eta.grammar -o src/core/language/eta-parser.ts --typeScript",
-    "generate:message-types": "node scripts/generate-message-types.ts"
+    "generate:eta": "lezer-generator src/core/language/eta.grammar -o src/core/language/eta-parser.ts --typeScript"
   },
   "dependencies": {
     "@codemirror/autocomplete": "catalog:",
@@ -72,7 +71,6 @@
     "@types/react-dom": "catalog:",
     "@zotlit/config": "workspace:*",
     "@zotlit/db-testing": "workspace:*",
-    "@zotlit/obsidian-i18n": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "ajv": "catalog:",
     "happy-dom": "catalog:",

@@ -7,12 +7,11 @@ import type { AnnotationExample } from "#core/render/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
 import { isPageNumber } from "@zotlit/db";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import { useWorkbenchHost } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
 import { SampleSuggester } from "./sample-suggester.tsx";
@@ -40,7 +39,6 @@ export function AnnotationSampleBar({
   hideLabel?: boolean;
   compact?: boolean;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("annotation");
   const triggerPart = useParts("sampleSuggester");
   const host = useWorkbenchHost();
@@ -54,14 +52,12 @@ export function AnnotationSampleBar({
   const groups = [
     {
       heading: m.workbench_annotation_from_item(),
-      options: current.map((example) => annotationOption(m, example)),
+      options: current.map((example) => annotationOption(example)),
       empty: m.workbench_annotation_empty(),
     },
     {
       heading: m.workbench_sample_examples(),
-      options: SAMPLE_ANNOTATIONS.map((example) =>
-        annotationOption(m, example),
-      ),
+      options: SAMPLE_ANNOTATIONS.map((example) => annotationOption(example)),
     },
   ];
   return (
@@ -103,7 +99,7 @@ export function AnnotationSampleBar({
           title={m.workbench_choose_annotation()}
           label={
             example
-              ? annotationOption(m, example).label
+              ? annotationOption(example).label
               : m.workbench_choose_annotation()
           }
           selected={example?.id ?? ""}
@@ -115,10 +111,10 @@ export function AnnotationSampleBar({
   );
 }
 
-export function annotationOption(
-  m: WorkbenchMessages,
-  { id, root }: Pick<AnnotationExample, "id" | "root">,
-): SampleOption {
+export function annotationOption({
+  id,
+  root,
+}: Pick<AnnotationExample, "id" | "root">): SampleOption {
   const type = m.workbench_annotation_type({
     type: typeof root.type === "string" ? root.type : "unknown",
   });
@@ -159,7 +155,6 @@ export function AnnotationPane({
   /** The Shared Partials this section's calls name, previewed as an annotation. */
   partials?: PartialPlaceholderHost;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("annotation");
   const problemId = useUniqueId();
   useAtomValue(documentRevision(controller));
@@ -206,7 +201,6 @@ export function AnnotationSectionBar({
   controller: WorkbenchDocumentController;
   onGo: (header: WorkbenchSliceRange) => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("annotation");
   useAtomValue(documentRevision(controller));
   const section = controller.annotationSection;

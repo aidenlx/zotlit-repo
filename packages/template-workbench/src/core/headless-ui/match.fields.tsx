@@ -12,10 +12,11 @@ import type {
 // controls. The Query View's Filter and the Profile Match share them.
 import type { ReactNode } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import { useContainerName, useWorkbenchHost } from "./host.tsx";
+import { useContainerName } from "./host.tsx";
 import { ChipInput } from "./match.chips.tsx";
 import type {
   MatchConditionKind,
@@ -24,7 +25,6 @@ import type {
 } from "./match.draft.ts";
 import { MatchInput } from "./match.input.tsx";
 import { MatchSelect } from "./match.rows.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { useIcon, useParts } from "./theme.tsx";
 import type { WorkbenchIcon } from "./theme.tsx";
 
@@ -47,7 +47,7 @@ export interface FilterValues {
   readonly libraries: readonly { id: string; name: string | null }[];
 }
 
-type Label = (m: WorkbenchMessages) => string;
+type Label = () => string;
 
 type NamedFilterFieldKind = Exclude<
   FilterFieldKind,
@@ -55,88 +55,84 @@ type NamedFilterFieldKind = Exclude<
 >;
 
 const KIND_LABELS: Record<NamedFilterFieldKind, Label> = {
-  color: (m) => m.workbench_filter_field_color(),
-  tags: (m) => m.workbench_filter_field_tag(),
-  comment: (m) => m.workbench_filter_field_comment(),
-  text: (m) => m.workbench_filter_field_text(),
-  page: (m) => m.workbench_filter_field_page(),
-  "date-added": (m) => m.workbench_filter_field_date_added(),
-  "date-modified": (m) => m.workbench_filter_field_date_modified(),
-  "item-title": (m) => m.workbench_filter_field_item_title(),
-  creators: (m) => m.workbench_filter_field_creator(),
-  "first-author": (m) => m.workbench_filter_field_first_author(),
-  year: (m) => m.workbench_filter_field_year(),
-  "item-type": (m) => m.workbench_filter_field_item_type(),
-  collection: (m) => m.workbench_filter_field_collection(),
-  library: (m) => m.workbench_filter_field_library(),
-  "attachment-title": (m) => m.workbench_filter_field_attachment_title(),
-  "file-type": (m) => m.workbench_filter_field_file_type(),
+  color: m.workbench_filter_field_color,
+  tags: m.workbench_filter_field_tag,
+  comment: m.workbench_filter_field_comment,
+  text: m.workbench_filter_field_text,
+  page: m.workbench_filter_field_page,
+  "date-added": m.workbench_filter_field_date_added,
+  "date-modified": m.workbench_filter_field_date_modified,
+  "item-title": m.workbench_filter_field_item_title,
+  creators: m.workbench_filter_field_creator,
+  "first-author": m.workbench_filter_field_first_author,
+  year: m.workbench_filter_field_year,
+  "item-type": m.workbench_filter_field_item_type,
+  collection: m.workbench_filter_field_collection,
+  library: m.workbench_filter_field_library,
+  "attachment-title": m.workbench_filter_field_attachment_title,
+  "file-type": m.workbench_filter_field_file_type,
 };
 
 const OPERATOR_LABELS: Record<FilterOperator, Label> = {
-  contains: (m) => m.workbench_filter_op_contains(),
-  "does-not-contain": (m) => m.workbench_filter_op_does_not_contain(),
-  "contains-match-case": (m) => m.workbench_filter_op_contains_match_case(),
-  "does-not-contain-match-case": (m) =>
-    m.workbench_filter_op_does_not_contain_match_case(),
-  "contains-any": (m) => m.workbench_filter_op_contains_any(),
-  "contains-all": (m) => m.workbench_filter_op_contains_all(),
-  within: (m) => m.workbench_filter_op_within(),
-  "not-within": (m) => m.workbench_filter_op_not_within(),
-  is: (m) => m.workbench_filter_op_is(),
-  "is-not": (m) => m.workbench_filter_op_is_not(),
-  "is-empty": (m) => m.workbench_filter_op_is_empty(),
-  "is-not-empty": (m) => m.workbench_filter_op_is_not_empty(),
-  before: (m) => m.workbench_filter_op_before(),
-  after: (m) => m.workbench_filter_op_after(),
-  "on-or-before": (m) => m.workbench_filter_op_on_or_before(),
-  "on-or-after": (m) => m.workbench_filter_op_on_or_after(),
-  "is-true": (m) => m.workbench_filter_op_is_true(),
-  "is-false": (m) => m.workbench_filter_op_is_false(),
+  contains: m.workbench_filter_op_contains,
+  "does-not-contain": m.workbench_filter_op_does_not_contain,
+  "contains-match-case": m.workbench_filter_op_contains_match_case,
+  "does-not-contain-match-case":
+    m.workbench_filter_op_does_not_contain_match_case,
+  "contains-any": m.workbench_filter_op_contains_any,
+  "contains-all": m.workbench_filter_op_contains_all,
+  within: m.workbench_filter_op_within,
+  "not-within": m.workbench_filter_op_not_within,
+  is: m.workbench_filter_op_is,
+  "is-not": m.workbench_filter_op_is_not,
+  "is-empty": m.workbench_filter_op_is_empty,
+  "is-not-empty": m.workbench_filter_op_is_not_empty,
+  before: m.workbench_filter_op_before,
+  after: m.workbench_filter_op_after,
+  "on-or-before": m.workbench_filter_op_on_or_before,
+  "on-or-after": m.workbench_filter_op_on_or_after,
+  "is-true": m.workbench_filter_op_is_true,
+  "is-false": m.workbench_filter_op_is_false,
 };
 
 /** A Collection is a member, not a text: "is" reads better than "contains". */
 const COLLECTION_LABELS: Partial<Record<FilterOperator, Label>> = {
-  contains: (m) => m.workbench_filter_op_is(),
-  "does-not-contain": (m) => m.workbench_filter_op_is_not(),
-  "contains-any": (m) => m.workbench_filter_op_is_any(),
-  "contains-all": (m) => m.workbench_filter_op_is_all(),
-  "is-empty": (m) => m.workbench_filter_op_is_empty(),
-  "is-not-empty": (m) => m.workbench_filter_op_is_not_empty(),
+  contains: m.workbench_filter_op_is,
+  "does-not-contain": m.workbench_filter_op_is_not,
+  "contains-any": m.workbench_filter_op_is_any,
+  "contains-all": m.workbench_filter_op_is_all,
+  "is-empty": m.workbench_filter_op_is_empty,
+  "is-not-empty": m.workbench_filter_op_is_not_empty,
 };
 
 const COLORS: readonly [string, Label][] = [
-  ["yellow", (m) => m.workbench_filter_color_yellow()],
-  ["red", (m) => m.workbench_filter_color_red()],
-  ["green", (m) => m.workbench_filter_color_green()],
-  ["blue", (m) => m.workbench_filter_color_blue()],
-  ["purple", (m) => m.workbench_filter_color_purple()],
-  ["magenta", (m) => m.workbench_filter_color_magenta()],
-  ["orange", (m) => m.workbench_filter_color_orange()],
-  ["gray", (m) => m.workbench_filter_color_gray()],
-  ["plum", (m) => m.workbench_filter_color_plum()],
+  ["yellow", m.workbench_filter_color_yellow],
+  ["red", m.workbench_filter_color_red],
+  ["green", m.workbench_filter_color_green],
+  ["blue", m.workbench_filter_color_blue],
+  ["purple", m.workbench_filter_color_purple],
+  ["magenta", m.workbench_filter_color_magenta],
+  ["orange", m.workbench_filter_color_orange],
+  ["gray", m.workbench_filter_color_gray],
+  ["plum", m.workbench_filter_color_plum],
 ];
 
 const FILE_TYPES: readonly [string, Label][] = [
-  ["pdf", (m) => m.workbench_filter_file_type_pdf()],
-  ["epub", (m) => m.workbench_filter_file_type_epub()],
-  ["web", (m) => m.workbench_filter_file_type_web()],
-  ["other", (m) => m.workbench_filter_file_type_other()],
+  ["pdf", m.workbench_filter_file_type_pdf],
+  ["epub", m.workbench_filter_file_type_epub],
+  ["web", m.workbench_filter_file_type_web],
+  ["other", m.workbench_filter_file_type_other],
 ];
 
 function choices(
   kind: FilterFieldKind,
-  {
-    values,
-    m,
-    locale,
-  }: { values: FilterValues; m: WorkbenchMessages; locale: string },
+  { values, locale }: { values: FilterValues; locale: string },
 ): readonly [string, string][] {
   switch (kind) {
     case "color":
-      return COLORS.map(([value, label]) => [value, label(m)]);
+      return COLORS.map(([value, label]) => [value, label()]);
     case "file-type":
-      return FILE_TYPES.map(([value, label]) => [value, label(m)]);
+      return FILE_TYPES.map(([value, label]) => [value, label()]);
     case "item-type": {
       const labels = locale === "zh-CN" ? "zh-CN" : "en-US";
       return ITEM_TYPES.map((type) => [type.name, type.labels[labels]]);
@@ -162,7 +158,6 @@ function RowOperator({
   condition: FilterRow;
   onChange: (next: FilterRow) => void;
 }) {
-  const m = useWorkbenchMessages();
   return (
     <MatchSelect
       aria-label={m.workbench_filter_operator()}
@@ -174,7 +169,7 @@ function RowOperator({
         value: operator,
         label: (field.type === "collection"
           ? (COLLECTION_LABELS[operator] ?? OPERATOR_LABELS[operator])
-          : OPERATOR_LABELS[operator])(m),
+          : OPERATOR_LABELS[operator])(),
       }))}
     />
   );
@@ -191,8 +186,6 @@ function RowValue({
   values: FilterValues;
   onChange: (next: FilterRow) => void;
 }) {
-  const m = useWorkbenchMessages();
-  const host = useWorkbenchHost();
   const part = useParts("match");
   // A text field shows its placeholder, so it takes no tooltip.
   const valueName = useContainerName(m.workbench_filter_value());
@@ -228,8 +221,7 @@ function RowValue({
   if (field.type === "choice") {
     const options = choices(field.kind, {
       values,
-      m,
-      locale: host.getLocale(),
+      locale: runtime.getLocale(),
     });
     return (
       <MatchSelect
@@ -294,11 +286,11 @@ function FieldIcon({ field }: { field: FilterField }) {
   );
 }
 
-function kindLabel(kind: FilterFieldKind, m: WorkbenchMessages): string {
+function kindLabel(kind: FilterFieldKind): string {
   if (isDatasetFieldKind(kind)) return kind.slice("field:".length);
   return kind.startsWith("custom:")
     ? kind.slice("custom:".length)
-    : KIND_LABELS[kind as NamedFilterFieldKind](m);
+    : KIND_LABELS[kind as NamedFilterFieldKind]();
 }
 
 /**
@@ -312,7 +304,6 @@ function kindLabel(kind: FilterFieldKind, m: WorkbenchMessages): string {
 export function filterVocabulary(
   dataset: FilterDataset,
   {
-    m,
     values,
     issue,
     fault,
@@ -320,7 +311,6 @@ export function filterVocabulary(
     icon,
     extra = [],
   }: {
-    m: WorkbenchMessages;
     values: FilterValues;
     issue?: (
       condition: RowCondition<FilterRow>,
@@ -341,7 +331,7 @@ export function filterVocabulary(
   };
   const kinds = fields.map((field): MatchConditionKind<FilterRow> => ({
     kind: field.kind,
-    label: label?.(field) ?? field.label ?? kindLabel(field.kind, m),
+    label: label?.(field) ?? field.label ?? kindLabel(field.kind),
     icon: icon ? icon(field) : <FieldIcon field={field} />,
     detail: field.path,
     ...(field.searchTerms && { searchTerms: field.searchTerms }),

@@ -11,6 +11,7 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
 import {
   clearRestore,
@@ -20,11 +21,7 @@ import {
   useExplorerModel,
 } from "./model.ts";
 
-import {
-  DataExplorer,
-  useWorkbenchHost,
-  visibleSectionIds,
-} from "#core/headless-ui/index.tsx";
+import { DataExplorer, visibleSectionIds } from "#core/headless-ui/index.tsx";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import {
   ItemSelectionList,
@@ -68,11 +65,9 @@ export function Explorer({
   const update = useAtomSet(model.session);
   const state = useAtomValue(model.state);
   const { root, status, error, data, navigation, collapsedSections } = state;
-  const host = useWorkbenchHost();
   const shownSections = visibleSectionIds(data, {
-    m: host.messages,
     root,
-    locale: host.getLocale(),
+    locale: runtime.getLocale(),
   });
   const allCollapsed =
     shownSections.length > 0 &&

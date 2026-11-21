@@ -11,7 +11,6 @@ import { EditorView, GutterMarker, gutter } from "@codemirror/view";
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import { diagnosisExplanation } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 
@@ -48,14 +47,12 @@ export function sourceDiagnostics({
   slice,
   source,
   diagnoses,
-  messages,
   json,
 }: {
   controller: WorkbenchDocumentController;
   slice: WorkbenchSliceId;
   source: string;
   diagnoses: readonly WorkbenchDiagnosis[];
-  messages: WorkbenchMessages;
   json: boolean;
 }): SourceDiagnostic[] {
   const bounds = controller.sliceRange(slice);
@@ -79,7 +76,7 @@ export function sourceDiagnostics({
       ? diagnostic.position === position
       : slice === "filename" && diagnostic.part === "filename";
   return diagnoses.flatMap((diagnosis) => {
-    const explanation = diagnosisExplanation(messages, diagnosis);
+    const explanation = diagnosisExplanation(diagnosis);
     const ranges =
       diagnosis.kind === "document"
         ? diagnosis.occurrences.map((problem) => shown(problem.range))

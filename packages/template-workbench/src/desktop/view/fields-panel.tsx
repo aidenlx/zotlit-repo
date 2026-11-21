@@ -3,7 +3,6 @@ import type { WorkbenchDocumentAtoms } from "#core/document/index.ts";
 import type {
   ExplorerPresentation,
   TemplateRoot,
-  WorkbenchHost,
   WorkbenchInsertTarget,
   WorkbenchModel,
 } from "#core/headless-ui/index.tsx";
@@ -24,6 +23,7 @@ import { javascriptTemplatesEnabledAtom } from "@zotlit/notes/obsidian/template/
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 
 import type { TemplateWorkbenchModel, WorkbenchItemRead } from "./model.ts";
 import type { TemplateWorkbenchView } from "./view.tsx";
@@ -298,7 +298,6 @@ function chooseExample(view: TemplateWorkbenchView, id: string): void {
  */
 export function makeFieldsActions(
   view: TemplateWorkbenchView,
-  host: Pick<WorkbenchHost, "messages" | "getLocale">,
   exportData: (target: TemplateDataExportTarget) => void,
 ): ExplorerActions {
   const { registry, fields } = view;
@@ -317,9 +316,8 @@ export function makeFieldsActions(
         fields.session,
         toggleSections(
           visibleSectionIds(data, {
-            m: host.messages,
             root,
-            locale: host.getLocale(),
+            locale: runtime.getLocale(),
           }),
         ),
       );

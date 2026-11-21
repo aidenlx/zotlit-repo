@@ -7,9 +7,10 @@ import type {
 import { Suspense } from "react";
 import type { ReactNode, Ref } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useContainerName, useWorkbenchHost, useTooltip } from "./host.tsx";
 import type { WorkbenchMarkdownProps } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { pendingView } from "./pending-view.ts";
 import { diagnosticText } from "./problems.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
@@ -29,7 +30,6 @@ export function ResultHeader({
   controls?: ReactNode;
   help?: ReactNode;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("resultHeader");
   return (
     <div {...part("header")}>
@@ -69,7 +69,6 @@ export function ResultRegion({
   emphasis?: boolean;
   children: ReactNode;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("resultRegion");
   const name = useContainerName(m.workbench_view_result());
   return (
@@ -215,7 +214,6 @@ export function previewFilename(reading: ResultReading): string | null {
  * header of its own draws it there.
  */
 export function PreviewFilenameLabel({ filename }: { filename: string }) {
-  const m = useWorkbenchMessages();
   const part = useParts("resultColumn");
   const tooltip = useTooltip(filename);
   return (
@@ -241,7 +239,6 @@ export function ResultBody({
   onRun,
   busy,
 }: ResultBodyProps) {
-  const m = useWorkbenchMessages();
   const part = useParts("resultColumn");
   const { markdown: Markdown, openCitationEngineSettings } = useWorkbenchHost();
   const showAnnotation = mode === "annotation";
@@ -319,7 +316,7 @@ export function ResultBody({
                     <strong {...part("problem-heading")}>
                       {m.workbench_preview_problem()}
                     </strong>{" "}
-                    {diagnosticText(m, previewProblem)}{" "}
+                    {diagnosticText(previewProblem)}{" "}
                     {showProblem(previewProblem)}
                   </p>
                 )}
@@ -437,7 +434,6 @@ export function ResultColumn({
   busy,
   help,
 }: ResultColumnProps) {
-  const m = useWorkbenchMessages();
   const part = useParts("resultColumn");
   const selectorTooltip = useTooltip(
     showManaged

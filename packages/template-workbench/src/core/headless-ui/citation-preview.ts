@@ -3,36 +3,28 @@
 
 import type { CitationVariant } from "@zotlit/db";
 import type { CitationExampleId } from "@zotlit/notes/core/template-preview/citation-examples.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { WorkbenchMessages } from "./generated/messages.ts";
-import type { WorkbenchMessageLabel } from "./messages.tsx";
-
-const EXAMPLE_LABEL: Record<CitationExampleId, WorkbenchMessageLabel> = {
-  "one-item": "workbench_citation_example_one_item",
-  "two-items": "workbench_citation_example_two_items",
-  "item-with-page": "workbench_citation_example_item_with_page",
-  "suppressed-author": "workbench_citation_example_suppressed_author",
-  "prefix-and-suffix": "workbench_citation_example_prefix_and_suffix",
-  "annotation-citation": "workbench_citation_example_annotation_citation",
+const EXAMPLE_LABEL: Record<CitationExampleId, () => string> = {
+  "one-item": m.workbench_citation_example_one_item,
+  "two-items": m.workbench_citation_example_two_items,
+  "item-with-page": m.workbench_citation_example_item_with_page,
+  "suppressed-author": m.workbench_citation_example_suppressed_author,
+  "prefix-and-suffix": m.workbench_citation_example_prefix_and_suffix,
+  "annotation-citation": m.workbench_citation_example_annotation_citation,
 };
 
-const VARIANT_LABEL: Record<CitationVariant, WorkbenchMessageLabel> = {
-  main: "workbench_citation_variant_main",
-  alt: "workbench_citation_variant_alt",
+const VARIANT_LABEL: Record<CitationVariant, () => string> = {
+  main: m.workbench_citation_variant_main,
+  alt: m.workbench_citation_variant_alt,
 };
 
 /** The name one built-in Citation example set is chosen and captioned by. */
-export function citationExampleLabel(
-  m: WorkbenchMessages,
-  id: CitationExampleId,
-): string {
-  return m[EXAMPLE_LABEL[id]]();
+export function citationExampleLabel(id: CitationExampleId): string {
+  return EXAMPLE_LABEL[id]();
 }
 
 /** The Citation Variant as the short noun a caption names it with. */
-export function citationVariantLabel(
-  m: WorkbenchMessages,
-  variant: CitationVariant,
-): string {
-  return m[VARIANT_LABEL[variant]]();
+export function citationVariantLabel(variant: CitationVariant): string {
+  return VARIANT_LABEL[variant]();
 }

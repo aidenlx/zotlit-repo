@@ -13,7 +13,6 @@ import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
 import {
   EXCLUDE_MESSAGE_PREFIXES,
   INCLUDE_MESSAGES,
-  SCOPED_MESSAGE_MODULES,
   TARGET_LOCALE_MESSAGE_PREFIXES,
 } from "@zotlit/plugin-messages/language-pack-options";
 import { parseMinElectronVersion } from "@zotlit/scripts/obsidian-manifest";
@@ -159,7 +158,6 @@ export default defineConfig(({ mode }) => {
         output: messagesDirectory,
         excludeMessagePrefixes: EXCLUDE_MESSAGE_PREFIXES,
         includeMessages: INCLUDE_MESSAGES,
-        scopedMessageModules: SCOPED_MESSAGE_MODULES,
         targetLocaleMessagePrefixes: TARGET_LOCALE_MESSAGE_PREFIXES,
         servePacks:
           i18nDevServerPort === undefined

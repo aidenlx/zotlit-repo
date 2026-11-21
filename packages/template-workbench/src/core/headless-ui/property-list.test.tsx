@@ -1,9 +1,9 @@
 import type { RenderedProperty } from "#core/render/result.ts";
-import { screen } from "@testing-library/react";
+import { screen, render } from "@testing-library/react";
 import { expect, it } from "vitest";
 
 import { PropertyList, propertyType } from "./property-list.tsx";
-import { mount, renderWithMessages as render } from "./test-host.tsx";
+import { mount } from "./test-host.tsx";
 
 const property = (
   key: string,

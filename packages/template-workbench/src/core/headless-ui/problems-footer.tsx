@@ -35,12 +35,11 @@ import type {
   WorkbenchReportContext,
 } from "@zotlit/notes/core/template/render-report.ts";
 import { formatRenderReport } from "@zotlit/notes/core/template/render-report.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import type { WorkbenchMessages } from "./generated/messages.ts";
 import { useOptionalHost } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import {
   diagnosisEngineSources,
@@ -103,12 +102,11 @@ export interface WorkbenchProblemsState {
 /**
  * What a document problem's own report is captured from. The parser reads
  * those problems out of the current source on every check, so the attempt
- * behind one is the check that found it: its own wording, the source it was
- * read from, and what names this Workbench. A host that supplies none leaves
+ * behind one is the check that found it: the source it was read from, and
+ * what names this Workbench. A host that supplies none leaves
  * its document problems without a report.
  */
 export interface WorkbenchProblemCapture {
-  readonly messages: WorkbenchMessages;
   /** The document text the checks read. */
   readonly source: string;
   readonly context: () => WorkbenchReportContext;
@@ -198,7 +196,7 @@ export function useWorkbenchProblems({
       diagnosis.id,
       captureProblemReport({
         problem: diagnosis.problem,
-        message: problemText(capture.messages, diagnosis.problem).message,
+        message: problemText(diagnosis.problem).message,
         source: capture.source,
         capturedAt: temporal.Now.instant().toString(),
         context: capture.context(),
@@ -263,7 +261,6 @@ export function ProblemsFooter({
    */
   onReturn?: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const host = useOptionalHost();
   const startCopy = useAtomSet(useWorkbenchModel().copy(useUniqueId()));
   const part = useParts("problemsFooter");
@@ -387,8 +384,8 @@ export function ProblemsFooter({
   // Nothing found and nothing open: the area gives its space back to the
   // source rather than reporting its own emptiness.
   if (selected === null && !open) return null;
-  const explanation = selected && diagnosisExplanation(m, selected);
-  const engineSources = selected ? diagnosisEngineSources(m, selected) : [];
+  const explanation = selected && diagnosisExplanation(selected);
+  const engineSources = selected ? diagnosisEngineSources(selected) : [];
   // Several problems are chosen between rather than read at once, and the
   // choice names the object each one is about, so it stands in for the line
   // the explanation would otherwise lead with.
@@ -523,7 +520,7 @@ export function ProblemsFooter({
                 >
                   {diagnoses.map((diagnosis) => (
                     <WorkbenchOption key={diagnosis.id} value={diagnosis.id}>
-                      {diagnosisLabel(m, diagnosis)}
+                      {diagnosisLabel(diagnosis)}
                     </WorkbenchOption>
                   ))}
                 </WorkbenchSelect>
@@ -561,7 +558,7 @@ export function ProblemsFooter({
               }}
               {...part("problems-open")}
             >
-              {diagnosisWhere(m, selected)}
+              {diagnosisWhere(selected)}
             </button>
             {reportControls(reportText)}
           </div>
@@ -579,7 +576,7 @@ export function ProblemsFooter({
                 // presenting the whole preview as successful.
                 <>
                   <p {...part("problems-object")}>
-                    {diagnosisLabel(m, inspected)}
+                    {diagnosisLabel(inspected)}
                   </p>
                   <p {...part("problems-text")}>
                     {m.workbench_problems_resolved()}

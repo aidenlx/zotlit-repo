@@ -6,9 +6,10 @@ import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
 import { useOptionalHost } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import type { WorkbenchModel } from "./model.ts";
 import { pendingView } from "./pending-view.ts";
 import { useIcon, useParts } from "./theme.tsx";
@@ -96,7 +97,6 @@ function exampleSelection(model: WorkbenchModel): Atom.Atom<ExampleSelection> {
 }
 
 export function useExampleState(surface: ExampleSurface): ExampleState {
-  const m = useWorkbenchMessages();
   const editor = useOptionalEditor();
   const model = useWorkbenchModel();
   const item = useAtomValue(model.item);
@@ -189,7 +189,6 @@ export function ExampleActions({
   onChooseItem?: () => void;
   onRetry?: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const host = useOptionalHost();
   const part = useParts("sampleSuggester");
   const icon = useIcon();

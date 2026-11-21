@@ -73,7 +73,6 @@
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/item-query#generate:schema",
         "@zotlit/pdf-reader#generate",
         "@zotlit/docs#generate:messages",
@@ -96,7 +95,6 @@
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/pdf-reader#generate"
       ]
     },

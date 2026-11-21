@@ -11,11 +11,11 @@ import { regex } from "arkregex";
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import type { ExplorerSectionId } from "./explorer-sections.ts";
 import { useTooltip } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { useIcon, useParts } from "./theme.tsx";
 import type { WorkbenchIcon } from "./theme.tsx";
 
@@ -314,7 +314,6 @@ function Chevron({
   expanded: boolean;
   onClick: () => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("explorerTree");
   const icon = useIcon();
   return (
@@ -342,7 +341,6 @@ function ActionCluster({
   onInsert?: (node: DisplayNode, keepOpen: boolean) => void;
   onTemplateMenu: (node: DisplayNode, event: React.MouseEvent) => void;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("explorerTree");
   return (
     <div {...part("actions")}>
@@ -464,7 +462,6 @@ function ValueContent({
   node: ValueNode;
   labeled?: boolean;
 }) {
-  const m = useWorkbenchMessages();
   const part = useParts("explorerTree");
   const line = useContext(FieldRowsContext) !== null;
   if (node.valueType === "array" || node.valueType === "object") {
@@ -559,7 +556,6 @@ function PlaceholderRow({ node, label, cell }: RowProps<PlaceholderNode>) {
 
 /** A property every item of a list has, with the values of all items in one line. */
 function ListPropertyRow({ node, label, cell }: RowProps<ListPropertyNode>) {
-  const m = useWorkbenchMessages();
   const part = useParts("explorerTree");
   return (
     <>
@@ -630,7 +626,6 @@ function LinkValue({ href, label }: { href: string; label: string }) {
 }
 
 function LongText({ value }: { value: string }) {
-  const m = useWorkbenchMessages();
   const part = useParts("explorerTree");
   const [expanded, setExpanded] = useState(false);
   const isLong = value.length > STRING_PREVIEW_LIMIT || value.includes("\n");

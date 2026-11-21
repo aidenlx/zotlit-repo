@@ -1,6 +1,7 @@
 import type { RenderDiagnostic } from "#core/render/result.ts";
 import { describe, expect, it } from "vitest";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError, TemplateError } from "@zotlit/templates/facade";
 import { PandocCitationError } from "@zotlit/templates/pandoc-citation";
 
@@ -17,7 +18,6 @@ import {
   renderDiagnosis,
   workbenchDiagnoses,
 } from "./problems.ts";
-import { m } from "./test-messages.ts";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import {
@@ -38,11 +38,11 @@ describe("problemText", () => {
     );
     const failure = renderProfile(source, SAMPLE_ITEMS[0]!).diagnostics[0]!;
     const diagnosis = renderDiagnosis(failure);
-    expect(diagnosisExplanation(m, diagnosis)).toMatchObject({
+    expect(diagnosisExplanation(diagnosis)).toMatchObject({
       condition: m.workbench_diagnostic_liquid_syntax_error(),
       suggestion: m.workbench_diagnostic_liquid_for_suggestion(),
     });
-    expect(diagnosisWhere(m, diagnosis)).toBe(
+    expect(diagnosisWhere(diagnosis)).toBe(
       m.workbench_problems_highlight_error(),
     );
     expect(diagnosisLocated(diagnosis)).toBe(true);
@@ -71,7 +71,7 @@ describe("problemText", () => {
       message:
         "Cannot read properties of undefined (reading 'title')\n    at template:4",
     });
-    expect(diagnosisExplanation(m, diagnosis).condition).toBe(
+    expect(diagnosisExplanation(diagnosis).condition).toBe(
       "Cannot read properties of undefined (reading 'title')",
     );
   });
@@ -79,7 +79,7 @@ describe("problemText", () => {
   it("writes a parser code in the catalog rather than the parser's English", () => {
     const controller = new WorkbenchDocumentController("not a profile");
 
-    expect(problemText(m, controller.problems[0]!)).toEqual({
+    expect(problemText(controller.problems[0]!)).toEqual({
       message: m.workbench_problem_invalid_document(),
       recovery: m.workbench_problem_invalid_document_recovery(),
     });
@@ -104,7 +104,7 @@ describe("problemText", () => {
     // The recovery is a text suggestion like every other one: unpacking writes
     // files, which the host offers among its ordinary partial operations
     // rather than inside the reading of a problem (ADR 0056).
-    expect(problemText(m, problem)).toEqual({
+    expect(problemText(problem)).toEqual({
       message: m.workbench_problem_bundled_partial({ names: "authors" }),
       recovery: m.workbench_problem_bundled_partial_recovery(),
     });
@@ -115,14 +115,14 @@ describe("problemText", () => {
       ANNOTATION_LIST_PROFILE_SOURCE.replace(/^name: .*$/m, "name: 12"),
     );
 
-    expect(problemText(m, controller.problems[0]!).message).toContain("name");
+    expect(problemText(controller.problems[0]!).message).toContain("name");
   });
 });
 
 describe("diagnosticText", () => {
   it("names the Shared Partial the engine could not resolve", () => {
     expect(
-      diagnosticText(m, {
+      diagnosticText({
         code: "missing-partial",
         params: { name: "venue-line" },
         part: "render",
@@ -137,11 +137,9 @@ describe("diagnosticText", () => {
       part: "render",
     } as const;
 
-    expect(diagnosticText(m, failure)).toBe(
-      m.workbench_diagnostic_render_error(),
-    );
+    expect(diagnosticText(failure)).toBe(m.workbench_diagnostic_render_error());
     // Problems shows the cause without requiring a second disclosure.
-    expect(diagnosisExplanation(m, renderDiagnosis(failure))).toEqual({
+    expect(diagnosisExplanation(renderDiagnosis(failure))).toEqual({
       object: m.workbench_problems_object_profile(),
       condition: "Unexpected tag",
       suggestion: m.workbench_diagnostic_render_error_suggestion(),
@@ -157,7 +155,7 @@ describe("diagnosisExplanation", () => {
       message: "Citations could not be formatted.",
       part: "render",
     });
-    expect(diagnosisExplanation(m, diagnosis).object).toBe(
+    expect(diagnosisExplanation(diagnosis).object).toBe(
       m.workbench_problems_object_citation(),
     );
   });
@@ -176,20 +174,18 @@ describe("attribution", () => {
   });
 
   it("reads the engine's own location apart from the call it sends the reader to", () => {
-    expect(diagnosisEngineSources(m, callerData)).toEqual([
+    expect(diagnosisEngineSources(callerData)).toEqual([
       m.workbench_problems_engine_source_line({
         template: "citation",
         line: 4,
       }),
     ]);
-    expect(diagnosisWhere(m, callerData)).toBe(
-      m.workbench_problems_where_call(),
-    );
+    expect(diagnosisWhere(callerData)).toBe(m.workbench_problems_where_call());
     expect(diagnosisLocated(callerData)).toBe(true);
   });
 
   it("explains the caller's data rather than the template the engine named", () => {
-    expect(diagnosisExplanation(m, callerData)).toEqual({
+    expect(diagnosisExplanation(callerData)).toEqual({
       object: m.workbench_problems_object_citation(),
       condition: m.workbench_diagnostic_citation_data_mismatch(),
       suggestion: m.workbench_diagnostic_citation_data_suggestion(),
@@ -241,7 +237,7 @@ describe("attribution", () => {
     });
 
     expect(diagnostic.code).toBe("render-error");
-    expect(diagnosisExplanation(m, found)).toEqual({
+    expect(diagnosisExplanation(found)).toEqual({
       object: m.workbench_problems_object_profile(),
       condition: "pandoc_cite requires a Citation Item array",
       suggestion: m.workbench_diagnostic_render_error_suggestion(),
@@ -258,17 +254,15 @@ describe("attribution", () => {
     });
 
     expect(diagnosisLocated(unknown)).toBe(false);
-    expect(diagnosisWhere(m, unknown)).toBe(
-      m.workbench_problems_where_advanced(),
-    );
+    expect(diagnosisWhere(unknown)).toBe(m.workbench_problems_where_advanced());
     // The engine's claim survives; it is not promoted into a repair location.
-    expect(diagnosisEngineSources(m, unknown)).toEqual([
+    expect(diagnosisEngineSources(unknown)).toEqual([
       m.workbench_problems_engine_source_line({
         template: "paper:body",
         line: 5,
       }),
     ]);
-    expect(diagnosisExplanation(m, unknown).suggestion).toBe(
+    expect(diagnosisExplanation(unknown).suggestion).toBe(
       m.workbench_diagnostic_render_error_suggestion(),
     );
   });
@@ -554,7 +548,7 @@ describe("attribution", () => {
       },
     });
 
-    expect(diagnosisExplanation(m, diagnosis).object).toBe(
+    expect(diagnosisExplanation(diagnosis).object).toBe(
       m.workbench_problems_object_citation(),
     );
   });
@@ -574,10 +568,10 @@ describe("attribution", () => {
         },
       });
 
-      expect(diagnosisExplanation(m, diagnosis).object).toBe(
+      expect(diagnosisExplanation(diagnosis).object).toBe(
         m.workbench_name_filename_heading(),
       );
-      expect(diagnosisWhere(m, diagnosis)).toBe(
+      expect(diagnosisWhere(diagnosis)).toBe(
         m.workbench_problems_where_filename(),
       );
       expect(diagnosisLocated(diagnosis)).toBe(true);
@@ -587,7 +581,6 @@ describe("attribution", () => {
   it("says no verified location for a failure the engine reported nowhere", () => {
     expect(
       diagnosisEngineSources(
-        m,
         renderDiagnosis({ code: "render-error", message: "boom" }),
       ),
     ).toEqual([]);

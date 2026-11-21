@@ -6,9 +6,10 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
 import { useContainerName, useOptionalHost } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { setTab as tabTransition } from "./model.ts";
 import { SliceEditorVisibility } from "./slice-editor.tsx";
 import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
@@ -52,7 +53,6 @@ export function TabBar({
   /** The tabs this document shows; the Template Document kind picks the set. */
   tabs?: readonly WorkbenchTab[];
 } = {}) {
-  const m = useWorkbenchMessages();
   const editor = useOptionalEditor();
   const model = useWorkbenchModel();
   const tab = useAtomValue(model.tab);
@@ -125,7 +125,7 @@ export function TabBar({
             }}
             {...part("tab", active ? "active" : "inactive")}
           >
-            {tabLabel(m, id)}
+            {tabLabel(id)}
           </button>
         );
       })}
@@ -138,11 +138,10 @@ export function TabBar({
  * after the tab's lede. A host that names no docs site gets nothing.
  */
 export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
-  const m = useWorkbenchMessages();
   const docsUrl = useOptionalHost()?.docsUrl;
   const part = useParts("tabPanel");
   if (docsUrl === undefined) return null;
-  const { label, path } = tabDocs(m, tab);
+  const { label, path } = tabDocs(tab);
   return (
     <a
       href={`${docsUrl}${path}`}
@@ -171,7 +170,6 @@ export function TabPanel({
   children?: ReactNode;
   description?: boolean;
 }) {
-  const m = useWorkbenchMessages();
   const editor = useOptionalEditor();
   const active = useAtomValue(useWorkbenchModel().tab) === tab;
   const part = useParts("tabPanel");
@@ -196,7 +194,7 @@ export function TabPanel({
     >
       {description && tab !== "match" && (
         <p {...part("description")}>
-          {tabLede(m, tab)} <TabDocsLink tab={tab} />
+          {tabLede(tab)} <TabDocsLink tab={tab} />
         </p>
       )}
       <SliceEditorVisibility visible={shown}>{children}</SliceEditorVisibility>

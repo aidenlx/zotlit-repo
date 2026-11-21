@@ -6,8 +6,11 @@ import {
   fireEvent,
   screen,
   within,
+  render,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { useWorkbenchController, useWorkbenchModel } from "./editor.tsx";
 import { chooseItem, setPreview } from "./model.ts";
@@ -16,12 +19,10 @@ import { PropertiesPane } from "./properties-tab.tsx";
 import {
   mount,
   pressRun,
-  renderWithMessages as render,
   reportFailure,
   schedulerState,
   setItemData,
 } from "./test-host.tsx";
-import { m } from "./test-messages.ts";
 
 import { SAMPLE_ITEMS } from "#core/render/index.ts";
 

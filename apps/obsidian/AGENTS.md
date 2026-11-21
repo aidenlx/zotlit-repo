@@ -108,7 +108,7 @@ Vitest runs in Node with `"obsidian"` resolved to the mock in `packages/obsidian
 - `pnpm exec vitest run path/to/file.test.ts` — single file.
 - `pnpm exec vitest` — watch mode.
 
-App-local `tsc` and `vitest` read workspace packages (`@zotlit/db`, `@zotlit/templates`, …) from their source, so a change in `packages/*` reaches them with no build. They do need the generated files: run `pnpm exec turbo run generate:language-packs generate:message-types` once before a direct run.
+App-local `tsc` and `vitest` read workspace packages (`@zotlit/db`, `@zotlit/templates`, …) from their source, so a change in `packages/*` reaches them with no build. They do need the generated files: run `pnpm exec turbo run generate:language-packs` once before a direct run.
 
 Write an Effect case with `it.effect` from `@effect/vitest`; vitest.config.ts resolves it through `effectEntry` to `packages/plugin-kernel/src/effect-vitest.ts`, which adds the plugin's runtime services (browser scheduler, plugin logger) to `@effect/vitest`'s TestClock and TestConsole. Capture the plugin logger's records with `captureLogRecords` or `forwardLogRecords` from `packages/plugin-kernel/src/__fixtures__/log-capture.ts`; a `Logger.layer` captures only the Effect it is given to (`packages/plugin-services/src/obsidian/use-ledger/service.test.ts`).
 

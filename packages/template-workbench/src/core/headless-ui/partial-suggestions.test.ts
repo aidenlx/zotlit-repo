@@ -1,13 +1,14 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
 import { partialSuggestions } from "./partial-suggestions.ts";
-import { m } from "./test-messages.ts";
 
 describe("partialSuggestions", () => {
   it("takes the vault's registered names over the draft's own scan", () => {
     // The draft calls "cite" and nothing else; the vault holds two partials.
-    const config = partialSuggestions(m, ["cite"], {
+    const config = partialSuggestions(["cite"], {
       partials: {
         names: () => ["authors", "venue-line"],
         create: () => Effect.succeed(null),
@@ -20,7 +21,7 @@ describe("partialSuggestions", () => {
   });
 
   it("falls back to the draft's scan and offers no create entry", () => {
-    const config = partialSuggestions(m, ["cite", "summary"], {
+    const config = partialSuggestions(["cite", "summary"], {
       partials: undefined,
       start: () => {},
     });
@@ -31,7 +32,7 @@ describe("partialSuggestions", () => {
 
   it("hands the create flow the name the reader typed", async () => {
     const asked: string[] = [];
-    const config = partialSuggestions(m, [], {
+    const config = partialSuggestions([], {
       partials: {
         names: () => [],
         create: (query) => {

@@ -1,5 +1,3 @@
-// The Fields Panel, the chosen Item's fields in the host's non-modal Fields
-// popover, or docked beside the editor while the reader has it pinned.
 import { useAtom, useAtomSet, useAtomValue } from "@effect/atom-react";
 import {
   createContext,
@@ -11,12 +9,14 @@ import {
 } from "react";
 import type { ReactNode, RefObject } from "react";
 
+// The Fields Panel, the chosen Item's fields in the host's non-modal Fields
+// popover, or docked beside the editor while the reader has it pinned.
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
 import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
 import { useOptionalHost, useTooltip } from "./host.tsx";
-import { useWorkbenchMessages } from "./messages.tsx";
 import { pressFieldsPin } from "./model.ts";
 import type { FieldsPlacement } from "./panel-layout.ts";
 import { useIcon, useParts } from "./theme.tsx";
@@ -146,7 +146,6 @@ function FieldsPanelBody({
   readonly escape: RefObject<() => boolean>;
 }) {
   const { model, registry } = useWorkbenchEditor();
-  const m = useWorkbenchMessages();
   const part = useParts("fieldsPanel");
   const icon = useIcon();
   const setState = useAtomSet(model.fieldsPanel);
