@@ -15,16 +15,7 @@ import type { WorkbenchMarkdownProps } from "./host.tsx";
 import { previewNotice, templateWorkbenchButton } from "./look.ts";
 import { pendingView } from "./pending-view.ts";
 import { diagnosticText } from "./problems.ts";
-import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
 
-const resultHeaderControls = cn(
-  "zt:flex zt:items-center zt:gap-2",
-  "zt:flex-wrap zt:text-sm",
-);
-const resultHeaderLabel = cn(
-  "zt:flex zt:items-center zt:gap-2",
-  "zt:flex-wrap",
-);
 const resultRegionRegion = cn(
   "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
   "zt:min-w-0 zt:rounded-sm zt:select-text zt:focus-visible:outline-2 zt:focus-visible:outline-ring",
@@ -50,56 +41,6 @@ const resultColumnProblem = cn(
   previewNotice,
   "zt:flex-col zt:border-(--text-error) zt:[overflow-wrap:anywhere]",
 );
-const resultColumnLabel = cn(
-  "zt:flex zt:items-center zt:gap-2",
-  "zt:flex-wrap",
-);
-
-/** The result pane's heading beside the reading-or-Markdown choice. */
-export function ResultHeader({
-  heading,
-  showMarkdown,
-  onShowMarkdown,
-  controls,
-  help,
-}: {
-  heading: string;
-  showMarkdown: boolean;
-  onShowMarkdown?: (showMarkdown: boolean) => void;
-  controls?: ReactNode;
-  help?: ReactNode;
-}) {
-  return (
-    <div data-part="header" className="zt:flex zt:min-w-0 zt:flex-col zt:gap-2">
-      <h2 data-part="heading" className="zt-workbench-preview-heading">
-        {heading}
-      </h2>
-      <div data-part="controls" className={resultHeaderControls}>
-        {controls}
-        <label data-part="label" className={resultHeaderLabel}>
-          <span data-part="label-text" className="zt:text-muted-foreground">
-            {m.workbench_preview_format()}
-          </span>
-          <WorkbenchSelect
-            value={showMarkdown ? "markdown" : "reading"}
-            disabled={onShowMarkdown === undefined}
-            onInput={(event) =>
-              onShowMarkdown?.(event.currentTarget.value === "markdown")
-            }
-          >
-            <WorkbenchOption value="reading">
-              {m.workbench_preview_reading()}
-            </WorkbenchOption>
-            <WorkbenchOption value="markdown">
-              {m.workbench_result_markdown_toggle()}
-            </WorkbenchOption>
-          </WorkbenchSelect>
-        </label>
-        {help}
-      </div>
-    </div>
-  );
-}
 
 /** The box the rendered note is read in. */
 export function ResultRegion({
@@ -271,7 +212,7 @@ export function PreviewFilenameLabel({ filename }: { filename: string }) {
   );
 }
 
-/** The stale notice and rendered result, without the heading `ResultColumn` adds. */
+/** The stale notice and rendered result, without a heading. */
 export function ResultBody({
   result,
   annotationResult,
@@ -486,89 +427,6 @@ export function ResultBody({
           pending
         ) : null}
       </ResultRegion>
-    </>
-  );
-}
-
-export interface ResultColumnProps extends ResultBodyProps {
-  showMarkdown: boolean;
-  onShowMarkdown: (show: boolean) => void;
-  showManaged: boolean;
-  onShowManaged: (show: boolean) => void;
-  help?: ReactNode;
-}
-
-export function ResultColumn({
-  result,
-  annotationResult,
-  retained,
-  mode,
-  staleReason,
-  showMarkdown,
-  onShowMarkdown,
-  showManaged,
-  onShowManaged,
-  sourceAvailable = true,
-  onShowProblem,
-  onRun,
-  busy,
-  help,
-}: ResultColumnProps) {
-  const selectorTooltip = tooltipAttrs(
-    showManaged
-      ? m.workbench_result_managed_toggle()
-      : m.workbench_preview_whole(),
-  );
-  const showNote = mode === "note";
-  const showAnnotation = mode === "annotation";
-  return (
-    <>
-      <ResultHeader
-        heading={
-          showAnnotation
-            ? m.workbench_annotation_example()
-            : m.workbench_result_heading()
-        }
-        showMarkdown={showMarkdown}
-        onShowMarkdown={onShowMarkdown}
-        controls={
-          showNote && (
-            <label data-part="label" className={resultColumnLabel}>
-              <span data-part="label-text" className={resultColumnLabelText}>
-                {m.workbench_preview_show()}
-              </span>
-              <WorkbenchSelect
-                value={showManaged ? "managed" : "whole"}
-                onInput={(event) =>
-                  onShowManaged(event.currentTarget.value === "managed")
-                }
-                {...selectorTooltip}
-              >
-                <WorkbenchOption value="whole">
-                  {m.workbench_preview_whole()}
-                </WorkbenchOption>
-                <WorkbenchOption value="managed">
-                  {m.workbench_result_managed_toggle()}
-                </WorkbenchOption>
-              </WorkbenchSelect>
-            </label>
-          )
-        }
-        help={help}
-      />
-      <ResultBody
-        result={result}
-        annotationResult={annotationResult}
-        retained={retained}
-        mode={mode}
-        staleReason={staleReason}
-        showMarkdown={showMarkdown}
-        showManaged={showManaged}
-        sourceAvailable={sourceAvailable}
-        onShowProblem={onShowProblem}
-        onRun={onRun}
-        busy={busy}
-      />
     </>
   );
 }

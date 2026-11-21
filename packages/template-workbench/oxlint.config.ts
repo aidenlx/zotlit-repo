@@ -170,7 +170,6 @@ export default defineConfig({
       // off this list when it is next reworked.
       files: [
         "src/obsidian/workbench-ui/data-explorer.tsx",
-        "src/obsidian/workbench-ui/edit-toolbar.tsx",
         "src/obsidian/workbench-ui/explorer-tree.tsx",
         "src/obsidian/workbench-ui/field-details.tsx",
         "src/obsidian/workbench-ui/fields-panel.tsx",

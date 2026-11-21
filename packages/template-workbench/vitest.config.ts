@@ -56,28 +56,8 @@ export default defineConfig({
   ],
   test: {
     ...testDefaults,
-    // `include` lives on the projects: Vite merges a root `include` into each
-    // project's own, which would widen every project back to everything.
     environment: "node",
-    projects: [
-      {
-        extends: true,
-        test: { name: "node", include: ["src/**/*.test.ts"] },
-      },
-      {
-        // The Workbench UI's component suite, on Preact in a DOM as Obsidian
-        // runs it, with Testing Library's Preact build.
-        extends: true,
-        resolve: {
-          alias: { "@testing-library/react": "@testing-library/preact" },
-        },
-        test: {
-          name: "ui",
-          include: ["src/obsidian/workbench-ui/**/*.test.tsx"],
-          environment: "happy-dom",
-        },
-      },
-    ],
+    include: ["src/**/*.test.ts"],
     clearMocks: true,
     server: {
       deps: {

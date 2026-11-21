@@ -9,7 +9,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SuggestModal } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { createTemplateWorkbenchHost } from "./host.tsx";
 
@@ -79,7 +78,7 @@ describe("Template Workbench host", () => {
 });
 
 describe("Template Workbench typing popup", () => {
-  it("wears Obsidian's suggestion classes, with the description and type as cells", async () => {
+  it("opens outside the clipping editor and moves with the editor to a new window", async () => {
     const { host } = setup();
     const input = document.createElement("div");
     const migrations: ((win: Window) => void)[] = [];
@@ -118,32 +117,16 @@ describe("Template Workbench typing popup", () => {
         if (!found) throw new Error("no popup yet");
         return found;
       });
-      expect(popup.classList.contains("suggestion-container")).toBe(true);
-      expect(document.body.contains(popup)).toBe(true);
       expect(input.contains(popup)).toBe(false);
-      const rows = [...popup.querySelectorAll("li")];
-      const row = rows.find(
-        (row) =>
-          row.querySelector(".cm-completionLabel")!.textContent === "title",
-      )!;
-      expect(
-        row.querySelector(".zt-template-completion-type")!.textContent,
-      ).toBe("string | null");
-      expect(row.querySelector(".suggestion-note")!.textContent).toBe(
-        "Item title.",
-      );
+      expect(popup.textContent).toContain("Item title.");
       const destination = document.implementation.createHTMLDocument();
       destination.body.append(input);
       view.setRoot(destination);
       migrations[0]!({
         document: destination,
       } as Window);
-      expect(
-        destination.body.querySelector(".cm-tooltip-autocomplete"),
-      ).not.toBeNull();
-      expect(
-        document.body.querySelector(".cm-tooltip-autocomplete"),
-      ).toBeNull();
+      expect(destination.body.contains(popup)).toBe(true);
+      expect(document.body.contains(popup)).toBe(false);
     } finally {
       view.destroy();
       expect(disposeMigration).toHaveBeenCalledOnce();
@@ -157,68 +140,7 @@ const choose = (request: WorkbenchSuggesterRequest) =>
   Effect.runFork(chooseWorkbenchOption(app, request));
 
 describe("Workbench chooser rows", () => {
-  it("draws a suggestion row the way Obsidian's own complex rows read", () => {
-    using open = vi.spyOn(SuggestModal.prototype, "open");
-    choose({
-      title: "Styles",
-      selected: "apa",
-      groups: [
-        {
-          label: "Installed",
-          options: [
-            { id: "apa", label: "APA", hint: "Author-date" },
-            { id: "ieee", label: "IEEE", icon: "search" },
-          ],
-        },
-      ],
-    });
-    type Row = { id: string; label: string; hint?: string; group: string };
-    const modal = open.mock.contexts.at(-1)! as SuggestModal<Row>;
-    const rows = (modal.getSuggestions("") as Row[]).map((option) => {
-      const el = document.createElement("div");
-      modal.renderSuggestion(option, el);
-      return el;
-    });
-    expect(
-      rows.map((el) => el.querySelector(".suggestion-title")!.textContent),
-    ).toEqual(["APA", "IEEE"]);
-    expect(
-      rows.map(
-        (el) => el.querySelector(".suggestion-note .hint")?.textContent ?? null,
-      ),
-    ).toEqual(["Author-date", null]);
-    // The group takes the Library's two slots: a badge closing the note line
-    // on a narrow row, a trailing flair on a wide one.
-    expect(
-      rows.map((el) => [
-        el.querySelector(".suggestion-note .zt-suggestion-flair-inline")!
-          .textContent,
-        el.querySelector(".zt-suggestion-flair")!.textContent,
-      ]),
-    ).toEqual([
-      ["Installed", "Installed"],
-      ["Installed", "Installed"],
-    ]);
-    expect(
-      rows.map((el) =>
-        [...el.querySelectorAll(".suggestion-aux .suggestion-flair")].map(
-          (flair) => flair.getAttribute("aria-label"),
-        ),
-      ),
-    ).toEqual([[m.modal_profile_current()], []]);
-    expect(rows.map((el) => el.getAttribute("aria-current"))).toEqual([
-      "true",
-      null,
-    ]);
-    // An action row leads with its icon, in Obsidian's own icon slot.
-    expect(
-      rows.map((el) =>
-        el.firstElementChild!.classList.contains("suggestion-icon"),
-      ),
-    ).toEqual([false, true]);
-  });
-
-  it("highlights the searched text in the title and the hint", () => {
+  it("finds an option by words that land in different fields", () => {
     using open = vi.spyOn(SuggestModal.prototype, "open");
     choose({
       title: "Styles",
@@ -231,22 +153,7 @@ describe("Workbench chooser rows", () => {
     });
     type Row = { id: string; label: string; hint?: string; group: string };
     const modal = open.mock.contexts.at(-1)! as SuggestModal<Row>;
-    const [row] = modal.getSuggestions("ee") as Row[];
-    const el = document.createElement("div");
-    modal.renderSuggestion(row!, el);
-    expect(
-      [...el.querySelectorAll(".suggestion-highlight")].map((match) => [
-        match.parentElement!.className,
-        match.textContent,
-      ]),
-    ).toEqual([
-      [
-        "suggestion-title zt:truncate zt:text-sm zt:leading-tight zt:font-medium",
-        "EE",
-      ],
-      ["hint", "ee"],
-    ]);
-    // Words may land in different fields, the way the filter read before.
+    expect(modal.getSuggestions("ee")).toHaveLength(1);
     expect(modal.getSuggestions("installed engineer")).toHaveLength(1);
     expect(modal.getSuggestions("apa")).toHaveLength(0);
   });

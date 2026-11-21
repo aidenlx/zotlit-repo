@@ -3,11 +3,7 @@
 
 import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { TemplateRenderResult } from "#core/render/result.ts";
-import {
-  RegistryContext,
-  RegistryProvider,
-  useAtomValue,
-} from "@effect/atom-react";
+import { RegistryContext, RegistryProvider } from "@effect/atom-react";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
@@ -212,9 +208,4 @@ export function useWorkbenchEditor(): WorkbenchEditor {
 /** The model in context, or an inert one where the tree paints inert. */
 export function useWorkbenchModel(): WorkbenchModel {
   return useContext(EditorContext)?.model ?? inertModel();
-}
-
-/** The controller in use, which follows a replacement the host attaches. */
-export function useWorkbenchController(): WorkbenchDocumentController {
-  return useAtomValue(useWorkbenchEditor().model.controller);
 }

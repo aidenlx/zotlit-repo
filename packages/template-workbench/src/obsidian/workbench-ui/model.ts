@@ -90,11 +90,6 @@ export const announceFields =
 /** What the preview shows: a new note, or an existing note after Update. */
 export type PreviewMode = "create" | "update";
 
-export interface PreviewSettings {
-  readonly mode: PreviewMode;
-  readonly live: boolean;
-}
-
 export interface EditorPresentation {
   restoreVersion: number;
   restoring: boolean;

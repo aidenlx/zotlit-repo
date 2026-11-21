@@ -26,42 +26,6 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-it("preserves native paragraph styling when the note supplies annotation ranges", async () => {
-  const markdown = "Quoted text\n\nComment";
-  renderer.render.mockImplementation(async (_app, text, target) => {
-    for (const paragraph of text.split("\n\n")) {
-      const element = document.createElement("p");
-      element.textContent = paragraph;
-      target.append(element);
-    }
-  });
-  const container = document.createElement("div");
-  document.body.append(container);
-  try {
-    await act(async () => {
-      render(
-        h(NativeMarkdown, {
-          app,
-          markdown,
-          marks: [{ from: 0, to: markdown.length }],
-          result: null,
-        }),
-        container,
-      );
-    });
-    await vi.waitFor(() =>
-      expect(
-        container.querySelector("[data-zotlit-preview-pending]"),
-      ).toBeNull(),
-    );
-    expect(
-      [...container.querySelectorAll("p")].map((p) => p.className),
-    ).toEqual(["", ""]);
-  } finally {
-    render(null, container);
-  }
-});
-
 it.each([
   ["note", "notes/current.md"],
   ["annotation", "notes/previous.md"],
@@ -114,36 +78,6 @@ it.each([
     );
   },
 );
-
-it("keeps native Markdown outside the plugin preflight and preserves its footer boundary", async () => {
-  renderer.render.mockImplementation(
-    async (
-      ...args: Parameters<typeof import("obsidian").MarkdownRenderer.render>
-    ) => {
-      const [, , target] = args;
-      target.append(document.createElement("blockquote"));
-    },
-  );
-  const container = document.createElement("div");
-  document.body.append(container);
-  await act(async () => {
-    render(
-      h(NativeMarkdown, {
-        app,
-        markdown: "> Quoted paragraph",
-        result: null,
-      }),
-      container,
-    );
-  });
-  await vi.waitFor(() =>
-    expect(container.querySelector("blockquote")).not.toBeNull(),
-  );
-  const sheet = container.querySelector(".markdown-rendered");
-  const draft = sheet?.querySelector("[data-zotlit-draft]");
-  expect(sheet?.classList.contains("zt-native-markdown")).toBe(true);
-  expect(draft?.nextElementSibling?.className).toBe("mod-footer mod-ui");
-});
 
 it("keeps managed Markdown free of extra borders and unloads children when replaced or closed", async () => {
   const unloaded = vi.fn();

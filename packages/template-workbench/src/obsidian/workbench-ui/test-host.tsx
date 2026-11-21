@@ -1,14 +1,10 @@
 // A host for the shared suite: the data ports answer on the test's terms and
-// preferences live in memory. Menus, choosers and notices go to Obsidian's own
-// classes, which the `obsidian` mock records: `shownMenus`, `shownNotices`
-// and `watchChoosers` read them.
+// preferences live in memory. Choosers and notices go to Obsidian's own
+// classes, which the `obsidian` mock records: `shownNotices` and
+// `watchChoosers` read them.
 
 import type { RenderRequest } from "#core/render/request.ts";
-import type {
-  RenderDiagnostic,
-  TemplateRenderResult,
-} from "#core/render/result.ts";
-import { render as renderUI } from "@testing-library/react";
+import type { TemplateRenderResult } from "#core/render/result.ts";
 import { Effect, Layer, Queue } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
@@ -38,12 +34,7 @@ import type {
   WorkbenchHost,
   WorkbenchPreferenceScope,
 } from "./host.tsx";
-import { patch } from "./model.ts";
-import type {
-  WorkbenchItemData,
-  WorkbenchModel,
-  WorkbenchViewState,
-} from "./model.ts";
+import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
@@ -246,11 +237,6 @@ export function shownNotices(): string[] {
   );
 }
 
-/** The native menus opened since the host was made, the latest last. */
-export function shownMenus(): Menu[] {
-  return Menu.instances;
-}
-
 /** One option of a chooser, with the group it stands under. */
 interface ChooserRow {
   id: string;
@@ -357,50 +343,6 @@ export function mount(
       registry.dispose();
     },
   };
-}
-
-/** What a test drives: the registry and the model the editor keeps in it. */
-type Driven = Pick<Mounted, "registry" | "model">;
-
-/** Sets the chosen Item's data, which the test host keeps in a writable atom. */
-export function setItemData(
-  { registry, model }: Driven,
-  data: Partial<WorkbenchItemData>,
-): void {
-  if (!Atom.isWritable(model.itemData))
-    throw new Error("The test host keeps the Item data in a writable atom.");
-  registry.update(model.itemData, patch(data));
-}
-
-/** Presses Run on the model's scheduler. */
-export function pressRun({ registry, model }: Driven): void {
-  registry.set(model.scheduler.run, undefined);
-}
-
-/** Shows `diagnostic` as the host's report of a render it could not run. */
-export function reportFailure(
-  { registry, model }: Driven,
-  diagnostic: RenderDiagnostic,
-): void {
-  registry.set(model.scheduler.fail, diagnostic);
-}
-
-/** The state the preview reads. */
-export function schedulerState({ registry, model }: Driven) {
-  return registry.get(model.scheduler.state);
-}
-
-/** Renders a component in the test App, for tests that mount no host. */
-export function renderInApp(
-  ui: ReactNode,
-  options?: Parameters<typeof renderUI>[1],
-): ReturnType<typeof renderUI> {
-  return renderUI(ui, {
-    wrapper: ({ children }) => (
-      <AppContext value={TEST_APP}>{children}</AppContext>
-    ),
-    ...options,
-  });
 }
 
 /**
