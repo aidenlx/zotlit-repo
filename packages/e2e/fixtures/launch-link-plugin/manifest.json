@@ -1,0 +1,9 @@
+{
+  "id": "zotlit-launch-link",
+  "name": "Launch link",
+  "version": "0.0.0",
+  "minAppVersion": "1.14.4",
+  "description": "Hands Obsidian a link staged in localStorage as the link that started the app, and records the notices of the start, for the End-to-end Run.",
+  "author": "ZotLit",
+  "isDesktopOnly": true
+}

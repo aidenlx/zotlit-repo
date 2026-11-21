@@ -4,6 +4,12 @@ import { releaseKeyDescription } from "@zotlit/plugin-shell/core/release-key.ts"
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { reachable, runVaultScript, workspaceRoot } from "./e2e-run-fixture.ts";
+import {
+  installLaunchLinkPlugin,
+  LAUNCH_LINK_ID,
+  LAUNCH_LINK_KEY,
+  removeLaunchLinkPlugin,
+} from "./launch-link.ts";
 import { obRun } from "./obsidian-cli.ts";
 import type { ObsidianContext } from "./page-context.ts";
 import type { RenameListener } from "./page-host.ts";
@@ -200,6 +206,78 @@ describe.skipIf(!reachable)("Window reload", () => {
     expect(answer.atDispatch).toBe("loading");
     expect(answer.opened).toMatch(/\.md$/);
   }, 120000);
+
+  it("opens the literature note of a zotlit/open link that waits at launch, with no unrecognized action notice", async () => {
+    await installLaunchLinkPlugin(vaultPath);
+    const original = await obRun(
+      vaultId,
+      async ({ app, zotlit }, { key, id }) => {
+        const leaf = app.workspace.getLeaf(false);
+        await leaf.setViewState({ type: "empty" });
+        const s = zotlit.services;
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            action: "zotlit/open",
+            item: "1",
+            "source-id": s.bridge.runSync(s.zoteroPref.current).sourceId!,
+          }),
+        );
+        const path = `${app.vault.configDir}/community-plugins.json`;
+        const text = await app.vault.adapter.read(path);
+        // The launch link plugin loads before ZotLit, as Obsidian's main
+        // process sets the link before any plugin loads.
+        await app.vault.adapter.write(
+          path,
+          JSON.stringify([id, ...(JSON.parse(text) as string[])]),
+        );
+        return text;
+      },
+      { key: LAUNCH_LINK_KEY, id: LAUNCH_LINK_ID },
+    );
+    try {
+      await reloadWindow(vaultId);
+      const answer = await obRun(
+        vaultId,
+        async ({ app, page }, { id }) => {
+          const opened = await page
+            .until(
+              "the literature note of the link",
+              () => app.workspace.getActiveFile()?.path,
+              30000,
+            )
+            .catch(() => null);
+          const plugin = app.plugins.plugins[id] as
+            | { notices: string[] }
+            | undefined;
+          return {
+            opened,
+            unrecognized: (plugin?.notices ?? []).filter((text) =>
+              text.includes("Unrecognized URI action"),
+            ),
+          };
+        },
+        { id: LAUNCH_LINK_ID },
+        { timeoutMs: 60000 },
+      );
+      expect(answer.unrecognized).toEqual([]);
+      expect(answer.opened).toMatch(/\.md$/);
+    } finally {
+      await obRun(
+        vaultId,
+        async ({ app }, { key, id, text }) => {
+          window.localStorage.removeItem(key);
+          if (app.plugins.plugins[id]) await app.plugins.disablePlugin(id);
+          await app.vault.adapter.write(
+            `${app.vault.configDir}/community-plugins.json`,
+            text,
+          );
+        },
+        { key: LAUNCH_LINK_KEY, id: LAUNCH_LINK_ID, text: original },
+      );
+      await removeLaunchLinkPlugin(vaultPath);
+    }
+  }, 180000);
 
   it("uses page helpers after reload and on popout elements without helper setup", async () => {
     await reloadWindow(vaultId);

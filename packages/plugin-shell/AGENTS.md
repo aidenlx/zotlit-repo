@@ -9,7 +9,7 @@ The plugin shell: the plugin class a host extends, its lifecycle, the runtime, s
   - `feature.ts` — `defineFeature`, `serviceGroup`, `registration`, `protocolHandler`, and the `Feature` value.
   - `compose.ts` — `defineHost` (with the type check of missing services; a host declaration requires `languagePack`, the Language Pack identity: catalog, runtime, storage namespace, publish repository), `settingsDefinitionOf`, `featureServices`, `pluginGraph`, `serviceOrder`.
   - `base.ts` — the shell base every group reads without naming it (`ShellBase`): settings, logging, the Obsidian capability tags, `PluginHost`, `LanguagePack`, `GraphBuilt`.
-  - `entry.ts` — `shellEntry(load, when)`, the plugin class Obsidian loads: it imports no Effect and no feature code, and starts the body that `load` gives inside `onload` (`"onload"`) or once the layout is ready (`"layout-ready"`).
+  - `entry.ts` — `shellEntry(load, when, linkActions)`, the plugin class Obsidian loads: it imports no Effect and no feature code, and starts the body that `load` gives inside `onload` (`"onload"`) or once the layout is ready (`"layout-ready"`). When the start waits for the layout, it registers the body's `linkActions` in `onload` and holds each link until the start has finished, then hands it to the body's handler.
   - `runtime.ts`, `plugin.ts`, `lifecycle.ts`, `late-release.ts`, `startup-notice.ts` — the runtime, the body's start and unload (`shellStart(host, { preflight })`) with the class of a host that starts inside `onload` (`shellPlugin(host)`), the unload-aware base class, and the late-release warning.
   - `setting-tab/` — the tab shell (`tab.ts`), its layer (`layer.ts`) and the declarative control store (`controls.ts`).
   - `platform-base.ts` — the `platformBase` feature, Zotero-free, which every host composes: the log settings slice, the Language Pack notices, the Advanced page (`setting-pages/advanced.ts`) with the logging rows and the Language Pack reset, the log level codec and the Language Pack rebuild stream. A host without `platform` fills `FileSystem` itself (the Reader: `@zotlit/obsidian-kit/vault-file-system.ts`).
@@ -36,7 +36,7 @@ A cross-feature port is a tag: the reading feature owns the tag and lists it in 
 - Service groups build in the topological order of their tags (`core/graph.ts`), with ties in host feature order and declaration order. `serviceOrder(features)` prints it.
 - Registrations, handles and start-up hooks run in host feature order, and in declaration order inside each feature.
 - The file menu, the folder menu and the setting tab follow the host's lists, not feature order.
-- The body of a `"layout-ready"` host (desktop ZotLit) starts once Obsidian's layout is ready on a start of the app, and inside `onload` when the plugin is turned on while the app runs. The body of an `"onload"` host (the Reader) starts inside `onload`.
+- The body of a `"layout-ready"` host (desktop ZotLit) starts once Obsidian's layout is ready on a start of the app, and inside `onload` when the plugin is turned on while the app runs. The body of an `"onload"` host (the Reader) starts inside `onload`. A link that starts Obsidian waits in the entry of a `"layout-ready"` host until the body has started, and then runs.
 
 ## Settings registry
 

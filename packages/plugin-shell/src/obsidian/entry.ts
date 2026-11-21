@@ -1,7 +1,11 @@
 // The plugin class Obsidian loads: a small entry that starts the plugin body.
 // It imports no Effect and no feature code, so a host can load the body after
 // Obsidian's own start-up.
-import type { Plugin } from "obsidian";
+import type {
+  ObsidianProtocolData,
+  ObsidianProtocolHandler,
+  Plugin,
+} from "obsidian";
 
 import type {
   CliCommand,
@@ -52,13 +56,24 @@ export type ShellStartTime = "onload" | "layout-ready";
  * extends it. With `"layout-ready"`, give `load` a dynamic `import()` of the
  * body module: the bundle then evaluates the body's modules at the start, not
  * with `main.js`.
+ *
+ * `linkActions` names the `obsidian://` actions the body registers. When the
+ * start waits for the layout, the entry registers them in `onload`, so a link
+ * that started Obsidian finds its action registered once the layout is ready.
+ * The entry holds each such link until the start has finished, then hands it
+ * to the handler the body registered.
  */
 export function shellEntry(
   load: () => Promise<StartShell>,
   when: ShellStartTime,
+  linkActions: readonly string[] = [],
 ) {
   return class ShellEntry extends UnloadAwarePlugin implements CliHost {
     #started?: StartedShell;
+    /** The body's handler of each action the entry registered in `onload`. */
+    readonly #linkHandlers = new Map<string, ObsidianProtocolHandler | null>();
+    /** The links that came before the start finished, in arrival order. */
+    #heldLinks: ObsidianProtocolData[] = [];
 
     /**
      * The plugin runtime's values, for `obsidian eval` callers outside the
@@ -107,10 +122,30 @@ export function shellEntry(
       });
     }
 
+    /**
+     * For an action the entry registered in `onload`, keep the body's handler
+     * in the entry's table; register any other action on Obsidian.
+     */
+    override registerObsidianProtocolHandler(
+      action: string,
+      handler: ObsidianProtocolHandler,
+    ): void {
+      if (this.#linkHandlers.has(action))
+        this.#linkHandlers.set(action, handler);
+      else super.registerObsidianProtocolHandler(action, handler);
+    }
+
     override async onload(): Promise<void> {
       await super.onload();
       const { workspace } = this.app;
       if (when === "onload" || workspace.layoutReady) return this.#start();
+      for (const action of linkActions) {
+        this.#linkHandlers.set(action, null);
+        super.registerObsidianProtocolHandler(action, (data) => {
+          if (this.#started) this.#linkHandlers.get(action)?.(data);
+          else this.#heldLinks.push(data);
+        });
+      }
       workspace.onLayoutReady(() => {
         // Obsidian reports a failed `onload` this way; nothing awaits this start.
         this.#start().catch((error: unknown) => {
@@ -124,6 +159,10 @@ export function shellEntry(
       const start = await load();
       if (this.unloaded) return;
       this.#started = await start(this);
+      if (!this.#started) return;
+      const held = this.#heldLinks;
+      this.#heldLinks = [];
+      for (const data of held) this.#linkHandlers.get(data.action)?.(data);
     }
 
     override onunload(): void {

@@ -6,38 +6,34 @@ import {
   parseIndexedKey,
 } from "@zotlit/zotero-types/keys";
 
-/**
- * Obsidian protocol namespace ZotLit owns. Each action is registered as
- * `"zotlit/<action>"` following Obsidian's URI convention
- * ({@link https://help.obsidian.md/Extending+Obsidian/Obsidian+URI}).
- */
-export const PROTOCOL_NAMESPACE = "zotlit";
+import type { ProtocolAction } from "./actions.ts";
+import {
+  batchProtocolActionId,
+  exploreProtocolActionId,
+  importAllNotesProtocolActionId,
+  importManyProtocolActionId,
+  importProfileProtocolActionId,
+  importProtocolActionId,
+  openAttachmentProtocolActionId,
+  protocolActionId,
+  showInLibraryProtocolActionId,
+  updateAllProtocolActionId,
+} from "./actions.ts";
 
-/** Literature-note actions, following Obsidian's one-handler-per-verb convention. */
-export type ProtocolAction = "open" | "update";
-
-export const protocolActions = [
-  "open",
-  "update",
-] as const satisfies readonly ProtocolAction[];
-
-/** Full Obsidian action string for `registerObsidianProtocolHandler`. */
-export function protocolActionId(
-  action: ProtocolAction,
-): `${typeof PROTOCOL_NAMESPACE}/${ProtocolAction}` {
-  return `${PROTOCOL_NAMESPACE}/${action}`;
-}
-
-/**
- * Batch literature-note action. Kept out of {@link protocolActions} because it
- * carries a different query shape (an `items` list, not a single `item`) and a
- * different handler.
- */
-const PROTOCOL_BATCH_ACTION = "update-many";
-
-/** Full Obsidian action string for the batch handler. */
-export const batchProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_BATCH_ACTION}` as const;
+export {
+  batchProtocolActionId,
+  exploreProtocolActionId,
+  importAllNotesProtocolActionId,
+  importManyProtocolActionId,
+  importProfileProtocolActionId,
+  importProtocolActionId,
+  openAttachmentProtocolActionId,
+  type ProtocolAction,
+  protocolActionId,
+  protocolActions,
+  showInLibraryProtocolActionId,
+  updateAllProtocolActionId,
+} from "./actions.ts";
 
 /** Numeric Zotero `itemID`, carried on the wire as a decimal string. */
 const itemID = v.pipe(v.string(), v.regex(/^\d+$/u), v.transform(Number));
@@ -254,23 +250,6 @@ export type ImportMode = "note" | "child";
 
 const importModeValue = v.picklist(["note", "child"] satisfies ImportMode[]);
 
-/**
- * Single-item note-import action. Kept out of {@link protocolActions} (different
- * query shape with `mode`).
- */
-const PROTOCOL_IMPORT_ACTION = "import-note";
-
-/** Batch note-import action. */
-const PROTOCOL_IMPORT_MANY_ACTION = "import-notes";
-
-/** Full Obsidian action string for a single-note import. */
-export const importProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_IMPORT_ACTION}` as const;
-
-/** Full Obsidian action string for the batch import handler. */
-export const importManyProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_IMPORT_MANY_ACTION}` as const;
-
 /** Query payload for `zotlit/import-note`. */
 export const importProtocolQuerySchema = v.pipe(
   v.object({
@@ -396,11 +375,6 @@ export function buildBatchProtocolUrl(
   return `obsidian://${batchProtocolActionId}?${params}`;
 }
 
-const PROTOCOL_EXPLORE_ACTION = "explore";
-
-export const exploreProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_EXPLORE_ACTION}` as const;
-
 const annotationKeyValue = v.optional(v.pipe(v.string(), v.check(isItemKey)));
 
 export const exploreProtocolQuerySchema = v.pipe(
@@ -434,17 +408,6 @@ export function parseExploreProtocolQuery(
 ): ExploreProtocolQuery {
   return v.parse(exploreProtocolQuerySchema, data);
 }
-
-const PROTOCOL_SHOW_IN_LIBRARY_ACTION = "show-in-library";
-
-/**
- * Open the Library View on one Item. The link names the Item by its Indexed
- * Key, which every synced device shares, so a link written into a note keeps
- * working on each of them; it carries no `source-id`. {@link libraryViewUri}
- * builds it.
- */
-export const showInLibraryProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_SHOW_IN_LIBRARY_ACTION}` as const;
 
 export const showInLibraryProtocolQuerySchema = v.pipe(
   v.object({
@@ -483,21 +446,6 @@ export function parseShowInLibraryProtocolQuery(
 ): ShowInLibraryProtocolQuery {
   return v.parse(showInLibraryProtocolQuerySchema, data);
 }
-
-const PROTOCOL_UPDATE_ALL_ACTION = "update-all";
-
-/**
- * Library-wide note import. Shares {@link updateAllProtocolQuerySchema}'s query
- * shape, and gathers both child notes of regular items and standalone notes in
- * scope — so it carries no `mode`.
- */
-const PROTOCOL_IMPORT_ALL_NOTES_ACTION = "import-all-notes";
-
-export const updateAllProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_UPDATE_ALL_ACTION}` as const;
-
-export const importAllNotesProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_IMPORT_ALL_NOTES_ACTION}` as const;
 
 /**
  * 8-char base-32 Zotero collection key. Collection keys and item keys share
@@ -620,17 +568,6 @@ export function buildExploreProtocolUrl(
   return `obsidian://${exploreProtocolActionId}?${params}`;
 }
 
-const PROTOCOL_OPEN_ATTACHMENT_ACTION = "open-attachment";
-
-/**
- * Full Obsidian action string for `registerObsidianProtocolHandler`. Kept out
- * of {@link protocolActions} because it carries a different handler: the
- * receiver opens a PDF attachment in Obsidian's own reader, branching on
- * whether `item` names a regular item or an attachment.
- */
-export const openAttachmentProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/${PROTOCOL_OPEN_ATTACHMENT_ACTION}` as const;
-
 export const openAttachmentProtocolQuerySchema = v.pipe(
   v.object({
     item: itemID,
@@ -690,9 +627,6 @@ export function parseProtocolQuery(
   return v.parse(protocolQuerySchema, data);
 }
 
-/** Clipboard-only Profile handoff; document source stays outside the URI. */
-export const importProfileProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/import-profile` as const;
 export const importProfileProtocolQuerySchema = v.object({
   clipboard: v.literal("true"),
   paneType: paneTypeValue,
