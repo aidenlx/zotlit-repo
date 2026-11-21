@@ -1,4 +1,3 @@
-import type { ResourcePackHostPorts } from "#obsidian/managed-binary/pack-platform.ts";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import {
@@ -528,7 +527,7 @@ describe("ItemLookup", () => {
 const lookupOver = Effect.fnUntraced(function* (
   reads: ObservedReads,
   libraries: readonly AvailableLibrary[] | null = [library(USER_LIBRARY_ID)],
-  pack?: ResourcePackHostPorts,
+  pack?: ReturnType<typeof packDevice>,
 ) {
   const state = yield* SubscriptionRef.make(scopeState(libraries));
   const notifier = testNotifier();

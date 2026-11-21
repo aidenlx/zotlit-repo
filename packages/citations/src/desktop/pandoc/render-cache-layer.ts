@@ -79,11 +79,6 @@ export const layerBibliographyRender = Layer.effect(
      */
     const noticeRefusal = Effect.suspend(() => engine.current).pipe(
       Effect.flatMap((status) => packNotice(status)),
-      Effect.catchCause((cause) =>
-        Cause.hasInterruptsOnly(cause)
-          ? Effect.interrupt
-          : Effect.logDebug("Could not show the Resource Pack notice", cause),
-      ),
       Effect.provide(noticeServices),
     );
     /** The engine for one render; a refused borrow shows the notice. */

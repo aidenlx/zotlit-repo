@@ -37,6 +37,8 @@ ZotLit → Zotero** open for the **Chinese segmenter** row.
 | With the row open, change `"compat":1` on line 1 of the pack file to `"compat":2`, and run the console lines. | The open row changes to "too new", and asks you to update ZotLit. Its button opens the page of ZotLit. The Sidebar shows the warning banner **The Pandoc engine is unavailable** with the same sentence. |
 | Change the value to `"compat":0` and run the console lines. | The open row changes to "too old", and asks you to update ZotLit Resource Pack. Its button opens the page of ZotLit Resource Pack. |
 | Restore `"compat":1`, change one letter in the last long line of the file, and run the console lines. | The **Pandoc engine** row on the Citations page says the file is damaged. The **Chinese segmenter** row stays **Ready**: its entry is the long line before. |
+| With the file restored, change the first letter of the long line of the `chinese-segmenter` entry (the long line before the last one), and run the console lines. Search the Library View for `流域`. | The **Chinese segmenter** row says the file is damaged. `流域` finds nothing. |
+| Restore that letter and run the console lines: the same version, repaired. Search for `流域`. | The row says **Ready**. `流域` finds `长江流域的城市化研究`, with no restart. |
 | Restore the file (run the build and the console lines). Run **ZotLit: Export note with citations** as HTML. | Both rows say **Ready**. The export completes: the engine started from the restored pack. |
 | Turn another community plugin off and on. | The rows, the Sidebar and the search stay as they are. |
 | Edit the pack file to `"compat":2` and do not run the console lines. | The open rows keep their status. Close and open the settings page: the row then shows "too new". |
@@ -62,8 +64,8 @@ Workbench preview) or a search of Chinese text.
 | With the pack ready, or with a pack whose binary does not start (command A on `resource-pack-chinese-segmenter.md`), search for `流域`. | No notice. The row gives the reason for a binary that does not start. |
 
 The desktop check `pnpm e2e --project=desktop src/query-cli.e2e.ts -t 'during the session'`
-runs the update to a pack that is too new, the uninstall and the install with
-the row open, the row's button for ZotLit's page, the search of Chinese text
+runs the update to a pack that is too new, the uninstall, the install of a
+damaged pack and its repair with the same version, with the row open, the row's button for ZotLit's page, the search of Chinese text
 in each state, and one notice for each state. The unit suites
 `pack-binary.test.ts`, `pack-notice.test.ts` and `pack-row.test.ts` in
 `packages/plugin-services/src/obsidian/managed-binary/`,

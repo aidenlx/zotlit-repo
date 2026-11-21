@@ -17,6 +17,7 @@ import type { PackFailure } from "@zotlit/resource-pack/format.ts";
 import type { PackEntryLocation } from "@zotlit/resource-pack/reader.ts";
 
 import { ResourcePackPlatform } from "./pack-platform.ts";
+import type { PackLocation } from "./pack-platform.ts";
 import { ManagedBinaryError, managedBinaryError } from "./platform.ts";
 
 /** One Managed Binary of the Resource Pack, and what it starts once verified. */
@@ -72,7 +73,12 @@ export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
    * Obsidian installs, updates or removes the pack.
    */
   readonly changes: Stream.Stream<PackBinaryStatus>;
-  /** The binary's entry in the installed pack, unread; `null` with no pack installed. */
+  /**
+   * The binary's entry in the installed pack, for a reader in another realm;
+   * `null` with no pack installed. It carries the SHA-256 of the entry once a
+   * read of that pack gave the verified binary, so a repaired or changed
+   * entry is another location.
+   */
   readonly entry: Effect.Effect<PackEntryLocation | null>;
   /**
    * Borrow the shared engine for the caller's Scope. The first borrower reads
@@ -132,6 +138,8 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
 >(binary: PackBinary<Engine>) {
   const platform = yield* ResourcePackPlatform;
   const status = yield* SubscriptionRef.make<PackBinaryStatus | null>(null);
+  /** The entry the last read verified, in the pack it read; `null` after a refusal. */
+  let verified: (PackLocation & { readonly sha256: string }) | null = null;
   let closed = false;
   const log = (
     message: string,
@@ -158,6 +166,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   const load = Effect.fn("PackBinary.load")(function* () {
     const location = yield* platform.locate;
     if (!location) {
+      verified = null;
       // No pack is the state before its install, read each time the row is
       // shown: a decision branch, not a degraded state.
       yield* log(
@@ -168,6 +177,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       return { ok: false, status: { kind: "pack-absent" } } satisfies Loaded;
     }
     const read = yield* platform.readEntry(location, binary.id);
+    verified = read.ok ? { ...location, sha256: read.sha256 } : null;
     if (!read.ok) {
       yield* log(
         "The Resource Pack gave no binary",
@@ -283,7 +293,17 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       Stream.filter((current) => current !== null),
     ),
     entry: Effect.map(platform.locate, (location) =>
-      location ? { ...location, entry: binary.id } : null,
+      location
+        ? {
+            ...location,
+            entry: binary.id,
+            sha256:
+              verified?.url === location.url &&
+              verified.version === location.version
+                ? verified.sha256
+                : null,
+          }
+        : null,
     ).pipe(Effect.withSpan("PackBinary.entry")),
     getEngine,
   } satisfies PackBinaryApi<Engine>;

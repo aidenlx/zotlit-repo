@@ -1,5 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 
+// The End-to-end vault holds the Resource Pack installed and not enabled.
+import { RESOURCE_PACK_ID } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
 import { pluginsOption } from "@zotlit/scripts/vault-plugins";
 
 import { prepareRunWindow } from "./background-throttling.ts";
@@ -10,7 +12,6 @@ import {
   workspaceRoot,
 } from "./e2e-run-fixture.ts";
 import { availableLoopbackPort } from "./e2e-run-helpers.ts";
-import { RESOURCE_PACK_ID } from "./e2e-run-note-helpers.ts";
 import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
 import { pluginStartupMs } from "./startup-record.ts";
 import {

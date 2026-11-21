@@ -81,6 +81,14 @@ export function createPageHelpers(
     el.click();
     return el;
   }
+  /** The row named `name` of the open settings, as the reader finds it. */
+  function settingRow(name: string): HTMLElement | undefined {
+    return Array.from(
+      app.setting.containerEl.querySelectorAll<HTMLElement>(".setting-item"),
+    ).find(
+      (row) => row.querySelector(".setting-item-name")?.textContent === name,
+    );
+  }
   async function until<T>(
     what: string,
     ok: () => T | Promise<T>,
@@ -1086,6 +1094,7 @@ export function createPageHelpers(
     measure,
     waitFor,
     pressKey,
+    settingRow,
     scratch,
     revealQueryView,
     annotationLinkTools,

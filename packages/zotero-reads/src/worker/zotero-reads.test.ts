@@ -2267,6 +2267,7 @@ describe("ZoteroReads SearchItems", () => {
       url: "app://vault/plugins/zotlit-resources/main.js",
       entry: "chinese-segmenter",
       version: "1.0.0",
+      sha256: null,
     };
     /** The web-target binary the Resource Pack holds, from the dev dependency. */
     const jiebaBytes = () =>

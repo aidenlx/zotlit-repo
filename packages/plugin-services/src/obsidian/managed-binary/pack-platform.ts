@@ -1,22 +1,19 @@
 // The platform boundary of a Managed Binary that ships in the Resource Pack:
 // where the installed pack is, and the read of one Pack Entry from it.
 import { Context, Effect, Layer, PubSub, Stream } from "effect";
-import type { Scope } from "effect";
 
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import { fetchRange } from "@zotlit/resource-pack/fetch-range.ts";
 import { readPackEntry } from "@zotlit/resource-pack/reader.ts";
 import type { PackRead, ReadRange } from "@zotlit/resource-pack/reader.ts";
 
-/** The plugin id of the Resource Pack. */
-export const RESOURCE_PACK_ID = "zotlit-resources";
-
-/** The page of the Resource Pack in Obsidian's community plugin browser. */
-const RESOURCE_PACK_PAGE = `obsidian://show-plugin?id=${RESOURCE_PACK_ID}`;
+import { RESOURCE_PACK_ID } from "#core/managed-binary/resource-pack.ts";
 
 /** Opens the Resource Pack's page in Obsidian's community plugin browser. */
 export function openResourcePackPage(): void {
-  window.open(RESOURCE_PACK_PAGE);
+  window.open(showPluginPage(RESOURCE_PACK_ID));
 }
 
 /** The installed Resource Pack. */
@@ -33,11 +30,8 @@ export interface ResourcePackHostPorts {
   locate(): PackLocation | null;
   /** The read capability over the pack file at `url`. */
   open(url: string): ReadRange;
-  /**
-   * Calls `listener` each time Obsidian installs, updates or removes the
-   * pack, until the function it answers is called.
-   */
-  watch(listener: () => void): () => void;
+  /** One element each time Obsidian installs, updates or removes the pack. */
+  readonly changes: Stream.Stream<void>;
 }
 
 export interface ResourcePackPorts {
@@ -53,22 +47,10 @@ export class ResourcePackPlatform extends Context.Service<
   ResourcePackPorts
 >()("zotlit/managed-binary/ResourcePackPlatform") {}
 
-/** Wrap the host APIs once, at their boundary; the watch lives on the Scope. */
-export const resourcePackPorts = Effect.fnUntraced(function* (
+/** Wrap the host APIs once, at their boundary. */
+export function resourcePackPorts(
   host: ResourcePackHostPorts,
-): Effect.fn.Return<ResourcePackPorts, never, Scope.Scope> {
-  const changed = yield* Effect.acquireRelease(
-    PubSub.unbounded<void>(),
-    (bus) => PubSub.shutdown(bus),
-  );
-  yield* Effect.acquireRelease(
-    Effect.sync(() =>
-      host.watch(() => {
-        PubSub.publishUnsafe(changed, undefined);
-      }),
-    ),
-    (stop) => Effect.sync(stop),
-  );
+): ResourcePackPorts {
   return {
     locate: Effect.sync(() => host.locate()),
     readEntry: Effect.fn("ResourcePackPlatform.readEntry")(
@@ -76,9 +58,9 @@ export const resourcePackPorts = Effect.fnUntraced(function* (
         // boundary: the pack reader answers each failure as a value.
         Effect.promise(() => readPackEntry(host.open(location.url), name)),
     ),
-    changes: Stream.fromPubSub(changed),
+    changes: host.changes,
   };
-});
+}
 
 /**
  * The platform over Obsidian's installed plugins and `fetch`. Obsidian adds
@@ -95,19 +77,25 @@ export const layerResourcePackPlatform = Layer.effect(
   Effect.gen(function* () {
     const app = yield* ObsidianApp;
     const manifest = () => app.plugins.manifests[RESOURCE_PACK_ID];
-    return yield* resourcePackPorts({
-      watch: (listener) => {
-        let seen = manifest();
-        const ref = app.plugins.on("changed", () => {
+    const events = yield* obsidianEvents<{ changed: [] }>();
+    const changed = yield* Effect.acquireRelease(
+      PubSub.unbounded<void>(),
+      (bus) => PubSub.shutdown(bus),
+    );
+    let seen = manifest();
+    yield* events.on("changed", app.plugins, "changed");
+    yield* events
+      .consume(() =>
+        Effect.suspend(() => {
           const next = manifest();
-          if (next === seen) return;
+          if (next === seen) return Effect.void;
           seen = next;
-          listener();
-        });
-        return () => {
-          app.plugins.offref(ref);
-        };
-      },
+          return PubSub.publish(changed, undefined);
+        }),
+      )
+      .pipe(Effect.forkScoped({ startImmediately: true }));
+    return resourcePackPorts({
+      changes: Stream.fromPubSub(changed),
       locate: () => {
         const installed = manifest();
         if (!installed?.dir) return null;

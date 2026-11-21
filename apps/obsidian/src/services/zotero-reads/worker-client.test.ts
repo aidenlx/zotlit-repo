@@ -46,6 +46,9 @@ import { workerClient } from "./worker-client.ts";
 vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 
 /** A controlled browser process boundary with the real worker RPC protocol. */
+/** The smallest module that compiles: the magic number and the version. */
+const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
+
 const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   const spawned = yield* Queue.unbounded<StandInWorker>();
   const configured = yield* Queue.unbounded<ReadsConfig>();
@@ -242,6 +245,8 @@ it.effect(
         url: "app://device/plugins/zotlit-resources/main.js",
         entry: CHINESE_SEGMENTER.id,
         version: "1.2.0",
+        // This thread read no pack byte yet.
+        sha256: null,
       });
     }),
 );
@@ -268,10 +273,7 @@ it.effect(
       worker.device.install(
         yield* Effect.promise(() =>
           packFile({
-            // The smallest module that compiles.
-            [CHINESE_SEGMENTER.id]: new Uint8Array([
-              0, 0x61, 0x73, 0x6d, 1, 0, 0, 0,
-            ]),
+            [CHINESE_SEGMENTER.id]: EMPTY_MODULE,
           }),
         ),
         "1.3.0",
@@ -282,6 +284,49 @@ it.effect(
         url: "app://device/plugins/zotlit-resources/main.js",
         entry: CHINESE_SEGMENTER.id,
         version: "1.3.0",
+        sha256: expect.stringMatching(/^[0-9a-f]{64}$/u),
       });
+    }),
+);
+
+// Story 14: a reinstall of the same version repairs a damaged pack.
+it.effect(
+  "sends the worker the repaired entry when Obsidian installs the same version over a damaged pack",
+  () =>
+    Effect.gen(function* () {
+      // The fixture's installed file is no pack: the worker's read fails.
+      const worker = yield* workerFixture(true);
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ChineseSegmenter, worker.chineseSegmenter),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).start();
+      yield* Fiber.join(opening);
+      const unread = {
+        url: "app://device/plugins/zotlit-resources/main.js",
+        entry: CHINESE_SEGMENTER.id,
+        version: "1.2.0",
+      };
+      expect((yield* Queue.take(worker.initial)).chineseSegmenter).toEqual({
+        ...unread,
+        sha256: null,
+      });
+
+      const repaired = yield* Effect.promise(() =>
+        packFile({ [CHINESE_SEGMENTER.id]: EMPTY_MODULE }),
+      );
+      worker.device.install(repaired, "1.2.0");
+      worker.device.announce();
+
+      const sent = (yield* Queue.take(worker.configured)).chineseSegmenter;
+      expect(sent).toMatchObject(unread);
+      // The identity of the verified bytes: the entry's SHA-256 in the index.
+      expect(sent?.sha256).toMatch(/^[0-9a-f]{64}$/u);
     }),
 );

@@ -2,6 +2,7 @@ import { Effect, Stream } from "effect";
 import type { App } from "obsidian";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { READER_API } from "@zotlit/reader-api";
@@ -43,9 +44,6 @@ export function readerStatus(
   }
 }
 
-const showPlugin = (id: string) =>
-  `obsidian://show-plugin?id=${encodeURIComponent(id)}`;
-
 export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
   switch (status) {
     case "connected":
@@ -55,7 +53,7 @@ export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
         text: m.settings_reader_status_install(),
         action: {
           label: m.settings_reader_status_install_action(),
-          url: showPlugin(READER_PLUGIN_ID),
+          url: showPluginPage(READER_PLUGIN_ID),
         },
       };
     case "turn-on":
@@ -63,7 +61,7 @@ export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
         text: m.settings_reader_status_turn_on(),
         action: {
           label: m.settings_reader_status_turn_on_action(),
-          url: showPlugin(READER_PLUGIN_ID),
+          url: showPluginPage(READER_PLUGIN_ID),
         },
       };
     case "update-reader":
@@ -71,7 +69,7 @@ export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
         text: m.settings_reader_status_update({ plugin: "ZotLit Reader" }),
         action: {
           label: m.settings_reader_status_update_action(),
-          url: showPlugin(READER_PLUGIN_ID),
+          url: showPluginPage(READER_PLUGIN_ID),
         },
       };
     case "update-zotlit":
@@ -79,7 +77,7 @@ export function readerStatusCopy(status: ReaderStatus): ReaderStatusCopy {
         text: m.settings_reader_status_update({ plugin: "ZotLit" }),
         action: {
           label: m.settings_reader_status_update_action(),
-          url: showPlugin(ZOTLIT_PLUGIN_ID),
+          url: showPluginPage(ZOTLIT_PLUGIN_ID),
         },
       };
   }

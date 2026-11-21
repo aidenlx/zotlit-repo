@@ -9,6 +9,7 @@ import type {
 import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
+import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PackBinaryApi, PackBinaryStatus } from "./pack-binary.ts";
@@ -85,7 +86,7 @@ export function openPackStatusPage(
   status: Pick<PackBinaryStatus, "kind"> | null,
 ): void {
   if (status?.kind === "plugin-outdated")
-    window.open(`obsidian://show-plugin?id=${ZOTLIT_PLUGIN_ID}`);
+    window.open(showPluginPage(ZOTLIT_PLUGIN_ID));
   else openResourcePackPage();
 }
 

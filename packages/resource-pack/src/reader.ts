@@ -24,6 +24,12 @@ export interface PackEntryLocation {
   readonly entry: string;
   /** The version of the pack, as its manifest states it. */
   readonly version: string;
+  /**
+   * The SHA-256 of the entry text, from the index of the last read that gave
+   * the verified binary: the identity of the bytes. `null` while that pack is
+   * unread, and after a read that gave no binary.
+   */
+  readonly sha256: string | null;
 }
 
 /** A `ReadRange` rejects with this when the host has no pack file. */
@@ -32,7 +38,12 @@ export class PackAbsentError extends Error {
 }
 
 export type PackRead =
-  | { readonly ok: true; readonly bytes: Uint8Array<ArrayBuffer> }
+  | {
+      readonly ok: true;
+      readonly bytes: Uint8Array<ArrayBuffer>;
+      /** The SHA-256 of the entry text, as the index states it. */
+      readonly sha256: string;
+    }
   | { readonly ok: false; readonly failure: PackFailure };
 
 /** A `ReadRange` over a pack held in memory. */
@@ -110,7 +121,7 @@ export async function readPackEntry(
     });
   }
   try {
-    return { ok: true, bytes: await decodeEntry(text) };
+    return { ok: true, bytes: await decodeEntry(text), sha256: entry.sha256 };
   } catch (error) {
     return refused({ kind: "entry-damaged", name, detail: detailOf(error) });
   }

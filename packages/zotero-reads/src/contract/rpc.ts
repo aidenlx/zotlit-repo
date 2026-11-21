@@ -398,6 +398,8 @@ export const SegmenterBinarySchema = Schema.Struct({
   url: Schema.String,
   entry: Schema.String,
   version: Schema.String,
+  /** The SHA-256 of the entry the renderer verified; `null` while it read none. */
+  sha256: Schema.NullOr(Schema.String),
 });
 export type SegmenterBinary = typeof SegmenterBinarySchema.Type;
 type _SegmenterBinary = Expect<

@@ -3,11 +3,12 @@ import { basename, join } from "node:path";
 import type { MarkdownView } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+// The End-to-end vault holds the Resource Pack installed and not enabled.
+import { RESOURCE_PACK_ID } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { prepareRunWindow } from "./background-throttling.ts";
-import { RESOURCE_PACK_ID } from "./e2e-run-note-helpers.ts";
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";
 import { useListingProfile } from "./listing-profile.ts";
 import { cliCommand, obRun, obRunUntil } from "./obsidian-cli.ts";

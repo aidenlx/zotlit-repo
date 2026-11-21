@@ -1,4 +1,5 @@
 // Test support: a fake device for Managed Binary services, with an in-memory store and consent record.
+import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { bytesRange } from "@zotlit/resource-pack/reader.ts";
 import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
@@ -93,14 +94,11 @@ export function packDevice(
   announce(): void;
 } {
   let installed = file && { file, version };
-  const listeners = new Set<() => void>();
+  const reports = testEvent<void>();
   return {
-    watch: (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
+    changes: reports.stream,
     announce: () => {
-      for (const listener of listeners) listener();
+      reports.emit();
     },
     locate: () =>
       installed && {

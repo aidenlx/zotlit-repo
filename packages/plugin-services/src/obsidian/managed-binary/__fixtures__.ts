@@ -58,7 +58,7 @@ export async function openManagedBinary<
 export const layerPackDevice = (
   ports: ResourcePackHostPorts,
 ): Layer.Layer<ResourcePackPlatform> =>
-  Layer.effect(ResourcePackPlatform, resourcePackPorts(ports));
+  Layer.succeed(ResourcePackPlatform, resourcePackPorts(ports));
 
 /** One Resource Pack binary over fake host ports, built on the caller's Scope. */
 export function packBinary<Engine extends Disposable | AsyncDisposable>(

@@ -13,7 +13,9 @@ import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-sto
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PackBinaryStatus } from "./pack-binary.ts";
-import { PACK_NOTICE_KEY, packNotice } from "./pack-notice.ts";
+import { packNotice } from "./pack-notice.ts";
+
+import { PACK_NOTICE_KEY } from "#core/managed-binary/resource-pack.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();

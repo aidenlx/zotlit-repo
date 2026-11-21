@@ -25,7 +25,28 @@ export const sameSegmenterBinary = (
     b !== null &&
     a.url === b.url &&
     a.entry === b.entry &&
-    a.version === b.version);
+    a.version === b.version &&
+    a.sha256 === b.sha256);
+
+/**
+ * Whether `next` names the binary that `held` loaded from: the same entry of
+ * the same pack, where a hash that one side does not know yet matches. The
+ * renderer learns the hash at its first read of the pack, after the worker
+ * read the same file.
+ */
+const sameLoadedBinary = (
+  held: SegmenterBinary | null,
+  next: SegmenterBinary | null,
+): boolean =>
+  held === next ||
+  (held !== null &&
+    next !== null &&
+    held.url === next.url &&
+    held.entry === next.entry &&
+    held.version === next.version &&
+    (held.sha256 === null ||
+      next.sha256 === null ||
+      held.sha256 === next.sha256));
 
 /** Port: reads the bytes of an installed Chinese Segmenter binary. */
 export class SegmenterBinaryReader extends Context.Service<
@@ -90,7 +111,7 @@ export function makeSegmenterSwitch(
       Effect.flatMap((bytes) => segmenterOf(layerSegmenterJieba(bytes))),
       Effect.tap(() =>
         Effect.gen(function* () {
-          if (loaded && !sameSegmenterBinary(loaded, binary)) {
+          if (loaded && !sameLoadedBinary(loaded, binary)) {
             yield* log(
               "warn",
               "The Chinese Segmenter keeps its first binary until the realm restarts",
@@ -124,7 +145,12 @@ export function makeSegmenterSwitch(
     next: SegmenterBinary | null,
   ): Effect.Effect<SegmenterService | undefined> =>
     Effect.suspend(() => {
-      if (sameSegmenterBinary(next, requested)) return Effect.undefined;
+      // A binary that did not load left `requested` empty, so the same
+      // location, or its repaired entry, is tried again.
+      if (sameLoadedBinary(requested, next)) {
+        requested = next;
+        return Effect.undefined;
+      }
       requested = next;
       if (next) return install(next);
       return Effect.andThen(

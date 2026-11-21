@@ -382,12 +382,6 @@ async function observeNotices(vaultId: string) {
   };
 }
 
-/** The plugin id of the Resource Pack, which the End-to-end vault holds installed and not enabled. */
-
-const RESOURCE_PACK_ID = "zotlit-resources";
-/** The vault's record of the Resource Pack notices it showed. */
-const PACK_NOTICE_KEY = "zotlit-resource-pack-notices";
-
 /** Items a synthetic sync adds: the scale ADR 0069 measured at. */
 const SYNTHETIC_CORPUS_SIZE = 10_000;
 /** A word only synthetic Items carry. */
@@ -589,8 +583,6 @@ async function rendererHeap(vaultId: string): Promise<number> {
 }
 
 export {
-  RESOURCE_PACK_ID,
-  PACK_NOTICE_KEY,
   SYNTHETIC_CORPUS_SIZE,
   SYNTHETIC_MARKER,
   createFixtureNote,

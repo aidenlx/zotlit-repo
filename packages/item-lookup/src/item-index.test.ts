@@ -70,7 +70,10 @@ const INSTALLED: SegmenterBinary = {
   url: PACK,
   entry: "chinese-segmenter",
   version: "1.0.0",
+  sha256: null,
 };
+/** The same entry once the renderer read the pack and knows its hash. */
+const VERIFIED: SegmenterBinary = { ...INSTALLED, sha256: "9f".repeat(32) };
 const MISSING: SegmenterBinary = { ...INSTALLED, version: "0.9.0" };
 const CORRUPT: SegmenterBinary = { ...INSTALLED, version: "1.0.1" };
 /** The bytes each binary of the tests reads as; another binary is missing. */
@@ -783,16 +786,19 @@ describe("Item Index with the Chinese Segmenter", () => {
   });
 
   it.each([
-    ["no binary", null],
-    ["the installed binary", INSTALLED],
+    ["no binary", null, null],
+    ["the installed binary", INSTALLED, INSTALLED],
+    // The renderer reads the pack after the worker did, and then names the
+    // hash of the entry the worker loaded.
+    ["the hash of the loaded binary", INSTALLED, VERIFIED],
   ])(
     "rebuilds nothing on a configure with equal settings and %s",
-    async (_, binary) => {
+    async (_, binary, next) => {
       const result = await withIndex(
         ({ source, reader, search, configure }) =>
           Effect.gen(function* () {
             yield* search(USER, "");
-            yield* configure({ locale: "en", segmenterBinary: binary });
+            yield* configure({ locale: "en", segmenterBinary: next });
             // A change re-checks the list; its release ends the first
             // rebuild after the configure, so a configure rebuild lands first.
             yield* source.notify;

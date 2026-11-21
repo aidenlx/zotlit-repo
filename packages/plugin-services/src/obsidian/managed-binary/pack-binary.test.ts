@@ -3,7 +3,11 @@ import { Effect, Option, Stream } from "effect";
 import { describe, expect } from "vitest";
 
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
-import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
+import {
+  PACK_COMPAT,
+  PACK_INDEX_BYTES,
+  parseIndex,
+} from "@zotlit/resource-pack/format.ts";
 
 import { packBinary } from "./__fixtures__.ts";
 import type {
@@ -199,7 +203,37 @@ describe("a Managed Binary of the Resource Pack", () => {
           url: "app://device/plugins/zotlit-resources/main.js",
           entry: "chinese-segmenter",
           version: "1.3.0",
+          sha256: null,
         });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "names the entry by the hash its index states once a read verified it, so a repaired pack of the same version is another entry",
+    () =>
+      Effect.gen(function* () {
+        const good = yield* pack({ "chinese-segmenter": BINARY });
+        const stated = parseIndex(good.subarray(0, PACK_INDEX_BYTES))!
+          .entries[0]!.sha256;
+        const damaged = new TextEncoder().encode("module.exports = {};\n");
+        const device = packDevice(damaged, "1.3.0");
+        const service = yield* packBinary(SEGMENTER, device);
+        const hashes: (string | null | undefined)[] = [];
+        const note = Effect.map(service.entry, (entry) => {
+          hashes.push(entry?.sha256);
+        });
+
+        yield* note; // unread
+        yield* service.check;
+        yield* note; // read, and refused as damaged
+        device.install(good, "1.3.0");
+        yield* service.check;
+        yield* note; // the same version, repaired
+        device.install(damaged, "1.3.0");
+        yield* service.check;
+        yield* note; // damaged again
+
+        expect(hashes).toEqual([null, null, stated, null]);
       }).pipe(Effect.scoped),
   );
 
