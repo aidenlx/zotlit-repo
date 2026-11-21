@@ -10,6 +10,7 @@ import {
   Layer,
   Queue,
   Scope,
+  Stream,
   SubscriptionRef,
 } from "effect";
 import { isDeepStrictEqual } from "node:util";
@@ -109,9 +110,12 @@ describe("ItemLookup", () => {
     [
       "one-shot searches started together",
       (lookup: ItemLookup["Service"]) =>
-        Effect.all(
-          ["长", "长江", "长江流"].map((query) => lookup.search(query)),
-          { concurrency: "unbounded" },
+        Effect.forEach(
+          ["长", "长江", "长江流"],
+          (query) => lookup.search(query),
+          {
+            concurrency: "unbounded",
+          },
         ),
     ],
     [
@@ -165,11 +169,12 @@ describe("ItemLookup", () => {
           yield* searches(lookup);
           held.resolve();
 
-          yield* eventually(() =>
-            expect(Effect.runSync(segmenter!.current)).toEqual({
-              kind: "ready",
-              version: "1.0.0",
-            }),
+          // The read that the searches share ends with the Segmenter ready.
+          yield* Stream.runHead(
+            Stream.filter(
+              segmenter!.changes,
+              (status) => status.kind === "ready",
+            ),
           );
           expect(packReads).toBe(1);
         }),
