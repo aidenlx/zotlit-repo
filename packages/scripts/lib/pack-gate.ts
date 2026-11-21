@@ -1,13 +1,13 @@
 // The bundle check of a Resource Pack: its `main.js` is valid JavaScript, and
 // each Pack Entry reads back as its pinned binary after the text changes
 // Obsidian makes on install.
-import { createHash } from "node:crypto";
 import { Script } from "node:vm";
 
 import { PACK_INDEX_BYTES, parseIndex } from "@zotlit/resource-pack/format.ts";
 import { applyObsidianInstall } from "@zotlit/resource-pack/obsidian-install.ts";
 import type { PackPins } from "@zotlit/resource-pack/pins.ts";
 import { bytesRange, readPackEntry } from "@zotlit/resource-pack/reader.ts";
+import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 
 export interface PackReport {
   readonly lines: readonly string[];
@@ -51,7 +51,7 @@ export async function checkPack(
       );
       continue;
     }
-    const actual = createHash("sha256").update(result.bytes).digest("hex");
+    const actual = await sha256Hex(result.bytes);
     if (actual === pin.sha256) {
       lines.push(
         `${name} ${result.bytes.length.toLocaleString("en-US")} B, read back as its pin`,

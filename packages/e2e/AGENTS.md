@@ -125,7 +125,7 @@ Needs desktop Obsidian running locally with the CLI enabled (Settings → Genera
 
 The suite talks to Obsidian's CLI socket directly, so the `obsidian` command need not be registered. Run `packages/scripts/scripts/obsidian-cli.ts version` to verify that Obsidian answers.
 
-The run vault holds the Resource Pack (`zotlit-resources`, from `@zotlit/resources`'s `build:dev`) installed and not enabled: `installWithoutEnabling` (`src/vault-script.ts`) copies it, and the vault script's `--install` keeps it out of `community-plugins.json`. ZotLit reads the Chinese Segmenter from it, so no case needs the network for a Managed Binary of the pack.
+The run vault holds the Resource Pack (`zotlit-resources`, from `@zotlit/resources`'s `build:dev`) installed and not enabled: `installWithoutEnabling` (`src/vault-script.ts`) copies it, and the vault script's `--install` keeps it out of `community-plugins.json`. ZotLit reads the Pandoc Engine and the Chinese Segmenter from it, so no case needs the network for a Managed Binary.
 
 The e2e vault's plugin bundle comes from `@zotlit/obsidian`'s dev build (`build:dev`), never the production build: the Scope Case assertion reads `zotlit:library-scope`, a CLI command registered only under `__DEV__` and absent from production plugin bundles.
 

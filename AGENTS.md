@@ -6,7 +6,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 
 - `apps/obsidian` — the desktop Obsidian plugin (`@zotlit/obsidian`): a thin host that composes the feature packages on `@zotlit/plugin-shell`.
 - `apps/reader` — ZotLit Reader (`@zotlit/reader`, plugin id `zotlit-reader`), the second Obsidian plugin: a thin host on `@zotlit/plugin-shell` that opens vault PDFs in the ZotLit PDF Reader, with no ZotLit and no Zotero. ZotLit adds its Zotero features to the Reader's view through `@zotlit/reader-api`, and opens PDFs in Obsidian's own PDF view when the Reader is absent.
-- `apps/resources` — the Resource Pack (`@zotlit/resources`, plugin id `zotlit-resources`), the third Obsidian plugin: its `main.js` is a container of Pack Entries (the Chinese Segmenter) that ZotLit reads through `@zotlit/resource-pack`. Its build is a Node script, with no bundler.
+- `apps/resources` — the Resource Pack (`@zotlit/resources`, plugin id `zotlit-resources`), the third Obsidian plugin: its `main.js` is a container of Pack Entries (the Pandoc Engine and the Chinese Segmenter) that ZotLit reads through `@zotlit/resource-pack`. Its build is a Node script, with no bundler.
 - `apps/zotero` — Zotero-side companion.
 - `apps/docs` — documentation and landing sites.
 - `packages/annotations`, `packages/citations`, `packages/notes`, `packages/template-workbench`, `packages/query-views`, `packages/library-view` — the plugin's features, one package each, in layers (`core/` host-free, `obsidian/` without Node, `desktop/` with Node and Electron) that lint enforces. Each package's `AGENTS.md` names what it owns.

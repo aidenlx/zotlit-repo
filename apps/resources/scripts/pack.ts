@@ -1,13 +1,15 @@
 // The Resource Pack's content: each Pack Entry from its installed upstream
 // package, checked against the pin in this app's package.json (`packEntries`).
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { constants, gzip } from "node:zlib";
 
 import type { PackEntryPin, PackPins } from "@zotlit/resource-pack/pins.ts";
 import type { PackSource } from "@zotlit/resource-pack/writer.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
+
+const packageRoot = resolve(import.meta.dirname, "..");
 
 interface PinnedSource {
   readonly source: PackSource;
@@ -59,12 +61,7 @@ const PANDOC_BINARY = "src/pandoc.wasm";
 /** The file of `pandoc-wasm` that states the Pandoc release its binary is. */
 const PANDOC_VERSION = "pandoc-version.txt";
 /** The GNU General Public License, version 2: `COPYING.md` of the Pandoc source. */
-const PANDOC_COPYING = join(
-  import.meta.dirname,
-  "..",
-  "licences",
-  "pandoc-COPYING.txt",
-);
+const PANDOC_COPYING = join(packageRoot, "licences", "pandoc-COPYING.txt");
 
 async function pandocEngine(
   pins: PackPins,
