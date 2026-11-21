@@ -51,16 +51,22 @@ on your machine, and `pnpm land` runs it again on the tree it pushes
 lands on it, and every release, beta or stable, is a version commit on it. The
 version picks the release line: a pre-release version (`2.3.0-beta.1`) ships
 on the beta line, any other version (`2.3.0`) on the stable line. The code of
-a release is its tag. No other branch is pushed to `aidenlx/zotlit-repo`. See
-[ADR 0097](docs/adr/0097-main-is-the-one-trunk.md).
+a release is its tag. A land pushes its task branch to `aidenlx/zotlit-repo` as
+the head of its record pull request, and deletes it once the PR shows as
+merged. See
+[ADR 0097](docs/adr/0097-main-is-the-one-trunk.md) and
+[ADR 0102](docs/adr/0102-each-land-opens-a-record-pull-request.md).
 
 ### Landing a change
 
 A change reaches `main` through `pnpm land`, run from the task worktree on its
 branch with a clean tree. Lands on one machine run one at a time, in a queue:
 each fetches `origin/main`, rebases the branch onto it, runs `pnpm verify` on
-the rebased tree, and pushes it to `main` as a fast-forward. The gate cannot be
-skipped. The pre-push hook lets only `pnpm land` push `main`.
+the rebased tree, pushes the branch and opens or updates its record pull
+request from the record file, and pushes the tree to `main` as a fast-forward.
+GitHub then shows the PR as merged. `pnpm land --help` names the record file
+and its sections. The gate cannot be skipped. The pre-push hook lets only
+`pnpm land` push `main`.
 
 ## Releasing
 

@@ -119,8 +119,9 @@ _Avoid_: memory lock, memory slot
 
 **Trunk**:
 `main`, the one long-lived branch of the source repository. Every change and
-every Version Commit lands on it. A task branch is on the source repository
-only while a land pushes it as the head of its Record PR.
+every Version Commit lands on it. An agent session pushes a task branch to
+the source repository only through a land, which deletes it once its Record
+PR shows as merged; a person may push one to share it.
 _Avoid_: next, primary branch, stable branch
 
 **Land**:

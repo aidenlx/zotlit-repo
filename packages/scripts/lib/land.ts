@@ -1,5 +1,5 @@
 // One land: the only path by which a change reaches `main`, the trunk
-// (ADR 0097).
+// (ADR 0097), with a record PR on GitHub (ADR 0102).
 //
 //   land (from a task branch, clean tree, a record file, a GitHub login)
 //     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
@@ -141,6 +141,7 @@ export interface LandOptions {
    * the turn ends. @default SILENCE_LIMIT_MS.childOutput
    */
   silenceMs?: number;
+  /** How often the land reads the Land Queue. */
   pollMs?: number;
   /** @default LAND_ATTEMPTS */
   attempts?: number;
