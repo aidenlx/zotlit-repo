@@ -1,12 +1,7 @@
 // A plugin that knows Obsidian has unloaded it, for an onload that a disable
 // interrupts.
-import { Effect } from "effect";
+// The start-up entry (`entry.ts`) extends it, so this module imports no Effect.
 import { Plugin } from "obsidian";
-
-import {
-  logServices,
-  withLogCategory,
-} from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { releaseKeyDescription } from "#core/release-key.ts";
 
@@ -15,26 +10,6 @@ import { releaseKeyDescription } from "#core/release-key.ts";
  * that takes longer must not keep the plugin off until the window reloads.
  */
 export const PREVIOUS_RELEASE_WAIT_MS = 10_000;
-
-/**
- * Warn that `pluginId` started before the previous instance released what it
- * held. Call it once the runtime's logging layer has built: until then a
- * production build's logger has no sinks, and the record is lost.
- */
-export function logLateRelease(pluginId: string): void {
-  // Only the bound ends the wait this way, so it took the whole bound.
-  Effect.runSyncWith(logServices)(
-    Effect.logWarning(
-      "Started before the previous instance released what it held",
-    ).pipe(
-      Effect.annotateLogs({
-        pluginId,
-        elapsedMs: PREVIOUS_RELEASE_WAIT_MS,
-      }),
-      withLogCategory("plugin-lifecycle"),
-    ),
-  );
-}
 
 /**
  * Where an unloaded instance leaves the promise of its release. Obsidian
@@ -59,7 +34,7 @@ export class UnloadAwarePlugin extends Plugin {
   #unloaded = false;
   #released?: Promise<void>;
 
-  protected get unloaded(): boolean {
+  get unloaded(): boolean {
     return this.#unloaded;
   }
 
@@ -79,9 +54,9 @@ export class UnloadAwarePlugin extends Plugin {
    * The wait ends after {@link PREVIOUS_RELEASE_WAIT_MS} at most.
    *
    * @returns `true` when the bound ended the wait before the release came;
-   *   the caller reports it through {@link logLateRelease} once logging is up.
+   *   the caller reports it through `logLateRelease` once logging is up.
    */
-  protected async waitForPreviousAndHoldRelease(
+  async waitForPreviousAndHoldRelease(
     stack: AsyncDisposableStack,
   ): Promise<boolean> {
     const { promise, resolve } = Promise.withResolvers<void>();

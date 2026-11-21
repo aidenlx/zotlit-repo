@@ -4,11 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import {
-  logLateRelease,
-  PREVIOUS_RELEASE_WAIT_MS,
-  UnloadAwarePlugin,
-} from "./lifecycle.ts";
+import { logLateRelease } from "./late-release.ts";
+import { PREVIOUS_RELEASE_WAIT_MS, UnloadAwarePlugin } from "./lifecycle.ts";
 
 const manifest: PluginManifest = {
   id: "zotlit",

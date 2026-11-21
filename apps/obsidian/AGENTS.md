@@ -21,7 +21,8 @@ The app is the first host: it declares what differs per host, and the shell does
 - `src/features.ts` — the feature list, in the order registrations and start-up hooks run.
 - `src/host.ts` — the host declaration: the setting tab's page order, the file and folder menu order, and the settings history (`withHost`, the `data.json` migrations in `src/services/settings/`).
 - `src/capabilities.ts` — the Worker-backed capabilities (ZoteroReads, citation parsing) over the Worker entries.
-- `src/zt-main.ts` — the plugin class: `shellPlugin(host)` with the Electron preflight and the installer notice.
+- `src/zt-main.ts` — the plugin class: `shellEntry` over a dynamic `import()` of `src/zt-body.ts`, started once the layout is ready. Its static imports stay free of Effect and feature code.
+- `src/zt-body.ts` — the plugin body: `shellStart(host)` with the Electron preflight, and the installer notice.
 - `src/__fixtures__/mobile-host/` — a Node-free host: the platform and every feature's Obsidian value over stub ports. `tsconfig.mobile.json` type-checks it without the desktop files, `scripts/check-mobile-host.ts` fails when its program reads a desktop file (both run in `typecheck`), and `src/mobile-host.test.ts` builds its services.
 - The build config and the host tests that run several packages together.
 

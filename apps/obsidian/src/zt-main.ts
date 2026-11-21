@@ -1,71 +1,17 @@
-import semverGte from "semver/functions/gte";
+// The plugin class Obsidian loads. It loads the body (`zt-body.ts`) once the
+// layout is ready, so `main.js` evaluates only this entry at the app's start.
+import type { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { shellEntry } from "@zotlit/plugin-shell/obsidian/entry.ts";
 
-import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-import { shellPlugin } from "@zotlit/plugin-shell/obsidian/plugin.ts";
-
-import { host } from "./host.ts";
 import "./zt-main.css";
 
-function showInstallerUpdateNotice(): BaseNotice {
-  return new BaseNotice(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(m.notice_installer_update_needed());
-      renderer.addText(m.notice_installer_update_explanation());
-      renderer.addSteps([
-        m.notice_installer_update_step_download(),
-        m.notice_installer_update_step_close(),
-        m.notice_installer_update_step_run(),
-      ]);
-      renderer.addText(m.notice_installer_update_no_uninstall());
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_installer_update_learn_more())
-          .onClick(() => {
-            window.open(docsUrl("/docs/how-to/update-obsidian-installer"));
-          });
-      });
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_installer_update_download())
-          .setCta()
-          .onClick(() => {
-            window.open("https://obsidian.md/download");
-          });
-      });
-    }),
-    0,
-  );
-}
-
-/**
- * Block startup on Obsidian installers whose bundled Electron predates the
- * `minElectronVersion` declared in package.json (injected at build time as
- * `__MIN_ELECTRON_VERSION__`), pointing the user at the installer-update docs.
- *
- * @throws when the running Electron is too old, aborting plugin load.
- */
-function assertElectronVersion(): void {
-  const version = process.versions.electron;
-  if (!version) return;
-  if (semverGte(version, __MIN_ELECTRON_VERSION__)) return;
-
-  showInstallerUpdateNotice();
-  throw new Error(
-    `Obsidian installer is too old (Electron v${version}, required >=v${__MIN_ELECTRON_VERSION__})`,
-  );
-}
-
-/** Desktop ZotLit: the shell over this host's composition. */
-export default class ZotLitPlugin extends shellPlugin(host) {
+/** Desktop ZotLit: the shell entry over the body in `zt-body.ts`. */
+export default class ZotLitPlugin extends shellEntry(
+  async () => (await import("./zt-body.ts")).start,
+  "layout-ready",
+) {
   /** Show the installer notice independently of the version check. */
-  showInstallerUpdateNotice(): BaseNotice {
-    return showInstallerUpdateNotice();
-  }
-
-  /** Block load on too-old Obsidian installers before allocating any resources. */
-  protected override preflight(): void {
-    assertElectronVersion();
+  async showInstallerUpdateNotice(): Promise<BaseNotice> {
+    return (await import("./zt-body.ts")).showInstallerUpdateNotice();
   }
 }
