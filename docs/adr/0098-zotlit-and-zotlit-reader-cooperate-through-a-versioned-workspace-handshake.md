@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: amended by ADR-0101
 ---
 
 # ZotLit and ZotLit Reader cooperate through a versioned workspace handshake
@@ -23,7 +23,7 @@ The PDF reader left ZotLit: ZotLit Reader (`zotlit-reader`) ships the ZotLit PDF
 - **ZotLit bundles the reader.** Rejected: two copies of pdf.js in a vault with both plugins, and ZotLit's `main.js` grows past its 5.0 MB budget.
 - **`app.plugins.plugins["zotlit-reader"].api` alone.** Rejected as the stable path: it depends on load order and on a private Obsidian member, gives no version check, and finds no Reader that is turned on later.
 - **A shared runtime package (one Effect, one registry) between the plugins.** Rejected: two bundles cannot share module identity, and a global registry couples the versions of both plugins.
-- **A disabled companion pack for the heavy parts.** Studied and not chosen: it adds a second install and a second version line for each user of the reader.
+- **A disabled companion pack for the heavy parts.** Studied and not chosen for the reader: it adds a second install and a second version line for each user of the reader. _(Revised by [ADR 0101](0101-managed-binaries-ship-in-the-resource-pack.md): the Resource Pack is such a pack for the Managed Binaries, which only some users need. pdf.js stays in ZotLit Reader's bundle.)_
 
 ## Consequences
 

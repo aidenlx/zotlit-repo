@@ -1,8 +1,14 @@
+---
+status: amended by ADR-0101
+---
+
 # The item search index runs in the ZoteroReads worker
+
+> **Amended by [ADR 0101](0101-managed-binaries-ship-in-the-resource-pack.md).** The Managed Binary parts are revised: the Chinese Segmenter and the Pandoc Engine ship in the Resource Pack, a third plugin installed from Obsidian's community plugins. ZotLit downloads no binary, asks for no consent and keeps no device-wide OPFS store; the worker reads and verifies the Chinese Segmenter from the pack file. The index, ranking and worker decisions stand.
 
 Amends [ADR 0068](0068-the-zotero-database-runs-in-a-web-worker-behind-zoteroreads.md): the item search index joins the database in the Web Worker, and two operations leave the ZoteroReads contract.
 
-The search behind the Citation Suggester, the quick switcher, and every Item picker is answered by one ZoteroReads operation, `SearchItems`. The renderer sends the local ids of the Libraries in Library Scope, the query, and a limit, and receives ranked Items with title highlight ranges. The worker owns the **Item Index**: it builds the MiniSearch index from its own connection, keeps it fresh from its own change feed, serves the last complete index while a rebuild runs, and hydrates the hits before it answers. Chinese word segmentation runs in the worker through a ZotLit-managed **Chinese Segmenter**, the pinned `jieba-wasm` binary, installed with the user's consent on the same device-wide store as the Pandoc Engine.
+The search behind the Citation Suggester, the quick switcher, and every Item picker is answered by one ZoteroReads operation, `SearchItems`. The renderer sends the local ids of the Libraries in Library Scope, the query, and a limit, and receives ranked Items with title highlight ranges. The worker owns the **Item Index**: it builds the MiniSearch index from its own connection, keeps it fresh from its own change feed, serves the last complete index while a rebuild runs, and hydrates the hits before it answers. Chinese word segmentation runs in the worker through a ZotLit-managed **Chinese Segmenter**, the pinned `jieba-wasm` binary. _(Revised by ADR 0101: it ships in the Resource Pack.)_
 
 ## Why
 
@@ -20,7 +26,7 @@ Four interface shapes were compared on depth, locality, and seam placement befor
 - **Cancellation is a fiber interrupt.** The renderer facade runs the searches of each search surface (a picker, the Citation Suggester) in one `FiberHandle`; a new keystroke interrupts the one before it on that surface, and one-shot searches run beside them. The RPC interrupt stops the search in the worker. An interrupted waiter leaves a running build for the next caller.
 - **The renderer keeps a thin facade.** `ItemLookup.search(query, { limit })` resolves Library Scope to ids, calls `SearchItems`, attaches Library labels from the scope it asked with, prewarms on ready and on scope change, and answers empty while the database is unavailable.
 - **Locale is configuration.** The UI locale reaches the worker in `ReadsConfig` with the spawn and through `Configure`, and feeds the creator-name language lookup.
-- **The Chinese Segmenter is a Managed Binary.** The Pandoc Engine's consent-gated download, hash verification, content-addressed device-wide cache, status machine, and settings row generalize into one module with two instances. The build pins the `jieba-wasm` version, asset URL, and SHA-256 and cross-checks them against the installed package. The worker reads the verified bytes itself from the OPFS store once `Configure` names the installed binary (a blob-URL worker shares the renderer's origin and store; verified), and uses `cut_for_search` for indexing and queries. Install and uninstall rebuild the tokenizer and every held index. Without the binary, CJK runs segment through `Intl.Segmenter` at word granularity. ZotLit no longer reads `cm-chs-patch`.
+- **The Chinese Segmenter is a Managed Binary.** _(Revised by ADR 0101.)_ It is a Pack Entry of the Resource Pack, pinned to the `jieba-wasm` version and SHA-256 that the pack build checks. The worker reads and verifies the entry itself from the pack file once `Configure` names the installed pack, and uses `cut_for_search` for indexing and queries. A change of the installed pack reaches the worker through `Configure`, which rebuilds the tokenizer and every held index; a pack update with other Segmenter bytes takes effect after a restart, because `jieba-wasm` holds one instance per realm. Without the binary, CJK runs segment through `Intl.Segmenter` at word granularity. ZotLit no longer reads `cm-chs-patch`.
 
 ## Considered Options
 
@@ -30,13 +36,13 @@ Four interface shapes were compared on depth, locality, and seam placement befor
 - **Keep the hand-written ranking layer and only restructure its scan.** Identical results, but 230 lines kept for scoring behaviour that is out of scope to tune, and the one-letter worst case fixed by a second index structure beside MiniSearch's own. **Rejected.**
 - **Keep borrowing `cm-chs-patch`'s `cut`.** A function cannot cross to the worker, and search quality should not depend on another plugin. **Rejected.**
 - **A timer-based yield between build slices.** `setTimeout(0)` lets requests through but the nested-timer clamp adds 38–40 % build time; `Effect.yieldNow` resumes on `setImmediate` and costs nothing. **Rejected.**
-- **Ship `jieba-wasm` in the plugin bundle.** About 3.8 MB for every user. **Rejected** in favour of the Managed Binary.
+- **Ship `jieba-wasm` in the plugin bundle.** About 3.8 MB for every user. **Rejected** in favour of the Managed Binary, which ships in the Resource Pack (ADR 0101).
 
 ## Consequences
 
 - The worker holds state that is not a connection. A rebuild slice can delay a concurrent read by up to one slice; the slice size and yield strategy follow the measurement recorded below.
 - Ranking changes: citation-key prefix hits still come first; beyond that MiniSearch's score orders results and ties fall newest-first. The recency multiplier and the exact-year bonus are gone.
-- Users of `cm-chs-patch` see their Chinese titles tokenized by `Intl.Segmenter` until they install the Chinese Segmenter from ZotLit's settings.
+- Users of `cm-chs-patch` see their Chinese titles tokenized by `Intl.Segmenter` until they install ZotLit Resource Pack from Obsidian's community plugins (ADR 0101).
 - Index build logs move from the plugin logger to the worker's console sink (see [#1349](https://github.com/aidenlx/zotlit/issues/1349)).
 
 ## Measurements
