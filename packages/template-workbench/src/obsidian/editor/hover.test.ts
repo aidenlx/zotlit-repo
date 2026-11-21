@@ -1,5 +1,6 @@
 import type { SuggestionConfig } from "#core/language/index.ts";
 // @vitest-environment happy-dom
+import { forceParsing } from "@codemirror/language";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import type { Rect } from "@codemirror/view";
@@ -58,6 +59,9 @@ function mount(parent: HoverParent, doc = "{{ zt.title }}", language?: "eta") {
     }),
     parent: document.body,
   });
+  // The first parse stops after 20 ms, which a loaded machine overruns;
+  // finish it so each token carries its hook class.
+  forceParsing(view, view.state.doc.length, Infinity);
   layout(view);
   return Object.assign(view, {
     [Symbol.dispose]() {
