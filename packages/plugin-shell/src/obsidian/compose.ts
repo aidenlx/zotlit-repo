@@ -38,7 +38,7 @@ import { layerProtocolHandlers } from "./protocol.ts";
 import { layerSettingTab } from "./setting-tab/layer.ts";
 import type { SettingTabOrder } from "./setting-tab/tab.ts";
 
-import { buildOrder, CompositionError, stackGroups } from "#core/graph.ts";
+import { buildOrder, stackGroups } from "#core/graph.ts";
 import { startingAs } from "#core/startup-failure.ts";
 
 /** The services the shell builds above the features: the view registry. */
@@ -54,6 +54,24 @@ type ShellReads = ViewServices | Exclude<SettingTabEnv, SettingTab>;
 export type MissingServices<F extends readonly Feature<any, any, any>[]> =
   | OpenPorts<F, ShellProvides>
   | Exclude<ShellReads, ProvidesOf<F> | ShellBase | ShellProvides>;
+
+/**
+ * Nothing when the actions `Given` and `Registered` agree, or a type error
+ * that names each action `Given` lacks under `missingLinkActions` and each
+ * action no feature registers under `unregisteredLinkActions`.
+ */
+export type LinkActionsCheck<Registered, Given> = ([
+  Exclude<Registered, Given>,
+] extends [never]
+  ? unknown
+  : {
+      readonly missingLinkActions: Listed<Exclude<Registered, Given>>;
+    }) &
+  ([Exclude<Given, Registered>] extends [never]
+    ? unknown
+    : {
+        readonly unregisteredLinkActions: Listed<Exclude<Given, Registered>>;
+      });
 
 /** A plugin host: what differs from one host to the next. */
 export interface HostDeclaration<F extends readonly Feature<any, any, any>[]> {
@@ -168,38 +186,6 @@ export function featureServices<F extends readonly Feature<any, any, any>[]>(
     base,
     order.map(({ group }) => group.layer.pipe(startingAs(group.name))),
   ) as Layer.Layer<ProvidesOf<F> | ShellBase>;
-}
-
-/**
- * Check that `declared`, the link actions a host gave its entry, are the
- * `obsidian://` actions `features` register. The entry registers the declared
- * actions before the body loads, so an action on one side only would lose its
- * links: the composition fails here, at each start and in the host's test.
- *
- * @throws {CompositionError} naming each action that one side lacks.
- */
-export function checkLinkActions(
-  features: readonly Feature<any, any, any>[],
-  declared: readonly string[],
-): void {
-  const registered = new Set(
-    features.flatMap((feature) => feature.protocol.map(({ action }) => action)),
-  );
-  const listed = new Set(declared);
-  const unlisted = [...registered.difference(listed)];
-  const unregistered = [...listed.difference(registered)];
-  if (unlisted.length === 0 && unregistered.length === 0) return;
-  throw new CompositionError(
-    [
-      "The entry's link actions differ from the actions the features register.",
-      ...(unlisted.length
-        ? [`Missing from the entry: ${unlisted.join(", ")}.`]
-        : []),
-      ...(unregistered.length
-        ? [`Registered by no feature: ${unregistered.join(", ")}.`]
-        : []),
-    ].join(" "),
-  );
 }
 
 /** The build order of `host`'s service groups, by name, as the graph builds them. */

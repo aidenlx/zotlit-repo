@@ -1,6 +1,6 @@
 // The `obsidian://` actions of desktop ZotLit, for the entry (`zt-main.ts`),
-// which registers them before the body loads. The body's start checks this
-// list against the actions its features register (`shellStart`).
+// which registers them before the body loads. The body's start type-checks
+// this list against the actions its features register (`shellStart`).
 import {
   batchProtocolActionId,
   exploreProtocolActionId,
@@ -14,7 +14,7 @@ import {
   updateAllProtocolActionId,
 } from "@zotlit/protocol/actions";
 
-export const linkActions: readonly string[] = [
+export const linkActions = [
   protocolActionId("open"),
   protocolActionId("update"),
   batchProtocolActionId,
@@ -23,8 +23,7 @@ export const linkActions: readonly string[] = [
   updateAllProtocolActionId,
   importAllNotesProtocolActionId,
   exploreProtocolActionId,
-  // The Template Workbench registers it in a build with the web Workbench.
-  ...(__WEB_WORKBENCH_ENABLED__ ? [importProfileProtocolActionId] : []),
+  importProfileProtocolActionId,
   showInLibraryProtocolActionId,
   openAttachmentProtocolActionId,
-];
+] as const;

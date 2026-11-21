@@ -12,11 +12,10 @@ import {
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
 
-import { checkLinkActions } from "./compose.ts";
-import type { HostDeclaration } from "./compose.ts";
+import type { HostDeclaration, LinkActionsCheck } from "./compose.ts";
 import { shellEntry } from "./entry.ts";
 import type { StartShell } from "./entry.ts";
-import type { Feature } from "./feature.ts";
+import type { Feature, LinkActionsOf } from "./feature.ts";
 import { logLateRelease } from "./late-release.ts";
 import { createShellRuntime, runFeatureHooks } from "./runtime.ts";
 import { reportStartupFailure } from "./startup-notice.ts";
@@ -28,20 +27,24 @@ import { reportStartupFailure } from "./startup-notice.ts";
  * stop the load; the Language Pack is already applied, so a notice reads in
  * the user's language.
  *
- * `linkActions` is the list a host also gave its entry (`shellEntry`). The
- * start fails when it differs from the actions the features register.
+ * `linkActions` is the list a host also gave its entry (`shellEntry`), and a
+ * type check alone: the start reads nothing from it. A list that differs from
+ * the actions the features register does not type-check, and the error names
+ * each such action under `missingLinkActions` or `unregisteredLinkActions`.
  */
-export function shellStart<const F extends readonly Feature<any, any, any>[]>(
+export function shellStart<
+  const F extends readonly Feature<any, any, any>[],
+  const L extends readonly string[] = never,
+>(
   host: HostDeclaration<F>,
   options?: {
     readonly preflight?: () => void;
-    readonly linkActions?: readonly string[];
-  },
+    readonly linkActions?: L;
+  } & ([L] extends [never]
+    ? unknown
+    : LinkActionsCheck<LinkActionsOf<F>, L[number]>),
 ): StartShell {
   return async (plugin) => {
-    if (options?.linkActions)
-      checkLinkActions(host.features, options.linkActions);
-
     if (__DEV__) enableStartupLogging();
 
     // Install the current session's pack before any copy shows: the

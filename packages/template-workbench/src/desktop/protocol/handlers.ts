@@ -43,8 +43,8 @@ export function workbenchLinks({
   readonly webWorkbenchEnabled: boolean;
   readonly importProfile?: ProfileImport;
 }) {
-  const link = <R>(
-    action: string,
+  const link = <R, const A extends string>(
+    action: A,
     handle: (
       data: ObsidianProtocolData,
     ) => Effect.Effect<WorkbenchLinkOutcome, unknown, R>,

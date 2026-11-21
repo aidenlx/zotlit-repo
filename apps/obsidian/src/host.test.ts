@@ -6,10 +6,8 @@ import {
   fakeDevice,
   startOn,
 } from "@zotlit/plugin-services/obsidian/language-pack/__fixtures__.ts";
-import { checkLinkActions } from "@zotlit/plugin-shell/obsidian/compose.ts";
 
 import { host } from "./host.ts";
-import { linkActions } from "./link-actions.ts";
 
 it.effect(
   "downloads ZotLit's Language Packs from its Resource Release and keeps the cache keys of existing installs",
@@ -33,7 +31,3 @@ it.effect(
       ]);
     }),
 );
-
-it("gives the entry the link actions its features register", () => {
-  expect(() => checkLinkActions(host.features, linkActions)).not.toThrow();
-});

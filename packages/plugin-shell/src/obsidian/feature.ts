@@ -118,18 +118,21 @@ export function registration<R>(
  * work that outlives its own run, such as a modal's callbacks; unload closes
  * it.
  */
-export interface ProtocolHandler<out R = unknown> {
-  readonly action: string;
+export interface ProtocolHandler<
+  out R = unknown,
+  out A extends string = string,
+> {
+  readonly action: A;
   readonly handle: (
     data: ObsidianProtocolData,
   ) => Effect.Effect<unknown, unknown, any>;
   readonly "~requires"?: () => R;
 }
 
-export function protocolHandler<R>(
-  action: string,
+export function protocolHandler<R, const A extends string>(
+  action: A,
   handle: (data: ObsidianProtocolData) => Effect.Effect<unknown, unknown, R>,
-): ProtocolHandler<Exclude<R, ShellBase | Scope.Scope>> {
+): ProtocolHandler<Exclude<R, ShellBase | Scope.Scope>, A> {
   return { action, handle };
 }
 
@@ -203,13 +206,15 @@ export interface FeatureMenus {
 /**
  * One feature, as a host composes it. `P` and `R` are the services its
  * groups fill and the services its groups, registrations and handlers read;
- * `H` is what it adds to the debug surface.
+ * `H` is what it adds to the debug surface; `L` is the `obsidian://` actions
+ * its handlers register.
  */
 export interface Feature<
   out P = unknown,
   out R = unknown,
   out H = unknown,
   out S = unknown,
+  out L = unknown,
 > {
   readonly name: string;
   readonly services: readonly ServiceGroup[];
@@ -233,6 +238,8 @@ export interface Feature<
   readonly "~ports"?: () => { readonly provides: P; readonly requires: R };
   /** Type-level only: the settings each slice keeps, one union member per slice. */
   readonly "~settings"?: () => S;
+  /** Type-level only: the actions its handlers register, one union member per action. */
+  readonly "~linkActions"?: () => L;
 }
 
 type SlicesSettings<T> =
@@ -247,6 +254,8 @@ type GroupRequires<G> =
       : G extends ProtocolHandler<infer R>
         ? R
         : never;
+
+type HandlerActions<T> = T extends ProtocolHandler<any, infer A> ? A : never;
 
 /** The parts of a feature, as a feature package writes them. */
 export interface FeatureParts<
@@ -279,7 +288,8 @@ export function defineFeature<
   GroupProvides<S[number]>,
   GroupRequires<S[number] | G[number] | A[number]>,
   H,
-  SlicesSettings<K[number]>
+  SlicesSettings<K[number]>,
+  HandlerActions<A[number]>
 > {
   return {
     name: parts.name,
@@ -318,7 +328,8 @@ export function extendFeature<
   FeatureProvides<B> | GroupProvides<S[number]>,
   FeatureRequires<B> | GroupRequires<S[number] | G[number] | A[number]>,
   FeatureHandles<B> & H,
-  FeatureSettings<B> | SlicesSettings<K[number]>
+  FeatureSettings<B> | SlicesSettings<K[number]>,
+  FeatureLinkActions<B> | HandlerActions<A[number]>
 > {
   const extension = defineFeature({ name: base.name, ...parts });
   return {
@@ -403,6 +414,12 @@ export type HandlesOf<F extends readonly Feature<any, any, any>[]> =
 type FeatureHandles<T> = T extends Feature<any, any, infer H> ? H : never;
 
 type FeatureSettings<T> = T extends Feature<any, any, any, infer S> ? S : never;
+
+/** The `obsidian://` actions the handlers of the features of `F` register. */
+export type LinkActionsOf<F extends readonly Feature<any, any, any>[]> =
+  FeatureLinkActions<F[number]>;
+type FeatureLinkActions<T> =
+  T extends Feature<any, any, any, any, infer L> ? L : never;
 
 /**
  * The settings the slices of `F` keep, as one map. A host holds it equal to

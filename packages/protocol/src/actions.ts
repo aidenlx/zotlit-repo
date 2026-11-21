@@ -17,9 +17,9 @@ export const protocolActions = [
 ] as const satisfies readonly ProtocolAction[];
 
 /** Full Obsidian action string for `registerObsidianProtocolHandler`. */
-export function protocolActionId(
-  action: ProtocolAction,
-): `${typeof PROTOCOL_NAMESPACE}/${ProtocolAction}` {
+export function protocolActionId<A extends ProtocolAction>(
+  action: A,
+): `${typeof PROTOCOL_NAMESPACE}/${A}` {
   return `${PROTOCOL_NAMESPACE}/${action}`;
 }
 

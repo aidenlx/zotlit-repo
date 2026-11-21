@@ -144,8 +144,8 @@ export function noteLinks(
     ObsidianApp | Scope.Scope
   > = noteLinkPorts,
 ) {
-  const link = (
-    action: string,
+  const link = <const A extends string>(
+    action: A,
     handle: (
       data: ObsidianProtocolData,
       deps: NoteLinkPorts,
