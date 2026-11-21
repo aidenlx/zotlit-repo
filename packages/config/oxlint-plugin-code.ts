@@ -41,7 +41,8 @@ type ImportPath = {
   message?: string;
 };
 type ImportPattern = {
-  group: string[];
+  group?: string[];
+  regex?: string;
   importNames?: string[];
   allowTypeImports?: boolean;
   message?: string;

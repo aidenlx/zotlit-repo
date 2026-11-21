@@ -121,18 +121,14 @@ export function testBaselineOverrides(directory?: string) {
  * Only a desktop host and Node tests load `@zotlit/db/client/node`.
  */
 export const hostModulePattern = {
-  group: [
-    "obsidian",
-    "obsidian/**",
-    "electron",
-    "electron/**",
-    "@zotlit/db/client/node",
-    "#client/node.ts",
-    // The patterns match a module's last segment, so the host-free entry of
-    // a workspace package that is named `obsidian` (`@zotlit/templates/obsidian`)
-    // is let through.
-    "!@zotlit/*/obsidian",
-  ],
+  // A regex, not a gitignore `group`: a group entry without a slash, such as
+  // `obsidian`, matches the last segment of any path, which caught the
+  // host-free `@zotlit/templates/obsidian`. The regex names each host module
+  // from the start of the specifier. `@zotlit/pdf-reader/obsidian` is the PDF
+  // Reader's Obsidian layer, which a package that depends on the Reader can
+  // resolve.
+  regex:
+    "^(?:obsidian|electron|@zotlit/pdf-reader/obsidian|@zotlit/db/client/node)(?:/.*)?$|^#client/node\\.ts$",
   message:
     "Engine source runs on every host. Take the host capability as a value; only a desktop host and Node tests load Obsidian, Electron or @zotlit/db/client/node.",
 };
