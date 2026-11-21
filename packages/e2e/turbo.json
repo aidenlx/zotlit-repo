@@ -22,7 +22,7 @@
         "@zotlit/item-query#generate:schema",
         "@zotlit/pdf-reader#generate"
       ],
-      "env": ["ANNOTATION_SUGGESTER_ENABLED", "WEB_WORKBENCH_ENABLED"],
+      "env": ["ANNOTATION_SUGGESTER_ENABLED"],
       "passThroughEnv": ["ZOTLIT_E2E_RESULTS", "ZOTLIT_E2E_REQUIRED"]
     }
   }

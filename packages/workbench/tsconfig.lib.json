@@ -14,14 +14,6 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "isolatedDeclarations": false,
-    // Read by the effecttsgo lint rules. The Local Bridge client sends
-    // through Effect's HTTP client on purpose.
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "allowedUnstableApis": ["effect/http"]
-      }
-    ],
     "jsx": "react-jsx",
     "types": []
   },

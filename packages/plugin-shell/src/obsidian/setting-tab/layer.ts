@@ -4,7 +4,6 @@ import type { Feature } from "#obsidian/feature.ts";
 import { Duration, Effect, Layer, Stream } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
-import { WEB_WORKBENCH_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { makeSettingTab } from "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts";
 import type {
@@ -22,14 +21,10 @@ import type { SettingTabOrder } from "./tab.ts";
  */
 const REBUILD_SETTLE = Duration.millis(50);
 
-/**
- * The tab of `features` in `order`. `webWorkbenchEnabled` is the build's
- * Template Workbench flag, which shows or hides the web editor rows.
- */
+/** The tab of `features` in `order`. */
 export function layerSettingTab(
   features: readonly Feature<any, any, any>[],
   order: SettingTabOrder,
-  { webWorkbenchEnabled = WEB_WORKBENCH_ENABLED } = {},
 ): Layer.Layer<never, never, Exclude<SettingTabEnv, SettingTab>> {
   return Layer.effectDiscard(
     Effect.gen(function* () {
@@ -38,11 +33,7 @@ export function layerSettingTab(
       const service = yield* makeSettingTab(() => tab?.update());
       tab = yield* host.addSettingTab(
         (plugin) =>
-          new ShellSettingTab(
-            plugin,
-            { webWorkbenchEnabled, tab: service },
-            { features, order },
-          ),
+          new ShellSettingTab(plugin, { tab: service }, { features, order }),
       );
 
       // Rows that are included or left out, not toggled through `visible`,

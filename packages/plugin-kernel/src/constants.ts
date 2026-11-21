@@ -10,7 +10,6 @@
 export const DOCS_SITE_URL = __DOCS_SITE_URL__;
 /** The Zotero add-on ID of ZotLit Companion (`apps/zotero/package.json`). */
 export const COMPANION_ADDON_ID = "zotlit@aidenlx.site";
-export const WEB_WORKBENCH_ENABLED = __WEB_WORKBENCH_ENABLED__;
 /**
  * Whether this build carries the Annotation Suggester and its trigger
  * setting. Off unless built with `ANNOTATION_SUGGESTER_ENABLED=true`: the

@@ -1,4 +1,4 @@
-import type { CustomizeRequest } from "#desktop/local-bridge/customize.ts";
+import type { CustomizeRequest } from "#desktop/view/customize.ts";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -18,7 +18,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
 
-import { Customize } from "#desktop/local-bridge/customize.ts";
+import { Customize } from "#desktop/view/customize.ts";
 
 const COPY: LiteratureNoteProfile = {
   id: "Jk6Lm8Np2Qr4" as ProfileId,

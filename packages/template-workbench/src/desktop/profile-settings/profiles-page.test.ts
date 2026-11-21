@@ -1,4 +1,4 @@
-import type { CustomizeRequest } from "#desktop/local-bridge/customize.ts";
+import type { CustomizeRequest } from "#desktop/view/customize.ts";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer, Queue } from "effect";
@@ -57,7 +57,7 @@ import {
 } from "./profiles-page.ts";
 
 import { rebuildingSettingTab } from "#__fixtures__/setting-tab.ts";
-import { Customize } from "#desktop/local-bridge/customize.ts";
+import { Customize } from "#desktop/view/customize.ts";
 import { openTemplateWorkbench } from "#desktop/view/open.ts";
 import { openNewPartialPrompt } from "#obsidian/view/new-partial.ts";
 
@@ -300,24 +300,6 @@ describe("Profile settings", () => {
   );
 
   it.effect(
-    "keeps native customization while the web Template Workbench is off",
-    () =>
-      Effect.gen(function* () {
-        const settings = { ...defaults, "server.workbench": false };
-        const builtIn = yield* tabOver({ settings });
-        expect(buttonLabels(documentRow(builtIn.ctx))).toEqual([
-          m.settings_profile_edit(),
-        ]);
-
-        const saved = yield* tabOver({ settings, vault: everyFile });
-        expect(buttonLabels(documentRow(saved.ctx))).toEqual([
-          m.settings_profile_document_restore(),
-          m.settings_profile_edit(),
-        ]);
-      }),
-  );
-
-  it.effect(
     "keeps native Default customization and offers connected Profile customization",
     () =>
       Effect.gen(function* () {
@@ -339,23 +321,6 @@ describe("Profile settings", () => {
         yield* Queue.take(rebuilt);
         expect(customize).toHaveBeenCalledWith({ profileId: books });
       }),
-  );
-
-  it.effect("keeps More actions available while web access is off", () =>
-    Effect.gen(function* () {
-      const { ctx } = yield* tabOver({
-        profile: { profiles: Effect.succeed([BOOKS]) },
-        settings: { ...defaults, "server.workbench": false },
-      });
-      const { defaultRow, profileRow } = pageRows(ctx);
-
-      expect(extraButtonTooltips(defaultRow)).toEqual([
-        m.workbench_more_actions(),
-      ]);
-      expect(extraButtonTooltips(profileRow)).toEqual([
-        m.workbench_more_actions(),
-      ]);
-    }),
   );
 
   it.effect(

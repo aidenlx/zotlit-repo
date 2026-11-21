@@ -11,11 +11,6 @@ import type { Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import {
-  DOCS_DEV_SERVER_ORIGIN,
-  localBridgeOrigin,
-} from "@zotlit/workbench/bridge";
-
-import {
   acquireDesktopSlotOrExit,
   describeLeaseEnd,
   EXIT_LEASE_ENDED,
@@ -48,7 +43,6 @@ import {
 } from "#fixture";
 import { forkFixtureData, removeFixtureFork } from "#fixture/fork";
 import { renderGuide } from "#fixture/guide";
-import { startMockLocalBridge } from "#fixture/local-bridge-server";
 import { runPairedRun } from "#fixture/paired-run";
 import {
   createNodePairedRunPorts,
@@ -458,51 +452,13 @@ const cli = yargs(hideBin(process.argv))
   )
   .command(
     "samples",
-    "regenerate the web Workbench Sample Items",
+    "regenerate the Workbench Sample Items",
     () => {},
     async () => {
       const generated = await regenerateFixtureSampleItems(workspaceRoot);
       console.log(
         `Regenerated ${generated.length} Sample Items in packages/workbench/src/samples.`,
       );
-    },
-  )
-  .command(
-    "bridge",
-    "build and serve the mock Local Bridge on loopback",
-    (y) =>
-      y
-        .option("port", {
-          describe: "loopback port",
-          type: "number",
-          default: 23_120,
-        })
-        .option("origin", {
-          describe: "approved Workbench Origin",
-          type: "string",
-          default: DOCS_DEV_SERVER_ORIGIN,
-        })
-        .option("conflict-next-save", {
-          describe: "make the next Profile save observe an external revision",
-          type: "boolean",
-          default: false,
-        }),
-    async (argv) => {
-      await buildFixture(layout, {
-        plugins: await findPluginBundles(
-          await resolveVaultPlugins(workspaceRoot, pluginsOption.default),
-        ),
-      });
-      const bridge = startMockLocalBridge({
-        layout,
-        allowedOrigin: argv.origin,
-        port: argv.port,
-        conflictNextSave: argv["conflict-next-save"],
-      });
-      console.log(
-        `Mock Local Bridge listening at ${localBridgeOrigin(argv.port)} for ${argv.origin}`,
-      );
-      console.log(`One-time code: ${bridge.initialOneTimeCode}`);
     },
   )
   .command(

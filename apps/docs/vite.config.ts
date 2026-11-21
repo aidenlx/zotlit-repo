@@ -184,12 +184,6 @@ export default defineConfig(({ command }) => ({
   // the page becomes interactive. The production build converts it either way.
   optimizeDeps: {
     include: ["@base-ui/react > use-sync-external-store/shim/with-selector"],
-    // The Workbench sits behind a dynamic import the router's own entry scan
-    // stops short of, so its dependencies — CodeMirror, the Lezer parsers, the
-    // template engines, the reading view's parser stack — were found one by
-    // one as the page requested them, each round re-optimizing and reloading.
-    // Named here, the scan finds them all before the first request.
-    entries: ["src/lib/workbench/workbench.tsx"],
   },
   environments: {
     ssr: {

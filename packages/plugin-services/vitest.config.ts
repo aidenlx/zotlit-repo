@@ -14,7 +14,6 @@ import { effectEntry } from "@zotlit/plugin-kernel/vite";
 export const buildConstants = {
   __PLUGIN_ID__: JSON.stringify("zotlit"),
   __DEV__: JSON.stringify(true),
-  __WEB_WORKBENCH_ENABLED__: JSON.stringify(true),
   __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
   __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),
   __CHINESE_SEGMENTER__: JSON.stringify({

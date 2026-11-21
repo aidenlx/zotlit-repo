@@ -775,7 +775,7 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       ),
     );
     // A reserved name travels for a host that has no template folder to read:
-    // the web Workbench renders an annotation's citation through the bundled
+    // such a host renders an annotation's citation through the bundled
     // `citation` (ADR 0055). It belongs to that document rather than to the
     // partials the reader picks among, and an import drops it again — the
     // recipient's own Citation Template answers that name.

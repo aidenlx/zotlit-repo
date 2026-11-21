@@ -54,8 +54,8 @@ const PROFILE_DOCUMENT_PREFIX = "zotlit-profile.";
 const CITATION_DOCUMENT_FILENAME = "zotlit-citation.md";
 
 /**
- * The name the Citation Template registers under, so every host renders it —
- * and bundles it for the web Workbench — by one name.
+ * The name the Citation Template registers under, so every host renders it by
+ * one name.
  */
 export const CITATION_TEMPLATE_NAME = "citation" as const;
 

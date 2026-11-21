@@ -37,10 +37,9 @@ it.effect(
           app: stubService("App", {}),
           manifest: stubService("PluginManifest", {}),
         }),
-        stubService<Pick<SettingTabContext, "tab" | "webWorkbenchEnabled">>(
-          "SettingTabContext",
-          { tab },
-        ),
+        stubService<Pick<SettingTabContext, "tab">>("SettingTabContext", {
+          tab,
+        }),
         { features, order: host.settingTab },
       );
       // Obsidian awaits each write before it refreshes the DOM state.

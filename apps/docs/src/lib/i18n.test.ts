@@ -200,7 +200,6 @@ describe("prerendered locale editions", () => {
           ).toBe(native);
         }
       }
-      expect(paths.has(`${prefix}/workbench`)).toBe(true);
       // The catalog pages have Chinese editions.
       for (const path of ["", "/community", "/learn", "/changelog", "/blog"]) {
         expect(paths.has(prefix + path || "/"), `HTML: ${prefix}${path}`).toBe(

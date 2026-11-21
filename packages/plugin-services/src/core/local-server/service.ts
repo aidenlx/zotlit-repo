@@ -2,7 +2,6 @@
 // on. A desktop host builds it over a Node listener (`layerLocalServer`).
 import { Context } from "effect";
 import type { Effect, Stream } from "effect";
-import type { Env, Hono } from "hono";
 
 import type { DbUpdated, ImportMode, UpdateScope } from "@zotlit/protocol";
 
@@ -36,9 +35,8 @@ export interface ImportNotesRequest {
  * The plugin's one loopback HTTP listener on this desktop — the Local Server.
  *
  * It owns a single Hono app and a single `serve` call. Live Update's routes
- * are mounted on it at construction; another hosted service mounts its own
- * route group through {@link mount}. Each hosted service answers only while
- * its own toggle is on, so the listener's own toggle is what opens the port.
+ * are mounted on it at construction and answer only while Live Update's own
+ * toggle is on, so the listener's own toggle is what opens the port.
  *
  * Start/stop and rebinding follow the `server.*` settings; lifecycle
  * transitions are serialized so a port change can't race a half-closed server.
@@ -112,15 +110,5 @@ export class LocalServer extends Context.Service<
      * fallback when the id list is too long for an `obsidian://` URL.
      */
     readonly importNotesRequests: Stream.Stream<ImportNotesRequest>;
-    /**
-     * Mounts a hosted service's routes on the Local Server's one Hono app,
-     * under `basePath`. Routes stay mounted for the plugin's lifetime; the
-     * hosted service gates its own routes on its own toggle. Safe to call while
-     * the listener runs — mounted routes answer the next request.
-     */
-    mount<E extends Env>(
-      basePath: string,
-      routes: Hono<E>,
-    ): Effect.Effect<void>;
   }
 >()("zotlit/local-server/LocalServer") {}

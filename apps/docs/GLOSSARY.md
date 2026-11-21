@@ -17,11 +17,7 @@ The main-area tab that lists the Zotero library, titled “Zotero library” in 
 _Avoid_: library tab, library browser, Zotero library (as the name of the view; it is the tab's title)
 
 **Template Workbench**:
-The workflow for building and testing a Template Document — a Literature Note Profile's template document, the Citation Template (**citation text** in reader-facing prose), or a Shared Partial (**partial**). Three surfaces serve it: the web Workbench at `/workbench`, which edits Profile documents alone; the Template Workbench CLI for agents; and the Template Workbench View in Obsidian, which opens all three kinds. The term names the activity, not one surface; each surface qualifies by host when the difference matters.
-
-**Web Workbench** _(web)_:
-The human-facing surface at `/workbench` for editing a Literature Note Profile's template document in the browser, including its note content, Annotation format, properties, and file destination. Its beginner face prints "template" and the Profile's name, never Profile, manifest, or frontmatter.
-_Avoid_: note layout (an early draft's placeholder, since retired), web template editor
+The workflow for building and testing a Template Document — a Literature Note Profile's template document, the Citation Template (**citation text** in reader-facing prose), or a Shared Partial (**partial**). Two surfaces serve it: the Template Workbench View in Obsidian, which opens all three kinds, and the Template Workbench CLI for agents. The term names the activity, not one surface; each surface qualifies by host when the difference matters.
 
 **UI Label**:
 A stable, untranslated name that identifies a product control or choice in the English base catalog, such as a command, setting, menu item, button, or tooltip. Documentation quotes it from its Message instead of restating its text. A notice text that documentation quotes verbatim is treated the same way.

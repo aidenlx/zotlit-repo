@@ -1,5 +1,7 @@
 # The web Workbench edits one source document
 
+> **Amended by [ADR 0100](0100-the-web-template-workbench-is-retired.md).** The web host is retired. The editing model below, one source document with targeted edits and one undo history, stays in force for the Template Workbench View; the passages on the web host, its connected Save and its transport are history.
+
 The web Template Workbench presents one Profile document through body and
 Annotation editors, Properties, Details, and Advanced. In the
 [#930 design session](https://github.com/aidenlx/zotlit/issues/930), we chose

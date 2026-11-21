@@ -267,8 +267,7 @@ export function convertLegacyFrontmatterFields(
 /**
  * The `zt` contract a synthesized manifest stamps. It is the same number as
  * `CONTRACT_VERSION` in `@zotlit/db`, which the engine layer does not depend
- * on; the web Workbench refuses a Profile whose stamp names another contract,
- * so the two move together.
+ * on, so the two move together.
  */
 // Persisted version: packages/scripts/lib/format-versions.ts.
 const SYNTHESIZED_CONTRACT_VERSION = 3;

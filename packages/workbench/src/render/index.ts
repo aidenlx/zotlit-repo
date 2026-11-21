@@ -1,11 +1,8 @@
-// Browser-safe rendering of Workbench Item Snapshots. A connected render
-// validates the selected citation style bundle here; CSL formatting stays in
+// Browser-safe rendering of Workbench Item Snapshots. CSL formatting stays in
 // Obsidian because this preview produces the Profile's generated Markdown and
 // has no bibliography or citation processor.
 
-import type { SelectedCitationStyleResponse } from "#bridge/contracts.ts";
 import type { ItemSnapshot } from "#snapshot/index.ts";
-import { regex } from "arkregex";
 import { stringify as stringifyYaml } from "yaml";
 
 import {
@@ -115,11 +112,7 @@ export {
 } from "./attribution.ts";
 export { currentCallSite, currentSliceSite } from "./locate.ts";
 export type { RenderCallerSource, RenderFailureCause } from "./attribution.ts";
-export type {
-  RenderRequest,
-  RenderOptions,
-  RenderResources,
-} from "./request.ts";
+export type { RenderRequest, RenderOptions } from "./request.ts";
 export { restoreTemplateData } from "./restore-template-data.ts";
 export { SAMPLE_ANNOTATIONS } from "./sample-annotations.ts";
 export type { AnnotationExample } from "./sample-annotations.ts";
@@ -136,7 +129,7 @@ export function renderProfile(
   snapshot: ItemSnapshot,
   options: RenderOptions = {},
 ): TemplateRenderResult {
-  const { resources, annotation: example } = options;
+  const { annotation: example } = options;
   const identity = renderIdentity({ source, snapshot, ...options });
   if (snapshot.contractVersion !== CONTRACT_VERSION) {
     return failedRender(identity, {
@@ -157,30 +150,9 @@ export function renderProfile(
       part: "profile",
     });
   }
-  const dependencyDiagnostics: RenderDiagnostic[] = (
-    resources?.dependencies.diagnostics ?? []
-  ).map((diagnostic) => ({ ...diagnostic, part: "profile" }));
-  // The web host renders Liquid and JSON-e only, so an Eta dependency is named
-  // here rather than defined: a bundle reaches this renderer from a Local
-  // Bridge outside this package, and the engine that would run it is the one
-  // this host refuses.
-  const bundled = resources?.dependencies.templates ?? [];
-  const supported = bundled.filter(({ language }) => language === "liquid");
-  const defined = new Set([
-    ...supported.map(({ name }) => name),
-    ...(document.manifest.partials ?? []).map(({ name }) => name),
-  ]);
-  const resourceDiagnostics = [
-    ...dependencyDiagnostics,
-    ...bundled
-      .filter(({ language }) => language !== "liquid")
-      .map<RenderDiagnostic>(({ name }) => ({
-        code: "unsupported-dependency",
-        params: { name },
-        part: "profile",
-      })),
-    ...citationStyleDiagnostics(resources?.citationStyle),
-  ];
+  const defined = new Set(
+    (document.manifest.partials ?? []).map(({ name }) => name),
+  );
   // The draft this render reads, which a repair location is an offset into:
   // both hosts name the partial the engine could not resolve and the call to
   // repair it at, rather than leaving the web with the engine's bare words.
@@ -196,9 +168,6 @@ export function renderProfile(
   let filenameFailure: RenderDiagnostic | null = null;
 
   try {
-    for (const partial of supported) {
-      facade.define(partial.name, partial.source, partial.language);
-    }
     for (const partial of document.manifest.partials ?? []) {
       facade.define(partial.name, partial.source, partial.language);
     }
@@ -309,7 +278,6 @@ export function renderProfile(
         }),
       ),
       diagnostics: [
-        ...resourceDiagnostics,
         ...(filenameFailure ? [filenameFailure] : []),
         ...(formatFailure ? [formatFailure] : []),
         ...frontmatter.diagnostics,
@@ -328,7 +296,6 @@ export function renderProfile(
       annotation: preview,
       annotationCitation,
       diagnostics: [
-        ...resourceDiagnostics,
         ...(filenameFailure ? [filenameFailure] : []),
         ...(formatFailure ? [formatFailure] : []),
         ...failure.diagnostics,
@@ -418,53 +385,6 @@ function withRenderedCitation(
       ),
     );
   });
-}
-
-/**
- * The root element every standalone CSL style opens with, and the element a
- * processor formats through. A style carrying neither renders nothing, so the
- * bundle answers for a style the preview cannot be shown under.
- * @see packages/citations/src/core/pandoc/csl-style.ts isStandaloneCslStyle
- */
-const CSL_ELEMENT_PREFIX = "(?:[^\\s/<>=:]+:)?";
-const CSL_STYLE_ROOT = regex(`<${CSL_ELEMENT_PREFIX}style(?=[\\s/>])`);
-const CSL_LAYOUT = regex(`<${CSL_ELEMENT_PREFIX}layout(?=[\\s/>])`);
-
-/**
- * What the bundled Resolved CSL Style says about this render: the reason the
- * Local Bridge could not hand one over, or the content it handed over failing
- * the one check this host can make on it. CSL formatting itself stays in
- * Obsidian, so an installed style that holds together leaves no diagnostic.
- */
-function citationStyleDiagnostics(
-  style: SelectedCitationStyleResponse | undefined,
-): RenderDiagnostic[] {
-  const failure = (
-    styleId: string,
-    reason: string,
-    parentId?: string,
-  ): RenderDiagnostic[] => [
-    {
-      code: "citation-style-error",
-      params: {
-        reason,
-        styleId,
-        ...(parentId === undefined ? {} : { parentId }),
-      },
-      part: "render",
-    },
-  ];
-  if (style?.kind === "failed") {
-    return failure(
-      style.styleId,
-      style.reason,
-      style.reason === "parent-missing" ? style.parentId : undefined,
-    );
-  }
-  if (style?.kind !== "installed") return [];
-  return CSL_STYLE_ROOT.test(style.xml) && CSL_LAYOUT.test(style.xml)
-    ? []
-    : failure(style.styleId, "invalid");
 }
 
 /**

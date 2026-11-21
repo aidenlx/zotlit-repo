@@ -34,12 +34,6 @@ const STRIP_HEIGHT = "2.25rem";
 /** The suggestion strip's marker attribute, which its visibility rule names. */
 const SUGGESTION_ATTR = "data-chinese-edition";
 
-/**
- * Full-height app shells, where a top strip would push the app's own bottom
- * bar off the screen.
- */
-const appShellPages: ReadonlySet<string> = new Set(["/workbench"]);
-
 export function LanguageBanner({ state }: { state: PageLocaleState }) {
   const location = useRouterState({
     select: (router) => ({
@@ -79,12 +73,7 @@ export function LanguageBanner({ state }: { state: PageLocaleState }) {
   const chinese = state.alternates.find(
     (alternate) => alternate.locale === "zh-CN",
   );
-  if (
-    state.contentLocale !== "en" ||
-    !chinese ||
-    appShellPages.has(state.canonicalPath)
-  )
-    return null;
+  if (state.contentLocale !== "en" || !chinese) return null;
 
   // In the HTML of every eligible page, shown only under the attribute that the
   // <head> script sets before the first paint; the same attribute sets the strip

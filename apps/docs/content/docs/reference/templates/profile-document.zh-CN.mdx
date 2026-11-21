@@ -79,28 +79,28 @@ Citation key: {{ zt.citationKey }}
 
 - **Notes**：笔记流水线或配置方案注册表会读取它。它会改变 ZotLit 写入笔记的内容，或笔记解析到哪个配置方案。
 - **Editor**：模板工作台、配置方案分享面板或配置方案导入面板会读取或编辑它。没有笔记操作会查阅它。
-- **Web Workbench**：仅网页版工作台会对其进行操作。桌面端应用以只读方式显示该值，且没有笔记操作会查阅它。此版本发布时网页版工作台处于禁用状态。
+- **None**：加载器会校验该值，文档会保留它。模板工作台以只读方式显示该值，没有任何笔记操作或工作台操作会据此执行。
 
-| 键                            | 类型                         | 必填 | Read by       | 含义                                                                                              |
-| ----------------------------- | ---------------------------- | ---- | ------------- | ------------------------------------------------------------------------------------------------- |
-| `id`                          | 字符串                       | 是   | Notes         | 配置方案的标识符：12 位字母或数字，默认配置方案为 `default`。                                     |
-| `name`                        | 字符串                       | 是   | Notes         | 配置方案的名称：显示在配置方案列表中，并写入笔记的配置方案标记中。                                |
-| `version`                     | 字符串                       | 是   | Editor        | 文档自身的版本。由分享面板写入。                                                                  |
-| `author`                      | 字符串                       | 否   | Editor        | 分享配置方案时携带的元数据。                                                                      |
-| `description`                 | 字符串                       | 否   | Editor        | 分享配置方案时携带的元数据。                                                                      |
-| `contract`                    | 整数，1 或更大               | 是   | Web Workbench | 文档面向的模板契约（Template Contract）版本。当前版本为 3，网页版工作台会拒绝面向其他版本的文档。 |
-| `minAppVersion`               | 字符串                       | 否   | Web Workbench | 文档所需的最低 ZotLit 版本。较低版本无法在网页版工作台打开或保存该文档。                          |
-| `sampleItemType`              | 字符串                       | 否   | Editor        | 工作台用于预览的 Zotero 条目类型。桌面端工作台可编辑该值；仅网页版工作台按类型选取示例条目。      |
-| `filename`                    | 模板源码                     | 是   | Notes         | 笔记名称模板。其输出将作为新文献笔记的文件名。                                                    |
-| `match`                       | 字符串，或 `and` / `or` 列表 | 否   | Notes         | 配置方案匹配条件。参见[配置方案匹配](/docs/reference/templates/profile-match)。                   |
-| `folder`                      | 字符串                       | 否   | Notes         | 绑定：文献笔记文件夹。                                                                            |
-| `citationStyle`               | 字符串或 `null`              | 否   | Notes         | 绑定：CSL 样式 ID。`null` 会选择 ZotLit 的内置样式。                                              |
-| `importFolder`                | 字符串                       | 否   | Notes         | 绑定：导入的 Zotero 笔记文件夹。                                                                  |
-| `importColoredHighlights`     | 布尔值                       | 否   | Notes         | 绑定：导入的高亮是否使用彩色语法。                                                                |
-| `importAnnotationsAsTemplate` | 布尔值                       | 否   | Notes         | 绑定：导入的标注段落是否使用配置方案的标注分节渲染。                                              |
-| `language`                    | `liquid` 或 `eta`            | 否   | Notes         | 文档自身源码的渲染语言。默认为 `liquid`。                                                         |
-| `partials`                    | 包含名称、语言、源码的列表   | 否   | Notes         | 文档内部携带的片段源码。它们随文档一起渲染，并在导入时解包为片段文件。                            |
-| `frontmatter`                 | 条目列表                     | 否   | Notes         | 托管属性，按写入顺序排列。                                                                        |
+| 键                            | 类型                         | 必填 | Read by | 含义                                                                            |
+| ----------------------------- | ---------------------------- | ---- | ------- | ------------------------------------------------------------------------------- |
+| `id`                          | 字符串                       | 是   | Notes   | 配置方案的标识符：12 位字母或数字，默认配置方案为 `default`。                   |
+| `name`                        | 字符串                       | 是   | Notes   | 配置方案的名称：显示在配置方案列表中，并写入笔记的配置方案标记中。              |
+| `version`                     | 字符串                       | 是   | Editor  | 文档自身的版本。由分享面板写入。                                                |
+| `author`                      | 字符串                       | 否   | Editor  | 分享配置方案时携带的元数据。                                                    |
+| `description`                 | 字符串                       | 否   | Editor  | 分享配置方案时携带的元数据。                                                    |
+| `contract`                    | 整数，1 或更大               | 是   | None    | 文档面向的模板契约（Template Contract）版本。当前版本为 3。                     |
+| `minAppVersion`               | 字符串                       | 否   | None    | 文档所需的最低 ZotLit 版本。文档会保留该值。                                    |
+| `sampleItemType`              | 字符串                       | 否   | Editor  | 工作台用于预览的 Zotero 条目类型。模板工作台可编辑该值。                        |
+| `filename`                    | 模板源码                     | 是   | Notes   | 笔记名称模板。其输出将作为新文献笔记的文件名。                                  |
+| `match`                       | 字符串，或 `and` / `or` 列表 | 否   | Notes   | 配置方案匹配条件。参见[配置方案匹配](/docs/reference/templates/profile-match)。 |
+| `folder`                      | 字符串                       | 否   | Notes   | 绑定：文献笔记文件夹。                                                          |
+| `citationStyle`               | 字符串或 `null`              | 否   | Notes   | 绑定：CSL 样式 ID。`null` 会选择 ZotLit 的内置样式。                            |
+| `importFolder`                | 字符串                       | 否   | Notes   | 绑定：导入的 Zotero 笔记文件夹。                                                |
+| `importColoredHighlights`     | 布尔值                       | 否   | Notes   | 绑定：导入的高亮是否使用彩色语法。                                              |
+| `importAnnotationsAsTemplate` | 布尔值                       | 否   | Notes   | 绑定：导入的标注段落是否使用配置方案的标注分节渲染。                            |
+| `language`                    | `liquid` 或 `eta`            | 否   | Notes   | 文档自身源码的渲染语言。默认为 `liquid`。                                       |
+| `partials`                    | 包含名称、语言、源码的列表   | 否   | Notes   | 文档内部携带的片段源码。它们随文档一起渲染，并在导入时解包为片段文件。          |
+| `frontmatter`                 | 条目列表                     | 否   | Notes   | 托管属性，按写入顺序排列。                                                      |
 
 这些限制条件适用：
 

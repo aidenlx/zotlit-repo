@@ -3,10 +3,6 @@
 // other bindings; Profile owns identity, language, and compatibility details.
 
 import type {
-  InstalledCitationStyle,
-  ProfileBindingDefaults,
-} from "#bridge/index.ts";
-import type {
   ManifestScalar,
   WorkbenchDocumentController,
   WorkbenchSliceRange,
@@ -46,8 +42,8 @@ interface Binding {
   readonly label: WorkbenchMessageLabel;
   /**
    * The control the value is edited through. A style is picked from the vault's
-   * installed styles while a Workbench Connection lists them, and typed as its
-   * CSL ID standalone, where no vault says which are installed.
+   * installed styles while the host lists them, and typed as its CSL ID when no
+   * list is given.
    */
   readonly kind: "path" | "style" | "toggle";
 }
@@ -83,10 +79,29 @@ const BINDINGS: readonly Binding[] = [
   },
 ];
 
+/** A CSL style the vault has installed: its id and its title. */
+export interface InstalledCitationStyle {
+  readonly id: string;
+  readonly title: string;
+}
+
+/**
+ * The vault's own value for each sparse binding a Profile may override, so the
+ * form shows the default in effect there rather than the plugin's built-in
+ * one, and Override writes that same value.
+ */
+export interface ProfileBindingDefaults {
+  readonly folder: string;
+  readonly citationStyle: string | null;
+  readonly importFolder: string;
+  readonly importColoredHighlights: boolean;
+  readonly importAnnotationsAsTemplate: boolean;
+}
+
 /**
  * What an unset binding inherits with no vault to ask: the plugin's built-in
- * Default Profile, which is what a fresh install starts on. A Workbench
- * Connection replaces this with the vault's own effective values.
+ * Default Profile, which is what a fresh install starts on. The Obsidian
+ * host replaces this with the vault's own effective values.
  * @see apps/obsidian/src/services/settings/schema.ts DEFAULT_LITERATURE_NOTE_PROFILE
  */
 export const BUILT_IN_BINDING_DEFAULTS: ProfileBindingDefaults = {
@@ -150,8 +165,8 @@ export interface NameFolderPaneProps {
    */
   citationStyles?: readonly InstalledCitationStyle[] | null;
   /**
-   * The values an unset binding inherits. A Workbench Connection carries the
-   * vault's own; standalone this is the plugin's built-in Default Profile.
+   * The values an unset binding inherits. The host gives the vault's own;
+   * without them this is the plugin's built-in Default Profile.
    */
   defaults?: ProfileBindingDefaults;
   /**

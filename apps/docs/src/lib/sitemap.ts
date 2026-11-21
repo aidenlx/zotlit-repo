@@ -110,7 +110,6 @@ export async function renderSitemap(): Promise<string> {
     "/privacy": [{}],
     "/terms": [{}],
     "/docs": [{}],
-    "/workbench": [],
     "/blog/$slug": await blogEntries(),
     "/changelog/$version": changelog.getPages("en").map((page) => ({
       pathname: page.url,

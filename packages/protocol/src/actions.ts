@@ -92,7 +92,3 @@ const PROTOCOL_OPEN_ATTACHMENT_ACTION = "open-attachment";
  */
 export const openAttachmentProtocolActionId =
   `${PROTOCOL_NAMESPACE}/${PROTOCOL_OPEN_ATTACHMENT_ACTION}` as const;
-
-/** Clipboard-only Profile handoff; document source stays outside the URI. */
-export const importProfileProtocolActionId =
-  `${PROTOCOL_NAMESPACE}/import-profile` as const;

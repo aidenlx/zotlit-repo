@@ -248,8 +248,8 @@ Add a Scope Case or restore the exact generated vault seed when needed:
 
 The purge deletes the Development Vault folder and every ZotLit key in the
 vault's local storage, which Obsidian keeps outside that folder. A purged run
-therefore starts without held Device Overrides, Local Bridge installation ID,
-Pandoc consent, approved attachment folders, or saved view state.
+therefore starts without held Device Overrides, Pandoc consent, approved
+attachment folders, or saved view state.
 
 Use dev for the live form. It watches both extensions until Ctrl-C, then stops
 Paired Zotero and leaves the Development Vault window open:

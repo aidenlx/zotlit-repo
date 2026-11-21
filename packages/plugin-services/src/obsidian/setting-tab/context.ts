@@ -23,7 +23,6 @@ export interface SettingTabSlots {}
 export interface SettingTabContext {
   /** Runs the tab's Effects on the tab layer's context and Scope. */
   tab: SettingTabShape;
-  webWorkbenchEnabled: boolean;
   app: App;
   /**
    * The plugin's own manifest — its version and its folder in the vault. The

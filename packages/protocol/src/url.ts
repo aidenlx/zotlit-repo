@@ -12,7 +12,6 @@ import {
   exploreProtocolActionId,
   importAllNotesProtocolActionId,
   importManyProtocolActionId,
-  importProfileProtocolActionId,
   importProtocolActionId,
   openAttachmentProtocolActionId,
   protocolActionId,
@@ -25,7 +24,6 @@ export {
   exploreProtocolActionId,
   importAllNotesProtocolActionId,
   importManyProtocolActionId,
-  importProfileProtocolActionId,
   importProtocolActionId,
   openAttachmentProtocolActionId,
   type ProtocolAction,
@@ -625,15 +623,4 @@ export function parseProtocolQuery(
   data: Record<string, unknown>,
 ): ProtocolQuery {
   return v.parse(protocolQuerySchema, data);
-}
-
-export const importProfileProtocolQuerySchema = v.object({
-  clipboard: v.literal("true"),
-  paneType: paneTypeValue,
-});
-export function buildImportProfileProtocolUrl(): string {
-  return `obsidian://${importProfileProtocolActionId}?clipboard=true`;
-}
-export function parseImportProfileProtocolQuery(data: Record<string, unknown>) {
-  return v.parse(importProfileProtocolQuerySchema, data);
 }

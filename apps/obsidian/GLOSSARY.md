@@ -175,7 +175,7 @@ The vault path of a new Literature Note: the Literature note folder joined with 
 _Avoid_: filename (the last segment only), note folder (the folder part only)
 
 **Template Workbench**:
-The workflow for building and testing a Template Document: a Profile document, the Citation Template, or a Shared Partial. Three surfaces serve it: the web Workbench (Profile documents only), the Template Workbench CLI, and the Template Workbench View. The term names the activity, not one surface.
+The workflow for building and testing a Template Document: a Profile document, the Citation Template, or a Shared Partial. Two surfaces serve it: the Template Workbench CLI and the Template Workbench View. The term names the activity, not one surface.
 _Avoid_: workbench (bare, too vague)
 
 **Template Workbench CLI** _(Obsidian)_:
@@ -225,7 +225,7 @@ The Template Data Explorer's current root, saved as a JSON file for a bug report
 _Avoid_: template export (suggests rendered note output), data dump (the file follows the published contract, it is not raw state)
 
 **Template Workbench View** _(Obsidian)_:
-The main-area view that edits one Template Document with the Workbench UI, over the vault file, saved the way Obsidian saves any note. For a Profile document it shows the same tabs, panes, and one undo history as the web Workbench; for the Citation Template or a Shared Partial it shows one editor with no Basic and Source modes, and the preview follows the document's kind. The Fields Panel opens in the Fields popover at its right edge, or, pinned in a view with room, docks at its leading edge; it shows a list field by its shape and inserts it in one line or for each item. The Preview Panel sits at its trailing edge, or under the editor in a view narrower than 56rem (896 px). Both panels read the view's one chosen Item and Annotation, which one item row above the panels names beside its one "Choose item" control. The native Markdown view keeps working on the same file; the two are one click apart. Its tab title is the document's name and kind.
+The main-area view that edits one Template Document with the Workbench UI, over the vault file, saved the way Obsidian saves any note. For a Profile document it shows its tabs and panes with one undo history; for the Citation Template or a Shared Partial it shows one editor with no Basic and Source modes, and the preview follows the document's kind. The Fields Panel opens in the Fields popover at its right edge, or, pinned in a view with room, docks at its leading edge; it shows a list field by its shape and inserts it in one line or for each item. The Preview Panel sits at its trailing edge, or under the editor in a view narrower than 56rem (896 px). Both panels read the view's one chosen Item and Annotation, which one item row above the panels names beside its one "Choose item" control. The native Markdown view keeps working on the same file; the two are one click apart. Its tab title is the document's name and kind.
 _Avoid_: Profile Editor (the retired name, from when the view opened Profile documents alone), native Workbench, template editor, profile view, Obsidian Workbench
 
 **Partial Placeholder**:
@@ -238,21 +238,21 @@ _Avoid_: hover card (the Citation Popover's retired alias), template-editor hove
 
 **Preview Panel** _(Obsidian)_:
 The side panel of the Template Workbench View, at the trailing edge of the editor in a view 56rem (896 px) wide or wider and under it in a narrower view, that shows what the view's document produces for the view's chosen Item: note name, Properties, note body with the Managed Region marked, and one annotation, displayed as Obsidian renders it. Its header row, with the heading and the note's file name, stays in view while the reader scrolls the preview. It is part of the view, never a leaf of its own; the reader shows, hides, and resizes it (its width at the side, its share of the height under the editor), and the view's saved state keeps all three. Its heading follows the document kind: "Note preview" for a Profile, "Citation preview" for the Citation Template, and "Partial preview" for a Shared Partial. While it shows, the view's pane menu carries its settings (ADR 0048 as amended by ADR 0081).
-_Avoid_: Note Preview (the retired companion view), template preview (retired for the Explorer, which shows data, not output), render pane, result view (the web column's name)
+_Avoid_: Note Preview (the retired companion view), template preview (retired for the Explorer, which shows data, not output), render pane, result view
 
 **Fields Panel**:
-The one surface of the Template Workbench View and the web Workbench that shows the Template Data Explorer's tree for the view's chosen Item and Annotation and inserts its fields at the editor's cursor, the same at every width and for every Template Document kind. Unpinned, it opens in the **Fields popover** at the view's right edge, which is not modal and never saved; pinned in a view with room, it docks as a resizable column at the leading edge (ADR 0081).
+The one surface of the Template Workbench View that shows the Template Data Explorer's tree for the view's chosen Item and Annotation and inserts its fields at the editor's cursor, the same at every width and for every Template Document kind. Unpinned, it opens in the **Fields popover** at the view's right edge, which is not modal and never saved; pinned in a view with room, it docks as a resizable column at the leading edge (ADR 0081).
 _Avoid_: Fields Picker (the retired list popover of narrow views), Fields column (the retired always-docked layout), Fields sheet (a working name during design), Fields pane, linked explorer, Data Explorer (the standalone view)
 
 **Workbench UI**:
-The shared, headless component layer that both the web Workbench and the Template Workbench View mount over the Workbench core: it renders structure and behavior and carries no styling, and each host supplies styling and the platform's own popups, menus, and dialogs.
+The headless component layer that the Template Workbench View mounts over the Workbench core: it renders structure and behavior and carries no styling, and each host supplies styling and the platform's own popups, menus, and dialogs.
 _Avoid_: shared components (too vague), design system (the hosts own their look), Workbench shell (the host's layout)
 
 **Render Scheduler**:
-The one rule, shared by the web Workbench and the Template Workbench View, for when a Profile draft is rendered: live rendering starts after a short quiet time once typing stops, Run renders now, Stop pauses live rendering while a render already running finishes, and a result the author has already typed or selected past is dropped.
+The one rule of the Template Workbench View for when a Profile draft is rendered: live rendering starts after a short quiet time once typing stops, Run renders now, Stop pauses live rendering while a render already running finishes, and a result the author has already typed or selected past is dropped.
 _Avoid_: render pipeline (bundles the scheduler with the composer and the transport), render worker (no Worker exists), preview debounce (names the mechanism, not the rule)
 
-**Item Snapshot** _(web Workbench)_:
+**Item Snapshot** _(Template Workbench)_:
 The fixed template data for one selected Item and its annotations, retained until an explicit refresh. It includes permitted local link targets and explicit unavailable values where private local data is omitted.
 _Avoid_: Template Data Export (the separate inspection artifact), live Item data (a snapshot remains fixed)
 
@@ -265,20 +265,8 @@ Built-in Annotation data representing an annotation type or combination of conte
 _Avoid_: placeholder annotation (the placeholder marks a call in the note)
 
 **Local Server**:
-The plugin's one loopback HTTP listener on the desktop, started on plugin load when enabled, hosting Live Update for the Companion and the Local Bridge for the web Workbench. Each hosted service has its own toggle; the server toggle governs both.
+The plugin's one loopback HTTP listener on the desktop, started on plugin load when enabled, hosting Live Update for the Companion. Live Update has its own toggle; the server toggle governs the listener.
 _Avoid_: Live Update server (one hosted service, not the listener), bridge server, local API, HTTP server (the implementation, not the concept)
-
-**Local Bridge** _(web Workbench)_:
-The service the Local Server hosts for the web Workbench, answering only the operations a Workbench Connection grants: Item Snapshots, Profile document read and Save, template dependencies, and citation styles. Its contract is separate from Live Update and the Agent CLI.
-_Avoid_: Companion server, Live Update server (the Companion-facing service), bridge server, local API
-
-**Workbench Connection** _(web Workbench)_:
-A temporary, explicitly approved session between one web Workbench page and one vault, naming the website, the vault, the selected Item, the selected Profile, and the granted operations. Disconnect or plugin shutdown ends it; standalone use continues without one.
-_Avoid_: pairing, link (the Obsidian URI verb), login, bridge session
-
-**Connection code** _(web Workbench)_:
-A single-use code the plugin mints for one launch of the web Workbench and places in the opened URL's fragment, which the page exchanges for a Workbench Connection. It expires after one use or two minutes.
-_Avoid_: token (the session credential the exchange returns), pairing code, login code, one-time password
 
 ### Agent CLI
 

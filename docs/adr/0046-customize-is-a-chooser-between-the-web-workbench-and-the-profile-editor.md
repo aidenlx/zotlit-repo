@@ -1,4 +1,10 @@
+---
+status: superseded by ADR-0100
+---
+
 # Customize is a chooser between the web Workbench and the Profile Editor
+
+> **Superseded by [ADR 0100](0100-the-web-template-workbench-is-retired.md).** Customize opens the Profile in the Template Workbench View, with no chooser, device preference or build flag.
 
 > Amended 2026-09-09: the native Customize destination opens the linked three-panel workbench in a new Obsidian window and creates or opens Default's document before editing, as specified in ADR 0045. The web build flag and chooser policy below stay in effect.
 

@@ -41,15 +41,13 @@
       "outputs": ["src/paraglide/**"],
       "outputLogs": "errors-only"
     },
-    // generate-query-functions.ts imports the Query Schema file, and the
-    // Workbench pages read the Workbench message contract.
+    // generate-query-functions.ts imports the Query Schema file.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "generate:messages",
         "cf-typegen:check",
-        "@zotlit/item-query#generate:schema",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/item-query#generate:schema"
       ]
     },
     "lint": {

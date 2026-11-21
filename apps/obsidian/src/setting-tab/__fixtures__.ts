@@ -31,8 +31,7 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
-import { Customize } from "@zotlit/template-workbench/desktop/local-bridge/customize.ts";
-import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
+import { Customize } from "@zotlit/template-workbench/desktop/view/customize.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -61,7 +60,6 @@ export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(PandocEngine)({}),
   Layer.mock(ChineseSegmenter)({}),
   Layer.mock(AttachmentImport)({}),
-  Layer.mock(LocalBridge)({}),
   Layer.mock(Customize)({}),
   Layer.mock(TemplateWorkbenchLauncher)({}),
   // Services with plain members: a read of a member no test gave throws.

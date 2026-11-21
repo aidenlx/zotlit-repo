@@ -1,11 +1,8 @@
 import "./style.css";
 import type { WorkbenchActionDeps } from "#desktop/editor/actions.ts";
-import type {
-  DefaultProfileTarget,
-  NativeProfileTarget,
-} from "#desktop/local-bridge/customize.ts";
-import { MarkdownView, Platform, TFile } from "obsidian";
-import type { App, Plugin, WorkspaceLeaf } from "obsidian";
+import type { DefaultProfileTarget } from "#desktop/view/customize.ts";
+import { MarkdownView, Platform } from "obsidian";
+import type { App, Plugin, TFile, WorkspaceLeaf } from "obsidian";
 
 import {
   profileStateAtom,
@@ -20,7 +17,7 @@ import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
 import type { WorkbenchOpen } from "./open.ts";
-import { customizeProfile, openTemplateWorkbench } from "./open.ts";
+import { openTemplateWorkbench } from "./open.ts";
 import type { WorkbenchOpenOptions } from "./open.ts";
 import {
   TEMPLATE_WORKBENCH_VIEW_TYPE,
@@ -37,7 +34,6 @@ import { noteEmbedPlaceholders } from "#obsidian/view/embed-placeholder.ts";
 
 type RegistrationDeps = TemplateWorkbenchDeps &
   WorkbenchActionDeps & {
-    webWorkbenchEnabled: boolean;
     /** The Default Profile, which a note on the Default Profile opens. */
     defaultProfile: DefaultProfileTarget;
   };
@@ -45,7 +41,7 @@ type RegistrationDeps = TemplateWorkbenchDeps &
 /**
  * What the Workbench's commands, header action, and file-menu entries ask of a
  * file: which kind of Template Document it is, which Profile a note opens, the
- * one open "Open template workbench" runs for it, and the web Workbench launch.
+ * and the one open "Open template workbench" runs for it.
  */
 function workbenchTargets(app: App, deps: RegistrationDeps) {
   const state = () => deps.registry.get(profileStateAtom);
@@ -82,11 +78,6 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
     const target = profile ? app.vault.getFileByPath(profile.path) : null;
     return target ? { kind: "open" as const, target } : null;
   };
-  const targetOf = (file: TFile | null): NativeProfileTarget | null => {
-    if (isProfile(file)) return file;
-    const note = noteProfile(file);
-    return note?.kind === "open" ? note.target : null;
-  };
   /**
    * "Open template workbench" for `file`: a Template Document opens itself,
    * starting from `leaf` when that is the document's own Markdown leaf; a
@@ -118,29 +109,7 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
       customize: true,
     });
   };
-  /** The web Workbench launch for `target`, through the Customize flow. */
-  const webTarget = (
-    target: NativeProfileTarget,
-    options: { itemIndexedKey?: string } = {},
-  ) => {
-    const profileId =
-      target instanceof TFile
-        ? target.path === state()?.defaultDocumentPath
-          ? "default"
-          : (state()?.profiles ?? []).find(
-              (profile) => profile.path === target.path,
-            )?.id
-        : "default";
-    if (!profileId) return openTemplateWorkbench(target, options);
-    return customizeProfile({
-      profileId,
-      destination: "web",
-      ...(options.itemIndexedKey
-        ? { item: { key: options.itemIndexedKey, title: null } }
-        : {}),
-    });
-  };
-  return { isPlainDocument, isProfile, targetOf, workbenchOpen, webTarget };
+  return { isPlainDocument, isProfile, workbenchOpen };
 }
 
 /** Register the Template Workbench view, its commands, and its header actions. */
@@ -149,8 +118,10 @@ export function registerTemplateWorkbenchView(
   deps: RegistrationDeps,
 ): void {
   if (!Platform.isDesktopApp) return;
-  const { isPlainDocument, isProfile, targetOf, workbenchOpen, webTarget } =
-    workbenchTargets(plugin.app, deps);
+  const { isPlainDocument, isProfile, workbenchOpen } = workbenchTargets(
+    plugin.app,
+    deps,
+  );
   plugin.registerView(
     TEMPLATE_WORKBENCH_VIEW_TYPE,
     (leaf) =>
@@ -178,18 +149,6 @@ export function registerTemplateWorkbenchView(
       return true;
     },
   });
-  if (deps.webWorkbenchEnabled)
-    plugin.addCommand({
-      id: "open-profile-web-workbench",
-      name: m.template_workbench_web_open(),
-      checkCallback(checking) {
-        const target = targetOf(plugin.app.workspace.getActiveFile());
-        if (!target) return false;
-        if (!checking)
-          startTemplateWorkbenchAction(deps, "open-web", webTarget(target));
-        return true;
-      },
-    });
   // A note operation that refused offers this route back: the Workbench opens
   // on the document whose call refused, so the repair is one click away. The
   // Default Profile stands in when the refusal named no document — a legacy
@@ -257,9 +216,8 @@ export function templateWorkbenchFileMenu(
   deps: RegistrationDeps,
 ): FileMenuSegment {
   if (!Platform.isDesktopApp) return () => {};
-  const { isPlainDocument, targetOf, workbenchOpen, webTarget } =
-    workbenchTargets(app, deps);
-  return (menu, { file, leaf: menuLeaf, itemKey }) => {
+  const { workbenchOpen } = workbenchTargets(app, deps);
+  return (menu, { file, leaf: menuLeaf }) => {
     // The Workbench view's own pane menu raises this event too. Inside the
     // view these entries repeat the routes it already offers, so the file
     // menu keeps them for the surfaces that stand outside the Workbench.
@@ -273,21 +231,6 @@ export function templateWorkbenchFileMenu(
           .setIcon("file-pen-line")
           .onClick(() =>
             startTemplateWorkbenchAction(deps, "open-workbench", open),
-          ),
-      );
-    const target = isPlainDocument(file) ? null : targetOf(file);
-    if (target && deps.webWorkbenchEnabled)
-      menu.addItem((item) =>
-        item
-          .setSection(MENU_SECTION.open)
-          .setTitle(m.template_workbench_web_open())
-          .setIcon("external-link")
-          .onClick(() =>
-            startTemplateWorkbenchAction(
-              deps,
-              "open-web",
-              webTarget(target, itemKey ? { itemIndexedKey: itemKey } : {}),
-            ),
           ),
       );
   };

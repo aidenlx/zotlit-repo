@@ -3,7 +3,7 @@
 import type { CitationPreviewSelection } from "#render/citation-examples.ts";
 import type { PartialPreviewSelection } from "#render/partial-preview.ts";
 import type { WorkbenchReportContext } from "#render/report.ts";
-import type { RenderRequest, RenderResources } from "#render/request.ts";
+import type { RenderRequest } from "#render/request.ts";
 import type {
   TemplateRenderResult,
   RenderDiagnostic,
@@ -53,7 +53,6 @@ export interface RenderSchedulerInput {
    * choice, so the reader's pick of another caller is a new input.
    */
   readonly partial?: PartialPreviewSelection | null;
-  readonly resources?: RenderResources;
   /**
    * Holds rendering while the host cannot answer for this draft — a Profile it
    * refuses, or a dependency bundle read for another one. Unlike Stop, a render
@@ -295,7 +294,6 @@ const RENDER_FIELDS = [
   "annotation",
   "citation",
   "partial",
-  "resources",
   "hold",
 ] as const satisfies readonly (keyof RenderSchedulerInput)[];
 
@@ -308,7 +306,7 @@ function sameRenderInput(
 
 /** What a render would be asked for now, or `null` while nothing may run. */
 function nextRequest(input: RenderSchedulerInput): RenderRequest | null {
-  const { snapshot, annotation, citation, partial, resources } = input;
+  const { snapshot, annotation, citation, partial } = input;
   if (held(input) || snapshot === null) return null;
   return {
     mode: input.mode,
@@ -317,7 +315,6 @@ function nextRequest(input: RenderSchedulerInput): RenderRequest | null {
     ...(annotation ? { annotation } : {}),
     ...(citation ? { citation } : {}),
     ...(partial ? { partial } : {}),
-    ...(resources ? { resources } : {}),
   };
 }
 

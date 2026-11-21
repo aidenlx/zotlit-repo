@@ -8,7 +8,6 @@
     "#*": "./src/*"
   },
   "exports": {
-    "./bridge": "./src/bridge/index.ts",
     "./completion": "./src/language/semantics.ts",
     "./document": "./src/document/index.ts",
     "./explorer": "./src/explorer/index.ts",

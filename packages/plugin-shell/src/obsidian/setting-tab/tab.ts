@@ -38,7 +38,7 @@ export class ShellSettingTab extends PluginSettingTab {
 
   constructor(
     plugin: Plugin,
-    context: Pick<SettingTabContext, "tab" | "webWorkbenchEnabled">,
+    context: Pick<SettingTabContext, "tab">,
     {
       features,
       order,
@@ -76,7 +76,7 @@ export class ShellSettingTab extends PluginSettingTab {
 /** The context every entry of `features` builds from, its slots included. */
 export function settingTabContext(
   plugin: Pick<Plugin, "app" | "manifest">,
-  context: Pick<SettingTabContext, "tab" | "webWorkbenchEnabled">,
+  context: Pick<SettingTabContext, "tab">,
   features: readonly Feature<any, any, any>[],
 ): SettingTabContext {
   const ctx: SettingTabContext = {

@@ -3,34 +3,6 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "apps/docs/src/lib/workbench/expression-completion.test.tsx": [
-    "zotlit-tests/no-markup-assertion"
-  ],
-  "apps/docs/src/lib/workbench/frame.test.tsx": [
-    "zotlit-tests/no-markup-assertion"
-  ],
-  "apps/docs/src/lib/workbench/hover.test.tsx": [
-    "zotlit-tests/no-markup-assertion"
-  ],
-  "apps/docs/src/lib/workbench/json-e.test.tsx": [
-    "zotlit-tests/no-markup-assertion"
-  ],
-  "apps/docs/src/lib/workbench/render.test.ts": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-source-text"
-  ],
-  "apps/docs/src/lib/workbench/web-editor.test.tsx": [
-    "zotlit-tests/no-markup-assertion"
-  ],
-  "apps/docs/src/lib/workbench/web-preview.test.tsx": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-source-text"
-  ],
-  "apps/docs/src/lib/workbench/workbench.test.tsx": [
-    "zotlit-tests/no-internal-mock",
-    "zotlit-tests/no-markup-assertion",
-    "zotlit-tests/no-source-text"
-  ],
   "packages/plugin-kernel/src/brand.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"

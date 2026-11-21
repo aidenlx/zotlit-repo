@@ -11,8 +11,7 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { TFile } from "obsidian";
-import type { App, ObsidianProtocolData } from "obsidian";
+import type { App, ObsidianProtocolData, TFile } from "obsidian";
 import { beforeEach, describe, expect, it as vitestIt, vi } from "vitest";
 
 import { toObsidianOpenableAttachments } from "@zotlit/annotations/core/attachment-open/resolve.ts";
@@ -44,7 +43,6 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
-import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -68,7 +66,6 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { layerProtocolHandlers } from "@zotlit/plugin-shell/obsidian/protocol.ts";
 import { openTemplateDataExplorer } from "@zotlit/template-workbench/desktop/data-explorer/register.ts";
 import { workbenchLinks } from "@zotlit/template-workbench/desktop/protocol/handlers.ts";
-import { WorkbenchLinkOutcome } from "@zotlit/template-workbench/desktop/protocol/outcome.ts";
 import { openTemplateWorkbench } from "@zotlit/template-workbench/desktop/view/open.ts";
 import { readsAnswering } from "@zotlit/zotero-reads/__fixtures__/reads.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -80,13 +77,7 @@ import type {
 import { features } from "./features.ts";
 
 /** The legacy values the links of every feature hold, as one case sets them. */
-type LinkDeps = NoteLinkPorts &
-  AttachmentLinkPorts & { readonly webWorkbenchEnabled: boolean };
-
-/** The Profile the import dialog answers. */
-type ImportedProfile = NonNullable<
-  Effect.Success<ReturnType<LinkDeps["importProfile"]>>
->;
+type LinkDeps = NoteLinkPorts & AttachmentLinkPorts;
 
 vi.mock(
   "@zotlit/notes/desktop/note-feature/update-batch.ts",
@@ -361,10 +352,7 @@ function linksOf(deps: LinkDeps) {
   return [
     attachmentLink(ports),
     ...noteLinks(ports),
-    ...workbenchLinks({
-      webWorkbenchEnabled: deps.webWorkbenchEnabled,
-      importProfile: (options) => deps.importProfile(options),
-    }),
+    ...workbenchLinks(),
     showInLibraryLink,
   ];
 }
@@ -372,7 +360,6 @@ function linksOf(deps: LinkDeps) {
 /** The case's legacy values: stubs, unless the case sets them. */
 function depsOf(setup: Setup): LinkDeps {
   return stubService<LinkDeps>("LinkDeps", {
-    webWorkbenchEnabled: true,
     noteImportView,
     // A link import's modal callbacks would run here; no case drives them.
     bridge: stubService<LinkDeps["bridge"]>("EffectBridge", {}),
@@ -712,7 +699,6 @@ describe("layerProtocolHandlers", () => {
           "zotlit/import-all-notes",
           "zotlit/import-note",
           "zotlit/import-notes",
-          "zotlit/import-profile",
           "zotlit/open",
           "zotlit/open-attachment",
           "zotlit/show-in-library",
@@ -829,144 +815,6 @@ describe("library-wide protocol links", () => {
   );
 });
 
-describe("clipboard Profile protocol handoff", () => {
-  const PROFILE_PATH = "templates/shared.md";
-  /** The vault with the Profile document the import writes. */
-  function profileVault(): { file: TFile; files: Map<string, TFile> } {
-    const file = new TFile();
-    file.path = PROFILE_PATH;
-    return { file, files: new Map([[PROFILE_PATH, file]]) };
-  }
-  /** What the importer answers after the user's consent. */
-  function imported(path: string) {
-    return stubService<ImportedProfile>("LiteratureNoteProfile", { path });
-  }
-
-  it.effect("omits the web clipboard handoff when the build gate is off", () =>
-    Effect.gen(function* () {
-      yield* register({ deps: { webWorkbenchEnabled: false } });
-
-      expect(handlers.has("zotlit/import-profile")).toBe(false);
-    }),
-  );
-
-  it.effect(
-    "waits for import consent and then opens the returned document",
-    () =>
-      Effect.gen(function* () {
-        const consent = yield* Deferred.make<ImportedProfile | undefined>();
-        const importProfile = vi.fn(() => Deferred.await(consent));
-        const { file, files } = profileVault();
-        const app = appStub();
-        yield* register({ deps: { app, importProfile }, files });
-
-        const fiber = handlers.get("zotlit/import-profile")!(
-          protocolData("zotlit/import-profile", { clipboard: "true" }),
-        );
-        yield* Effect.yieldNow;
-        expect(importProfile).toHaveBeenCalledWith({ source: "clipboard" });
-        expect(openTemplateWorkbench).not.toHaveBeenCalled();
-
-        yield* Deferred.succeed(consent, imported(file.path));
-        if (!Fiber.isFiber(fiber)) return yield* Effect.die("no handler fiber");
-        yield* Fiber.join(fiber);
-        expect(openTemplateWorkbench).toHaveBeenCalledWith(file);
-      }),
-  );
-
-  it.effect(
-    "opens the Workbench on its own route, whatever pane the link names",
-    () =>
-      Effect.gen(function* () {
-        const { file, files } = profileVault();
-        const app = appStub();
-        const workspace = new MemoryWorkspace();
-        yield* register({
-          deps: {
-            app,
-            importProfile: vi.fn(() => Effect.succeed(imported(file.path))),
-          },
-          files,
-          workspace,
-        });
-
-        yield* dispatch("zotlit/import-profile", {
-          clipboard: "true",
-          paneType: "split",
-        });
-
-        expect(workspace.leafRequests).toEqual([]);
-        expect(openTemplateWorkbench).toHaveBeenCalledWith(file);
-      }),
-  );
-
-  it.effect("leaves the editor closed after import cancellation", () =>
-    Effect.gen(function* () {
-      yield* register({
-        deps: { importProfile: vi.fn(() => Effect.undefined) },
-      });
-
-      expect(
-        yield* dispatch("zotlit/import-profile", { clipboard: "true" }),
-      ).toEqual(WorkbenchLinkOutcome.ProfileImportCancelled());
-      expect(openTemplateWorkbench).not.toHaveBeenCalled();
-    }),
-  );
-
-  it.effect(
-    "closes the import dialog and stops the handoff when the Scope closes",
-    () =>
-      Effect.gen(function* () {
-        const opened = yield* Deferred.make<void>();
-        const close = vi.fn();
-        const { files } = profileVault();
-        const scope = yield* Scope.make();
-        yield* register({
-          deps: {
-            // The dialog stays open until something closes it.
-            importProfile: vi.fn(() =>
-              awaitModal<ImportedProfile | undefined>(() => {
-                Deferred.doneUnsafe(opened, Effect.void);
-                return { close };
-              }),
-            ),
-          },
-          files,
-        }).pipe(Scope.provide(scope));
-        const fiber = handlers.get("zotlit/import-profile")!(
-          protocolData("zotlit/import-profile", { clipboard: "true" }),
-        );
-        if (!Fiber.isFiber(fiber)) return yield* Effect.die("no handler fiber");
-        yield* Deferred.await(opened);
-
-        yield* Scope.close(scope, Exit.void);
-        const exit = yield* Fiber.await(fiber);
-
-        expect(Exit.hasInterrupts(exit)).toBe(true);
-        expect(close).toHaveBeenCalledOnce();
-        expect(openTemplateWorkbench).not.toHaveBeenCalled();
-      }),
-  );
-
-  it.effect.each([undefined, "false", ""])(
-    "does not read clipboard without the explicit flag: %s",
-    (clipboard) =>
-      Effect.gen(function* () {
-        const importProfile = vi.fn(() => Effect.undefined);
-        yield* register({ deps: { importProfile } });
-
-        const outcome = yield* dispatch(
-          "zotlit/import-profile",
-          clipboard === undefined ? {} : { clipboard },
-        );
-
-        expect(outcome).toEqual(LinkOutcome.InvalidLink());
-
-        expect(importProfile).not.toHaveBeenCalled();
-      }),
-  );
-});
-
 describe("refused protocol links", () => {
   it.effect("reads no item for a query that does not parse", () =>
     Effect.gen(function* () {
@@ -1038,49 +886,6 @@ describe("refused protocol links", () => {
         Option.some(NoteLinkOutcome.UnknownProfile({ text: "not-a-profile" })),
       );
       expect(runBatchUpdate).not.toHaveBeenCalled();
-    }),
-  );
-
-  it.effect("opens no editor when the imported document is gone", () =>
-    Effect.gen(function* () {
-      yield* register({
-        deps: {
-          importProfile: vi.fn(() =>
-            Effect.succeed(
-              stubService<ImportedProfile>("LiteratureNoteProfile", {
-                path: "templates/gone.md",
-              }),
-            ),
-          ),
-        },
-      });
-
-      expect(
-        yield* dispatch("zotlit/import-profile", { clipboard: "true" }),
-      ).toEqual(WorkbenchLinkOutcome.ProfileImportFailed());
-      expect(openTemplateWorkbench).not.toHaveBeenCalled();
-    }),
-  );
-
-  it.effect("opens no editor when a vault read dies", () =>
-    Effect.gen(function* () {
-      yield* register({
-        deps: {
-          importProfile: vi.fn(() =>
-            Effect.succeed(
-              stubService<ImportedProfile>("LiteratureNoteProfile", {
-                path: "templates/shared.md",
-              }),
-            ),
-          ),
-        },
-        getFileByPath: () => Effect.die(new Error("vault read failed")),
-      });
-
-      expect(
-        yield* dispatch("zotlit/import-profile", { clipboard: "true" }),
-      ).toEqual(WorkbenchLinkOutcome.ProfileImportFailed());
-      expect(openTemplateWorkbench).not.toHaveBeenCalled();
     }),
   );
 });

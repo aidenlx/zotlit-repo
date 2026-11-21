@@ -2,7 +2,7 @@
   "name": "@zotlit/template-workbench",
   "version": "0.0.0",
   "private": true,
-  "description": "The Template Workbench in Obsidian: the Template Workbench View, the Template Data Explorer, the Template Workbench CLI, and the Local Bridge to the web Workbench",
+  "description": "The Template Workbench in Obsidian: the Template Workbench View, the Template Data Explorer, and the Template Workbench CLI",
   "type": "module",
   "imports": {
     "#*": "./src/*"
@@ -23,7 +23,6 @@
     "@codemirror/state": "catalog:",
     "@codemirror/view": "catalog:",
     "@effect/atom-react": "catalog:",
-    "@hono/node-server": "catalog:",
     "@zotlit/annotations": "workspace:*",
     "@zotlit/citations": "workspace:*",
     "@zotlit/db": "workspace:*",
@@ -42,10 +41,7 @@
     "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "effect": "catalog:",
-    "hono": "catalog:",
-    "preact": "catalog:",
-    "semver": "^7.8.0",
-    "valibot": "catalog:"
+    "preact": "catalog:"
   },
   "devDependencies": {
     "@codemirror/language": "catalog:",
@@ -56,7 +52,6 @@
     "@types/node-24": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/semver": "^7.7.1",
     "@zotlit/config": "workspace:*",
     "@zotlit/db-testing": "workspace:*",
     "@zotlit/scripts": "workspace:*",

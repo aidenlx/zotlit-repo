@@ -1,4 +1,3 @@
-import type { Customize } from "#desktop/local-bridge/customize.ts";
 import { Effect } from "effect";
 import type { Context } from "effect";
 
@@ -53,12 +52,7 @@ export const explainWorkbenchOpen = Effect.fn(
 });
 
 /** The services a Workbench launch reads. */
-export type WorkbenchActionServices =
-  | Notifier
-  | Vault
-  | Workspace
-  | Customize
-  | Profile;
+export type WorkbenchActionServices = Notifier | Vault | Workspace | Profile;
 
 /** Show `message` in place of an open, for an entry point that cannot open. */
 export const explainNoOpen = Effect.fn("TemplateWorkbench.explainNoOpen")(

@@ -101,7 +101,6 @@ settings_pages
     settings_reader_open_file_links
     settings_reader_open_annotation_links
   settings_page_advanced
-    template_workbench_preference
     settings_update_notices
     settings_advanced_template_engine
       settings_template_folder
@@ -110,7 +109,6 @@ settings_pages
       settings_template_trim_trailing
     settings_advanced_local_server
       settings_local_server_enabled
-      settings_local_server_workbench
       settings_live_updates_port
       settings_local_server_active_port
       settings_live_updates_hostname

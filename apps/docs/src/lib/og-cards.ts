@@ -83,15 +83,6 @@ function landingCards(m: Messages, locale: SiteLocale): [OgType, CardProps][] {
       },
     ],
     [
-      "workbench",
-      {
-        kind: m.docs_og_workbench_kind({}, o),
-        title: m.workbench_title({}, o),
-        description: m.workbench_description({}, o),
-        meta: `${site}/workbench`,
-      },
-    ],
-    [
       "learn",
       {
         kind: m.docs_nav_learn({}, o),

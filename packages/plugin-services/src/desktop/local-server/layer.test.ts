@@ -1,5 +1,4 @@
 import { Effect, Stream } from "effect";
-import { Hono } from "hono/tiny";
 import { get } from "node:http";
 import { createServer } from "node:net";
 import type { AddressInfo } from "node:net";
@@ -91,7 +90,7 @@ it("serves without taking over the window's Request and Response", async () => {
   await expect(res.json()).resolves.toEqual({ keys: ["ABCD2345"] });
 });
 
-it("keeps the listener up for the Workbench while Live updates is off", async () => {
+it("keeps the listener up while Live updates is off", async () => {
   await using stack = new AsyncDisposableStack();
   const service = await buildLocalServer(
     {
@@ -99,7 +98,6 @@ it("keeps the listener up for the Workbench while Live updates is off", async ()
       overrides: {
         "server.enabled": true,
         "server.live-update": false,
-        "server.workbench": true,
         "server.port": 0,
       },
     },
@@ -217,38 +215,6 @@ it("closes and reopens the listener as the server toggle changes", async () => {
     headers: companionHeaders,
   });
   expect(res.status).toBe(200);
-});
-
-it("answers a mounted route group beside the Live Update routes", async () => {
-  await using stack = new AsyncDisposableStack();
-  const service = await buildLocalServer(
-    {
-      definition: platformSettings,
-      overrides: {
-        "server.enabled": true,
-        "server.port": 0,
-      },
-    },
-    stack,
-  );
-  // The seam the Local Bridge mounts on: the same listener, its own
-  // base path, and gates of its own — the Live Update gates stay off it.
-  service.runtime.runSync(
-    service.server.mount(
-      "/v1",
-      new Hono().get("/ping", (c) => c.text("pong")),
-    ),
-  );
-  const port = await whenListening(service);
-
-  const mounted = await fetch(`http://127.0.0.1:${port}/v1/ping`);
-  expect(mounted.status).toBe(200);
-  await expect(mounted.text()).resolves.toBe("pong");
-
-  const liveUpdate = await fetch(`http://127.0.0.1:${port}/literature-notes`, {
-    headers: companionHeaders,
-  });
-  expect(liveUpdate.status).toBe(200);
 });
 
 it("answers a note-status query as unavailable when unload ends the first scan", async () => {

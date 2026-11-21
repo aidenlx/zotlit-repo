@@ -68,7 +68,7 @@ import { m } from "@/paraglide/messages.js";
 | 所有现有笔记                             | 运行 <Command inline name={m.command_update_notes_name()} />，保持 <UiLabel name={m.modal_update_notes_create()} /> 未勾选，选择 <UiLabel name={m.modal_update_notes_all()} />。                   |
 | 仅更新属性（针对在 Zotero 中选中的文献） | <UiLabel name={m["zotero.menu_submenu.label"]()} /> → <UiLabel name={m["zotero.menu_item_update_metadata.label"]()} />。此操作不会创建新笔记，且保留正文原样，因此托管区域的更改不会同步到正文中。 |
 
-确认对话框提示为 <UiLabel name={m.batch_update_existing_confirm_intro({ count: "…" })} />；没有笔记的文献会出现在 <UiLabel name={m.batch_update_group_no_note({ count: "…" })} /> 下且不会被更改。在网页版模板工作台保存模板后，点击提示中的 <UiLabel name={m.notice_workbench_profile_saved_action()} /> 也会打开此确认对话框且不创建新笔记。Zotero 分类菜单项 <UiLabel name={m["zotero.menu_collection_update_all.label"]()} /> 则会为尚无笔记的文献创建笔记，因此不属于“仅针对现有笔记”的操作。
+确认对话框提示为 <UiLabel name={m.batch_update_existing_confirm_intro({ count: "…" })} />；没有笔记的文献会出现在 <UiLabel name={m.batch_update_group_no_note({ count: "…" })} /> 下且不会被更改。Zotero 分类菜单项 <UiLabel name={m["zotero.menu_collection_update_all.label"]()} /> 则会为尚无笔记的文献创建笔记，因此不属于“仅针对现有笔记”的操作。
 
 </Accordion>
 </Accordions>

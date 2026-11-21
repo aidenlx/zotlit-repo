@@ -1,10 +1,5 @@
-// What one render is asked for: the draft, the paper it is shown against, and
-// whatever a connected host supplies for it.
+// What one render is asked for: the draft and the paper it is shown against.
 
-import type {
-  SelectedCitationStyleResponse,
-  TemplateDependenciesResponse,
-} from "#bridge/contracts.ts";
 import type { ItemSnapshot } from "#snapshot/index.ts";
 
 import type { CitationPreviewSelection } from "./citation-examples.ts";
@@ -19,15 +14,9 @@ export interface RenderOptions {
   readonly citation?: CitationPreviewSelection;
   /** Present only on a Shared Partial render, which produces that partial's own text. */
   readonly partial?: PartialPreviewSelection;
-  readonly resources?: RenderResources;
 }
 
 export interface RenderRequest extends RenderOptions {
   readonly source: string;
   readonly snapshot: ItemSnapshot;
-}
-
-export interface RenderResources {
-  readonly dependencies: TemplateDependenciesResponse;
-  readonly citationStyle: SelectedCitationStyleResponse;
 }

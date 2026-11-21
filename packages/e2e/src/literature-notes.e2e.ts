@@ -17,7 +17,6 @@ import {
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { reachable } from "./e2e-run-fixture.ts";
-import { webWorkbenchEnabled } from "./e2e-run-fixture.ts";
 import {
   annotationKeys,
   booksProfile,
@@ -153,13 +152,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ]);
     const freshId = created.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(freshId);
-    await obRun(
-      freshId,
-      async ({ app }) => {
-        app.saveLocalStorage("zotlit-profile-customization", "native");
-      },
-      undefined,
-    );
     expect(
       await obRun(
         freshId,
@@ -2220,164 +2212,120 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   });
 
-  it.skipIf(webWorkbenchEnabled)(
-    "keeps desktop editing and Live Update available while web integration is off",
-    async () => {
-      await using cleanup = new AsyncDisposableStack();
-      cleanup.defer(async () => {
-        await obRun(
-          run.vaultId,
-          async ({ app }) => {
-            app.setting.close();
-          },
-          undefined,
-        );
-      });
+  it("keeps desktop editing and Live Update available", async () => {
+    await using cleanup = new AsyncDisposableStack();
+    cleanup.defer(async () => {
       await obRun(
-        run.vaultId,
-        async ({ app, zotlit }) => {
-          app.saveLocalStorage("zotlit-workbench-launch-approved", "1");
-          app.saveLocalStorage("zotlit-profile-customization", "web");
-          zotlit.services.bridge.runSync(
-            zotlit.services.settings.update({
-              "server.enabled": true,
-              "server.live-update": true,
-              "server.workbench": true,
-            }),
-          );
-        },
-        undefined,
-      );
-      await obRunUntil(
-        run.vaultId,
-        async ({ zotlit }) => {
-          return (
-            zotlit.services.bridge.runSync(
-              zotlit.services.localServer.effectivePort,
-            ) !== null
-          );
-        },
-        undefined,
-        { what: "the local server port to resolve through the bridge" },
-      );
-      const server = (await obRun(
-        run.vaultId,
-        async ({ zotlit }) => {
-          const services = zotlit.services;
-          const settings = services.bridge.runSync(services.settings.current);
-          return {
-            port: services.bridge.runSync(services.localServer.effectivePort),
-            sourceId: services.bridge.runSync(services.zoteroPref.current)
-              .sourceId,
-            workbench: settings["server.workbench"],
-          };
-        },
-        undefined,
-      )) as { port: number; sourceId: string; workbench: boolean };
-      expect(server.workbench).toBe(true);
-      const headers = {
-        [PROTOCOL_VERSION_HEADER]: String(PROTOCOL_VERSION),
-        [SOURCE_ID_HEADER]: server.sourceId,
-      };
-      const [bridge, liveUpdate] = await Promise.all([
-        fetch(`http://127.0.0.1:${server.port}/v1/profile/selected`, {
-          headers: { ...headers, Origin: "https://zotlit.aidenlx.site" },
-        }),
-        fetch(`http://127.0.0.1:${server.port}/literature-notes`, { headers }),
-      ]);
-      expect(bridge.status).toBe(403);
-      expect(await bridge.json()).toMatchObject({
-        error: { code: "bridge-disabled" },
-      });
-      expect(liveUpdate.status).toBe(200);
-
-      await openProfilesSettings(run.vaultId, "settings_page_advanced");
-      expect(
-        await obRun(
-          run.vaultId,
-          async (
-            { app },
-            {
-              localServerSettingName,
-              workbenchSettingName,
-              templateSettingName,
-            },
-          ) => {
-            const names = Array.from(
-              app.setting.containerEl.querySelectorAll<HTMLElement>(
-                ".setting-item-name",
-              ),
-              (el) => el.textContent,
-            );
-            return (
-              names.includes(localServerSettingName) &&
-              !names.includes(workbenchSettingName) &&
-              !names.includes(templateSettingName) &&
-              !app.commands.commands["zotlit:open-profile-web-workbench"]
-            );
-          },
-          {
-            localServerSettingName: run.m.settings_local_server_enabled_name(),
-            workbenchSettingName: run.m.settings_local_server_workbench_name(),
-            templateSettingName: run.m.template_workbench_preference_name(),
-          },
-        ),
-      ).toBe(true);
-
-      // Live updates answer the Companion, so their switch sits on the Zotero
-      // page beside it rather than with the server that carries them.
-      await openProfilesSettings(run.vaultId, "settings_page_zotero");
-      expect(
-        await obRun(
-          run.vaultId,
-          async ({ app }, { liveUpdatesSettingName, advancedHeadingText }) => {
-            const names = Array.from(
-              app.setting.containerEl.querySelectorAll<HTMLElement>(
-                ".setting-item-name",
-              ),
-              (el) => el.textContent,
-            );
-            return (
-              names.includes(liveUpdatesSettingName) &&
-              names.includes(advancedHeadingText)
-            );
-          },
-          {
-            liveUpdatesSettingName: run.m.settings_live_updates_enabled_name(),
-            advancedHeadingText: run.m.settings_advanced_local_server_heading(),
-          },
-        ),
-      ).toBe(true);
-
-      await suite.mainSettings();
-      await suite.clickTemplateCustomize();
-      await obRunUntil(
         run.vaultId,
         async ({ app }) => {
-          return (
-            app.workspace.activeLeaf?.view.getViewType() ===
-              "zotlit-template-workbench" &&
-            !document.querySelector<HTMLInputElement>(
-              'input[name="zotlit-customize-destination"]',
-            )
-          );
+          app.setting.close();
         },
         undefined,
-        {
-          what: "the Template Workbench to be the active leaf with no destination radio",
-        },
       );
+    });
+    await obRun(
+      run.vaultId,
+      async ({ zotlit }) => {
+        zotlit.services.bridge.runSync(
+          zotlit.services.settings.update({
+            "server.enabled": true,
+            "server.live-update": true,
+          }),
+        );
+      },
+      undefined,
+    );
+    await obRunUntil(
+      run.vaultId,
+      async ({ zotlit }) => {
+        return (
+          zotlit.services.bridge.runSync(
+            zotlit.services.localServer.effectivePort,
+          ) !== null
+        );
+      },
+      undefined,
+      { what: "the local server port to resolve through the bridge" },
+    );
+    const server = (await obRun(
+      run.vaultId,
+      async ({ zotlit }) => {
+        const services = zotlit.services;
+        return {
+          port: services.bridge.runSync(services.localServer.effectivePort),
+          sourceId: services.bridge.runSync(services.zoteroPref.current)
+            .sourceId,
+        };
+      },
+      undefined,
+    )) as { port: number; sourceId: string };
+    const liveUpdate = await fetch(
+      `http://127.0.0.1:${server.port}/literature-notes`,
+      {
+        headers: {
+          [PROTOCOL_VERSION_HEADER]: String(PROTOCOL_VERSION),
+          [SOURCE_ID_HEADER]: server.sourceId,
+        },
+      },
+    );
+    expect(liveUpdate.status).toBe(200);
+
+    await openProfilesSettings(run.vaultId, "settings_page_advanced");
+    expect(
       await obRun(
         run.vaultId,
-        async ({ app, zotlit }) => {
-          app.saveLocalStorage("zotlit-workbench-launch-approved", null);
-          app.saveLocalStorage("zotlit-profile-customization", "native");
-          zotlit.services.bridge.runSync(
-            zotlit.services.settings.update({ "server.workbench": false }),
+        async ({ app }, { localServerSettingName }) => {
+          const names = Array.from(
+            app.setting.containerEl.querySelectorAll<HTMLElement>(
+              ".setting-item-name",
+            ),
+            (el) => el.textContent,
+          );
+          return names.includes(localServerSettingName);
+        },
+        {
+          localServerSettingName: run.m.settings_local_server_enabled_name(),
+        },
+      ),
+    ).toBe(true);
+
+    // Live updates answer the Companion, so their switch sits on the Zotero
+    // page beside it rather than with the server that carries them.
+    await openProfilesSettings(run.vaultId, "settings_page_zotero");
+    expect(
+      await obRun(
+        run.vaultId,
+        async ({ app }, { liveUpdatesSettingName, advancedHeadingText }) => {
+          const names = Array.from(
+            app.setting.containerEl.querySelectorAll<HTMLElement>(
+              ".setting-item-name",
+            ),
+            (el) => el.textContent,
+          );
+          return (
+            names.includes(liveUpdatesSettingName) &&
+            names.includes(advancedHeadingText)
           );
         },
-        undefined,
-      );
-    },
-  );
+        {
+          liveUpdatesSettingName: run.m.settings_live_updates_enabled_name(),
+          advancedHeadingText: run.m.settings_advanced_local_server_heading(),
+        },
+      ),
+    ).toBe(true);
+
+    await suite.mainSettings();
+    await suite.clickTemplateCustomize();
+    await obRunUntil(
+      run.vaultId,
+      async ({ app }) => {
+        return (
+          app.workspace.activeLeaf?.view.getViewType() ===
+          "zotlit-template-workbench"
+        );
+      },
+      undefined,
+      { what: "the Template Workbench to be the active leaf" },
+    );
+  });
 });

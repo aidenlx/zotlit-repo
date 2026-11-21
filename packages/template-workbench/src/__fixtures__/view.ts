@@ -40,7 +40,6 @@ import type {
   BatchMatches,
   MatchItem,
 } from "@zotlit/notes/core/profile-selection/item-matches.ts";
-import { Customize } from "#desktop/local-bridge/customize.ts";
 import { NoteWriteAborted } from "@zotlit/notes/obsidian/note-feature/errors.ts";
 import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/operations.ts";
 import { NoteFeature } from "@zotlit/notes/desktop/note-feature/service.ts";
@@ -139,15 +138,14 @@ export type WorkbenchHostDeps = Omit<
 
 /**
  * The services a Workbench launch runs with: `notifier`, and a vault, a
- * workspace, the Customize flow and the Profile service whose members each
- * test supplies when its launch reads them.
+ * workspace and the Profile service whose members each test supplies when
+ * its launch reads them.
  */
 export function workbenchActionContext(
   notifier: Notifier["Service"] = testNotifier().service,
   services: {
     vault?: Partial<Vault["Service"]>;
     workspace?: Partial<Workspace["Service"]>;
-    customize?: Partial<Customize["Service"]>;
     profile?: Partial<Profile["Service"]>;
   } = {},
 ): Context.Context<WorkbenchActionServices> {
@@ -159,10 +157,6 @@ export function workbenchActionContext(
     Context.add(
       Workspace,
       stubService<Workspace["Service"]>("Workspace", services.workspace ?? {}),
-    ),
-    Context.add(
-      Customize,
-      stubService<Customize["Service"]>("Customize", services.customize ?? {}),
     ),
     Context.add(
       Profile,

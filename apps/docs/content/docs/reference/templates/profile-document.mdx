@@ -79,28 +79,28 @@ The manifest is a strict mapping. Any key that this table does not list fails va
 
 - **Notes**: the note pipeline or the profile registry reads it. It changes what ZotLit writes into a note, or which profile a note resolves to.
 - **Editor**: the Template Workbench, the profile share sheet, or the profile import sheet reads or edits it. No note operation consults it.
-- **Web Workbench**: only the web Workbench acts on it. The desktop app shows the value read-only, and no note operation consults it. This release ships with the web Workbench disabled.
+- **None**: the loader checks the value and the document keeps it. The Template Workbench shows it read-only, and no note operation or Workbench action acts on it.
 
-| Key                           | Type                             | Required | Read by       | Meaning                                                                                                                                      |
-| ----------------------------- | -------------------------------- | -------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                          | string                           | Yes      | Notes         | The profile's identity: twelve letters or digits, or `default` for the Default profile.                                                      |
-| `name`                        | string                           | Yes      | Notes         | The profile's label: shown in profile lists and written into the note's profile stamp.                                                       |
-| `version`                     | string                           | Yes      | Editor        | The document's own version. The share sheet writes it.                                                                                       |
-| `author`                      | string                           | No       | Editor        | Metadata carried when the profile is shared.                                                                                                 |
-| `description`                 | string                           | No       | Editor        | Metadata carried when the profile is shared.                                                                                                 |
-| `contract`                    | integer, 1 or more               | Yes      | Web Workbench | The Template Contract version the document targets. The current version is 3, and the web Workbench refuses a document that targets another. |
-| `minAppVersion`               | string                           | No       | Web Workbench | Oldest ZotLit version the document needs. An older build does not open or save the document in the web Workbench.                            |
-| `sampleItemType`              | string                           | No       | Editor        | Zotero item type the Workbench previews with. The desktop Workbench edits the value; only the web Workbench picks a sample item by type.     |
-| `filename`                    | template source                  | Yes      | Notes         | Note-name template. Its output becomes the filename of a new literature note.                                                                |
-| `match`                       | string, or an `and` or `or` list | No       | Notes         | Profile Match conditions. See [Profile Match](/docs/reference/templates/profile-match).                                                      |
-| `folder`                      | string                           | No       | Notes         | Binding: folder for literature notes.                                                                                                        |
-| `citationStyle`               | string or `null`                 | No       | Notes         | Binding: CSL style ID. `null` selects ZotLit's embedded style.                                                                               |
-| `importFolder`                | string                           | No       | Notes         | Binding: folder for imported Zotero notes.                                                                                                   |
-| `importColoredHighlights`     | boolean                          | No       | Notes         | Binding: whether imported highlights use color syntax.                                                                                       |
-| `importAnnotationsAsTemplate` | boolean                          | No       | Notes         | Binding: whether imported annotation paragraphs render from the profile's Annotation Section.                                                |
-| `language`                    | `liquid` or `eta`                | No       | Notes         | Rendering language of the document's own sources. Default `liquid`.                                                                          |
-| `partials`                    | list of name, language, source   | No       | Notes         | Partial sources carried inside the document. They render with it, and unpack into partial files on import.                                   |
-| `frontmatter`                 | list of entries                  | No       | Notes         | Managed frontmatter properties, in write order.                                                                                              |
+| Key                           | Type                             | Required | Read by | Meaning                                                                                                    |
+| ----------------------------- | -------------------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `id`                          | string                           | Yes      | Notes   | The profile's identity: twelve letters or digits, or `default` for the Default profile.                    |
+| `name`                        | string                           | Yes      | Notes   | The profile's label: shown in profile lists and written into the note's profile stamp.                     |
+| `version`                     | string                           | Yes      | Editor  | The document's own version. The share sheet writes it.                                                     |
+| `author`                      | string                           | No       | Editor  | Metadata carried when the profile is shared.                                                               |
+| `description`                 | string                           | No       | Editor  | Metadata carried when the profile is shared.                                                               |
+| `contract`                    | integer, 1 or more               | Yes      | None    | The Template Contract version the document targets. The current version is 3.                              |
+| `minAppVersion`               | string                           | No       | None    | Oldest ZotLit version the document needs. The document keeps the value.                                    |
+| `sampleItemType`              | string                           | No       | Editor  | Zotero item type the Workbench previews with. The Template Workbench edits the value.                      |
+| `filename`                    | template source                  | Yes      | Notes   | Note-name template. Its output becomes the filename of a new literature note.                              |
+| `match`                       | string, or an `and` or `or` list | No       | Notes   | Profile Match conditions. See [Profile Match](/docs/reference/templates/profile-match).                    |
+| `folder`                      | string                           | No       | Notes   | Binding: folder for literature notes.                                                                      |
+| `citationStyle`               | string or `null`                 | No       | Notes   | Binding: CSL style ID. `null` selects ZotLit's embedded style.                                             |
+| `importFolder`                | string                           | No       | Notes   | Binding: folder for imported Zotero notes.                                                                 |
+| `importColoredHighlights`     | boolean                          | No       | Notes   | Binding: whether imported highlights use color syntax.                                                     |
+| `importAnnotationsAsTemplate` | boolean                          | No       | Notes   | Binding: whether imported annotation paragraphs render from the profile's Annotation Section.              |
+| `language`                    | `liquid` or `eta`                | No       | Notes   | Rendering language of the document's own sources. Default `liquid`.                                        |
+| `partials`                    | list of name, language, source   | No       | Notes   | Partial sources carried inside the document. They render with it, and unpack into partial files on import. |
+| `frontmatter`                 | list of entries                  | No       | Notes   | Managed frontmatter properties, in write order.                                                            |
 
 These constraints apply:
 

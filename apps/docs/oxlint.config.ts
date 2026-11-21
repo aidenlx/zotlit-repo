@@ -45,16 +45,7 @@ export default defineConfig({
       },
     ],
   },
-  jsPlugins: [
-    new URL("../../packages/config/oxlint-plugin-design.ts", import.meta.url)
-      .pathname,
-  ],
   overrides: [
-    {
-      files: ["src/lib/workbench/*.tsx"],
-      excludeFiles: ["**/*.test.tsx"],
-      rules: { "zotlit-design/workbench-chrome": "error" },
-    },
     ...testBaselineOverrides("apps/docs"),
     {
       // TanStack Router signals `notFound()` and `redirect()` by throwing

@@ -6,7 +6,6 @@ import {
   exploreProtocolActionId,
   importAllNotesProtocolActionId,
   importManyProtocolActionId,
-  importProfileProtocolActionId,
   importProtocolActionId,
   openAttachmentProtocolActionId,
   protocolActionId,
@@ -23,7 +22,6 @@ export const linkActions = [
   updateAllProtocolActionId,
   importAllNotesProtocolActionId,
   exploreProtocolActionId,
-  importProfileProtocolActionId,
   showInLibraryProtocolActionId,
   openAttachmentProtocolActionId,
 ] as const;

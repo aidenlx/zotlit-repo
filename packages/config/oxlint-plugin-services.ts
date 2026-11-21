@@ -803,9 +803,9 @@ const ANNOTATION_SERVICES =
 const CITATION_SERVICES =
   /\/citations\/src\/(core|obsidian|desktop)\/(annotation-popover|citation-index|citation-parse|citation-popover|citation-text|citekey-editor|citekey-navigation|citekey-reading|graph-citations|pandoc|wikilink-editor|wikilink-reading)\//;
 
-/** The folders of `@zotlit/notes` and `@zotlit/template-workbench` that hold Effect services. */
+/** The folders of `@zotlit/notes` and `@zotlit/template-workbench` that hold Effect services, and the one file of Customize. */
 const NOTES_SERVICES =
-  /\/(notes\/src\/(core|obsidian|desktop)\/(note-feature|note-import|profile|profile-selection|template|batch)|template-workbench\/src\/(core|obsidian|desktop)\/(cli|local-bridge))\//;
+  /\/(notes\/src\/(core|obsidian|desktop)\/(note-feature|note-import|profile|profile-selection|template|batch)\/|template-workbench\/src\/((core|obsidian|desktop)\/cli\/|desktop\/view\/customize\.ts))/;
 /** The folders of `@zotlit/query-views` and `@zotlit/library-view` that hold Effect services. */
 const QUERY_SERVICES =
   /\/(query-views\/src\/(core|obsidian|desktop)\/item-query|library-view\/src\/(core|obsidian|desktop)\/release)\//;

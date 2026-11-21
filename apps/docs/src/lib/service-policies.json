@@ -7,7 +7,7 @@
         {
           "heading": "Scope of this Policy",
           "paragraphs": [
-            "This policy applies to all services operated by ZotLit. This includes the Obsidian plugin, the Zotero companion, local tools, the documentation website with its blog and Template Workbench, and the community forum along with its sign-in systems.",
+            "This policy applies to all services operated by ZotLit. This includes the Obsidian plugin, the Zotero companion, local tools, the documentation website with its blog, and the community forum along with its sign-in systems.",
             "ZotLit is maintained by AidenLx. If you have questions or requests regarding your personal information, you can reach out to the maintainer using the contact link provided in the interface."
           ]
         },
@@ -15,7 +15,6 @@
           "heading": "Local Tools and Your Research Data",
           "paragraphs": [
             "ZotLit local tools run directly on your computer. They process your selected Zotero library metadata, annotations, files, templates, and notes locally.",
-            "If you use the optional Local Bridge, it transfers information only between the web-based Template Workbench and your local desktop application on the same machine.",
             "ZotLit does not operate any cloud synchronization service for your research library. You may choose to submit diagnostic or support information manually when seeking help. Certain linked resources or third-party tools you choose to configure may make independent network requests."
           ]
         },
@@ -69,7 +68,7 @@
         {
           "heading": "Scope and Acceptance",
           "paragraphs": [
-            "These terms govern your access to and use of all services operated by ZotLit, including the Obsidian plugin, Zotero companion, documentation website, Template Workbench, and community forum. ZotLit is maintained by AidenLx, who can be reached via the contact link in the interface.",
+            "These terms govern your access to and use of all services operated by ZotLit, including the Obsidian plugin, Zotero companion, documentation website, and community forum. ZotLit is maintained by AidenLx, who can be reached via the contact link in the interface.",
             "ZotLit software components are distributed under applicable open-source licenses, including the GNU Affero General Public License version 3 or later. Nothing in these hosted service terms limits or replaces your rights under those open-source licenses.",
             "When choosing optional Google, GitHub, or Microsoft sign-in, your use is also subject to the respective provider's terms. You remain responsible for maintaining the security of your ZotLit account and should contact ZotLit if you suspect unauthorized access."
           ]
@@ -113,7 +112,7 @@
         {
           "heading": "适用范围",
           "paragraphs": [
-            "本政策适用于 ZotLit 运营的所有服务，包括 Obsidian 插件、Zotero 联动组件、本地工具、包含博客与模板工作台的文档站点，以及社区论坛与其登录系统。",
+            "本政策适用于 ZotLit 运营的所有服务，包括 Obsidian 插件、Zotero 联动组件、本地工具、包含博客的文档站点，以及社区论坛与其登录系统。",
             "ZotLit 由 AidenLx 维护。如对个人信息有任何疑问或请求，您可以通过界面中提供的联系方式与维护者取得联系。"
           ]
         },
@@ -121,7 +120,6 @@
           "heading": "本地工具与文献数据处理",
           "paragraphs": [
             "ZotLit 本地工具完全在您的个人计算机上运行。它们在本地处理您选定的 Zotero 文献库元数据、批注、文件、模板与笔记。",
-            "如果您选择启用本地桥接功能，数据仅在同一台设备上的网页版模板工作台与桌面本地应用之间传递。",
             "ZotLit 不提供任何针对文献库的云端同步服务。您可以在寻求支持时自主选择提交诊断信息。您自行配置的关联资源或第三方工具可能会产生独立网络请求。"
           ]
         },
@@ -175,7 +173,7 @@
         {
           "heading": "范围与协议接受",
           "paragraphs": [
-            "本条款适用于您对 ZotLit 运营的所有服务的访问与使用，包括 Obsidian 插件、Zotero 联动组件、文档网站、模板工作台与社区论坛。ZotLit 由 AidenLx 维护，您可通过界面中的联系方式与维护者沟通。",
+            "本条款适用于您对 ZotLit 运营的所有服务的访问与使用，包括 Obsidian 插件、Zotero 联动组件、文档网站与社区论坛。ZotLit 由 AidenLx 维护，您可通过界面中的联系方式与维护者沟通。",
             "ZotLit 软件组件在适用的开源许可证下分发，包括 GNU Affero 通用公共许可证第 3 版或更高版本。本在线服务条款中的任何内容均不限制或取代您在这些开源许可证下享有的合法权利。",
             "选择使用可选的 Google、GitHub 或 Microsoft 登录时，您亦须遵守相应提供商自身的服务条款。您有责任维护自身 ZotLit 账户的安全，若怀疑账号遭到未经授权的访问，请联系 ZotLit。"
           ]

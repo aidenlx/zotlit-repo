@@ -114,8 +114,6 @@ export function diagnosticText(
         found: String(params.found),
         expected: String(params.expected),
       });
-    case "citation-style-error":
-      return diagnostic.message ?? citationStyleText(m, params);
     case "property-error":
       // The engine's own last word, which the renderer separated from the
       // wrapper naming the entry: the line already names the property once.
@@ -142,15 +140,6 @@ export function diagnosticText(
       // holds the call that handed it over: the caller's data, not the called
       // template, is what went wrong.
       return m.workbench_diagnostic_citation_data_mismatch();
-    case "unsupported-dependency":
-      // The renderer names the dependency it refused and leaves the words
-      // here; a Local Bridge that reports its own bundle failure sends the
-      // sentence instead, which falls to the default below.
-      return params.name === undefined
-        ? (diagnostic.message ?? diagnostic.code)
-        : m.workbench_diagnostic_unsupported_dependency({
-            name: String(params.name),
-          });
     case "property-append-conflict": {
       const conflict = m.workbench_diagnostic_property_append_conflict({
         key: String(params.key),
@@ -169,29 +158,9 @@ export function diagnosticText(
       return m.workbench_diagnostic_render_error();
     default:
       // A refusal this package does name — an unreadable Profile document, a
-      // dependency the bundle is missing — carries the wording the renderer or
-      // the Local Bridge wrote for it.
+      // citation the host could not format — carries the wording the renderer
+      // or the host wrote for it.
       return diagnostic.message ?? diagnostic.code;
-  }
-}
-
-function citationStyleText(
-  m: WorkbenchMessages,
-  params: NonNullable<RenderDiagnostic["params"]>,
-): string {
-  const styleId = String(params.styleId);
-  switch (params.reason) {
-    case "parent-missing":
-      return m.workbench_diagnostic_citation_style_parent_missing({
-        styleId,
-        parentId: String(params.parentId),
-      });
-    case "unreadable":
-      return m.workbench_diagnostic_citation_style_unreadable({ styleId });
-    case "invalid":
-      return m.workbench_diagnostic_citation_style_invalid({ styleId });
-    default:
-      return m.workbench_diagnostic_citation_style_missing({ styleId });
   }
 }
 
@@ -460,11 +429,6 @@ function diagnosticObject(
         : m.workbench_problems_object_style({
             styleId: String(params.styleId),
           });
-    case "missing-dependency":
-    case "unsupported-dependency":
-      return params.name === undefined
-        ? m.workbench_problems_object_profile()
-        : m.workbench_problems_object_dependency({ name: String(params.name) });
     case "contract-version-mismatch":
     case "invalid-profile":
       return m.workbench_problems_object_profile();
@@ -519,10 +483,6 @@ function diagnosticSuggestion(
       return m.workbench_diagnostic_contract_mismatch_suggestion();
     case "invalid-profile":
       return m.workbench_diagnostic_invalid_profile_suggestion();
-    case "missing-dependency":
-      return m.workbench_diagnostic_missing_dependency_suggestion();
-    case "unsupported-dependency":
-      return m.workbench_problem_unsupported_recovery();
     default:
       // An engine failure this package has not classified: the reader gets an
       // honest next step rather than a guessed repair.

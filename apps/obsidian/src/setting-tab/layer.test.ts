@@ -19,21 +19,12 @@ import type { LanguagePackSituation } from "@zotlit/plugin-services/obsidian/lan
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { layerSettingTab } from "@zotlit/plugin-shell/obsidian/setting-tab/layer.ts";
-import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
-import type { WorkbenchConnection } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
 import { features } from "@/features.ts";
 import { host } from "@/host.ts";
 import { defaults } from "@/services/settings/schema.ts";
 
 import { unimplementedTabServices } from "./__fixtures__.ts";
-
-const CONNECTION: WorkbenchConnection = {
-  origin: "https://zotlit.aidenlx.site",
-  profileId: "books",
-  profileName: "Books",
-  item: null,
-};
 
 const OFFERED: LanguagePackSituation = {
   kind: "offered",
@@ -42,14 +33,11 @@ const OFFERED: LanguagePackSituation = {
 
 /**
  * The tab layer over services whose change streams stay quiet but for the
- * Workbench Connection, the Language Pack and the settings, which the test
- * moves. Counts each rebuild of the tab.
+ * Language Pack and the settings, which the test moves. Counts each rebuild
+ * of the tab.
  */
 const tabLayer = Effect.gen(function* () {
   const settings = yield* SubscriptionRef.make<Settings>(defaults);
-  const connection = yield* SubscriptionRef.make<WorkbenchConnection | null>(
-    null,
-  );
   const situation = yield* SubscriptionRef.make<LanguagePackSituation>({
     kind: "unavailable",
   });
@@ -108,12 +96,6 @@ const tabLayer = Effect.gen(function* () {
       }),
     ),
     Context.add(
-      LocalBridge,
-      stubService<LocalBridge["Service"]>("LocalBridge", {
-        changes: SubscriptionRef.changes(connection),
-      }),
-    ),
-    Context.add(
       LanguagePack,
       stubService<LanguagePack["Service"]>("LanguagePack", {
         changes: SubscriptionRef.changes(situation),
@@ -121,9 +103,7 @@ const tabLayer = Effect.gen(function* () {
     ),
   );
   yield* Layer.build(
-    layerSettingTab(features, host.settingTab, {
-      webWorkbenchEnabled: true,
-    }).pipe(
+    layerSettingTab(features, host.settingTab).pipe(
       Layer.provide(testNotifier().layer),
       // The test gives the services the tab layer itself reads; the rest
       // stay unimplemented.
@@ -135,17 +115,20 @@ const tabLayer = Effect.gen(function* () {
       ),
     ),
   );
-  return { connection, situation, settings, rebuilds };
+  return { situation, settings, rebuilds };
 });
 
 it.effect(
-  "rebuilds once for a connection change and a Language Pack change inside one settle window",
+  "rebuilds once for a reminder flag flip and a Language Pack change inside one settle window",
   () =>
     Effect.scoped(
       Effect.gen(function* () {
-        const { connection, situation, rebuilds } = yield* tabLayer;
+        const { settings, situation, rebuilds } = yield* tabLayer;
 
-        yield* SubscriptionRef.set(connection, CONNECTION);
+        yield* SubscriptionRef.update(settings, (current) => ({
+          ...current,
+          "release.migration-pending": !current["release.migration-pending"],
+        }));
         yield* TestClock.adjust("20 millis");
         yield* SubscriptionRef.set(situation, OFFERED);
         yield* TestClock.adjust("49 millis");

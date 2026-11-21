@@ -13,8 +13,7 @@
         "$TURBO_EXTENDS$",
         "ANALYZE",
         "ANNOTATION_SUGGESTER_ENABLED",
-        "MIN_APP_VERSION",
-        "WEB_WORKBENCH_ENABLED"
+        "MIN_APP_VERSION"
       ],
       "outputs": ["$TURBO_EXTENDS$", "bundle-stats.html"],
       "inputs": [
@@ -33,7 +32,6 @@
         "DOCS_SITE_URL",
         "I18N_DEV_SERVER",
         "MIN_APP_VERSION",
-        "WEB_WORKBENCH_ENABLED",
         "ZT_VAULT_CASE"
       ],
       "outputs": ["$TURBO_EXTENDS$", "bundle-stats.html"],
@@ -51,7 +49,6 @@
         "DOCS_SITE_URL",
         "I18N_DEV_SERVER",
         "MIN_APP_VERSION",
-        "WEB_WORKBENCH_ENABLED",
         "ZT_VAULT_CASE"
       ]
     },

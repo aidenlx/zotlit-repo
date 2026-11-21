@@ -19,9 +19,9 @@ import {
 // or `electron`, so any host loads it. `obsidian/` loads on Obsidian Mobile:
 // the Obsidian API and kit, and no Node or Electron; the Obsidian host of the
 // Workbench UI lives here. `desktop/` alone reads Node and Electron: the
-// Template Workbench CLI, the Local Bridge server, and the views over template
-// data, which links files on disk. A layer imports the layers below it only:
-// core <- obsidian <- desktop.
+// Template Workbench CLI and the views over template data, which links files
+// on disk. A layer imports the layers below it only: core <- obsidian <-
+// desktop.
 
 /** The plugin layers above the host-free base. */
 const pluginLayers = {
@@ -96,8 +96,8 @@ const NOT_TESTS = [
   "src/**/__fixtures__/**",
 ];
 
-/** The folders that hold Effect services; the others hold views. */
-const SERVICES = ["src/*/cli/**", "src/*/local-bridge/**"];
+/** The files that hold Effect services; the others hold views. */
+const SERVICES = ["src/*/cli/**", "src/desktop/view/customize.ts"];
 
 export default defineConfig({
   extends: [baseConfig],

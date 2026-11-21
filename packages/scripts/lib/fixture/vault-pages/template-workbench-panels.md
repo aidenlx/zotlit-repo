@@ -49,17 +49,16 @@ menu has no **Resize fields**. The chosen Item stays chosen.
    again.
 2. Do step 1 again with the tab 960, 760, 560 and 320 pixels wide.
 
-Expected: the tooltip of the view action reads "Fields". In the web Workbench,
-the header button reads **Fields**. At each width, the first select opens one
-region named "Fields" at the right edge of the view. It floats over the
+Expected: the tooltip of the view action reads "Fields". At each
+width, the first select opens one region named "Fields" at the right edge of
+the view. It floats over the
 editor and the Preview, as tall as the view, with a small gap between it and
 the view's top, right and bottom edges. Nothing under it is dimmed. Its
 header shows the braces icon, the title "Fields" and a **Close fields** button.
 Under the header are the "Template fields" explorer and its search. The
 editor and the Preview keep their size. While the popover is open, the pane
 menu shows **Show fields** checked. The second select closes the popover, and
-the chosen Item stays chosen. The web Workbench's **View** menu shows **Show
-fields** the same way.
+the chosen Item stays chosen.
 
 ## Close the Fields popover and return the focus
 
@@ -68,8 +67,7 @@ fields** the same way.
 3. Select **Fields**. Select **Fields** again.
 
 Expected: each step closes the popover. After steps 1 and 2, the focus is on
-the **Fields** view action. The web Workbench does the same steps, with the
-same outcome.
+the **Fields** view action.
 
 ## Click outside the Fields popover
 
@@ -84,8 +82,7 @@ Expected: in step 1 the focus goes to the field search of the popover. Steps 2
 to 5 each close the popover. After steps 2, 3 and 4, which select a place
 that takes no focus, the focus is on the **Fields** view action, not lost to
 the page. After step 5 the focus is on the rendered note, which you selected,
-and `Tab` goes on from there. The web Workbench does step 2 with the same
-outcome.
+and `Tab` goes on from there.
 
 ## The editor and the Preview stay usable
 
@@ -200,8 +197,7 @@ its matching row only. In step 3 the list reads "No matching fields. Clear
 the search to see all fields.", and a screen reader reads that sentence. In
 step 4 the sentence goes from the list and from the panels' live region
 (`role="status"`) as soon as the search matches a field again, and as soon as
-the search is empty. The web Workbench does the same steps, with the same
-outcome.
+the search is empty.
 
 ## The rows of the Fields Panel
 
@@ -251,8 +247,7 @@ Expected: step 2 writes `{{ zt.title }}` at the cursor, closes the popover and
 gives the editor the focus, after the inserted text. In step 3 the `x` follows
 the inserted `}}` with no space between them. In step 4, the menu offers
 **Copy path**, **Copy value** and the Template Snippets, each of which copies
-to the clipboard. The web Workbench does the same steps, with the same
-outcome.
+to the clipboard.
 
 ## A list field in the Fields popover
 
@@ -380,7 +375,6 @@ Press `Down Arrow` and `Ctrl+Enter` (`Command+Enter` on macOS) in the search:
 nothing goes into the note, and a notice and a screen reader say the same
 sentence. In step 4 each row has **Insert field**, the footer names
 `Ctrl+Enter: insert` again, and the button inserts its field at the cursor.
-The web Workbench does the same steps, with the same outcome.
 
 ## Insert a field in a narrow tab with the keyboard
 
@@ -394,7 +388,7 @@ The web Workbench does the same steps, with the same outcome.
 Expected: step 2 keeps the fields that match `doi`. Step 3 writes
 `{{ zt.DOI }}` at the cursor, closes the popover and gives the editor the focus.
 In step 4 the note body reads `{{ zt.DOI }}x`: the cursor is after the
-inserted text. The web Workbench does the same steps, with the same outcome.
+inserted text.
 
 ## Show a field's details in a wide tab
 
@@ -412,8 +406,7 @@ in a popover to the left of the Fields popover, level with the row: the
 section, the name "Title", the full title, **Template path** with
 `zt.title`, and **In your note** with `{{ zt.title }}` and the title it
 writes, then **Insert** and **Copy**. The focus stays in the field search.
-Step 4 closes the details. The web Workbench does the same steps, with the
-same outcome.
+Step 4 closes the details.
 
 ## Show a field's details in a narrow tab
 
@@ -433,7 +426,7 @@ gives way to the field list: the list keeps the whole **Title** row under
 the sticky "Common fields" header, not a cut strip of it. The bar opens on
 **In your note**, with `{{ zt.title }}` and its result above **Insert** and
 **Copy**; the field's name and value are above it, and the bar scrolls to
-them. The web Workbench does the same steps, with the same outcome.
+them.
 
 ## A field's text follows the place it goes to
 
@@ -463,10 +456,7 @@ popover open with the focus in the field search, and shows the notice
 "Copied Title.". Step 3 writes `{{ zt.DOI }}` at the cursor, closes the
 details and the popover, gives the editor the focus after the inserted text,
 and shows the notice "Inserted DOI.". A screen reader reads both messages,
-also after the popover closed, from the panels' live region. In the web
-Workbench, the notice "Copied Title." stands at the bottom, beside the Fields
-popover, and leaves the popover's foot (the key hint line) in view, in a
-window 1400 pixels wide and in one 560 pixels wide.
+also after the popover closed, from the panels' live region.
 
 ## Choose a field with the keyboard
 
@@ -486,7 +476,7 @@ and puts the focus back in the search, where `Enter` opens them again. Step 4
 writes the selected field at the cursor, closes the popover and gives the
 editor the focus. Clear the search and press `Down Arrow` forty times, then
 `Up Arrow` forty times: the selected row is always in view, never under a
-section header. The web Workbench does the same steps, with the same outcome.
+section header.
 
 ## Close a field's details
 
@@ -549,8 +539,7 @@ accent color on its icon and a ground behind it, also with the pointer away
 from it; it shows the pin-off icon, and its tooltip and its name for a screen
 reader read "Unpin", with no "pressed" state beside it. The panel has no **Close fields**
 button and nothing in the view is dimmed. **Fields** is pressed, and the pane
-menu shows **Show fields** checked. The web Workbench does the same in a
-window 1400 pixels wide.
+menu shows **Show fields** checked.
 
 ## Insert and type beside the docked panel
 
@@ -576,7 +565,7 @@ by 16 pixels and `ArrowLeft` narrows it by 16 pixels; `Home` makes it 240
 pixels wide, and `End` 480 pixels wide, or less where the editor would keep
 less than 360 pixels. In step 3 the pane menu shows **Resize fields** with
 **Make wider**, **Make narrower** and **Reset width** (320 pixels), beside
-**Resize preview**. The web Workbench's **View** menu shows the same group.
+**Resize preview**.
 
 ## Hide and show the docked panel with Fields
 
@@ -662,8 +651,7 @@ overlap the edge of the Fields popover instead.
 Expected: after step 2 the Books Profile opens with the panel docked at the
 left edge, 352 pixels wide. The focus stays where Obsidian puts it, not in the
 panel. After step 3 the panel stays hidden, and **Fields** shows it again at
-352 pixels. The web Workbench keeps the pin and the width while the page is
-open, and a new page starts unpinned.
+352 pixels.
 
 ## Export from the Fields popover
 
@@ -729,7 +717,7 @@ tab width as a wide one: the tab's width alone decides.
 
 Expected: the Preview moves under the editor and back to the right, and the
 same control keeps the focus each time. The rendered note keeps its scroll
-position. The web Workbench does the same when the window narrows and widens.
+position.
 
 ## The Preview's header row stays in view
 
@@ -740,7 +728,6 @@ position. The web Workbench does the same when the window narrows and widens.
 3. Select the **Annotation** tab and scroll the Preview.
 4. Select the **Note** tab and type `{{ zt.title | nofilter }}` in the source,
    so that the render fails.
-5. In the web Workbench, choose a sample paper and scroll the rendered note.
 
 Expected: after step 1, the row "Note preview", "New note" and "File name:
 books-personalAlpha2024" stays at the top of the Preview while the note
@@ -751,9 +738,6 @@ editor. After step 2, the same row stays at the top of the Preview under the
 editor, and the tab row stays above the source. After step 3, the row reads
 "Annotation example" with no file name and stays at the top. After step 4,
 the row shows no file name, and the problem notice stands below the row.
-After step 5, the file name, such as `ioannidisWhyMost2005`, stays at the top
-of the result box while the note scrolls, and the "Note preview" heading and
-its controls stay above the box.
 
 ## A tab moved to its own window
 
@@ -779,7 +763,7 @@ right, and the popover stays as the reader left it.
 Expected: in step 1 the entry has no check mark. It opens the Fields popover
 with the focus in its field search, as the **Fields** view action does. In
 step 2 the entry shows a check mark. Step 3 closes the popover. Step 4 gives the
-same outcome in a wide tab. The web Workbench's **View** menu does the same.
+same outcome in a wide tab.
 
 ## Resize the Preview under the editor
 
@@ -951,7 +935,6 @@ its **Annotation guide** link start at the same left edge and line height
 as the Note tab's description, and the editor does not move when you switch
 between the two tabs. The Preview stays under the editor in both steps, and
 **Show preview** stays pressed. No Fields popover is open after either step.
-The web Workbench does the same steps.
 
 ## Other document kinds
 

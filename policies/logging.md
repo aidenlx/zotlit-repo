@@ -12,6 +12,6 @@ Only an app configures sinks: a library logs and leaves the sinks to the app tha
 
 Packages designed as a third-party contract instead accept a structured-logger port and default it to a no-op, so a consumer keeps its own logging stack. `@zotlit/obsidian-i18n` is the one such package today: its generated message runtime takes the logger through `setLogger`, and ZotLit passes one that writes through `Effect.log*` under `i18n`; see [ADR 0013](../docs/adr/0013-obsidian-i18n-is-one-package-behind-injected-ports.md).
 
-A package that ships into a browser page and into Obsidian carries no logger of its own, and names every decision a host acts on in the value it returns instead — a Problem, a render diagnostic, a connection state — so a page that configures no sink pays no bundle for one. `@zotlit/workbench` is the one such package today; see [its README](../packages/workbench/README.md).
+A shared core whose host does its logging carries no logger of its own, and names every decision a host acts on in the value it returns instead — a Problem, a render diagnostic — so the host logs. `@zotlit/workbench` is the one such package today; see [its README](../packages/workbench/README.md).
 
 Prefer structured logging (named fields object) over interpolated template strings. Build expensive context only on the branch that logs it, behind `logLevelEnabled`.

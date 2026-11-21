@@ -16,14 +16,12 @@ export const serverSettings = settingsSlice(
   {
     "server.enabled": v.boolean(),
     "server.live-update": v.boolean(),
-    "server.workbench": v.boolean(),
     "server.port": serverPort,
     "server.hostname": v.string(),
   },
   {
     "server.enabled": false,
     "server.live-update": true,
-    "server.workbench": true,
     "server.port": 9091,
     "server.hostname": "127.0.0.1",
   },

@@ -70,7 +70,7 @@ To update every paper in the library at once from Obsidian, run <Command inline 
 | Every existing note                           | Run <Command inline name={m.command_update_notes_name()} />, leave <UiLabel name={m.modal_update_notes_create()} /> off, choose <UiLabel name={m.modal_update_notes_all()} />.                                               |
 | Properties only, on papers selected in Zotero | <UiLabel name={m["zotero.menu_submenu.label"]()} /> → <UiLabel name={m["zotero.menu_item_update_metadata.label"]()} />. Creates no notes and leaves bodies as they are, so a change to a managed region does not reach them. |
 
-The confirmation reads <UiLabel name={m.batch_update_existing_confirm_intro({ count: "…" })} />; papers with no note appear under <UiLabel name={m.batch_update_group_no_note({ count: "…" })} /> and are left untouched. After saving a template in the web Template Workbench, clicking <UiLabel name={m.notice_workbench_profile_saved_action()} /> in the notice opens this same confirmation and creates no notes. The Zotero collection menu item <UiLabel name={m["zotero.menu_collection_update_all.label"]()} /> creates notes for papers that lack them, so it is not an existing-only run.
+The confirmation reads <UiLabel name={m.batch_update_existing_confirm_intro({ count: "…" })} />; papers with no note appear under <UiLabel name={m.batch_update_group_no_note({ count: "…" })} /> and are left untouched. The Zotero collection menu item <UiLabel name={m["zotero.menu_collection_update_all.label"]()} /> creates notes for papers that lack them, so it is not an existing-only run.
 
 </Accordion>
 </Accordions>

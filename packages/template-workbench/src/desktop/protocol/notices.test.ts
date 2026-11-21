@@ -26,10 +26,6 @@ const noticesOf = Effect.fn("noticesOf")(function* (
 describe("showWorkbenchLinkOutcome", () => {
   it.effect.each([
     [WorkbenchLinkOutcome.InvalidLink(), m.notice_protocol_invalid()],
-    [
-      WorkbenchLinkOutcome.ProfileImportFailed(),
-      m.notice_profile_action_failed(),
-    ],
   ] as const)("tells a refused link: %o", ([outcome, message]) =>
     Effect.gen(function* () {
       expect(yield* noticesOf(outcome)).toEqual([
@@ -38,13 +34,11 @@ describe("showWorkbenchLinkOutcome", () => {
     }),
   );
 
-  it.effect.each([
-    WorkbenchLinkOutcome.Opened(),
-    WorkbenchLinkOutcome.ProfileOpened(),
-    WorkbenchLinkOutcome.ProfileImportCancelled(),
-  ])("shows nothing for %o", (outcome) =>
-    Effect.gen(function* () {
-      expect(yield* noticesOf(outcome)).toEqual([]);
-    }),
+  it.effect.each([WorkbenchLinkOutcome.Opened()])(
+    "shows nothing for %o",
+    (outcome) =>
+      Effect.gen(function* () {
+        expect(yield* noticesOf(outcome)).toEqual([]);
+      }),
   );
 });

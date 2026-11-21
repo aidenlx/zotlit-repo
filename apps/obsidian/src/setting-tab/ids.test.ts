@@ -22,7 +22,6 @@ import {
   settingDefinitions,
   settingTabContext,
 } from "@zotlit/plugin-shell/obsidian/setting-tab/tab.ts";
-import { LocalBridge } from "@zotlit/template-workbench/desktop/local-bridge/service.ts";
 
 import { features } from "@/features.ts";
 import { host } from "@/host.ts";
@@ -88,12 +87,6 @@ function ctx(): SettingTabContext {
           }),
         ),
         Context.add(
-          LocalBridge,
-          stubService<LocalBridge["Service"]>("LocalBridge", {
-            connection: Effect.succeed(null),
-          }),
-        ),
-        Context.add(
           AttachmentImport,
           stubService<AttachmentImport["Service"]>("AttachmentImport", {
             approvedFolders: Effect.succeed([]),
@@ -108,7 +101,6 @@ function ctx(): SettingTabContext {
         ),
       ),
     ).tab,
-    webWorkbenchEnabled: true,
     app: stubService<SettingTabContext["app"]>("App", {
       vault: stubService<SettingTabContext["app"]["vault"]>("Vault", {
         getFileByPath: () => null,

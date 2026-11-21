@@ -32,7 +32,6 @@ describe("buildV1Redirects", () => {
       "/zh-CN/changelog",
       "/zh-CN/changelog/v2.0.0",
       "/zh-CN/blog",
-      "/zh-CN/workbench",
       "/zh-CN/not-a-page",
     ]) {
       expect(find(path)).toBeUndefined();

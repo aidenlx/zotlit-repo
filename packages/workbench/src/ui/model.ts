@@ -11,7 +11,7 @@ import type {
 } from "#render/citation-examples.ts";
 import type { PartialPreviewSelection } from "#render/partial-preview.ts";
 import type { WorkbenchReportContext } from "#render/report.ts";
-import type { RenderRequest, RenderResources } from "#render/request.ts";
+import type { RenderRequest } from "#render/request.ts";
 import type { TemplateRenderResult } from "#render/result.ts";
 import type { AnnotationExample } from "#render/sample-annotations.ts";
 import type { ItemSnapshot } from "#snapshot/index.ts";
@@ -161,7 +161,6 @@ export interface WorkbenchItemData {
   /** The chosen Item's own data, as the host's read answers it. */
   readonly snapshot: ItemSnapshot | null;
   readonly document?: string | undefined;
-  readonly resources?: RenderResources | undefined;
   readonly hold?: boolean | "invalid" | undefined;
 }
 

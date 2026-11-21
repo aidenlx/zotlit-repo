@@ -1552,7 +1552,7 @@ async function shippedDefaultSource(
 /**
  * The Citation Template the Fixture Vault holds: the shipped default with the
  * Spec's visible edit. Every reader of the vault's citation text answers from
- * here, so the mock Local Bridge offers what the file on disk holds.
+ * here, so each one sees what the file on disk holds.
  * @throws when the shipped default no longer holds the text the edit expects.
  */
 export function fixtureCitationSource(): string {

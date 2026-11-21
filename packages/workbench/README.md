@@ -1,15 +1,13 @@
 # @zotlit/workbench
 
-The Workbench core shared by the web Template Workbench and the Obsidian plugin.
-Subpath exports: `bridge`, `document`, `explorer`, `language`, `render`, the
+The Workbench core of the Template Workbench View in the Obsidian plugin.
+Subpath exports: `document`, `explorer`, `language`, `render`, the
 headless `ui`, and the Node-only `snapshot`. React is a peer dependency of `ui`
 alone; every other subpath is free of it. The package targets CodeMirror at the
 versions Obsidian pins.
 
-It carries no logger: it runs in a browser page and inside Obsidian, and it
-names every decision a host acts on in the value it returns —
-a `WorkbenchProblem`, a `RenderDiagnostic`, a `LocalBridgeConnection` state — so
-the host logs. That is a package-scoped exception to
+It carries no logger: it names every decision a host acts on in the value it
+returns — a `WorkbenchProblem`, a `RenderDiagnostic` — so the host logs. That is a package-scoped exception to
 [the logging policy](../../policies/logging.md).
 
 ## Development
@@ -129,8 +127,7 @@ Call sites pass no classes. `WorkbenchHostProvider` takes the host adapter —
 `menu`, `dialog`, `confirm`, `suggester`, `tooltip`, `notice`,
 `render`, `matchData`, `insertTarget`, `persistence`, `messages`, and
 `getLocale` — so
-Obsidian shows its own `Menu`, `Modal`, `SuggestModal`, and `Notice` and the web
-shows Base UI. `WorkbenchEditorProvider` carries one editor instance and
+Obsidian shows its own `Menu`, `Modal`, `SuggestModal`, and `Notice`. `WorkbenchEditorProvider` carries one editor instance and
 puts its atom registry in context (`@effect/atom-react`); `useWorkbenchModel`
 and `useWorkbenchController` read it. Components read the model's atoms and
 change them with its pure `(state) => state` transitions (`chooseItem`,
@@ -175,8 +172,7 @@ failed beside an annotation that rendered keeps the last note that worked,
 because the surfaces are kept apart. Its `trigger` says whether Run or the
 quiet time after an edit asked for the shown result, and `attempt` counts the
 results it has published, so two attempts over the same bytes stay distinct.
-Outside the editor provider the tree paints inert, which the web's skeleton
-relies on. The components so far:
+Outside the editor provider the tree paints inert. The components so far:
 `TabBar` and `TabPanel`, `EditToolbar` (Basic against Advanced, undo, redo, a
 host's own controls as children), and `ProblemsFooter` with `problemText` and
 `diagnosticText`, the words for every core code. A Profile edited beside a
@@ -233,19 +229,19 @@ only for a name a render reported, and selects that problem in the editor's
 Problems area.
 
 The host supplies `messages` and `getLocale` through `WorkbenchHostProvider`.
-The web passes its Paraglide facade; Obsidian passes its Language Pack facade.
-Components read `useWorkbenchMessages()`, and pure text helpers take the
-message functions as an argument. A host without overlays, such as the web
-skeleton, can use `WorkbenchMessagesProvider` directly.
+Obsidian passes its Language Pack facade. Components read
+`useWorkbenchMessages()`, and pure text helpers take the message functions as
+an argument. A host without overlays can use `WorkbenchMessagesProvider`
+directly.
 
 `pnpm generate:message-types` reads the root `workbench_*` catalog through the
 existing message compiler and emits the `WorkbenchMessages` type contract.
 The English pack it emits is used only by shared tests. Turbo runs generation
 before `test`, `typecheck`, and `typecheck:test` here and in each host that
 reads the contract; direct package-tool runs need those generated files first. The tree stays inside the
-`preact/compat` surface, and its suite under `src/ui/` runs twice in `pnpm test`:
-the `ui-react` and `ui-preact` Vitest projects, the second with React aliased to
-`preact/compat` and Testing Library to its Preact build.
+`preact/compat` surface, and its suite under `src/ui/` runs in the `ui` Vitest
+project with React aliased to `preact/compat` and Testing Library to its Preact
+build, as Obsidian runs it.
 
 ## Render
 
@@ -265,7 +261,7 @@ Render Scheduler that decides when lives in `@zotlit/workbench/ui`:
 
 - `renderProfile(source, snapshot, options)` — the result set with diagnostics,
   stamped with the source, snapshot, and selected annotation revisions. Options
-  carry the connected resources and an independent annotation example as its
+  carry an independent annotation example as its
   serialized root and matching descriptors. Its parent Item supplies its citation;
   the note keeps rendering against its own snapshot. Every Managed Frontmatter
   entry evaluates on its own against that one snapshot, so `properties` carries
@@ -273,24 +269,15 @@ Render Scheduler that decides when lives in `@zotlit/workbench/ui`:
   carries the frontmatter the note gets once every entry has merged, and a
   property diagnostic — an evaluation failure, a `js` entry, or an append the
   fold could not take — names the entry responsible for it.
-- A dependency bundle a Local Bridge supplied is registered by name before the
-  render, and a partial in it written in Eta is named as an
-  `unsupported-dependency` diagnostic rather than defined: the web host renders
-  Liquid and JSON-e only, wherever the source came from.
-- The bundled Resolved CSL Style is checked here: a style the Local Bridge
-  could not resolve, and one whose content is no standalone CSL style, are both
-  `citation-style-error` diagnostics. CSL formatting itself stays in Obsidian,
-  which is where a Literature Note's citations are rendered.
 - `SAMPLE_ANNOTATIONS` — six built-in annotation examples covering highlight,
   underline, note, text, image, and ink, with comments, tags, and empty optional
   fields. Each example carries the matching descriptors needed to restore it.
 
 A `RenderDiagnostic` and a `WorkbenchProblem` name what went wrong by `code`,
 with the values that fill it in `params`. This package holds no Language Pack
-facade — it renders in a browser page and inside Obsidian — so the host writes
-each code in the reader's own language. `message` carries the wording this
-package did not author: the template engine's failure text, the Local Bridge's
-own, and the document parser's.
+facade, so the host writes each code in the reader's own language. `message`
+carries the wording this package did not author: the template engine's failure
+text, the host's own, and the document parser's.
 
 `renderFailureDiagnostic(error, caller)` reads one thrown render failure
 against the source that render read and keeps its three answers apart:
@@ -305,25 +292,6 @@ the scan behind it, and reads the reserved names `partialCalls` drops.
 template the engine could not resolve, or the place it stopped in the one it
 named — so a render path that tries one document part after another reports
 one fault once without comparing either failure's wording.
-
-## Bridge
-
-`@zotlit/workbench/bridge` holds the wire schemas and the browser client, the
-`LocalBridgeClient` Effect service (`layerLocalBridgeClient`). Its members are
-Effects, its connection state is a `SubscriptionRef` (`current`, `changes`), and
-it sends through Effect's `HttpClient` (`FetchHttpClient.layer` in a browser, a
-fake `fetch` in tests) and keeps its grant behind the `LocalBridgeStorage` tag
-(`layerTabStorage`). A request fails with one tag: `LocalBridgeDecodeError`, `LocalBridgeStatusError`,
-`LocalBridgeConnectionError` (ZotLit not reachable) or
-`LocalBridgeUnavailableError`. A version mismatch is a connection state and a
-refused Save a `refused` answer, not failures.
-
-The session credential lives in `sessionStorage` and outlives a transport
-failure: a dropped fetch marks the connection lost and keeps the credential, so
-a reload re-checks compatibility and revision with it, and `resume` does the
-same from the page, so Reconnect after a blip costs no fresh approval. A
-refusal (HTTP 401) and a version mismatch clear it, and so does Disconnect,
-even when its request fails.
 
 ## Language
 
@@ -348,7 +316,6 @@ authoring:
 - `@zotlit/workbench/completion` exports the editor-independent `hoverHint(...)`
   resolver: the source range and property facts, including type, description,
   and sample. Hosts own hover timing, geometry, presentation, and dismissal.
-  The web host uses a shadcn Base UI Hover Card with a 500 ms opening delay.
   A native Obsidian adapter can render those facts through `HoverPopover`;
   see the [native hover research](../../docs/research/obsidian-editor-hover.md).
 

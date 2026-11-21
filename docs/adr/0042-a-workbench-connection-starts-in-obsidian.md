@@ -1,4 +1,10 @@
+---
+status: superseded by ADR-0100
+---
+
 # A Workbench Connection starts in Obsidian
+
+> **Superseded by [ADR 0100](0100-the-web-template-workbench-is-retired.md).** The Local Bridge and the Workbench Connection are removed.
 
 > Current release scope is amended by [ADR 0046](0046-customize-is-a-chooser-between-the-web-workbench-and-the-profile-editor.md#current-release-amendment--2026-09-08): the Local Bridge is behind a build flag that defaults to off. Local Server settings and Live Update remain available; bridge controls are hidden and bridge requests are rejected while the flag is off.
 

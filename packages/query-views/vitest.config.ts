@@ -39,7 +39,6 @@ export default defineConfig({
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),
     __DEV__: JSON.stringify(true),
-    __WEB_WORKBENCH_ENABLED__: JSON.stringify(true),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
     __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),
     // Resolving the real pin needs the network; a test that cares about engine

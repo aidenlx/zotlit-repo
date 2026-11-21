@@ -70,8 +70,8 @@ function machineRoutePages(
 }
 
 /**
- * The HTML pages: the Workbench, the whole docs tree, the blog posts, the
- * changelog versions and the lessons, plus, with `landings`, the landing,
+ * The HTML pages: the whole docs tree, the blog posts, the changelog
+ * versions and the lessons, plus, with `landings`, the landing,
  * community, blog and changelog listing pages, whose copy comes from the
  * English catalog.
  */
@@ -101,7 +101,6 @@ function htmlPages(
           { path: "/terms" },
         ]
       : []),
-    { path: "/workbench" },
     ...docs,
     ...blog,
     ...changelog,
@@ -111,27 +110,24 @@ function htmlPages(
 }
 
 /**
- * The catalog pages with a native Chinese edition, beyond the Workbench that
- * `htmlPages` lists for both locales; a section listing among them also
- * publishes its Markdown edition.
+ * The catalog pages with a native Chinese edition; a section listing among
+ * them also publishes its Markdown edition.
  */
 function chineseCatalogPagesWithEditions(): PrerenderPage[] {
-  return chineseCatalogPages
-    .filter((path) => path !== "/workbench")
-    .flatMap((path) => {
-      const section = path.slice(1);
-      const listing =
-        section === "learn" || section === "changelog" || section === "blog";
-      return [
-        { path },
-        ...(listing
-          ? [
-              { path: suffixEditionUrl({ section, slugs: [] }) },
-              { path: contentRouteUrl({ section, slugs: [] }) },
-            ]
-          : []),
-      ];
-    });
+  return chineseCatalogPages.flatMap((path) => {
+    const section = path.slice(1);
+    const listing =
+      section === "learn" || section === "changelog" || section === "blog";
+    return [
+      { path },
+      ...(listing
+        ? [
+            { path: suffixEditionUrl({ section, slugs: [] }) },
+            { path: contentRouteUrl({ section, slugs: [] }) },
+          ]
+        : []),
+    ];
+  });
 }
 
 /**

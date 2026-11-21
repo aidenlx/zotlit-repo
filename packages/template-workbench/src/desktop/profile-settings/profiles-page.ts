@@ -47,7 +47,7 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { duplicateProfileToWorkbench } from "./duplicate-profile.ts";
 
 import { explainWorkbenchOpen } from "#desktop/editor/actions.ts";
-import { Customize } from "#desktop/local-bridge/customize.ts";
+import { Customize } from "#desktop/view/customize.ts";
 import { openTemplateWorkbench } from "#desktop/view/open.ts";
 import { createSharedPartial } from "#desktop/view/partial-command.ts";
 

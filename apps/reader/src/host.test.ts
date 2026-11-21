@@ -82,7 +82,6 @@ function pageNames(items: readonly SettingDefinitionItem[]): string[] {
 it("shows the Reader page, then the Advanced page with the log rows and the Language Pack reset", () => {
   const ctx = stubService<SettingTabContext>("SettingTabContext", {
     tab: stubService<SettingTabContext["tab"]>("SettingTab", {}),
-    webWorkbenchEnabled: false,
     app: stubService<App>("App", {}),
     manifest: stubService<SettingTabContext["manifest"]>("PluginManifest", {
       dir: "plugins/zotlit-reader",

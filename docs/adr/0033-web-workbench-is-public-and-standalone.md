@@ -1,4 +1,10 @@
+---
+status: superseded by ADR-0100
+---
+
 # The web Workbench is public and standalone, with optional local data access
+
+> **Superseded by [ADR 0100](0100-the-web-template-workbench-is-retired.md).** The web Workbench at `/workbench` and its local data access are removed.
 
 > Current release scope is amended by [ADR 0046](0046-customize-is-a-chooser-between-the-web-workbench-and-the-profile-editor.md#current-release-amendment--2026-09-08): `/workbench` remains reachable by direct URL, with public links and its sitemap entry removed and `noindex` set. Obsidian integration is behind a build flag that defaults to off.
 

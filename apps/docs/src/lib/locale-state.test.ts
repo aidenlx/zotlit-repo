@@ -90,18 +90,6 @@ describe("getPageLocaleState", () => {
     },
   );
 
-  it("uses the Chinese catalog for the Workbench even with no content files", () => {
-    expect(
-      getPageLocaleState("/workbench", "zh-CN", {
-        nativeChinesePages: new Set(),
-      }),
-    ).toMatchObject({
-      contentLocale: "zh-CN",
-      isFallback: false,
-      canonicalPath: "/zh-CN/workbench",
-    });
-  });
-
   // The landing, community, course, changelog and blog pages draw on
   // translated catalog strings, so each has a Chinese edition of its own.
   it.each(["/", "/community", "/learn", "/changelog", "/blog"])(

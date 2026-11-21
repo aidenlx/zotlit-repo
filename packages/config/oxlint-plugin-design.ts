@@ -1,5 +1,4 @@
-// zotlit-design: the mechanical part of two UI designs. workbench-chrome keeps
-// the docs Workbench on its shared kit (apps/docs/WORKBENCH-DESIGN.md);
+// zotlit-design: the mechanical part of the Annotation View's design.
 // annotation-view keeps the Annotation View to logical direction, the text
 // scale and accessible tooltips. Rule tests: oxlint-plugin-design.test.ts.
 import { regex } from "arkregex";
@@ -52,9 +51,6 @@ const whitespace = regex("\\s+");
 const physicalUtility = regex.as<string, { captures: [] }>(
   "^(?:ml|mr|pl|pr|left|right|border-l|border-r|rounded-l|rounded-r|scroll-ml|scroll-mr)-",
 );
-const buttonOverride = regex(
-  "^(?:min-h-|h-(?:[0-9]|\\[)|size-(?:[0-9]|\\[)|px-|py-|p-(?:[0-9]|\\[)|gap-|text-(?:xs|sm|base|lg|\\[))",
-);
 const physicalProperty = regex(
   "^(?:margin|padding|border)-(?:left|right)(?:-|$)|^(?:left|right)$",
 );
@@ -72,11 +68,7 @@ function utility(token: string): string {
   return token.slice(start).replaceAll("!", "").replace(regex("^-"), "");
 }
 
-function classProblems(
-  tokens: string[],
-  typography: boolean,
-  annotation: boolean,
-): string[] {
+function classProblems(tokens: string[]): string[] {
   const utilities = tokens.map(utility);
   const problems = new Set<string>();
   for (const value of utilities) {
@@ -86,15 +78,14 @@ function classProblems(
       value === "text-right"
     )
       problems.add("Use logical direction utilities.");
-    if (typography && (value.startsWith("text-[") || value === "uppercase"))
+    if (value.startsWith("text-[") || value === "uppercase")
       problems.add("Use the text scale and sentence case for chrome.");
-    if (annotation && value.startsWith("columns-"))
+    if (value.startsWith("columns-"))
       problems.add("Use grid for the Annotation list.");
-    if (annotation && value === "transition-all")
+    if (value === "transition-all")
       problems.add("Name the transitioned properties.");
   }
   if (
-    annotation &&
     utilities.some((value) => value.startsWith("line-clamp-")) &&
     utilities.some(
       (value) => value === "leading-tight" || value === "leading-none",
@@ -103,108 +94,6 @@ function classProblems(
     problems.add("Pair line clamps with normal leading.");
   return [...problems];
 }
-
-function literalAttribute(
-  node: Parameters<NonNullable<Visitor["JSXOpeningElement"]>>[0],
-  name: string,
-): string | undefined {
-  const attribute = node.attributes.find(
-    (attribute) =>
-      attribute.type === "JSXAttribute" &&
-      attribute.name.type === "JSXIdentifier" &&
-      attribute.name.name === name,
-  );
-  if (attribute?.type !== "JSXAttribute") return undefined;
-  const value =
-    attribute.value?.type === "JSXExpressionContainer"
-      ? attribute.value.expression
-      : attribute.value;
-  return value?.type === "Literal" && typeof value.value === "string"
-    ? value.value
-    : undefined;
-}
-
-/**
- * Workbench chrome is drawn by the shared kit (apps/docs/WORKBENCH-DESIGN.md),
- * so every surface matches when the kit changes. The rule rejects:
- * - the raw Base UI popover, and close controls in a popover's title row;
- * - Button, text-control and menu sizes outside the kit's compact set, and
- *   class overrides of a Button's size or spacing;
- * - physical direction utilities, which break right-to-left layouts;
- * - arbitrary text sizes and uppercase chrome (exempt in `reading-view.tsx`).
- */
-export const workbenchChrome: Rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description:
-        "Draw Workbench chrome with the shared kit's sizes and logical direction.",
-    },
-    schema: [],
-    messages: { chrome: "{{reason}} (Workbench chrome design)." },
-  },
-  create(context) {
-    const report = (node: Node, reason: string) =>
-      context.report({ node, messageId: "chrome", data: { reason } });
-    return {
-      ImportDeclaration(node) {
-        if (node.source.value === "@base-ui/react/popover")
-          report(node, "Use the shared Popover kit");
-      },
-      JSXOpeningElement(node) {
-        const name =
-          node.name.type === "JSXIdentifier"
-            ? node.name.name
-            : node.name.type === "JSXMemberExpression" &&
-                node.name.object.type === "JSXIdentifier"
-              ? `${node.name.object.name}.${node.name.property.name}`
-              : "";
-        if (name === "Popover.Close" || name === "PopoverClose")
-          report(node, "Keep the title row free of close controls");
-        if (
-          name === "Button" &&
-          !["xs", "2xs", "icon-sm", "icon-xs", "icon-2xs"].includes(
-            literalAttribute(node, "size") ?? "",
-          )
-        )
-          report(node, "Choose a Workbench Button size from the shared kit");
-        if (
-          ["Input", "NativeSelect", "Textarea", "DropdownMenuContent"].includes(
-            name,
-          ) &&
-          literalAttribute(node, "size") !== "xs"
-        )
-          report(node, 'Use size="xs" for text controls and action menus');
-        for (const attribute of node.attributes) {
-          if (
-            attribute.type !== "JSXAttribute" ||
-            attribute.name.type !== "JSXIdentifier" ||
-            attribute.name.name !== "className"
-          )
-            continue;
-          const tokens = classFragments(attribute.value).flatMap((part) =>
-            part.split(whitespace),
-          );
-          for (const reason of classProblems(
-            tokens,
-            !context.filename.endsWith("/reading-view.tsx"),
-            false,
-          ))
-            report(attribute, reason);
-          if (
-            name === "Button" &&
-            tokens.some(
-              (token) =>
-                buttonOverride.test(utility(token)) ||
-                (token.includes("&_svg") && utility(token).startsWith("size-")),
-            )
-          )
-            report(attribute, "Size and space Buttons through kit variants");
-        }
-      },
-    };
-  },
-};
 
 /** Parse declarations so selectors, comments and strings cannot act as CSS rules. */
 export function annotationCssProblems(
@@ -273,8 +162,7 @@ export const annotationDesign: Rule = {
           const tokens = classFragments(node.value).flatMap((part) =>
             part.split(whitespace),
           );
-          for (const reason of classProblems(tokens, true, true))
-            report(node, reason);
+          for (const reason of classProblems(tokens)) report(node, reason);
         }
       },
       CallExpression(node) {
@@ -307,7 +195,6 @@ export const annotationDesign: Rule = {
 export default {
   meta: { name: "zotlit-design" },
   rules: {
-    "workbench-chrome": workbenchChrome,
     "annotation-view": annotationDesign,
   },
 };

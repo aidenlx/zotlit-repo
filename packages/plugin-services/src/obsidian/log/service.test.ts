@@ -237,7 +237,7 @@ it.effect("reports a change it cannot apply and applies it again later", () =>
       },
     ]);
 
-    yield* settings.update({ "server.workbench": false });
+    yield* settings.update({ "server.live-update": false });
     expect(zotlitLogger(yield* Queue.take(started)).lowestLevel).toBe("debug");
     yield* TestClock.adjust(CONFIGURE_TIME);
   }),

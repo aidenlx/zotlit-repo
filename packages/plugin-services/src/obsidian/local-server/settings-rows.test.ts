@@ -34,12 +34,8 @@ const setup = Effect.fnUntraced(function* ({ settings = {} }: Options = {}) {
       }),
     ),
   );
-  // No feature fills the hosted-services slot here: the Template Workbench's
-  // test covers the rows it gives.
   const ctx = stubService<SettingTabContext>("SettingTabContext", {
     tab: (yield* scopedSettingTab(services)).tab,
-    webWorkbenchEnabled: true,
-    slot: () => [],
   });
   return localServerItems(ctx);
 });
@@ -56,8 +52,8 @@ it.effect(
     Effect.gen(function* () {
       const items = yield* setup({ settings: { "server.enabled": false } });
 
-      const [listener, ...hosted] = items;
+      const [listener, ...rest] = items;
       expect(visible(listener!)).toBe(true);
-      expect(hosted.map(visible)).toEqual(hosted.map(() => false));
+      expect(rest.map(visible)).toEqual(rest.map(() => false));
     }),
 );

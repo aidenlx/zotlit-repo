@@ -172,48 +172,6 @@ describe("problemText", () => {
 });
 
 describe("diagnosticText", () => {
-  it("writes a citation-style failure under the reason it carries", () => {
-    const [diagnostic] = renderProfile(
-      ANNOTATION_LIST_PROFILE_SOURCE,
-      SAMPLE_ITEMS[0]!,
-      {
-        resources: {
-          dependencies: { templates: [], diagnostics: [] },
-          citationStyle: {
-            kind: "failed",
-            styleId: "apa",
-            reason: "parent-missing",
-            parentId: "apa-base",
-          },
-        },
-      },
-    ).diagnostics;
-
-    expect(diagnosticText(m, diagnostic!)).toBe(
-      m.workbench_diagnostic_citation_style_parent_missing({
-        styleId: "apa",
-        parentId: "apa-base",
-      }),
-    );
-  });
-
-  it("names an Eta dependency the renderer refused, and keeps a bridge's own wording", () => {
-    expect(
-      diagnosticText(m, {
-        code: "unsupported-dependency",
-        params: { name: "summary" },
-        part: "profile",
-      }),
-    ).toBe(m.workbench_diagnostic_unsupported_dependency({ name: "summary" }));
-    expect(
-      diagnosticText(m, {
-        code: "unsupported-dependency",
-        message: "Template dependency 'summary' uses an unsupported language.",
-        part: "profile",
-      }),
-    ).toBe("Template dependency 'summary' uses an unsupported language.");
-  });
-
   it("names the Shared Partial the engine could not resolve", () => {
     expect(
       diagnosticText(m, {

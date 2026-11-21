@@ -2,11 +2,10 @@
 
 Theme: **"Journal"** — warm paper ground, near-black ink, deep-orange accent.
 One token system (`--color-fd-*` overrides in `src/styles.css`) drives all
-surfaces: landing, changelog, blog, docs, `/learn`, and the Template Workbench.
+surfaces: landing, changelog, blog, docs, and `/learn`.
 
 Compose each surface around the reader's task. Editorial pages lead with
-content; the Workbench gives space to editing and inspecting the result;
-a lesson gives space to the one step the reader is doing.
+content; a lesson gives space to the one step the reader is doing.
 Apply the shared brand rules together with the relevant per-surface section.
 Use [the brand specification](../../docs/brand.md) for logo and wordmark assets.
 
@@ -65,8 +64,7 @@ Owned layout slots:
     in Chinese, to a reader whose browser puts Chinese first. The strip is in
     the prerendered HTML, and a `<head>` script (`src/lib/language-choice.ts`)
     shows it before the first paint, so it never moves the page. Closing it,
-    or choosing English in the language menu, stops it. The Workbench app
-    shell has no strip.
+    or choosing English in the language menu, stops it.
 
 ## Tokens
 
@@ -246,9 +244,6 @@ captions and check lines, and any sentence-shaped copy keep their upright case
 and sans body voice. The Archivo wordmark likewise stays outside label
 treatment.
 
-The [Template Workbench](WORKBENCH-DESIGN.md) uses Inter sentence case
-for its utility chrome, including labels and pane headings.
-
 ## Surfaces and elevation
 
 - **Shadow ring.** A raised surface (card, recording frame, secondary
@@ -408,11 +403,6 @@ face on WenKai's vertical metrics, so the line boxes do not move at the swap.
 The OG cards read the same WenKai slices from disk.
 
 ## Per-surface
-
-### Template Workbench (`/workbench`)
-
-Extracted to [WORKBENCH-DESIGN.md](WORKBENCH-DESIGN.md) — audience, layout,
-control vocabulary, typography, responsive folds, and the enforcement table.
 
 ### Landing (`src/routes/_home/index.tsx`)
 

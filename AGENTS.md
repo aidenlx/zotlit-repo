@@ -29,7 +29,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/scripts` — the repository's tooling: `verify`, `land`, the Desktop Slot, the Fixture, and the release and shell generator scripts.
 - `packages/shared`, `packages/ui` — app-agnostic utilities and UI components that several packages use.
 - `packages/templates` — Eta-based template rendering.
-- `packages/workbench` — the Workbench core shared by the web Template Workbench and the plugin.
+- `packages/workbench` — the Workbench core of the plugin's Template Workbench View: documents, language, rendering and the headless UI, hosted by `@zotlit/template-workbench`.
 - `packages/zotero-reads` — ZoteroReads, the RPC between the Obsidian plugin and the Web Worker that owns the Zotero database: its contract, the Worker's handlers, the renderer's client, and the desktop database source, each a layer with its own lint boundary (see its `AGENTS.md`).
 - `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema, plus the Zotero key grammar (`./keys`) and key-only `zotero://` links (`./uri`).
 - `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.

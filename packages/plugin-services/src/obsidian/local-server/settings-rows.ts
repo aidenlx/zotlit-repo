@@ -2,11 +2,9 @@ import type {
   SettingsKey,
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
-// The Advanced page's Local server group: the one loopback listener, the
-// toggle of each service it hosts, and the port it actually bound. The live
-// update switch sits on the Zotero page beside the Companion it answers.
-// The owner of each service the listener hosts beside the live updates gives
-// its rows through the `local-server.services` slot.
+// The Advanced page's Local server group: the one loopback listener and the
+// port it actually bound. The live update switch sits on the Zotero page
+// beside the Companion it answers.
 import { Effect, Stream } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -19,31 +17,16 @@ import { serverSettings } from "#core/local-server/settings.ts";
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-declare module "#obsidian/setting-tab/context.ts" {
-  interface SettingTabSlots {
-    /**
-     * The Local server group, under the listener toggle: the rows of each
-     * service the listener hosts beside the live updates.
-     */
-    "local-server.services": unknown;
-  }
-}
-
 const currentSettings = PluginSettings.use((settings) => settings.current);
 
-/** Whether the listener is on, for a hosted service row's `visible` predicate. */
-export function serverEnabled(ctx: SettingTabContext): () => boolean {
-  return () => ctx.tab.sync(currentSettings)["server.enabled"];
-}
-
 /**
- * The Local server rows: the listener toggle, one toggle per hosted service,
- * the configured address, and the port in use.
+ * The Local server rows: the listener toggle, the configured address, and the
+ * port in use.
  */
 export function localServerItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
-  const enabled = serverEnabled(ctx);
+  const enabled = () => ctx.tab.sync(currentSettings)["server.enabled"];
   const port = ctx.tab.sync(LocalServer.use((server) => server.effectivePort));
   return [
     {
@@ -52,7 +35,6 @@ export function localServerItems(
       desc: m.settings_local_server_enabled_desc(),
       control: { type: "toggle", key: "server.enabled" },
     },
-    ...(ctx.slot("local-server.services") as SettingGroupItem<SettingsKey>[]),
     {
       id: "settings_live_updates_port",
       name: m.settings_live_updates_port_name(),
@@ -122,7 +104,7 @@ export function liveUpdatesItems(
               ),
             ),
         );
-        // The server also turns on from the annotation view and Customize, and
+        // The server also turns on from the annotation view, and
         // a bind can fail while it stays on, so the state line follows both
         // the setting and the listener while the row is on screen.
         return ctx.tab.mount(

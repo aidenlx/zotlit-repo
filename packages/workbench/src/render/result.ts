@@ -25,13 +25,11 @@ export type RenderDiagnosticCode =
   | "contract-version-mismatch"
   | "invalid-profile"
   | "liquid-syntax-error"
-  | "missing-dependency"
   | "missing-partial"
   | "property-append-conflict"
   | "property-error"
   | "property-javascript"
-  | "render-error"
-  | "unsupported-dependency";
+  | "render-error";
 
 /**
  * Where the template engine itself said a failure happened. `template` is the
@@ -79,8 +77,8 @@ export interface RenderDiagnostic {
   readonly code: RenderDiagnosticCode;
   /**
    * The wording this package did not author — the template engine's own failure
-   * text, or the one a Local Bridge sent. Absent when `code` and `params` say
-   * the whole thing.
+   * text, or the one a host wrote. Absent when `code` and `params` say the
+   * whole thing.
    */
   readonly message?: string;
   /** The values a host's own message for `code` reads. */

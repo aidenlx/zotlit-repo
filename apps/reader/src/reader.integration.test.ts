@@ -298,7 +298,6 @@ function rows(items: readonly SettingDefinitionItem[]): string[][] {
 it('shows the Reader page and the "Open all PDFs" row with their descriptions', () => {
   const ctx = stubService<SettingTabContext>("SettingTabContext", {
     tab: stubService<SettingTabContext["tab"]>("SettingTab", {}),
-    webWorkbenchEnabled: false,
     app: stubService<App>("App", {}),
     manifest: stubService<SettingTabContext["manifest"]>("PluginManifest", {
       dir: "plugins/zotlit-reader",

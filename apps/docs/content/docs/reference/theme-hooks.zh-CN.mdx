@@ -231,8 +231,7 @@ ZotLit 会为 PDF.js 渲染的每个页面重建 `zt-pdf-annotation-overlay`，�
 
 ## 模板编辑器钩子 [#template-editor]
 
-模板工作台视图在所有包含模板代码的窗格中使用同一套类来排版属性（frontmatter），并为模板源码和 Markdown 标记符号着色：包括笔记正文、标注格式、属性表达式、笔记名称以及“源码”中的完整文件。本站上的网页版模板工作台同样输出这些类。
-
+模板工作台视图在所有包含模板代码的窗格中使用同一套类来排版属性（frontmatter），并为模板源码和 Markdown 标记符号着色：包括笔记正文、标注格式、属性表达式、笔记名称以及“源码”中的完整文件。
 Liquid 语法标记在 YAML 属性值、Markdown 行内代码和代码块中均保留其自身颜色。Eta 高亮涵盖标签定界符。Markdown 提示以常规文本字号和字重标记笔记及标注正文中的标题、列表和引用块。
 
 | 类                                 | 含义                                                                                                                                              |
@@ -288,7 +287,7 @@ Liquid 语法标记在 YAML 属性值、Markdown 行内代码和代码块中均�
 | ------------------- | ------------------------------------ |
 | `zt-signature-hint` | 显示插入点所在函数调用签名的提示条。 |
 
-在 Obsidian 中，提示条采用通知样式的颜色 `--notice-background` 和 `--notice-color`，与 `.base` 文件中公式的提示一致。可直接定义 `zt-signature-hint` 的样式来调整其文本、大小或间距；使用优先级高于编辑器自身提示条颜色的 `.cm-tooltip.zt-signature-hint` 来设置其背景或边框。本站上的网页版模板工作台输出相同的类，并保留编辑器自身的提示条外观。
+在 Obsidian 中，提示条采用通知样式的颜色 `--notice-background` 和 `--notice-color`，与 `.base` 文件中公式的提示一致。可直接定义 `zt-signature-hint` 的样式来调整其文本、大小或间距；使用优先级高于编辑器自身提示条颜色的 `.cm-tooltip.zt-signature-hint` 来设置其背景或边框。
 
 ## CSS 示例 [#examples]
 

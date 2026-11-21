@@ -2,10 +2,7 @@ import type {
   WorkbenchActionServices,
   WorkbenchOpened,
 } from "#desktop/editor/actions.ts";
-import type {
-  CustomizeRequest,
-  NativeProfileTarget,
-} from "#desktop/local-bridge/customize.ts";
+import type { NativeProfileTarget } from "#desktop/view/customize.ts";
 // The one open of a Template Workbench View, as Effects over the Workspace
 // and Vault tags: every entry point that shows a Template Document in the
 // Workbench calls `openTemplateWorkbench`, which lands in a Workbench window.
@@ -34,7 +31,6 @@ import {
 } from "./view.tsx";
 
 import { explainWorkbenchOpen } from "#desktop/editor/actions.ts";
-import { Customize } from "#desktop/local-bridge/customize.ts";
 
 /** An open that asks the reader to know nothing. */
 const OPENED: WorkbenchOpened = {
@@ -52,13 +48,6 @@ export function requiresNative(source: string): boolean {
     !!manifest?.frontmatter?.some((field) => "js" in field)
   );
 }
-
-/** Customize on the reader's chosen surface, through the Local Bridge launch. */
-export const customizeProfile = Effect.fn("TemplateWorkbench.customizeProfile")(
-  function* (request: CustomizeRequest) {
-    yield* (yield* Customize).open(request);
-  },
-);
 
 /**
  * The leaf the reader starts an open from. When it already stands in a

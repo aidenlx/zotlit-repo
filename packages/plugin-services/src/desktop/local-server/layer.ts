@@ -299,7 +299,7 @@ export const layerLocalServer: Layer.Layer<
         port = nextPort;
         hostname = nextHostname;
         // Live Update's toggle gates its own routes, so flipping it alone
-        // leaves the listener where it is — the Workbench keeps its port.
+        // leaves the listener where it is.
         if (rebind) yield* reconcile;
         else yield* refreshAvailability();
       },
@@ -322,11 +322,6 @@ export const layerLocalServer: Layer.Layer<
       dbUpdated: Stream.fromPubSub(dbUpdated),
       updateManyRequests: Stream.fromPubSub(updateMany),
       importNotesRequests: Stream.fromPubSub(importNotes),
-      mount: Effect.fn("LocalServer.mount")((basePath, routes) =>
-        Effect.sync(() => {
-          app.route(basePath, routes);
-        }),
-      ),
     });
   }).pipe(withLogCategory("local-server")),
 );

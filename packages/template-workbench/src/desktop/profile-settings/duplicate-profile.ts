@@ -10,7 +10,7 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { Customize } from "#desktop/local-bridge/customize.ts";
+import { Customize } from "#desktop/view/customize.ts";
 
 export const duplicateProfileToWorkbench = Effect.fn(
   "duplicateProfileToWorkbench",

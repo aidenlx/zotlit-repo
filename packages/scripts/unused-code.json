@@ -1,6 +1,5 @@
 {
   "exports": [
-    "apps/docs/src/lib/workbench/fields.ts: fieldValueText",
     "packages/citations/src/obsidian/citation-index/service.ts: toZoteroOpenableAttachments",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: citationTarget",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: hoverEditingMode",
