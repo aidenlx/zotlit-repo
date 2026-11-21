@@ -1,5 +1,12 @@
 import { it } from "@effect/vitest";
-import { Context, Effect, Layer, Option, Stream } from "effect";
+import {
+  Context,
+  Effect,
+  Layer,
+  Option,
+  Stream,
+  SubscriptionRef,
+} from "effect";
 import { RpcClientError } from "effect/rpc";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -7,8 +14,19 @@ import { dirname, join } from "node:path";
 import { describe, expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
-import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
+import {
+  inProcessClient,
+  memoryOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import {
+  layerZoteroReads,
+  ZoteroReads,
+} from "@zotlit/zotero-reads/client/service.ts";
+import type {
+  ZoteroReadsApi,
+  ZoteroReadsState,
+} from "@zotlit/zotero-reads/client/service.ts";
+import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 
 import { layerDeviceSegmenter } from "./__fixtures__.ts";
 import { ChineseSegmenter } from "./service.ts";
@@ -36,6 +54,14 @@ const segmenterOn = (
   Effect.map(Layer.build(layerDeviceSegmenter(device, reads)), (context) =>
     Context.get(context, ChineseSegmenter),
   );
+
+const readsState = (state: ZoteroReadsState["state"]): ZoteroReadsState => ({
+  state,
+  error: null,
+  moved: false,
+  dbFileMissing: false,
+  activeReadMode: null,
+});
 
 describe("Chinese Segmenter", () => {
   it.effect(
@@ -112,6 +138,57 @@ describe("Chinese Segmenter", () => {
       }).pipe(Effect.scoped),
   );
 
+  it.effect(
+    "asks the worker that serves after another one stopped, and states its status",
+    () =>
+      Effect.gen(function* () {
+        const state = yield* SubscriptionRef.make(readsState("ready"));
+        // The worker that serves after the first one cannot read the pack.
+        let readable = true;
+        const reads = Context.get(
+          yield* Layer.build(
+            layerZoteroReads(
+              inProcessClient(layerRcRef(memoryOpener(() => "").open), {
+                readSegmenter: () =>
+                  readable
+                    ? Effect.succeed(BINARY)
+                    : Effect.fail({
+                        kind: "pack-unreadable",
+                        detail: "The request for the pack file failed",
+                      } as const),
+              }),
+            ),
+          ),
+          ZoteroReads,
+        );
+        const service = yield* segmenterOn(
+          packDevice(yield* pack(BINARY)),
+          Layer.succeed(
+            ZoteroReads,
+            ZoteroReads.of({
+              ...reads,
+              changes: SubscriptionRef.changes(state),
+            }),
+          ),
+        );
+        expect(yield* service.check).toEqual({
+          kind: "ready",
+          version: "1.0.0",
+        });
+
+        yield* SubscriptionRef.set(state, readsState("degraded"));
+        readable = false;
+        yield* SubscriptionRef.set(state, readsState("ready"));
+
+        expect(
+          yield* Stream.runHead(
+            Stream.filter(service.changes, ({ kind }) => kind !== "ready"),
+          ),
+        ).toEqual(Option.some({ kind: "pack-damaged" }));
+        expect(yield* service.current).toEqual({ kind: "pack-damaged" });
+      }).pipe(Effect.scoped),
+  );
+
   it.effect.each([
     ["an installed pack as failed", BINARY, "failed"],
     ["no pack as pack-absent", null, "pack-absent"],
@@ -120,6 +197,7 @@ describe("Chinese Segmenter", () => {
       const service = yield* segmenterOn(
         packDevice(file && (yield* pack(file))),
         Layer.mock(ZoteroReads, {
+          changes: Stream.never,
           reads: stubService<ZoteroReadsApi>("ZoteroReadsApi", {
             CheckChineseSegmenter: () =>
               Effect.fail(

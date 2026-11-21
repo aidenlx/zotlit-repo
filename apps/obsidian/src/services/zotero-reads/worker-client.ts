@@ -8,7 +8,7 @@ import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { ZoteroReadMode } from "@zotlit/plugin-services/core/database/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { segmenterBinary } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { segmenterBinaryOf } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
@@ -59,9 +59,7 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
       locale: language,
       // The worker reads and verifies the entry itself, so the pack reaches
       // it unread: this thread pays nothing for the binary at start-up.
-      chineseSegmenter: yield* segmenterBinary.pipe(
-        Effect.provideService(ResourcePackPlatform, pack),
-      ),
+      chineseSegmenter: yield* segmenterBinaryOf(pack),
       logLevel: current["log.level"],
     } satisfies ReadsConfig;
   });
