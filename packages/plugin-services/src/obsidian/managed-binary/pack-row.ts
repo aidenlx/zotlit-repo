@@ -9,6 +9,7 @@ import type {
 import { Effect } from "effect";
 import type { Setting, SettingDefinition } from "obsidian";
 
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -74,19 +75,22 @@ export function packStatusSentence(status: PackBinaryStatus): string {
   }
 }
 
-/** The plugin id of ZotLit, the plugin that reads the pack. */
-const ZOTLIT_PLUGIN_ID = "zotlit";
+/** The id of the plugin that reads the pack, as its manifest states it. */
+export const packReaderId: Effect.Effect<string, never, PluginHost> =
+  Effect.gen(function* () {
+    return (yield* PluginHost).manifest.id;
+  });
 
 /**
  * Opens the page of the plugin that mends `status` in Obsidian's community
- * plugin browser: ZotLit when the pack is newer than it reads, else the
- * Resource Pack.
+ * plugin browser: the plugin that reads the pack ({@link packReaderId}) when
+ * the pack is newer than it reads, else the Resource Pack.
  */
 export function openPackStatusPage(
   status: Pick<PackBinaryStatus, "kind"> | null,
+  readerId: string,
 ): void {
-  if (status?.kind === "plugin-outdated")
-    window.open(showPluginPage(ZOTLIT_PLUGIN_ID));
+  if (status?.kind === "plugin-outdated") window.open(showPluginPage(readerId));
   else openResourcePackPage();
 }
 
@@ -115,7 +119,7 @@ function renderStatus(
   let shown: PackBinaryStatus | null = null;
   setting.addButton((button) =>
     button.setButtonText(m.settings_resource_pack_open()).onClick(() => {
-      openPackStatusPage(shown);
+      openPackStatusPage(shown, tab.sync(packReaderId));
     }),
   );
   return tab.mount(

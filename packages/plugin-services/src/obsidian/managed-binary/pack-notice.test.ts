@@ -5,11 +5,13 @@ import { afterEach, describe, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import {
   ButtonComponent,
   controlsOf,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PackBinaryStatus } from "./pack-binary.ts";
@@ -29,7 +31,11 @@ const session = Effect.fnUntraced(function* (
   const notifier = testNotifier();
   yield* Effect.forEach(statuses, (status) => packNotice(status)).pipe(
     Effect.provide(
-      Layer.merge(notifier.layer, layerDeviceStorageFrom(storage)),
+      Layer.mergeAll(
+        notifier.layer,
+        layerDeviceStorageFrom(storage),
+        testPluginHost({ manifest: { id: "zotlit" } }).layer,
+      ),
     ),
   );
   return notifier.notices.map(
@@ -111,5 +117,32 @@ describe("the Resource Pack notice", () => {
       action?.click();
       expect(open.mock.calls).toEqual([[page]]);
     }),
+  );
+
+  it.effect(
+    "logs a warning when the device refuses the record, and shows no notice",
+    () =>
+      Effect.gen(function* () {
+        const logs = yield* Effect.acquireRelease(
+          Effect.sync(() => captureLogRecords()),
+          (captured) => Effect.sync(captured.release),
+        );
+        const storage = new MemoryDeviceStorage();
+        storage.saveLocalStorage = () => {
+          throw new Error("The quota is exceeded");
+        };
+
+        const notices = yield* session(storage, [{ kind: "pack-absent" }]);
+
+        expect(notices).toEqual([]);
+        expect(
+          logs.records.map(({ level, rawMessage }) => ({ level, rawMessage })),
+        ).toEqual([
+          {
+            level: "warning",
+            rawMessage: "Could not show the Resource Pack notice",
+          },
+        ]);
+      }).pipe(Effect.scoped),
   );
 });

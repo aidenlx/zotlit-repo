@@ -20,6 +20,8 @@ import {
  */
 export function engineMissingMessage(
   status: PackBinaryStatus,
+  /** The id of this plugin, which reads the pack. */
+  readerId: string,
 ): DocumentFragment {
   return BaseNotice.render((renderer) => {
     renderer
@@ -30,7 +32,7 @@ export function engineMissingMessage(
         .setButtonText(m.settings_resource_pack_open())
         .setCta()
         .onClick(() => {
-          openPackStatusPage(status);
+          openPackStatusPage(status, readerId);
         });
     });
   });

@@ -9,7 +9,11 @@ import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PackBinaryStatus } from "./pack-binary.ts";
-import { openPackStatusPage, packStatusSentence } from "./pack-row.ts";
+import {
+  openPackStatusPage,
+  packReaderId,
+  packStatusSentence,
+} from "./pack-row.ts";
 
 import { PACK_NOTICE_KEY } from "#core/managed-binary/resource-pack.ts";
 
@@ -41,6 +45,7 @@ export const packNotice = Effect.fn("ResourcePack.notice")(
     );
     if (shown.includes(status.kind)) return;
     yield* storage.save(PACK_NOTICE_KEY, [...shown, status.kind]);
+    const readerId = yield* packReaderId;
     yield* (yield* Notifier).show(
       BaseNotice.render((renderer) => {
         renderer
@@ -51,7 +56,7 @@ export const packNotice = Effect.fn("ResourcePack.notice")(
             .setButtonText(m.settings_resource_pack_open())
             .setCta()
             .onClick(() => {
-              openPackStatusPage(status);
+              openPackStatusPage(status, readerId);
             });
         });
       }),
@@ -60,7 +65,7 @@ export const packNotice = Effect.fn("ResourcePack.notice")(
   },
   recover(
     (cause) =>
-      Effect.logDebug("Could not show the Resource Pack notice", cause),
+      Effect.logWarning("Could not show the Resource Pack notice", cause),
     Effect.void,
   ),
 );

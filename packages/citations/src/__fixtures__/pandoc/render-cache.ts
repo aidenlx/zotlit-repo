@@ -1,3 +1,4 @@
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 /** The real bibliography layer over the dependency ports used by consumer fixtures. */
 import { Context, Effect, Layer, Stream } from "effect";
@@ -138,6 +139,7 @@ export async function bibliographyRenderFixture(
             changes: options.settings.changes,
           }),
         ),
+        testPluginHost({ manifest: { id: "zotlit" } }).layer,
       ),
     ),
   );

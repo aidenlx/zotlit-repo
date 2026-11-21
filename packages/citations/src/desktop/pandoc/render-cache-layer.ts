@@ -27,6 +27,7 @@ import {
 import type { CslItemData } from "@zotlit/db";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
@@ -72,7 +73,9 @@ export const layerBibliographyRender = Layer.effect(
     const queries = yield* QueryClients;
     const scope = yield* Scope.Scope;
     const { runPromise } = yield* scopedBridge;
-    const noticeServices = yield* Effect.context<DeviceStorage | Notifier>();
+    const noticeServices = yield* Effect.context<
+      DeviceStorage | Notifier | PluginHost
+    >();
     /**
      * A render that gets no engine tells the researcher once which plugin
      * gives it; the render itself answers without the notice.

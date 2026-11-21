@@ -34,6 +34,7 @@ import type { ProfileFixtureSettings as Settings } from "@zotlit/notes/__fixture
 import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
 import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
@@ -43,6 +44,7 @@ import {
   settingsOf,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -263,6 +265,10 @@ function openVault({
     Context.add(
       CitationParse,
       stubService<CitationParse["Service"]>("CitationParse", {}),
+    ),
+    Context.add(
+      PluginHost,
+      testPluginHost({ manifest: { id: "zotlit" } }).host,
     ),
     Context.add(
       ZoteroHttp,

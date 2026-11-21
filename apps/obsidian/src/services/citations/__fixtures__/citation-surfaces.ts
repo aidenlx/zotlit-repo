@@ -1,3 +1,5 @@
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { missingStyleChanges } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -768,6 +770,7 @@ function exportAdapter({
         }),
       ),
       Context.add(CitationParse, inProcessParseClient),
+      Context.add(PluginHost, testPluginHost({ manifest: { id: "zotlit" } }).host),
       Context.add(
         FileSystem.FileSystem,
         Effect.runSync(FileSystem.FileSystem.pipe(Effect.provide(NodeFileSystem.layer))),

@@ -15,12 +15,14 @@ import type { Library } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { packReaderId } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -60,6 +62,7 @@ export type PandocExportServices =
   | FileSystem.FileSystem
   | Notifier
   | PandocEngine
+  | PluginHost
   | PluginSettings
   | ProfileStyles
   | ZoteroHttp
@@ -116,16 +119,18 @@ export function runPandocExport(
           run.pipe(
             Effect.flatMap((outcome) => {
               if (outcome.kind === "stopped") return Effect.interrupt;
-              if (
-                outcome.kind === "engine-missing" ||
-                outcome.kind === "failed"
-              )
+              if (outcome.kind === "engine-missing")
+                return Effect.flatMap(packReaderId, (readerId) =>
+                  Effect.fail(
+                    new PandocExportError({
+                      notice: engineMissingMessage(outcome.status, readerId),
+                    }),
+                  ),
+                );
+              if (outcome.kind === "failed")
                 return Effect.fail(
                   new PandocExportError({
-                    notice:
-                      outcome.kind === "engine-missing"
-                        ? engineMissingMessage(outcome.status)
-                        : exportFailureMessage(outcome.problem),
+                    notice: exportFailureMessage(outcome.problem),
                   }),
                 );
               return Effect.succeed(outcome);

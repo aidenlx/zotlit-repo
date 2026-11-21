@@ -3,6 +3,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { afterEach, describe, vi } from "vitest";
 
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -27,8 +28,12 @@ afterEach(() => {
 /** The Pandoc engine row, shown on a device with `file` installed as the pack. */
 const engineRow = Effect.fnUntraced(function* (file: Uint8Array | null) {
   const services = yield* Layer.build(
-    layerPandocEngine.pipe(
-      Layer.provide(layerPackDevice(packDevice(file, "1.2.0"))),
+    Layer.merge(
+      layerPandocEngine.pipe(
+        Layer.provide(layerPackDevice(packDevice(file, "1.2.0"))),
+      ),
+      // The plugin that reads the pack: the row opens its page by this id.
+      testPluginHost({ manifest: { id: "zotlit" } }).layer,
     ),
   );
   const { tab } = yield* scopedSettingTab(services);

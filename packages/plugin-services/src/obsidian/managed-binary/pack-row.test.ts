@@ -4,6 +4,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { afterEach, describe, vi } from "vitest";
 
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -30,14 +31,18 @@ const segmenterRow = Effect.fnUntraced(function* (
   pack: Uint8Array | ReturnType<typeof packDevice> | null,
 ) {
   const services = yield* Layer.build(
-    layerChineseSegmenter.pipe(
-      Layer.provide(
-        layerPackDevice(
-          pack === null || pack instanceof Uint8Array
-            ? packDevice(pack, "1.2.0")
-            : pack,
+    Layer.merge(
+      layerChineseSegmenter.pipe(
+        Layer.provide(
+          layerPackDevice(
+            pack === null || pack instanceof Uint8Array
+              ? packDevice(pack, "1.2.0")
+              : pack,
+          ),
         ),
       ),
+      // The plugin that reads the pack: the row opens its page by this id.
+      testPluginHost({ manifest: { id: "zotlit" } }).layer,
     ),
   );
   const { tab } = yield* scopedSettingTab(services);

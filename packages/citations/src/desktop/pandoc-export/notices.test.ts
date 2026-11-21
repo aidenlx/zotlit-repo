@@ -30,7 +30,7 @@ describe("the notice of an export that gets no engine", () => {
     (kind, sentence, page) => {
       const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-      const notice = engineMissingMessage({ kind });
+      const notice = engineMissingMessage({ kind }, "zotlit");
       const action = Array.from(notice.querySelectorAll<HTMLElement>("*"))
         .flatMap(controlsOf)
         .find((control) => control instanceof ButtonComponent);

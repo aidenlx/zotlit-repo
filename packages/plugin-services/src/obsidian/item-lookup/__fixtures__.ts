@@ -6,6 +6,7 @@ import type { Scope } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -77,6 +78,7 @@ export function layerTestItemLookup(
         segmenter,
         notifier,
         layerDeviceStorageFrom(new MemoryDeviceStorage()),
+        testPluginHost({ manifest: { id: "zotlit" } }).layer,
       ),
     ),
   );
