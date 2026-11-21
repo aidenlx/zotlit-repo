@@ -10,9 +10,8 @@ import type { WorkbenchHost } from "./host.tsx";
  *
  * A host that registers partials owns the list: the vault's names, whether or
  * not this draft calls any of them, ending with the entry that creates one.
- * Where the host registers none — the web Workbench, which writes no files —
- * the draft's own dependency scan answers instead, naming what its bridge
- * bundled.
+ * Where the host registers none, the draft's own dependency scan answers
+ * instead, naming the partials its manifest bundles.
  * @param host.start Starts the create flow as the pane's command.
  */
 export function partialSuggestions(

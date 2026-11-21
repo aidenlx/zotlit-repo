@@ -136,7 +136,7 @@ describe("the pinned Fields Panel", () => {
   it("needs 600 px of room to dock", () => {
     expect(placePanels(pinned(false), at(600), false).fields).toBe("docked");
     expect(placePanels(pinned(false), at(599), false).fields).toBe("closed");
-    // The web draws a 12 px handle beside the docked column.
+    // A host may draw a 12 px handle beside the docked column.
     expect(
       placePanels(pinned(false), { ...at(612), handle: 12 }, false).fields,
     ).toBe("docked");
@@ -213,7 +213,7 @@ describe("Preview height under the editor", () => {
   });
 
   it("gives up height first, so the editor keeps its toolbar, tabs, task and five source lines", () => {
-    // The web Workbench at 320 x 800 lays its panels out 585 px tall. At the
+    // A 320 x 800 view lays its panels out 585 px tall. At the
     // largest share, 80 %, the Preview would leave the editor 117 px: less
     // than its toolbar and tabs. It takes 265 px and leaves the editor 320.
     expect(previewBelowHeight(80, 585)).toBe(265);
@@ -451,7 +451,7 @@ describe.each([
   },
 );
 
-// The web draws a 12 px handle beside each column, which the editor's room counts.
+// A host may draw a 12 px handle beside each column, which the editor's room counts.
 describe("panel placement with handles", () => {
   it("holds the Preview column to the width that leaves the editor 360 px past its handle", () => {
     expect(

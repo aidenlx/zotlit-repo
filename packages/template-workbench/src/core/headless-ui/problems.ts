@@ -1,7 +1,6 @@
-// The reader's wording for what the core reports. The core renders in a
-// browser page and inside Obsidian, so it names a problem by code and hands
-// over the values that fill it; every code is written here, once for both
-// hosts, so a reader outside English reads their own language.
+// The reader's wording for what the core reports. The core names a problem by
+// code and hands over the values that fill it; every code is written here, so
+// a reader outside English reads their own language.
 
 import type {
   WorkbenchProblem,
@@ -16,7 +15,7 @@ import type { WorkbenchMessageLabel } from "./messages.tsx";
 
 import { entryPosition } from "#core/document/controller.ts";
 
-/** What the Problems strip and the handoff screen read for one problem. */
+/** What the Problems strip reads for one problem. */
 export interface ProblemText {
   readonly message: string;
   /** What to do about it, absent when the message is the whole answer. */
@@ -27,25 +26,7 @@ export function problemText(
   m: WorkbenchMessages,
   problem: WorkbenchProblem,
 ): ProblemText {
-  const handoff = (message: string): ProblemText => ({
-    message,
-    recovery: m.workbench_problem_unsupported_recovery(),
-  });
   switch (problem.code) {
-    case "unsupported-language":
-      return handoff(m.workbench_problem_unsupported_language());
-    case "unsupported-partial-language":
-      return handoff(
-        m.workbench_problem_unsupported_partial({
-          name: String(problem.params?.name),
-        }),
-      );
-    case "unsupported-js":
-      return handoff(
-        problem.params?.key === undefined
-          ? m.workbench_problem_unsupported_js_unnamed()
-          : m.workbench_problem_unsupported_js({ key: problem.params.key }),
-      );
     case "invalid-document":
       return {
         message: m.workbench_problem_invalid_document(),

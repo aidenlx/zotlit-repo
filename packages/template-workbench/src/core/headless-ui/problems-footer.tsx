@@ -181,8 +181,8 @@ export function useWorkbenchProblems({
   // another Item, or another check leaves the captured one as it stands. A
   // problem the checks stop finding takes its report with it, which is what
   // keeps this inspection bounded rather than a failure history.
-  // The web host's Temporal load causes a later render after
-  // installing its polyfill, so an early invalid draft remains uncaptured here.
+  // A Temporal polyfill installed after the first render causes a later
+  // render, so an early invalid draft remains uncaptured here.
   const documentReports = useRef(new Map<string, RenderReport>());
   const held = new Map<string, RenderReport>();
   const temporal = globalThis.Temporal;

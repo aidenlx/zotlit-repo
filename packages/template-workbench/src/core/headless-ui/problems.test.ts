@@ -76,40 +76,6 @@ describe("problemText", () => {
     );
   });
 
-  it("writes the web host's own codes in the reader's catalog", () => {
-    const controller = new WorkbenchDocumentController(
-      ANNOTATION_LIST_PROFILE_SOURCE.replace(
-        "language: liquid",
-        "language: eta",
-      ),
-    );
-
-    expect(problemText(m, controller.problems[0]!)).toEqual({
-      message: m.workbench_problem_unsupported_language(),
-      recovery: m.workbench_problem_unsupported_recovery(),
-    });
-  });
-
-  it("names the partial and the property a refused code came from", () => {
-    expect(
-      problemText(m, {
-        code: "unsupported-partial-language",
-        params: { name: "summary" },
-        slice: "advanced",
-      }).message,
-    ).toContain("summary");
-    expect(
-      problemText(m, {
-        code: "unsupported-js",
-        params: { key: "computed" },
-        slice: "advanced",
-      }).message,
-    ).toContain("computed");
-    expect(
-      problemText(m, { code: "unsupported-js", slice: "advanced" }).message,
-    ).toBe(m.workbench_problem_unsupported_js_unnamed());
-  });
-
   it("writes a parser code in the catalog rather than the parser's English", () => {
     const controller = new WorkbenchDocumentController("not a profile");
 
@@ -131,7 +97,6 @@ describe("problemText", () => {
           "filename:",
         ].join("\n"),
       ),
-      { runtime: "native" },
     );
     const problem = controller.problems[0]!;
 
@@ -143,23 +108,6 @@ describe("problemText", () => {
       message: m.workbench_problem_bundled_partial({ names: "authors" }),
       recovery: m.workbench_problem_bundled_partial_recovery(),
     });
-  });
-
-  it("leaves the web host to read a bundle as the transport it is", () => {
-    const controller = new WorkbenchDocumentController(
-      ANNOTATION_LIST_PROFILE_SOURCE.replace(
-        "filename:",
-        [
-          "partials:",
-          "  - name: authors",
-          "    language: liquid",
-          "    source: Authors",
-          "filename:",
-        ].join("\n"),
-      ),
-    );
-
-    expect(controller.problems).toEqual([]);
   });
 
   it("names the manifest field a schema failure came from", () => {

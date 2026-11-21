@@ -1,8 +1,7 @@
 // The host adapter: everything that opens over the page, and what only the
 // host can answer — rendering, the vault's match vocabulary, where a field is
 // inserted, and where a preference is kept (ADR 0044). Obsidian binds these to
-// its `Menu`, `Modal`, `SuggestModal`, tooltips, and `Notice`; the web binds
-// them to Base UI.
+// its `Menu`, `Modal`, `SuggestModal`, tooltips, and `Notice`.
 
 import type {
   WorkbenchSliceId,
@@ -411,8 +410,8 @@ type TooltipAttributes = Omit<
 >;
 
 /**
- * The tooltip attributes for `text`. Outside a host — the web's skeleton —
- * the browser's own `title` tooltip stands in.
+ * The tooltip attributes for `text`. Outside a host the browser's own
+ * `title` tooltip stands in.
  */
 export function useTooltip(text: string): TooltipAttributes {
   const host = useContext(HostContext);

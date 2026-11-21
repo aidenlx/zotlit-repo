@@ -49,7 +49,7 @@ export const PANEL_WIDTH = { min: 240, initial: 400, max: 960 } as const;
 
 /**
  * The narrowest view, in pixels, that shows the Preview as a column: 56rem
- * at the 16 px root font size both hosts draw with, Tailwind's `@4xl`
+ * at the 16 px root font size Obsidian draws with, Tailwind's `@4xl`
  * container width. A narrower view puts the Preview under the editor.
  */
 export const PREVIEW_SIDE_MIN = 896;

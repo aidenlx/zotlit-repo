@@ -89,8 +89,8 @@ it("reveals the raw call while the selection touches it", () => {
   expect(view.contentDOM.textContent).not.toContain('{% render "authors" %}');
 });
 
-// The web Workbench supplies no partial host: its calls read as the source
-// they are, wherever the selection is.
+// Without a partial host, the calls read as the source they are, wherever
+// the selection is.
 it("keeps every call as source in a pane with no partial host", () => {
   const host = fakeHost();
   const controller = new WorkbenchDocumentController(withCalls());

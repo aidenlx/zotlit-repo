@@ -18,7 +18,7 @@ export type WorkbenchTab =
   | "citation"
   | "partial";
 
-/** The tabs a Profile document opens with, which is also the web Workbench's set. */
+/** The tabs a Profile document opens with. */
 export const TABS: readonly WorkbenchTab[] = [
   "note",
   "properties",

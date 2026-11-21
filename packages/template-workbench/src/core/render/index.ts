@@ -140,8 +140,8 @@ export function renderProfile(
     (document.manifest.partials ?? []).map(({ name }) => name),
   );
   // The draft this render reads, which a repair location is an offset into:
-  // both hosts name the partial the engine could not resolve and the call to
-  // repair it at, rather than leaving the web with the engine's bare words.
+  // the diagnostic names the partial the engine could not resolve and the call
+  // to repair it at, rather than the engine's bare words.
   const caller: RenderCallerSource = {
     source,
     profileId: document.manifest.id,
@@ -241,8 +241,8 @@ export function renderProfile(
       frontmatterBlock: frontmatterBlock(frontmatter.fold),
       creationBody,
       managedRegion,
-      // The web host renders a Profile only; a Citation Template and a Shared
-      // Partial are previewed in Obsidian, where both documents live.
+      // This render reads a Profile only; the Template Workbench View's own
+      // render previews a Citation Template and a Shared Partial.
       citation: null,
       partial: null,
       annotation: preview,
@@ -295,8 +295,9 @@ export function renderProfile(
  * named inside the note-name template's own text rather than in the document
  * that holds it: the pane the reader edits shows exactly that text, so the
  * mark lands there without reading whatever quoting the manifest wrote the
- * value under. Both hosts render the note name apart from the note, so both
- * name the fault the same way; this is where that answer is written, once.
+ * value under. Every render path renders the note name apart from the note,
+ * so each names the fault the same way; this is where that answer is written,
+ * once.
  */
 export function filenameErrorDiagnostic(
   error: unknown,

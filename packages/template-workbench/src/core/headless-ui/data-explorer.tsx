@@ -35,7 +35,7 @@ import type {
   WorkbenchMenuItem,
   WorkbenchMenuRequest,
 } from "./host.tsx";
-// Both hosts use this field discovery tree. The host owns clipboard, insertion,
+// The field discovery tree. The host owns clipboard, insertion,
 // export, popup presentation, and the controlled filtering/expansion state.
 import { useWorkbenchMessages } from "./messages.tsx";
 import type { WorkbenchMessageLabel } from "./messages.tsx";

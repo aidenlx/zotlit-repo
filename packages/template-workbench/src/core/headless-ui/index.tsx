@@ -5,10 +5,8 @@ export type { FilterValues } from "./match.fields.tsx";
 export { isDatasetFieldKind } from "#core/filter-fields/fields.ts";
 export type { FilterField } from "#core/filter-fields/fields.ts";
 export type { MatchFilter } from "./match.tsx";
-// The Workbench UI: the headless component tree both the web Template
-// Workbench and the Obsidian Template Workbench View mount over one Template
-// Document
-// (ADR 0044). It renders structure and behaviour; the host supplies the look
+// The Workbench UI: the headless component tree the Template Workbench View
+// mounts over one Template Document (ADR 0044). It renders structure and behaviour; the host supplies the look
 // through `WorkbenchThemeProvider` and its popups through
 // `WorkbenchHostProvider`, and each editor instance keeps its view state in
 // the Workbench model `WorkbenchEditorProvider` puts in context: the

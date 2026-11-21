@@ -254,8 +254,8 @@ function TreeNode({
     >
       <div
         {...part("row", isMatched ? "matched" : undefined)}
-        // "true", the value shadcn's `data-selected` variant on the web
-        // reads; Obsidian's variant reads the attribute's presence.
+        // "true" when selected; Obsidian's variant reads the attribute's
+        // presence.
         data-selected={selected ? "true" : undefined}
         data-open={open ? "" : undefined}
         data-line={rows ? "" : undefined}

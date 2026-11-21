@@ -219,7 +219,7 @@ one diagnosis carries; `useWorkbenchProblems` keeps the last one read, so an
 open area whose problems are all resolved still offers Copy last error report.
 
 The area states how much editor it is taking — `compact`, `open`, or `full` —
-and the hosts size each from CSS, so a pane too short or too narrow for the
+and the host sizes each from CSS, so a pane too short or too narrow for the
 split reaches the same full-editor reading with no measurement here. `Expand`
 asks for the whole editor; `Return to template` gives the space back and calls
 the host's `onReturn`, which puts the caret back where the reader left it. The
@@ -324,7 +324,7 @@ authoring:
   `read()` answers with the pane's current root, partials, and Item values.
 - `language/semantics.ts` exports the editor-independent `hoverHint(...)`
   resolver: the source range and property facts, including type, description,
-  and sample. Hosts own hover timing, geometry, presentation, and dismissal.
+  and sample. The host owns hover timing, geometry, presentation, and dismissal.
   A native Obsidian adapter can render those facts through `HoverPopover`;
   see the [native hover research](../../docs/research/obsidian-editor-hover.md).
 
@@ -340,7 +340,7 @@ statically traceable locals. Each rule has its own scope. The JSON-e runtime is
 the semantic-validation authority; the editor does not execute drafts to infer
 local values. JSON syntax errors appear in the document Problems list.
 
-Hosts supply the syntax colors: the Liquid delimiter class above and the Eta
+The host supplies the syntax colors: the Liquid delimiter class above and the Eta
 delimiter class `zt-eta-delimiter`.
 
 ### Limits

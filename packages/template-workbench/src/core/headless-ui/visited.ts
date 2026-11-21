@@ -1,7 +1,7 @@
 // A pane or row the reader has opened stays in the page, hidden, after it
 // closes, so the editor inside keeps its view instead of rebuilding. One rule
-// serves every host — a tab strip, a list of property rows, the web page's own
-// panes; only the key, and what tells one key's occupant from another, differ.
+// serves every use — a tab strip, a list of property rows; only the key, and
+// what tells one key's occupant from another, differ.
 
 import { useCallback, useEffect, useState } from "react";
 

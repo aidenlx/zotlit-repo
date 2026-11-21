@@ -1,7 +1,6 @@
 // The menu path to every panel size, for a reader who cannot drag a handle
 // (WCAG 2.5.7): one menu per handle the view draws, each with entries to grow,
-// shrink and reset its panel. Each host draws them in its own menu: the
-// Obsidian view's pane menu, the web Workbench's View menu.
+// shrink and reset its panel. The host draws them in the view's pane menu.
 
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 

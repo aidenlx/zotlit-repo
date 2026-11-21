@@ -792,8 +792,8 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
 });
 
 it("renders once for a host whose render answers at once", async () => {
-  // The web host renders on the page's own thread, so its render completes
-  // inside the step that starts it.
+  // A render that answers on the caller's own thread completes inside the
+  // step that starts it.
   const requests: RenderRequest[] = [];
   const input = Atom.make<RenderSchedulerInput>({
     source: "Draft",

@@ -284,10 +284,8 @@ describe("WorkbenchDocumentController", () => {
     expect(controller.dependencies).toEqual(["summary"]);
   });
 
-  it("reports the transport copy as a problem on the vault host alone", () => {
-    const native = new WorkbenchDocumentController(BUNDLED, {
-      runtime: "native",
-    });
+  it("reports the transport copy as a problem", () => {
+    const native = new WorkbenchDocumentController(BUNDLED);
 
     // A Profile edited beside the vault reads its partials from files, so the
     // manifest copy is text with two homes until Unpack partials runs.
@@ -300,16 +298,11 @@ describe("WorkbenchDocumentController", () => {
     ]);
     const { range } = native.problems[0]!;
     expect(BUNDLED.slice(range!.from, range!.to)).toContain("name: authors");
-
-    // The web host has no vault to unpack into, so the copy is the bundle.
-    expect(new WorkbenchDocumentController(BUNDLED).problems).toEqual([]);
   });
 
   it("drops the transport copy of the partials a host has written to files", () => {
     const bundled = BUNDLED;
-    const controller = new WorkbenchDocumentController(bundled, {
-      runtime: "native",
-    });
+    const controller = new WorkbenchDocumentController(bundled);
 
     expect(controller.dropBundledPartials(["authors"])).toBe(true);
     expect(controller.document!.manifest.partials).toEqual([
@@ -329,17 +322,6 @@ describe("WorkbenchDocumentController", () => {
     expect(controller.undo()).toBe(true);
     expect(controller.source).toBe(bundled);
     expect(controller.dropBundledPartials(["unknown"])).toBe(false);
-  });
-
-  it("reports an Eta profile as unsupported on the web and points at the value", () => {
-    const controller = new WorkbenchDocumentController(
-      HAND_WRITTEN.replace("language: liquid", "language: eta"),
-    );
-
-    const [problem] = controller.problems;
-    expect(problem).toMatchObject({ code: "unsupported-language" });
-    const { from, to } = problem!.range!;
-    expect(controller.source.slice(from, to)).toBe("eta");
   });
 
   it("reads the note name as the whole scalar the author wrote, quotes included", () => {

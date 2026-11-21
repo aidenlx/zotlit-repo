@@ -387,7 +387,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   readonly #cleanup = new DisposableStack();
   readonly #deps: TemplateWorkbenchDeps;
   readonly #host: ReturnType<typeof createTemplateWorkbenchHost>;
-  #controller = new WorkbenchDocumentController("", { runtime: "native" });
+  #controller = new WorkbenchDocumentController("");
   #root: Root | null = null;
   #updateActions = () => {};
   /** The Fields view action, which takes focus back as the Fields popover closes. */
@@ -1240,7 +1240,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.#loads++;
       this.#sourceRevision++;
       this.#controller = new WorkbenchDocumentController(source, {
-        runtime: "native",
         readOnly: this.#defaultDraft,
         kind: templateDocumentKind(this.file, this.#templateFolder),
         context: () => this.partialContext,

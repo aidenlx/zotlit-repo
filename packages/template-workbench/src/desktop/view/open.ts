@@ -39,9 +39,7 @@ const OPENED: WorkbenchOpened = {
 };
 
 export function requiresNative(source: string): boolean {
-  const manifest = new WorkbenchDocumentController(source, {
-    runtime: "native",
-  }).document?.manifest;
+  const manifest = new WorkbenchDocumentController(source).document?.manifest;
   return (
     manifest?.language === "eta" ||
     !!manifest?.partials?.some((partial) => partial.language === "eta") ||

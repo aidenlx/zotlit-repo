@@ -282,9 +282,7 @@ const SPACE_CONTROLS = new Set([
 
 describe("the Problems area", () => {
   it("starts compact, then explains the selected problem in full", () => {
-    const controller = new WorkbenchDocumentController(
-      DEFAULT_PROFILE_SOURCE.replace("language: liquid", "language: eta"),
-    );
+    const controller = new WorkbenchDocumentController("not a profile");
     const opened: string[] = [];
     using mounted = mount(
       <Problems
@@ -305,11 +303,9 @@ describe("the Problems area", () => {
       name: m.workbench_problems_heading(),
     });
     expect(area.className).toBe("part-problems");
-    expect(area.textContent).toContain(
-      m.workbench_problem_unsupported_language(),
-    );
+    expect(area.textContent).toContain(m.workbench_problem_invalid_document());
     expect(area.textContent).not.toContain(
-      m.workbench_problem_unsupported_recovery(),
+      m.workbench_problem_invalid_document_recovery(),
     );
 
     fireEvent.click(
@@ -317,7 +313,7 @@ describe("the Problems area", () => {
     );
     expect(area.textContent).toContain(m.workbench_advanced());
     expect(area.textContent).toContain(
-      m.workbench_problem_unsupported_recovery(),
+      m.workbench_problem_invalid_document_recovery(),
     );
     expect(
       screen.getByText(m.workbench_problems_technical()).closest("details")
@@ -328,7 +324,7 @@ describe("the Problems area", () => {
         name: m.workbench_problems_where_advanced(),
       }),
     );
-    expect(opened).toEqual(["unsupported-language"]);
+    expect(opened).toEqual(["invalid-document"]);
   });
 
   it("suggests unpacking bundled partials and repairs nothing itself", () => {

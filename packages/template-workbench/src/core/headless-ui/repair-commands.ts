@@ -1,4 +1,4 @@
-// The commands both hosts run to take the reader from a problem to the place that repairs it.
+// The commands the host runs to take the reader from a problem to the place that repairs it.
 
 import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { RenderDiagnostic } from "#core/render/result.ts";
@@ -76,7 +76,7 @@ export function selectionInDocument(
 /**
  * Where a field the reader inserts goes: the caret the reader put in the
  * template, while the document still has its slice. Before the reader puts
- * one there, no place is the insertion's, and both hosts insert nothing.
+ * one there, no place is the insertion's, and the host inserts nothing.
  */
 export function insertionTarget(
   selection: WorkbenchInsertTarget | null,

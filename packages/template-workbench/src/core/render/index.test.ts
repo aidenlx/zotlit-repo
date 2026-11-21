@@ -261,8 +261,8 @@ describe("Sample Items", () => {
     const result = renderProfile(source, SAMPLE_ITEMS[1]!);
 
     expect(result.creationBody).toBeNull();
-    // The web reads the same attribution Obsidian does: the partial the engine
-    // could not resolve is named, and the call to it is the repair target.
+    // The partial the engine could not resolve is named, and the call to it
+    // is the repair target.
     expect(result.diagnostics.map(({ code, part }) => [code, part])).toEqual([
       ["missing-partial", "annotation"],
       ["missing-partial", "annotation"],
@@ -582,7 +582,7 @@ describe("Sample Items", () => {
 /**
  * The default Profile with three entries appended: a Spread Entry that produces
  * one new key and overrides one an earlier entry set, a rule that cannot
- * evaluate, and a `js` entry the web host refuses to run.
+ * evaluate, and a `js` entry this render does not run.
  */
 const ROWS_PROFILE = ANNOTATION_LIST_PROFILE_SOURCE.replace(
   "---\n# {{ zt.title }}",

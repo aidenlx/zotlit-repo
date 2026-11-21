@@ -75,15 +75,8 @@ describe("external Profile source", () => {
     expect(controller.canUndo).toBe(false);
   });
 
-  it("accepts Eta in the native runtime while retaining web diagnostics", () => {
+  it("accepts an Eta profile", () => {
     const source = SOURCE.replace("language: liquid", "language: eta");
-    expect(
-      new WorkbenchDocumentController(source, { runtime: "native" }).problems,
-    ).toEqual([]);
-    expect(
-      new WorkbenchDocumentController(source).problems.map(
-        (problem) => problem.code,
-      ),
-    ).toContain("unsupported-language");
+    expect(new WorkbenchDocumentController(source).problems).toEqual([]);
   });
 });

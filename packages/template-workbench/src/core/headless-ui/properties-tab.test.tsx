@@ -313,7 +313,7 @@ it("keeps an authored expression until format confirmation and restores it with 
   ).toBe("'To read'");
 });
 
-it("offers a native JavaScript recovery action without the web-only instruction", () => {
+it("sends a JavaScript rule to Advanced", () => {
   const source = `---
 id: native
 name: Native
@@ -327,9 +327,7 @@ frontmatter:
 Note
 --- zotlit:annotation ---
 Annotation`;
-  const controller = new WorkbenchDocumentController(source, {
-    runtime: "native",
-  });
+  const controller = new WorkbenchDocumentController(source);
   let opened: string | null = null;
   render(
     <PropertiesPane
@@ -345,7 +343,6 @@ Annotation`;
       }}
     />,
   );
-  expect(screen.queryByText(m.workbench_properties_javascript())).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: m.workbench_advanced() }));
   expect(opened).toBe("zt.title");
 });

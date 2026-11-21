@@ -109,16 +109,10 @@ export function entryPosition(id: WorkbenchSliceId): number | null {
   return name === "entry" ? Number(position) : null;
 }
 
-/**
- * Why a draft is refused: the parser's own codes, the web host's three, and
- * the vault host's one.
- */
+/** Why a draft is refused: the parser's own codes, and the vault's one. */
 export type WorkbenchProblemCode =
   | LiteratureNoteTemplateErrorCode
-  | "bundled-partial"
-  | "unsupported-js"
-  | "unsupported-language"
-  | "unsupported-partial-language";
+  | "bundled-partial";
 
 export interface WorkbenchProblem {
   /** One code is one sentence, which each host writes in the reader's own language. */
@@ -163,7 +157,6 @@ export const externalEdit = Annotation.define<boolean>();
 export class WorkbenchDocumentController {
   #state: EditorState;
   #readOnly: boolean;
-  readonly #runtime: "web" | "native";
   readonly #kind: WorkbenchDocumentKind;
   readonly #context: () => PartialContext;
   #document: LiteratureNoteTemplateDocument | null = null;
@@ -187,7 +180,6 @@ export class WorkbenchDocumentController {
   constructor(
     source: string,
     options: {
-      runtime?: "web" | "native";
       readOnly?: boolean;
       kind?: WorkbenchDocumentKind;
       /**
@@ -197,7 +189,6 @@ export class WorkbenchDocumentController {
       context?: () => PartialContext;
     } = {},
   ) {
-    this.#runtime = options.runtime ?? "web";
     this.#kind = options.kind ?? "profile";
     this.#context = options.context ?? (() => DEFAULT_PARTIAL_CONTEXT);
     this.#readOnly = options.readOnly ?? false;
@@ -908,20 +899,7 @@ export class WorkbenchDocumentController {
       this.#dependencies = literatureNoteTemplateDependencies(document).filter(
         (name) => !RESERVED_CALL_NAMES.includes(name),
       );
-      this.#problems = [
-        ...webProblems(document, source).filter(
-          (problem) =>
-            this.#runtime === "web" ||
-            ![
-              "unsupported-language",
-              "unsupported-partial-language",
-              "unsupported-js",
-            ].includes(problem.code),
-        ),
-        ...(this.#runtime === "web"
-          ? []
-          : bundledPartialProblems(document, source)),
-      ];
+      this.#problems = bundledPartialProblems(document, source);
     } catch (error) {
       if (!(error instanceof LiteratureNoteTemplateError)) throw error;
       this.#document = null;
@@ -1099,51 +1077,9 @@ function suppressedChanges(
 }
 
 /**
- * The web host's own restrictions on an otherwise valid document: it renders
- * Liquid and JSON-e only, and directs Eta and `js` Profiles to Obsidian.
- * @see docs/adr/0033-web-workbench-is-public-and-standalone.md
- */
-function webProblems(
-  document: LiteratureNoteTemplateDocument,
-  source: string,
-): readonly WorkbenchProblem[] {
-  const { manifest } = document;
-  const problems: WorkbenchProblem[] = [];
-  if (manifest.language === "eta") {
-    problems.push({
-      code: "unsupported-language",
-      slice: "advanced",
-      ...at(source, ["language"]),
-    });
-  }
-  for (const [index, partial] of (manifest.partials ?? []).entries()) {
-    if (partial.language === "eta") {
-      problems.push({
-        code: "unsupported-partial-language",
-        params: { name: partial.name },
-        slice: "advanced",
-        ...at(source, ["partials", index, "language"]),
-      });
-    }
-  }
-  for (const [index, entry] of (manifest.frontmatter ?? []).entries()) {
-    if ("js" in entry) {
-      problems.push({
-        code: "unsupported-js",
-        ...(entry.key === undefined ? {} : { params: { key: entry.key } }),
-        slice: "advanced",
-        ...at(source, ["frontmatter", index, "js"]),
-      });
-    }
-  }
-  return problems;
-}
-
-/**
- * The vault host's own restriction: a Profile edited beside the vault reads
- * its partials from `zotlit-partial.<name>.md` files, so the manifest's
- * transport copy is text with two homes until it is unpacked. The web host
- * has no vault to unpack into and reads the copy as the bundle it is.
+ * The vault's own restriction: a Profile edited beside the vault reads its
+ * partials from `zotlit-partial.<name>.md` files, so the manifest's transport
+ * copy is text with two homes until it is unpacked.
  * @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
  */
 function bundledPartialProblems(

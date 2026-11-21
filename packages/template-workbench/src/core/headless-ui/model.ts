@@ -134,8 +134,7 @@ export interface WorkbenchPreviewSettings {
 }
 
 /**
- * What the reader chose to render the document against, beside the Item, as
- * both hosts name it. The model derives the example, the Citation set, and
+ * What the reader chose to render the document against, beside the Item. The model derives the example, the Citation set, and
  * the partial selection from these and the chosen Item's data.
  */
 export interface WorkbenchChoices {
@@ -692,7 +691,7 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
 
 /**
  * Presses the Fields action: opens or closes the Fields Panel. The view
- * action, the pane menu and the web View menu each press it.
+ * action and the pane menu each press it.
  */
 export function pressFieldsAction(
   registry: AtomRegistry.AtomRegistry,

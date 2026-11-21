@@ -534,9 +534,10 @@ function EntryForm({
       )}
       {entry.language === "js" ? (
         <p {...part("hint")}>
-          {onOpenSource ? (
+          {m.workbench_properties_javascript_source()}
+          {onOpenSource && (
             <>
-              {m.workbench_properties_javascript_source()}{" "}
+              {" "}
               <button
                 type="button"
                 {...part("secondary-action")}
@@ -545,8 +546,6 @@ function EntryForm({
                 {m.workbench_advanced()}
               </button>
             </>
-          ) : (
-            m.workbench_properties_javascript()
           )}
         </p>
       ) : (
