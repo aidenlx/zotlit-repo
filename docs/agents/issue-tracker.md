@@ -49,7 +49,7 @@ gh issue list --search "parent-issue:aidenlx/zotlit-repo#<parent> state:open no:
 
 ## Ticket updates
 
-A ticket gets one progress comment when its branch merges into the integration branch — what changed, the merge SHA, the tests run, open points — and is closed right after. Comments and assignees otherwise wait for that merge.
+A ticket gets one progress comment when its branch merges into the integration branch — what changed, the merge SHA, the tests run, the finding lines of its review rounds with their outcomes, open points — and is closed right after. Comments and assignees otherwise wait for that merge.
 
 A change reaches `main` through `pnpm land`, which fast-forwards `main` to the rebased branch (root `AGENTS.md`, "Landing a change"). After the land, close its spec and each ticket still open with `gh issue close`, carrying that one progress comment with the landed commit.
 

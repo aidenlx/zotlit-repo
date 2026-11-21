@@ -1,14 +1,15 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along separate axes: Standards (does the code follow this repo's documented coding standards?), Spec (does the code match what the originating issue/spec asked for?), and a Security pass when the diff touches the Zotero connection, the database, the release scripts or the Companion. Runs each axis in a parallel sub-agent and reports them side by side as finding lines. Use when the user wants to review a branch, a PR, work-in-progress changes, a review round, or asks to \"review since X\"."
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Review of the diff between `HEAD` and a fixed point the user supplies, along separate axes:
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
+- **Security**: only when the diff touches the risky surface (step 4).
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+The axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
 The issue tracker should have been provided to you. If `docs/agents/issue-tracker.md` is missing, tell the user to run `/setup-matt-pocock-skills`.
 
@@ -40,7 +41,7 @@ Anything in the repo that documents how code should be written, such as `CODING_
 On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
 - **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
-- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Like any standard here, skip anything tooling already enforces.
+- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), always a `Nit`. Like any standard here, skip anything tooling already enforces.
 
 Each smell reads *what it is* → *how to fix*; match it against the diff:
 
@@ -88,7 +89,7 @@ Its prompt holds the diff command, the commit list, the finding line format, and
 
 ### 5. Aggregate
 
-Start with the counts: findings per axis, and per severity within each axis. Then present each axis's finding lines under its own `## Standards`, `## Spec` (and `## Security`) heading, in the reviewer's order. Keep the findings of each axis apart, because the axes are deliberately separate (see _Why two axes_).
+Start with the counts: findings per axis, and per severity within each axis. Then present each axis's finding lines under its own `## Standards`, `## Spec` (and `## Security`) heading, in the reviewer's order. Keep the findings of each axis apart, because the axes are deliberately separate (see _Why separate axes_).
 
 The record PR is public. A Security finding that stays unfixed goes to a private place, a draft GitHub security advisory or a local note under `.scratch/notes/`, and the record shows only the count of such findings.
 
@@ -107,11 +108,11 @@ Each finding is one line, and the Review section of the record file (`land` → 
 
 The Review section starts with the counts: findings per severity, and per outcome.
 
-## Why two axes
+## Why separate axes
 
-A change can pass one axis and fail the other:
+A change can pass one axis and fail another:
 
 - Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
 
-Reporting them separately stops one axis from masking the other.
+Reporting them separately stops one axis from masking another.

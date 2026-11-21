@@ -9,7 +9,7 @@ TDD is the red → green loop. This skill is the reference that makes that loop 
 
 When exploring the codebase, read `GLOSSARY.md` (if it exists) so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
-Tier first: pick the tier and the mocks from [Testing strategy](../../../policies/testing-strategy.md) before the first test; in this repo that is usually extending an e2e path.
+Tier first: pick the tier and the mocks from [Testing strategy](../../../policies/testing-strategy.md) before the first test; in this repo the tracer bullet is a package integration test, and the spec's e2e journey comes in the final round of `implement-spec`.
 
 ## What a good test is
 

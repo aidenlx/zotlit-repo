@@ -1,6 +1,6 @@
 ---
 name: land
-description: "Use when a change is done and should reach main, when a land fails, or when writing the commits a land carries."
+description: "Use when a change is done and should reach main, when a land fails, when writing the commits or the record file a land carries, or when checking the record PRs before a release."
 ---
 
 ## Land
@@ -28,9 +28,17 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 ## The record file
 
-The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them.
+The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them. Each section holds:
 
-- Fill the sections as `implement-spec` step 7 describes, also for a land outside a spec. The Review section holds finding lines (`code-review` → Finding lines).
+- **Summary:** what the change does for its users.
+- **Testing:** the suites and commands that ran, with their results.
+- **Risk** and **How to revert:** what can break for a user, and the commits or steps that undo it.
+- **Review:** the finding lines of every review round, each with its outcome (`code-review` → Finding lines).
+- **Open points:** a `- [ ] ` checklist item for each open point.
+- **e2e:** the e2e files that ran, and their result.
+
+In every record:
+
 - Put `Closes #<n>` for each ticket of the change in the Summary. GitHub closes the tickets when the PR shows as merged.
 - The repository is public, so the PR is public: write paths relative to the repository, never local absolute paths or scratch log locations.
 
