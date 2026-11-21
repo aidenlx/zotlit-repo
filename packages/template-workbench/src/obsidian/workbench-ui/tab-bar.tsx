@@ -11,7 +11,7 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
-import { useContainerName, useOptionalHost } from "./host.tsx";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import { setTab as tabTransition } from "./model.ts";
 import { SliceEditorVisibility } from "./slice-editor.tsx";
 import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
@@ -151,11 +151,10 @@ export function TabBar({
 
 /**
  * The docs page that shows how to write `tab`'s part of the template, set
- * after the tab's lede. A host that names no docs site gets nothing.
+ * after the tab's lede.
  */
 export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
-  const docsUrl = useOptionalHost()?.docsUrl;
-  if (docsUrl === undefined) return null;
+  const { docsUrl } = useWorkbenchHost();
   const { label, path } = tabDocs(tab);
   return (
     <a

@@ -2114,7 +2114,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
    * The docs pages a template author returns to: the step-by-step guide, the
    * syntax and the field references, and the community for what they miss.
    * The Help view action opens them under itself and the pane menu's Help
-   * submenu lists them, as the web page's Help menu lists the same pages.
+   * submenu lists them.
    */
   #addHelpEntries(menu: Menu): void {
     for (const { label, path } of HELP_PAGES)

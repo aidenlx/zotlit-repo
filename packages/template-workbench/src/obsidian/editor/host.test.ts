@@ -62,9 +62,9 @@ describe("Template Workbench host", () => {
     using _write = vi
       .spyOn(navigator.clipboard, "writeText")
       .mockRejectedValue(new Error("Denied"));
-    await expect(
-      settled(host.run(host.copy!("report"))),
-    ).rejects.toBeInstanceOf(WorkbenchClipboardError);
+    await expect(settled(host.run(host.copy("report")))).rejects.toBeInstanceOf(
+      WorkbenchClipboardError,
+    );
   });
 
   it("keeps preferences in Obsidian's vault-local storage", () => {
@@ -94,7 +94,7 @@ describe("Template Workbench typing popup", () => {
         doc: "{{ zt.",
         extensions: [
           liquidTemplate,
-          host.editorPopups!(
+          host.editorPopups(
             () => ({
               root: "note",
               partials: [],

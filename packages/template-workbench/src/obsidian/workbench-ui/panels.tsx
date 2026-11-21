@@ -19,7 +19,7 @@ import {
   fieldsDockId,
   FieldsPopoverPanel,
 } from "./fields-panel.tsx";
-import { useContainerName, useOptionalHost } from "./host.tsx";
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
 import {
   drawnMax,
   PANEL_HANDLES,
@@ -80,8 +80,8 @@ export function SidePanels({
   // row or a column, so a resize across the boundary moves the region
   // without mounting it again, and what the reader was doing in it stays.
   const below = placement.preview === "below";
-  const host = useOptionalHost();
-  const popoverId = host?.fieldsAction?.popoverId;
+  const host = useWorkbenchHost();
+  const popoverId = host.fieldsAction?.popoverId;
   const fieldsTitle = useUniqueId();
   // A resize or a hide that takes the docked column away hands the focus it
   // held to the Fields action, which brings it back. The column's removal
@@ -90,7 +90,7 @@ export function SidePanels({
   const dockHeldFocus = useRef(false);
   useLayoutEffect(() => {
     if (dockHeldFocus.current && placement.fields !== "docked")
-      host?.fieldsAction?.focus();
+      host.fieldsAction?.focus();
     dockHeldFocus.current = false;
   }, [placement.fields, host]);
   return (

@@ -19,7 +19,7 @@ import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
 import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
-import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchHost } from "./host.tsx";
 import { pressFieldsPin } from "./model.ts";
 import type { FieldsPlacement } from "./panel-layout.ts";
 
@@ -105,12 +105,12 @@ export function useFieldsPanelRows(): FieldsPanelRows | null {
 /** The Fields Panel in the host's Fields popover. */
 export function FieldsPopoverPanel(props: FieldsPanelContent) {
   const model = useWorkbenchModel();
-  const host = useOptionalHost();
+  const host = useWorkbenchHost();
   const [state, setState] = useAtom(model.fieldsPanel);
   const { fields } = useAtomValue(model.placement);
   const titleId = useUniqueId();
   const escape = useRef<() => boolean>(() => false);
-  const Popover = host?.fieldsAction?.popover;
+  const Popover = host.fieldsAction?.popover;
   if (!Popover) return null;
   return (
     <Popover

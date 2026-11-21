@@ -18,7 +18,6 @@ import {
 import type { App, HoverParent } from "obsidian";
 import { useEffect, useRef } from "react";
 
-import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
 import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 
 import { extractPartialMenu } from "./extract-partial.ts";
@@ -192,7 +191,6 @@ export function createTemplateWorkbenchHost(
         app.saveLocalStorage(`zotlit.workbench.${scope}.${key}`, value);
       },
     },
-    toggle: Toggle,
     markdown:
       ports.markdown ??
       function EditorMarkdown({ markdown, showMarkdown }) {

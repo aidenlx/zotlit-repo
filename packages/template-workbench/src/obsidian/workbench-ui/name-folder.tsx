@@ -13,13 +13,13 @@ import type { ReactNode } from "react";
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { joinNotePath } from "@zotlit/templates";
 import { useUniqueId } from "@zotlit/ui";
 
 import { ExampleActions, useExampleState } from "./example-state.tsx";
-import { useOptionalHost } from "./host.tsx";
 import { templateWorkbenchButton, editorBox } from "./look.ts";
 import { renderDiagnosis } from "./problems.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
@@ -756,8 +756,6 @@ function BindingRow({
 }) {
   const { prefix } = useContext(FieldIdContext);
   const readOnly = useContext(FieldIdContext).readOnly;
-  const host = useOptionalHost();
-  const Toggle = host?.toggle;
   const label = binding.label();
   const inherits = value === undefined;
   const effective = inherits ? fallback : value;
@@ -812,31 +810,13 @@ function BindingRow({
           data-part="toggle-row"
           className="zt:flex zt:items-center zt:gap-2"
         >
-          {Toggle ? (
-            <Toggle
-              id={id}
-              aria-labelledby={`${id}-label`}
-              value={effective === true}
-              disabled={readOnly}
-              onChange={onWrite}
-            />
-          ) : (
-            <button
-              type="button"
-              disabled={readOnly}
-              role="switch"
-              id={id}
-              aria-checked={effective === true}
-              data-part="switch"
-              data-state={effective === true ? "checked" : "unchecked"}
-              onClick={() => onWrite(effective !== true)}
-            >
-              <span
-                data-part="switch-thumb"
-                data-state={effective === true ? "checked" : "unchecked"}
-              />
-            </button>
-          )}
+          <Toggle
+            id={id}
+            aria-labelledby={`${id}-label`}
+            value={effective === true}
+            disabled={readOnly}
+            onChange={onWrite}
+          />
           <span data-part="muted" className={nameFolderMuted}>
             {valueText(effective)}
           </span>

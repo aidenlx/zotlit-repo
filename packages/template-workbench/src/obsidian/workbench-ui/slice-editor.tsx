@@ -21,7 +21,7 @@ import { useUniqueId } from "@zotlit/ui";
 
 import { completionFields } from "./completion-fields.ts";
 import { useWorkbenchModel } from "./editor.tsx";
-import { HiddenName, useOptionalHost } from "./host.tsx";
+import { HiddenName, useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchInsertTarget } from "./host.tsx";
 import { partialSuggestions } from "./partial-suggestions.ts";
 import {
@@ -156,7 +156,7 @@ export function SliceEditor({
   const revealDiagnosis = useRevealSourceDiagnosis();
   const readOnly = controller.readOnly;
   const engine = controller.templateLanguage;
-  const adapter = useOptionalHost();
+  const adapter = useWorkbenchHost();
   const nameId = useUniqueId();
   const createPartial = useAtomSet(useWorkbenchModel().createPartial(nameId));
   const start: ResolveStart = (create, created) =>
@@ -232,7 +232,7 @@ export function SliceEditor({
       const supplied = report.current.suggest?.(masterPosition);
       return {
         ...partialSuggestions(controller.dependencies, {
-          partials: report.current.adapter?.partials,
+          partials: report.current.adapter.partials,
           start: report.current.start,
         }),
         ...supplied,
@@ -288,7 +288,7 @@ export function SliceEditor({
             const config = read(position);
             return config?.language === "json-e" ? null : config;
           }),
-          report.current.adapter?.editorPopups?.(read, host.current!) ?? [],
+          report.current.adapter.editorPopups(read, host.current!),
           ...(language === "json-e" || slice === "advanced"
             ? [
                 embeddedJsonE((source) =>

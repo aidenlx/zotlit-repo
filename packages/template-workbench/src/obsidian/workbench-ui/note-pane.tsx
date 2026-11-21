@@ -26,7 +26,7 @@ import {
   boxRanges,
   revealSourceOnClick,
 } from "./editor-boxes.ts";
-import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchHost } from "./host.tsx";
 import { editorChip, chipIcon } from "./look.ts";
 import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
@@ -246,7 +246,7 @@ function AnnotationPreview({
 > & {
   id: string;
 }) {
-  const Markdown = useOptionalHost()?.markdown;
+  const Markdown = useWorkbenchHost().markdown;
   return (
     <div
       id={id}
@@ -265,7 +265,7 @@ function AnnotationPreview({
           {formatProblem}
         </p>
       )}
-      {preview !== null && Markdown ? (
+      {preview !== null ? (
         <Suspense
           fallback={
             <p data-part="pending" className={notePanePending}>

@@ -143,16 +143,6 @@ export interface WorkbenchMarkdownProps {
   readonly marks?: readonly RenderedRange[];
 }
 
-/** State and accessible name for a host-native boolean control. */
-export interface WorkbenchToggleProps {
-  readonly id: string;
-  /** The id of the label shown beside the control, which names it. */
-  readonly "aria-labelledby": string;
-  readonly value: boolean;
-  readonly disabled: boolean;
-  readonly onChange: (value: boolean) => void;
-}
-
 /**
  * The Fields popover: the surface the Fields Panel opens in while it is not
  * pinned, at the right edge of the view. The host owns Escape, a press
@@ -210,8 +200,8 @@ export interface WorkbenchFieldsAction {
   focus(): void;
   /**
    * The popover a field's details open in, in a view wide enough for it
-   * beside the panel; mounted while the details stand open. A host without
-   * one shows the details in the bar at the panel's foot at every width.
+   * beside the panel; mounted while the details stand open. Without one,
+   * the details show in the bar at the panel's foot at every width.
    */
   readonly details?: ComponentType<WorkbenchFieldDetailsProps>;
   /**
@@ -234,32 +224,25 @@ export interface WorkbenchPartials {
 }
 
 export interface WorkbenchHost {
-  readonly toggle?: ComponentType<WorkbenchToggleProps>;
+  /**
+   * Suggestions under a Match text field while the author types. The Query
+   * View's Filter leaves it out, as its popover stands over Obsidian's
+   * suggestion popups; the field then lists its suggestions itself.
+   */
   inputSuggestions?(
     request: WorkbenchInputSuggestionsRequest,
   ): WorkbenchDialogHandle;
   /**
-   * Reveals the Pandoc engine's setting. A host that supplies none leaves the
-   * button off a preview hint.
+   * Reveals the Pandoc engine's setting. Only the View with its Preview
+   * supplies it; elsewhere a preview hint shows no button.
    */
   openCitationEngineSettings?: () => void;
-  /**
-   * Puts `text` on the system clipboard, failing where the host cannot.
-   * Each host has its own clipboard, and a host that supplies none leaves the
-   * Problems area's Copy error report out.
-   */
-  copy?(text: string): Effect.Effect<void, WorkbenchClipboardError>;
-  /**
-   * The community page this build belongs to, which Ask the community opens.
-   * The destination is the configured site's, so each host names its own; a
-   * host that names none leaves the link out.
-   */
-  readonly communityUrl?: string;
-  /**
-   * The docs site this build belongs to, which each tab's guide link opens a
-   * page of. A host that names none leaves the guide links out.
-   */
-  readonly docsUrl?: string;
+  /** Puts `text` on the system clipboard, failing where the system refuses. */
+  copy(text: string): Effect.Effect<void, WorkbenchClipboardError>;
+  /** The community page this build belongs to, which Ask the community opens. */
+  readonly communityUrl: string;
+  /** The docs site this build belongs to, which each tab's guide link opens a page of. */
+  readonly docsUrl: string;
   /** Renders one request; the tree schedules it through the Render Scheduler. */
   render: (
     request: RenderRequest,
@@ -267,20 +250,19 @@ export interface WorkbenchHost {
   /** The host reading view for a rendered note or annotation. */
   markdown: ComponentType<WorkbenchMarkdownProps>;
   /** Completion and hover presentation, with the editor's mount for window-local overlays. */
-  editorPopups?(read: SuggestionSource, parent: HTMLElement): Extension;
+  editorPopups(read: SuggestionSource, parent: HTMLElement): Extension;
   /**
    * The Shared Partials a render or include call completes from, and the flow
-   * that creates one. A host that supplies it owns the list — the vault's
-   * registered names — and the draft's own scan answers for a host that does
-   * not.
+   * that creates one. The View supplies the vault's registered names; in a
+   * mount without them, the draft's own scan answers.
    */
   partials?: WorkbenchPartials;
   matchData: WorkbenchMatchData;
   /** The focused slice editor, or `null` when none has had focus. */
   insertTarget(): WorkbenchInsertTarget | null;
   /**
-   * The Fields action and the Fields popover it opens. A host that supplies
-   * none shows no Fields Panel.
+   * The Fields action and the Fields popover it opens. Only the View supplies
+   * it; a mount without it shows no Fields popover.
    */
   readonly fieldsAction?: WorkbenchFieldsAction;
   persistence: WorkbenchPersistence;
@@ -321,26 +303,16 @@ export function HiddenName({ id, children }: { id: string; children: string }) {
 }
 
 /**
- * A container's accessible name. Inside a host, a {@link HiddenName} carries
- * it. Outside a host — the skeleton the docs site prerenders — `aria-label`
- * carries it, so the server markup holds no id from `useUniqueId` and the
- * hydrating client renders the same attributes.
+ * A container's accessible name, which a {@link HiddenName} carries.
  * @returns The attributes for the container and the element to put in it.
  */
 export function useContainerName(name: string): {
   attrs: HTMLAttributes<HTMLElement>;
   hiddenName: ReactNode;
 } {
-  const host = useContext(HostContext);
   const id = useUniqueId();
-  if (!host) return { attrs: { "aria-label": name }, hiddenName: null };
   return {
     attrs: { "aria-labelledby": id },
     hiddenName: <HiddenName id={id}>{name}</HiddenName>,
   };
-}
-
-/** The host, when the surface is mounted inside one. */
-export function useOptionalHost(): WorkbenchHost | null {
-  return useContext(HostContext);
 }

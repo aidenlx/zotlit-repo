@@ -346,7 +346,7 @@ export function makeFieldsActions(
 
 /**
  * The Fields pane's More options, which the shared panel draws in its header
- * beside the pin; a host without one, as the web page, shows none.
+ * beside the pin.
  */
 export function FieldsMoreOptions({ view }: { view: TemplateWorkbenchView }) {
   return (

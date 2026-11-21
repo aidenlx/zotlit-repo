@@ -585,8 +585,8 @@ const renderPreviewProfileEffect = Effect.fn(
       properties.push(...previewPropertyRows(prepared.fields));
     if (composed.outcome === "refused")
       for (const error of composed.evaluation.errors)
-        // The same answer the web renderer reads, so a row underlines the text
-        // that failed and reads the engine's own words in either host.
+        // The same answer the core renderer reads, so a row underlines the
+        // text that failed and reads the engine's own words.
         diagnostics.push(
           propertyErrorDiagnostic(
             error,

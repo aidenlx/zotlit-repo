@@ -203,6 +203,7 @@ export function fakeHost(): FakeHost {
       ),
     },
     insertTarget: () => null,
+    editorPopups: () => [],
     fieldsAction: {
       popover: FakeFieldsPopover,
       popoverId: "fake-fields-panel",

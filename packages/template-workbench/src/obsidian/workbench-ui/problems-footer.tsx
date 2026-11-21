@@ -44,7 +44,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchHost } from "./host.tsx";
 import { templateWorkbenchButton } from "./look.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import {
@@ -328,7 +328,7 @@ export function ProblemsFooter({
    */
   onReturn?: () => void;
 }) {
-  const host = useOptionalHost();
+  const host = useWorkbenchHost();
   const startCopy = useAtomSet(useWorkbenchModel().copy(useUniqueId()));
   const panel = useRef<HTMLElement>(null);
   const [size, setSize] = useState(55);
@@ -379,9 +379,7 @@ export function ProblemsFooter({
   const [copyFailed, setCopyFailed] = useState(false);
   // A different report is a different copy: the previous failure notice goes.
   useEffect(() => setCopyFailed(false), [reportText]);
-  const copyable = host?.copy !== undefined;
   function copyReport(text: string): void {
-    if (host?.copy === undefined) return;
     setCopyFailed(false);
     startCopy({
       copy: host.copy(text),
@@ -443,7 +441,7 @@ export function ProblemsFooter({
   function reportControls(text: string | null) {
     return (
       <>
-        {text !== null && copyable && (
+        {text !== null && (
           <button
             type="button"
             onClick={() => copyReport(text)}
@@ -455,17 +453,15 @@ export function ProblemsFooter({
               : m.workbench_problems_copy()}
           </button>
         )}
-        {host?.communityUrl !== undefined && (
-          <a
-            href={host.communityUrl}
-            target="_blank"
-            rel="noreferrer"
-            data-part="problems-community"
-            className={problemsFooterProblemsCommunity}
-          >
-            {m.workbench_problems_community()}
-          </a>
-        )}
+        <a
+          href={host.communityUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-part="problems-community"
+          className={problemsFooterProblemsCommunity}
+        >
+          {m.workbench_problems_community()}
+        </a>
       </>
     );
   }

@@ -17,7 +17,7 @@ import { composing } from "@zotlit/ui";
 import { fieldValueText } from "./explorer-fields.ts";
 import type { FieldForm, FieldInsertOptions } from "./field-insertion.ts";
 import { useFieldsPanelRows } from "./fields-panel.tsx";
-import { useOptionalHost } from "./host.tsx";
+import { useWorkbenchHost } from "./host.tsx";
 import type { ViewSize } from "./panel-layout.ts";
 
 import { formatPath, isList, listItemValues } from "#core/data-tree/index.ts";
@@ -110,10 +110,10 @@ export function FieldDetails({
   /** The element the details draw in, which a press outside leaves. */
   readonly surface: Ref<HTMLElement>;
 }) {
-  const host = useOptionalHost();
+  const host = useWorkbenchHost();
   const titleId = useUniqueId();
   const panel = useFieldsPanelRows()?.panel.current ?? null;
-  const Popover = host?.fieldsAction?.details;
+  const Popover = host.fieldsAction?.details;
   const bar = useRef<HTMLDivElement>(null);
   // A bar too short for the details, such as at 200% zoom, opens on what the
   // note gets: "In your note" and its snippet stand at its top, under the
