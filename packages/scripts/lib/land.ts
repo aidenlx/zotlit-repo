@@ -1,16 +1,22 @@
 // One land: the only path by which a change reaches `main`, the trunk
 // (ADR 0097).
 //
-//   land (from a task branch, clean tree)
+//   land (from a task branch, clean tree, a record file)
 //     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
-//       fetch origin/main ─▶ rebase the branch onto it ─▶ gate ─▶ push HEAD:main
-//         ▲                                                       │ main moved
-//         └───────────────────────────────────────────────────────┘
-//       update the local main ─▶ delete the task branch on the remote
+//       fetch origin/main ─▶ rebase the branch onto it ─▶ gate
+//         ─▶ record: push the branch, open or update its record PR
+//         ─▶ push HEAD:main
+//         ▲          │ main moved
+//         └──────────┘
+//       update the local main ─▶ read the PR state ─▶ merged: delete the
+//       task branch on the remote
 //     after the turn: request the End-to-end Run of the new tip (lib/land-e2e.ts)
 //
-// A change lands with `pnpm verify` as its gate; the version commit of a
-// release (`pnpm release`) lands with the release gate.
+// A change lands with `pnpm verify` as its gate and a record PR on GitHub,
+// whose body is the record file that the agent wrote (LAND_RECORD_PATH).
+// GitHub shows the PR as merged when `main` moves to its head. The version
+// commit of a release (`pnpm release`) lands with the release gate and no
+// record PR.
 //
 // The gate runs once, in the turn, on the tree that is pushed. On a failure
 // the worktree stays on its branch with a clean tree: a rebase conflict
@@ -18,12 +24,14 @@
 // onto the fetched `main`, which is the tree to fix.
 
 import type { DesktopSlot } from "#desktop-slot";
+import { regex } from "arkregex";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
@@ -66,14 +74,64 @@ export type LandStep =
   | "fetch"
   | "rebase"
   | "gate"
+  | "record"
   | "push"
   | "lease";
+
+/** The record file of a land, relative to the root of the worktree. */
+export const LAND_RECORD_PATH = ".scratch/land-record.md";
+
+/** The sections of a record, each a `## <name>` heading. */
+export const LAND_RECORD_SECTIONS = [
+  "Summary",
+  "Testing",
+  "Risk",
+  "How to revert",
+  "Review",
+  "Open points",
+  "e2e",
+] as const;
+
+/** How many times the land reads the PR state after it pushed `main`. */
+const MERGED_READS = 10;
+/** The interval between those reads, unless the land's `pollMs` sets one. */
+const MERGED_READ_MS = 3_000;
+
+export interface RecordPullRequest {
+  number: number;
+  url: string;
+}
+
+/** The GitHub side of a land: the record PR of its branch. */
+export interface LandGitHub {
+  /** The open PR from `head` into `base`, if there is one. */
+  openPullRequest: (query: {
+    head: string;
+    base: string;
+  }) => Promise<RecordPullRequest | undefined>;
+  createPullRequest: (pull: {
+    head: string;
+    base: string;
+    title: string;
+    body: string;
+  }) => Promise<RecordPullRequest>;
+  editPullRequest: (
+    number: number,
+    pull: { title: string; body: string },
+  ) => Promise<void>;
+  pullRequestState: (number: number) => Promise<"OPEN" | "CLOSED" | "MERGED">;
+}
 
 export interface LandOptions {
   /** The worktree to land from. */
   cwd: string;
   /** The quality gate, run in `cwd` on the tree that is pushed. */
   gate: readonly [string, ...string[]];
+  /**
+   * The GitHub client of the record PR. With it, the land needs the record
+   * file at LAND_RECORD_PATH; without it, the land opens no PR.
+   */
+  github?: LandGitHub;
   /** @default "origin" */
   remote?: string;
   /** @default the Land Queue */
@@ -89,6 +147,7 @@ export interface LandOptions {
    * the turn ends. @default SILENCE_LIMIT_MS.childOutput
    */
   silenceMs?: number;
+  /** How often the land reads the Land Queue, and the state of its PR. */
   pollMs?: number;
   /** @default LAND_ATTEMPTS */
   attempts?: number;
@@ -106,6 +165,8 @@ export type LandResult =
       attempts: number;
       waitMs: number;
       logPath: string;
+      /** The record PR, and whether GitHub showed it as merged. */
+      record?: RecordPullRequest & { merged: boolean };
     }
   | {
       ok: false;
@@ -248,6 +309,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
   try {
     const pre = await preflight(sh, remote);
     source = pre.branch;
+    const record = options.github ? await readRecord(sh) : undefined;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
     for (const signal of SIGNALS) process.on(signal, onSignal);
     current = "queue";
@@ -307,6 +369,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
     };
     const maxAttempts = options.attempts ?? LAND_ATTEMPTS;
     let previous = "";
+    let pull: RecordPullRequest | undefined;
     for (;;) {
       attempts += 1;
       previous = await step("fetch", () => fetchTarget(sh, remote, to));
@@ -321,6 +384,19 @@ export async function land(options: LandOptions): Promise<LandResult> {
           );
         }
       });
+      const github = options.github;
+      if (github && record) {
+        pull = await step("record", () =>
+          openRecord(sh, github, {
+            remote,
+            branch: pre.branch,
+            base: to,
+            record,
+            say,
+          }),
+        );
+        // The wait for CI on the record PR goes here, before main moves.
+      }
       const pushed = await step("push", () => push(sh, remote, to));
       if (pushed) break;
       if (attempts >= maxAttempts) {
@@ -333,10 +409,33 @@ export async function land(options: LandOptions): Promise<LandResult> {
     }
     const commit = await sh.git("push", "rev-parse", "HEAD");
     await updateLocalRef(sh, say, { to, commit });
-    await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
+    // Main has moved: from here, a GitHub error is a report, not a failure.
+    const merged =
+      pull && options.github
+        ? await readMerged(options.github, pull, {
+            intervalMs: options.pollMs ?? MERGED_READ_MS,
+            progress: (what) => turn.progress(what),
+            log: (line) => log.write(`${line}\n`),
+          })
+        : true;
+    if (merged) {
+      await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
+    } else {
+      say(
+        `The record PR ${pull?.url} does not show as merged on GitHub. ${pre.branch} stays on ${remote}, so the PR stays open. Report it on the ticket of the land.`,
+      );
+    }
     await finish("landed");
     say(`Landed ${source} into ${to} at ${commit.slice(0, 12)}.`);
-    return { ok: true, commit, previous, attempts, waitMs, logPath };
+    return {
+      ok: true,
+      commit,
+      previous,
+      attempts,
+      waitMs,
+      logPath,
+      ...(pull ? { record: { ...pull, merged } } : {}),
+    };
   } catch (error) {
     const failure =
       error instanceof LandFailure
@@ -423,6 +522,132 @@ async function preflight(
   }
   await sh.git("preflight", "remote", "get-url", remote);
   return { head: await sh.git("preflight", "rev-parse", "HEAD"), branch };
+}
+
+interface LandRecord {
+  title: string;
+  body: string;
+}
+
+const RECORD_TITLE = regex("^# (?<title>.+)$");
+const RECORD_SECTION = regex("^## (?<name>.+)$");
+
+/**
+ * The record file of the worktree. Its first line, `# <title>`, is the title
+ * of the PR; the rest is the PR body, with a heading for each of
+ * LAND_RECORD_SECTIONS.
+ */
+async function readRecord(sh: Shell): Promise<LandRecord> {
+  const root = await sh.git("preflight", "rev-parse", "--show-toplevel");
+  const text = await readFile(join(root, LAND_RECORD_PATH), "utf8").catch(
+    () => undefined,
+  );
+  if (text === undefined) {
+    throw new LandFailure(
+      "preflight",
+      `The land has no record file at ${LAND_RECORD_PATH}. Write the record of the change there (the land skill names its sections), then land again.`,
+    );
+  }
+  const [first = "", ...rest] = text.split("\n");
+  const title = RECORD_TITLE.exec(first.trim())?.groups.title.trim();
+  const headings = new Set(
+    rest.flatMap((line) => {
+      const name = RECORD_SECTION.exec(line.trim())?.groups.name;
+      return name ? [name.trim().toLowerCase()] : [];
+    }),
+  );
+  const missing = LAND_RECORD_SECTIONS.filter(
+    (name) => !headings.has(name.toLowerCase()),
+  );
+  const problems = [
+    ...(title ? [] : ["its first line is not a `# <title>` heading"]),
+    ...(missing.length > 0
+      ? [`it has no ${missing.map((name) => `## ${name}`).join(", ")} section`]
+      : []),
+  ];
+  if (!title || problems.length > 0) {
+    throw new LandFailure(
+      "preflight",
+      `The record file ${LAND_RECORD_PATH} is not complete: ${problems.join("; ")}. Complete it, then land again.`,
+    );
+  }
+  return { title, body: rest.join("\n").trim() };
+}
+
+/**
+ * Push HEAD to the task branch on the remote, then open its record PR, or
+ * update the PR that an earlier land of the branch opened.
+ */
+async function openRecord(
+  sh: Shell,
+  github: LandGitHub,
+  options: {
+    remote: string;
+    branch: string;
+    base: string;
+    record: LandRecord;
+    say: (line: string) => void;
+  },
+): Promise<RecordPullRequest> {
+  const { remote, branch, base, record, say } = options;
+  await sh.git(
+    "record",
+    "push",
+    "--force",
+    "--porcelain",
+    remote,
+    `HEAD:refs/heads/${branch}`,
+  );
+  try {
+    const open = await github.openPullRequest({ head: branch, base });
+    if (open) {
+      await github.editPullRequest(open.number, record);
+      say(`Record PR updated: ${open.url}`);
+      return open;
+    }
+    const created = await github.createPullRequest({
+      head: branch,
+      base,
+      ...record,
+    });
+    say(`Record PR opened: ${created.url}`);
+    return created;
+  } catch (error) {
+    throw new LandFailure(
+      "record",
+      `The record PR of ${branch} could not be opened or updated: ${(error as Error).message}`,
+    );
+  }
+}
+
+/**
+ * Whether GitHub shows `pull` as merged. The land reads the state up to
+ * MERGED_READS times while GitHub takes in the push of `main`; a read that
+ * fails counts as not merged.
+ */
+async function readMerged(
+  github: LandGitHub,
+  pull: RecordPullRequest,
+  options: {
+    intervalMs: number;
+    progress: (what: string) => void;
+    log: (line: string) => void;
+  },
+): Promise<boolean> {
+  for (let read = 1; read <= MERGED_READS; read++) {
+    options.progress("state of the record PR");
+    const state = await github
+      .pullRequestState(pull.number)
+      .catch((error: unknown) => {
+        options.log(`Reading ${pull.url} failed: ${(error as Error).message}`);
+        return undefined;
+      });
+    options.log(`${pull.url}: ${state ?? "unknown"} (read ${read})`);
+    if (state === "MERGED") return true;
+    if (state === "CLOSED") return false;
+    if (read < MERGED_READS) await delay(options.intervalMs);
+  }
+  return false;
 }
 
 /** Fetch the trunk; returns its tip. */

@@ -3,7 +3,8 @@
 // `pnpm land`: the only path by which a change reaches `main`, the trunk
 // (lib/land.ts). Run it from the task worktree, on its branch, with a clean
 // tree. It waits in the Land Queue, rebases onto `origin/main`, runs
-// `pnpm verify` on the rebased tree, and pushes. Then it starts the
+// `pnpm verify` on the rebased tree, opens the record PR from the record
+// file, and pushes. Then it starts the
 // End-to-end Run of the new tip in the background (lib/land-e2e.ts).
 // `--help` prints the contract.
 
@@ -27,13 +28,21 @@ import {
   readDesktopSlotStatus,
   SILENCE_LIMIT_MS,
 } from "#desktop-slot";
-import { land, LAND_ATTEMPTS, LAND_GATES, LAND_WAIT_MS } from "#land";
+import {
+  land,
+  LAND_ATTEMPTS,
+  LAND_GATES,
+  LAND_RECORD_PATH,
+  LAND_RECORD_SECTIONS,
+  LAND_WAIT_MS,
+} from "#land";
 import {
   githubRepository,
   landE2eDir,
   readLandE2eRecords,
   requestLandE2e,
 } from "#land-e2e";
+import { ghLandGitHub } from "#land-github";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
 const EXIT_USAGE = 2;
@@ -44,8 +53,10 @@ const STATUS_RUNS = 5;
 
 const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. The gate cannot be skipped.
 
-From a task branch with a clean tree:
-  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push HEAD to ${SOURCE_BRANCH} as a fast-forward. When ${SOURCE_BRANCH} moved during the gate, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves, the task branch is deleted on origin, and the End-to-end Run of the new tip starts in the background.
+From a task branch with a clean tree and a record file:
+  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), push HEAD to ${SOURCE_BRANCH} as a fast-forward. When ${SOURCE_BRANCH} moved during the gate, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin. The End-to-end Run of the new tip starts in the background.
+
+Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR; the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
 On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
 
@@ -73,9 +84,15 @@ async function landCommand(wait: string | undefined) {
     }
   }
   const cwd = process.cwd();
+  const origin = (
+    await $({ cwd, quiet: true, nothrow: true })`git remote get-url origin`
+  ).stdout;
+  const repository = githubRepository(origin);
+  if (!repository) usage(`origin is not a GitHub repository: ${origin.trim()}`);
   const result = await land({
     cwd,
     gate: LAND_GATES.change,
+    github: ghLandGitHub(repository),
     ...(waitMs === undefined ? {} : { waitMs }),
   });
   if (!result.ok) {

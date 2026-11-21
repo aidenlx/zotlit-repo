@@ -56,6 +56,9 @@ export async function makeGitRepos(): Promise<GitRepos> {
   for (const key of ISOLATED) delete process.env[key];
   const hooks = join(root, "no-hooks");
   await mkdir(hooks);
+  // The clones ignore `.scratch/`, as the repository does.
+  const excludes = join(root, "gitignore");
+  await writeFile(excludes, ".scratch/\n");
   const config = join(root, "gitconfig");
   await writeFile(
     config,
@@ -69,6 +72,7 @@ export async function makeGitRepos(): Promise<GitRepos> {
       "  gpgsign = false",
       "[core]",
       `  hooksPath = ${hooks}`,
+      `  excludesFile = ${excludes}`,
       "[advice]",
       "  detachedHead = false",
       "",

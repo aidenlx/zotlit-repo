@@ -11,8 +11,8 @@ import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
 import { landAdmission, landWaitLog } from "./land-queue.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
-import { land } from "./land.ts";
-import type { LandOptions } from "./land.ts";
+import { land, LAND_RECORD_PATH } from "./land.ts";
+import type { LandGitHub, LandOptions } from "./land.ts";
 
 // Lands run real Git against a bare origin in a temporary folder, with a gate
 // command in place of `pnpm verify`.
@@ -245,6 +245,226 @@ describe("land", () => {
 
     expect(result).toMatchObject({ ok: false, step: "preflight" });
   });
+});
+
+interface FakePull {
+  number: number;
+  url: string;
+  head: string;
+  base: string;
+  title: string;
+  body: string;
+  merged: boolean;
+}
+
+/**
+ * GitHub over the bare origin: a PR needs its head branch on origin, and it
+ * shows as merged once `main` holds the branch's tip, unless `merges` is off.
+ */
+function fakeGitHub({ merges = true } = {}) {
+  const pulls: FakePull[] = [];
+  const branchTip = (branch: string) =>
+    git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
+  const github: LandGitHub = {
+    openPullRequest: async ({ head, base }) =>
+      pulls.find(
+        (pull) => pull.head === head && pull.base === base && !pull.merged,
+      ),
+    createPullRequest: async ({ head, base, title, body }) => {
+      await branchTip(head).catch(() => {
+        throw new Error(`Head ref ${head} is not on origin.`);
+      });
+      const number = pulls.length + 1;
+      const pull = {
+        number,
+        url: `https://github.com/owner/repo/pull/${number}`,
+        head,
+        base,
+        title,
+        body,
+        merged: false,
+      };
+      pulls.push(pull);
+      return pull;
+    },
+    editPullRequest: async (number, { title, body }) => {
+      const pull = pulls.find((each) => each.number === number)!;
+      pull.title = title;
+      pull.body = body;
+    },
+    pullRequestState: async (number) => {
+      const pull = pulls.find((each) => each.number === number)!;
+      if (!pull.merged && merges) {
+        const tip = await branchTip(pull.head);
+        pull.merged = await git(
+          repos.remote,
+          "merge-base",
+          "--is-ancestor",
+          tip,
+          pull.base,
+        ).then(
+          () => true,
+          () => false,
+        );
+      }
+      return pull.merged ? "MERGED" : "OPEN";
+    },
+  };
+  return { github, pulls };
+}
+
+const SECTIONS = [
+  "Summary",
+  "Testing",
+  "Risk",
+  "How to revert",
+  "Review",
+  "Open points",
+  "e2e",
+];
+
+/** Write the record file of the worktree `cwd`, with `sections`. */
+async function writeRecord(
+  cwd: string,
+  { title = "Add a", sections = SECTIONS, text = "Closes #1." } = {},
+) {
+  const path = join(cwd, LAND_RECORD_PATH);
+  await mkdir(join(path, ".."), { recursive: true });
+  const body = sections.map((name) => `## ${name}\n\n${text}\n`).join("\n");
+  await writeFile(path, `# ${title}\n\n${body}`);
+}
+
+describe("the record PR", () => {
+  it(
+    "opens a PR whose body is the record, pushes main to its head, and deletes the branch once it shows as merged",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github, pulls } = fakeGitHub();
+
+      const result = await land({ ...quiet, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({
+        ok: true,
+        record: { url: "https://github.com/owner/repo/pull/1", merged: true },
+      });
+      expect(pulls).toMatchObject([
+        { head: "feat/a", base: "main", title: "Add a", merged: true },
+      ]);
+      expect(pulls[0]!.body).toMatch(/^## Summary\n\nCloses #1\./);
+      expect(pulls[0]!.body).not.toContain("# Add a");
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
+      );
+      expect(await git(repos.remote, "branch", "--list", "feat/a")).toBe("");
+    },
+    SLOW,
+  );
+
+  it(
+    "updates the open PR of the branch when it lands again",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd, { text: "first" });
+      const { github, pulls } = fakeGitHub();
+      const other = await repos.clone("other");
+      const marker = join(repos.root, "moved");
+      // The first land's gate moves main once, and that land has one attempt.
+      const gate = [
+        `if [ ! -e '${marker}' ]; then`,
+        `  touch '${marker}' && cd '${other}' &&`,
+        "  echo moved > moved.txt && git add moved.txt &&",
+        "  git commit -qm moved && git push -q origin HEAD:refs/heads/main",
+        "fi",
+      ].join("\n");
+
+      const first = await land({
+        ...quiet,
+        cwd,
+        gate: ["sh", "-c", gate],
+        attempts: 1,
+        github,
+      });
+      expect(first).toMatchObject({ ok: false, step: "push" });
+      expect(pulls).toMatchObject([{ merged: false }]);
+
+      await writeRecord(cwd, { title: "Add a, again", text: "second" });
+      const second = await land({
+        ...quiet,
+        cwd,
+        gate: ["sh", "-c", gate],
+        github,
+      });
+
+      expect(second).toMatchObject({ ok: true, record: { merged: true } });
+      expect(pulls).toHaveLength(1);
+      expect(pulls[0]).toMatchObject({ title: "Add a, again", merged: true });
+      expect(pulls[0]!.body).toContain("second");
+      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+    },
+    SLOW,
+  );
+
+  it.each([
+    {
+      name: "no record file",
+      write: async () => {},
+      problem: LAND_RECORD_PATH,
+    },
+    {
+      name: "a record without a Review section",
+      write: (cwd: string) =>
+        writeRecord(cwd, {
+          sections: SECTIONS.filter((name) => name !== "Review"),
+        }),
+      problem: "Review",
+    },
+  ])(
+    "refuses $name before it pushes anything",
+    async ({ write, problem }) => {
+      const cwd = await taskClone("a");
+      await write(cwd);
+      const { github, pulls } = fakeGitHub();
+
+      const result = await land({ ...quiet, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({ ok: false, step: "preflight" });
+      expect(result.ok || result.message).toContain(problem);
+      expect(pulls).toEqual([]);
+      expect(await git(repos.remote, "branch", "--list")).toBe("* main");
+    },
+    SLOW,
+  );
+
+  it(
+    "keeps the branch and says so when GitHub does not show the PR as merged",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github } = fakeGitHub({ merges: false });
+      const lines: string[] = [];
+
+      const result = await land({
+        ...quiet,
+        say: (line) => lines.push(line),
+        cwd,
+        gate: ["true"],
+        github,
+      });
+
+      expect(result).toMatchObject({ ok: true, record: { merged: false } });
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
+      );
+      expect(await git(repos.remote, "branch", "--list", "feat/a")).toContain(
+        "feat/a",
+      );
+      expect(lines.join("\n")).toContain(
+        "https://github.com/owner/repo/pull/1 does not show as merged",
+      );
+    },
+    SLOW,
+  );
 });
 
 describe("the Land Queue", () => {

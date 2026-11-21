@@ -24,6 +24,7 @@
     "#package-roots": "./lib/package-roots.ts",
     "#land": "./lib/land.ts",
     "#land-e2e": "./lib/land-e2e.ts",
+    "#land-github": "./lib/land-github.ts",
     "#land-queue": "./lib/land-queue.ts",
     "#push-refs": "./lib/push-refs.ts",
     "#test-gates": "./lib/test-gates.ts",
