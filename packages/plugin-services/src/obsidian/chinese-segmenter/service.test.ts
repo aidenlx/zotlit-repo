@@ -66,19 +66,6 @@ describe("Chinese Segmenter", () => {
     }).pipe(Effect.scoped),
   );
 
-  it.effect("states a missing pack with no request to the worker", () =>
-    Effect.gen(function* () {
-      const service = yield* segmenterOn(
-        packDevice(null),
-        Layer.mock(ZoteroReads, {
-          reads: stubService<ZoteroReadsApi>("ZoteroReadsApi", {}),
-        }),
-      );
-
-      expect(yield* service.check).toEqual({ kind: "pack-absent" });
-    }).pipe(Effect.scoped),
-  );
-
   it.effect(
     "asks the worker again and states the new status when Obsidian changes the pack",
     () =>
@@ -125,10 +112,13 @@ describe("Chinese Segmenter", () => {
       }).pipe(Effect.scoped),
   );
 
-  it.effect("reads a worker that does not answer as failed", () =>
+  it.effect.each([
+    ["an installed pack as failed", BINARY, "failed"],
+    ["no pack as pack-absent", null, "pack-absent"],
+  ] as const)("reads a worker that does not answer with %s", ([, file, kind]) =>
     Effect.gen(function* () {
       const service = yield* segmenterOn(
-        packDevice(yield* pack(BINARY)),
+        packDevice(file && (yield* pack(file))),
         Layer.mock(ZoteroReads, {
           reads: stubService<ZoteroReadsApi>("ZoteroReadsApi", {
             CheckChineseSegmenter: () =>
@@ -144,7 +134,7 @@ describe("Chinese Segmenter", () => {
         }),
       );
 
-      expect(yield* service.check).toMatchObject({ kind: "failed" });
+      expect(yield* service.check).toMatchObject({ kind });
     }).pipe(Effect.scoped),
   );
 });

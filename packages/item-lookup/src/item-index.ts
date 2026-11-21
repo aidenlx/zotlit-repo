@@ -139,11 +139,12 @@ export class ItemIndex extends Context.Service<
      * Read `binary` again and answer where the Chinese Segmenter stands: the
      * status of the Segmenter that the builds cut with. A binary that this
      * read gives starts when the index does not cut with it, and a binary
-     * that it refuses stops; either one rebuilds the held lists. `binary`
-     * replaces the one of the settings, in arrival order with `configure`.
+     * that it refuses stops, as the binary does with `null`, for no installed
+     * pack; either one rebuilds the held lists. `binary` replaces the one of
+     * the settings, in arrival order with `configure`.
      */
     readonly checkSegmenter: (
-      binary: SegmenterBinary,
+      binary: SegmenterBinary | null,
     ) => Effect.Effect<SegmenterStatus>;
   }
 >()("zotlit/item-lookup/ItemIndex") {}
@@ -479,7 +480,7 @@ function makeItemIndex(initial: IndexSettings) {
       }).pipe(configuring.withPermits(1));
 
     const checkSegmenter = (
-      binary: SegmenterBinary,
+      binary: SegmenterBinary | null,
     ): Effect.Effect<SegmenterStatus> =>
       Effect.gen(function* () {
         const switched = yield* segmenterSwitch.resolve(binary, {

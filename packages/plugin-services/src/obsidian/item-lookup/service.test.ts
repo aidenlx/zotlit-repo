@@ -28,7 +28,6 @@ import type { ReadRange } from "@zotlit/resource-pack/reader.ts";
 import {
   inProcessClient,
   memoryOpener,
-  seedWorksSql,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
@@ -66,6 +65,12 @@ const JIEBA = new Uint8Array(
   ),
 );
 
+/**
+ * `Intl.Segmenter` keeps `长江流域` one word; jieba also cuts `流域` out of
+ * it. So `流域` finds the title only through the binary.
+ */
+const CHINESE_TITLE = "长江流域的城市化研究";
+
 describe("ItemLookup", () => {
   // Regression: the settings row said "ready" from this thread's own read of
   // the pack while the worker, which could not read it, cut Chinese text with
@@ -78,10 +83,7 @@ describe("ItemLookup", () => {
           yield* Effect.promise(() => packFile({ "chinese-segmenter": JIEBA })),
         );
         const reads = yield* readsOver(
-          () =>
-            seedWorksSql([
-              { itemID: 1, key: "RIVER", title: "长江流域的城市化研究" },
-            ]),
+          () => seed(perLibraryRows(), CHINESE_TITLE),
           {
             chineseSegmenter: {
               ...device.locate()!,
@@ -100,9 +102,44 @@ describe("ItemLookup", () => {
           device,
         );
 
-        // jieba cuts the word out of the title; Intl.Segmenter does not.
+        // The search runs on Intl.Segmenter: the whole word finds the title,
+        // and the word that only jieba cuts out of it does not.
+        expect(keys(yield* lookup.search("长江流域"))).toEqual(["LIBRARY2"]);
         expect(keys(yield* lookup.search("流域"))).toEqual([]);
         expect(yield* segmenter!.check).toEqual({ kind: "pack-damaged" });
+      }),
+  );
+
+  it.effect(
+    "stops the binary in the worker at a status read that finds the pack gone, with no report from Obsidian",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(
+          yield* Effect.promise(() => packFile({ "chinese-segmenter": JIEBA })),
+        );
+        const reads = yield* readsOver(
+          () => seed(perLibraryRows(), CHINESE_TITLE),
+          segmenterHandlers(device),
+        );
+        const { lookup, segmenter } = yield* lookupOver(
+          reads,
+          [library(USER_LIBRARY_ID)],
+          device,
+        );
+        expect(yield* segmenter!.check).toEqual({
+          kind: "ready",
+          version: "1.0.0",
+        });
+        // The index that cuts with the binary replaces the first one.
+        expect(keys(yield* lookup.search("长江流域"))).toEqual(["LIBRARY2"]);
+        while (keys(yield* lookup.search("流域")).length === 0)
+          yield* Effect.promise(() => nextTurn());
+
+        device.install(null);
+
+        expect(yield* segmenter!.check).toEqual({ kind: "pack-absent" });
+        while (keys(yield* lookup.search("流域")).length > 0)
+          yield* Effect.promise(() => nextTurn());
       }),
   );
 
@@ -823,10 +860,11 @@ function perLibraryRows(): {
 
 /**
  * SQL for a user library (1) and a group library (2, group 2) holding `rows`
- * as journal articles titled "Alpha"; the user library's row is the newer.
+ * as journal articles titled `title`; the user library's row is the newer.
  */
 function seed(
   rows: readonly { key: string; itemID: number; libraryID: number }[],
+  title = "Alpha",
 ): string {
   const items = rows
     .map(
@@ -841,7 +879,7 @@ function seed(
     insert into groups (groupID, libraryID, name) values (2, 2, 'Group 2');
     insert into itemTypes (itemTypeID, typeName) values (1, 'journalArticle');
     insert into fieldsCombined (fieldID, fieldName, custom) values (10, 'title', 0);
-    insert into itemDataValues (valueID, value) values (1, 'Alpha');
+    insert into itemDataValues (valueID, value) values (1, '${title}');
     insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
       values ${items};
     insert into itemData (itemID, fieldID, valueID) values ${data};

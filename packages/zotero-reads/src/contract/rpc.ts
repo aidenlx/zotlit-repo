@@ -725,10 +725,11 @@ export class ZoteroReads extends RpcGroup.make(
   /**
    * Reads the Chinese Segmenter binary `binary` again and answers where the
    * Segmenter stands in the worker. A binary that the read gives starts when
-   * the Item Index does not cut with it; one that the read refuses stops.
+   * the Item Index does not cut with it; one that the read refuses stops, as
+   * the binary does with `null`, for no installed pack.
    */
   Rpc.make("CheckChineseSegmenter", {
-    payload: { binary: SegmenterBinarySchema },
+    payload: { binary: Schema.NullOr(SegmenterBinarySchema) },
     success: SegmenterStatusSchema,
   }),
   /** Answers at once: the renderer's proof that the worker still runs. */

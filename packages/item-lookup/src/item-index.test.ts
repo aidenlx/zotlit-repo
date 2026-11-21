@@ -98,7 +98,9 @@ interface Harness {
     query: string,
   ) => Effect.Effect<readonly SearchHit[], SourceUnavailable>;
   configure: (settings: IndexSettings) => Effect.Effect<void>;
-  checkSegmenter: (binary: SegmenterBinary) => Effect.Effect<SegmenterStatus>;
+  checkSegmenter: (
+    binary: SegmenterBinary | null,
+  ) => Effect.Effect<SegmenterStatus>;
 }
 
 interface Setup {

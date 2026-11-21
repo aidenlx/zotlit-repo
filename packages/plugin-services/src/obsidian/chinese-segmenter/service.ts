@@ -6,6 +6,7 @@ import type { PackStatusApi } from "#obsidian/managed-binary/pack-status.ts";
 import { Context, Effect, Layer, Stream } from "effect";
 
 import type { SegmenterBinary } from "@zotlit/item-lookup";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts";
@@ -31,8 +32,8 @@ export const segmenterBinary: Effect.Effect<
  * The status of the Chinese Segmenter that search runs. This thread locates
  * the pack; the worker reads the binary, starts it and states where it
  * stands. `check` asks the worker for a new read, and waits for a worker
- * that still starts; with no pack installed it answers `pack-absent` with no
- * request. A worker that does not answer reads as `failed`.
+ * that still starts; with no pack installed, the worker stops the binary. A
+ * worker that does not answer reads as `failed` for an installed pack.
  */
 export class ChineseSegmenter extends Context.Service<
   ChineseSegmenter,
@@ -47,15 +48,17 @@ export const layerChineseSegmenter = Layer.effect(
     const { check, checkChanged, current, changes } = yield* makePackStatus(
       Effect.gen(function* () {
         const binary = yield* segmenterBinary;
-        if (!binary) return { kind: "pack-absent" } as const;
-        return yield* reads.CheckChineseSegmenter({ binary }).pipe(
-          Effect.catch((error) =>
-            Effect.succeed({
-              kind: "failed",
-              detail: error.message,
-            } as const),
-          ),
-        );
+        return yield* reads
+          .CheckChineseSegmenter({ binary })
+          .pipe(
+            Effect.catch((error) =>
+              Effect.succeed<PackBinaryStatus>(
+                binary
+                  ? { kind: "failed", detail: error.message }
+                  : { kind: "pack-absent" },
+              ),
+            ),
+          );
       }).pipe(Effect.provideService(ResourcePackPlatform, platform)),
     );
     // Each watcher learns where the Segmenter stands in the pack that is
