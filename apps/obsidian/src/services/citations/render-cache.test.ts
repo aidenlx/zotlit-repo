@@ -40,6 +40,7 @@ import {
 } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
@@ -79,6 +80,7 @@ it.effect.each(["Profile", "preference override"] as const)(
             Layer.provide(Layer.succeed(ZoteroPref, pref)),
             Layer.provide(layerQueryClients),
             Layer.provide(testNotifier().layer),
+            Layer.provide(testPluginHost({ manifest: { id: "zotlit" } }).layer),
             Layer.provide(NodeFileSystem.layer),
             Layer.provide(
               Layer.succeed(
