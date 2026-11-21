@@ -52,7 +52,7 @@ import type {
   PackBinaryApi,
   PackBinaryStatus,
 } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
-import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
+import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";

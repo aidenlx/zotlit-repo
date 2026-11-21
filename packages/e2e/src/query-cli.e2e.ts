@@ -1,6 +1,7 @@
 import { copyFile, mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { setTimeout as delay } from "node:timers/promises";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -54,9 +55,13 @@ import { obRun } from "./obsidian-cli.ts";
 import { obRunUntil } from "./obsidian-cli.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
 import {
+  downloadedBinaries,
   keepRunPack,
   pressSettingRowAction,
+  removeDownloadedBinaries,
+  restartZotlit,
   restoreRunPack,
+  seedDownloadedBinaries,
   settingRowShows,
 } from "./resource-pack.ts";
 import { clearVault, e2eVaultDir, vaultScript } from "./vault-script.ts";
@@ -2462,6 +2467,96 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toEqual(["plugin-outdated", "pack-absent", "pack-damaged"]);
     expect(await packNotices(3, "no further notice")).toHaveLength(3);
+  }, 300_000);
+
+  it("removes the downloaded Managed Binaries and the dismissed install offers on the first start after the update, one time, and leaves the researcher with the Resource Pack to install", async () => {
+    await using cleanup = new AsyncDisposableStack();
+    // A device and a vault as a version that downloaded the binaries left
+    // them, with no Resource Pack installed.
+    await keepRunPack(run.vaultId, { file: false });
+    cleanup.defer(() =>
+      restoreRunPack(run.vaultId, run.m.notice_resource_pack()),
+    );
+    cleanup.defer(() => removeDownloadedBinaries(run.vaultId));
+    await obRun(
+      run.vaultId,
+      async ({ app }, { RESOURCE_PACK_ID }) => {
+        delete app.plugins.manifests[RESOURCE_PACK_ID];
+      },
+      { RESOURCE_PACK_ID },
+    );
+    await seedDownloadedBinaries(run.vaultId);
+    expect(await downloadedBinaries(run.vaultId)).toMatchObject({
+      folders: ["chinese-segmenter", "pandoc-engine"],
+      dismissed: [
+        "zotlit-chinese-segmenter-declined",
+        "zotlit-pandoc-engine-declined",
+      ],
+    });
+
+    await restartZotlit(run.vaultId, { asUpdated: true });
+
+    // The start does not wait for the cleanup.
+    await expect
+      .poll(() => downloadedBinaries(run.vaultId), {
+        timeout: 20_000,
+        interval: 250,
+      })
+      .toEqual({ folders: null, dismissed: [], cleaned: true });
+    // The binary that was installed is gone with its folder: the status
+    // names the pack to install, and the first need of a binary shows the
+    // notice.
+    expect(
+      await obRun(
+        run.vaultId,
+        async ({ zotlit }) => {
+          const { chineseSegmenter, pandocEngine } = zotlit.services;
+          return [
+            (await chineseSegmenter.runPromise(chineseSegmenter.binary.check))
+              .kind,
+            (await pandocEngine.runPromise(pandocEngine.binary.check)).kind,
+          ];
+        },
+        undefined,
+      ),
+    ).toEqual(["pack-absent", "pack-absent"]);
+    // The search answers once the database of the new start is open, so the
+    // case searches until the notice is there.
+    await obRunUntil(
+      run.vaultId,
+      async ({ zotlit }, { searchTerm, title }) => {
+        await zotlit.services.itemLookup.search(searchTerm);
+        return [...document.querySelectorAll<HTMLElement>(".notice")]
+          .map((notice) => notice.textContent)
+          .filter((text) => text.includes(title))
+          .map((text) => text.slice(text.indexOf(title) + title.length));
+      },
+      { searchTerm: "流域", title: run.m.notice_resource_pack() },
+      {
+        ready: (value) =>
+          value.length === 1 &&
+          value[0] ===
+            run.m.settings_resource_pack_status_absent() +
+              run.m.settings_resource_pack_open(),
+        what: "a search of Chinese text to show the one notice that names the Resource Pack to install",
+      },
+    );
+
+    // A later start reads the vault's record and leaves the device alone.
+    await seedDownloadedBinaries(run.vaultId);
+    await restartZotlit(run.vaultId, { asUpdated: false });
+    // A cleanup that does not run gives no signal: the first start above
+    // ended its cleanup well inside this time.
+    await delay(1000);
+
+    expect(await downloadedBinaries(run.vaultId)).toEqual({
+      folders: ["chinese-segmenter", "pandoc-engine"],
+      dismissed: [
+        "zotlit-chinese-segmenter-declined",
+        "zotlit-pandoc-engine-declined",
+      ],
+      cleaned: true,
+    });
   }, 300_000);
 
   it("writes the database worker's log records to the plugin's log file at the configured level", async () => {

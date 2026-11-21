@@ -7,6 +7,7 @@ import {
   Layer,
   PubSub,
   RcRef,
+  Schema,
   Stream,
   SubscriptionRef,
 } from "effect";
@@ -18,7 +19,30 @@ import type { PackEntryLocation } from "@zotlit/resource-pack/reader.ts";
 
 import { ResourcePackPlatform } from "./pack-platform.ts";
 import type { PackLocation } from "./pack-platform.ts";
-import { ManagedBinaryError, managedBinaryError } from "./platform.ts";
+
+/**
+ * A Managed Binary gave no engine: the Resource Pack gave no binary, or the
+ * engine did not start or did not release. `message` is the original's, which
+ * the failure status and the logs show; `cause` holds the original where
+ * there is one.
+ */
+export class ManagedBinaryError extends Schema.TaggedError<
+  ManagedBinaryError,
+  { readonly brand: unique symbol }
+>()("ManagedBinaryError", {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Defect()),
+}) {}
+
+/** What an engine threw, as a {@link ManagedBinaryError} with its message. */
+function managedBinaryError(cause: unknown): ManagedBinaryError {
+  return cause instanceof ManagedBinaryError
+    ? cause
+    : new ManagedBinaryError({
+        message: Error.isError(cause) ? cause.message : String(cause),
+        cause,
+      });
+}
 
 /** One Managed Binary of the Resource Pack, and what it starts once verified. */
 export interface PackBinary<Engine extends AsyncDisposable | Disposable> {

@@ -1,7 +1,5 @@
 {
   "exports": [
-    "packages/plugin-services/src/obsidian/managed-binary/platform.ts: layerManagedBinaryPlatform",
-    "packages/plugin-services/src/obsidian/managed-binary/service.ts: layerManagedBinaryPlatform",
     "packages/citations/src/obsidian/citation-index/service.ts: toZoteroOpenableAttachments",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: citationTarget",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: hoverEditingMode",
@@ -59,7 +57,6 @@
     "packages/citations/src/obsidian/citekey-navigation/index.ts: NavigationIntent",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: NavigationSurface",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: NavigationTarget",
-    "packages/plugin-services/src/obsidian/managed-binary/service.ts: ManagedBinaryPorts",
     "packages/notes/src/desktop/note-feature/index.ts: ComposeFrontmatterInput",
     "packages/notes/src/desktop/note-feature/index.ts: ComposeNoteDeps",
     "packages/notes/src/desktop/note-feature/index.ts: ComposeNoteInput",

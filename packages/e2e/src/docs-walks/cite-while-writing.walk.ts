@@ -99,9 +99,9 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
   });
 
   it("step 1: in Settings, ZotLit, Citations, the Pandoc engine is ready from the Resource Pack", async () => {
-    // OUTLINE-MISMATCH: the lesson says to select Install. The engine now
-    // comes with the ZotLit Resource Pack plugin, which the walk's vault holds
-    // installed, so the row shows the pack's status and no Install.
+    // The lesson installs the ZotLit Resource Pack plugin from Obsidian's
+    // plugin browser. The walk's vault holds it installed, so the step shows
+    // the row with the pack's status.
     const row = await walk.record("step-1", () =>
       obRun(
         walk.vaultId,

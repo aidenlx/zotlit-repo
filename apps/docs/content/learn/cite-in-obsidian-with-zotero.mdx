@@ -16,7 +16,7 @@ needs:
     detail: A draft note of your own, such as Chapter 3 - Presenting the results
 steps:
   - title: Install the citation engine
-    alt: Under Citations in ZotLit settings, the Pandoc engine row reads Pandoc 3.10 is installed.
+    alt: Under Citations in ZotLit settings, the Pandoc engine row reads Ready, from ZotLit Resource Pack 1.0.0.
   - title: Type [@ and a name
     alt: A citation menu opens in the draft, showing Sandve et al. (2013), PLOS Computational Biology, 9(10), e1003285.
   - title: Choose the paper
@@ -46,13 +46,13 @@ import { m } from "@/paraglide/messages.js";
 
 <Step n={1}>
 
-In **Settings** > **ZotLit** > <UiLabel name={m.settings_page_citations()} />, select <UiLabel name={m.settings_citation_engine_install()} /> next to <UiLabel name={m.settings_citation_engine_name()} />.
+In Obsidian's **Settings** > **Community plugins**, select **Browse**, then install **ZotLit Resource Pack**. You do not need to turn it on.
 
 <Check>
-  The row reads{" "}
-  <UiLabel
-    name={m.settings_citation_engine_status_installed({ version: "3.10" })}
-  />{" "}
+  In **Settings** > **ZotLit** >{" "}
+  <UiLabel name={m.settings_page_citations()} />, the{" "}
+  <UiLabel name={m.settings_citation_engine_name()} /> row reads{" "}
+  <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} />{" "}
   (the version can be higher).
 </Check>
 

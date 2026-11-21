@@ -1,5 +1,12 @@
 // Host-side steps of the Resource Pack cases: the pack of the run vault that
-// a case takes away or replaces, and the settings row of a Managed Binary.
+// a case takes away or replaces, the settings row of a Managed Binary, and
+// the device data of the versions that downloaded the binaries.
+import {
+  OLD_BINARY_IDS,
+  OLD_STORE_CLEANUP_KEY,
+  OLD_STORE_ROOT,
+  oldDeclinedKey,
+} from "@zotlit/plugin-services/core/managed-binary/old-store.ts";
 import {
   PACK_NOTICE_KEY,
   RESOURCE_PACK_ID,
@@ -121,5 +128,142 @@ export async function pressSettingRowAction(
       return { buttons: buttons.length, opened };
     },
     { rowName, actionLabel },
+  );
+}
+
+/**
+ * Puts on the device what a version that downloaded the Managed Binaries
+ * left: a file in each binary's folder of the origin's private file system,
+ * and the vault's records of two dismissed install offers.
+ */
+export async function seedDownloadedBinaries(vaultId: string): Promise<void> {
+  await obRun(
+    vaultId,
+    async ({ app }, { root, folders, keys }) => {
+      const store = await (
+        await navigator.storage.getDirectory()
+      ).getDirectoryHandle(root, { create: true });
+      for (const folder of folders) {
+        const file = await (
+          await store.getDirectoryHandle(folder, { create: true })
+        ).getFileHandle("e2e.wasm", { create: true });
+        const writable = await file.createWritable();
+        await writable.write(new Uint8Array([0, 97, 115, 109]));
+        await writable.close();
+      }
+      for (const key of keys) app.saveLocalStorage(key, true);
+    },
+    {
+      root: OLD_STORE_ROOT,
+      folders: OLD_BINARY_IDS,
+      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
+    },
+  );
+}
+
+/** What the device and the vault hold of the downloaded Managed Binaries. */
+export interface DownloadedBinaries {
+  /** The entries of the binaries' root folder; `null` with no root folder. */
+  folders: string[] | null;
+  /** The dismissed install offers the vault records, by their keys. */
+  dismissed: string[];
+  /** Whether the vault records that the cleanup ran. */
+  cleaned: boolean;
+}
+
+export async function downloadedBinaries(
+  vaultId: string,
+): Promise<DownloadedBinaries> {
+  return await obRun(
+    vaultId,
+    async ({ app }, { root, keys, cleanupKey }) => {
+      let folders: string[] | null = null;
+      try {
+        const store = await (
+          await navigator.storage.getDirectory()
+        ).getDirectoryHandle(root);
+        folders = [];
+        for await (const name of store.keys()) folders.push(name);
+        folders.sort();
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "NotFoundError"))
+          throw error;
+      }
+      return {
+        folders,
+        dismissed: keys.filter((key) => app.loadLocalStorage(key) !== null),
+        cleaned: app.loadLocalStorage(cleanupKey) === true,
+      };
+    },
+    {
+      root: OLD_STORE_ROOT,
+      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
+      cleanupKey: OLD_STORE_CLEANUP_KEY,
+    },
+  );
+}
+
+/**
+ * Removes what {@link seedDownloadedBinaries} put on the device, and leaves
+ * the vault with the record that the cleanup ran.
+ */
+export async function removeDownloadedBinaries(vaultId: string): Promise<void> {
+  await obRun(
+    vaultId,
+    async ({ app }, { root, keys, cleanupKey }) => {
+      try {
+        await (
+          await navigator.storage.getDirectory()
+        ).removeEntry(root, { recursive: true });
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "NotFoundError"))
+          throw error;
+      }
+      for (const key of keys) app.saveLocalStorage(key, null);
+      app.saveLocalStorage(cleanupKey, true);
+    },
+    {
+      root: OLD_STORE_ROOT,
+      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
+      cleanupKey: OLD_STORE_CLEANUP_KEY,
+    },
+  );
+}
+
+/**
+ * Starts ZotLit again in the open vault, as a start of Obsidian does, and
+ * waits for the Chinese Segmenter's read of the pack. `asUpdated` starts it as
+ * the first start after the update from a version that downloaded the
+ * binaries: the vault holds no record of the cleanup and none of a pack
+ * notice, which those versions did not have.
+ */
+export async function restartZotlit(
+  vaultId: string,
+  { asUpdated }: { asUpdated: boolean },
+): Promise<void> {
+  await obRun(
+    vaultId,
+    async ({ app, zotlit }, { cleanupKey, noticeKey, asUpdated }) => {
+      const oldServices = zotlit.services;
+      await app.plugins.disablePlugin("zotlit");
+      for (let i = 0; i < 400 && !oldServices.bridge.closed(); i++)
+        await new Promise((r) => setTimeout(r, 25));
+      if (!oldServices.bridge.closed())
+        throw new Error("The ZotLit services did not close");
+      if (asUpdated) {
+        app.saveLocalStorage(cleanupKey, null);
+        app.saveLocalStorage(noticeKey, null);
+      }
+      await app.plugins.enablePlugin("zotlit");
+      await zotlit.services.chineseSegmenter.runPromise(
+        zotlit.services.chineseSegmenter.binary.check,
+      );
+    },
+    {
+      cleanupKey: OLD_STORE_CLEANUP_KEY,
+      noticeKey: PACK_NOTICE_KEY,
+      asUpdated,
+    },
+    { timeoutMs: 120_000 },
   );
 }

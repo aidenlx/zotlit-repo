@@ -1,67 +1,12 @@
-// Test support: a fake device for Managed Binary services, with an in-memory store and consent record.
+// Test support: fake devices for the Managed Binary services: an installed
+// Resource Pack, and the origin's private file system.
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { bytesRange } from "@zotlit/resource-pack/reader.ts";
 import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 
+import type { OldStoreDirectory } from "./old-store-cleanup.ts";
 import type { ResourcePackHostPorts } from "./pack-platform.ts";
-import type { BinaryStore, ManagedBinaryHostPorts } from "./service.ts";
-
-/**
- * The device: one origin-wide store root with a directory per Managed Binary,
- * and the consent storage of its first vault.
- */
-export function memoryDevice() {
-  const directories = new Map<string, Map<string, Uint8Array<ArrayBuffer>>>();
-  const files = (directory: string) => {
-    let entries = directories.get(directory);
-    if (!entries) directories.set(directory, (entries = new Map()));
-    return entries;
-  };
-  const openStore = (directory: string): BinaryStore => ({
-    list: () => Promise.resolve([...files(directory).keys()]),
-    read: (name) => {
-      const stored = files(directory).get(name);
-      return Promise.resolve(stored && new Blob([stored]));
-    },
-    write: (name, written) => {
-      files(directory).set(name, written);
-      return Promise.resolve();
-    },
-    rename: (from, to) => {
-      const entries = files(directory);
-      const moved = entries.get(from);
-      if (!moved) throw new Error(`No entry named ${from}`);
-      entries.delete(from);
-      entries.set(to, moved);
-      return Promise.resolve();
-    },
-    remove: (name) => {
-      files(directory).delete(name);
-      return Promise.resolve();
-    },
-    clear: () => {
-      directories.delete(directory);
-      return Promise.resolve();
-    },
-  });
-  /** The names stored in one directory, sorted. */
-  const names = (directory: string) =>
-    [...(directories.get(directory)?.keys() ?? [])].sort();
-  return { openStore, consent: vaultConsent(), files, names };
-}
-
-/** One vault's local storage, where a dismissed install offer is remembered. */
-export function vaultConsent(): ManagedBinaryHostPorts["consent"] {
-  const values = new Map<string, unknown>();
-  return {
-    loadLocalStorage: (key) => values.get(key) ?? null,
-    saveLocalStorage: (key, value) => {
-      if (value === null) values.delete(key);
-      else values.set(key, value);
-    },
-  };
-}
 
 /** The file of a Resource Pack that holds `entries`, by entry name. */
 export async function packFile(
@@ -113,4 +58,62 @@ export function packDevice(
       installed = next && { file: next, version: nextVersion };
     },
   };
+}
+
+/** A folder of {@link originFiles}: its entries by name; `null` is a file. */
+export interface OriginFolder {
+  [name: string]: OriginFolder | null;
+}
+
+function notFound(name: string): DOMException {
+  return new DOMException(`No entry named ${name}`, "NotFoundError");
+}
+
+/**
+ * The origin's private file system that holds `tree`, as the browser gives
+ * it. `paths` lists what it holds now, `opens` counts the reads of its root,
+ * and `refuse` makes the next removal fail as a locked file does.
+ */
+export function originFiles(tree: OriginFolder) {
+  let refused = false;
+  const directory = (folder: OriginFolder): OldStoreDirectory => ({
+    getDirectoryHandle: (name) => {
+      const entry = folder[name];
+      return entry
+        ? Promise.resolve(directory(entry))
+        : Promise.reject(notFound(name));
+    },
+    removeEntry: (name) => {
+      if (refused) {
+        refused = false;
+        return Promise.reject(
+          new DOMException("The entry is in use", "NoModificationAllowedError"),
+        );
+      }
+      if (!(name in folder)) return Promise.reject(notFound(name));
+      delete folder[name];
+      return Promise.resolve();
+    },
+    // oxlint-disable-next-line typescript/require-await -- the browser's listing is an async iterator.
+    keys: async function* () {
+      yield* Object.keys(folder);
+    },
+  });
+  const paths = (folder: OriginFolder, prefix: string): string[] =>
+    Object.entries(folder).flatMap(([name, entry]) => [
+      `${prefix}${name}`,
+      ...(entry ? paths(entry, `${prefix}${name}/`) : []),
+    ]);
+  const device = {
+    opens: 0,
+    open: () => {
+      device.opens++;
+      return Promise.resolve(directory(tree));
+    },
+    paths: () => paths(tree, ""),
+    refuse: () => {
+      refused = true;
+    },
+  };
+  return device;
 }

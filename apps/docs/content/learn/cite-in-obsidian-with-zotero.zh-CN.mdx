@@ -16,7 +16,7 @@ needs:
     detail: 你自己的一篇草稿笔记，例如《第 3 章 - 呈现结果》
 steps:
   - title: 安装引用引擎
-    alt: 在 ZotLit 设置的“引文”下，Pandoc 引擎一行显示已安装 Pandoc 3.10。
+    alt: 在 ZotLit 设置的“引文”下，Pandoc 引擎一行显示已就绪，来自 ZotLit Resource Pack 1.0.0。
   - title: 键入 [@ 和作者名
     alt: 草稿中打开了一个引文菜单，显示 Sandve et al. (2013), PLOS Computational Biology, 9(10), e1003285。
   - title: 选择文献
@@ -46,13 +46,13 @@ import { m } from "@/paraglide/messages.js";
 
 <Step n={1}>
 
-在**设置**（Settings）> **ZotLit** > <UiLabel name={m.settings_page_citations()} /> 中，选择 <UiLabel name={m.settings_citation_engine_name()} /> 旁边的 <UiLabel name={m.settings_citation_engine_install()} />。
+在 Obsidian 的**设置**（Settings）> **第三方插件**（Community plugins）中，选择**浏览**（Browse），然后安装 **ZotLit Resource Pack**。无需启用它。
 
 <Check>
-  该行显示{" "}
-  <UiLabel
-    name={m.settings_citation_engine_status_installed({ version: "3.10" })}
-  />{" "}
+  在**设置**（Settings）> **ZotLit** >{" "}
+  <UiLabel name={m.settings_page_citations()} /> 中，
+  <UiLabel name={m.settings_citation_engine_name()} /> 一行显示{" "}
+  <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} />{" "}
   （版本号可以更高）。
 </Check>
 

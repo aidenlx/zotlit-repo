@@ -50,7 +50,7 @@ import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
+import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";

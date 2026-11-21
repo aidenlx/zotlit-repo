@@ -42,5 +42,5 @@ ZotLit 2.2.3 需要 Obsidian 1.15.1 或更高版本（此前为 1.14.5）。安�
 - 当较窄的文库视图顶部显示设置步骤时，阅读卡片的 <UiLabel name={m.library_view_menu_open_pdf()} /> 和 <UiLabel name={m.library_view_menu_write_note()} /> 按钮可能会超出标签页底部而无法点击。现在标签页支持滚动以显示这些按钮。详见[在文库视图中浏览文库](/docs/how-to/use-library-view)。
 - 使用 <UiLabel name={m.annot_view_save_as_query_file()} /> 保存 <UiLabel name={m.library_view_recent()} /> 列表时，文件原先会被命名为 <UiLabel name={m.library_view_recent()} />。现在会被命名为 <UiLabel name={m.query_file_untitled()} />。
 - 打开其他标签页时，高亮浮层原先仍会停留在最上层。现在它会随 PDF 一同隐藏并在切回时恢复显示，同时保留你输入的评论。详见[如何在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
-- 在打开含有引文的草稿时，若针对 <UiLabel name={m.settings_citation_engine_name()} /> 选择了 <UiLabel name={m.settings_citation_engine_uninstall()} />，设置项可能会错误显示为 <UiLabel name={m.settings_citation_engine_retry()} /> 而非 <UiLabel name={m.settings_citation_engine_install()} />。现在会正确显示为 <UiLabel name={m.settings_citation_engine_install()} />。此修复同样适用于 <UiLabel name={m.settings_chinese_segmenter_name()} />。
-- 若在导出为 Word 正在运行时针对 <UiLabel name={m.settings_citation_engine_name()} /> 选择了 <UiLabel name={m.settings_citation_engine_uninstall()} />，导出可能会失败。现在会等待导出先完成，然后再移除引擎。
+- 在打开含有引文的草稿时，若针对 <UiLabel name={m.settings_citation_engine_name()} /> 选择了 **卸载**，设置项可能会错误显示为 <UiLabel name={m.settings_citation_engine_retry()} /> 而非 **安装**。现在会正确显示为 **安装**。此修复同样适用于 <UiLabel name={m.settings_chinese_segmenter_name()} />。
+- 若在导出为 Word 正在运行时针对 <UiLabel name={m.settings_citation_engine_name()} /> 选择了 **卸载**，导出可能会失败。现在会等待导出先完成，然后再移除引擎。

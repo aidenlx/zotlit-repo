@@ -45,6 +45,7 @@ import {
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { localServerItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
 import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
+import { layerOldStoreCleanup } from "@zotlit/plugin-services/obsidian/managed-binary/old-store-cleanup.ts";
 import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
   layerNoteIndex,
@@ -133,6 +134,7 @@ export const platform = extendFeature(platformBase, {
     registration("DatabaseActions", layerDatabaseActions),
     registration("LibraryScopeCli", layerLibraryScopeCli),
     registration("LibraryScopeNotices", layerLibraryScopeNotices),
+    registration("OldStoreCleanup", layerOldStoreCleanup),
   ],
   settingTab: {
     entries: {

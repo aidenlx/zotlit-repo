@@ -5,8 +5,7 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 /**
  * A binary's service and the two ways to enter Effect with it through
- * {@link EffectBridge}. `Api` is the service of either source: a downloaded
- * binary (`ManagedBinaryApi`) or one of the Resource Pack (`PackBinaryApi`).
+ * {@link EffectBridge}. `Api` is the binary's service (`PackBinaryApi`).
  */
 export interface BinaryHandle<Api> {
   readonly binary: Api;
