@@ -9,12 +9,18 @@
 //                                   else check out the tip in its own
 //                                   checkout, bootstrap, run `pnpm e2e`
 //                                   under a Desktop Slot, record the result
-//                                   failed? ─▶ open one issue for the range
+//                                   failed? ─▶ comment on the open issue of
+//                                              failures, or open one
+//                                   passed after a failure? ─▶ comment so
 //
 // Runs coalesce: a runner that waited behind another takes the newest tip, so
 // a burst of lands costs one run after the current one. The commit range of a
-// failure starts at the last tip that passed. A failure opens an issue and
-// reverts nothing.
+// failure starts at the last tip that passed. A failure reverts nothing.
+//
+// Failures share one issue: the open issue whose title is E2E_ISSUE_TITLE. A
+// failure adds a comment to it, or opens it with the `needs-triage` label when
+// none is open. The first pass after a failure adds a comment and leaves the
+// issue open; a person closes it.
 //
 // A run needs a painted desktop window (lib/desktop-paint.ts). When the
 // desktop cannot paint, before the run or at the end of a run that failed, the
@@ -87,7 +93,7 @@ export interface LandE2eRecord {
   startedAt: string;
   finishedAt: string;
   log: string;
-  /** The URL of the issue a failure opened. */
+  /** The URL of the issue that a failure, or a pass after one, wrote to. */
   issue?: string;
   result: LandE2eOutcome;
 }
@@ -95,6 +101,31 @@ export interface LandE2eRecord {
 interface LandE2eState {
   lastRun?: string;
   lastPassed?: string;
+  /** The last tip that failed, until a tip passes. */
+  lastFailed?: string;
+}
+
+/** The title of the one open issue of End-to-end Run failures. */
+export const E2E_ISSUE_TITLE = "End-to-end Run fails on main";
+const E2E_ISSUE_LABEL = "needs-triage";
+const EXCERPT_LINES = 80;
+
+export interface LandE2eIssue {
+  number: number;
+  title: string;
+  url: string;
+}
+
+/** The issues of a GitHub repository, given as `owner/name`. */
+export interface LandE2eIssues {
+  /** The open issues whose title holds `title`; it may return near matches. */
+  listOpen: (repository: string, title: string) => Promise<LandE2eIssue[]>;
+  /** Open an issue; returns its URL. */
+  create: (
+    repository: string,
+    issue: { title: string; body: string; label: string },
+  ) => Promise<string>;
+  comment: (repository: string, number: number, body: string) => Promise<void>;
 }
 
 export interface LandE2eRun {
@@ -117,12 +148,13 @@ export interface LandE2eDeps {
   run: (run: LandE2eRun) => Promise<LandE2eOutcome>;
   /** Whether the desktop can paint a window now (`readDesktopPaint`). */
   paint: () => Promise<DesktopPaint>;
-  /** Open the issue for a failed run; returns its URL. */
-  report: (failure: {
+  /** The one-line commits of the range, and the text of the run's log. */
+  evidence: (failure: {
     run: LandE2eRun;
     range: string;
-    stage: string;
-  }) => Promise<string | undefined>;
+  }) => Promise<{ commits: string; log: string }>;
+  /** The issues that take failures and the pass after them. */
+  issues: LandE2eIssues;
 }
 
 const GITHUB_REMOTE = regex(
@@ -228,10 +260,15 @@ export async function runLandE2e(
     const range = base ? `${base}..${request.commit}` : request.commit;
     log(`End-to-end Run of ${request.commit.slice(0, 12)}: log ${logPath}`);
     const result = await runUnlessDesktopIsDark(deps, run);
-    const issue =
-      result.outcome === "failed"
-        ? await deps.report({ run, range, stage: result.stage })
-        : undefined;
+    const issue = await reportToIssue(deps, {
+      run,
+      range,
+      result,
+      lastFailed: state.lastFailed,
+    }).catch((error: unknown) => {
+      log(`End-to-end Run: the issue was not written: ${String(error)}`);
+      return undefined;
+    });
     const record: LandE2eRecord = {
       commit: request.commit,
       range,
@@ -249,6 +286,12 @@ export async function runLandE2e(
         lastRun: request.commit,
         lastPassed:
           result.outcome === "passed" ? request.commit : state.lastPassed,
+        lastFailed:
+          result.outcome === "failed"
+            ? request.commit
+            : result.outcome === "passed"
+              ? undefined
+              : state.lastFailed,
       } satisfies LandE2eState);
     }
     log(
@@ -292,6 +335,94 @@ async function runUnlessDesktopIsDark(
         reason: `the desktop stopped painting during the run: ${after.machine}`,
       }
     : result;
+}
+
+/**
+ * Write a failure, or the first pass after one, to the open issue of
+ * End-to-end Run failures. A failure opens that issue when none is open.
+ * @returns the URL of the issue written to.
+ */
+async function reportToIssue(
+  { evidence, issues }: LandE2eDeps,
+  {
+    run,
+    range,
+    result,
+    lastFailed,
+  }: {
+    run: LandE2eRun;
+    range: string;
+    result: LandE2eOutcome;
+    lastFailed: string | undefined;
+  },
+): Promise<string | undefined> {
+  const { request, logPath } = run;
+  const repository = request.issueRepository;
+  if (!repository) return undefined;
+  if (
+    result.outcome !== "failed" &&
+    !(result.outcome === "passed" && lastFailed)
+  )
+    return undefined;
+  // The newest open issue whose title is the title exactly.
+  const open = (await issues.listOpen(repository, E2E_ISSUE_TITLE))
+    .filter(({ title }) => title === E2E_ISSUE_TITLE)
+    .toSorted((a, b) => b.number - a.number)[0];
+  if (result.outcome !== "failed") {
+    if (!open) return undefined;
+    await issues.comment(
+      repository,
+      open.number,
+      `The End-to-end Run after a land passed on \`main\` at ${request.commit}, after the failure at ${lastFailed}. Commit range: \`${range}\`. This issue stays open until a person closes it.`,
+    );
+    return open.url;
+  }
+  const { commits, log } = await evidence({ run, range });
+  const lines = log.trimEnd().split("\n");
+  const cases = failedCases(lines);
+  const body = [
+    `The End-to-end Run after a land failed at the ${result.stage} stage, on \`main\` at ${request.commit}.`,
+    "",
+    `Commit range: \`${range}\` (from the last tip that passed).`,
+    "",
+    "```text",
+    commits.trim() || request.commit,
+    "```",
+    "",
+    cases.length > 0
+      ? `Failed cases:\n\n${cases.map((name) => `- \`${name}\``).join("\n")}`
+      : `The log names no failed case; the run failed at the ${result.stage} stage.`,
+    "",
+    `The full log is on the machine that ran it: \`${logPath}\`. The last ${EXCERPT_LINES} lines:`,
+    "",
+    "```text",
+    lines.slice(-EXCERPT_LINES).join("\n"),
+    "```",
+  ].join("\n");
+  if (open) {
+    await issues.comment(repository, open.number, body);
+    return open.url;
+  }
+  return issues.create(repository, {
+    title: E2E_ISSUE_TITLE,
+    body,
+    label: E2E_ISSUE_LABEL,
+  });
+}
+
+// Vitest names a failed case as ` FAIL  |project| file > suite > case`.
+const FAILED_CASE = regex(" FAIL +(?<name>\\S.*)$");
+
+/** The failed cases that a Vitest log names, each once, in log order. */
+function failedCases(lines: readonly string[]): string[] {
+  return [
+    ...new Set(
+      lines.flatMap((line) => {
+        const name = FAILED_CASE.exec(line)?.groups.name.trim();
+        return name ? [name] : [];
+      }),
+    ),
+  ];
 }
 
 /** The last `limit` records of `runs.jsonl`, oldest first. */

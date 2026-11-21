@@ -6,7 +6,12 @@
 // leaves that run alone. It runs from the shared state directory, since the
 // worktree that landed may be removed before the run ends.
 
-import type { LandE2eDeps, LandE2eOutcome, LandE2eRun } from "#land-e2e";
+import type {
+  LandE2eDeps,
+  LandE2eIssue,
+  LandE2eOutcome,
+  LandE2eRun,
+} from "#land-e2e";
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
@@ -15,11 +20,10 @@ import { stripVTControlCharacters } from "node:util";
 
 import { readDesktopPaint } from "#desktop-paint";
 import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
-import { runLandE2e } from "#land-e2e";
+import { landE2eDir, runLandE2e } from "#land-e2e";
 
 /** How long `pnpm e2e` waits for its Desktop Slot. */
 const DESKTOP_WAIT = "1h";
-const EXCERPT_LINES = 80;
 
 /**
  * Run one command with its output in the log. Each output is a sign of
@@ -183,55 +187,81 @@ async function run({
   }
 }
 
-const report: LandE2eDeps["report"] = async ({ run, range, stage }) => {
-  const { request, logPath, checkout } = run;
-  if (!request.issueRepository) return undefined;
+const evidence: LandE2eDeps["evidence"] = async ({ run, range }) => {
+  const { logPath, checkout } = run;
   const sink = createWriteStream(logPath, { flags: "a" });
   const commits = await command(sink, {
     cwd: checkout,
     argv: ["git", "log", "--oneline", "--no-decorate", "-n", "50", range],
   });
-  const excerpt = stripVTControlCharacters(await readFile(logPath, "utf8"))
-    .trimEnd()
-    .split("\n")
-    .slice(-EXCERPT_LINES)
-    .join("\n");
-  const short = request.commit.slice(0, 12);
-  const body = [
-    `The End-to-end Run after a land failed at the ${stage} stage, on \`main\` at ${request.commit}.`,
-    "",
-    `Commit range: \`${range}\` (from the last tip that passed).`,
-    "",
-    "```text",
-    commits.stdout.trim() || request.commit,
-    "```",
-    "",
-    `The full log is on the machine that ran it: \`${logPath}\`. The last ${EXCERPT_LINES} lines:`,
-    "",
-    "```text",
-    excerpt,
-    "```",
-  ].join("\n");
-  const bodyPath = `${logPath}.issue.md`;
-  await writeFile(bodyPath, body);
-  const created = await command(sink, {
-    cwd: checkout,
-    argv: [
-      "gh",
-      "issue",
-      "create",
-      "--repo",
-      request.issueRepository,
-      "--label",
-      "needs-triage",
-      "--title",
-      `End-to-end Run fails on main at ${short}`,
-      "--body-file",
-      bodyPath,
-    ],
-  });
   await new Promise((resolve) => sink.end(resolve));
-  return created.code === 0 ? created.stdout.trim() : undefined;
+  const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
+  return { commits: commits.stdout, log };
 };
 
-await runLandE2e({ run, report, paint: readDesktopPaint });
+/** Run `gh` in the state directory; its output goes to the runner's log. */
+async function gh(...args: [string, ...string[]]): Promise<string> {
+  const { code, stdout } = await command(process.stderr, {
+    cwd: landE2eDir(),
+    argv: ["gh", ...args],
+  });
+  if (code !== 0) {
+    throw new Error(`gh ${args.slice(0, 2).join(" ")} exited ${code}`);
+  }
+  return stdout;
+}
+
+/** Write an issue body to a file for `gh --body-file`. */
+async function bodyFile(body: string): Promise<string> {
+  const path = join(landE2eDir(), "issue-body.md");
+  await writeFile(path, body);
+  return path;
+}
+
+const issues: LandE2eDeps["issues"] = {
+  listOpen: async (repository, title) =>
+    JSON.parse(
+      await gh(
+        "issue",
+        "list",
+        "--repo",
+        repository,
+        "--state",
+        "open",
+        "--search",
+        `"${title}" in:title`,
+        "--json",
+        "number,title,url",
+        "--limit",
+        "100",
+      ),
+    ) as LandE2eIssue[],
+  create: async (repository, { title, body, label }) =>
+    (
+      await gh(
+        "issue",
+        "create",
+        "--repo",
+        repository,
+        "--label",
+        label,
+        "--title",
+        title,
+        "--body-file",
+        await bodyFile(body),
+      )
+    ).trim(),
+  comment: async (repository, number, body) => {
+    await gh(
+      "issue",
+      "comment",
+      String(number),
+      "--repo",
+      repository,
+      "--body-file",
+      await bodyFile(body),
+    );
+  },
+};
+
+await runLandE2e({ run, evidence, issues, paint: readDesktopPaint });
