@@ -139,8 +139,8 @@ shows a notice. `WorkbenchHostProvider` takes the host adapter, which answers
 what only the host knows — `render`, `matchData`, `insertTarget`,
 `persistence`, with the clipboard, the Markdown
 view and the editor popups. `WorkbenchEditorProvider` carries one editor instance and
-puts its atom registry in context (`@effect/atom-react`); `useWorkbenchModel`
-and `useWorkbenchController` read it. Components read the model's atoms and
+puts its atom registry in context (`@effect/atom-react`); `useWorkbenchEditor`
+and `useWorkbenchModel` read it. Components read the model's atoms and
 change them with its pure `(state) => state` transitions (`chooseItem`,
 `setTab`, `setRoot`, `setAdvanced`, `chooseAnnotation`, `chooseCitation`,
 `setPreview`, and `patch` / `patchAt` for the rest). They hold no copy of
@@ -183,9 +183,8 @@ failed beside an annotation that rendered keeps the last note that worked,
 because the surfaces are kept apart. Its `trigger` says whether Run or the
 quiet time after an edit asked for the shown result, and `attempt` counts the
 results it has published, so two attempts over the same bytes stay distinct.
-Outside the editor provider the tree paints inert. The components so far:
-`TabBar` and `TabPanel`, `EditToolbar` (Basic against Advanced, undo, redo, a
-host's own controls as children), and `ProblemsFooter` with `problemText` and
+Outside the editor provider the tree paints inert. The components include
+`TabBar` and `TabPanel`, and `ProblemsFooter` with `problemText` and
 `diagnosticText`, the words for every core code. A Profile edited beside a
 vault reports `bundled-partial` for the partials its manifest still carries;
 the recovery is a text suggestion like every other one, and the vault host
@@ -245,9 +244,10 @@ text helpers call the `workbench_*` messages of
 `runtime.getLocale()` from `@zotlit/plugin-messages/runtime.ts`, as every
 feature package does. Turbo generates the facade before `test`, `typecheck`, and
 `typecheck:test`. The tree stays inside the
-`preact/compat` surface, and its suite under `src/obsidian/workbench-ui/` runs in the `ui` Vitest
-project with React aliased to `preact/compat` and Testing Library to its Preact
-build, as Obsidian runs it.
+`preact/compat` surface. Its tests pin the pure logic (the model, the
+scheduler, the problem and panel rules) and run in the package's one Node
+Vitest run of `src/**/*.test.ts`, with `react` aliased to Preact as Obsidian
+runs it; the End-to-end Run covers what a reader sees.
 
 ## Render
 

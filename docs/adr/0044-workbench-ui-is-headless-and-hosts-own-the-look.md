@@ -31,3 +31,7 @@ The web Template Workbench and the Obsidian Profile Editor present the same tabs
 - The web components are rewritten onto the headless tree with no behaviour change before any Obsidian UI exists; that rewrite is the first ticket of the spec and the proof of the DRY claim.
 - The shared tree's tests run under both React and `preact/compat` in CI.
 - The other `@zotlit/workbench` subpaths stay free of React.
+
+## Amendment (2026-11-21): one host
+
+[ADR 0100](0100-the-web-template-workbench-is-retired.md) retired the web Workbench, so the Workbench UI has one host and is no longer headless. It is the unit `src/obsidian/workbench-ui/` of `@zotlit/template-workbench` and draws with its own `zt:` classes. The theme class map, the overlay members of the host adapter (menus, dialogs, suggesters, tooltips, notices) and the host's message supply are gone: the tree opens Obsidian's own overlays directly and reads the plugin's Language Pack. The host adapter keeps only the data ports, and the tests under both React and `preact/compat` are replaced by one Node run of the pure-logic suites.
