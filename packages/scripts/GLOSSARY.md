@@ -126,8 +126,9 @@ _Avoid_: next, primary branch, stable branch
 
 **Land**:
 The one way a change reaches the Trunk: rebase the task branch onto the newest
-`main`, pass the quality gate on the rebased tree, open or update the Record
-PR, and push the tree to `main` as a fast-forward. GitHub then shows the
+`main`, pass the local quality gate on the rebased tree, open or update the
+Record PR, wait for its CI check, and push the tree to `main` as a
+fast-forward. GitHub then shows the
 Record PR as merged; no one merges it.
 _Avoid_: merge, PR merge, graduation
 

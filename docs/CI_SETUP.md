@@ -22,9 +22,11 @@ tasks even when package source files are unchanged.
 
 ## Release workflow
 
-The checks of a change run in `pnpm land`: it runs `pnpm verify` on the
-rebased result before it pushes to `main`, the one long-lived branch, and the
-Lefthook pre-push hook lets only `pnpm land` push `main`
+The checks of a change run in `pnpm land`: it runs `pnpm verify --local` on
+the rebased result, and `.github/workflows/record-pr.yml` runs the tests and
+the bundle budget (`pnpm verify --pr`) on its record pull request. The land
+pushes to `main`, the one long-lived branch, only when that check passes, and
+the Lefthook pre-push hook lets only `pnpm land` push `main`
 ([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),
 [ADR 0097](adr/0097-main-is-the-one-trunk.md)). `pnpm release` lands the
 version commit with the release gate.

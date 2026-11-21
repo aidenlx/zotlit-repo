@@ -4,6 +4,8 @@ status: proposed
 
 # Checks run before push, and CI runs only to release
 
+> **Superseded in part by spec [#122](https://github.com/aidenlx/zotlit-repo/issues/122) ([#129](https://github.com/aidenlx/zotlit-repo/issues/129)).** The record pull request of each land ([ADR 0102](0102-each-land-opens-a-record-pull-request.md)) runs one CI check: the tests of the affected packages and the bundle budget (`.github/workflows/record-pr.yml`, `pnpm verify --pr`). The land holds its Land Turn until the check passes, then pushes `main`. The local gate of a land is `pnpm verify --local`: format, generated artifacts, lint, typecheck and snapshot size. `pnpm verify` with no flag and `pnpm verify --release` are unchanged.
+
 Amends [ADR 0020](0020-obsidian-guideline-review-runs-on-eslint-at-release.md): the release-time backstop for the Obsidian guideline review moves from `plugin-review.yml` into `release.yml`.
 
 `pnpm verify` is the one quality gate. Lefthook runs it before every push, so a branch is checked before it reaches GitHub. Pull requests run no checks. GitHub Actions does the work that needs GitHub: it publishes releases, deploys the docs, and triages issues.

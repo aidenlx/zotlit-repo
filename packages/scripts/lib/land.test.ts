@@ -11,8 +11,8 @@ import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
 import { landAdmission, landWaitLog } from "./land-queue.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
-import { land, LAND_RECORD_PATH } from "./land.ts";
-import type { LandGitHub, LandOptions } from "./land.ts";
+import { land, LAND_CI_CHECK, LAND_RECORD_PATH } from "./land.ts";
+import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 
 // Lands run real Git against a bare origin in a temporary folder, with a gate
 // command in place of `pnpm verify`.
@@ -257,12 +257,36 @@ interface FakePull {
   merged: boolean;
 }
 
+/** One read of the CI check of `commit`: the how-many-th read of that commit. */
+type CiScript = (read: {
+  commit: string;
+  count: number;
+}) => Promise<CiCheck | undefined> | CiCheck | undefined;
+
+/** A check that passed, as GitHub shows a finished run of the job. */
+const passed = (id = 1): CiCheck => ({
+  id,
+  status: "completed",
+  conclusion: "success",
+  url: `https://github.com/owner/repo/actions/runs/1/job/${id}`,
+  queuedAt: "2026-11-22T10:00:00Z",
+  startedAt: "2026-11-22T10:00:20Z",
+  completedAt: "2026-11-22T10:05:20Z",
+});
+
 /**
  * GitHub over the bare origin: a PR needs its head branch on origin, and it
  * shows as merged once `main` holds the branch's tip, unless `merges` is off.
+ * The CI check of each commit follows `ci`, which passes by default.
  */
-function fakeGitHub({ merges = true } = {}) {
+function fakeGitHub({
+  merges = true,
+  ci = () => passed(),
+}: { merges?: boolean; ci?: CiScript } = {}) {
   const pulls: FakePull[] = [];
+  /** Each read of a check, in order. */
+  const checkReads: { commit: string; name: string }[] = [];
+  const reruns: number[] = [];
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
   const github: LandGitHub = {
@@ -309,8 +333,16 @@ function fakeGitHub({ merges = true } = {}) {
       }
       return pull.merged ? "MERGED" : "OPEN";
     },
+    readCheck: async ({ commit, name }) => {
+      checkReads.push({ commit, name });
+      const count = checkReads.filter((each) => each.commit === commit).length;
+      return await ci({ commit, count });
+    },
+    rerunCheck: async (id) => {
+      reruns.push(id);
+    },
   };
-  return { github, pulls };
+  return { github, pulls, checkReads, reruns };
 }
 
 const SECTIONS = [
@@ -519,6 +551,199 @@ describe("the record PR", () => {
       expect(lines.join("\n")).toContain(
         "https://github.com/owner/repo/pull/1 does not show as merged",
       );
+    },
+    SLOW,
+  );
+});
+
+describe("the CI check of the record PR", () => {
+  const fast = { ...quiet, ciPollMs: 20 } satisfies Partial<LandOptions>;
+  const failed = (id = 1): CiCheck => ({
+    ...passed(id),
+    conclusion: "failure",
+  });
+
+  it(
+    "waits for the check of the PR head, printing its state, and pushes main when it passes",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const seed = await git(repos.remote, "rev-parse", "main");
+      /** origin's main at each read while the check runs. */
+      const mainWhilePending: string[] = [];
+      const { github, checkReads } = fakeGitHub({
+        ci: async ({ count }) => {
+          if (count === 1) return undefined;
+          if (count <= 3) {
+            mainWhilePending.push(await git(repos.remote, "rev-parse", "main"));
+            return {
+              ...passed(),
+              status: count === 2 ? "queued" : "in_progress",
+              conclusion: null,
+            };
+          }
+          return passed();
+        },
+      });
+      const lines: string[] = [];
+
+      const result = await land({
+        ...fast,
+        say: (line) => lines.push(line),
+        cwd,
+        gate: ["true"],
+        github,
+      });
+
+      expect(result).toMatchObject({ ok: true });
+      const head = await git(cwd, "rev-parse", "HEAD");
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(head);
+      expect(checkReads).toHaveLength(4);
+      expect(checkReads.every((read) => read.commit === head)).toBe(true);
+      expect(checkReads[0]!.name).toBe(LAND_CI_CHECK);
+      expect(mainWhilePending).toEqual([seed, seed]);
+      const printed = lines.join("\n");
+      expect(printed).toMatch(/CI .*queued/);
+      expect(printed).toMatch(/CI .*in progress/);
+      // The time the job waited for a runner goes to the wait log.
+      expect(await waits()).toMatchObject([
+        {
+          outcome: "landed",
+          ci: [{ conclusion: "success", queueMs: 20_000, runMs: 300_000 }],
+        },
+      ]);
+    },
+    SLOW,
+  );
+
+  it(
+    "fails with the job and its link when the check fails, and leaves main as it was",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const seed = await git(repos.remote, "rev-parse", "main");
+      const { github } = fakeGitHub({ ci: () => failed(7) });
+
+      const result = await land({ ...fast, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({ ok: false, step: "ci", exitCode: 1 });
+      expect(result.ok || result.message).toContain(LAND_CI_CHECK);
+      expect(result.ok || result.message).toContain(
+        "https://github.com/owner/repo/actions/runs/1/job/7",
+      );
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(seed);
+      // The PR head stays on origin, so the PR shows the failed check.
+      expect(await git(repos.remote, "rev-parse", "feat/a")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
+      );
+      expect(await waits()).toMatchObject([
+        { outcome: "failed", step: "ci", ci: [{ conclusion: "failure" }] },
+      ]);
+    },
+    SLOW,
+  );
+
+  it(
+    "keeps the Land Turn while the check runs longer than the silence limit",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const started = Temporal.Now.instant().epochMilliseconds;
+      const { github } = fakeGitHub({
+        ci: () =>
+          Temporal.Now.instant().epochMilliseconds - started < 1_500
+            ? { ...passed(), status: "in_progress", conclusion: null }
+            : passed(),
+      });
+
+      const result = await land({
+        ...fast,
+        silenceMs: 500,
+        cwd,
+        gate: ["true"],
+        github,
+      });
+
+      expect(result).toMatchObject({ ok: true });
+    },
+    SLOW,
+  );
+
+  it(
+    "fails when no check shows for the PR head within the CI wait",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github } = fakeGitHub({ ci: () => undefined });
+
+      const result = await land({
+        ...fast,
+        ciWaitMs: 200,
+        cwd,
+        gate: ["true"],
+        github,
+      });
+
+      expect(result).toMatchObject({ ok: false, step: "ci" });
+      expect(result.ok || result.message).toContain(
+        `no "${LAND_CI_CHECK}" check`,
+      );
+      expect(await subjects("main")).toEqual(["seed"]);
+    },
+    SLOW,
+  );
+
+  it(
+    "runs the failed check again when a land again pushes the same head",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      let rerun = false;
+      const { github, reruns } = fakeGitHub({
+        ci: () => (rerun ? passed(2) : failed(1)),
+      });
+      const first = await land({ ...fast, cwd, gate: ["true"], github });
+      expect(first).toMatchObject({ ok: false, step: "ci" });
+      const rerunCheck = github.rerunCheck;
+      github.rerunCheck = async (id) => {
+        await rerunCheck(id);
+        rerun = true;
+      };
+
+      const second = await land({ ...fast, cwd, gate: ["true"], github });
+
+      expect(second).toMatchObject({ ok: true });
+      expect(reruns).toEqual([1]);
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
+      );
+    },
+    SLOW,
+  );
+
+  it(
+    "waits again on the new head when main moved while the check ran",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      let moved = false;
+      const { github, checkReads } = fakeGitHub({
+        ci: async () => {
+          if (!moved) {
+            moved = true;
+            await moveMain("moved.txt", "moved\n", "moved");
+          }
+          return passed();
+        },
+      });
+
+      const result = await land({ ...fast, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({ ok: true, attempts: 2 });
+      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+      const commits = [...new Set(checkReads.map((read) => read.commit))];
+      expect(commits).toHaveLength(2);
+      expect(commits[1]).toBe(await git(repos.remote, "rev-parse", "main"));
     },
     SLOW,
   );

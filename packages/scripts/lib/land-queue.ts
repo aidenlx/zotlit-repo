@@ -63,7 +63,24 @@ export interface LandWaitRecord {
   step?: string;
   /** How many times the land fetched, rebased, and gated in its turn. */
   attempts?: number;
+  /** Each CI check of the record PR that the land waited for to its end. */
+  ci?: LandCiRun[];
   finishedAt: string;
+}
+
+/** One CI check of a record PR head, as the land saw it end. */
+export interface LandCiRun {
+  commit: string;
+  /** `success`, or how the job failed. */
+  conclusion: string;
+  /** The page of the job. */
+  url: string;
+  /** How long the land waited for the check, from the push of the head. */
+  waitMs: number;
+  /** How long the job waited for a runner. */
+  queueMs?: number;
+  /** How long the job ran on its runner. */
+  runMs?: number;
 }
 
 export function landWaitLog(): string {

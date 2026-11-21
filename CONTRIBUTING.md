@@ -8,8 +8,9 @@ ZotLit has two repositories:
 | [`aidenlx/zotlit`](https://github.com/aidenlx/zotlit)           | The releases, and a tree generated at each release that builds the plugin from an npm package |
 
 - **Code changes** go to `aidenlx/zotlit-repo`, the one repository that takes
-  pull requests, against `main`. Run `pnpm verify` before you push: pull
-  requests run no checks. A maintainer lands an accepted change through the
+  pull requests, against `main`. Run `pnpm verify` before you push: a pull
+  request runs its CI check only when a land opens it as a record pull
+  request. A maintainer lands an accepted change through the
   Land Queue (see [Landing a change](#landing-a-change)).
 - **Bug reports, feature requests and questions** go to the
   [ZotLit forum](https://zotlit-forum.aidenlx.site). GitHub Issues in
@@ -23,7 +24,8 @@ wt switch --create fix/<topic> --base origin/main   one worktree per change
   edit, commit                                   pre-commit: format, lint, messages
   pnpm verify                                    format, lint (the typecheck), tests of the
                                                  changed packages and their dependents
-pnpm land                                        rebase, verify, fast-forward main;
+pnpm land                                        rebase, verify --local, record PR,
+                                                 wait for its CI tests, fast-forward main;
                                                  then an End-to-end Run of the new tip
 wt remove fix/<topic>
 ```
@@ -40,10 +42,12 @@ and agents alike:
 | Landing, the queue, failures | `AGENTS.md` "Landing a change"                                                                   |
 | Decisions and their reasons  | `docs/adr/`                                                                                      |
 
-GitHub runs no checks on a pull request or a push: the gate is `pnpm verify`
-on your machine, and `pnpm land` runs it again on the tree it pushes
+The gate is `pnpm verify`. `pnpm land` runs its local half (`--local`) on the
+tree it pushes, and the record pull request of the land runs its other half,
+the tests and the bundle budget, in CI before `main` moves
 ([ADR 0076](docs/adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),
-[ADR 0084](docs/adr/0084-changes-land-on-next-through-a-serial-queue.md)).
+[ADR 0084](docs/adr/0084-changes-land-on-next-through-a-serial-queue.md),
+[ADR 0102](docs/adr/0102-each-land-opens-a-record-pull-request.md)).
 
 ### Branching model
 
@@ -61,9 +65,11 @@ merged. See
 
 A change reaches `main` through `pnpm land`, run from the task worktree on its
 branch with a clean tree. Lands on one machine run one at a time, in a queue:
-each fetches `origin/main`, rebases the branch onto it, runs `pnpm verify` on
-the rebased tree, pushes the branch and opens or updates its record pull
-request from the record file, and pushes the tree to `main` as a fast-forward.
+each fetches `origin/main`, rebases the branch onto it, runs
+`pnpm verify --local` on the rebased tree, pushes the branch and opens or
+updates its record pull request from the record file, waits for the CI check
+of the PR (the tests and the bundle budget), and pushes the tree to `main` as
+a fast-forward. A failed check fails the land, and `main` stays as it was.
 GitHub then shows the PR as merged. `pnpm land --help` names the record file
 and its sections. The gate cannot be skipped. The pre-push hook lets only
 `pnpm land` push `main`.

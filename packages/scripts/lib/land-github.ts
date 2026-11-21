@@ -2,7 +2,7 @@
 // CLI, with the credential of its login. The land tests use a fake of it at
 // the same seam.
 
-import type { LandGitHub, RecordPullRequest } from "#land";
+import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
 import { $ } from "zx";
 
 /** The record PRs of `repo` (`owner/name`). */
@@ -95,5 +95,48 @@ export function ghLandGitHub(repo: string): LandGitHub {
       ) as { state: "OPEN" | "CLOSED" | "MERGED" };
       return state;
     },
+    async readCheck({ commit, name }) {
+      const { check_runs: runs } = JSON.parse(
+        await run([
+          "api",
+          `repos/${repo}/commits/${commit}/check-runs?check_name=${encodeURIComponent(name)}&filter=latest`,
+        ]),
+      ) as { check_runs: GitHubCheckRun[] };
+      const latest = runs.toSorted((a, b) => b.id - a.id)[0];
+      if (!latest) return undefined;
+      const check: CiCheck = {
+        id: latest.id,
+        status: latest.status,
+        conclusion: latest.conclusion,
+        url: latest.html_url,
+        ...(latest.started_at ? { startedAt: latest.started_at } : {}),
+        ...(latest.completed_at ? { completedAt: latest.completed_at } : {}),
+      };
+      if (latest.status !== "completed") return check;
+      // A check run of an Actions job has the id of the job, whose
+      // `created_at` is when it joined the queue for a runner.
+      const job = JSON.parse(
+        await run(["api", `repos/${repo}/actions/jobs/${latest.id}`]),
+      ) as { created_at: string };
+      return { ...check, queuedAt: job.created_at };
+    },
+    async rerunCheck(id) {
+      await run([
+        "api",
+        "-X",
+        "POST",
+        `repos/${repo}/actions/jobs/${id}/rerun`,
+      ]);
+    },
   };
+}
+
+/** The fields of a GitHub check run that the land reads. */
+interface GitHubCheckRun {
+  id: number;
+  status: CiCheck["status"];
+  conclusion: string | null;
+  html_url: string;
+  started_at: string | null;
+  completed_at: string | null;
 }

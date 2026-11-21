@@ -4,10 +4,14 @@ import { Effect } from "effect";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
-// The one quality gate. `pnpm land` runs it on the rebased result before it
-// pushes; GitHub runs no checks of its own (ADR 0076).
-//   (no flag)   the packages the branch changed since it left `main`, and
-//               their dependents.
+// The one quality gate, in two halves: the local half (Format, Generated
+// artifacts, Lint, Typecheck, Snapshot size) and the CI half (Test, Bundle).
+// `pnpm land` runs the local half on the rebased result, and the record PR
+// runs the CI half before `main` moves (ADR 0102, record-pr.yml).
+//   (no flag)   both halves, for the packages the branch changed since it
+//               left `main`, and their dependents.
+//   --local     the local half alone; `pnpm land` passes it.
+//   --pr        the CI half alone; the record PR workflow passes it.
 //   --release   every package, the desktop End-to-end Run and worker check,
 //               the start-up gate (measure:startup --check), plus the
 //               Obsidian guideline review (ADR 0020) and the check of the
@@ -15,7 +19,8 @@ import { join } from "node:path";
 //               `release.ts` runs it in the Land Turn of the version commit,
 //               a stable hotfix before its publish, and `release.yml` before
 //               it publishes (desktop checks skip there).
-// A branch that changes only agent docs (lib/agent-docs.ts) runs Format only.
+// A branch that changes only agent docs (lib/agent-docs.ts) runs Format only,
+// and nothing with --pr.
 // Format, lint and the generated-artifact checks always cover the whole tree.
 import { $ } from "zx";
 
@@ -36,6 +41,12 @@ import {
 import { getWorkspaceRoot } from "#package-roots";
 
 const release = process.argv.includes("--release");
+const localHalf = process.argv.includes("--local");
+const prHalf = process.argv.includes("--pr");
+if ([release, localHalf, prHalf].filter(Boolean).length > 1) {
+  console.error("verify: pass one of --release, --local and --pr.");
+  process.exit(2);
+}
 const ci = process.env.GITHUB_ACTIONS === "true";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
@@ -51,7 +62,7 @@ const sh = $({ cwd: root, stdio: "inherit", env });
 // paint stops the release gate now (exit 75), not after the other steps.
 if (release && !ci) await exitUnlessDesktopPaints();
 
-await step("Format", () => sh`pnpm exec oxfmt --check`);
+if (!prHalf) await step("Format", () => sh`pnpm exec oxfmt --check`);
 
 // A branch that changes only agent docs stops here. The root lint and
 // generated-artifact tasks run for every change, so a one-line doc fix would
@@ -68,60 +79,8 @@ if (base) {
   }
 }
 
-// The `zt` template contract and the template data page generate from TS
-// sources (ADR 0015), and the Functions and methods page from the Query
-// Schema of `@zotlit/item-query`, so a commit that changes the sources
-// without the regenerated output fails here. Each generator is a Turbo task
-// with declared inputs and outputs, so an unchanged source restores its
-// output from the cache.
-await step("Generated artifacts", async () => {
-  await sh`pnpm exec turbo run @zotlit/db#generate:contract @zotlit/docs#generate:template-data @zotlit/docs#generate:query-functions`;
-  const stale = (
-    await $({
-      cwd: root,
-    })`git status --porcelain -- packages/db/src/contract/generated apps/docs/content/docs/reference/templates/data.mdx apps/docs/content/docs/reference/functions-and-methods.mdx`
-  ).stdout.trim();
-  if (stale) {
-    throw new Error(
-      `Regenerated output differs from the commit. Commit these files:\n${stale}`,
-    );
-  }
-});
-
-// `-f github` turns oxlint errors into inline annotations on the run.
-await step("Lint", () => sh`pnpm lint ${ci ? ["--", "-f", "github"] : []}`);
-
-// @zotlit/e2e stays out with the rest of the End-to-end Run.
-await step(
-  "Typecheck",
-  () =>
-    sh`pnpm exec turbo run typecheck typecheck:test typecheck:node --filter=!@zotlit/e2e ${scope}`,
-);
-
-await step(
-  "Snapshot size",
-  () => sh`node packages/scripts/scripts/snapshot-size.ts`,
-);
-
-// Each Vitest package runs its own worker pool, so a few packages at a time
-// keep a starved worker from tripping its wall-clock timeout. The hosted
-// runner has 4 vCPU: one package at a time there.
-// The step passes the Memory Gate once; each package's Vitest then skips it.
-await step("Test", async () => {
-  const admitted = await Effect.runPromise(passMemoryGateOrExit());
-  const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
-  const gated = sh({
-    env: {
-      ...env,
-      ...electron,
-      ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
-    },
-  });
-  await gated`pnpm exec turbo run test ${scope} --concurrency=${ci ? 1 : 2}`;
-  await gated`pnpm test:eval-runtime`;
-});
-
-await step("Bundle", () => sh`pnpm check:bundle`);
+if (!prHalf) await localSteps();
+if (!localHalf) await ciSteps();
 
 if (release) {
   await desktopChecks();
@@ -129,6 +88,67 @@ if (release) {
   // Each publish repository's shell, built from the packed bundle package,
   // must reproduce its plugin's release build and pass the scanner's lint.
   await step("Publish shell", () => sh`pnpm release:check-shell`);
+}
+
+/** The local half after Format. */
+async function localSteps(): Promise<void> {
+  // The `zt` template contract and the template data page generate from TS
+  // sources (ADR 0015), and the Functions and methods page from the Query
+  // Schema of `@zotlit/item-query`, so a commit that changes the sources
+  // without the regenerated output fails here. Each generator is a Turbo task
+  // with declared inputs and outputs, so an unchanged source restores its
+  // output from the cache.
+  await step("Generated artifacts", async () => {
+    await sh`pnpm exec turbo run @zotlit/db#generate:contract @zotlit/docs#generate:template-data @zotlit/docs#generate:query-functions`;
+    const stale = (
+      await $({
+        cwd: root,
+      })`git status --porcelain -- packages/db/src/contract/generated apps/docs/content/docs/reference/templates/data.mdx apps/docs/content/docs/reference/functions-and-methods.mdx`
+    ).stdout.trim();
+    if (stale) {
+      throw new Error(
+        `Regenerated output differs from the commit. Commit these files:\n${stale}`,
+      );
+    }
+  });
+
+  // `-f github` turns oxlint errors into inline annotations on the run.
+  await step("Lint", () => sh`pnpm lint ${ci ? ["--", "-f", "github"] : []}`);
+
+  // @zotlit/e2e stays out with the rest of the End-to-end Run.
+  await step(
+    "Typecheck",
+    () =>
+      sh`pnpm exec turbo run typecheck typecheck:test typecheck:node --filter=!@zotlit/e2e ${scope}`,
+  );
+
+  await step(
+    "Snapshot size",
+    () => sh`node packages/scripts/scripts/snapshot-size.ts`,
+  );
+}
+
+/** The CI half, which the record PR runs. */
+async function ciSteps(): Promise<void> {
+  // Each Vitest package runs its own worker pool, so a few packages at a time
+  // keep a starved worker from tripping its wall-clock timeout. The hosted
+  // runner has 4 vCPU: one package at a time there.
+  // The step passes the Memory Gate once; each package's Vitest then skips it.
+  await step("Test", async () => {
+    const admitted = await Effect.runPromise(passMemoryGateOrExit());
+    const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
+    const gated = sh({
+      env: {
+        ...env,
+        ...electron,
+        ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
+      },
+    });
+    await gated`pnpm exec turbo run test ${scope} --concurrency=${ci ? 1 : 2}`;
+    await gated`pnpm test:eval-runtime`;
+  });
+
+  await step("Bundle", () => sh`pnpm check:bundle`);
 }
 
 /**

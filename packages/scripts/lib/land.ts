@@ -5,6 +5,7 @@
 //     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
 //       fetch origin/main ─▶ rebase the branch onto it ─▶ gate
 //         ─▶ record: push the branch, open or update its record PR
+//         ─▶ ci: wait for the LAND_CI_CHECK check of the PR head
 //         ─▶ push HEAD:main
 //         ▲          │ main moved
 //         └──────────┘
@@ -12,8 +13,11 @@
 //       task branch on the remote
 //     after the turn: request the End-to-end Run of the new tip (lib/land-e2e.ts)
 //
-// A change lands with `pnpm verify` as its gate and a record PR on GitHub,
-// whose body is the record file that the agent wrote (LAND_RECORD_PATH).
+// A change lands with `pnpm verify --local` as its gate and a record PR on
+// GitHub, whose body is the record file that the agent wrote
+// (LAND_RECORD_PATH). The other half of `pnpm verify`, the tests and the
+// bundle budget, runs on the PR in CI (.github/workflows/record-pr.yml), and
+// `main` moves only when that check passes.
 // GitHub shows the PR as merged when `main` moves to its head. The version
 // commit of a release (`pnpm release`) lands with the release gate and no
 // record PR.
@@ -24,6 +28,7 @@
 // onto the fetched `main`, which is the tree to fix.
 
 import type { DesktopSlot } from "#desktop-slot";
+import type { LandCiRun } from "#land-queue";
 import { regex } from "arkregex";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
@@ -31,6 +36,7 @@ import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
@@ -39,6 +45,7 @@ import {
   describeLeaseEnd,
   DesktopSlotBlockedError,
   EXIT_ADMISSION_BLOCKED,
+  formatDuration,
   SILENCE_LIMIT_MS,
   throttledProgress,
 } from "#desktop-slot";
@@ -60,9 +67,13 @@ export const LAND_ATTEMPTS = 3;
 /** The branch every land pushes to. */
 const TRUNK = SOURCE_BRANCH;
 
-/** The quality gate of a change, and of the version commit of a release. */
+/**
+ * The quality gate of a change, and of the version commit of a release. A
+ * change runs the local half of `pnpm verify`; its tests and bundle budget run
+ * on the record PR in CI (LAND_CI_CHECK).
+ */
 export const LAND_GATES = {
-  change: ["pnpm", "verify"],
+  change: ["pnpm", "verify", "--local"],
   release: ["pnpm", "verify", "--release"],
 } as const satisfies Record<string, readonly [string, ...string[]]>;
 
@@ -74,6 +85,7 @@ export type LandStep =
   | "rebase"
   | "gate"
   | "record"
+  | "ci"
   | "push"
   | "lease";
 
@@ -90,6 +102,38 @@ export const LAND_RECORD_SECTIONS = [
   "Open points",
   "e2e",
 ] as const;
+
+/**
+ * The name of the CI job that a record PR runs, the job `name` in
+ * .github/workflows/record-pr.yml. GitHub shows it as a check on the PR head.
+ */
+export const LAND_CI_CHECK = "Record PR tests";
+/** How long a land waits for the check of its PR head by default. */
+export const LAND_CI_WAIT_MS = 45 * MINUTE;
+/** How often the land reads the check by default. */
+const LAND_CI_POLL_MS = 30_000;
+
+/** A run of a CI job, as GitHub shows it as a check of a commit. */
+export interface CiCheck {
+  /** The check run, which is also the id of the Actions job. */
+  id: number;
+  status:
+    | "queued"
+    | "in_progress"
+    | "completed"
+    | "waiting"
+    | "requested"
+    | "pending";
+  /** `success` once the job passed; set when the status is `completed`. */
+  conclusion: string | null;
+  /** The page of the job and its log. */
+  url: string;
+  /** When the job joined the queue for a runner. */
+  queuedAt?: string;
+  /** When a runner took the job. */
+  startedAt?: string;
+  completedAt?: string;
+}
 
 export interface RecordPullRequest {
   number: number;
@@ -114,6 +158,13 @@ export interface LandGitHub {
     pull: { title: string; body: string },
   ) => Promise<void>;
   pullRequestState: (number: number) => Promise<"OPEN" | "CLOSED" | "MERGED">;
+  /** The newest check named `name` of `commit`, if GitHub shows one. */
+  readCheck: (query: {
+    commit: string;
+    name: string;
+  }) => Promise<CiCheck | undefined>;
+  /** Run the job of a finished check again. */
+  rerunCheck: (id: number) => Promise<void>;
 }
 
 export interface LandOptions {
@@ -145,6 +196,10 @@ export interface LandOptions {
   pollMs?: number;
   /** @default LAND_ATTEMPTS */
   attempts?: number;
+  /** How long the land waits for the CI check. @default LAND_CI_WAIT_MS */
+  ciWaitMs?: number;
+  /** How often the land reads the CI check. @default 30 s */
+  ciPollMs?: number;
   /** Progress lines for the caller; the full output goes to the log. */
   say?: (line: string) => void;
 }
@@ -291,6 +346,8 @@ export async function land(options: LandOptions): Promise<LandResult> {
   let source = "";
   let attempts = 0;
   let current: LandStep = "preflight";
+  /** Each CI check that the land waited for to its end. */
+  const ciRuns: LandCiRun[] = [];
   let enqueuedAt = Temporal.Now.instant();
   const onSignal = (signal: NodeJS.Signals) => {
     sh.stop("SIGTERM");
@@ -382,13 +439,27 @@ export async function land(options: LandOptions): Promise<LandResult> {
       });
       const github = options.github;
       if (github && record) {
-        pull = await step("record", () =>
+        const opened = await step("record", () =>
           openRecord(sh, github, {
             remote,
             branch: pre.branch,
             base: to,
             record,
             say,
+          }),
+        );
+        pull = opened.pull;
+        const head = await sh.git("ci", "rev-parse", "HEAD");
+        await step("ci", () =>
+          waitForCi(github, {
+            commit: head,
+            pushed: opened.pushed,
+            waitMs: options.ciWaitMs ?? LAND_CI_WAIT_MS,
+            pollMs: options.ciPollMs ?? LAND_CI_POLL_MS,
+            say,
+            progress: (what) => turn.progress(what),
+            leaseOver: () => leaseOver,
+            runs: ciRuns,
           }),
         );
       }
@@ -471,6 +542,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
         outcome,
         ...(failedStep ? { step: failedStep } : {}),
         ...(attempts ? { attempts } : {}),
+        ...(ciRuns.length > 0 ? { ci: ciRuns } : {}),
         finishedAt: Temporal.Now.instant().toString(),
       },
       options.waitLog ?? landWaitLog(),
@@ -584,7 +656,9 @@ async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
 
 /**
  * Push HEAD to the task branch on the remote, then open its record PR, or
- * update the PR that an earlier land of the branch opened.
+ * update the PR that an earlier land of the branch opened. `pushed` is false
+ * when the branch on the remote was at HEAD already, so GitHub starts no new
+ * CI run.
  */
 async function openRecord(
   sh: Shell,
@@ -596,9 +670,9 @@ async function openRecord(
     record: LandRecord;
     say: (line: string) => void;
   },
-): Promise<RecordPullRequest> {
+): Promise<{ pull: RecordPullRequest; pushed: boolean }> {
   const { remote, branch, base, record, say } = options;
-  await sh.git(
+  const printed = await sh.git(
     "record",
     "push",
     "--force",
@@ -606,12 +680,14 @@ async function openRecord(
     remote,
     `HEAD:refs/heads/${branch}`,
   );
+  // `=` flags a ref that was up to date.
+  const pushed = !printed.split("\n").some((line) => line.startsWith("=\t"));
   try {
     const open = await github.findOpenPullRequest({ head: branch, base });
     if (open) {
       await github.editPullRequest(open.number, record);
       say(`Record PR updated: ${open.url}`);
-      return open;
+      return { pull: open, pushed };
     }
     const created = await github.createPullRequest({
       head: branch,
@@ -619,13 +695,129 @@ async function openRecord(
       ...record,
     });
     say(`Record PR opened: ${created.url}`);
-    return created;
+    return { pull: created, pushed };
   } catch (error) {
     throw new LandFailure(
       "record",
       `The record PR of ${branch} could not be opened or updated: ${(error as Error).message}`,
     );
   }
+}
+
+/**
+ * Wait for the LAND_CI_CHECK check of `commit` to finish, and fail unless it
+ * passed. Each read prints the state of the check and renews the Lease of the
+ * Land Turn. A check that failed before this land, on a head that this land
+ * did not push again, runs once more: a land again after a failed check gets
+ * a new result.
+ */
+async function waitForCi(
+  github: LandGitHub,
+  options: {
+    commit: string;
+    pushed: boolean;
+    waitMs: number;
+    pollMs: number;
+    say: (line: string) => void;
+    progress: (what: string) => void;
+    leaseOver: () => string | undefined;
+    runs: LandCiRun[];
+  },
+): Promise<void> {
+  const { commit, say } = options;
+  const name = LAND_CI_CHECK;
+  const short = commit.slice(0, 12);
+  const started = Temporal.Now.instant().epochMilliseconds;
+  /** A check that finished before this land and runs again. */
+  let rerun: number | undefined;
+  for (;;) {
+    const reason = options.leaseOver();
+    if (reason) throw leaseEnded(reason);
+    let check: CiCheck | undefined;
+    try {
+      check = await github.readCheck({ commit, name });
+    } catch (error) {
+      throw new LandFailure(
+        "ci",
+        `GitHub refused a read of the "${name}" check of ${short}: ${(error as Error).message}`,
+      );
+    }
+    if (check && check.id === rerun) check = undefined;
+    const waited = Temporal.Now.instant().epochMilliseconds - started;
+    if (
+      check?.status === "completed" &&
+      check.conclusion !== "success" &&
+      !options.pushed &&
+      rerun === undefined
+    ) {
+      say(
+        `CI "${name}" of ${short} ended ${check.conclusion} before this land, and the head is the same; running it again.`,
+      );
+      try {
+        await github.rerunCheck(check.id);
+      } catch (error) {
+        throw new LandFailure(
+          "ci",
+          `GitHub refused to run the "${name}" check of ${short} again: ${(error as Error).message}\n${check.url}`,
+        );
+      }
+      rerun = check.id;
+    } else if (check?.status === "completed") {
+      options.runs.push(ciRun(check, commit, waited));
+      say(
+        `CI "${name}" of ${short}: ${check.conclusion} after ${seconds(waited)}${queueNote(check)}.`,
+      );
+      if (check.conclusion === "success") return;
+      throw new LandFailure(
+        "ci",
+        `The CI job "${name}" ended ${check.conclusion} on ${short}. Its log: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again.`,
+      );
+    } else {
+      const state = check ? check.status.replace("_", " ") : "not started";
+      say(`CI "${name}" of ${short}: ${state} (${seconds(waited)}).`);
+      options.progress(`ci: ${state}`);
+    }
+    if (waited >= options.waitMs) {
+      throw new LandFailure(
+        "ci",
+        check
+          ? `The "${name}" check of ${short} did not finish within ${formatDuration(options.waitMs)}: ${check.url}\n${TRUNK} is unchanged. Land again.`
+          : `GitHub shows no "${name}" check for ${short} within ${formatDuration(options.waitMs)}. ${TRUNK} is unchanged. Check that the workflow of the record PR runs (.github/workflows/record-pr.yml), then land again.`,
+      );
+    }
+    await delay(options.pollMs);
+  }
+}
+
+/** The wait-log entry of a finished check. */
+function ciRun(check: CiCheck, commit: string, waitMs: number): LandCiRun {
+  const queueMs = between(check.queuedAt, check.startedAt);
+  const runMs = between(check.startedAt, check.completedAt);
+  return {
+    commit,
+    conclusion: check.conclusion ?? "unknown",
+    url: check.url,
+    waitMs,
+    ...(queueMs === undefined ? {} : { queueMs }),
+    ...(runMs === undefined ? {} : { runMs }),
+  };
+}
+
+function between(from?: string, to?: string): number | undefined {
+  return from && to
+    ? Temporal.Instant.from(to).epochMilliseconds -
+        Temporal.Instant.from(from).epochMilliseconds
+    : undefined;
+}
+
+/** How long the job waited for a runner, when GitHub shows it. */
+function queueNote(check: CiCheck): string {
+  const ms = between(check.queuedAt, check.startedAt);
+  return ms === undefined ? "" : `; the job waited ${seconds(ms)} for a runner`;
+}
+
+function seconds(ms: number): string {
+  return `${Math.round(ms / 1000)} s`;
 }
 
 /**

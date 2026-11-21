@@ -1,0 +1,42 @@
+name: Record PR
+
+# The CI half of `pnpm verify` on the record PR of a land (ADR 0102): the
+# tests of the affected packages and the bundle budget. `pnpm land` pushes the
+# task branch, opens or updates its record PR, waits for the check of this job
+# on the PR head while it holds its Land Turn, and pushes `main` to that head
+# only when the check passes. The land finds the check by the job's `name`,
+# LAND_CI_CHECK in packages/scripts/lib/land.ts: keep the two the same.
+#
+# The local half (Format, Generated artifacts, Lint, Typecheck, Snapshot size)
+# ran in the Land Turn before the push (`pnpm verify --local`).
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new head of the PR replaces the run of the old one; the land waits for
+# the check of the head it pushed.
+concurrency:
+  group: record-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Record PR tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      # The PR head is the commit that `main` moves to, so the job checks it
+      # and not GitHub's merge commit. The full history gives `verify` its
+      # affected base, the merge base with origin/main.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Tests and bundle budget
+        run: pnpm verify --pr

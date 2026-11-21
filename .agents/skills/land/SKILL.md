@@ -8,10 +8,11 @@ description: "Use when a change is done and should reach main, when a land fails
 A change reaches `main`, the one long-lived branch, only through `pnpm land`. One land at a time per machine holds the Land Turn, in the order the lands started, and in that turn it:
 
 ```text
-fetch origin/main ─▶ rebase the branch onto it ─▶ pnpm verify
-   ▲   ─▶ record: push the branch, open or update its record PR ─▶ push HEAD to main
-   │                                                                  │ main moved
-   └──────────────────────────────────────────────────────────────────┘
+fetch origin/main ─▶ rebase the branch onto it ─▶ pnpm verify --local
+   ▲   ─▶ record: push the branch, open or update its record PR
+   │   ─▶ ci: wait for the CI check of the PR head ─▶ push HEAD to main
+   │                                                      │ main moved
+   └──────────────────────────────────────────────────────┘
 then: move the local main, read the PR state; when GitHub shows it as merged,
       delete the task branch on origin; start the End-to-end Run of the new tip
       in the background
@@ -19,7 +20,7 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 1. Commit every change on the task branch. `land` refuses a tree with uncommitted or untracked files.
 2. Write the record file in the task worktree (see [The record file](#the-record-file)). `land` refuses a land without it before it pushes anything.
-3. Run `pnpm land` from the task worktree, in the background: the gate takes minutes, and the wait for the turn can take longer. Wait for it to exit.
+3. Run `pnpm land` from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. Wait for it to exit.
 4. Read the result:
    - **Exit 0:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then remove the worktree with `wt remove <branch>`.
    - **Exit 1:** a step failed. The output names the step and the path of the full log; read the log.
@@ -34,6 +35,12 @@ The record PR holds the record of the change, so the maintainer reads the change
 
 A land of a branch that has an open record PR, such as a land again after a failure, updates that PR from the record file. Edit the record file before you land again.
 
+## The CI wait
+
+The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr`). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and how long the job waited for a runner). It pushes `main` only when the check passes. `pnpm land --help` names the check and how long the land waits for it.
+
+A plain `pnpm verify` runs both halves on your machine. Run it, or the tests of the package you changed, before you land: a CI failure costs a round trip of minutes.
+
 ## A failed land
 
 The worktree stays on its branch with a clean tree.
@@ -44,6 +51,7 @@ The worktree stays on its branch with a clean tree.
 | `rebase`    | as it was                                   | `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. |
 | `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
+| `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. Fix the failure on this branch, run the failed tests locally, commit, land again. A land again with no new commit runs the failed check again. When no check showed, check that the workflow ran on the PR. |
 | `push`      | rebased; `main` moved in each attempt       | Land again.                                                                                  |
 | `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
 
