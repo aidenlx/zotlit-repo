@@ -33,8 +33,9 @@ function mount(doc: string, language: Extension) {
     parent: document.body,
   });
   // The editor's first parse stops after 20 ms, which a loaded machine
-  // overruns, and leaves the tokens past that point unnamed until a later
-  // idle callback. Finish the parse so the tokens read are the final ones.
+  // overruns, and the tokens of the partial tree can carry the wrong class
+  // until a later idle callback. Finish the parse so the tokens read are the
+  // final ones.
   forceParsing(view, view.state.doc.length, Infinity);
   return view;
 }
