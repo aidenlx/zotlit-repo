@@ -689,12 +689,20 @@ The combination of Citation and References Style and Citation Locale shared by D
 _Avoid_: citation format (omits references and locale), render settings
 
 **Pandoc Engine**:
-The Pandoc WASM binary that formats references and runs the built-in export, pinned per plugin release to one upstream release asset and its SHA-256. A user starts the download from settings; ZotLit verifies the bytes against the pin before they become the cache, stores them uncompressed and content-addressed, and shares them with every vault on the device. Uninstall reaches the whole device. The engine's absence is a normal mode, and its download, checksum, and startup failures each name themselves so one fallback surface guides the user out.
-_Avoid_: Pandoc install (Pandoc CLI is a separate, user-owned install), bundled Pandoc (the plugin never ships the binary)
+The Managed Binary that formats references and runs the built-in export: the Pandoc WASM binary, pinned to one upstream version and its SHA-256. The engine's absence is a normal mode, and each state of the Resource Pack and a failed start name themselves so one fallback surface guides the user out.
+_Avoid_: Pandoc install (Pandoc CLI is a separate, user-owned install), bundled Pandoc (ZotLit's own bundle never holds the binary; the Resource Pack does)
 
 **Managed Binary**:
-A WASM binary ZotLit depends on but never ships: pinned per plugin release to one upstream asset and its SHA-256, downloaded once the user asks from settings, verified against the pin before it becomes the cache, stored content-addressed in one device-wide store shared by every vault, and removable from the same place. Its absence is a normal mode, and its download, checksum, and startup failures each name themselves. The Pandoc Engine and the Chinese Segmenter are its two instances.
-_Avoid_: bundled binary, dependency download, plugin asset (Language Packs and schemas ship on the Resource Release instead)
+A WASM binary that ZotLit depends on and that ships in the Resource Pack, outside ZotLit's own bundle: one Pack Entry, pinned to one upstream version and its SHA-256. Its absence is a normal mode, and its states (pack absent, pack too old, pack too new, pack damaged, ready, failed to start) each name themselves. The Pandoc Engine and the Chinese Segmenter are its two instances.
+_Avoid_: dependency download (ZotLit downloads no binary), plugin asset (Language Packs and schemas ship on the Resource Release instead)
+
+**Resource Pack**:
+The third published Obsidian plugin (ZotLit Resource Pack, plugin id `zotlit-resources`), which a user installs from Obsidian's community plugins and need not turn on: its file carries the Managed Binaries as Pack Entries, and ZotLit reads them from it. It has its own version line and one compatibility number that ZotLit checks.
+_Avoid_: resource plugin, companion pack, binary pack, Resource Release (the release that carries Language Packs and schemas), Language Pack (a translation), enhancement pack
+
+**Pack Entry**:
+One named Managed Binary inside the Resource Pack, with the SHA-256 that ZotLit checks before it uses the bytes.
+_Avoid_: pack asset, pack file (the Resource Pack is one file), resource, chunk
 
 **Embedded Item Data**:
 A CSL-JSON snapshot of each cited Item, stored on the Zotero note container's `data-citation-items` attribute at citation-insertion time. The only source for cross-library cites and the fallback when the DB cannot resolve a ref; mapped into the zt item vocabulary by a schema-driven CSL→zt reverse mapping.
@@ -814,7 +822,7 @@ The searches one search surface — a picker or the Citation Suggester — asks 
 _Avoid_: search handle (names the mechanism), query session
 
 **Chinese Segmenter**:
-The Managed Binary that cuts Chinese text into search words for the Item Index: the pinned `jieba-wasm` binary, loaded inside the ZoteroReads worker for indexing and for queries. Optional; without it, Chinese runs segment through the browser's own word segmentation.
+The Managed Binary that cuts Chinese text into search words for the Item Index: the pinned `jieba-wasm` binary, a Pack Entry of the Resource Pack, loaded inside the ZoteroReads worker for indexing and for queries. Optional; without it, Chinese runs segment through the browser's own word segmentation.
 _Avoid_: jieba plugin, cm-chs-patch (a separate third-party plugin ZotLit no longer reads), tokenizer (the whole word-splitting step, of which the segmenter is one part)
 
 **Citekey Resolution Snapshot**:
