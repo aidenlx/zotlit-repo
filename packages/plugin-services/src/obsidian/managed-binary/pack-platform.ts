@@ -1,6 +1,7 @@
 // The platform boundary of a Managed Binary that ships in the Resource Pack:
 // where the installed pack is, and the read of one Pack Entry from it.
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, PubSub, Stream } from "effect";
+import type { Scope } from "effect";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { fetchRange } from "@zotlit/resource-pack/fetch-range.ts";
@@ -32,12 +33,19 @@ export interface ResourcePackHostPorts {
   locate(): PackLocation | null;
   /** The read capability over the pack file at `url`. */
   open(url: string): ReadRange;
+  /**
+   * Calls `listener` each time Obsidian installs, updates or removes the
+   * pack, until the function it answers is called.
+   */
+  watch(listener: () => void): () => void;
 }
 
 export interface ResourcePackPorts {
   readonly locate: Effect.Effect<PackLocation | null>;
   /** One read of the Pack Entry `name`: its verified bytes, or why the pack gave none. */
   readEntry(location: PackLocation, name: string): Effect.Effect<PackRead>;
+  /** One element each time Obsidian installs, updates or removes the pack. */
+  readonly changes: Stream.Stream<void>;
 }
 
 export class ResourcePackPlatform extends Context.Service<
@@ -45,10 +53,22 @@ export class ResourcePackPlatform extends Context.Service<
   ResourcePackPorts
 >()("zotlit/managed-binary/ResourcePackPlatform") {}
 
-/** Wrap the host APIs once, at their boundary. */
-export function resourcePackPorts(
+/** Wrap the host APIs once, at their boundary; the watch lives on the Scope. */
+export const resourcePackPorts = Effect.fnUntraced(function* (
   host: ResourcePackHostPorts,
-): ResourcePackPorts {
+): Effect.fn.Return<ResourcePackPorts, never, Scope.Scope> {
+  const changed = yield* Effect.acquireRelease(
+    PubSub.unbounded<void>(),
+    (bus) => PubSub.shutdown(bus),
+  );
+  yield* Effect.acquireRelease(
+    Effect.sync(() =>
+      host.watch(() => {
+        PubSub.publishUnsafe(changed, undefined);
+      }),
+    ),
+    (stop) => Effect.sync(stop),
+  );
   return {
     locate: Effect.sync(() => host.locate()),
     readEntry: Effect.fn("ResourcePackPlatform.readEntry")(
@@ -56,28 +76,47 @@ export function resourcePackPorts(
         // boundary: the pack reader answers each failure as a value.
         Effect.promise(() => readPackEntry(host.open(location.url), name)),
     ),
+    changes: Stream.fromPubSub(changed),
   };
-}
+});
 
 /**
  * The platform over Obsidian's installed plugins and `fetch`. Obsidian adds
  * the time of the call to the resource URL of a file outside the vault's
  * index, so the location drops that part and stays equal between calls.
+ *
+ * Obsidian reads the manifest of a plugin again when it installs or updates
+ * it, and drops the manifest when it uninstalls it, then reports a change of
+ * its plugins. The same report follows each plugin turned on or off, so the
+ * watch passes on only a report that finds another manifest of the pack.
  */
 export const layerResourcePackPlatform = Layer.effect(
   ResourcePackPlatform,
   Effect.gen(function* () {
     const app = yield* ObsidianApp;
-    return resourcePackPorts({
+    const manifest = () => app.plugins.manifests[RESOURCE_PACK_ID];
+    return yield* resourcePackPorts({
+      watch: (listener) => {
+        let seen = manifest();
+        const ref = app.plugins.on("changed", () => {
+          const next = manifest();
+          if (next === seen) return;
+          seen = next;
+          listener();
+        });
+        return () => {
+          app.plugins.offref(ref);
+        };
+      },
       locate: () => {
-        const manifest = app.plugins.manifests[RESOURCE_PACK_ID];
-        if (!manifest?.dir) return null;
+        const installed = manifest();
+        if (!installed?.dir) return null;
         const url = app.vault.adapter.getResourcePath(
-          `${manifest.dir}/main.js`,
+          `${installed.dir}/main.js`,
         );
         const query = url.lastIndexOf("?");
         return {
-          version: manifest.version,
+          version: installed.version,
           url: query < 0 ? url : url.slice(0, query),
         };
       },

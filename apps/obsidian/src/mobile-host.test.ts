@@ -44,6 +44,8 @@ const base = Layer.mergeAll(
     stubService<App>("App", {
       loadLocalStorage: () => null,
       saveLocalStorage: () => {},
+      // No plugin is installed beside the host, and none changes.
+      plugins: Object.assign(new Events(), { plugins: {}, manifests: {} }),
       secretStorage: stubService<SecretStorage>("SecretStorage", {
         getSecret: () => null,
         setSecret: () => {},

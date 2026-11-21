@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Fiber, Layer, Queue, Stream } from "effect";
@@ -38,9 +39,11 @@ import {
   layerProfileStyles,
 } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
 import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -49,6 +52,7 @@ import type {
   PackBinaryApi,
   PackBinaryStatus,
 } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
+import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
@@ -74,6 +78,7 @@ it.effect.each(["Profile", "preference override"] as const)(
             Layer.provide(Layer.succeedContext(dependencies)),
             Layer.provide(Layer.succeed(ZoteroPref, pref)),
             Layer.provide(layerQueryClients),
+            Layer.provide(testNotifier().layer),
             Layer.provide(NodeFileSystem.layer),
             Layer.provide(
               Layer.succeed(
@@ -206,6 +211,55 @@ it.effect("a late native subscriber sees the unavailable selected style", () =>
       },
     ]);
   }),
+);
+
+it.effect(
+  "names the Resource Pack once when renders find no engine in the pack",
+  () =>
+    Effect.gen(function* () {
+      const h = yield* harnessOf();
+      h.pandocEngine.setStatus({ kind: "pack-absent" });
+
+      yield* Effect.promise(() =>
+        h.cache.bridge.runPromise(h.cache.render([item("alpha")])),
+      );
+      yield* Effect.promise(() =>
+        h.cache.bridge.runPromise(
+          h.cache.renderCitations(["[@alpha]"], [item("alpha")]),
+        ),
+      );
+
+      expect(
+        h.cache.notices.map(
+          ({ messages }) => (messages[0] as DocumentFragment).textContent,
+        ),
+      ).toEqual([
+        m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
+      ]);
+    }),
+);
+
+it.effect(
+  "names the plugin to update when the first read of the pack gives a render no engine",
+  () =>
+    Effect.gen(function* () {
+      const h = yield* harnessOf();
+      h.pandocEngine.setStatus(null);
+      h.pandocEngine.refuseFirstRead({ kind: "pack-outdated" });
+
+      yield* Effect.promise(() =>
+        h.cache.bridge.runPromise(h.cache.render([item("alpha")])),
+      );
+
+      expect(
+        h.cache.notices.map(
+          ({ messages }) => (messages[0] as DocumentFragment).textContent,
+        ),
+      ).toEqual([
+        m.notice_resource_pack() +
+          m.settings_resource_pack_status_pack_outdated(),
+      ]);
+    }),
 );
 
 it.effect("released reads retain the engine-absent outcome", () =>
@@ -439,23 +493,39 @@ function citationValue(outcome: CitationRenderOutcome) {
 
 class PandocEngineStub {
   readonly engine = new EngineStub();
-  #status: PackBinaryStatus = { kind: "ready", version: "3.10" };
+  #status: PackBinaryStatus | null = { kind: "ready", version: "3.10" };
   readonly #events = testEvent<void>();
   readonly binary = stubService<PackBinaryApi<CitationEngine>>("PandocEngine", {
     current: Effect.sync(() => this.#status),
-    getEngine: Effect.promise(() => Promise.resolve(this.engine)),
+    getEngine: Effect.suspend(() => {
+      const refusal = this.#refusal;
+      if (!refusal) return Effect.promise(() => Promise.resolve(this.engine));
+      this.setStatus(refusal);
+      return Effect.fail(
+        new ManagedBinaryError({ message: `No engine: ${refusal.kind}` }),
+      );
+    }),
     changes: Stream.suspend(() =>
       this.#events.stream.pipe(
         Stream.map(() => this.#status),
         Stream.prepend([this.#status]),
+        // No status is stated while the installed pack is unread.
+        Stream.filter((status) => status !== null),
       ),
     ),
   });
   readonly runSync = Effect.runSync;
   readonly runPromise = Effect.runPromise;
 
+  #refusal: PackBinaryStatus | null = null;
+
+  /** The installed pack is unread, and its first read will give `refusal`. */
+  refuseFirstRead(refusal: PackBinaryStatus): void {
+    this.#refusal = refusal;
+  }
+
   /** A read of the pack that gives another status wakes the subscribers. */
-  setStatus(status: PackBinaryStatus): void {
+  setStatus(status: PackBinaryStatus | null): void {
     this.#status = status;
     this.#events.emit();
   }

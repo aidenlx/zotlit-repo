@@ -124,7 +124,7 @@ export const platform = extendFeature(platformBase, {
       "ItemLookup",
       {
         provides: [ItemLookup],
-        requires: [ZoteroReads, LibraryScope, UseLedger],
+        requires: [ZoteroReads, LibraryScope, UseLedger, ChineseSegmenter],
       },
       layerItemLookup,
     ),

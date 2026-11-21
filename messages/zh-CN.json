@@ -1770,6 +1770,7 @@
   "settings_resource_pack_status_ready": "已就绪，来自 ZotLit Resource Pack {version}。",
   "settings_resource_pack_status_failed": "未能启动：{detail}",
   "settings_resource_pack_open": "在第三方插件中打开",
+  "notice_resource_pack": "ZotLit 无法使用 Pandoc 引擎和中文分词器。",
   "settings_advanced_template_engine_heading": "模板引擎",
   "settings_advanced_local_server_heading": "本地服务器",
   "settings_advanced_logging_heading": "日志",

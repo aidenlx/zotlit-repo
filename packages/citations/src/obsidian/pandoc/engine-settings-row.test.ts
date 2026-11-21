@@ -8,10 +8,7 @@ import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { button } from "@zotlit/plugin-services/__fixtures__/managed-binary-rows.ts";
-import {
-  ResourcePackPlatform,
-  resourcePackPorts,
-} from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { layerPackDevice } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import {
   packDevice,
   packFile,
@@ -31,12 +28,7 @@ afterEach(() => {
 const engineRow = Effect.fnUntraced(function* (file: Uint8Array | null) {
   const services = yield* Layer.build(
     layerPandocEngine.pipe(
-      Layer.provide(
-        Layer.succeed(
-          ResourcePackPlatform,
-          resourcePackPorts(packDevice(file, "1.2.0")),
-        ),
-      ),
+      Layer.provide(layerPackDevice(packDevice(file, "1.2.0"))),
     ),
   );
   const { tab } = yield* scopedSettingTab(services);

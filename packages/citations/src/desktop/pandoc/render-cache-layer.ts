@@ -25,10 +25,13 @@ import {
 } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { packNotice } from "@zotlit/plugin-services/obsidian/managed-binary/pack-notice.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -69,6 +72,24 @@ export const layerBibliographyRender = Layer.effect(
     const queries = yield* QueryClients;
     const scope = yield* Scope.Scope;
     const { runPromise } = yield* scopedBridge;
+    const noticeServices = yield* Effect.context<DeviceStorage | Notifier>();
+    /**
+     * A render that gets no engine tells the researcher once which plugin
+     * gives it; the render itself answers without the notice.
+     */
+    const noticeRefusal = Effect.suspend(() => engine.current).pipe(
+      Effect.flatMap((status) => packNotice(status)),
+      Effect.catchCause((cause) =>
+        Cause.hasInterruptsOnly(cause)
+          ? Effect.interrupt
+          : Effect.logDebug("Could not show the Resource Pack notice", cause),
+      ),
+      Effect.provide(noticeServices),
+    );
+    /** The engine for one render; a refused borrow shows the notice. */
+    const borrowEngine = Effect.suspend(() => engine.getEngine).pipe(
+      Effect.tapError(() => noticeRefusal),
+    );
     const styles = new InstalledStyleCache();
     const fileSystem = yield* FileSystem.FileSystem;
     let closed = false;
@@ -185,8 +206,10 @@ export const layerBibliographyRender = Layer.effect(
 
     const prepare = Effect.fn("BibliographyRender.prepare")(
       function* (presentation: RenderPresentation | undefined) {
-        if (!engineUsable(yield* engine.current))
+        if (!engineUsable(yield* engine.current)) {
+          yield* noticeRefusal;
           return { reason: "engine-absent" } as const;
+        }
         const selected = (yield* SubscriptionRef.get(state)).vaultPresentation;
         const request = effectivePresentation(presentation ?? {}, selected);
         const dataDir = (yield* pref.current).dataDir;
@@ -218,7 +241,7 @@ export const layerBibliographyRender = Layer.effect(
       function* (items: readonly CslItemData[], style: RenderStyle) {
         if (items.length === 0) return { entries: [], hasEntryMarkers: false };
         const presentation = enginePresentation(style);
-        const active = yield* engine.getEngine;
+        const active = yield* borrowEngine;
         if (!active) return { entries: [], hasEntryMarkers: false };
         const entries = yield* Effect.tryPromise({
           try: () => active.renderBibliography({ items, ...presentation }),
@@ -246,7 +269,7 @@ export const layerBibliographyRender = Layer.effect(
         style: RenderStyle,
       ) {
         if (citations.length === 0) return [];
-        const active = yield* engine.getEngine;
+        const active = yield* borrowEngine;
         if (!active) return [];
         const rendered = yield* Effect.tryPromise({
           try: () =>

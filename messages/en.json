@@ -751,6 +751,7 @@
   "settings_resource_pack_status_ready": "Ready, from ZotLit Resource Pack {version}.",
   "settings_resource_pack_status_failed": "It did not start: {detail}",
   "settings_resource_pack_open": "Open in Community plugins",
+  "notice_resource_pack": "ZotLit cannot use the Pandoc engine and the Chinese segmenter.",
   "settings_advanced_template_engine_heading": "Template engine",
   "settings_advanced_local_server_heading": "Local server",
   "settings_advanced_logging_heading": "Logging",

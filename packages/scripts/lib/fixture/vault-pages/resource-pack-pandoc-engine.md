@@ -15,8 +15,10 @@ The row reads the pack each time it is shown: close and open the Citations page
 after each change of the pack. A render or an export reads the pack when it
 first asks for the engine. To change the pack file, edit
 `.obsidian/plugins/zotlit-resources/main.js` in the vault folder; to restore
-it, run the build and open the vault again. To remove the pack, delete its
-folder and restart Obsidian.
+it, run the build and open the vault again. To remove the pack, uninstall it
+in **Settings → Community plugins**. The page `resource-pack-session.md` has
+the cases in which Obsidian installs, updates or uninstalls the pack while it
+runs, and the notice.
 
 ## The row
 
@@ -27,7 +29,7 @@ folder and restart Obsidian.
 | Remove the pack, then open the row. | The row says the ZotLit Resource Pack plugin is not installed, and that until then references stay a plain list and the built-in export does not run. |
 | Select **Open in Community plugins**. | Obsidian's community plugin browser opens on the page of ZotLit Resource Pack (`obsidian://show-plugin?id=zotlit-resources`). |
 | In the pack file, change `"compat":1` on line 1 to `"compat":0`. Open the row. | The row says the installed pack is too old and asks you to update ZotLit Resource Pack. |
-| Change the value to `"compat":2`. Open the row. | The row says the installed pack is too new and asks you to update ZotLit. |
+| Change the value to `"compat":2`. Open the row. | The row says the installed pack is too new and asks you to update ZotLit. **Open in Community plugins** now opens the page of ZotLit (`obsidian://show-plugin?id=zotlit`). |
 | Restore `"compat":1`, then change one letter in the last long line of the file. Open the row. | The row says the file of ZotLit Resource Pack is damaged and asks you to uninstall it and install it again. |
 | Write a pack that has no `pandoc-engine` entry (command B on the page `resource-pack-chinese-segmenter.md`). Open the row. | The row says the installed pack is too old and asks you to update ZotLit Resource Pack. |
 | Write a pack whose `pandoc-engine` entry is not a WebAssembly module (command A on that page, with `pandoc-engine` as the last argument). Open the row. | The row says **Ready**: a status read does not start the engine. Run the export below: its notice says **It did not start:** and the reason. Open the row again: it says the same. |
@@ -39,6 +41,7 @@ folder and restart Obsidian.
 | With the pack installed, turn the network off. Open this page and run **ZotLit: Export note with citations**. Choose **HTML** and select **Export**. | The completion notice names `resource-pack-pandoc-engine.html` and the style. The file is next to this page and holds the formatted citation of Hensher 2011. Nothing is downloaded. |
 | With no pack, run **ZotLit: Export note with citations**. | No dialog opens. A notice says that the built-in export needs the Pandoc engine of the ZotLit Resource Pack plugin, and that the plugin is not installed. Its button **Open in Community plugins** opens the page of ZotLit Resource Pack. |
 | With a pack that is too old, too new or damaged, and not yet read in this session, run the export and select **Export**. | The dialog opens. After **Export**, the notice names the Resource Pack and gives the sentence of that state, the same as on the row. A second run gives the notice with no dialog. |
+| With a pack that is too new, select **Open in Community plugins** in that notice. | Obsidian opens the page of ZotLit (`obsidian://show-plugin?id=zotlit`), the plugin to update. For the other states the button opens the page of ZotLit Resource Pack. |
 
 ## References and the Template Workbench preview
 

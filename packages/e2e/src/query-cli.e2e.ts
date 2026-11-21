@@ -28,6 +28,7 @@ import {
 import { openProfilesSettings } from "./e2e-run-helpers.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import {
+  PACK_NOTICE_KEY,
   RESOURCE_PACK_ID,
   addMyLibraryItems,
   SYNTHETIC_CORPUS_SIZE,
@@ -2201,8 +2202,18 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     cleanup.defer(async () => {
       await obRun(
         run.vaultId,
-        async ({ app, zotlit, page: pageHelpers }, { RESOURCE_PACK_ID }) => {
+        async (
+          { app, zotlit, page: pageHelpers },
+          { RESOURCE_PACK_ID, noticeKey, title },
+        ) => {
           app.setting.close();
+          // The searches below need the Segmenter, so the vault shows the
+          // notice of the missing pack; the next case starts without it.
+          for (const notice of document.querySelectorAll<HTMLElement>(
+            ".notice",
+          ))
+            if (notice.textContent.includes(title)) notice.click();
+          app.saveLocalStorage(noticeKey, null);
           const manifest = pageHelpers.scratch.zotlitE2EPackManifest;
           if (manifest) app.plugins.manifests[RESOURCE_PACK_ID] = manifest;
           delete pageHelpers.scratch.zotlitE2EPackManifest;
@@ -2210,7 +2221,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             zotlit.services.chineseSegmenter.binary.check,
           );
         },
-        { RESOURCE_PACK_ID },
+        {
+          RESOURCE_PACK_ID,
+          noticeKey: PACK_NOTICE_KEY,
+          title: run.m.notice_resource_pack(),
+        },
       );
     });
 
@@ -2304,6 +2319,263 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(true);
   }, 180_000);
+
+  it("follows the Resource Pack that Obsidian updates, uninstalls and installs during the session, and names the plugin to install or update once per state", async () => {
+    await using cleanup = new AsyncDisposableStack();
+    const segmenterRow = run.m.settings_chinese_segmenter_name();
+    const packVersion = await obRun(
+      run.vaultId,
+      ({ app }, { RESOURCE_PACK_ID }) =>
+        app.plugins.manifests[RESOURCE_PACK_ID]!.version,
+      { RESOURCE_PACK_ID },
+    );
+    /** The status the open Chinese segmenter row shows. */
+    const rowShows = async (expected: string, what: string) => {
+      await obRunUntil(
+        run.vaultId,
+        async ({ app }, { rowName }) => {
+          const row = Array.from(
+            app.setting.containerEl.querySelectorAll(".setting-item"),
+          ).find(
+            (el) =>
+              el.querySelector(".setting-item-name")?.textContent === rowName,
+          );
+          return row?.querySelector("[role=status]")?.textContent ?? "";
+        },
+        { rowName: segmenterRow },
+        { ready: (value) => value === expected, what },
+      );
+    };
+    /** Whether a word inside the Chinese title finds its Item. */
+    const wordInsideHits = async (expected: boolean, what: string) => {
+      await obRunUntil(
+        run.vaultId,
+        async ({ zotlit }, { searchTerm, firstItemID }) => {
+          const hits = await zotlit.services.itemLookup.search(searchTerm);
+          return hits.some(function (hit) {
+            return hit.item.itemID === firstItemID;
+          });
+        },
+        { searchTerm: "流域", firstItemID: CHINESE_TITLE_ITEM.itemID },
+        { ready: (value) => value === expected, what },
+      );
+    };
+    /** What a Resource Pack notice says after its title: the sentence, then its action. */
+    const noticeOf = (sentence: string) =>
+      sentence + run.m.settings_resource_pack_open();
+    /** The Resource Pack notices on screen, by their text after the title. */
+    const packNotices = async (count: number, what: string) =>
+      await obRunUntil(
+        run.vaultId,
+        async (_, { title }) => {
+          return [...document.querySelectorAll<HTMLElement>(".notice")]
+            .map((notice) => notice.textContent)
+            .filter((text) => text.includes(title))
+            .map((text) => text.slice(text.indexOf(title) + title.length));
+        },
+        { title: run.m.notice_resource_pack() },
+        { ready: (value) => value.length === count, what },
+      );
+
+    // The vault has shown no notice of the pack, and holds the built pack.
+    await obRun(
+      run.vaultId,
+      async ({ app, page: pageHelpers }, { RESOURCE_PACK_ID, noticeKey }) => {
+        const dir = app.plugins.manifests[RESOURCE_PACK_ID]!.dir!;
+        pageHelpers.scratch.zotlitE2EPackFile =
+          await app.vault.adapter.readBinary(`${dir}/main.js`);
+        pageHelpers.scratch.zotlitE2EPackManifest =
+          app.plugins.manifests[RESOURCE_PACK_ID];
+        app.saveLocalStorage(noticeKey, null);
+      },
+      { RESOURCE_PACK_ID, noticeKey: PACK_NOTICE_KEY },
+    );
+    cleanup.defer(async () => {
+      await obRun(
+        run.vaultId,
+        async ({ app, zotlit, page: pageHelpers }, { noticeKey, title }) => {
+          app.setting.close();
+          for (const notice of document.querySelectorAll<HTMLElement>(
+            ".notice",
+          ))
+            if (notice.textContent.includes(title)) notice.click();
+          app.saveLocalStorage(noticeKey, null);
+          const manifest = pageHelpers.scratch.zotlitE2EPackManifest;
+          const file = pageHelpers.scratch.zotlitE2EPackFile;
+          delete pageHelpers.scratch.zotlitE2EPackManifest;
+          delete pageHelpers.scratch.zotlitE2EPackFile;
+          if (!manifest?.dir || !file) return;
+          await app.vault.adapter.writeBinary(`${manifest.dir}/main.js`, file);
+          await app.plugins.loadManifest(manifest.dir);
+          app.plugins.didChange();
+          await zotlit.services.chineseSegmenter.runPromise(
+            zotlit.services.chineseSegmenter.binary.check,
+          );
+        },
+        { noticeKey: PACK_NOTICE_KEY, title: run.m.notice_resource_pack() },
+      );
+    });
+
+    await openProfilesSettings(run.vaultId, "settings_page_zotero");
+    await rowShows(
+      run.m.settings_resource_pack_status_ready({ version: packVersion }),
+      "the Chinese segmenter row to show the installed pack as ready",
+    );
+    await wordInsideHits(
+      true,
+      "a word inside the Chinese title to find its item with the installed pack",
+    );
+
+    // Update: a pack that this ZotLit is too old to read takes the place of
+    // the file, and Obsidian reads its manifest again and reports the change,
+    // the two steps that end its own install of a plugin. A file copy alone
+    // raises no report.
+    await obRun(
+      run.vaultId,
+      async ({ app, page: pageHelpers }, { RESOURCE_PACK_ID }) => {
+        const dir = app.plugins.manifests[RESOURCE_PACK_ID]!.dir!;
+        const newer = new Uint8Array(
+          pageHelpers.scratch.zotlitE2EPackFile!.slice(0),
+        );
+        // The index is the first line; its compatibility integer goes up by one.
+        const field = new TextEncoder().encode('"compat":');
+        const at = newer.findIndex((_, start) =>
+          field.every((byte, offset) => newer[start + offset] === byte),
+        );
+        newer[at + field.length]! += 1;
+        await app.vault.adapter.writeBinary(`${dir}/main.js`, newer.buffer);
+        await app.plugins.loadManifest(dir);
+        app.plugins.didChange();
+      },
+      { RESOURCE_PACK_ID },
+      { timeoutMs: 60_000 },
+    );
+    await rowShows(
+      `${run.m.settings_resource_pack_status_plugin_outdated()} ${run.m.settings_chinese_segmenter_fallback()}`,
+      "the open Chinese segmenter row to name ZotLit as the plugin to update, with no restart",
+    );
+    // The Pandoc engine stands on the same pack.
+    expect(
+      await obRunUntil(
+        run.vaultId,
+        async ({ zotlit }) => {
+          const status = await zotlit.services.pandocEngine.runPromise(
+            zotlit.services.pandocEngine.binary.current,
+          );
+          return status?.kind ?? null;
+        },
+        undefined,
+        {
+          ready: (value) => value === "plugin-outdated",
+          what: "the Pandoc engine to state the pack as too new",
+        },
+      ),
+    ).toBe("plugin-outdated");
+    // The row's action opens ZotLit's page, the plugin to update.
+    expect(
+      await obRun(
+        run.vaultId,
+        async ({ app, page }, { rowName, actionLabel }) => {
+          const row = Array.from(
+            app.setting.containerEl.querySelectorAll(".setting-item"),
+          ).find(
+            (el) =>
+              el.querySelector(".setting-item-name")?.textContent === rowName,
+          );
+          const native = window.open;
+          const opened: string[] = [];
+          window.open = (url) => {
+            opened.push(String(url));
+            return null;
+          };
+          try {
+            page.press(
+              Array.from(row?.querySelectorAll("button") ?? []).find(
+                (el) => el.textContent === actionLabel,
+              ),
+              "Resource Pack action",
+            );
+          } finally {
+            window.open = native;
+          }
+          return opened;
+        },
+        {
+          rowName: segmenterRow,
+          actionLabel: run.m.settings_resource_pack_open(),
+        },
+      ),
+    ).toEqual(["obsidian://show-plugin?id=zotlit"]);
+    // Two searches of Chinese text need the Segmenter: one notice.
+    await wordInsideHits(
+      true,
+      "the search of Chinese text to answer while the pack is too new",
+    );
+    await wordInsideHits(true, "the second search of Chinese text to answer");
+    expect(
+      await packNotices(1, "one notice for the pack that is too new"),
+    ).toEqual([
+      noticeOf(run.m.settings_resource_pack_status_plugin_outdated()),
+    ]);
+
+    // Uninstall: Obsidian drops the manifest and reports the change.
+    await obRun(
+      run.vaultId,
+      async ({ app }, { RESOURCE_PACK_ID }) => {
+        delete app.plugins.manifests[RESOURCE_PACK_ID];
+        app.plugins.didChange();
+      },
+      { RESOURCE_PACK_ID },
+    );
+    await rowShows(
+      `${run.m.settings_resource_pack_status_absent()} ${run.m.settings_chinese_segmenter_fallback()}`,
+      "the open Chinese segmenter row to show that no pack is installed, with no restart",
+    );
+    await wordInsideHits(
+      false,
+      "the word inside the Chinese title to stop matching once the pack is gone",
+    );
+    expect(
+      await packNotices(2, "a second notice, for the missing pack"),
+    ).toEqual([
+      noticeOf(run.m.settings_resource_pack_status_plugin_outdated()),
+      noticeOf(run.m.settings_resource_pack_status_absent()),
+    ]);
+
+    // Install: the built pack comes back the way Obsidian installs it.
+    await obRun(
+      run.vaultId,
+      async ({ app, page: pageHelpers }) => {
+        const dir = pageHelpers.scratch.zotlitE2EPackManifest!.dir!;
+        await app.vault.adapter.writeBinary(
+          `${dir}/main.js`,
+          pageHelpers.scratch.zotlitE2EPackFile!,
+        );
+        await app.plugins.loadManifest(dir);
+        app.plugins.didChange();
+      },
+      undefined,
+      { timeoutMs: 60_000 },
+    );
+    await rowShows(
+      run.m.settings_resource_pack_status_ready({ version: packVersion }),
+      "the open Chinese segmenter row to show the installed pack as ready again, with no restart",
+    );
+    await wordInsideHits(
+      true,
+      "a word inside the Chinese title to find its item again with the installed pack",
+    );
+    // A ready pack shows no notice, and each state showed its notice once.
+    expect(
+      await obRun(
+        run.vaultId,
+        ({ app }, { noticeKey }) =>
+          app.loadLocalStorage(noticeKey) as string[] | null,
+        { noticeKey: PACK_NOTICE_KEY },
+      ),
+    ).toEqual(["plugin-outdated", "pack-absent"]);
+    expect(await packNotices(2, "no further notice")).toHaveLength(2);
+  }, 300_000);
 
   it("writes the database worker's log records to the plugin's log file at the configured level", async () => {
     /** Note where the log file ends, then refresh the database. */

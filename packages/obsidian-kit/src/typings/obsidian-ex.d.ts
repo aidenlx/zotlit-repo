@@ -510,6 +510,12 @@ declare module "obsidian" {
     plugins: {
       plugins: Record<string, unknown>;
       manifests: Record<string, PluginManifest>;
+      /**
+       * A plugin was installed, updated, uninstalled, turned on or turned
+       * off. An install or an update puts a new object in `manifests`.
+       */
+      on(name: "changed", callback: () => unknown): EventRef;
+      offref(ref: EventRef): void;
     };
     internalPlugins: {
       /** The enabled core plugin instance, or null when disabled/absent. */

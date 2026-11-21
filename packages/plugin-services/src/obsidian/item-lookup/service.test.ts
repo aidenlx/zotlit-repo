@@ -1,3 +1,5 @@
+import type { ResourcePackHostPorts } from "#obsidian/managed-binary/pack-platform.ts";
+// @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import {
   Context,
@@ -14,6 +16,10 @@ import { isDeepStrictEqual } from "node:util";
 import { describe, expect } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
+import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 import {
   inProcessClient,
   memoryOpener,
@@ -30,9 +36,66 @@ import {
 import { ItemLookup } from "./service.ts";
 import type { SearchHit } from "./service.ts";
 
+import { layerChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
+import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
+import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
+
 const keys = (hits: readonly SearchHit[]) => hits.map((hit) => hit.item.key);
 
 describe("ItemLookup", () => {
+  it.effect(
+    "names the Resource Pack once when a search of Chinese text finds no pack",
+    () =>
+      Effect.gen(function* () {
+        const reads = yield* readsOver(() => seed(perLibraryRows()));
+        const { lookup, notices } = yield* lookupOver(
+          reads,
+          [library(USER_LIBRARY_ID)],
+          packDevice(null),
+        );
+
+        yield* lookup.search("Alpha");
+        expect(notices()).toEqual([]);
+        yield* lookup.search("长江");
+        yield* lookup.search("流域");
+
+        yield* eventually(() =>
+          expect(notices()).toEqual([
+            m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
+          ]),
+        );
+      }),
+  );
+
+  it.effect(
+    "reads the installed pack at the first search of Chinese text, and names the plugin to update when the pack is too new",
+    () =>
+      Effect.gen(function* () {
+        const reads = yield* readsOver(() => seed(perLibraryRows()));
+        const { lookup, notices } = yield* lookupOver(
+          reads,
+          [library(USER_LIBRARY_ID)],
+          packDevice(
+            yield* Effect.promise(() =>
+              packFile(
+                { "chinese-segmenter": new Uint8Array([0]) },
+                PACK_COMPAT + 1,
+              ),
+            ),
+          ),
+        );
+
+        yield* lookup.search("长江");
+
+        yield* eventually(() =>
+          expect(notices()).toEqual([
+            m.notice_resource_pack() +
+              m.settings_resource_pack_status_plugin_outdated(),
+          ]),
+        );
+      }),
+  );
+
   it.effect("answers through SearchItems with the Library Scope's ids", () =>
     Effect.gen(function* () {
       const reads = yield* readsOver(() => seed(perLibraryRows()));
@@ -465,12 +528,28 @@ describe("ItemLookup", () => {
 const lookupOver = Effect.fnUntraced(function* (
   reads: ObservedReads,
   libraries: readonly AvailableLibrary[] | null = [library(USER_LIBRARY_ID)],
+  pack?: ResourcePackHostPorts,
 ) {
   const state = yield* SubscriptionRef.make(scopeState(libraries));
+  const notifier = testNotifier();
   const context = yield* Layer.build(
-    layerTestItemLookup(reads.client, layerLibraryScopeOf(state)),
+    layerTestItemLookup(reads.client, layerLibraryScopeOf(state), {
+      notifier: notifier.layer,
+      ...(pack
+        ? {
+            segmenter: layerChineseSegmenter.pipe(
+              Layer.provide(layerPackDevice(pack)),
+            ),
+          }
+        : {}),
+    }),
   );
   return {
+    /** The text of each notice shown, the first one first. */
+    notices: () =>
+      notifier.notices.map(
+        ({ messages }) => (messages[0] as DocumentFragment).textContent,
+      ),
     lookup: Context.get(context, ItemLookup),
     setLibraries: (next: readonly AvailableLibrary[]) =>
       Effect.gen(function* () {

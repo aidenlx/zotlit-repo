@@ -2,6 +2,9 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 /** The real bibliography layer over the dependency ports used by consumer fixtures. */
 import { Context, Effect, Layer, Stream } from "effect";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
+import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -89,10 +92,13 @@ export async function bibliographyRenderFixture(
         }),
       )
     : layerQueryClients;
+  const notifier = testNotifier();
   const layer = layerBibliographyRender.pipe(
     Layer.provide(
       Layer.mergeAll(
         queryLayer,
+        notifier.layer,
+        layerDeviceStorageFrom(new MemoryDeviceStorage()),
         NodeFileSystem.layer,
         Layer.succeed(
           ProfileStyles,
@@ -145,6 +151,8 @@ export async function bibliographyRenderFixture(
   return Object.assign(cache, {
     runtime,
     bridge: effectBridge(runtime),
+    /** Each notice the layer showed, the first one first. */
+    notices: notifier.notices,
     [Symbol.asyncDispose]: () => owned.disposeAsync(),
   });
 }

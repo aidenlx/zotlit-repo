@@ -61,6 +61,9 @@ export function layerSegmenterJieba(
 
 const CJK_RUN = /([\u4e00-\u9fa5]+)/u;
 
+/** Whether `text` holds a run that the Chinese Segmenter cuts. */
+export const hasChineseRun = (text: string): boolean => CJK_RUN.test(text);
+
 /**
  * `cut_for_search` sees each whole CJK run, so it can emit both a compound and
  * its parts (`长江大桥`, `长江`, `大桥`); `Intl.Segmenter` would cut the run first.

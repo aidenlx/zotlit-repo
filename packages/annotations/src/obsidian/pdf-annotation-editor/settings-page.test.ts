@@ -68,7 +68,12 @@ const statusRow = Effect.fnUntraced(function* (options: {
       layerReaderConnection(readerHandshake({ workspace: events }, "zotlit")),
       Layer.succeed(
         ObsidianApp,
-        stubService<App>("App", { plugins: { plugins: {}, manifests } }),
+        stubService<App>("App", {
+          plugins: stubService<App["plugins"]>("App.plugins", {
+            plugins: {},
+            manifests,
+          }),
+        }),
       ),
     ),
   );

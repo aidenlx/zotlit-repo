@@ -43,6 +43,10 @@ export type PageApp = App & {
     };
     manifests: Record<string, import("obsidian").PluginManifest>;
     loadManifests(): Promise<void>;
+    /** Reads the manifest in the plugin folder `dir` again, as an install does. */
+    loadManifest(dir: string): Promise<void>;
+    /** Reports a change of the installed plugins, as an install or an uninstall does. */
+    didChange(): void;
     disablePlugin(id: string): Promise<void>;
     enablePlugin(id: string): Promise<void>;
   };

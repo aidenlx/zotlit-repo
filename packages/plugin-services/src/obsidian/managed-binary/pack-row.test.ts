@@ -10,7 +10,7 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
-import { ResourcePackPlatform, resourcePackPorts } from "./pack-platform.ts";
+import { layerPackDevice } from "./__fixtures__.ts";
 import { packDevice, packFile } from "./test-utils.ts";
 
 import { button } from "#__fixtures__/managed-binary-rows.ts";
@@ -25,14 +25,17 @@ afterEach(() => {
 /** The smallest module that compiles: the magic number and the version. */
 const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
 
-/** The Chinese Segmenter row, shown on a device with `file` installed as the pack. */
-const segmenterRow = Effect.fnUntraced(function* (file: Uint8Array | null) {
+/** The Chinese Segmenter row, shown on a device with the file `pack` installed as the pack, or on the device `pack`. */
+const segmenterRow = Effect.fnUntraced(function* (
+  pack: Uint8Array | ReturnType<typeof packDevice> | null,
+) {
   const services = yield* Layer.build(
     layerChineseSegmenter.pipe(
       Layer.provide(
-        Layer.succeed(
-          ResourcePackPlatform,
-          resourcePackPorts(packDevice(file, "1.2.0")),
+        layerPackDevice(
+          pack === null || pack instanceof Uint8Array
+            ? packDevice(pack, "1.2.0")
+            : pack,
         ),
       ),
     ),
@@ -102,35 +105,69 @@ describe("the Chinese Segmenter row", () => {
     ),
   );
 
-  for (const [name, compat, sentence] of [
+  for (const [name, compat, sentence, page] of [
     [
       "an old pack",
       PACK_COMPAT - 1,
       m.settings_resource_pack_status_pack_outdated,
+      "obsidian://show-plugin?id=zotlit-resources",
     ],
     [
       "a pack newer than ZotLit reads",
       PACK_COMPAT + 1,
       m.settings_resource_pack_status_plugin_outdated,
+      "obsidian://show-plugin?id=zotlit",
     ],
   ] as const) {
-    it.effect(`names the plugin to update for ${name}`, () =>
+    it.effect(`names the plugin to update for ${name} and opens its page`, () =>
       Effect.scoped(
         Effect.gen(function* () {
           const file = yield* Effect.promise(() =>
             packFile({ "chinese-segmenter": EMPTY_MODULE }, compat),
           );
-          const { status } = yield* segmenterRow(file);
+          const { setting, status } = yield* segmenterRow(file);
 
           yield* eventually(() =>
             expect(status()).toBe(
               `${sentence()} ${m.settings_chinese_segmenter_fallback()}`,
             ),
           );
+          const open = vi.spyOn(window, "open").mockReturnValue(null);
+          button(setting).click();
+          expect(open.mock.calls).toEqual([[page]]);
         }),
       ),
     );
   }
+
+  it.effect(
+    "follows a pack that Obsidian installs while the row is shown",
+    () =>
+      Effect.scoped(
+        Effect.gen(function* () {
+          const device = packDevice(null, "1.2.0");
+          const { status } = yield* segmenterRow(device);
+          yield* eventually(() =>
+            expect(status()).toContain(
+              m.settings_resource_pack_status_absent(),
+            ),
+          );
+
+          device.install(
+            yield* Effect.promise(() =>
+              packFile({ "chinese-segmenter": EMPTY_MODULE }),
+            ),
+          );
+          device.announce();
+
+          yield* eventually(() =>
+            expect(status()).toBe(
+              m.settings_resource_pack_status_ready({ version: "1.2.0" }),
+            ),
+          );
+        }),
+      ),
+  );
 
   it.effect("asks to reinstall a pack that is no pack file", () =>
     Effect.scoped(

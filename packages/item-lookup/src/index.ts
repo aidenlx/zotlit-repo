@@ -7,7 +7,7 @@ export {
   type PinnedItemSource,
   type SearchHit,
 } from "./item-index.ts";
-export { SegmenterUnavailable } from "./segmenter.ts";
+export { hasChineseRun, SegmenterUnavailable } from "./segmenter.ts";
 export {
   sameSegmenterBinary,
   SegmenterBinaryReader,

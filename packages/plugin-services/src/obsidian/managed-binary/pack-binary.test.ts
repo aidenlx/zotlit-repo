@@ -1,12 +1,16 @@
 import { it } from "@effect/vitest";
-import { Effect, Stream } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { describe, expect } from "vitest";
 
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
 import { packBinary } from "./__fixtures__.ts";
-import type { PackBinary } from "./pack-binary.ts";
+import type {
+  PackBinary,
+  PackBinaryApi,
+  PackBinaryStatus,
+} from "./pack-binary.ts";
 import { packDevice, packFile } from "./test-utils.ts";
 
 const BINARY = new Uint8Array(new TextEncoder().encode("jieba wasm bytes"));
@@ -51,6 +55,22 @@ const read = Effect.fnUntraced(function* (
   );
   return { status, engine };
 }, Effect.scoped);
+
+/** The first status of `kind` (and `version`) that `service` states. */
+const nextStatus = (
+  service: Pick<PackBinaryApi<Started>, "changes">,
+  kind: PackBinaryStatus["kind"],
+  version?: string,
+) =>
+  Stream.runHead(
+    Stream.filter(
+      service.changes,
+      (status) =>
+        status.kind === kind &&
+        (version === undefined ||
+          (status.kind === "ready" && status.version === version)),
+    ),
+  ).pipe(Effect.map((found) => Option.getOrThrow(found)));
 
 describe("a Managed Binary of the Resource Pack", () => {
   it.effect("is ready from an installed pack and starts from its bytes", () =>
@@ -236,6 +256,80 @@ describe("a Managed Binary of the Resource Pack", () => {
         version: "1.0.0",
       });
     }).pipe(Effect.scoped),
+  );
+
+  it.effect("follows a pack that Obsidian installs during the session", () =>
+    Effect.gen(function* () {
+      const device = packDevice(null);
+      const service = yield* packBinary(SEGMENTER, device);
+      expect(yield* service.current).toEqual({ kind: "pack-absent" });
+
+      device.install(yield* pack({ "chinese-segmenter": BINARY }), "1.3.0");
+      device.announce();
+
+      expect(yield* nextStatus(service, "ready")).toEqual({
+        kind: "ready",
+        version: "1.3.0",
+      });
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect("follows a pack that Obsidian removes during the session", () =>
+    Effect.gen(function* () {
+      const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+      const service = yield* packBinary(SEGMENTER, device);
+      yield* service.check;
+
+      device.install(null);
+      device.announce();
+
+      expect(yield* nextStatus(service, "pack-absent")).toEqual({
+        kind: "pack-absent",
+      });
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "states the status of a pack that Obsidian replaces before any read",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+        const service = yield* packBinary(SEGMENTER, device);
+
+        device.install(
+          yield* pack({ "chinese-segmenter": BINARY }, PACK_COMPAT + 1),
+        );
+        device.announce();
+
+        expect(yield* nextStatus(service, "plugin-outdated")).toEqual({
+          kind: "plugin-outdated",
+        });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "starts the next borrow from the bytes of the pack that replaced the one its engine started from",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+        const service = yield* packBinary(SEGMENTER, device);
+        const first = yield* Effect.scoped(
+          Effect.map(
+            service.getEngine,
+            (engine) => engine && [...engine.bytes],
+          ),
+        );
+        const newer = new Uint8Array([1, 2, 3]);
+
+        device.install(yield* pack({ "chinese-segmenter": newer }), "1.3.0");
+        device.announce();
+        yield* nextStatus(service, "ready", "1.3.0");
+
+        expect(first).toEqual([...BINARY]);
+        expect([...((yield* service.getEngine)?.bytes ?? [])]).toEqual([
+          1, 2, 3,
+        ]);
+      }).pipe(Effect.scoped),
   );
 
   it.effect("logs each refusal of the pack with its reason", () =>

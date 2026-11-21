@@ -11,7 +11,9 @@
  * - runs the searches of each Search Session in one `FiberHandle`, so the
  *   next keystroke on a search surface interrupts the request before it, and
  *   that interrupt reaches the worker; one-shot searches run beside them;
- * - prewarms the index once on start and on each Library Scope change.
+ * - prewarms the index once on start and on each Library Scope change;
+ * - tells the Chinese Segmenter of each search of Chinese text, which shows
+ *   the Resource Pack notice when the pack gives no Segmenter.
  *
  * It answers empty while the scope is unresolved and when the database is
  * unavailable.
@@ -29,6 +31,7 @@ import {
 } from "effect";
 import type { Fiber } from "effect";
 
+import { hasChineseRun } from "@zotlit/item-lookup";
 import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
@@ -41,6 +44,7 @@ import type {
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { SearchHit as ReadsSearchHit } from "@zotlit/zotero-reads/contract/rpc.ts";
 
+import { segmenterNeed } from "#obsidian/chinese-segmenter/need.ts";
 import { LibraryScope, scopeChanges } from "#obsidian/library-scope/service.ts";
 import { UseLedger } from "#obsidian/use-ledger/service.ts";
 
@@ -125,6 +129,7 @@ export const layerItemLookup = Layer.effect(
     const { reads } = yield* ZoteroReads;
     const libraryScope = yield* LibraryScope;
     const useLedger = yield* UseLedger;
+    const needSegmenter = yield* segmenterNeed;
     const scope = yield* Scope.Scope;
     const oneShots = yield* FiberSet.make<SearchHit[]>();
     const prewarms = yield* FiberSet.make<void>();
@@ -143,6 +148,8 @@ export const layerItemLookup = Layer.effect(
             ? new Map(libraries.map((library) => [library.libraryID, library]))
             : null;
         const citedKeys = new Set(cited);
+        // The search does not wait for the Segmenter's status or its notice.
+        if (hasChineseRun(query)) yield* Effect.forkIn(needSegmenter, scope);
         const t0 = yield* Clock.currentTimeMillis;
         const hits = yield* reads.SearchItems({
           libraryIDs: libraries.map((library) => library.libraryID),

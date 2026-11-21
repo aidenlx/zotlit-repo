@@ -81,16 +81,27 @@ export async function packFile(
 
 /**
  * A device whose installed plugins hold the Resource Pack `file` at
- * `version`, or no pack for `null`. `install` puts another pack in its place.
+ * `version`, or no pack for `null`. `install` puts another pack in its place
+ * as a file copy does, with no word from Obsidian; `announce` is Obsidian's
+ * report of an installed, updated or removed pack.
  */
 export function packDevice(
   file: Uint8Array | null,
   version = "1.0.0",
 ): ResourcePackHostPorts & {
   install(file: Uint8Array | null, version?: string): void;
+  announce(): void;
 } {
   let installed = file && { file, version };
+  const listeners = new Set<() => void>();
   return {
+    watch: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    announce: () => {
+      for (const listener of listeners) listener();
+    },
     locate: () =>
       installed && {
         version: installed.version,

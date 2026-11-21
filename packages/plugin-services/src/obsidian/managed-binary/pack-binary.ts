@@ -66,14 +66,20 @@ export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
    * a missing pack with no read.
    */
   readonly current: Effect.Effect<PackBinaryStatus | null>;
-  /** The status last stated, then each one that differs; none before the first. */
+  /**
+   * The status last stated, then each one that differs; none before the
+   * first. The service reads the pack again and states its status each time
+   * Obsidian installs, updates or removes the pack.
+   */
   readonly changes: Stream.Stream<PackBinaryStatus>;
   /** The binary's entry in the installed pack, unread; `null` with no pack installed. */
   readonly entry: Effect.Effect<PackEntryLocation | null>;
   /**
    * Borrow the shared engine for the caller's Scope. The first borrower reads
    * the pack and starts the engine; a pack that gives no binary, or a binary
-   * that does not start, fails the borrow and sets the status.
+   * that does not start, fails the borrow and sets the status. The first
+   * borrower after Obsidian installs, updates or removes the pack reads that
+   * pack; an engine borrowed before then stays with its borrower.
    */
   readonly getEngine: Effect.Effect<
     Engine | null,
@@ -242,6 +248,14 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
     }),
     idleTimeToLive: Duration.infinity,
   });
+  // The engine of the pack before the change goes, and each watcher learns
+  // where the binary stands in the pack that is there now.
+  yield* platform.changes.pipe(
+    Stream.runForEach(() =>
+      Effect.andThen(RcRef.invalidate(sharedEngine), check),
+    ),
+    Effect.forkScoped({ startImmediately: true }),
+  );
   const getEngine = Effect.suspend(() =>
     closed
       ? Effect.succeed(null)

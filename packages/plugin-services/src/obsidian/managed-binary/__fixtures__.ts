@@ -54,6 +54,12 @@ export async function openManagedBinary<
   });
 }
 
+/** The Resource Pack platform over fake host ports. */
+export const layerPackDevice = (
+  ports: ResourcePackHostPorts,
+): Layer.Layer<ResourcePackPlatform> =>
+  Layer.effect(ResourcePackPlatform, resourcePackPorts(ports));
+
 /** One Resource Pack binary over fake host ports, built on the caller's Scope. */
 export function packBinary<Engine extends Disposable | AsyncDisposable>(
   binary: PackBinary<Engine>,
@@ -63,10 +69,6 @@ export function packBinary<Engine extends Disposable | AsyncDisposable>(
     "zotlit/managed-binary/TestPackBinary",
   );
   return Layer.build(
-    layerPackBinary(tag, binary).pipe(
-      Layer.provide(
-        Layer.succeed(ResourcePackPlatform, resourcePackPorts(ports)),
-      ),
-    ),
+    layerPackBinary(tag, binary).pipe(Layer.provide(layerPackDevice(ports))),
   ).pipe(Effect.map((context) => Context.get(context, tag)));
 }

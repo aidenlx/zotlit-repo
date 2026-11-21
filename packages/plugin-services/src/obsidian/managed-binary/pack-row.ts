@@ -73,6 +73,22 @@ export function packStatusSentence(status: PackBinaryStatus): string {
   }
 }
 
+/** The plugin id of ZotLit, the plugin that reads the pack. */
+const ZOTLIT_PLUGIN_ID = "zotlit";
+
+/**
+ * Opens the page of the plugin that mends `status` in Obsidian's community
+ * plugin browser: ZotLit when the pack is newer than it reads, else the
+ * Resource Pack.
+ */
+export function openPackStatusPage(
+  status: Pick<PackBinaryStatus, "kind"> | null,
+): void {
+  if (status?.kind === "plugin-outdated")
+    window.open(`obsidian://show-plugin?id=${ZOTLIT_PLUGIN_ID}`);
+  else openResourcePackPage();
+}
+
 function renderStatus(
   setting: Setting,
   {
@@ -94,16 +110,19 @@ function renderStatus(
   }
   desc.append(statusEl);
   setting.setDesc(desc);
+  /** The status the row shows; `null` until the first read ends. */
+  let shown: PackBinaryStatus | null = null;
   setting.addButton((button) =>
-    button
-      .setButtonText(m.settings_resource_pack_open())
-      .onClick(openResourcePackPage),
+    button.setButtonText(m.settings_resource_pack_open()).onClick(() => {
+      openPackStatusPage(shown);
+    }),
   );
   return tab.mount(
     Effect.gen(function* () {
       const api = yield* binary;
       yield* Effect.forkScoped(api.check);
       yield* paintEach(api.changes, (status) => {
+        shown = status;
         statusEl.setText(
           status.kind === "ready"
             ? packStatusSentence(status)

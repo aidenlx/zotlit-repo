@@ -26,11 +26,11 @@ import {
   CHINESE_SEGMENTER,
   layerChineseSegmenter,
 } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { layerPackDevice } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import {
-  ResourcePackPlatform,
-  resourcePackPorts,
-} from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
-import { packDevice } from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+  packDevice,
+  packFile,
+} from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   WorkerInitSchema,
@@ -124,19 +124,11 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   const settings = yield* settingsOf({
     plugin: { loadData: async () => null, saveData: async () => undefined },
   });
+  // The worker reads the pack itself: this thread opens no file at start.
+  const device = packDevice(installed ? new Uint8Array() : null, "1.2.0");
   const chineseSegmenter = Context.get(
     yield* Layer.build(
-      layerChineseSegmenter.pipe(
-        Layer.provide(
-          Layer.succeed(
-            ResourcePackPlatform,
-            // The worker reads the pack itself: this thread opens no file.
-            resourcePackPorts(
-              packDevice(installed ? new Uint8Array() : null, "1.2.0"),
-            ),
-          ),
-        ),
-      ),
+      layerChineseSegmenter.pipe(Layer.provide(layerPackDevice(device))),
     ),
     ChineseSegmenter,
   );
@@ -152,6 +144,7 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
     refreshed,
     settings,
     chineseSegmenter,
+    device,
     host,
     workspace,
   };
@@ -249,6 +242,46 @@ it.effect(
         url: "app://device/plugins/zotlit-resources/main.js",
         entry: CHINESE_SEGMENTER.id,
         version: "1.2.0",
+      });
+    }),
+);
+
+it.effect(
+  "sends the worker the segmenter entry of a pack that Obsidian installs during the session",
+  () =>
+    Effect.gen(function* () {
+      const worker = yield* workerFixture();
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ChineseSegmenter, worker.chineseSegmenter),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).start();
+      yield* Fiber.join(opening);
+      expect((yield* Queue.take(worker.initial)).chineseSegmenter).toBeNull();
+
+      worker.device.install(
+        yield* Effect.promise(() =>
+          packFile({
+            // The smallest module that compiles.
+            [CHINESE_SEGMENTER.id]: new Uint8Array([
+              0, 0x61, 0x73, 0x6d, 1, 0, 0, 0,
+            ]),
+          }),
+        ),
+        "1.3.0",
+      );
+      worker.device.announce();
+
+      expect((yield* Queue.take(worker.configured)).chineseSegmenter).toEqual({
+        url: "app://device/plugins/zotlit-resources/main.js",
+        entry: CHINESE_SEGMENTER.id,
+        version: "1.3.0",
       });
     }),
 );
