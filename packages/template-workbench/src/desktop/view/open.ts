@@ -11,7 +11,6 @@ import { Effect, Layer, Semaphore } from "effect";
 import { TFile } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 
-import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import type { ArrivingProblem } from "@zotlit/notes/obsidian/template/workbench-recovery.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -29,23 +28,10 @@ import {
   TemplateWorkbenchView,
 } from "./view.tsx";
 
-import { WorkbenchDocumentController } from "#core/document/index.ts";
 import { explainWorkbenchOpen } from "#desktop/editor/actions.ts";
 
 /** An open that asks the reader to know nothing. */
-const OPENED: WorkbenchOpened = {
-  nativeRequired: false,
-  unavailableNote: null,
-};
-
-export function requiresNative(source: string): boolean {
-  const manifest = new WorkbenchDocumentController(source).document?.manifest;
-  return (
-    manifest?.language === "eta" ||
-    !!manifest?.partials?.some((partial) => partial.language === "eta") ||
-    !!manifest?.frontmatter?.some((field) => "js" in field)
-  );
-}
+const OPENED: WorkbenchOpened = { unavailableNote: null };
 
 /**
  * The leaf the reader starts an open from. When it already stands in a
@@ -62,7 +48,6 @@ export interface WorkbenchOpenOptions {
   readonly itemIndexedKey?: string;
   readonly originatingNote?: TFile;
   readonly tab?: "match" | "name";
-  readonly explainUnsupported?: boolean;
   /** For the built-in Default: write its document before editing starts. */
   readonly customize?: boolean;
   readonly from?: WorkbenchOpenFrom;
@@ -119,9 +104,6 @@ const launchFile = Effect.fn("TemplateWorkbench.launchFile")(function* (
   file: TFile,
   options: WorkbenchOpenOptions & { defaultProfile?: boolean },
 ) {
-  const nativeRequired =
-    options.explainUnsupported !== false &&
-    requiresNative(yield* (yield* Vault).cachedRead(file));
   const { itemIndexedKey } = options;
   const workbench = yield* findWorkbenchLayout({
     file: file.path,
@@ -143,11 +125,10 @@ const launchFile = Effect.fn("TemplateWorkbench.launchFile")(function* (
     active: true,
   });
   const view = yield* revealWorkbench(leaf);
-  if (!view) return { ...OPENED, nativeRequired };
+  if (!view) return OPENED;
   if (options.problem) view.explainArrival(options.problem);
   yield* openWorkbenchLayout(view);
   return {
-    nativeRequired,
     unavailableNote: yield* view.setOriginatingNote(
       options.originatingNote ?? null,
     ),
@@ -164,23 +145,16 @@ const launchTemplateWorkbench = Effect.fn(
   const file = path ? yield* vault.getFileByPath(path) : null;
   if (file)
     return yield* launchFile(file, { ...options, defaultProfile: true });
-  const source = yield* (yield* Profile).getSource("default");
-  const nativeRequired =
-    options.explainUnsupported !== false && requiresNative(source);
   const { itemIndexedKey } = options;
   const workbench = yield* findWorkbenchLayout({
     file: null,
     defaultProfile: true,
   });
   if (workbench?.file) {
-    const opened = yield* launchFile(workbench.file, {
+    return yield* launchFile(workbench.file, {
       ...options,
       defaultProfile: true,
     });
-    return {
-      ...opened,
-      nativeRequired: nativeRequired || opened.nativeRequired,
-    };
   }
   const leaf = yield* workbenchLeaf(
     workbench,
@@ -197,12 +171,11 @@ const launchTemplateWorkbench = Effect.fn(
     active: true,
   });
   const view = yield* revealWorkbench(leaf);
-  if (!view) return { ...OPENED, nativeRequired };
+  if (!view) return OPENED;
   if (options.problem) view.explainArrival(options.problem);
   if (options.customize) yield* view.customizeDefault();
   else yield* openWorkbenchLayout(view);
   return {
-    nativeRequired,
     unavailableNote: yield* view.setOriginatingNote(
       options.originatingNote ?? null,
     ),

@@ -29,8 +29,6 @@ export const templateWorkbenchAction = <A, E, R>(
 
 /** What an open of the Template Workbench View asks the reader to know. */
 export interface WorkbenchOpened {
-  /** The document uses Eta or JavaScript fields, which only this editor runs. */
-  readonly nativeRequired: boolean;
   /** The note the reader launched from, which this editor cannot update. */
   readonly unavailableNote: string | null;
 }
@@ -41,8 +39,6 @@ export const explainWorkbenchOpen = Effect.fn(
 )(function* (opened: WorkbenchOpened | void) {
   if (!opened) return;
   const notifier = yield* Notifier;
-  if (opened.nativeRequired)
-    yield* notifier.show(m.template_workbench_native_required());
   if (opened.unavailableNote !== null)
     yield* notifier.show(
       m.template_workbench_update_unavailable({

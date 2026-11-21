@@ -72,10 +72,7 @@ export function addCitationTemplateActions(
 export const openCitationTemplate = (from?: WorkspaceLeaf) =>
   Effect.gen(function* () {
     const file = yield* (yield* Template).materializeCitationTemplate;
-    yield* (yield* TemplateWorkbenchLauncher).open(file, {
-      explainUnsupported: false,
-      ...(from ? { from: { leaf: from, place: "tab" } } : {}),
-    });
+    yield* (yield* TemplateWorkbenchLauncher).open(file, (from ? { from: { leaf: from, place: "tab" } } : {}));
   }).pipe(Effect.withSpan("openCitationTemplate"));
 
 /**

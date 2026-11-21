@@ -70,7 +70,6 @@ export const templateWorkbench = extendFeature(obsidianTemplateWorkbench, {
           openTemplateWorkbench(target, {
             ...(item ? { itemIndexedKey: item.key } : {}),
             originatingNote,
-            explainUnsupported: false,
             customize: true,
           }),
       }),

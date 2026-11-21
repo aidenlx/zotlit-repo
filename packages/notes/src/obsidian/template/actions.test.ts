@@ -99,9 +99,7 @@ it.effect(
         ),
       );
 
-      expect(opened).toEqual([
-        { path: CITATION.path, options: { explainUnsupported: false } },
-      ]);
+      expect(opened).toEqual([{ path: CITATION.path, options: {} }]);
     }),
 );
 

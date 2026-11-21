@@ -90,10 +90,7 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
     leaf?: WorkspaceLeaf,
   ): WorkbenchOpen | null => {
     if (isPlainDocument(file) || isProfile(file)) {
-      const options: WorkbenchOpenOptions = {
-        ...(isPlainDocument(file) ? { explainUnsupported: false } : {}),
-        ...(leaf ? { from: { leaf, place: "replace" } } : {}),
-      };
+      const options: WorkbenchOpenOptions = (leaf ? { from: { leaf, place: "replace" } } : {});
       return openTemplateWorkbench(file, options);
     }
     const note = noteProfile(file);
@@ -160,10 +157,7 @@ export function registerTemplateWorkbenchView(
       startTemplateWorkbenchAction(
         deps,
         "open-workbench",
-        openTemplateWorkbench(file ?? deps.defaultProfile, {
-          explainUnsupported: false,
-          ...(problem ? { problem } : {}),
-        }),
+        openTemplateWorkbench(file ?? deps.defaultProfile, (problem ? { problem } : {})),
       );
     }),
   );

@@ -68,7 +68,7 @@ it.effect("opens a launched document in a Template Workbench View", () =>
       ),
     );
 
-    yield* launcher.open(CITATION, { explainUnsupported: false });
+    yield* launcher.open(CITATION);
 
     expect(opened).toEqual([
       { type: TEMPLATE_WORKBENCH_VIEW_TYPE, path: CITATION.path },

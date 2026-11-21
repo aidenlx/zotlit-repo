@@ -22,7 +22,6 @@ import {
 } from "vitest";
 
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";
-import { ProfileOperationError } from "@zotlit/notes/obsidian/profile/service.ts";
 import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import {
@@ -297,7 +296,6 @@ describe("Template Workbench entry points", () => {
         openTemplateWorkbench(target === "file" ? file : builtInDefault, {
           customize,
         }),
-        { profile: { getSource: () => Effect.succeed("Built-in source") } },
       );
 
       expect(getLeaf).not.toHaveBeenCalled();
@@ -560,7 +558,6 @@ Annotation`);
         customize: true,
         itemIndexedKey: "0:ABCDEFGH",
       }),
-      { profile: { getSource: () => Effect.succeed("Built-in source") } },
     );
     expect(setViewState).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -581,11 +578,6 @@ Annotation`);
       const opening = launch(
         app,
         openTemplateWorkbench(target === "file" ? file : builtInDefault),
-        {
-          profile: {
-            getSource: () => Effect.succeed("Configured built-in document"),
-          },
-        },
       );
       await vi.waitFor(() => expect(revealLeaf).toHaveBeenCalledWith(leaf));
       expect(focusWindow).not.toHaveBeenCalled();
@@ -641,22 +633,6 @@ Annotation`);
     ]);
   });
 
-  it.each(["open-template-workbench"])(
-    "handles a source read failure from %s",
-    async (id) => {
-      setMockPlatform({ isDesktopApp: true });
-      const { app, deps, plugin, commands, setViewState } = setup();
-      const read = vi
-        .spyOn(app.vault, "cachedRead")
-        .mockRejectedValue(new Error("File unavailable"));
-      register(plugin, deps);
-      expect(
-        commands.find((command) => command.id === id)!.checkCallback?.(false),
-      ).toBe(true);
-      await vi.waitFor(() => expect(read).toHaveBeenCalledOnce());
-      expect(setViewState).not.toHaveBeenCalled();
-    },
-  );
   it.each([
     ["Citation Template", "templates/zotlit-citation.md", "zotlit-citation"],
     [
@@ -746,7 +722,6 @@ Annotation`);
   it("opens the built-in Default draft's own window from Open template workbench", async () => {
     setMockPlatform({ isDesktopApp: true });
     const { app, leaf, deps, plugin, commands } = setup();
-    deps.profile.getSource = vi.fn(() => Effect.succeed("Built-in source"));
     register(plugin, deps);
     const draft = Object.create(TemplateWorkbenchView.prototype, {
       file: { value: null },
@@ -885,9 +860,6 @@ Annotation`);
           profile: { selector: "default" },
         } as Effect.Success<ReturnType<typeof deps.profile.profileOf>>),
       );
-      deps.profile.getSource = vi.fn(() =>
-        Effect.succeed("Configured Default"),
-      );
       const customizeDefault = vi.fn(() => Effect.void);
       Object.assign(leaf, {
         view: Object.assign(Object.create(TemplateWorkbenchView.prototype), {
@@ -959,28 +931,15 @@ Annotation`);
     "language: eta",
     "language: liquid\nfrontmatter:\n  - key: title\n    js: zt.title\n    merge: replace",
   ])(
-    "opens an advanced Profile natively, which needs the native editor: %s",
+    "opens an advanced Profile in the View without a notice: %s",
     async (manifest) => {
       const { app, file, setViewState } = setup();
       const source = `---\nid: paper\nname: Paper\nversion: 1.0.0\ncontract: 2\n${manifest}\nfilename: paper\n---\nBody\n--- zotlit:annotation ---\nAnnotation\n`;
       vi.spyOn(app.vault, "cachedRead").mockResolvedValue(source);
       expect(await launch(app, openTemplateWorkbench(file))).toEqual({
-        nativeRequired: true,
         unavailableNote: null,
       });
       expect(setViewState).toHaveBeenCalledOnce();
-    },
-  );
-  it.each([true, false])(
-    "asks for the native editor only when the open explains it: %s",
-    async (explainUnsupported) => {
-      const { app, file } = setup();
-      vi.spyOn(app.vault, "cachedRead").mockResolvedValue(
-        "---\nid: paper\nname: Paper\nversion: 1.0.0\ncontract: 2\nlanguage: eta\nfilename: paper\n---\nBody\n--- zotlit:annotation ---\nAnnotation\n",
-      );
-      expect(
-        await launch(app, openTemplateWorkbench(file, { explainUnsupported })),
-      ).toEqual({ nativeRequired: explainUnsupported, unavailableNote: null });
     },
   );
   it.each(["file", "default"])(
@@ -993,11 +952,6 @@ Annotation`);
       await launch(
         app,
         openTemplateWorkbench(kind === "file" ? file : builtInDefault),
-        {
-          profile: {
-            getSource: () => Effect.succeed("Configured built-in document"),
-          },
-        },
       );
       expect(setViewState).toHaveBeenCalledWith({
         type: TEMPLATE_WORKBENCH_VIEW_TYPE,
@@ -1010,36 +964,14 @@ Annotation`);
     },
   );
 
-  it("opens built-in Default from the effective source without ejecting it", async () => {
+  it("opens built-in Default as a draft without ejecting it", async () => {
     const { app, setViewState } = setup();
-    const getSource = vi.fn(() =>
-      Effect.succeed("Configured built-in document"),
-    );
-    await launch(app, openTemplateWorkbench(builtInDefault), {
-      profile: { getSource },
-    });
-    expect(getSource).toHaveBeenCalledWith("default");
+    await launch(app, openTemplateWorkbench(builtInDefault));
     expect(setViewState).toHaveBeenCalledWith({
       type: TEMPLATE_WORKBENCH_VIEW_TYPE,
       state: { defaultDraft: true, file: null },
       active: true,
     });
-  });
-  it("fails the launch with the Profile service's own error when the built-in Default cannot be read", async () => {
-    const { app, setViewState } = setup();
-    const failure = new ProfileOperationError({
-      message: "The Default Profile does not parse",
-      cause: undefined,
-    });
-    const error = await launch(
-      app,
-      Effect.flip(openTemplateWorkbench(builtInDefault)),
-      {
-        profile: { getSource: () => Effect.fail(failure) },
-      },
-    );
-    expect(error).toBe(failure);
-    expect(setViewState).not.toHaveBeenCalled();
   });
   it("opens the requested Match tab in Basic mode", async () => {
     const { app, file, setViewState } = setup();

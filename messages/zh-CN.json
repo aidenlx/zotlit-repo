@@ -1972,7 +1972,6 @@
   "template_workbench_default_inspect": "编辑前请选择“自定义”，以创建或打开默认配置方案文档。",
   "template_workbench_default_creating": "正在打开默认配置方案…",
   "template_workbench_customize": "自定义",
-  "template_workbench_native_required": "此配置方案使用 Eta 或 JavaScript，将在模板工作台中打开。",
   "template_workbench_name": "模板工作台视图",
   "template_workbench_open_layout": "打开模板工作台",
   "template_workbench_open_markdown": "以 Markdown 打开",

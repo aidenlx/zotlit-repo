@@ -13,8 +13,6 @@ import type { TemplateFailure } from "./service.ts";
 export interface TemplateWorkbenchLaunch {
   /** The tab the view shows first. */
   readonly tab?: "name";
-  /** `false`: the open does not explain the fields only this editor runs. */
-  readonly explainUnsupported?: boolean;
   /** The leaf the open starts from; the document opens in a new tab beside it. */
   readonly from?: { readonly leaf: WorkspaceLeaf; readonly place: "tab" };
 }

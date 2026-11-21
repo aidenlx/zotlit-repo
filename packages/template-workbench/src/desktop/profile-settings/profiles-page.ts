@@ -550,9 +550,7 @@ function openPartial(ctx: SettingTabContext, path: string) {
   return Effect.gen(function* () {
     const file = yield* (yield* Vault).getFileByPath(path);
     if (!file) return;
-    yield* leaveSettingsFor(
-      openTemplateWorkbench(file, { explainUnsupported: false }),
-    );
+    yield* leaveSettingsFor(openTemplateWorkbench(file));
   });
 }
 

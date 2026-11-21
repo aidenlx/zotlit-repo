@@ -2196,7 +2196,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         const file = yield* (yield* Vault).getFileByPath(path);
         if (file)
           yield* openTemplateWorkbench(file, {
-            explainUnsupported: false,
             from: { leaf, place: "tab" },
           });
       }),

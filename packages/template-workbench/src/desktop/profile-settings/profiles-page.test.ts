@@ -604,8 +604,6 @@ it.effect("closes settings only once Add partial has created a document", () =>
     yield* Queue.take(rebuilt);
     expect(createPartial).toHaveBeenCalledWith("authors", {});
     expect(close).toHaveBeenCalled();
-    expect(openTemplateWorkbench).toHaveBeenCalledWith(partialFile, {
-      explainUnsupported: false,
-    });
+    expect(openTemplateWorkbench).toHaveBeenCalledWith(partialFile);
   }),
 );

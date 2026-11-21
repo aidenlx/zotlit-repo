@@ -124,7 +124,7 @@ it("folds the typed name, names the file, and opens the partial in a split", asy
   expect(template.createPartial).toHaveBeenCalledWith("venue-line", {});
   expect(openTemplateWorkbench).toHaveBeenCalledWith(
     { path: "templates/zotlit-partial.venue-line.md" },
-    { explainUnsupported: false, from: { leaf: origin, place: "split" } },
+    { from: { leaf: origin, place: "split" } },
   );
 });
 

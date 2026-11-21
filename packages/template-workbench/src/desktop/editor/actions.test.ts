@@ -78,16 +78,13 @@ it.effect.each(["interrupt", "abort"] as const)(
 it.effect("explains what an open asks the reader to know", () =>
   Effect.gen(function* () {
     const record = recorder();
-    yield* explainWorkbenchOpen({
-      nativeRequired: true,
-      unavailableNote: "Original",
-    }).pipe(Effect.provide(record.layer));
-    yield* explainWorkbenchOpen({
-      nativeRequired: false,
-      unavailableNote: null,
-    }).pipe(Effect.provide(record.layer));
+    yield* explainWorkbenchOpen({ unavailableNote: "Original" }).pipe(
+      Effect.provide(record.layer),
+    );
+    yield* explainWorkbenchOpen({ unavailableNote: null }).pipe(
+      Effect.provide(record.layer),
+    );
     expect(record.notices()).toEqual([
-      [m.template_workbench_native_required()],
       [m.template_workbench_update_unavailable({ name: "Original" })],
     ]);
   }),
