@@ -13,7 +13,7 @@ import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { builtinModules, createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "vite";
+import { build, parseAst } from "vite";
 
 /** The modules Obsidian provides at runtime. The plugin requires them, so the build leaves them out. */
 export const HOST_MODULES = [
@@ -54,6 +54,7 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
     logLevel: "warn",
     publicDir: false,
     resolve: { alias },
+    plugins: [lazyBuiltins()],
     build: {
       // The build hands back main.js, which is written below.
       write: false,
@@ -80,6 +81,79 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
   }
   await writeFile(join(outDir, "main.js"), asciiOnly(main.code));
   await copyFile(styles, join(outDir, "styles.css"));
+}
+
+/**
+ * The `require("node:…")` lines at the top of the CommonJS chunk: a binding,
+ * with the interop line that may follow it, or a bare require.
+ */
+const BUILTIN_REQUIRE =
+  /^let ([\w$]+) = require\("(node:[\w/]+)"\);\n(?:\1 = (__toESM[\w$]*)\(\1(, 1)?\);\n)?|^require\("node:[\w/]+"\);\n/gm;
+
+/**
+ * Makes each Node built-in module load at its first use. Rolldown puts every
+ * `require` of the chunk at its top, so Obsidian would load all of them, also
+ * the ones a start never uses, before the plugin's first line runs. This
+ * plugin turns each binding into an object whose getter requires the module
+ * once, and reads the binding through it. A require with no binding goes.
+ *
+ * @returns {import("vite").Plugin}
+ */
+function lazyBuiltins() {
+  return {
+    name: "lazy-builtins",
+    renderChunk(code) {
+      /** @type {[start: number, end: number, text: string][]} */
+      const edits = [];
+      const names = new Set();
+      for (const match of code.matchAll(BUILTIN_REQUIRE)) {
+        const [line, name, id, interop, flag = ""] = match;
+        const load = interop
+          ? `${interop}(require("${id}")${flag})`
+          : `require("${id}")`;
+        if (name) names.add(name);
+        edits.push([
+          match.index,
+          match.index + line.length,
+          name
+            ? `let ${name}$m;\nconst ${name} = { get m() { return ${name}$m ??= ${load}; } };\n`
+            : "",
+        ]);
+      }
+      if (names.size === 0) return null;
+      const bodyStart = Math.max(...edits.map(([, end]) => end));
+      /**
+       * Reads each use of a binding through its getter.
+       *
+       * @param {any} node an ESTree node.
+       * @param {any} parent the node that holds it.
+       * @param {string} key the property of `parent` that holds it.
+       */
+      const visit = (node, parent, key) => {
+        if (node.type === "Identifier" && names.has(node.name)) {
+          const isName =
+            key === (parent.type === "MemberExpression" ? "property" : "key") &&
+            !parent.computed;
+          if (!isName && node.start >= bodyStart)
+            edits.push([node.end, node.end, ".m"]);
+          return;
+        }
+        for (const [childKey, child] of Object.entries(node)) {
+          for (const item of Array.isArray(child) ? child : [child])
+            if (typeof item?.type === "string") visit(item, node, childKey);
+        }
+      };
+      visit(parseAst(code), {}, "");
+      edits.sort(([a], [b]) => a - b);
+      let lazy = "";
+      let at = 0;
+      for (const [start, end, text] of edits) {
+        lazy += code.slice(at, start) + text;
+        at = end;
+      }
+      return { code: lazy + code.slice(at), map: null };
+    },
+  };
 }
 
 /**

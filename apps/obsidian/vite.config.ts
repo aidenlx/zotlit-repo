@@ -32,6 +32,7 @@ import {
   resolveChineseSegmenterPin,
 } from "./scripts/chinese-segmenter.ts";
 import { embeddedWorker } from "./scripts/embedded-worker.ts";
+import { nodeHttpModules } from "./scripts/node-http-modules.ts";
 import { resolvePandocEnginePin } from "./scripts/pandoc-engine.ts";
 
 const builtins = [
@@ -89,6 +90,9 @@ export default defineConfig(({ mode }) => {
   const resolveConfig = {
     alias: {
       "@zotlit/db/contract/ir.runtime.json": fullContractIRPath,
+      // The Node build of fflate loads `node:worker_threads` at import for its
+      // asynchronous functions. The plugin calls the synchronous ones only.
+      fflate: "fflate/browser",
     },
     conditions: ["module", "node", "development|production"],
     tsconfigPaths: true,
@@ -152,6 +156,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
+      nodeHttpModules(),
       obsidianI18n({
         project: join(workspaceRoot, "project.inlang"),
         output: messagesDirectory,

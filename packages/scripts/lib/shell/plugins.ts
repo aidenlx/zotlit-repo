@@ -71,6 +71,7 @@ export const PUBLISHED_PLUGINS = {
       "node:fs/promises",
       "node:http",
       "node:http2",
+      "node:https",
       "node:module",
       "node:net",
       "node:os",
