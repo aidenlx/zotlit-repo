@@ -2,9 +2,9 @@
 
 The host-free units under `src/core/` that the Template Workbench View, the
 Template Data Explorer and the Query View build on: `document`, `data-tree`,
-`language`, `filter-fields`, `render`, and the headless UI `headless-ui`
-(`AGENTS.md` lists them). Only `headless-ui` reads React, which the plugin
-bundles as Preact. The units target CodeMirror at the versions Obsidian pins.
+`language`, `filter-fields` and `render`, and the component tree
+`src/obsidian/headless-ui/` over them (`AGENTS.md` lists them). Only the
+component tree reads React, which the plugin bundles as Preact. The units target CodeMirror at the versions Obsidian pins.
 
 What the plugin's other packages share with the Workbench lives with its
 owner, and the Workbench core imports it from there:
@@ -125,15 +125,20 @@ writes — has no such catch.
 
 ## UI
 
-`headless-ui/` is the headless component tree the Obsidian host mounts over one
-Profile document (ADR 0044). It renders structure and behaviour and no look:
-every component marks its parts with `data-part` and their state with
-`data-state`, and `WorkbenchThemeProvider` takes one optional class map, keyed
-by component and part (`WorkbenchParts` lists them), plus an icon renderer.
-Call sites pass no classes. `WorkbenchHostProvider` takes the host adapter —
-`menu`, `dialog`, `confirm`, `suggester`, `tooltip`, `notice`,
-`render`, `matchData`, `insertTarget`, and `persistence` — so
-Obsidian shows its own `Menu`, `Modal`, `SuggestModal`, and `Notice`. `WorkbenchEditorProvider` carries one editor instance and
+`obsidian/headless-ui/` is the component tree the Obsidian host mounts over one
+Profile document (ADR 0044). Each component marks its parts with `data-part`
+and their state with `data-state`, and wears its own `zt:` utilities, Obsidian's
+classes where the stylesheet below needs them, and Obsidian's icons through
+`Icon`. The class blocks that several components share (`look.ts`) and the
+stylesheet (`workbench.css`) sit beside them. A surface that draws the Match
+editor another way, as the Query View's Filter does, passes `MatchEditor` a
+`look` of the classes for the parts it changes. The tree calls Obsidian
+directly: `showWorkbenchMenu` opens a native `Menu`, `chooseWorkbenchOption`
+a native `SuggestModal`, `tooltipAttrs` gives a tooltip, and `BaseNotice`
+shows a notice. `WorkbenchHostProvider` takes the host adapter, which answers
+what only the host knows — `render`, `matchData`, `insertTarget`,
+`persistence`, with the clipboard, the Markdown
+view and the editor popups. `WorkbenchEditorProvider` carries one editor instance and
 puts its atom registry in context (`@effect/atom-react`); `useWorkbenchModel`
 and `useWorkbenchController` read it. Components read the model's atoms and
 change them with its pure `(state) => state` transitions (`chooseItem`,

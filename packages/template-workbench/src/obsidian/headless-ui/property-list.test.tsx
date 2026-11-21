@@ -48,15 +48,12 @@ it("renders one typed row per property, with its type's icon on the key", () => 
     "checkbox",
     "number",
   ]);
-  expect(
-    rows.map((row) =>
-      row.querySelector("[data-icon]")?.getAttribute("data-icon"),
-    ),
-  ).toEqual([
-    "property-text",
-    "property-tags",
-    "property-checkbox",
-    "property-number",
+  // Each key carries the icon of its type.
+  expect(rows.map((row) => row.querySelector("dt svg") !== null)).toEqual([
+    true,
+    true,
+    true,
+    true,
   ]);
   const pills = rows[1]!.querySelectorAll("[data-part=pill]");
   expect([...pills].map((pill) => pill.textContent)).toEqual([

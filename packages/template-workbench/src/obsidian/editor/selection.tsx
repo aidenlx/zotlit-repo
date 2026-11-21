@@ -12,6 +12,13 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { sampleTypeLabel, useRecentItems } from "./item-choice.ts";
+
+import {
+  getSampleItem,
+  SAMPLE_ITEM_CHOICES,
+} from "#core/editor/selection-data.ts";
+import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+import { annotationOption } from "#obsidian/headless-ui/index.tsx";
 import {
   selectionGroup,
   selectionGroupHeading,
@@ -21,14 +28,7 @@ import {
   selectionOptionLabel,
   selectionSearch,
   selectionSearchContent,
-} from "./theme.tsx";
-
-import {
-  getSampleItem,
-  SAMPLE_ITEM_CHOICES,
-} from "#core/editor/selection-data.ts";
-import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
-import { annotationOption } from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/headless-ui/look.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

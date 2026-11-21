@@ -4,10 +4,10 @@
 
 import type { RenderedProperty } from "#core/render/result.ts";
 import { regex } from "arkregex";
+import type { IconName } from "obsidian";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-
-import { useIcon, useParts } from "./theme.tsx";
 
 /** The property types Obsidian's own Properties editor tells apart. */
 export type PropertyType =
@@ -19,6 +19,18 @@ export type PropertyType =
   | "checkbox"
   | "date"
   | "datetime";
+
+/** Obsidian's glyph for each property type. */
+const PROPERTY_ICONS: Record<PropertyType, IconName> = {
+  text: "text",
+  list: "list",
+  tags: "tags",
+  aliases: "forward",
+  number: "binary",
+  checkbox: "check-square",
+  date: "calendar",
+  datetime: "clock",
+};
 
 const DATE = regex("^\\d{4}-[01]\\d-[0-3]\\d$");
 const DATETIME = regex("^\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d");
@@ -56,24 +68,39 @@ export function PropertyList({
   label?: string;
   variant?: "list" | "note" | "spread";
 }) {
-  const part = useParts("propertyList");
-  const icon = useIcon();
   return (
-    <dl aria-label={label} {...part(variant)}>
+    <dl
+      aria-label={label}
+      data-part={variant}
+      // The note's own Properties list sits in the app's container, which the preview supplies.
+      className="metadata-properties"
+    >
       {properties.map((property) => {
         const type = propertyType(property);
         return (
           <div
             key={`${property.position}:${property.key}`}
-            {...part("row", type)}
+            data-part="row"
+            data-state={type}
+            className="metadata-property"
           >
-            <dt {...part("key")}>
-              <span aria-hidden="true" {...part("icon")}>
-                {icon(`property-${type}`)}
+            <dt data-part="key" className="metadata-property-key">
+              <span
+                aria-hidden="true"
+                data-part="icon"
+                className="metadata-property-icon"
+              >
+                <Icon name={PROPERTY_ICONS[type]} />
               </span>
-              <span {...part("label")}>{property.key}</span>
+              <span data-part="label" className="metadata-property-key-input">
+                {property.key}
+              </span>
             </dt>
-            <dd {...part("value", type)}>
+            <dd
+              data-part="value"
+              data-state={type}
+              className="metadata-property-value"
+            >
               <PropertyValue property={property} />
             </dd>
           </div>
@@ -85,7 +112,6 @@ export function PropertyList({
 
 /** A produced value, or the reason it has none. */
 export function PropertyValue({ property }: { property: RenderedProperty }) {
-  const part = useParts("propertyList");
   const { value } = property;
   if (
     property.missing ||
@@ -93,7 +119,7 @@ export function PropertyValue({ property }: { property: RenderedProperty }) {
     (Array.isArray(value) && value.length === 0)
   ) {
     return (
-      <span {...part("empty")}>
+      <span data-part="empty" className="metadata-input-longtext">
         {property.missing
           ? m.workbench_property_unset()
           : m.workbench_property_empty()}
@@ -102,10 +128,12 @@ export function PropertyValue({ property }: { property: RenderedProperty }) {
   }
   if (Array.isArray(value)) {
     return (
-      <div {...part("pills")}>
+      <div data-part="pills" className="multi-select-container">
         {value.map((item, index) => (
-          <div key={index} {...part("pill")}>
-            <span {...part("pill-text")}>{propertyText(item)}</span>
+          <div key={index} data-part="pill" className="multi-select-pill">
+            <span data-part="pill-text" className="multi-select-pill-content">
+              {propertyText(item)}
+            </span>
           </div>
         ))}
       </div>
@@ -120,11 +148,16 @@ export function PropertyValue({ property }: { property: RenderedProperty }) {
         aria-readonly="true"
         tabIndex={-1}
         onClick={(event) => event.preventDefault()}
-        {...part("checkbox")}
+        data-part="checkbox"
+        className="metadata-input-checkbox"
       />
     );
   }
-  return <span {...part("text")}>{propertyText(value)}</span>;
+  return (
+    <span data-part="text" className="metadata-input-longtext">
+      {propertyText(value)}
+    </span>
+  );
 }
 
 /** One property value as a single line of text, shared by every property list. */

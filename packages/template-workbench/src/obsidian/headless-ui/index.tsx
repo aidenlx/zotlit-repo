@@ -1,13 +1,16 @@
+import "./workbench.css";
+
 export { MatchEditor, MatchPane } from "./match.tsx";
+export type { MatchLook } from "./match.look.ts";
 export { MatchExpressionInput } from "./match.expression.tsx";
 export { filterVocabulary } from "./match.fields.tsx";
 export type { FilterValues } from "./match.fields.tsx";
 export { isDatasetFieldKind } from "#core/filter-fields/fields.ts";
 export type { FilterField } from "#core/filter-fields/fields.ts";
 export type { MatchFilter } from "./match.tsx";
-// The Workbench UI: the headless component tree the Template Workbench View
-// mounts over one Template Document (ADR 0044). It renders structure and behaviour; the host supplies the look
-// through `WorkbenchThemeProvider` and its popups through
+// The Workbench UI: the component tree the Template Workbench View mounts
+// over one Template Document (ADR 0044). The components wear their own look;
+// the host answers what only it knows through
 // `WorkbenchHostProvider`, and each editor instance keeps its view state in
 // the Workbench model `WorkbenchEditorProvider` puts in context: the
 // document controller in use, the reader's choices, and the one Render
@@ -62,11 +65,9 @@ export {
   WorkbenchClipboardError,
   WorkbenchHostError,
   WorkbenchHostProvider,
-  useWorkbenchHost,
 } from "./host.tsx";
 export type { WorkbenchRunner } from "#core/language/host-effects.ts";
 export type {
-  WorkbenchDialogRequest,
   WorkbenchFieldsAction,
   WorkbenchFieldDetailsProps,
   WorkbenchFieldsPopoverProps,
@@ -75,10 +76,8 @@ export type {
   WorkbenchInputSuggestionsRequest,
   WorkbenchLibrary,
   WorkbenchMatchResult,
-  WorkbenchMenuItem,
-  WorkbenchSuggesterOption,
-  WorkbenchSuggesterRequest,
 } from "./host.tsx";
+export type { WorkbenchSuggesterOption } from "./suggester.ts";
 export {
   diagnosticText,
   renderDiagnosis,
@@ -93,8 +92,6 @@ export { partialContextLabel } from "./partial-preview.ts";
 export { TabBar, TabPanel } from "./tab-bar.tsx";
 export { TABS, tabsFor } from "./tabs.ts";
 export { insertionTarget, repairCommands } from "./repair-commands.ts";
-export { WorkbenchThemeProvider, useParts } from "./theme.tsx";
-export type { WorkbenchIcon, WorkbenchTheme } from "./theme.tsx";
 
 export { NotePane } from "./note-pane.tsx";
 export { usePartialBoxes } from "./partial-boxes.tsx";
@@ -117,7 +114,6 @@ export {
   AnnotationPane,
   AnnotationSampleBar,
   annotationOption,
-  AnnotationSectionBar,
 } from "./annotation.tsx";
 export { annotationSamples } from "./annotation-samples.ts";
 

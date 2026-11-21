@@ -4,7 +4,6 @@ import {
   fireEvent,
   screen,
   within,
-  render,
 } from "@testing-library/react";
 import { Effect } from "effect";
 import { useState } from "react";
@@ -41,7 +40,12 @@ function DataExplorer(
     />
   );
 }
-import { mount } from "./test-host.tsx";
+import {
+  mount,
+  renderInApp as render,
+  shownMenus,
+  shownNotices,
+} from "./test-host.tsx";
 
 afterEach(cleanup);
 
@@ -96,7 +100,7 @@ describe("shared Data Explorer", () => {
     using mounted = mount(
       <DataExplorer root="note" data={{ title: "A paper" }} copy={copy} />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     expect(
       screen.queryByRole("button", { name: m.workbench_fields_put_in_note() }),
@@ -104,10 +108,12 @@ describe("shared Data Explorer", () => {
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_explorer_row_actions() }),
     );
-    expect(host.calls.menus[0]!.pointerEvent).toBeUndefined();
-    host.calls.menus[0]!.items.find(
-      (item) => item.label === m.workbench_explorer_menu_copy_value(),
-    )!.onSelect();
+    expect(shownMenus()[0]!.mouseEvent).toBeNull();
+    shownMenus()[0]!
+      .items.find(
+        (item) => item.title === m.workbench_explorer_menu_copy_value(),
+      )!
+      .click();
     expect(copy).toHaveBeenCalledWith("A paper");
   });
   it("opens the row menu from a right click", () => {
@@ -118,13 +124,13 @@ describe("shared Data Explorer", () => {
         copy={() => Effect.void}
       />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     fireEvent.contextMenu(screen.getByText("A paper"));
-    expect(host.calls.menus).toHaveLength(1);
+    expect(shownMenus()).toHaveLength(1);
     // The pointer event travels with the request, so the host can anchor the
     // menu at the click rather than under the row.
-    expect(host.calls.menus[0]!.pointerEvent?.type).toBe("contextmenu");
+    expect(shownMenus()[0]!.mouseEvent?.type).toBe("contextmenu");
   });
   it("inserts the field in the selected template engine", () => {
     const insert = vi.fn<(snippet: string) => void>();
@@ -157,28 +163,28 @@ describe("shared Data Explorer", () => {
         onInsert={insert}
       />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_explorer_row_actions() }),
     );
-    const menu = host.calls.menus[0]!;
+    const menu = shownMenus()[0]!;
     // One form, in no engine: a Properties value reads the field itself.
-    expect(menu.submenus ?? []).toEqual([]);
+    expect(menu.items.filter((item) => item.submenu)).toEqual([]);
     const copies = menu.items.filter((item) =>
       [
         m.workbench_explorer_menu_copy_output(),
         m.workbench_explorer_menu_copy_if_present(),
-      ].includes(item.label),
+      ].includes(item.title),
     );
-    expect(copies.map((item) => item.label)).toEqual([
+    expect(copies.map((item) => item.title)).toEqual([
       m.workbench_explorer_menu_copy_output(),
     ]);
-    copies[0]!.onSelect();
+    copies[0]!.click();
     expect(copy).toHaveBeenCalledWith("zt.title");
     menu.items
-      .find((item) => item.label === m.workbench_fields_put_in_note())!
-      .onSelect();
+      .find((item) => item.title === m.workbench_fields_put_in_note())!
+      .click();
     expect(insert).toHaveBeenCalledWith("zt.title", { keepOpen: false });
   });
   it("expands nested values and opens the live engine menu", () => {
@@ -191,7 +197,7 @@ describe("shared Data Explorer", () => {
         engines={() => (eta ? ["liquid", "eta"] : ["liquid"])}
       />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_explorer_toggle_node() }),
@@ -204,7 +210,9 @@ describe("shared Data Explorer", () => {
       })[1]!,
     );
     expect(
-      host.calls.menus[0]?.submenus?.some((item) => item.label === "Eta"),
+      shownMenus()[0]?.items.some(
+        (item) => item.title === "Eta" && item.submenu !== null,
+      ),
     ).toBe(true);
   });
   it.each([
@@ -287,7 +295,7 @@ describe("shared Data Explorer", () => {
         onExploreAnnotation={anchor}
       />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_explorer_toggle_node() }),
@@ -297,16 +305,16 @@ describe("shared Data Explorer", () => {
         name: m.workbench_explorer_row_actions(),
       })[1]!,
     );
-    const items = host.calls.menus[0]!.items;
+    const items = shownMenus()[0]!.items;
     items
-      .find((item) => item.label === m.workbench_explorer_menu_copy_path())!
-      .onSelect();
+      .find((item) => item.title === m.workbench_explorer_menu_copy_path())!
+      .click();
     expect(copy).toHaveBeenCalledWith("zt.annotations[0]");
     items
       .find(
-        (item) => item.label === m.workbench_explorer_menu_explore_annotation(),
+        (item) => item.title === m.workbench_explorer_menu_explore_annotation(),
       )!
-      .onSelect();
+      .click();
     expect(anchor).toHaveBeenCalledWith(
       expect.objectContaining({ path: ["annotations", 0] }),
     );
@@ -348,17 +356,19 @@ describe("shared Data Explorer", () => {
         }
       />,
     );
-    const { ui, host } = mounted;
+    const { ui } = mounted;
     render(ui);
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_explorer_row_actions() }),
     );
     await act(async () => {
-      host.calls.menus[0]!.items.find(
-        (item) => item.label === m.workbench_explorer_menu_copy_value(),
-      )!.onSelect();
+      shownMenus()[0]!
+        .items.find(
+          (item) => item.title === m.workbench_explorer_menu_copy_value(),
+        )!
+        .click();
     });
-    expect(host.calls.notices).toEqual([m.workbench_field_copy_failed()]);
+    expect(shownNotices()).toEqual([m.workbench_field_copy_failed()]);
   });
 });
 

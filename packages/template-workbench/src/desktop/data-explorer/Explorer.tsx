@@ -28,14 +28,14 @@ import {
   selectionName,
 } from "#obsidian/editor/selection.tsx";
 import {
-  templateWorkbenchButton,
-  selectionBar,
-  selectionHint,
-} from "#obsidian/editor/theme.tsx";
-import {
   DataExplorer,
   visibleSectionIds,
 } from "#obsidian/headless-ui/index.tsx";
+import {
+  templateWorkbenchButton,
+  selectionBar,
+  selectionHint,
+} from "#obsidian/headless-ui/look.ts";
 
 const sidebarBar = selectionBar({ placement: "sidebar" });
 

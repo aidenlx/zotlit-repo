@@ -6,15 +6,22 @@ import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
-import { useOptionalHost } from "./host.tsx";
 import type { WorkbenchModel } from "./model.ts";
 import { pendingView } from "./pending-view.ts";
-import { useIcon, useParts } from "./theme.tsx";
 
 import { renderFailed } from "#core/render/index.ts";
+
+const sampleSuggesterTextTrigger = selectionControl({
+  kind: "trigger",
+  className: "zt:shrink-0",
+});
+const sampleSuggesterTrigger = selectionControl({ kind: "icon" });
 
 /** A preview surface with a tab of its own that names its condition. */
 type ExampleSurface = "filename" | "properties";
@@ -189,36 +196,31 @@ export function ExampleActions({
   onChooseItem?: () => void;
   onRetry?: () => void;
 }) {
-  const host = useOptionalHost();
-  const part = useParts("sampleSuggester");
-  const icon = useIcon();
   return (
     <>
       {onChooseItem && (
         <button
           type="button"
-          {...part("text-trigger")}
+          data-part="text-trigger"
+          className={sampleSuggesterTextTrigger}
           data-action="choose-item"
-          aria-label={chooseLabel}
-          {...(host?.tooltip(chooseLabel) ?? { title: chooseLabel })}
+          {...tooltipAttrs(chooseLabel)}
           onClick={onChooseItem}
         >
-          {icon("choose-sample")}
+          <Icon name="search" />
           <span>{chooseLabel}</span>
         </button>
       )}
       {onRetry && (
         <button
           type="button"
-          {...part("trigger")}
+          data-part="trigger"
+          className={sampleSuggesterTrigger}
           data-action="retry-example"
-          aria-label={m.workbench_example_retry()}
-          {...(host?.tooltip(m.workbench_example_retry()) ?? {
-            title: m.workbench_example_retry(),
-          })}
+          {...tooltipAttrs(m.workbench_example_retry())}
           onClick={onRetry}
         >
-          {icon("reset")}
+          <Icon name="rotate-ccw" />
         </button>
       )}
     </>

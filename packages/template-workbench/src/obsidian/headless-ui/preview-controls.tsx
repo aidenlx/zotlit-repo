@@ -1,10 +1,20 @@
 // The Refresh setting drives scheduling; the host starts an on-demand render.
 
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PreviewSettings } from "./model.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
-import { useParts } from "./theme.tsx";
+
+const previewControlsControls = cn(
+  "zt:flex zt:items-center zt:gap-2",
+  "zt:flex-wrap zt:text-sm",
+);
+const previewControlsLabel = cn(
+  "zt:flex zt:items-center zt:gap-2",
+  "zt:flex-wrap",
+);
+const previewControlsLabelText = "zt:text-muted-foreground";
 
 export function PreviewControls({
   preview,
@@ -19,11 +29,12 @@ export function PreviewControls({
   disabled?: boolean;
   onRun: () => void;
 }) {
-  const part = useParts("previewControls");
   return (
-    <div {...part("controls")}>
-      <label {...part("label")}>
-        <span {...part("label-text")}>{m.workbench_preview_mode()}</span>
+    <div data-part="controls" className={previewControlsControls}>
+      <label data-part="label" className={previewControlsLabel}>
+        <span data-part="label-text" className={previewControlsLabelText}>
+          {m.workbench_preview_mode()}
+        </span>
         <WorkbenchSelect
           value={preview.mode}
           onInput={(event) =>
@@ -41,8 +52,10 @@ export function PreviewControls({
           </WorkbenchOption>
         </WorkbenchSelect>
       </label>
-      <label {...part("label")}>
-        <span {...part("label-text")}>{m.workbench_preview_refresh()}</span>
+      <label data-part="label" className={previewControlsLabel}>
+        <span data-part="label-text" className={previewControlsLabelText}>
+          {m.workbench_preview_refresh()}
+        </span>
         <WorkbenchSelect
           value={preview.live ? "live" : "demand"}
           onInput={(event) => {
@@ -59,13 +72,17 @@ export function PreviewControls({
         </WorkbenchSelect>
       </label>
       {!preview.live && (
-        <span role="status" {...part("paused")}>
+        <span
+          role="status"
+          data-part="paused"
+          className="zt:text-sm zt:text-muted-foreground"
+        >
           {m.workbench_preview_paused()}
         </span>
       )}
       {!preview.live && (
         <button
-          {...part("run")}
+          data-part="run"
           type="button"
           disabled={busy || disabled}
           onClick={onRun}

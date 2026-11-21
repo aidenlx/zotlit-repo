@@ -2199,7 +2199,6 @@
   "workbench_name_binding_colored_highlights": "使用彩色高亮语法",
   "workbench_name_binding_annotation_template": "通过标注部分导入标注",
   "workbench_name_use_default": "重置为默认值",
-  "workbench_name_use_default_for": "将{name}重置为默认值",
   "workbench_name_origin_default": "来自默认配置",
   "workbench_name_origin_profile": "来自此配置方案",
   "workbench_name_value_vault_root": "仓库根目录",

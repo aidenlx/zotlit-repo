@@ -1,11 +1,5 @@
 import type { RenderDiagnostic } from "#core/render/result.ts";
-import {
-  act,
-  cleanup,
-  fireEvent,
-  screen,
-  render,
-} from "@testing-library/react";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -19,7 +13,7 @@ import type { WorkbenchDiagnosis } from "./problems.ts";
 import { workbenchDiagnoses } from "./problems.ts";
 import type { RenderTrigger } from "./scheduler-atoms.ts";
 import { TabBar, TabPanel } from "./tab-bar.tsx";
-import { mount } from "./test-host.tsx";
+import { mount, renderInApp as render, shownNotices } from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
@@ -237,9 +231,7 @@ describe("the edit toolbar", () => {
     expect(basic.getAttribute("aria-pressed")).toBe("true");
     expect(advanced.getAttribute("aria-pressed")).toBe("false");
     expect(basic.dataset.state).toBe("on");
-    expect(basic.querySelector("[data-icon]")?.getAttribute("data-icon")).toBe(
-      "basic",
-    );
+    expect(basic.querySelector("svg")).not.toBeNull();
 
     fireEvent.click(advanced);
     expect(registry.get(model.view).advanced).toBe(true);
@@ -258,9 +250,9 @@ describe("the edit toolbar", () => {
     const redo = screen.getByRole("button", { name: m.workbench_redo() });
     expect((undo as HTMLButtonElement).disabled).toBe(true);
     expect((redo as HTMLButtonElement).disabled).toBe(true);
-    // The host's tooltip attributes, beside the label.
-    expect(undo.getAttribute("aria-description")).toBe(m.workbench_undo());
-    expect(undo.className).toBe("part-undo");
+    // Obsidian shows the tooltip from the label.
+    expect(undo.getAttribute("aria-label")).toBe(m.workbench_undo());
+    expect(undo.dataset.part).toBe("undo");
 
     act(() =>
       controller.dispatch({
@@ -309,7 +301,7 @@ describe("the Problems area", () => {
     const area = screen.getByRole("region", {
       name: m.workbench_problems_heading(),
     });
-    expect(area.className).toBe("part-problems");
+    expect(area.dataset.part).toBe("problems");
     expect(area.textContent).toContain(m.workbench_problem_invalid_document());
     expect(area.textContent).not.toContain(
       m.workbench_problem_invalid_document_recovery(),
@@ -1031,7 +1023,7 @@ describe("the error report", () => {
         ?.open,
     ).toBe(true);
     expect(reportBlock().textContent).toBe(CAPTURED_TEXT);
-    expect(host.calls.notices).toEqual([]);
+    expect(shownNotices()).toEqual([]);
   });
 
   it("keeps the inspected report after the repair that resolves it", async () => {

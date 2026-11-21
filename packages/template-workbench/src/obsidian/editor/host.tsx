@@ -1,57 +1,30 @@
 import type {
   WorkbenchHost,
-  WorkbenchDialogRequest,
-  WorkbenchMenuItem,
-  WorkbenchSuggesterRequest,
   WorkbenchSuggesterOption,
   WorkbenchInputSuggestionsRequest,
   WorkbenchRunner,
 } from "#obsidian/headless-ui/index.tsx";
-// Native overlays and Markdown lifecycle for the shared Template Workbench tree.
+// Native input suggestions, Markdown lifecycle and editor popups for the shared Template Workbench tree.
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
-import { Effect, Fiber } from "effect";
+import { Effect } from "effect";
 import {
   AbstractInputSuggest,
   Component,
-  ConfirmationModal,
   MarkdownRenderer,
-  Menu,
-  Modal,
   prepareSimpleSearch,
   renderMatches,
-  setIcon,
-  SuggestModal,
 } from "obsidian";
 import type { App, HoverParent } from "obsidian";
 import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
-import { createRoot } from "react-dom/client";
-import type { Root } from "react-dom/client";
 
 import { Toggle } from "@zotlit/obsidian-kit/components/obsidian/toggle.tsx";
 import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
-import { awaitModal, openModalIn } from "@zotlit/obsidian-kit/effect-modal.ts";
-import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
-import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
-import {
-  CurrentAnswer,
-  takeEnter,
-} from "@zotlit/plugin-services/obsidian/item-lookup/current-answer.ts";
-import {
-  appendInlineFlair,
-  appendTrailingFlair,
-  FLAIR_ROW_CLASS,
-} from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
 
 import { extractPartialMenu } from "./extract-partial.ts";
 import type { ExtractPartial } from "./extract-partial.ts";
 import { obsidianPopupKeys } from "./field-popup.ts";
 import { templateHover } from "./hover.tsx";
-import { templateWorkbenchIcons } from "./theme.tsx";
 
 import { nativeCompletion } from "#core/editor/native-completion.ts";
 import {
@@ -62,26 +35,6 @@ import {
   WorkbenchClipboardError,
   WorkbenchHostError,
 } from "#obsidian/headless-ui/index.tsx";
-
-class EditorDialog extends Modal {
-  #root: Root | null = null;
-  readonly #request: WorkbenchDialogRequest;
-  constructor(app: App, request: WorkbenchDialogRequest) {
-    super(app);
-    this.#request = request;
-    this.setTitle(request.title);
-  }
-  override onOpen(): void {
-    this.contentEl.addClass("zt-root");
-    this.#root = createRoot(this.contentEl);
-    this.#root.render(this.#request.content);
-  }
-  override onClose(): void {
-    this.#root?.unmount();
-    this.#root = null;
-    this.#request.onClose?.();
-  }
-}
 
 class MatchInputSuggest extends AbstractInputSuggest<WorkbenchSuggesterOption> {
   readonly #request: WorkbenchInputSuggestionsRequest;
@@ -128,178 +81,6 @@ class MatchInputSuggest extends AbstractInputSuggest<WorkbenchSuggesterOption> {
   }
 }
 
-/** The native item chooser adds ranked Zotero results to its fixed choices. */
-export interface NativeWorkbenchSuggesterRequest extends WorkbenchSuggesterRequest {
-  readonly searchItems?: (
-    query: string,
-  ) => Effect.Effect<readonly WorkbenchSuggesterOption[]>;
-}
-
-type NativeSuggestion = WorkbenchSuggesterOption & { group: string };
-
-class EditorSuggester extends SuggestModal<NativeSuggestion> {
-  #revision = 0;
-  /** The latest query's answer, or the search that answers it. */
-  #latest: NativeSuggestion[] | Fiber.Fiber<NativeSuggestion[]> = [];
-  readonly #current = new CurrentAnswer<NativeSuggestion>(
-    this.resultContainerEl,
-  );
-  readonly #settle: (answer: string | null) => void;
-  #picked = false;
-  #search = prepareSimpleSearch("");
-  readonly #request: NativeWorkbenchSuggesterRequest;
-  readonly #run: WorkbenchRunner;
-  constructor(
-    app: App,
-    request: NativeWorkbenchSuggesterRequest,
-    answer: {
-      /** Runs the typed searches on the host's leaf. */
-      run: WorkbenchRunner;
-      settle: (answer: string | null) => void;
-    },
-  ) {
-    super(app);
-    this.#run = answer.run;
-    this.#settle = answer.settle;
-    takeEnter(this);
-    this.setTitle(request.title);
-    this.#request = request;
-    this.setPlaceholder(request.placeholder ?? request.title);
-    this.setInstructions([
-      { command: "↑↓", purpose: m.instruction_navigate() },
-      { command: "↵", purpose: m.instruction_select() },
-      { command: "esc", purpose: m.instruction_dismiss() },
-    ]);
-    const empty = request.groups.find((group) => group.empty)?.empty;
-    if (empty && request.groups.every((group) => group.options.length === 0))
-      this.emptyStateText = empty;
-  }
-  override getSuggestions(
-    query: string,
-  ): NativeSuggestion[] | Promise<NativeSuggestion[]> {
-    const revision = ++this.#revision;
-    this.#search = prepareSimpleSearch(query);
-    const choices = this.#request.groups
-      .flatMap((group) =>
-        group.options.map((option) => ({ ...option, group: group.label })),
-      )
-      .filter(
-        (option) =>
-          this.#search(
-            `${option.label} ${option.hint ?? ""} ${option.group}`,
-          ) !== null,
-      );
-    const search = this.#request.searchItems;
-    if (!query.trim() || !search)
-      return this.#current.track((this.#latest = choices));
-    /** The answer of a newer query, for a search it outran. */
-    const newer = Effect.suspend(() => {
-      const latest = this.#latest;
-      return Array.isArray(latest)
-        ? Effect.succeed(latest)
-        : Fiber.join(latest);
-    });
-    const shown = new Set(choices.map(({ id }) => id));
-    const searching = this.#run(
-      search(query).pipe(
-        Effect.flatMap((items) =>
-          revision !== this.#revision
-            ? newer
-            : Effect.succeed([
-                ...choices,
-                ...items
-                  .filter(({ id }) => !shown.has(id))
-                  .map((item) => ({ ...item, group: "" })),
-              ]),
-        ),
-      ),
-    );
-    this.#latest = searching;
-    return this.#current.track(answerOf(searching, choices));
-  }
-  /**
-   * A row reads the way a citation row reads: the name in the title slot,
-   * the hint beneath it, and the group at the trailing edge once the row is
-   * wide enough, otherwise as a badge closing the hint line.
-   */
-  override renderSuggestion(
-    option: WorkbenchSuggesterOption & { group: string },
-    el: HTMLElement,
-  ): void {
-    el.addClass("mod-complex", "zt-workbench-suggestion", FLAIR_ROW_CLASS);
-    if (option.icon)
-      setIcon(
-        el.createDiv("suggestion-icon").createSpan("suggestion-flair"),
-        templateWorkbenchIcons[option.icon],
-      );
-    const content = el.createDiv({
-      cls: "suggestion-content zt:min-w-0 zt:gap-0.5",
-    });
-    renderMatches(
-      content.createDiv({
-        cls: "suggestion-title zt:truncate zt:text-sm zt:leading-tight zt:font-medium",
-      }),
-      option.label,
-      this.#search(option.label)?.matches ?? null,
-    );
-    if (option.hint || option.group) {
-      const note = content.createDiv({
-        cls: "suggestion-note zt:leading-tight",
-      });
-      if (option.hint)
-        renderMatches(
-          note.createSpan("hint"),
-          option.hint,
-          this.#search(option.hint)?.matches ?? null,
-        );
-      if (option.group)
-        appendInlineFlair(note, option.group, option.hint ? "zt:ms-1.5" : "");
-    }
-    for (const match of el.querySelectorAll(".suggestion-highlight")) {
-      match.classList.add("zt:text-accent-foreground");
-    }
-    if (option.id === this.#request.selected) {
-      el.setAttribute("aria-current", "true");
-      setIcon(
-        el.createDiv("suggestion-aux").createSpan({
-          cls: "suggestion-flair",
-          attr: { "aria-label": m.modal_profile_current() },
-        }),
-        "check",
-      );
-    }
-    if (option.group) appendTrailingFlair(el, option.group);
-  }
-  /** Enter while the typed query's answer is pending chooses its first row. */
-  override selectActiveSuggestion(event: MouseEvent | KeyboardEvent): void {
-    if (this.#current.answersTypedQuery) super.selectActiveSuggestion(event);
-    else
-      this.#current.chooseFirst((option) =>
-        this.selectSuggestion(option, event),
-      );
-  }
-  override selectSuggestion(
-    value: WorkbenchSuggesterOption & { group: string },
-    event: MouseEvent | KeyboardEvent,
-  ): void {
-    this.#current.choose(value, event, (option) => {
-      this.#picked = true;
-      super.selectSuggestion(option, event);
-    });
-  }
-  override onChooseSuggestion(option: WorkbenchSuggesterOption): void {
-    this.#settle(option.id);
-  }
-  override onClose(): void {
-    super.onClose();
-    if (!this.#picked) this.#settle(null);
-    this.#revision++;
-    this.#latest = [];
-    this.#current.close();
-    this.#request.anchor?.focus();
-  }
-}
-
 /** A mount's own Effect as a host member: its failure becomes a host failure. */
 export const hostEffect = <A, E>(
   effect: Effect.Effect<A, E>,
@@ -332,32 +113,11 @@ const templateCompletionPresentation = nativeCompletion((completion) => {
   );
 });
 
-/**
- * The Workbench's rows on a native menu, each with the icon it names. A menu
- * whose rows name no icon drops the icon column, so a list of names reads flush.
- */
-function addWorkbenchMenuItems(
-  menu: Menu,
-  items: readonly WorkbenchMenuItem[],
-): void {
-  if (!items.some((item) => item.icon)) menu.setNoIcon();
-  for (const item of items)
-    menu.addItem((entry) =>
-      entry
-        .setTitle(item.label)
-        .setIcon(item.icon ? templateWorkbenchIcons[item.icon] : null)
-        .setDisabled(item.disabled ?? false)
-        .onClick(item.onSelect),
-    );
-}
-
 export function createTemplateWorkbenchHost(
   app: App,
   ports: Pick<WorkbenchHost, "render" | "matchData" | "insertTarget"> & {
     /** The leaf's runner, for the host's own popups. */
     readonly run: WorkbenchRunner;
-    /** The window the leaf is in, where its modals open. */
-    readonly window: () => Window;
   } & Partial<
       Pick<
         WorkbenchHost,
@@ -373,17 +133,13 @@ export function createTemplateWorkbenchHost(
        */
       extractPartial?: ExtractPartial;
     },
-  wrap: (content: ReactNode) => ReactNode = (content) => content,
 ): WorkbenchHost & Disposable & { readonly run: WorkbenchRunner } {
   const open = new Set<() => void>();
   const {
     hoverParent = { hoverPopover: null },
     extractPartial,
-    window: leafWindow,
     ...rest
   } = ports;
-  const openInLeaf = (modal: { open(): void }) =>
-    openModalIn(modal, leafWindow());
   function track(close: () => void): () => void {
     const release = () => {
       if (open.delete(release)) close();
@@ -421,70 +177,6 @@ export function createTemplateWorkbenchHost(
           ? extractPartialMenu(read, extractPartial, rest.run)
           : [],
       ];
-    },
-    menu({ anchor, pointerEvent, items, submenus }) {
-      const menu = new Menu();
-      addWorkbenchMenuItems(menu, items);
-      for (const group of submenus ?? [])
-        menu.addItem((entry) => {
-          entry.setTitle(group.label);
-          addWorkbenchMenuItems(entry.setSubmenu(), group.items);
-        });
-      // A right-click belongs at the pointer, where the reader clicked; a
-      // control's menu belongs under the control, so a keyboard activation
-      // lands there too.
-      if (pointerEvent) {
-        menu.showAtMouseEvent(pointerEvent);
-        return;
-      }
-      showMenuAtButton(menu, anchor);
-    },
-    dialog(request) {
-      const modal = new EditorDialog(app, {
-        ...request,
-        content: wrap(request.content),
-        onClose() {
-          open.delete(close);
-          request.onClose?.();
-        },
-      });
-      const close = track(() => modal.close());
-      openInLeaf(modal);
-      return { close };
-    },
-    confirm: (request) =>
-      awaitModal<boolean>((settle) => {
-        const modal = new ConfirmationModal(app);
-        const close = track(() => modal.close());
-        modal.setTitle(request.title);
-        modal.setContent(request.body);
-        modal.addButton((button) =>
-          button.setButtonText(request.confirm).onClick(() => settle(true)),
-        );
-        modal.addCancelButton(request.cancel ?? m.modal_cancel());
-        modal.setCloseCallback(() => {
-          open.delete(close);
-          settle(false);
-        });
-        openInLeaf(modal);
-        return modal;
-      }),
-    suggester: (request) =>
-      awaitModal<string | null>((settle) => {
-        const modal = new EditorSuggester(app, request, {
-          run: rest.run,
-          settle: (answer) => {
-            open.delete(close);
-            settle(answer);
-          },
-        });
-        const close = track(() => modal.close());
-        openInLeaf(modal);
-        return modal;
-      }),
-    tooltip: tooltipAttrs,
-    notice: (text) => {
-      new BaseNotice(text);
     },
     copy: copyToClipboard,
     communityUrl: communityUrl(),

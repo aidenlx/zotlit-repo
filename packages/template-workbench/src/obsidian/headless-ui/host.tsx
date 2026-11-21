@@ -1,7 +1,7 @@
-// The host adapter: everything that opens over the page, and what only the
-// host can answer — rendering, the vault's match vocabulary, where a field is
-// inserted, and where a preference is kept (ADR 0044). Obsidian binds these to
-// its `Menu`, `Modal`, `SuggestModal`, tooltips, and `Notice`.
+// The host adapter: what only the host can answer — rendering, the vault's
+// match vocabulary, where a field is inserted, and where a preference is kept
+// (ADR 0044). The tree calls Obsidian's own menus, choosers, tooltips and
+// notices directly.
 
 import type {
   WorkbenchSliceId,
@@ -17,16 +17,11 @@ import type {
 import type { Extension } from "@codemirror/state";
 import { Data, Effect } from "effect";
 import { createContext, useContext } from "react";
-import type {
-  ComponentType,
-  DOMAttributes,
-  HTMLAttributes,
-  ReactNode,
-} from "react";
+import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
 
-import type { WorkbenchIcon } from "./theme.tsx";
+import type { WorkbenchSuggesterOption } from "./suggester.ts";
 
 import { WorkbenchHostError } from "#core/language/host-effects.ts";
 
@@ -37,71 +32,8 @@ export class WorkbenchClipboardError extends Data.TaggedError(
   "WorkbenchClipboardError",
 )<{ readonly cause: unknown }> {}
 
-export interface WorkbenchMenuItem {
-  readonly label: string;
-  readonly icon?: WorkbenchIcon;
-  readonly disabled?: boolean;
-  readonly onSelect: () => void;
-}
-
-export interface WorkbenchMenuRequest {
-  /** The element the menu opens from. */
-  readonly anchor: HTMLElement;
-  /**
-   * The pointer event when a right-click opened the menu. A right-click anchors
-   * the menu at the pointer, the way Obsidian's own context menus do; a control
-   * leaves this out, and the menu anchors under `anchor`.
-   */
-  readonly pointerEvent?: MouseEvent;
-  readonly items: readonly WorkbenchMenuItem[];
-  readonly submenus?: readonly {
-    label: string;
-    items: readonly WorkbenchMenuItem[];
-  }[];
-}
-
-export interface WorkbenchDialogRequest {
-  readonly title: string;
-  readonly content: ReactNode;
-  /** Told when the reader dismisses the dialog. */
-  readonly onClose?: () => void;
-}
-
 export interface WorkbenchDialogHandle {
   close(): void;
-}
-
-export interface WorkbenchConfirmRequest {
-  readonly title: string;
-  readonly body: string;
-  /** The confirming action's label. */
-  readonly confirm: string;
-  readonly cancel?: string;
-}
-
-export interface WorkbenchSuggesterOption {
-  readonly id: string;
-  readonly label: string;
-  readonly hint?: string;
-  /** A leading icon that marks an action row apart from the choices. */
-  readonly icon?: WorkbenchIcon;
-}
-
-export interface WorkbenchSuggesterGroup {
-  /** Text shown when this group has no options. */
-  readonly empty?: string;
-  readonly label: string;
-  readonly options: readonly WorkbenchSuggesterOption[];
-}
-
-export interface WorkbenchSuggesterRequest {
-  /** The control that receives focus after the chooser closes. */
-  readonly anchor?: HTMLElement;
-  readonly title: string;
-  readonly placeholder?: string;
-  readonly groups: readonly WorkbenchSuggesterGroup[];
-  /** The option chosen now, if any. */
-  readonly selected?: string;
 }
 
 /** Suggestions anchored to a text field while the author types. */
@@ -303,24 +235,9 @@ export interface WorkbenchPartials {
 
 export interface WorkbenchHost {
   readonly toggle?: ComponentType<WorkbenchToggleProps>;
-  menu(request: WorkbenchMenuRequest): void;
-  dialog(request: WorkbenchDialogRequest): WorkbenchDialogHandle;
-  /**
-   * `true` when the reader confirms, `false` when they dismiss. An interrupt
-   * closes the dialog.
-   */
-  confirm(request: WorkbenchConfirmRequest): Effect.Effect<boolean>;
-  /**
-   * The chosen option's id, or `null` when dismissed. An interrupt closes the
-   * chooser.
-   */
-  suggester(request: WorkbenchSuggesterRequest): Effect.Effect<string | null>;
   inputSuggestions?(
     request: WorkbenchInputSuggestionsRequest,
   ): WorkbenchDialogHandle;
-  /** The attributes that give an in-page element a tooltip reading `text`. */
-  tooltip(text: string): TooltipAttributes;
-  notice(text: string): void;
   /**
    * Reveals the Pandoc engine's setting. A host that supplies none leaves the
    * button off a preview hint.
@@ -387,24 +304,6 @@ export function useWorkbenchHost(): WorkbenchHost {
     throw new Error("The Workbench UI needs a WorkbenchHostProvider above it.");
   }
   return host;
-}
-
-/**
- * The attributes that give an element a tooltip. They carry no event handler,
- * so they spread onto an element of any kind.
- */
-type TooltipAttributes = Omit<
-  HTMLAttributes<HTMLElement>,
-  keyof DOMAttributes<HTMLElement>
->;
-
-/**
- * The tooltip attributes for `text`. Outside a host the browser's own
- * `title` tooltip stands in.
- */
-export function useTooltip(text: string): TooltipAttributes {
-  const host = useContext(HostContext);
-  return host?.tooltip(text) ?? { title: text };
 }
 
 /**

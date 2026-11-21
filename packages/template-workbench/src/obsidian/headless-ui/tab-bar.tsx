@@ -6,6 +6,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
@@ -14,8 +15,18 @@ import { setTab as tabTransition } from "./model.ts";
 import { SliceEditorVisibility } from "./slice-editor.tsx";
 import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
 import type { WorkbenchTab } from "./tabs.ts";
-import { useParts } from "./theme.tsx";
 import { useRetention } from "./visited.ts";
+
+// The same room above the tabs as below them, so they stand clear of
+// the item row's rule over the editor.
+const tabBarTabBar =
+  "zt:flex zt:shrink-0 zt:flex-wrap zt:gap-1 zt:border-b zt:border-border zt:px-3 zt:py-2";
+// Obsidian's own external-link class: link color and the trailing arrow.
+const tabPanelDocsLink = "external-link";
+const tabPanelDescription = cn(
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty",
+  "zt:mb-3",
+);
 
 function tabId(prefix: string, tab: WorkbenchTab): string {
   return `${prefix}tab-${tab}`;
@@ -58,7 +69,6 @@ export function TabBar({
   const tab = useAtomValue(model.tab);
   const setView = useAtomSet(model.view);
   const setTab = (next: WorkbenchTab) => setView(tabTransition(next));
-  const part = useParts("tabBar");
   const name = useContainerName(m.workbench_title());
   const prefix = editor?.id ?? "";
   useAtomValue(model.document.revision);
@@ -101,7 +111,8 @@ export function TabBar({
       {...name.attrs}
       aria-orientation="horizontal"
       onKeyDown={disabled ? undefined : onKeyDown}
-      {...part("tab-bar")}
+      data-part="tab-bar"
+      className={tabBarTabBar}
     >
       {name.hiddenName}
       {tabs.map((id) => {
@@ -123,7 +134,9 @@ export function TabBar({
               setTab(id);
               onTabChange?.(id);
             }}
-            {...part("tab", active ? "active" : "inactive")}
+            data-part="tab"
+            data-state={active ? "active" : "inactive"}
+            className="clickable-icon zt:disabled:opacity-50 zt:shrink-0 zt:text-sm"
           >
             {tabLabel(id)}
           </button>
@@ -139,7 +152,6 @@ export function TabBar({
  */
 export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
   const docsUrl = useOptionalHost()?.docsUrl;
-  const part = useParts("tabPanel");
   if (docsUrl === undefined) return null;
   const { label, path } = tabDocs(tab);
   return (
@@ -147,7 +159,8 @@ export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
       href={`${docsUrl}${path}`}
       target="_blank"
       rel="noreferrer"
-      {...part("docs-link")}
+      data-part="docs-link"
+      className={tabPanelDocsLink}
     >
       {label}
     </a>
@@ -172,7 +185,6 @@ export function TabPanel({
 }) {
   const editor = useOptionalEditor();
   const active = useAtomValue(useWorkbenchModel().tab) === tab;
-  const part = useParts("tabPanel");
   const prefix = editor?.id ?? "";
   // A tab's occupant is the tab itself, so the list never changes and a visit
   // is remembered for as long as the editor lives.
@@ -190,10 +202,12 @@ export function TabPanel({
       id={panelId(prefix, tab)}
       aria-labelledby={tabId(prefix, tab)}
       hidden={!shown}
-      {...part("tab-panel", shown ? "active" : "inactive")}
+      data-part="tab-panel"
+      data-state={shown ? "active" : "inactive"}
+      className="zt:min-w-0 zt:p-3"
     >
       {description && tab !== "match" && (
-        <p {...part("description")}>
+        <p data-part="description" className={tabPanelDescription}>
           {tabLede(tab)} <TabDocsLink tab={tab} />
         </p>
       )}

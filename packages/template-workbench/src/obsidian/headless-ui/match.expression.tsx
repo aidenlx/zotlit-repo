@@ -2,7 +2,6 @@
 // CodeMirror editor that colors its Filter Expression as the template panes
 // color theirs, and underlines its Syntax Fault, else the Fault a run found.
 
-import type { CompletionPresentation } from "#core/language/completion.ts";
 import type { ExpressionVocabulary } from "#core/language/filter-expression-completion.ts";
 import type { PlacedFault } from "#core/language/span.ts";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
@@ -14,26 +13,42 @@ import {
   keymap,
   placeholder as placeholderText,
 } from "@codemirror/view";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 import { parseExpression } from "@zotlit/filter-expression";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { HiddenName } from "./host.tsx";
-import {
-  useExpressionCompletion,
-  useExpressionExtension,
-  useParts,
-} from "./theme.tsx";
+import { editorBox } from "./look.ts";
 import { underlineOnlyLint } from "./underline-lint.ts";
 
+import { nativeCompletion } from "#core/editor/native-completion.ts";
 import { filterExpressionCompletion } from "#core/language/filter-expression-completion.ts";
 import {
   filterExpressionHighlighting,
   filterExpressionLanguage,
   filterExpressionPairing,
 } from "#core/language/filter-expression.ts";
+import { expressionOption } from "#core/language/index.ts";
 import { signatureHint } from "#core/language/signature-hint-tooltip.ts";
+import {
+  hostedEditor,
+  popoverTooltips,
+} from "#obsidian/editor/editor-extension.ts";
+import { obsidianPopupKeys } from "#obsidian/editor/field-popup.ts";
+
+// A CodeMirror field drawn as an Obsidian text input, at least as tall
+// as one; the editor hook scopes the template token colors to it.
+const matchExpression = cn(
+  themeHook.templateEditor,
+  editorBox,
+  "zt:min-h-(--input-height) zt:w-full zt:min-w-0 zt:cursor-text zt:font-mono zt:text-sm zt:leading-normal zt:[transition:var(--input-transition)]",
+  "zt:hover:bg-(--background-modifier-form-field-hover) zt:not-focus-within:not-has-[[aria-invalid=true]]:hover:border-border-hover zt:has-[[aria-invalid=true]]:border-(--text-error)",
+  "zt:[&_.cm-placeholder]:text-(--text-faint)",
+);
 
 /**
  * The label and validity of the field, on its editable content. The label
@@ -55,14 +70,11 @@ const contentAttributes = ({
 
 /** Expression Completion over the vocabulary the field holds now. */
 const completionOf = (props: {
-  readonly current: {
-    vocabulary?: ExpressionVocabulary;
-    presentation?: CompletionPresentation;
-  };
+  readonly current: { vocabulary?: ExpressionVocabulary };
 }) =>
   filterExpressionCompletion(
     () => props.current.vocabulary,
-    props.current.presentation,
+    nativeCompletion(expressionOption),
   );
 
 /** Marks the edit that brings in a new `value`, which is not the user's. */
@@ -112,14 +124,11 @@ export interface MatchExpressionInputProps {
 }
 
 /**
- * A Filter Expression field. It takes the `expression` part of the match
- * theme where it renders, so a host that wraps it in
- * `WorkbenchThemeProvider` gets the Match editor's look; the `data-*`
- * attributes go on that part. The editor draws no focus outline and no
- * padding, so the part owns both: it must show `:focus-within`. The part
- * also sets the box height: a part as tall as the host's text inputs reads
- * like one, as the editor stands at its vertical centre while the text is
- * shorter than the box.
+ * A Filter Expression field. The `data-*` attributes go on its `expression`
+ * part. The editor draws no focus outline and no padding, so the part owns
+ * both: it must show `:focus-within`. The part also sets the box height: a
+ * part as tall as Obsidian's text inputs reads like one, as the editor stands
+ * at its vertical centre while the text is shorter than the box.
  */
 export function MatchExpressionInput({
   value,
@@ -133,9 +142,14 @@ export function MatchExpressionInput({
   vocabulary,
   ...data
 }: MatchExpressionInputProps & Partial<Record<`data-${string}`, string>>) {
-  const part = useParts("match");
-  const hostExtension = useExpressionExtension();
-  const presentation = useExpressionCompletion();
+  const app = useObsidianApp();
+  // The editor draws in its own window and over the chooser page or popover it
+  // stands in, and its popup keys sit on the keymap as Obsidian's suggesters
+  // take them. One extension per app, so a render hands the editor the same.
+  const hostExtension = useMemo(
+    () => [hostedEditor, popoverTooltips, obsidianPopupKeys(app)],
+    [app],
+  );
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const labelId = useUniqueId();
@@ -152,7 +166,6 @@ export function MatchExpressionInput({
     lines,
     hostExtension,
     vocabulary,
-    presentation,
     fault,
   });
   props.current = {
@@ -166,7 +179,6 @@ export function MatchExpressionInput({
     lines,
     hostExtension,
     vocabulary,
-    presentation,
     fault,
   };
   const attributes = useRef(new Compartment());
@@ -218,7 +230,7 @@ export function MatchExpressionInput({
           placeholder ? placeholderText(placeholder) : [],
           EditorView.contentAttributes.of({ spellcheck: "false" }),
           attributes.current.of(contentAttributes(props.current)),
-          hostExtension ?? [],
+          hostExtension,
           completer.current.of(completing.current ? completionOf(props) : []),
           EditorView.updateListener.of((update) => {
             if (
@@ -294,7 +306,8 @@ export function MatchExpressionInput({
     <>
       <div
         ref={host}
-        {...part("expression")}
+        data-part="expression"
+        className={matchExpression}
         {...data}
         style={{
           display: "flex",

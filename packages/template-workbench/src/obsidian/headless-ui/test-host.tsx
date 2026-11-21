@@ -1,16 +1,30 @@
-// A host for the shared suite: every adapter call is recorded, preferences
-// live in memory, and the theme names each part's class after the part.
+// A host for the shared suite: the data ports answer on the test's terms and
+// preferences live in memory. Menus, choosers and notices go to Obsidian's own
+// classes, which the `obsidian` mock records: `shownMenus`, `shownNotices`
+// and `watchChoosers` read them.
 
 import type { RenderRequest } from "#core/render/request.ts";
 import type {
   RenderDiagnostic,
   TemplateRenderResult,
 } from "#core/render/result.ts";
+import { render as renderUI } from "@testing-library/react";
 import { Effect, Layer, Queue } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
+import { Scope } from "obsidian";
+import type { App } from "obsidian";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+import { vi } from "vitest";
+
+import {
+  Menu,
+  Notice,
+  SuggestModal,
+} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor.tsx";
 import {
@@ -22,9 +36,7 @@ import type {
   WorkbenchFieldDetailsProps,
   WorkbenchFieldsPopoverProps,
   WorkbenchHost,
-  WorkbenchMenuRequest,
   WorkbenchPreferenceScope,
-  WorkbenchSuggesterRequest,
 } from "./host.tsx";
 import { patch } from "./model.ts";
 import type {
@@ -33,8 +45,6 @@ import type {
   WorkbenchViewState,
 } from "./model.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
-import { WorkbenchThemeProvider } from "./theme.tsx";
-import type { WorkbenchClassMap, WorkbenchTheme } from "./theme.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
@@ -56,8 +66,6 @@ export interface PendingRender {
 /** A request the host holds open while `hold` is set. */
 export interface HeldRequest {
   readonly kind:
-    | "confirm"
-    | "suggester"
     | "copy"
     | "tags"
     | "collections"
@@ -74,10 +82,6 @@ export interface HeldRequest {
 
 export interface FakeHost extends WorkbenchHost {
   readonly calls: {
-    menus: WorkbenchMenuRequest[];
-    suggesters: WorkbenchSuggesterRequest[];
-    notices: string[];
-    confirms: string[];
     /** Every text handed to the clipboard, in order. */
     copies: string[];
     /** How many times the tree moved focus to the Fields action. */
@@ -88,19 +92,20 @@ export interface FakeHost extends WorkbenchHost {
   /** Takes each render as it starts: the signal a render was asked for. */
   readonly started: Queue.Queue<PendingRender>;
   /**
-   * While set, `confirm`, `suggester`, `copy` and every Match data read wait
-   * in `held` until the test answers them; otherwise they answer at once.
+   * While set, `copy` and every Match data read wait in `held` until the test
+   * answers them; otherwise they answer at once.
    */
   hold: boolean;
   readonly held: HeldRequest[];
   readonly preferences: Map<string, string>;
-  /** What the next `confirm` answers. */
-  confirmAnswer: boolean;
   /** Whether `copy` fails, which stands for a clipboard the host refused. */
   copyFails: boolean;
 }
 
 export function fakeHost(): FakeHost {
+  // A test starts with the menus and notices it causes alone.
+  Menu.instances.length = 0;
+  Notice.instances.length = 0;
   const preferences = new Map<string, string>();
   const key = (scope: WorkbenchPreferenceScope, name: string) =>
     `${scope}:${name}`;
@@ -136,10 +141,6 @@ export function fakeHost(): FakeHost {
   }
   const host: FakeHost = {
     calls: {
-      menus: [],
-      suggesters: [],
-      notices: [],
-      confirms: [],
       copies: [],
       actionFocuses: 0,
     },
@@ -148,22 +149,7 @@ export function fakeHost(): FakeHost {
     hold: false,
     held,
     preferences,
-    confirmAnswer: true,
     copyFails: false,
-    menu: (request) => void host.calls.menus.push(request),
-    dialog: () => ({ close() {} }),
-    confirm: (request) =>
-      holdable("confirm", () => {
-        host.calls.confirms.push(request.title);
-        return Effect.succeed(host.confirmAnswer);
-      }),
-    suggester: (request) =>
-      holdable("suggester", () => {
-        host.calls.suggesters.push(request);
-        return Effect.succeed(request.selected ?? null);
-      }),
-    tooltip: (text) => ({ "aria-description": text }),
-    notice: (text) => void host.calls.notices.push(text),
     copy: (text) =>
       holdable("copy", () => {
         host.calls.copies.push(text);
@@ -244,18 +230,65 @@ export function fakeHost(): FakeHost {
   return host;
 }
 
-/** Every part wears `part-<name>`, so a test can see the map land. */
-export const FAKE_CLASSES: WorkbenchClassMap = {
-  tabBar: { "tab-bar": "part-tab-bar", tab: "part-tab" },
-  tabPanel: { "tab-panel": "part-tab-panel" },
-  editToolbar: { mode: "part-mode", undo: "part-undo" },
-  problemsFooter: { problems: "part-problems" },
-};
+/** An Obsidian App with the keymap a field's popup keys sit on. */
+export const TEST_APP = stubService<App>("App", {
+  scope: new Scope(),
+  keymap: stubService<App["keymap"]>("Keymap", {
+    pushScope: () => {},
+    popScope: () => {},
+  }),
+});
 
-export const FAKE_THEME: WorkbenchTheme = {
-  classes: FAKE_CLASSES,
-  icon: (name) => <i data-icon={name} />,
-};
+/** The text of each notice shown since the host was made, in order. */
+export function shownNotices(): string[] {
+  return Notice.instances.map(({ message }) =>
+    typeof message === "string" ? message : (message.textContent ?? ""),
+  );
+}
+
+/** The native menus opened since the host was made, the latest last. */
+export function shownMenus(): Menu[] {
+  return Menu.instances;
+}
+
+/** One option of a chooser, with the group it stands under. */
+interface ChooserRow {
+  id: string;
+  label: string;
+  hint?: string;
+  group: string;
+}
+
+/** The part of a native chooser a test reads and answers. */
+interface Chooser {
+  getSuggestions(query: string): ChooserRow[];
+  renderSuggestion(row: ChooserRow, el: HTMLElement): void;
+  selectSuggestion(row: ChooserRow, event: MouseEvent | KeyboardEvent): void;
+  close(): void;
+}
+
+/**
+ * The choosers the tree opens while this is held: each is the native modal
+ * Obsidian would show, which a test reads through `getSuggestions` and answers
+ * with `selectSuggestion`. Release it with `using`.
+ */
+export function watchChoosers() {
+  const open = vi.spyOn(SuggestModal.prototype, "open");
+  return {
+    /** The chooser opened last. */
+    get last(): Chooser {
+      const modal = open.mock.contexts.at(-1);
+      if (!modal) throw new Error("No chooser has opened.");
+      return modal as never;
+    },
+    get opened(): number {
+      return open.mock.calls.length;
+    },
+    [Symbol.dispose]() {
+      open.mockRestore();
+    },
+  };
+}
 
 /** Disposing it disposes the editor and registry `mount` built, so bind it with `using`. */
 export interface Mounted extends Disposable {
@@ -304,13 +337,13 @@ export function mount(
   });
   const { model } = editor;
   const wrap = (children: ReactNode) => (
-    <WorkbenchThemeProvider theme={FAKE_THEME}>
+    <AppContext value={TEST_APP}>
       <WorkbenchHostProvider host={host}>
         <WorkbenchEditorProvider editor={editor}>
           {children}
         </WorkbenchEditorProvider>
       </WorkbenchHostProvider>
-    </WorkbenchThemeProvider>
+    </AppContext>
   );
   return {
     host,
@@ -355,6 +388,19 @@ export function reportFailure(
 /** The state the preview reads. */
 export function schedulerState({ registry, model }: Driven) {
   return registry.get(model.scheduler.state);
+}
+
+/** Renders a component in the test App, for tests that mount no host. */
+export function renderInApp(
+  ui: ReactNode,
+  options?: Parameters<typeof renderUI>[1],
+): ReturnType<typeof renderUI> {
+  return renderUI(ui, {
+    wrapper: ({ children }) => (
+      <AppContext value={TEST_APP}>{children}</AppContext>
+    ),
+    ...options,
+  });
 }
 
 /**

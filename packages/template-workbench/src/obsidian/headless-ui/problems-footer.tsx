@@ -35,11 +35,17 @@ import type {
   WorkbenchReportContext,
 } from "@zotlit/notes/core/template/render-report.ts";
 import { formatRenderReport } from "@zotlit/notes/core/template/render-report.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
 import { useOptionalHost } from "./host.tsx";
+import { templateWorkbenchButton } from "./look.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import {
   diagnosisEngineSources,
@@ -53,9 +59,70 @@ import {
 } from "./problems.ts";
 import type { RenderTrigger } from "./scheduler-atoms.ts";
 import { WorkbenchOption, WorkbenchSelect } from "./select.tsx";
-import { useParts, useIcon } from "./theme.tsx";
 
 import { captureProblemReport } from "#core/render/problem-report.ts";
+
+// Its own surface, so the engine's own words read as the block they are.
+// It scrolls in both directions rather than wrapping: a caret excerpt
+// only points at the right column while its lines stay intact.
+const problemsFooterProblemsReport =
+  "zt:mt-1 zt:max-h-56 zt:overflow-auto zt:rounded-md zt:border zt:border-border zt:bg-(--background-secondary) zt:p-2 zt:font-mono zt:whitespace-pre zt:select-text";
+const problemsFooterProblemsCopy = templateWorkbenchButton;
+// Help, not an action: it reads as the link it is, aligned with the
+// buttons it shares the row with.
+const problemsFooterProblemsCommunity =
+  "zt:self-center zt:underline zt:underline-offset-2";
+// The divider sets the area's share; the host supplies native colors.
+// Open, the divider draws the area's top line.
+const problemsFooterProblems =
+  "zt:relative zt:flex zt:min-h-0 zt:flex-col zt:gap-2 zt:border-t zt:border-border zt:data-[state=open]:border-t-0 zt:p-3 zt:text-xs zt:leading-normal zt:data-[error]:border-s-2 zt:data-[error]:border-s-(--text-error)";
+// Its line runs over the area's error mark too, as the area's own top
+// border did: `-start-0.5` is the mark's `border-s-2`.
+const problemsFooterProblemsResize = cn(
+  paneDivider({ flow: "overlay", edge: "top" }),
+  "zt:in-data-[error]:-start-0.5",
+);
+const problemsFooterProblemsText =
+  "zt:min-w-0 zt:text-pretty zt:font-medium zt:text-foreground";
+const problemsFooterProblemsCount =
+  "zt:shrink-0 zt:rounded-sm zt:bg-(--background-modifier-error)/10 zt:text-foreground zt:px-1.5 zt:font-medium zt:tabular-nums zt:whitespace-nowrap";
+// A value that changes as problems are repaired, so its digits hold
+// their width and it keeps its own line rather than wrapping mid-count.
+const problemsFooterProblemsAnnouncement = "zt:sr-only";
+// Each control is capped at the row, so a long translated label wraps
+// inside its own box instead of running past the pane.
+const problemsFooterProblemsSpace =
+  "zt:ms-auto zt:flex zt:min-w-0 zt:flex-wrap zt:items-center zt:gap-2 zt:[&>*]:max-w-full zt:[&>*]:min-w-0";
+const problemsFooterProblemsToggle = selectionControl({ kind: "icon" });
+const problemsFooterProblemsBody =
+  "zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1 zt:flex-col zt:gap-1";
+// The explanation, and only the explanation, scrolls. It takes whatever
+// the area has left, so the controls keep one place along its bottom
+// edge whichever problem is read and however long its explanation runs.
+// A reader with no pointer scrolls it from the keyboard, and Obsidian
+// clears the outline every focus ring would otherwise draw, so the ring
+// is drawn inside.
+const problemsFooterProblemsScroll = cn(
+  "zt:flex zt:min-h-0 zt:flex-1 zt:flex-col zt:gap-1 zt:overflow-y-auto zt:overscroll-contain zt:pb-1",
+  "zt:focus-visible:shadow-[inset_0_0_0_2px_var(--background-modifier-border-focus)]",
+);
+// The chooser leads the explanation where the object line otherwise
+// would, at its own width rather than stretched across the column.
+const problemsFooterProblemsSelect = "zt:min-w-0 zt:max-w-full zt:self-start";
+const problemsFooterProblemsObject =
+  "zt:font-semibold zt:[overflow-wrap:anywhere]";
+// A reported location names the engine's own template, which is one
+// unbroken machine-written token in a pane the reader can narrow.
+const problemsFooterProblemsLocation =
+  "zt:text-pretty zt:text-muted-foreground zt:[overflow-wrap:anywhere]";
+// Under the scroll, never inside it: every one of these stays put while
+// a long explanation and an open disclosure move past above them. The
+// rule over them marks where the explanation scrolls out of view, so a
+// line cut at that edge reads as more to scroll, not as covered.
+const problemsFooterProblemsControls =
+  "zt:flex zt:min-w-0 zt:shrink-0 zt:flex-wrap zt:border-t zt:border-border zt:pt-2 zt:items-center zt:gap-2 zt:[&>*]:max-w-full zt:[&>*]:min-w-0";
+const problemsFooterProblemsOpen = templateWorkbenchButton;
+const problemsFooterProblemsNext = templateWorkbenchButton;
 
 /** The Problems area's own state: which problem is read, and whether in full. */
 export interface WorkbenchProblemsState {
@@ -263,8 +330,6 @@ export function ProblemsFooter({
 }) {
   const host = useOptionalHost();
   const startCopy = useAtomSet(useWorkbenchModel().copy(useUniqueId()));
-  const part = useParts("problemsFooter");
-  const icon = useIcon();
   const panel = useRef<HTMLElement>(null);
   const [size, setSize] = useState(55);
   const drag = useRef<{ y: number; size: number; height: number } | null>(null);
@@ -320,7 +385,9 @@ export function ProblemsFooter({
     setCopyFailed(false);
     startCopy({
       copy: host.copy(text),
-      copied: () => host.notice(m.workbench_problems_copy_done()),
+      copied: () => {
+        new BaseNotice(m.workbench_problems_copy_done());
+      },
       failed: () => {
         // A denied clipboard leaves the reader the report itself: the
         // disclosure opens so the text is there to select and copy by hand.
@@ -333,20 +400,39 @@ export function ProblemsFooter({
   function reporting(text: string | null, evidence: string | null) {
     return (
       <>
-        <details ref={details} {...part("problems-details")}>
-          <summary {...part("problems-details-label")}>
+        <details
+          ref={details}
+          data-part="problems-details"
+          className="zt:mt-2 zt:min-w-0"
+        >
+          <summary
+            data-part="problems-details-label"
+            className="zt:cursor-pointer zt:text-muted-foreground"
+          >
             {m.workbench_problems_technical()}
           </summary>
           {text === null ? (
-            <p {...part("problems-evidence")}>
+            <p
+              data-part="problems-evidence"
+              className="zt:mt-1 zt:max-h-40 zt:overflow-auto zt:font-mono zt:whitespace-pre-wrap zt:[overflow-wrap:anywhere]"
+            >
               {evidence ?? m.workbench_problems_evidence_none()}
             </p>
           ) : (
-            <pre {...part("problems-report")}>{text}</pre>
+            <pre
+              data-part="problems-report"
+              className={problemsFooterProblemsReport}
+            >
+              {text}
+            </pre>
           )}
         </details>
         {copyFailed && (
-          <p role="alert" {...part("problems-copy-failed")}>
+          <p
+            role="alert"
+            data-part="problems-copy-failed"
+            className="zt:mt-1 zt:text-pretty zt:text-(--text-error)"
+          >
             {m.workbench_problems_copy_failed()}
           </p>
         )}
@@ -361,7 +447,8 @@ export function ProblemsFooter({
           <button
             type="button"
             onClick={() => copyReport(text)}
-            {...part("problems-copy")}
+            data-part="problems-copy"
+            className={problemsFooterProblemsCopy}
           >
             {resolved
               ? m.workbench_problems_copy_last()
@@ -373,7 +460,8 @@ export function ProblemsFooter({
             href={host.communityUrl}
             target="_blank"
             rel="noreferrer"
-            {...part("problems-community")}
+            data-part="problems-community"
+            className={problemsFooterProblemsCommunity}
           >
             {m.workbench_problems_community()}
           </a>
@@ -397,7 +485,9 @@ export function ProblemsFooter({
       data-error={diagnoses.length > 0 || undefined}
       aria-labelledby={headingId}
       // The reader's chosen share survives checks, repairs, and reopening.
-      {...part("problems", open ? "open" : "compact")}
+      data-part="problems"
+      data-state={open ? "open" : "compact"}
+      className={problemsFooterProblems}
     >
       {open && (
         <div
@@ -457,38 +547,60 @@ export function ProblemsFooter({
             event.preventDefault();
             setSize(Math.max(20, Math.min(85, next)));
           }}
-          {...part("problems-resize")}
+          data-part="problems-resize"
+          className={problemsFooterProblemsResize}
         />
       )}
-      <div {...part("problems-summary")}>
+      <div
+        data-part="problems-summary"
+        className="zt:flex zt:min-w-0 zt:flex-wrap zt:items-center zt:gap-x-3 zt:gap-y-1"
+      >
         {diagnoses.length > 0 && (
-          <span {...part("problems-error-icon")}>{icon("error")}</span>
+          <span
+            data-part="problems-error-icon"
+            className="zt:flex zt:shrink-0 zt:items-center zt:text-(--text-error) zt:[&_svg]:size-4"
+          >
+            <Icon name="circle-alert" />
+          </span>
         )}
-        <p id={headingId} {...part("problems-heading")}>
+        <p
+          id={headingId}
+          data-part="problems-heading"
+          className="zt:font-semibold"
+        >
           {m.workbench_problems_heading()}
         </p>
         {/* What the checks found, never what the document holds: a parser that
             stops at its first error leaves the rest undiscovered. */}
         {diagnoses.length === 0 ? (
-          <p {...part("problems-text")}>{m.workbench_problems_none()}</p>
+          <p data-part="problems-text" className={problemsFooterProblemsText}>
+            {m.workbench_problems_none()}
+          </p>
         ) : (
           <p
             role="status"
             aria-label={m.workbench_problems_count({ count: diagnoses.length })}
-            {...part("problems-count")}
+            data-part="problems-count"
+            className={problemsFooterProblemsCount}
           >
             {diagnoses.length}
           </p>
         )}
         {!open && explanation !== null && (
-          <p {...part("problems-text")}>{explanation.condition}</p>
+          <p data-part="problems-text" className={problemsFooterProblemsText}>
+            {explanation.condition}
+          </p>
         )}
-        <p role="status" {...part("problems-announcement")}>
+        <p
+          role="status"
+          data-part="problems-announcement"
+          className={problemsFooterProblemsAnnouncement}
+        >
           {problems.announcement}
         </p>
         {/* How much of the editor this reading takes, on the trailing edge and
             together: one grows the area, the other gives it all back. */}
-        <div {...part("problems-space")}>
+        <div data-part="problems-space" className={problemsFooterProblemsSpace}>
           <button
             type="button"
             aria-label={
@@ -500,19 +612,32 @@ export function ProblemsFooter({
             aria-expanded={open}
             aria-controls={open ? bodyId : undefined}
             onClick={toggleOpen}
-            {...part("problems-toggle")}
+            data-part="problems-toggle"
+            className={problemsFooterProblemsToggle}
           >
-            {icon(open ? "chevron-down" : "chevron-up")}
+            <Icon name={open ? "chevron-down" : "chevron-up"} />
           </button>
         </div>
       </div>
       {open && selected && explanation && (
-        <div id={bodyId} {...part("problems-body")}>
+        <div
+          id={bodyId}
+          data-part="problems-body"
+          className={problemsFooterProblemsBody}
+        >
           {/* The explanation is what scrolls. A reader with no pointer scrolls
               it from here, and the controls below stay where they were. */}
-          <div ref={scroll} tabIndex={0} {...part("problems-scroll")}>
+          <div
+            ref={scroll}
+            tabIndex={0}
+            data-part="problems-scroll"
+            className={problemsFooterProblemsScroll}
+          >
             {several ? (
-              <div {...part("problems-select")}>
+              <div
+                data-part="problems-select"
+                className={problemsFooterProblemsSelect}
+              >
                 <WorkbenchSelect
                   aria-label={m.workbench_problems_selected()}
                   value={selected.id}
@@ -526,27 +651,49 @@ export function ProblemsFooter({
                 </WorkbenchSelect>
               </div>
             ) : (
-              <p {...part("problems-object")}>{explanation.object}</p>
+              <p
+                data-part="problems-object"
+                className={problemsFooterProblemsObject}
+              >
+                {explanation.object}
+              </p>
             )}
-            <p {...part("problems-text")}>{explanation.condition}</p>
-            <p {...part("problems-recovery")}>{explanation.suggestion}</p>
+            <p data-part="problems-text" className={problemsFooterProblemsText}>
+              {explanation.condition}
+            </p>
+            <p
+              data-part="problems-recovery"
+              className="zt:max-w-[75ch] zt:text-pretty zt:leading-normal zt:text-foreground"
+            >
+              {explanation.suggestion}
+            </p>
             {/* Where the engine said it happened and where the reader repairs
                 it are different places, so they are read as separate lines
                 rather than folded into one claim. Grouped occurrences each keep
                 the place they were reported from. */}
             {engineSources.map((sentence) => (
-              <p key={sentence} {...part("problems-location")}>
+              <p
+                key={sentence}
+                data-part="problems-location"
+                className={problemsFooterProblemsLocation}
+              >
                 {sentence}
               </p>
             ))}
             {!diagnosisLocated(selected) && (
-              <p {...part("problems-location")}>
+              <p
+                data-part="problems-location"
+                className={problemsFooterProblemsLocation}
+              >
                 {m.workbench_problems_location_unknown()}
               </p>
             )}
             {reporting(reportText, explanation.evidence ?? null)}
           </div>
-          <div {...part("problems-controls")}>
+          <div
+            data-part="problems-controls"
+            className={problemsFooterProblemsControls}
+          >
             <button
               type="button"
               onClick={() => {
@@ -556,7 +703,8 @@ export function ProblemsFooter({
                 setOpen(false);
                 onOpen(selected);
               }}
-              {...part("problems-open")}
+              data-part="problems-open"
+              className={problemsFooterProblemsOpen}
             >
               {diagnosisWhere(selected)}
             </button>
@@ -569,23 +717,41 @@ export function ProblemsFooter({
         (reportText !== null || (next !== null && inspected !== null)) && (
           // The repair succeeded, and the failure the reader was reading is
           // still here to report. It is the last one inspected, not a history.
-          <div id={bodyId} {...part("problems-body")}>
-            <div ref={scroll} tabIndex={0} {...part("problems-scroll")}>
+          <div
+            id={bodyId}
+            data-part="problems-body"
+            className={problemsFooterProblemsBody}
+          >
+            <div
+              ref={scroll}
+              tabIndex={0}
+              data-part="problems-scroll"
+              className={problemsFooterProblemsScroll}
+            >
               {next !== null && inspected !== null && (
                 // Others were found, so this says which one went rather than
                 // presenting the whole preview as successful.
                 <>
-                  <p {...part("problems-object")}>
+                  <p
+                    data-part="problems-object"
+                    className={problemsFooterProblemsObject}
+                  >
                     {diagnosisLabel(inspected)}
                   </p>
-                  <p {...part("problems-text")}>
+                  <p
+                    data-part="problems-text"
+                    className={problemsFooterProblemsText}
+                  >
                     {m.workbench_problems_resolved()}
                   </p>
                 </>
               )}
               {reportText !== null && reporting(reportText, null)}
             </div>
-            <div {...part("problems-controls")}>
+            <div
+              data-part="problems-controls"
+              className={problemsFooterProblemsControls}
+            >
               {next !== null && (
                 <button
                   type="button"
@@ -593,7 +759,8 @@ export function ProblemsFooter({
                     focusReading();
                     select(next.id);
                   }}
-                  {...part("problems-next")}
+                  data-part="problems-next"
+                  className={problemsFooterProblemsNext}
                 >
                   {m.workbench_problems_next()}
                 </button>

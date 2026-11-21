@@ -1,11 +1,16 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 // Item and annotation choice controls; the host owns the searchable overlay.
 
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import { useTooltip, useWorkbenchHost } from "./host.tsx";
-import { useIcon, useParts } from "./theme.tsx";
+import { chooseWorkbenchOption } from "./suggester.ts";
+
+const sampleSuggesterTrigger = selectionControl({ kind: "icon" });
 
 export interface SampleOption {
   readonly value: string;
@@ -36,27 +41,26 @@ export function SampleSuggester({
   }[];
   readonly onSelect: (value: string) => void;
 }) {
-  const part = useParts("sampleSuggester");
-  const icon = useIcon();
-  const host = useWorkbenchHost();
+  const app = useObsidianApp();
   const command = useWorkbenchModel().choose(useUniqueId());
   const open = useAtomValue(command).waiting;
   const choose = useAtomSet(command);
-  const labelTooltip = useTooltip(label ?? "");
-  const triggerTooltip = useTooltip(title);
+  const labelTooltip = tooltipAttrs(label ?? "");
+  const triggerTooltip = tooltipAttrs(title);
   const instanceId = useUniqueId();
   const trigger = (
     <button
       type="button"
       id={id ?? instanceId}
-      {...part("trigger")}
+      data-part="trigger"
+      className={sampleSuggesterTrigger}
       {...triggerTooltip}
       aria-label={title}
       aria-haspopup="dialog"
       aria-expanded={open}
       onClick={(event) => {
         choose({
-          choose: host.suggester({
+          choose: chooseWorkbenchOption(app, {
             anchor: event.currentTarget,
             title,
             selected,
@@ -74,13 +78,20 @@ export function SampleSuggester({
         });
       }}
     >
-      {icon("choose-sample")}
+      <Icon name="search" />
     </button>
   );
   if (label === undefined) return trigger;
   return (
-    <div {...part("suggester")}>
-      <span {...part("label")} {...labelTooltip}>
+    <div
+      data-part="suggester"
+      className="zt:flex zt:min-w-0 zt:flex-1 zt:items-center zt:gap-2"
+    >
+      <span
+        data-part="label"
+        className="zt:min-w-0 zt:flex-1 zt:truncate zt:text-xs zt:text-muted-foreground"
+        {...labelTooltip}
+      >
         {label}
       </span>
       {trigger}

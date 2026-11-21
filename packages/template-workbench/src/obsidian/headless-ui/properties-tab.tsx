@@ -14,18 +14,25 @@ import type {
 } from "#core/render/result.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { ExampleActions, useExampleState } from "./example-state.tsx";
-import { useContainerName, useOptionalHost } from "./host.tsx";
+import { useContainerName } from "./host.tsx";
+import {
+  templateWorkbenchButton,
+  editorBox,
+  dragRow,
+  dragHandle,
+} from "./look.ts";
 import { diagnosticText, documentDiagnosis, problemText } from "./problems.ts";
 import { PropertyList, propertyText } from "./property-list.tsx";
 import { indexAfterMove, useListReorder } from "./reorder.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
-import { useIcon, useParts } from "./theme.tsx";
 import { useRetention } from "./visited.ts";
 
 import {
@@ -33,6 +40,44 @@ import {
   entrySlice,
   sliceShownText,
 } from "#core/document/index.ts";
+
+const propertiesEmpty =
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty";
+const propertiesSecondaryAction = templateWorkbenchButton;
+const propertiesActions = "zt:flex zt:flex-wrap zt:items-center zt:gap-2";
+const propertiesRow = cn(
+  "zt:min-w-0 zt:rounded-md zt:border zt:border-border zt:bg-background zt:p-2 zt:[--zt-row-border:1px] zt:[&:hover_[data-part=handle]]:opacity-100",
+  dragRow,
+);
+const propertiesHandle = cn(dragHandle, "zt:self-stretch");
+const propertiesLabel =
+  "zt:text-xs zt:font-medium zt:data-[state=problem]:text-(--text-error)";
+const propertiesRowAction = "clickable-icon";
+const propertiesPrimaryAction = templateWorkbenchButton;
+const propertiesForm = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:mt-3 zt:px-(--size-2-3)",
+);
+const propertiesField = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-1.5",
+  "zt:text-xs zt:font-medium",
+);
+const propertiesHint =
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty";
+const propertiesFieldGroup = "zt:flex zt:min-w-0 zt:flex-col zt:gap-1.5";
+const propertiesExpressionHeader = cn(
+  "zt:flex zt:flex-wrap zt:items-center zt:gap-2",
+  "zt:justify-start",
+);
+const propertiesConfirm = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:rounded-md zt:bg-card zt:p-3",
+);
+const propertiesExpression = cn(
+  editorBox,
+  "zt:flex zt:min-h-28 zt:min-w-0 zt:flex-1 zt:flex-col",
+  "zt:data-[state=problem]:border-(--text-error)",
+);
 
 const MERGE_LABEL: Record<string, () => string> = {
   replace: m.workbench_properties_merge_replace,
@@ -165,7 +210,6 @@ export function PropertiesPane({
   onSelection,
   suggest,
 }: PropertiesPaneProps) {
-  const part = useParts("properties");
   const example = useExampleState("properties");
   const exampleMessage = example.message;
   // The output the rows read: this attempt's own, or the output that stands
@@ -180,10 +224,7 @@ export function PropertiesPane({
           }
         : null;
   const produced = byEntry(standing?.properties ?? []);
-  const icon = useIcon();
   const instanceId = useUniqueId();
-  const host = useOptionalHost();
-  const tooltip = (text: string) => host?.tooltip(text) ?? { title: text };
   const problems = Map.groupBy(
     diagnostics,
     (diagnostic) => diagnostic.position,
@@ -238,19 +279,27 @@ export function PropertiesPane({
   }
 
   return (
-    <div {...part("pane")}>
+    <div data-part="pane" className="zt:flex zt:min-w-0 zt:flex-col zt:gap-3">
       {entries.length === 0 && (
-        <p {...part("empty")}>{m.workbench_properties_empty()}</p>
+        <p data-part="empty" className={propertiesEmpty}>
+          {m.workbench_properties_empty()}
+        </p>
       )}
       {controller.managedEntriesHeld && (
-        <p role="status" {...part("empty", "error")}>
+        <p
+          role="status"
+          data-part="empty"
+          data-state={"error"}
+          className={propertiesEmpty}
+        >
           {m.workbench_properties_unparsed()}
           {onShowProblem && controller.problems[0] && (
             <>
               {" "}
               <button
                 type="button"
-                {...part("secondary-action")}
+                data-part="secondary-action"
+                className={propertiesSecondaryAction}
                 onClick={() =>
                   onShowProblem(documentDiagnosis(controller.problems[0]!).id)
                 }
@@ -264,9 +313,14 @@ export function PropertiesPane({
       {(exampleMessage ||
         onChooseItem ||
         (example.kind === "error" && onRetry)) && (
-        <div {...part("actions")}>
+        <div data-part="actions" className={propertiesActions}>
           {exampleMessage && (
-            <p role="status" {...part("empty", example.kind)}>
+            <p
+              role="status"
+              data-part="empty"
+              data-state={example.kind}
+              className={propertiesEmpty}
+            >
               {exampleMessage}
             </p>
           )}
@@ -277,7 +331,11 @@ export function PropertiesPane({
           />
         </div>
       )}
-      <ul {...part("rows")} {...reorder.list}>
+      <ul
+        data-part="rows"
+        className="zt:flex zt:min-w-0 zt:flex-col zt:gap-2"
+        {...reorder.list}
+      >
         {entries.map((entry) => {
           const fields = produced.get(entry.position) ?? [];
           const raised = problems.get(entry.position) ?? [];
@@ -298,42 +356,58 @@ export function PropertiesPane({
           return (
             <li
               key={entry.position}
-              {...part("row")}
+              data-part="row"
+              className={propertiesRow}
               {...reorder.row(entry.position - 1, entries.length)}
             >
-              <div {...part("row-header")}>
+              <div
+                data-part="row-header"
+                className="zt:flex zt:min-w-0 zt:flex-wrap zt:items-center zt:gap-1"
+              >
                 <span
-                  {...part("handle")}
-                  aria-label={m.workbench_drag_to_reorder()}
-                  {...tooltip(m.workbench_drag_to_reorder())}
+                  data-part="handle"
+                  className={propertiesHandle}
+                  {...tooltipAttrs(m.workbench_drag_to_reorder())}
                   {...reorder.handle(entry.position - 1, entries.length)}
                 >
-                  {icon("drag")}
+                  <Icon name="grip-vertical" />
                 </span>
                 <button
                   type="button"
                   aria-expanded={open}
                   aria-controls={`${instanceId}-property-${entry.position}`}
                   onClick={() => onSelect(open ? null : entry.position)}
-                  {...part("row-toggle")}
+                  data-part="row-toggle"
+                  className="clickable-icon zt:min-w-0 zt:flex-1 zt:flex-wrap zt:justify-start zt:gap-x-3 zt:gap-y-1 zt:text-start"
                 >
-                  <span {...part("row-name")}>
-                    <span {...part("key")}>
+                  <span
+                    data-part="row-name"
+                    className="zt:flex zt:min-w-0 zt:items-center zt:gap-2"
+                  >
+                    <span
+                      data-part="key"
+                      className="zt:font-medium zt:text-foreground zt:[overflow-wrap:anywhere]"
+                    >
                       {entry.key ?? m.workbench_properties_spread()}
                     </span>
                     {raised.length > 0 && (
-                      <span {...part("label", "problem")}>
+                      <span
+                        data-part="label"
+                        data-state={"problem"}
+                        className={propertiesLabel}
+                      >
                         {m.workbench_properties_row_problem()}
                       </span>
                     )}
                   </span>
                   {summary && (
                     <span
-                      {...part(
-                        "summary",
-                        failure ? "problem" : open ? "open" : "closed",
-                      )}
-                      {...tooltip(summary)}
+                      data-part="summary"
+                      data-state={
+                        failure ? "problem" : open ? "open" : "closed"
+                      }
+                      className="zt:min-w-0 zt:max-w-full zt:truncate zt:text-xs zt:text-muted-foreground zt:data-[state=problem]:text-(--text-error)"
+                      {...tooltipAttrs(summary)}
                     >
                       {standing === null && !failure ? (
                         <code>{summary}</code>
@@ -343,35 +417,38 @@ export function PropertiesPane({
                     </span>
                   )}
                 </button>
-                <div {...part("row-actions")}>
+                <div
+                  data-part="row-actions"
+                  className="zt:ms-auto zt:flex zt:shrink-0 zt:items-center zt:gap-0.5"
+                >
                   <button
                     type="button"
-                    {...part("edit")}
-                    aria-label={m.workbench_properties_edit()}
-                    {...tooltip(m.workbench_properties_edit())}
+                    data-part="edit"
+                    className="clickable-icon"
+                    {...tooltipAttrs(m.workbench_properties_edit())}
                     aria-pressed={open}
                     aria-expanded={open}
                     aria-controls={`${instanceId}-property-${entry.position}`}
                     onClick={() => onSelect(open ? null : entry.position)}
                   >
-                    {icon(open ? "chevron-down" : "chevron-right")}
+                    <Icon name={open ? "chevron-down" : "chevron-right"} />
                   </button>
                   <button
                     type="button"
-                    {...part("row-action")}
+                    data-part="row-action"
+                    className={propertiesRowAction}
                     disabled={locked}
-                    aria-label={m.workbench_properties_add_override()}
-                    {...tooltip(m.workbench_properties_add_override())}
+                    {...tooltipAttrs(m.workbench_properties_add_override())}
                     onClick={() => add("property", entry.position)}
                   >
-                    {icon("add")}
+                    <Icon name="plus" />
                   </button>
                   <button
                     type="button"
-                    {...part("row-action")}
+                    data-part="row-action"
+                    className={propertiesRowAction}
                     disabled={locked}
-                    aria-label={m.workbench_properties_remove()}
-                    {...tooltip(m.workbench_properties_remove())}
+                    {...tooltipAttrs(m.workbench_properties_remove())}
                     onClick={() => {
                       if (
                         !controller.editManagedEntry({
@@ -385,7 +462,7 @@ export function PropertiesPane({
                         onSelect(selected - 1);
                     }}
                   >
-                    {icon("remove")}
+                    <Icon name="trash-2" />
                   </button>
                 </div>
               </div>
@@ -410,23 +487,25 @@ export function PropertiesPane({
           );
         })}
       </ul>
-      <div {...part("actions")}>
+      <div data-part="actions" className={propertiesActions}>
         <button
           type="button"
-          {...part("primary-action")}
+          data-part="primary-action"
+          className={propertiesPrimaryAction}
           disabled={locked}
           onClick={() => add("property")}
         >
-          {icon("add")}
+          <Icon name="plus" />
           {m.workbench_properties_add()}
         </button>
         <button
           type="button"
-          {...part("secondary-action")}
+          data-part="secondary-action"
+          className={propertiesSecondaryAction}
           disabled={locked}
           onClick={() => add("spread")}
         >
-          {icon("add")}
+          <Icon name="plus" />
           {m.workbench_properties_add_spread()}
         </button>
       </div>
@@ -465,7 +544,6 @@ function EntryForm({
   suggest,
   hidden = false,
 }: EntryFormProps) {
-  const part = useParts("properties");
   // Named as the expression editor is, by a hidden element: no tooltip.
   const textName = useContainerName(m.workbench_properties_expression());
   const [pendingLanguage, setPendingLanguage] = useState<
@@ -492,10 +570,11 @@ function EntryForm({
     <div
       id={`${instanceId}-property-${entry.position}`}
       hidden={hidden}
-      {...part("form")}
+      data-part="form"
+      className={propertiesForm}
     >
       {entry.key !== undefined && (
-        <label {...part("field")}>
+        <label data-part="field" className={propertiesField}>
           {m.workbench_properties_name()}
           <input
             type="text"
@@ -520,19 +599,21 @@ function EntryForm({
               )
                 setName(entry.key ?? "");
             }}
-            {...part("name-input")}
+            data-part="name-input"
+            className="zt:w-full zt:min-w-0 zt:font-normal"
           />
         </label>
       )}
       {entry.language === "js" ? (
-        <p {...part("hint")}>
+        <p data-part="hint" className={propertiesHint}>
           {m.workbench_properties_javascript_source()}
           {onOpenSource && (
             <>
               {" "}
               <button
                 type="button"
-                {...part("secondary-action")}
+                data-part="secondary-action"
+                className={propertiesSecondaryAction}
                 onClick={() => onOpenSource(entry.expression)}
               >
                 {m.workbench_advanced()}
@@ -541,14 +622,20 @@ function EntryForm({
           )}
         </p>
       ) : (
-        <div {...part("field-group")}>
-          <div {...part("expression-header")}>
-            <span {...part("label")}>
+        <div data-part="field-group" className={propertiesFieldGroup}>
+          <div
+            data-part="expression-header"
+            className={propertiesExpressionHeader}
+          >
+            <span data-part="label" className={propertiesLabel}>
               {m.workbench_properties_expression()}
             </span>
             {!spread && (
-              <label {...part("format-label")}>
-                <span {...part("hidden-label")}>
+              <label
+                data-part="format-label"
+                className="zt:min-w-0 zt:max-w-full"
+              >
+                <span data-part="hidden-label" className="zt:sr-only">
                   {m.workbench_properties_format()}
                 </span>
                 <WorkbenchSelect
@@ -573,7 +660,7 @@ function EntryForm({
               </label>
             )}
           </div>
-          <p {...part("hint")}>
+          <p data-part="hint" className={propertiesHint}>
             {format === "text"
               ? m.workbench_properties_text_hint()
               : entry.language === "expr"
@@ -581,13 +668,17 @@ function EntryForm({
                 : m.workbench_properties_rule_hint()}
           </p>
           {pendingLanguage && pendingLanguage !== format && (
-            <div {...part("confirm")}>
-              <p {...part("text")}>{m.workbench_properties_format_confirm()}</p>
-              <div {...part("confirm-actions")}>
+            <div data-part="confirm" className={propertiesConfirm}>
+              <p data-part="text">{m.workbench_properties_format_confirm()}</p>
+              <div
+                data-part="confirm-actions"
+                className="zt:flex zt:flex-wrap zt:items-center zt:gap-2"
+              >
                 <button
                   type="button"
                   disabled={locked}
-                  {...part("primary-action")}
+                  data-part="primary-action"
+                  className={propertiesPrimaryAction}
                   onClick={() => {
                     if (
                       controller.editManagedEntry({
@@ -607,7 +698,8 @@ function EntryForm({
                 </button>
                 <button
                   type="button"
-                  {...part("secondary-action")}
+                  data-part="secondary-action"
+                  className={propertiesSecondaryAction}
                   onClick={() => setPendingLanguage(null)}
                 >
                   {m.workbench_cancel()}
@@ -632,11 +724,14 @@ function EntryForm({
                   userEvent: "input.type",
                 })
               }
-              {...part("text-input")}
+              data-part="text-input"
+              className="zt:w-full zt:min-w-0 zt:font-normal"
             />
           ) : (
             <div
-              {...part("expression", diagnostics.length > 0 ? "problem" : "ok")}
+              data-part="expression"
+              data-state={diagnostics.length > 0 ? "problem" : "ok"}
+              className={propertiesExpression}
             >
               <SliceEditor
                 controller={controller}
@@ -658,16 +753,20 @@ function EntryForm({
         <PropertyList properties={produced} variant="spread" />
       )}
       {diagnostics.length > 0 && (
-        <div id={errorId} {...part("diagnostics")}>
+        <div
+          id={errorId}
+          data-part="diagnostics"
+          className="zt:text-xs zt:leading-normal zt:text-pretty zt:text-(--text-error)"
+        >
           {diagnostics.map((diagnostic, index) => (
-            <p key={index} {...part("text")}>
+            <p key={index} data-part="text">
               {diagnostic.message}
             </p>
           ))}
         </div>
       )}
-      <div {...part("field-group")}>
-        <label {...part("field")}>
+      <div data-part="field-group" className={propertiesFieldGroup}>
+        <label data-part="field" className={propertiesField}>
           {m.workbench_properties_merge()}
           <WorkbenchSelect
             disabled={locked}
@@ -688,7 +787,9 @@ function EntryForm({
             ))}
           </WorkbenchSelect>
         </label>
-        <p {...part("hint")}>{m.workbench_properties_override_hint()}</p>
+        <p data-part="hint" className={propertiesHint}>
+          {m.workbench_properties_override_hint()}
+        </p>
       </div>
     </div>
   );

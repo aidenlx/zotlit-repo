@@ -1,11 +1,11 @@
 import type { AnnotationExample } from "#core/render/index.ts";
+import type { WorkbenchItemChoice } from "#obsidian/headless-ui/index.tsx";
 import type {
-  WorkbenchHost,
-  WorkbenchItemChoice,
-} from "#obsidian/headless-ui/index.tsx";
+  ChooserScope,
+  WorkbenchSuggesterRequest,
+} from "#obsidian/headless-ui/suggester.ts";
 // The Item and annotation choosers of the Template Workbench, as Effects on
-// the host's suggester: an interrupt closes the chooser, and a dismissal
-// answers `null`.
+// the native chooser: an interrupt closes it, and a dismissal answers `null`.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -22,14 +22,13 @@ import {
 } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 
-import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
-
 import {
   getSampleItemType,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { annotationOption } from "#obsidian/headless-ui/index.tsx";
+import { chooseWorkbenchOption } from "#obsidian/headless-ui/suggester.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 
@@ -76,7 +75,7 @@ export function useRecentItems(): readonly WorkbenchItemChoice[] {
  * @returns the chosen Item, or `null` when the reader dismisses the chooser.
  */
 export const workbenchItemChoice = (
-  host: Pick<WorkbenchHost, "suggester">,
+  scope: ChooserScope,
   deps: ItemSearchDeps,
   selected?: WorkbenchItemChoice,
 ): Effect.Effect<WorkbenchItemChoice | null, never, ItemLookup> =>
@@ -91,7 +90,8 @@ export const workbenchItemChoice = (
     const found = new Map<string, WorkbenchItemChoice>();
     // The chooser's typed searches; the recent Items above stay one-shot.
     const session = yield* lookup.openSession;
-    const request: NativeWorkbenchSuggesterRequest = {
+    const request: WorkbenchSuggesterRequest = {
+      window: scope.window,
       title: m.workbench_choose_item(),
       selected: selected?.id,
       groups: [
@@ -101,7 +101,7 @@ export const workbenchItemChoice = (
             {
               id: "search-zotero",
               label: m.workbench_search_zotero(),
-              icon: "choose-sample",
+              icon: "search",
             },
           ],
         },
@@ -125,17 +125,20 @@ export const workbenchItemChoice = (
           })),
         },
       ],
-      searchItems: (query) =>
-        session.search(query, { limit: DEFAULT_LIMIT }).pipe(
-          Effect.map((hits) =>
-            itemChoices(hits).map((choice) => {
-              found.set(choice.id, choice);
-              return { id: choice.id, label: choice.title ?? choice.id };
-            }),
+      search: {
+        run: scope.run,
+        items: (query) =>
+          session.search(query, { limit: DEFAULT_LIMIT }).pipe(
+            Effect.map((hits) =>
+              itemChoices(hits).map((choice) => {
+                found.set(choice.id, choice);
+                return { id: choice.id, label: choice.title ?? choice.id };
+              }),
+            ),
           ),
-        ),
+      },
     };
-    const id = yield* host.suggester(request);
+    const id = yield* chooseWorkbenchOption(scope.app, request);
     if (id === "search-zotero") return yield* workbenchItemSearch(deps);
     return (
       [...retained, ...choices].find((item) => item.id === id) ??
@@ -165,7 +168,7 @@ export const workbenchItemSearch = (
  *   the chooser.
  */
 export const workbenchAnnotationChoice = (
-  host: Pick<WorkbenchHost, "suggester">,
+  scope: ChooserScope,
   current: readonly AnnotationChoice[],
   selected: string | null,
 ): Effect.Effect<string | null> => {
@@ -178,7 +181,8 @@ export const workbenchAnnotationChoice = (
         hint: option.description,
       };
     });
-  return host.suggester({
+  return chooseWorkbenchOption(scope.app, {
+    window: scope.window,
     title: m.workbench_choose_annotation(),
     selected: selected ?? undefined,
     groups: [

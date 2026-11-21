@@ -3,34 +3,9 @@ import type { WorkbenchDocumentController } from "#core/document/index.ts";
 // independently of preview rendering mode.
 import { useAtomValue } from "@effect/atom-react";
 
-import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
-import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
-import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";
-
-import {
-  MatchPane,
-  WorkbenchThemeProvider,
-} from "#obsidian/headless-ui/index.tsx";
-
-/**
- * The Workbench theme with the plugin's own Select for the Match editor's
- * selects, a popup with a search field as Bases picks a property or an
- * operator. The other selects of the Workbench keep Obsidian's dropdown.
- */
-export const matchTheme = {
-  ...templateWorkbenchTheme,
-  matchSelect: Select,
-  classes: {
-    ...templateWorkbenchTheme.classes,
-    select: {
-      wrapper: "zt:min-w-0 zt:max-w-full",
-      select: "dropdown zt:max-w-full",
-      icon: "zt:hidden",
-    },
-  },
-};
+import { MatchPane } from "#obsidian/headless-ui/index.tsx";
 
 export function NativeMatchPane({
   controller,
@@ -39,15 +14,12 @@ export function NativeMatchPane({
   controller: WorkbenchDocumentController;
   onChooseItem?: () => void;
 }) {
-  const app = useObsidianApp();
   const vocabularyRevision = useAtomValue(zoteroRevisionAtom);
   return (
-    <WorkbenchThemeProvider theme={onKeymap(matchTheme, app)}>
-      <MatchPane
-        onChooseItem={onChooseItem}
-        controller={controller}
-        vocabularyRevision={vocabularyRevision}
-      />
-    </WorkbenchThemeProvider>
+    <MatchPane
+      onChooseItem={onChooseItem}
+      controller={controller}
+      vocabularyRevision={vocabularyRevision}
+    />
   );
 }

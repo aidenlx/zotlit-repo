@@ -1,14 +1,8 @@
 import { EditorView } from "@codemirror/view";
-import {
-  act,
-  cleanup,
-  fireEvent,
-  screen,
-  render,
-} from "@testing-library/react";
-import { Effect } from "effect";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { SuggestModal } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { annotationSamples } from "./annotation-samples.ts";
@@ -19,7 +13,11 @@ import {
 } from "./annotation.tsx";
 import { WorkbenchHostProvider } from "./host.tsx";
 import { SampleSuggester } from "./sample-suggester.tsx";
-import { fakeHost } from "./test-host.tsx";
+import {
+  fakeHost,
+  renderInApp as render,
+  watchChoosers,
+} from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
@@ -59,18 +57,23 @@ it("repairs a missing section and edits only its format through the master histo
   ).toBeTruthy();
 });
 
-it("hands annotation choice to the host with current annotations first and empty-group copy", async () => {
-  const host = fakeHost();
-  host.suggester = (request) => {
-    host.calls.suggesters.push(request);
-    return Effect.succeed(SAMPLE_ANNOTATIONS[1]!.id);
-  };
+/** The row of `modal` that stands for `id`, drawn as the list draws it. */
+function drawnRow(
+  modal: ReturnType<typeof watchChoosers>["last"],
+  id: string,
+): HTMLElement {
+  const option = modal.getSuggestions("").find((row) => row.id === id)!;
+  const el = document.createElement("div");
+  modal.renderSuggestion(option, el);
+  return el;
+}
+
+it("opens the annotation chooser with current annotations first, then the samples", async () => {
+  using choosers = watchChoosers();
   const selected = vi.fn<(id: string) => void>();
   const example = SAMPLE_ANNOTATIONS[0]!;
   render(
-    <WorkbenchHostProvider host={host}>
-      <AnnotationSampleBar current={[]} example={example} onSelect={selected} />
-    </WorkbenchHostProvider>,
+    <AnnotationSampleBar current={[]} example={example} onSelect={selected} />,
   );
   const trigger = screen.getByRole("button", {
     name: m.workbench_choose_annotation(),
@@ -79,107 +82,111 @@ it("hands annotation choice to the host with current annotations first and empty
   await act(async () => {
     fireEvent.click(trigger);
   });
-  const request = host.calls.suggesters[0]!;
-  expect(request.anchor).toBe(trigger);
-  expect(request.selected).toBe(example.id);
-  expect(request.groups[0]).toEqual({
-    label: m.workbench_annotation_from_item(),
-    empty: m.workbench_annotation_empty(),
-    options: [],
-  });
-  expect(request.groups[1]?.options.map((option) => option.id)).toEqual(
+  const modal = choosers.last;
+  const rows = modal.getSuggestions("");
+  expect(rows.map((row) => row.id)).toEqual(
     SAMPLE_ANNOTATIONS.map((option) => option.id),
   );
+  expect(new Set(rows.map((row) => row.group))).toEqual(
+    new Set([m.workbench_sample_examples()]),
+  );
+  expect(drawnRow(modal, example.id).getAttribute("aria-current")).toBe("true");
+  await act(async () =>
+    modal.selectSuggestion(
+      rows.find((row) => row.id === SAMPLE_ANNOTATIONS[1]!.id)!,
+      { type: "click" } as MouseEvent,
+    ),
+  );
   expect(selected).toHaveBeenCalledWith(SAMPLE_ANNOTATIONS[1]!.id);
+  // Closing the chooser gives the focus back to the control that opened it.
+  expect(document.activeElement).toBe(trigger);
 });
 
 it.each(["compact", "hideLabel"] as const)(
   "opens the same annotation choices from a %s native trigger without repeating its label",
   async (prop) => {
-    const host = fakeHost();
+    using choosers = watchChoosers();
     const example = SAMPLE_ANNOTATIONS[0]!;
-    host.suggester = (request) => {
-      host.calls.suggesters.push(request);
-      return Effect.succeed(SAMPLE_ANNOTATIONS[1]!.id);
-    };
     const selected = vi.fn<(id: string) => void>();
     render(
-      <WorkbenchHostProvider host={host}>
-        <AnnotationSampleBar
-          {...{ [prop]: true }}
-          current={[example]}
-          example={example}
-          onSelect={selected}
-        />
-      </WorkbenchHostProvider>,
+      <AnnotationSampleBar
+        {...{ [prop]: true }}
+        current={[example]}
+        example={example}
+        onSelect={selected}
+      />,
     );
     expect(screen.queryByText(annotationOption(example).label)).toBeNull();
     const trigger = screen.getByRole("button", {
       name: m.workbench_change_annotation(),
     });
     await act(async () => fireEvent.click(trigger));
-    const request = host.calls.suggesters[0]!;
-    expect(request.anchor).toBe(trigger);
-    expect(request.selected).toBe(example.id);
-    expect(request.groups[0]?.options[0]).toMatchObject({
+    const modal = choosers.last;
+    const rows = modal.getSuggestions("");
+    expect(rows[0]).toMatchObject({
       id: example.id,
       label: annotationOption(example).label,
       hint: annotationOption(example).description,
     });
+    expect(drawnRow(modal, example.id).getAttribute("aria-current")).toBe(
+      "true",
+    );
+    await act(async () =>
+      modal.selectSuggestion(
+        rows.find((row) => row.id === SAMPLE_ANNOTATIONS[1]!.id)!,
+        { type: "click" } as MouseEvent,
+      ),
+    );
     expect(selected).toHaveBeenCalledWith(SAMPLE_ANNOTATIONS[1]!.id);
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
   },
 );
 
 it("keeps a compact annotation selection when its chooser is dismissed", async () => {
-  const host = fakeHost();
-  host.suggester = () => Effect.succeed(null);
+  using choosers = watchChoosers();
   const selected = vi.fn<(id: string) => void>();
   render(
-    <WorkbenchHostProvider host={host}>
-      <AnnotationSampleBar
-        compact
-        current={[]}
-        example={null}
-        onSelect={selected}
-      />
-    </WorkbenchHostProvider>,
+    <AnnotationSampleBar
+      compact
+      current={[]}
+      example={null}
+      onSelect={selected}
+    />,
   );
   const trigger = screen.getByRole("button", {
     name: m.workbench_choose_annotation(),
   });
   await act(async () => fireEvent.click(trigger));
+  await act(async () => choosers.last.close());
   expect(selected).not.toHaveBeenCalled();
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
 });
 
-it("keeps Item selection unchanged when its host chooser is dismissed", async () => {
-  const host = fakeHost();
-  host.suggester = vi.fn<typeof host.suggester>(() => Effect.succeed(null));
+it("keeps Item selection unchanged when its chooser is dismissed", async () => {
+  using choosers = watchChoosers();
   const select = vi.fn<(id: string) => void>();
   render(
-    <WorkbenchHostProvider host={host}>
-      <SampleSuggester
-        title="Choose Item"
-        label="Item A"
-        selected="a"
-        groups={[
-          {
-            heading: "Items",
-            options: [{ value: "a", label: "Item A", description: "Author A" }],
-          },
-        ]}
-        onSelect={select}
-      />
-    </WorkbenchHostProvider>,
+    <SampleSuggester
+      title="Choose Item"
+      label="Item A"
+      selected="a"
+      groups={[
+        {
+          heading: "Items",
+          options: [{ value: "a", label: "Item A", description: "Author A" }],
+        },
+      ]}
+      onSelect={select}
+    />,
   );
   const trigger = screen.getByRole("button", { name: "Choose Item" });
   await act(async () => {
     fireEvent.click(trigger);
   });
+  await act(async () => choosers.last.close());
   expect(select).not.toHaveBeenCalled();
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
-  expect(trigger.getAttribute("aria-description")).toBe("Choose Item");
+  expect(trigger.getAttribute("aria-label")).toBe("Choose Item");
 });
 
 it("draws the Item chooser alone where a row names the Item beside it", () => {
@@ -324,45 +331,46 @@ it("edits the annotation format without a note call and leaves the rest of the P
 });
 
 it("offers annotation examples before an annotation has been selected", async () => {
-  const host = fakeHost();
-  host.suggester = (request) => {
-    host.calls.suggesters.push(request);
-    return Effect.succeed(SAMPLE_ANNOTATIONS[1]!.id);
-  };
+  using choosers = watchChoosers();
   const selected = vi.fn<(id: string) => void>();
   render(
-    <WorkbenchHostProvider host={host}>
-      <AnnotationSampleBar current={[]} example={null} onSelect={selected} />
-    </WorkbenchHostProvider>,
+    <AnnotationSampleBar current={[]} example={null} onSelect={selected} />,
   );
   await act(async () => {
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_choose_annotation() }),
     );
   });
-  expect(host.calls.suggesters[0]?.selected).toBe("");
+  const modal = choosers.last;
+  const rows = modal.getSuggestions("");
+  expect(rows.map((row) => row.id)).toEqual(
+    SAMPLE_ANNOTATIONS.map((option) => option.id),
+  );
+  expect(
+    rows.map((row) => drawnRow(modal, row.id).getAttribute("aria-current")),
+  ).toEqual(rows.map(() => null));
+  await act(async () =>
+    modal.selectSuggestion(rows[1]!, { type: "click" } as MouseEvent),
+  );
   expect(selected).toHaveBeenCalledWith(SAMPLE_ANNOTATIONS[1]!.id);
 });
 
 it("closes a chooser it opened when the sample bar goes", async () => {
-  const host = fakeHost();
-  host.hold = true;
+  using choosers = watchChoosers();
+  using close = vi.spyOn(SuggestModal.prototype, "close");
   const selected = vi.fn<(id: string) => void>();
   const { unmount } = render(
-    <WorkbenchHostProvider host={host}>
-      <AnnotationSampleBar current={[]} example={null} onSelect={selected} />
-    </WorkbenchHostProvider>,
+    <AnnotationSampleBar current={[]} example={null} onSelect={selected} />,
   );
   await act(async () =>
     fireEvent.click(
       screen.getByRole("button", { name: m.workbench_choose_annotation() }),
     ),
   );
-  const [chooser] = host.held;
-  expect(chooser?.kind).toBe("suggester");
+  expect(choosers.opened).toBe(1);
 
   act(() => unmount());
-  await chooser!.interruption;
 
+  await vi.waitFor(() => expect(close).toHaveBeenCalledOnce());
   expect(selected).not.toHaveBeenCalled();
 });

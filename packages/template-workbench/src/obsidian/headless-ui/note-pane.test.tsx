@@ -68,7 +68,7 @@ it("opens the injected example and routes each placeholder to Annotation", () =>
   const toggle = screen.getAllByRole("button", {
     name: m.workbench_annotation_preview(),
   })[0]!;
-  expect(toggle.getAttribute("aria-description")).toBe(
+  expect(toggle.getAttribute("aria-label")).toBe(
     m.workbench_annotation_preview(),
   );
   expect(toggle.hasAttribute("title")).toBe(false);

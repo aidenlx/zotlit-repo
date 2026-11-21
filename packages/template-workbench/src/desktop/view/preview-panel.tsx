@@ -21,11 +21,6 @@ import {
 } from "#core/render/index.ts";
 import { NativeMarkdown } from "#desktop/view/preview/markdown.tsx";
 import {
-  paneCover,
-  selectionHint,
-  templateWorkbenchButton,
-} from "#obsidian/editor/theme.tsx";
-import {
   citationVariantLabel,
   partialContextLabel,
   PreviewFilenameLabel,
@@ -33,6 +28,11 @@ import {
   ResultBody,
   setPreview,
 } from "#obsidian/headless-ui/index.tsx";
+import {
+  paneCover,
+  selectionHint,
+  templateWorkbenchButton,
+} from "#obsidian/headless-ui/look.ts";
 
 /**
  * What the Preview renders for the document kind and root: which result, the

@@ -9,7 +9,7 @@ import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
 import { renderDiagnosis } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import { repairCommands } from "./repair-commands.ts";
-import { mount } from "./test-host.tsx";
+import { mount, shownNotices } from "./test-host.tsx";
 
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 
@@ -35,7 +35,7 @@ function open({
     panels: BOTH,
     viewSize: Atom.make<ViewSize | null>(NARROW),
   });
-  const { registry, model, controller, host } = mounted;
+  const { registry, model, controller } = mounted;
   registry.mount(model.fieldsPanel);
   registry.set(model.fieldsPanel, "open");
   const selected: [string, RenderDiagnostic | undefined][] = [];
@@ -45,7 +45,6 @@ function open({
     registry,
     model,
     controller,
-    host,
     problems: {
       diagnoses,
       select: (id, occurrence) => void selected.push([id, occurrence]),
@@ -154,9 +153,7 @@ describe("the repair commands", () => {
   it("say so when the call a diagnosis names has left the source", () => {
     using page = open();
     page.commands.openDiagnosis(diagnosis(missingCall));
-    expect(page.host.calls.notices).toEqual([
-      m.workbench_problems_location_unknown(),
-    ]);
+    expect(shownNotices()).toEqual([m.workbench_problems_location_unknown()]);
     expect(page.view()).toMatchObject({ advanced: true, tab: "name" });
   });
 
@@ -189,7 +186,7 @@ describe("the repair commands", () => {
       tab: "name",
       presentation: { reveal: null },
     });
-    expect(page.host.calls.notices).toEqual([]);
+    expect(shownNotices()).toEqual([]);
     expect(page.announced).toEqual([
       "Could not render the template. This problem has no verified location in your templates.",
     ]);

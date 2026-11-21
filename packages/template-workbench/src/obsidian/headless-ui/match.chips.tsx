@@ -1,12 +1,19 @@
 import { useRef } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TagsInput, useTagsInput } from "@zotlit/ui";
 
-import { useContainerName, useWorkbenchHost } from "./host.tsx";
+import { useContainerName } from "./host.tsx";
 import { useInputSuggestions } from "./match.input.tsx";
+
 // Wrapping list values retain free text and optional host suggestions.
-import { useIcon, useParts } from "./theme.tsx";
+
+const matchChips =
+  "zt:flex zt:min-h-(--input-height) zt:min-w-0 zt:flex-wrap zt:items-start zt:gap-x-1.5 zt:px-2 zt:[--metadata-divider-width:0px] zt:[--metadata-input-font-size:var(--font-ui-small)] zt:[--metadata-input-text-color:var(--text-normal)]";
+const matchChipInput =
+  "zt:[field-sizing:content] zt:w-auto zt:max-w-full zt:min-w-[2ch] zt:flex-none zt:[--background-modifier-form-field:transparent] zt:[--input-padding:0px]";
 export interface ChipInputProps {
   values: readonly string[];
   onChange: (values: string[]) => void;
@@ -25,13 +32,10 @@ export function ChipInput({
   suggestions,
   hint,
 }: ChipInputProps) {
-  const part = useParts("match");
-  const host = useWorkbenchHost();
-  const icon = useIcon();
-
   return (
     <TagsInput.Root
-      {...part("chips")}
+      data-part="chips"
+      className={matchChips}
       data-chip-input=""
       value={values}
       onValueChange={onChange}
@@ -42,21 +46,35 @@ export function ChipInput({
           key={index}
           value={value}
           index={index}
-          {...part("chip-item")}
+          data-part="chip-item"
+          className="zt:flex zt:min-w-0 zt:max-w-full zt:flex-col"
         >
-          <div {...part("chip-line")}>
-            <span {...part("chip")}>
-              <TagsInput.ItemText {...part("chip-value")} />
+          <div
+            data-part="chip-line"
+            className="metadata-property-value zt:min-w-0"
+          >
+            <span data-part="chip" className="multi-select-pill">
+              <TagsInput.ItemText
+                data-part="chip-value"
+                className="multi-select-pill-content"
+              />
               <TagsInput.ItemRemove
-                {...part("chip-remove")}
-                aria-label={m.workbench_match_chip_remove({ value })}
-                {...host.tooltip(m.workbench_match_chip_remove({ value }))}
+                data-part="chip-remove"
+                className="multi-select-pill-remove-button clickable-icon"
+                {...tooltipAttrs(m.workbench_match_chip_remove({ value }))}
               >
-                {icon("close")}
+                <Icon name="x" />
               </TagsInput.ItemRemove>
             </span>
           </div>
-          {hint?.(value) && <span {...part("hint")}>{hint(value)}</span>}
+          {hint?.(value) && (
+            <span
+              data-part="hint"
+              className="zt:pb-1 zt:text-xs zt:leading-normal zt:text-pretty zt:text-muted-foreground"
+            >
+              {hint(value)}
+            </span>
+          )}
         </TagsInput.Item>
       ))}
       <ChipField
@@ -74,7 +92,6 @@ function ChipField({
   suggestions,
   hint,
 }: Pick<ChipInputProps, "placeholder" | "suggestions" | "hint">) {
-  const part = useParts("match");
   const { value: values, add } = useTagsInput();
   const inputRef = useRef<HTMLInputElement>(null);
   const { list, datalist } = useInputSuggestions(inputRef, {
@@ -88,7 +105,8 @@ function ChipField({
     <>
       <TagsInput.Input
         inputRef={inputRef}
-        {...part("chip-input")}
+        data-part="chip-input"
+        className={matchChipInput}
         {...name.attrs}
         placeholder={values.length === 0 ? placeholder : ""}
         autoComplete="off"

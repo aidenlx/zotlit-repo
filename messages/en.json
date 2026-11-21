@@ -1879,7 +1879,6 @@
   "workbench_name_binding_colored_highlights": "Use colored highlight syntax",
   "workbench_name_binding_annotation_template": "Import annotations through the annotation section",
   "workbench_name_use_default": "Reset to default",
-  "workbench_name_use_default_for": "Reset {name} to default",
   "workbench_name_origin_default": "From default",
   "workbench_name_origin_profile": "From this profile",
   "workbench_name_value_vault_root": "Vault root",

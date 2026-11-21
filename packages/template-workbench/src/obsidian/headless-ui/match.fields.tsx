@@ -7,11 +7,13 @@ import type {
   FilterOperator,
   FilterRow,
 } from "#core/filter-fields/fields.ts";
+import type { IconName } from "obsidian";
 // The conditions of a Query Dataset as the Match editor offers them: the
 // kind picker's names and icons, and each field's operator and value
 // controls. The Query View's Filter and the Profile Match share them.
 import type { ReactNode } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
@@ -25,8 +27,6 @@ import type {
 } from "./match.draft.ts";
 import { MatchInput } from "./match.input.tsx";
 import { MatchSelect } from "./match.rows.tsx";
-import { useIcon, useParts } from "./theme.tsx";
-import type { WorkbenchIcon } from "./theme.tsx";
 
 import {
   FILTER_OPERATORS,
@@ -37,6 +37,11 @@ import {
   parseFilterRow,
   withOperator,
 } from "#core/filter-fields/fields.ts";
+
+const matchControl =
+  "zt:min-w-0 zt:max-w-full zt:[div&]:flex zt:[div&]:flex-col zt:[span&]:px-2 zt:[span&]:pb-1 zt:[span&]:text-xs zt:[span&]:leading-normal zt:[span&]:text-muted-foreground";
+const matchInput =
+  "zt:min-h-(--input-height) zt:min-w-0 zt:w-full zt:flex-auto zt:shrink-0";
 
 /** The values a condition offers, from the Libraries the filter reads. */
 export interface FilterValues {
@@ -186,7 +191,6 @@ function RowValue({
   values: FilterValues;
   onChange: (next: FilterRow) => void;
 }) {
-  const part = useParts("match");
   // A text field shows its placeholder, so it takes no tooltip.
   const valueName = useContainerName(m.workbench_filter_value());
   const { operator } = condition;
@@ -228,7 +232,8 @@ function RowValue({
         // A list as long as the item types, or as the user's libraries, takes
         // a search; the colours and file types are a short fixed list.
         searchable={field.kind === "item-type" || field.kind === "library"}
-        {...part("control")}
+        data-part="control"
+        className={matchControl}
         aria-label={m.workbench_filter_value()}
         value={condition.value}
         onChange={(value) => onChange({ ...condition, value })}
@@ -241,7 +246,8 @@ function RowValue({
     return (
       <>
         <input
-          {...part("input")}
+          data-part="input"
+          className={matchInput}
           type={field.type}
           {...valueName.attrs}
           placeholder={m.workbench_match_value_empty()}
@@ -256,7 +262,8 @@ function RowValue({
   return (
     <>
       <MatchInput
-        {...part("input")}
+        data-part="input"
+        className={matchInput}
         {...valueName.attrs}
         placeholder={placeholder}
         suggestions={suggestions}
@@ -268,21 +275,20 @@ function RowValue({
   );
 }
 
-const FIELD_ICONS: Record<FilterField["type"], WorkbenchIcon> = {
-  text: "property-text",
-  list: "property-list",
-  collection: "property-list",
-  choice: "property-text",
-  number: "property-number",
-  date: "property-date",
-  boolean: "property-checkbox",
+const FIELD_ICONS: Record<FilterField["type"], IconName> = {
+  text: "text",
+  list: "list",
+  collection: "list",
+  choice: "text",
+  number: "binary",
+  date: "calendar",
+  boolean: "check-square",
 };
 
-/** The theme's icon of a field's value type. */
+/** The icon of a field's value type. */
 function FieldIcon({ field }: { field: FilterField }) {
-  const icon = useIcon();
-  return icon(
-    field.kind === "tags" ? "property-tags" : FIELD_ICONS[field.type],
+  return (
+    <Icon name={field.kind === "tags" ? "tags" : FIELD_ICONS[field.type]} />
   );
 }
 
@@ -297,7 +303,7 @@ function kindLabel(kind: FilterFieldKind): string {
  * The conditions of one dataset, as the Match editor offers them, then
  * `extra`, the fields the host adds. A condition shows `label(field)` where
  * it gives one, else the field's own label, else the name of its kind, and
- * `icon(field)` where it gives one, else the theme's icon of its value type.
+ * `icon(field)` where it gives one, else the icon of its value type.
  * Its field's path stands beside its name, as the Bases property picker
  * shows a property's id.
  */

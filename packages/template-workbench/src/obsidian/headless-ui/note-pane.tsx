@@ -14,6 +14,8 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
@@ -24,16 +26,25 @@ import {
   boxRanges,
   revealSourceOnClick,
 } from "./editor-boxes.ts";
-import { useOptionalHost, useTooltip } from "./host.tsx";
+import { useOptionalHost } from "./host.tsx";
+import { editorChip, chipIcon } from "./look.ts";
 import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
-import { useParts, useIcon } from "./theme.tsx";
-import type { PartAttributes } from "./theme.tsx";
 
 import { documentRevision } from "#core/document/atoms.ts";
 import { noteRegions } from "#core/document/index.ts";
+
+const notePaneAnnotationBox = cn(
+  editorChip,
+  "zt:inline-flex zt:max-w-full zt:items-center zt:gap-1 zt:rounded-md zt:p-0.5 zt:ps-2 zt:align-middle",
+);
+const notePaneAnnotationToggle = chipIcon;
+const notePaneAnnotationEdit = chipIcon;
+const notePaneAnnotationPreview =
+  "zt:mx-2 zt:my-1 zt:cursor-default zt:rounded-md zt:border zt:border-border zt:bg-background zt:p-2 zt:font-sans zt:text-sm zt:whitespace-normal zt:select-text";
+const notePanePending = "zt:text-xs zt:text-muted-foreground";
 
 export interface NotePaneProps {
   controller: WorkbenchDocumentController;
@@ -62,9 +73,6 @@ export function NotePane({
   ...example
 }: NotePaneProps) {
   useAtomValue(documentRevision(controller));
-  const part = useParts("notePane");
-  const managedClass = part("managed-line").className;
-  const labelClass = part("managed-label").className;
   const host = useRef<HTMLDivElement>(null);
   const previewId = useUniqueId();
   const [opened, setOpened] = useState<{
@@ -94,12 +102,8 @@ export function NotePane({
     () =>
       noteBoxes(boxes, previewHost, {
         labels: { start: managedStart, end: managedEnd },
-        parts: {
-          managed: { "data-part": "managed-line", className: managedClass },
-          label: { "data-part": "managed-label", className: labelClass },
-        },
       }),
-    [boxes, previewHost, managedClass, labelClass, managedStart, managedEnd],
+    [boxes, previewHost, managedStart, managedEnd],
   );
   const extensions = useMemo(
     () => [noteExtensions, partialBoxes.extensions],
@@ -140,7 +144,7 @@ export function NotePane({
     if (element) EditorView.findFromDOM(element)?.requestMeasure();
   }, [example.preview, example.previewHint, example.formatProblem]);
   return (
-    <div ref={host} {...part("note-pane")}>
+    <div ref={host} data-part="note-pane">
       <SliceEditor
         controller={controller}
         slice="note"
@@ -186,33 +190,44 @@ function AnnotationPlaceholder({
   onToggle: (pressed: boolean) => void;
   onOpenAnnotation: () => void;
 }) {
-  const part = useParts("notePane");
-  const icon = useIcon();
-  const previewTooltip = useTooltip(m.workbench_annotation_preview());
-  const editTooltip = useTooltip(m.workbench_annotation_edit_format());
+  const previewTooltip = tooltipAttrs(m.workbench_annotation_preview());
+  const editTooltip = tooltipAttrs(m.workbench_annotation_edit_format());
   return (
-    <span data-annotation-box {...part("annotation-box")}>
-      <span {...part("annotation-label")}>{m.workbench_annotation_slot()}</span>
-      <span {...part("annotation-actions")}>
+    <span
+      data-annotation-box
+      data-part="annotation-box"
+      className={notePaneAnnotationBox}
+    >
+      <span
+        data-part="annotation-label"
+        className="zt:min-w-0 zt:whitespace-normal"
+      >
+        {m.workbench_annotation_slot()}
+      </span>
+      <span
+        data-part="annotation-actions"
+        className="zt:inline-flex zt:shrink-0 zt:items-center"
+      >
         <button
           type="button"
-          {...part("annotation-toggle", expanded ? "active" : "inactive")}
-          aria-label={m.workbench_annotation_preview()}
+          data-part="annotation-toggle"
+          data-state={expanded ? "active" : "inactive"}
+          className={notePaneAnnotationToggle}
           {...previewTooltip}
           aria-pressed={expanded}
           aria-controls={expanded ? previewId : undefined}
           onClick={() => onToggle(!expanded)}
         >
-          {icon("preview")}
+          <Icon name="eye" />
         </button>
         <button
           type="button"
-          {...part("annotation-edit")}
-          aria-label={m.workbench_annotation_edit_format()}
+          data-part="annotation-edit"
+          className={notePaneAnnotationEdit}
           {...editTooltip}
           onClick={onOpenAnnotation}
         >
-          {icon("edit")}
+          <Icon name="pencil" />
         </button>
       </span>
     </span>
@@ -231,17 +246,32 @@ function AnnotationPreview({
 > & {
   id: string;
 }) {
-  const part = useParts("notePane");
   const Markdown = useOptionalHost()?.markdown;
   return (
-    <div id={id} data-annotation-preview {...part("annotation-preview")}>
-      <div {...part("annotation-selector")}>{annotationSelector}</div>
+    <div
+      id={id}
+      data-annotation-preview
+      data-part="annotation-preview"
+      className={notePaneAnnotationPreview}
+    >
+      <div data-part="annotation-selector" className="zt:mb-2">
+        {annotationSelector}
+      </div>
       {formatProblem !== null && (
-        <p {...part("annotation-problem")}>{formatProblem}</p>
+        <p
+          data-part="annotation-problem"
+          className="zt:mb-2 zt:border-s-2 zt:border-(--text-error) zt:ps-2 zt:text-xs zt:text-muted-foreground"
+        >
+          {formatProblem}
+        </p>
       )}
       {preview !== null && Markdown ? (
         <Suspense
-          fallback={<p {...part("pending")}>{m.workbench_result_pending()}</p>}
+          fallback={
+            <p data-part="pending" className={notePanePending}>
+              {m.workbench_result_pending()}
+            </p>
+          }
         >
           <Markdown
             surface="annotation"
@@ -252,7 +282,7 @@ function AnnotationPreview({
         </Suspense>
       ) : (
         formatProblem === null && (
-          <p {...part("pending")}>
+          <p data-part="pending" className={notePanePending}>
             {previewHint ?? m.workbench_result_pending()}
           </p>
         )
@@ -266,13 +296,7 @@ const expandPreview = StateEffect.define<number | null>();
 function noteBoxes(
   boxes: Map<number, HTMLElement>,
   previewHost: HTMLElement,
-  {
-    parts,
-    labels,
-  }: {
-    parts: { managed: PartAttributes; label: PartAttributes };
-    labels: { start: string; end: string };
-  },
+  { labels }: { labels: { start: string; end: string } },
 ): Extension {
   function build(
     { doc, selection }: EditorState,
@@ -300,8 +324,8 @@ function noteBoxes(
         ranges.push(
           Decoration.line({
             attributes: {
-              "data-part": parts.managed["data-part"],
-              class: parts.managed.className ?? "",
+              "data-part": "managed-line",
+              class: "zt-template-workbench-managed",
             },
           }).range(doc.line(line).from),
         );
@@ -313,7 +337,7 @@ function noteBoxes(
         if (selected(tag)) continue;
         ranges.push(
           Decoration.replace({
-            widget: new LabelWidget(label, tag, parts.label),
+            widget: new LabelWidget(label, tag),
           }).range(tag.from, tag.to),
         );
       }
@@ -336,17 +360,20 @@ function noteBoxes(
   return boxField(expandPreview, build);
 }
 
+const MANAGED_LABEL = cn(
+  editorChip,
+  "zt:inline-block zt:cursor-(--cursor-clickable) zt:px-2 zt:py-0.5 zt:select-none",
+);
+
 /** A beginner name in place of a raw tag the reader does not have to read. */
 class LabelWidget extends WidgetType {
   readonly label: string;
   readonly range: WorkbenchSliceRange;
-  readonly part: PartAttributes;
 
-  constructor(label: string, range: WorkbenchSliceRange, part: PartAttributes) {
+  constructor(label: string, range: WorkbenchSliceRange) {
     super();
     this.label = label;
     this.range = range;
-    this.part = part;
   }
 
   eq(other: LabelWidget): boolean {
@@ -359,8 +386,8 @@ class LabelWidget extends WidgetType {
 
   toDOM(view: EditorView): HTMLElement {
     const element = document.createElement("span");
-    element.dataset.part = this.part["data-part"];
-    if (this.part.className) element.className = this.part.className;
+    element.dataset.part = "managed-label";
+    element.className = MANAGED_LABEL;
     element.textContent = this.label;
     revealSourceOnClick(element, view, this.range);
     return element;

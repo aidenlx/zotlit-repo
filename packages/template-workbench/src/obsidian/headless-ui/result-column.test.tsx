@@ -100,13 +100,13 @@ it.each(["note", "annotation"] as const)(
 it("passes the complete note and folded properties to the host renderer", () => {
   using mounted = column({ staleReason: "hold" });
   const { props } = mounted;
-  expect(
-    screen.getByText("Papers/Reading.md").getAttribute("aria-description"),
-  ).toBe("Papers/Reading.md");
+  expect(screen.getByText("Papers/Reading.md").getAttribute("aria-label")).toBe(
+    "Papers/Reading.md",
+  );
   expect(
     screen
       .getByLabelText(m.workbench_preview_show())
-      .getAttribute("aria-description"),
+      .getAttribute("aria-label"),
   ).toBe(m.workbench_preview_whole());
   expect(screen.getByTestId("markdown").textContent).toBe(
     "Created notetagsreadingscience",
@@ -122,7 +122,7 @@ it("passes the complete note and folded properties to the host renderer", () => 
     target: { value: "managed" },
   });
   expect(props.onShowManaged).toHaveBeenCalledWith(true);
-  expect(screen.getByRole("region").className).toBe("");
+  expect(screen.getByRole("region").dataset.part).toBe("region");
 });
 
 it("renders the managed region without folding properties into it", () => {
@@ -517,7 +517,7 @@ it("labels the file name and gives its whole value as a tooltip", () => {
   expect(label.textContent).toBe(
     `${m.workbench_result_filename()}: Papers/Reading.md`,
   );
-  expect(label.getAttribute("aria-description")).toBe("Papers/Reading.md");
+  expect(label.getAttribute("aria-label")).toBe("Papers/Reading.md");
 });
 
 it("names the file a note preview shows, and none for a failure or another mode", () => {

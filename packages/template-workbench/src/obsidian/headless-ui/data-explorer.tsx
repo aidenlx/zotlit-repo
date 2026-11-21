@@ -9,6 +9,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { useUniqueId } from "@zotlit/ui";
@@ -31,17 +34,12 @@ import type {
   FieldInsertOptions,
 } from "./field-insertion.ts";
 import { useFieldsPanelRows } from "./fields-panel.tsx";
-import { useContainerName, useTooltip, useWorkbenchHost } from "./host.tsx";
-import type {
-  WorkbenchClipboardError,
-  WorkbenchMenuItem,
-  WorkbenchMenuRequest,
-} from "./host.tsx";
-// The field discovery tree. The host owns clipboard, insertion,
-// export, popup presentation, and the controlled filtering/expansion state.
+import { useContainerName, useWorkbenchHost } from "./host.tsx";
+import type { WorkbenchClipboardError } from "./host.tsx";
+import { showWorkbenchMenu } from "./menu.ts";
+import type { WorkbenchMenuItem, WorkbenchMenuRequest } from "./menu.ts";
 import { announceFields } from "./model.ts";
 import type { TemplateRoot } from "./model.ts";
-import { useIcon, useParts } from "./theme.tsx";
 
 import {
   buildDisplayTree,
@@ -51,6 +49,13 @@ import {
   setFilter,
   toggleNode,
 } from "#core/data-tree/index.ts";
+
+/** The native title already names the item and the Fields role in a full pane; the heading reads only where a sidebar hides that title. */
+const dataExplorerHeader =
+  "zt-workbench-sidebar-control zt:items-center zt:justify-between zt:gap-x-2 zt:px-3";
+/** Never shorter than a sticky section header and one whole row. */
+const dataExplorerBody =
+  "zt:min-h-18 zt:flex-1 zt:overflow-auto zt:overscroll-contain zt:px-2 zt:pb-3";
 
 /**
  * How one insert goes: `keepOpen` as {@link FieldInsertOptions} has it, and
@@ -162,10 +167,9 @@ export function DataExplorer({
   const setStatus = useAtomSet(model.fieldsStatus);
   /** Says `text` in a notice, and to a screen reader in the panels' live region. */
   const announce = (text: string) => {
-    host.notice(text);
+    new BaseNotice(text);
     setStatus(announceFields(text));
   };
-  const part = useParts("dataExplorer");
   // An insert writes the field in its first form, or the form the reader
   // picked in its details, as the place the caret is in reads it. It closes
   // the Fields Panel and leaves focus to the editor, at the inserted text;
@@ -387,8 +391,7 @@ export function DataExplorer({
   const sectionsLabel = allCollapsed
     ? m.workbench_explorer_expand_all()
     : m.workbench_explorer_collapse_all();
-  const sectionsTooltip = useTooltip(sectionsLabel);
-  const icon = useIcon();
+  const sectionsTooltip = tooltipAttrs(sectionsLabel);
   const toggleSection = (id: string) => {
     holdInPlace(
       body.current?.querySelector<HTMLElement>(
@@ -403,8 +406,12 @@ export function DataExplorer({
   const copyMenu = (text: string) =>
     startCopy({
       copy: copy(text),
-      copied: () => host.notice(m.workbench_field_copy_done()),
-      failed: () => host.notice(m.workbench_field_copy_failed()),
+      copied: () => {
+        new BaseNotice(m.workbench_field_copy_done());
+      },
+      failed: () => {
+        new BaseNotice(m.workbench_field_copy_failed());
+      },
     });
   const menuEntries = (node: DisplayNode) => {
     const value = copyValue(node);
@@ -467,14 +474,14 @@ export function DataExplorer({
   };
   /** The row's Menu from its own control, anchored under that control. */
   const openTemplateMenu = (node: DisplayNode, event: React.MouseEvent) => {
-    host.menu({
+    showWorkbenchMenu({
       anchor: event.currentTarget as HTMLElement,
       ...menuEntries(node),
     });
   };
   /** The same Menu from a right-click on the row, anchored at the pointer. */
   const openFieldContextMenu = (node: DisplayNode, event: React.MouseEvent) => {
-    host.menu({
+    showWorkbenchMenu({
       anchor: event.currentTarget as HTMLElement,
       pointerEvent: event.nativeEvent,
       ...menuEntries(node),
@@ -483,7 +490,6 @@ export function DataExplorer({
   const sectionsButton = (
     <button
       type="button"
-      aria-label={sectionsLabel}
       disabled={filtering || sectionIds.length === 0}
       onClick={() =>
         onCollapsedSectionsChange(
@@ -491,21 +497,35 @@ export function DataExplorer({
         )
       }
       {...sectionsTooltip}
-      {...part("sections-toggle")}
+      data-part="sections-toggle"
+      className="clickable-icon zt:shrink-0"
     >
-      {icon(allCollapsed ? "expand-all" : "collapse-all")}
+      <Icon name={allCollapsed ? "chevrons-up-down" : "chevrons-down-up"} />
     </button>
   );
   const search = SEARCH_LABELS[root]();
   // The placeholder shows the name, so the field takes no tooltip.
   const searchName = useContainerName(search);
   return (
-    <section {...part("explorer")}>
-      <div {...part("header")}>
-        <h2 {...part("heading")}>{m.workbench_fields_heading()}</h2>
-        <span {...part("root-label")}>{ROOT_LABELS[root]()}</span>
+    <section
+      data-part="explorer"
+      className="zt-template-data-explorer zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1 zt:flex-col zt:gap-3 zt:pt-3"
+    >
+      <div data-part="header" className={dataExplorerHeader}>
+        <h2 data-part="heading" className="">
+          {m.workbench_fields_heading()}
+        </h2>
+        <span
+          data-part="root-label"
+          className="zt:text-xs zt:text-muted-foreground"
+        >
+          {ROOT_LABELS[root]()}
+        </span>
       </div>
-      <div {...part("search-row")}>
+      <div
+        data-part="search-row"
+        className="zt:mx-3 zt:flex zt:min-w-0 zt:shrink-0 zt:items-center zt:gap-1"
+      >
         <input
           ref={searchInput}
           type="search"
@@ -520,7 +540,8 @@ export function DataExplorer({
             "aria-activedescendant":
               rows.selected === null ? undefined : rows.idOf(rows.selected),
           })}
-          {...part("search")}
+          data-part="search"
+          className="zt:w-auto zt:min-w-0 zt:flex-1"
           onKeyDown={onSearchKey}
           onChange={(event) =>
             onNavigationChange(setFilter(tree, event.currentTarget.value))
@@ -534,7 +555,8 @@ export function DataExplorer({
       <div
         ref={body}
         id={bodyId}
-        {...part("body")}
+        data-part="body"
+        className={dataExplorerBody}
         onScroll={(event) => {
           trimSpacer(event.currentTarget);
           onPresentationChange?.({
@@ -557,7 +579,10 @@ export function DataExplorer({
       >
         {sections.length === 0 ? (
           (empty ?? (
-            <p {...part("empty")}>
+            <p
+              data-part="empty"
+              className="zt:px-1 zt:py-3 zt:text-muted-foreground zt:text-sm zt:leading-normal"
+            >
               {data === null
                 ? m.workbench_fields_no_annotations()
                 : m.workbench_fields_no_matches()}
@@ -619,10 +644,18 @@ export function DataExplorer({
         />
       )}
       {trigger && (
-        <p {...part("hint")}>{m.workbench_fields_trigger_hint({ trigger })}</p>
+        <p
+          data-part="hint"
+          className="setting-item-description zt:px-3 zt:pb-2"
+        >
+          {m.workbench_fields_trigger_hint({ trigger })}
+        </p>
       )}
       {panelRows && (
-        <p {...part("keys-hint")}>
+        <p
+          data-part="keys-hint"
+          className="zt:shrink-0 zt:border-t zt:border-border zt:px-3 zt:py-1.5 zt:text-xs zt:text-muted-foreground"
+        >
           {canInsert
             ? m.workbench_fields_details_hint({
                 insert:

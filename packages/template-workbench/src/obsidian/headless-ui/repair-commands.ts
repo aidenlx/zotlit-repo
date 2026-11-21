@@ -4,9 +4,10 @@ import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { RenderDiagnostic } from "#core/render/result.ts";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
+import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { WorkbenchHost, WorkbenchInsertTarget } from "./host.tsx";
+import type { WorkbenchInsertTarget } from "./host.tsx";
 import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
 import { routeDiagnosis, routeProblem } from "./problem-route.ts";
 import type { ProblemTarget, RoutedDocument } from "./problem-route.ts";
@@ -25,8 +26,7 @@ import type { WorkbenchDiagnosis } from "./problems.ts";
  * 0056); the one edit among them is the annotation loop the reader asks for
  * with Add to template. Each applies a routing transition to the view state,
  * reveals the place in the editor, and closes the Fields Panel so nothing
- * covers it. None changes which panels show. The host supplies only how a
- * notice reaches the reader, through its adapter.
+ * covers it. None changes which panels show.
  */
 export interface RepairCommands {
   /**
@@ -57,7 +57,6 @@ export interface RepairCommandsInput {
   readonly model: Pick<WorkbenchModel, "view" | "fieldsPanel">;
   readonly controller: RoutedDocument &
     Pick<WorkbenchDocumentController, "hasSlice">;
-  readonly host: Pick<WorkbenchHost, "notice">;
   readonly problems: Pick<
     WorkbenchProblemsState,
     "diagnoses" | "select" | "setOpen" | "announce"
@@ -94,7 +93,6 @@ export function repairCommands({
   registry,
   model,
   controller,
-  host,
   problems,
 }: RepairCommandsInput): RepairCommands {
   // The place it reveals takes focus, so the Fields Panel hands focus on.
@@ -113,7 +111,7 @@ export function repairCommands({
     openDiagnosis(diagnosis) {
       const transition = routeDiagnosis(diagnosis, controller);
       if (transition) go(transition);
-      else host.notice(m.workbench_problems_location_unknown());
+      else new BaseNotice(m.workbench_problems_location_unknown());
     },
     showProblem(diagnostic) {
       closeFields();

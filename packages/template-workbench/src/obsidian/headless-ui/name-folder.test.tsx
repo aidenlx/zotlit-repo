@@ -47,6 +47,19 @@ function ReactivePane({
   );
 }
 
+/**
+ * The reset control of the binding named `label`: a button the app names by its
+ * tooltip, so it is found in the row of its binding.
+ */
+function bindingReset(label: string): HTMLElement | null {
+  const row = screen
+    .getByLabelText(label)
+    .closest<HTMLElement>('[data-part="binding-row"]')!;
+  return within(row).queryByRole("button", {
+    name: m.workbench_name_use_default(),
+  });
+}
+
 function open({
   source = SOURCE,
   ...props
@@ -90,13 +103,7 @@ it("keeps empty paths distinct from inheritance and restores each edit", () => {
   const { controller } = open();
   write(m.workbench_name_binding_folder(), "");
   expect(controller.document!.manifest.folder).toBe("");
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: m.workbench_name_use_default_for({
-        name: m.workbench_name_binding_folder(),
-      }),
-    }),
-  );
+  fireEvent.click(bindingReset(m.workbench_name_binding_folder())!);
   expect(controller.document!.manifest.folder).toBeUndefined();
   expect(
     screen.getByLabelText<HTMLInputElement>(m.workbench_name_binding_folder())
@@ -119,24 +126,23 @@ it("edits inherited toggles directly, resets to inheritance, and undoes both", (
   const { controller } = open();
   const label = m.workbench_name_binding_annotation_template();
   const toggle = screen.getByRole<HTMLButtonElement>("switch", { name: label });
-  const resetName = m.workbench_name_use_default_for({ name: label });
   expect(toggle.disabled).toBe(false);
-  expect(screen.queryByRole("button", { name: resetName })).toBeNull();
+  expect(bindingReset(label)).toBeNull();
   fireEvent.click(toggle);
   expect(controller.document!.manifest.importAnnotationsAsTemplate).toBe(true);
-  fireEvent.click(screen.getByRole("button", { name: resetName }));
+  fireEvent.click(bindingReset(label)!);
   expect(
     controller.document!.manifest.importAnnotationsAsTemplate,
   ).toBeUndefined();
   expect(toggle.getAttribute("aria-checked")).toBe("false");
-  expect(screen.queryByRole("button", { name: resetName })).toBeNull();
+  expect(bindingReset(label)).toBeNull();
   act(() => {
     controller.undo();
   });
   expect(controller.document!.manifest.importAnnotationsAsTemplate).toBe(true);
   fireEvent.click(toggle);
   expect(controller.document!.manifest.importAnnotationsAsTemplate).toBe(false);
-  expect(screen.getByRole("button", { name: resetName })).toBeDefined();
+  expect(bindingReset(label)!).toBeDefined();
   act(() => {
     controller.undo();
     controller.undo();
@@ -158,11 +164,7 @@ it("edits inherited citation styles and keeps an explicit null distinct from uns
   expect(controller.document!.manifest.citationStyle).toBe("ieee");
   fireEvent.input(select, { target: { value: "" } });
   expect(controller.document!.manifest.citationStyle).toBeNull();
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: m.workbench_name_use_default_for({ name: label }),
-    }),
-  );
+  fireEvent.click(bindingReset(label)!);
   expect(controller.document!.manifest.citationStyle).toBeUndefined();
   act(() => {
     controller.undo();
@@ -181,18 +183,17 @@ it("edits inherited citation styles and keeps an explicit null distinct from uns
 it("creates a folder override on edit and keeps reset available when it equals the default", () => {
   const { controller } = open();
   const label = m.workbench_name_binding_import_folder();
-  const resetName = m.workbench_name_use_default_for({ name: label });
   const input = screen.getByLabelText<HTMLInputElement>(label);
   expect(input.disabled).toBe(false);
-  expect(screen.queryByRole("button", { name: resetName })).toBeNull();
+  expect(bindingReset(label)).toBeNull();
   write(label, "Imported notes");
   expect(controller.document!.manifest.importFolder).toBe("Imported notes");
   write(label, "zotero_notes");
   expect(controller.document!.manifest.importFolder).toBe("zotero_notes");
-  fireEvent.click(screen.getByRole("button", { name: resetName }));
+  fireEvent.click(bindingReset(label)!);
   expect(controller.document!.manifest.importFolder).toBeUndefined();
   expect(input.value).toBe("zotero_notes");
-  expect(screen.queryByRole("button", { name: resetName })).toBeNull();
+  expect(bindingReset(label)).toBeNull();
 });
 
 it("selects the inherited citation style on open and after reset", () => {
@@ -215,11 +216,7 @@ it("selects the inherited citation style on open and after reset", () => {
   expect(controller.document!.manifest.citationStyle).toBeUndefined();
   fireEvent.input(select, { target: { value: "ieee" } });
   expect(select.value).toBe("ieee");
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: m.workbench_name_use_default_for({ name: label }),
-    }),
-  );
+  fireEvent.click(bindingReset(label)!);
   expect(select.value).toBe("apa");
   expect(controller.document!.manifest.citationStyle).toBeUndefined();
 });
@@ -358,13 +355,7 @@ it("shows identity, the live note name, and each binding's source", () => {
   expect(folder.closest('[data-part="binding-row"]')?.textContent).toContain(
     m.workbench_name_origin_profile(),
   );
-  expect(
-    screen.getByRole("button", {
-      name: m.workbench_name_use_default_for({
-        name: m.workbench_name_binding_folder(),
-      }),
-    }),
-  ).toBeDefined();
+  expect(bindingReset(m.workbench_name_binding_folder())!).toBeDefined();
   const inherited = screen.getByLabelText<HTMLInputElement>(
     m.workbench_name_binding_import_folder(),
   );
@@ -373,13 +364,7 @@ it("shows identity, the live note name, and each binding's source", () => {
   expect(inherited.closest('[data-part="binding-row"]')?.textContent).toContain(
     m.workbench_name_origin_default(),
   );
-  expect(
-    screen.queryByRole("button", {
-      name: m.workbench_name_use_default_for({
-        name: m.workbench_name_binding_import_folder(),
-      }),
-    }),
-  ).toBeNull();
+  expect(bindingReset(m.workbench_name_binding_import_folder())).toBeNull();
   const style = screen.getByLabelText<HTMLInputElement>(
     m.workbench_name_binding_citation_style(),
   );
@@ -483,13 +468,7 @@ it("follows a folder override, its reset, and a new Default folder", () => {
   write(m.workbench_name_binding_folder(), "Reading/Methods");
   expect(controller.document!.manifest.folder).toBe("Reading/Methods");
   expect(preview()).toBe("Reading/Methods/Reading.md");
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: m.workbench_name_use_default_for({
-        name: m.workbench_name_binding_folder(),
-      }),
-    }),
-  );
+  fireEvent.click(bindingReset(m.workbench_name_binding_folder())!);
   expect(controller.document!.manifest.folder).toBeUndefined();
   expect(preview()).toBe("literatures/Reading.md");
   rerender(

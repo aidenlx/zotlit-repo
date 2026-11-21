@@ -1,9 +1,11 @@
 import type { DisplayNode } from "#core/data-tree/index.ts";
+import type { WorkbenchRunner } from "#core/language/host-effects.ts";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 import type {
   TemplateRoot,
   WorkbenchItemChoice,
 } from "#obsidian/headless-ui/index.tsx";
+import type { ChooserScope } from "#obsidian/headless-ui/suggester.ts";
 // A standalone Explorer owns its Item, its annotation, its data and its
 // navigation; it follows no editor.
 import { Effect } from "effect";
@@ -13,6 +15,7 @@ import type { Menu, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
+import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
   ViewRegistryHandle,
@@ -81,11 +84,9 @@ import {
   selectionViewTitle,
   updateSelectionTitle,
 } from "#obsidian/editor/selection.tsx";
-import { templateWorkbenchTheme } from "#obsidian/editor/theme.tsx";
 import {
   visibleSectionIds,
   WorkbenchHostProvider,
-  WorkbenchThemeProvider,
   NO_MATCH_DATA,
 } from "#obsidian/headless-ui/index.tsx";
 
@@ -386,7 +387,6 @@ export class TemplateDataExplorerView extends ItemView {
         // This view shows no Match.
         matchData: NO_MATCH_DATA,
         insertTarget: () => null,
-        window: () => this.contentEl.win,
       }),
     );
     this.#actions = createExplorerActions({
@@ -428,11 +428,15 @@ export class TemplateDataExplorerView extends ItemView {
       if (key) this.#setTarget({ id: key, title: key }, "note");
     } else this.#update(refresh);
   }
+  /** Where this leaf's choosers open and which runner interrupts their searches. */
+  #chooserScope(host: { readonly run: WorkbenchRunner }): ChooserScope {
+    return { app: this.app, window: this.contentEl.win, run: host.run };
+  }
   #mount(): void {
     if (!this.#host || !this.#actions) return;
     this.#root?.render(
-      <WorkbenchHostProvider host={this.#host}>
-        <WorkbenchThemeProvider theme={templateWorkbenchTheme}>
+      <AppContext value={this.app}>
+        <WorkbenchHostProvider host={this.#host}>
           <ViewRegistryProvider registry={this.#deps.registry}>
             <ExplorerModelContext value={this.#model}>
               <ExplorerActionsContext value={this.#actions}>
@@ -456,8 +460,8 @@ export class TemplateDataExplorerView extends ItemView {
               </ExplorerActionsContext>
             </ExplorerModelContext>
           </ViewRegistryProvider>
-        </WorkbenchThemeProvider>
-      </WorkbenchHostProvider>,
+        </WorkbenchHostProvider>
+      </AppContext>,
     );
   }
   #annotationKey(node: DisplayNode): string | null {
@@ -495,7 +499,11 @@ export class TemplateDataExplorerView extends ItemView {
       if (!host) return;
       const previous = this.#state().item;
       yield* this.#pickItem(
-        workbenchItemChoice(host, this.#searchDeps(), previous ?? undefined),
+        workbenchItemChoice(
+          this.#chooserScope(host),
+          this.#searchDeps(),
+          previous ?? undefined,
+        ),
       );
     });
   }
@@ -537,7 +545,7 @@ export class TemplateDataExplorerView extends ItemView {
       if (!host) return;
       const state = this.#state();
       const id = yield* workbenchAnnotationChoice(
-        host,
+        this.#chooserScope(host),
         state.annotations ?? [],
         state.item
           ? (annotationIndexedKey(state.item.id, state.annotationId) ??

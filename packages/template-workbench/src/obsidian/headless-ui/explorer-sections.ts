@@ -1,4 +1,5 @@
 import type { DisplayNode } from "#core/data-tree/index.ts";
+import type { IconName } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 // Which fields a root lists, in which section and order, and the name a
@@ -47,6 +48,20 @@ const SECTION_LABELS: Record<ExplorerSectionId, () => string> = {
   annotation: m.workbench_explorer_section_annotation,
   source: m.workbench_explorer_section_source,
   citation: m.workbench_explorer_section_citation,
+};
+
+/** The glyph each section's heading carries. */
+export const SECTION_ICONS: Record<ExplorerSectionId, IconName> = {
+  common: "layout-list",
+  reference: "book-marked",
+  identifiers: "fingerprint",
+  content: "paperclip",
+  organization: "folder-tree",
+  links: "link",
+  record: "database",
+  annotation: "highlighter",
+  source: "file-text",
+  citation: "quote",
 };
 
 /** Item fields follow Zotero's Info pane order inside each section. */

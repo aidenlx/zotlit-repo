@@ -14,6 +14,8 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
@@ -29,7 +31,6 @@ import {
   useRevealSourceDiagnosis,
 } from "./source-diagnostics.tsx";
 import { tagDescription } from "./tag-help.ts";
-import { useParts, useEditorExtension } from "./theme.tsx";
 import { underlineOnlyLint } from "./underline-lint.ts";
 
 import { documentRevision } from "#core/document/atoms.ts";
@@ -39,6 +40,7 @@ import {
   sliceShownText,
   sourceCodec,
 } from "#core/document/index.ts";
+import { templateHighlighting } from "#core/language/index.ts";
 import {
   liquidTemplate,
   etaLanguage,
@@ -49,6 +51,12 @@ import {
   jsonRule,
   embeddedJsonE,
 } from "#core/language/index.ts";
+import { codePane } from "#obsidian/editor/editor-extension.ts";
+
+const sliceEditorSliceEditor = cn(
+  "markdown-source-view mod-cm6 cm-s-obsidian zt:min-h-0",
+  themeHook.templateEditor,
+);
 
 export type { SuggestionSource } from "#core/language/index.ts";
 
@@ -148,9 +156,7 @@ export function SliceEditor({
   const revealDiagnosis = useRevealSourceDiagnosis();
   const readOnly = controller.readOnly;
   const engine = controller.templateLanguage;
-  const part = useParts("sliceEditor");
   const adapter = useOptionalHost();
-  const editorExtension = useEditorExtension();
   const nameId = useUniqueId();
   const createPartial = useAtomSet(useWorkbenchModel().createPartial(nameId));
   const start: ResolveStart = (create, created) =>
@@ -187,7 +193,6 @@ export function SliceEditor({
     suggest,
     adapter,
     start,
-    editorExtension,
     syntax,
     visible: onScreen,
   });
@@ -198,7 +203,6 @@ export function SliceEditor({
     suggest,
     adapter,
     start,
-    editorExtension,
     syntax,
     visible: onScreen,
   };
@@ -278,7 +282,8 @@ export function SliceEditor({
                 ),
               ]
             : []),
-          report.current.editorExtension?.(slice, language) ?? [],
+          templateHighlighting,
+          codePane,
           templatePairing((position) => {
             const config = read(position);
             return config?.language === "json-e" ? null : config;
@@ -443,13 +448,14 @@ export function SliceEditor({
   // focus ring sits outside the scroll container and follows the same tokens
   // as the site's Input control.
   return (
-    <div {...part("slice-editor")}>
+    <div data-part="slice-editor" className={sliceEditorSliceEditor}>
       <HiddenName id={nameId}>{label}</HiddenName>
       <div
         ref={host}
         data-workbench-scroll={slice}
         dir="ltr"
-        {...part("slice-scroll")}
+        data-part="slice-scroll"
+        className="zt:min-h-0 zt:overflow-auto"
       />
     </div>
   );

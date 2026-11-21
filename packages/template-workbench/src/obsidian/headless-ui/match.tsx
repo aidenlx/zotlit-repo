@@ -7,6 +7,8 @@ import { useEffect, useLayoutEffect, useMemo, useState, useRef } from "react";
 import { composeFilterTree } from "@zotlit/filter-expression";
 import type { FilterPath } from "@zotlit/filter-expression";
 import { ITEMS } from "@zotlit/item-query";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
@@ -16,8 +18,8 @@ import { useCustomFieldNames } from "./custom-fields.ts";
 import { useWorkbenchModel } from "./editor.tsx";
 import { ExampleActions } from "./example-state.tsx";
 import { schemaLocale } from "./explorer-sections.ts";
-import { useWorkbenchHost } from "./host.tsx";
 import type { WorkbenchMatchResult } from "./host.tsx";
+import { workbenchRows, templateWorkbenchButton } from "./look.ts";
 import {
   appendAt,
   asExpression,
@@ -49,15 +51,56 @@ import type {
 import { MatchExpressionInput } from "./match.expression.tsx";
 import { filterVocabulary } from "./match.fields.tsx";
 import type { FilterValues } from "./match.fields.tsx";
+import {
+  matchPredicate,
+  MatchLookContext,
+  useMatchLook,
+} from "./match.look.ts";
+import type { MatchLook } from "./match.look.ts";
 import { MatchSelect } from "./match.rows.tsx";
 // One Match tree over the document controller; rows write through the master history.
 import { useReorder } from "./reorder.ts";
 import type { Reorder } from "./reorder.ts";
 import { TabDocsLink } from "./tab-bar.tsx";
-import { useParts, useIcon } from "./theme.tsx";
 
 import { isDatasetFieldKind } from "#core/filter-fields/fields.ts";
 import { datasetVocabulary } from "#core/language/expression-vocabulary.ts";
+
+const matchPane = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-4 zt:text-sm",
+  "zt:[--icon-size:var(--icon-s)] zt:[--icon-stroke:var(--icon-s-stroke-width)]",
+  "zt:[&>p]:text-xs zt:[&>p]:leading-normal zt:[&>p]:text-pretty zt:[&>p]:text-muted-foreground",
+);
+const matchActions = "zt:flex zt:flex-wrap zt:items-center zt:gap-2";
+const matchGroup = cn(
+  "zt:flex zt:w-full zt:min-w-0 zt:flex-1 zt:flex-col zt:gap-2 zt:data-[state=nested]:rounded-md zt:data-[state=nested]:border zt:data-[state=nested]:border-border zt:data-[state=nested]:bg-card zt:data-[state=nested]:p-2 zt:[&>[data-part=actions]:first-child]:justify-between",
+  workbenchRows.group(),
+);
+const matchIconButton =
+  "clickable-icon zt:shrink-0 zt:aria-disabled:cursor-default zt:aria-disabled:opacity-50";
+const matchRow = workbenchRows.row();
+const matchHandle = workbenchRows.handle();
+const matchConjunction =
+  "zt:flex zt:min-h-(--input-height) zt:items-center zt:justify-end zt:text-end zt:text-sm zt:text-muted-foreground zt:[overflow-wrap:anywhere]";
+const matchButton = templateWorkbenchButton;
+const matchStatement = cn(
+  "zt:flex zt:min-w-0 zt:items-start zt:overflow-hidden zt:rounded-md zt:bg-input zt:ring-1 zt:ring-border-hover zt:focus-within:ring-2 zt:focus-within:ring-border-focus",
+  "zt:[--dropdown-background-hover:var(--background-modifier-form-field-hover)] zt:[--dropdown-background:var(--background-modifier-form-field)] zt:[--input-border-width-focus:0px] zt:[--input-border-width:0px] zt:[--input-radius:0px] zt:[--input-shadow:none]",
+  "zt:[&_[data-part=wrapper]>select]:[field-sizing:content] zt:[&_[data-part=wrapper]>select]:w-full zt:[&:has([aria-invalid=true])]:ring-(--background-modifier-error)",
+  "zt:[&>[data-part=actions]]:h-(--input-height) zt:[&>[data-part=actions]]:shrink-0 zt:[&>[data-part=actions]]:flex-nowrap zt:[&>[data-part=actions]]:gap-0 zt:[&>[data-part=actions]]:px-0.5",
+);
+// A condition's layout: the kind's Select keeps its whole name, and the
+// value is what yields. The value stays beside the predicate while its
+// narrowest form fits there (its widest chip or word, an input's
+// width), and otherwise takes a line of its own; it grows into what is
+// left either way. Only a predicate wider than the whole line shrinks,
+// and then the operator gives up width before the kind's name does.
+const matchFields =
+  "zt:flex zt:min-w-0 zt:flex-1 zt:flex-wrap zt:items-stretch zt:overflow-hidden";
+const matchValue = cn(
+  "zt:-ms-px zt:-mt-px zt:flex zt:max-w-full zt:min-w-0 zt:grow zt:basis-[min-content] zt:items-start zt:border-s zt:border-t zt:border-border zt:empty:hidden",
+  "zt:[&>:is([data-part=input],div[data-part=control])]:w-[12ch] zt:[&>:not([data-part=actions],datalist)]:flex-auto",
+);
 
 export type {
   LabelledRow,
@@ -91,7 +134,6 @@ export function MatchPane({
   onRetry?: () => void;
   onChooseItem?: () => void;
 }) {
-  const part = useParts("match");
   const model = useWorkbenchModel();
   const item = useAtomValue(model.item);
   useAtomValue(model.document.revision);
@@ -216,7 +258,8 @@ export function MatchPane({
           : "no-match";
   return (
     <section
-      {...part("pane")}
+      data-part="pane"
+      className={matchPane}
       onKeyDown={(event) => {
         // A popup the host draws in the pane, such as a select's search
         // field, keeps its own text editing by stopping the key at its edge.
@@ -250,8 +293,13 @@ export function MatchPane({
           controller.document?.manifest.id === "default"
         }
       />
-      <div {...part("actions")}>
-        <p role="status" {...part("result", resultState)}>
+      <div data-part="actions" className={matchActions}>
+        <p
+          role="status"
+          data-part="result"
+          data-state={resultState}
+          className="zt:text-xs zt:leading-normal zt:text-muted-foreground"
+        >
           {resultMessage}
         </p>
         <ExampleActions
@@ -297,19 +345,23 @@ function useMatchTest(
  * kept filter comes back as `value` in the render the change causes. A
  * `value` the rows on screen do not store replaces them.
  */
+const NO_LOOK: MatchLook = {};
+
 export function MatchEditor<Row extends LabelledRow>({
   value,
   onChange,
   vocabulary,
   disabled = false,
+  look = NO_LOOK,
 }: {
   value: MatchFilter | undefined;
   /** `undefined` when the author clears every condition. */
   onChange: (next: MatchTree | undefined) => boolean;
   vocabulary: MatchVocabulary<Row>;
   disabled?: boolean;
+  /** The classes of the parts this surface draws in a look of its own. */
+  look?: MatchLook;
 }) {
-  const part = useParts("match");
   const [root, setRootState] = useState<ConditionGroup<Row>>(() =>
     fromFilter(value, vocabulary),
   );
@@ -361,17 +413,27 @@ export function MatchEditor<Row extends LabelledRow>({
     },
   });
   return (
-    <fieldset disabled={disabled} {...part("fieldset")} {...reorder.list}>
-      <Group
-        root={tree}
-        group={tree}
-        path={[]}
-        places={places}
-        vocabulary={vocabulary}
-        reorder={reorder}
-        onChange={change}
-      />
-    </fieldset>
+    <MatchLookContext value={look}>
+      <fieldset
+        disabled={disabled}
+        data-part="fieldset"
+        className={
+          look.fieldset ??
+          "zt:flex zt:min-w-0 zt:flex-col zt:items-start zt:gap-4 zt:border-0 zt:p-0"
+        }
+        {...reorder.list}
+      >
+        <Group
+          root={tree}
+          group={tree}
+          path={[]}
+          places={places}
+          vocabulary={vocabulary}
+          reorder={reorder}
+          onChange={change}
+        />
+      </fieldset>
+    </MatchLookContext>
   );
 }
 
@@ -393,9 +455,7 @@ function Group<Row extends LabelledRow>({
   reorder: Reorder;
   onChange: (root: ConditionGroup<Row>) => void;
 }) {
-  const part = useParts("match");
-  const icon = useIcon();
-  const host = useWorkbenchHost();
+  const look = useMatchLook();
   // "Add condition" hands the focus to the new row's condition type.
   const rows = useRef<HTMLUListElement>(null);
   const focusAdded = useRef(false);
@@ -411,10 +471,17 @@ function Group<Row extends LabelledRow>({
   }, [group.conditions.length]);
   return (
     <div
-      {...part("group", path.length ? "nested" : "root")}
+      data-part="group"
+      data-state={path.length ? "nested" : "root"}
+      className={look("group", matchGroup)}
       {...reorder.group(path, group.conditions.length)}
     >
-      <div {...part("actions", "header")} {...reorder.header(path)}>
+      <div
+        data-part="actions"
+        data-state={"header"}
+        className={look("actions", matchActions)}
+        {...reorder.header(path)}
+      >
         <MatchSelect
           aria-label={m.workbench_match_match()}
           value={group.match}
@@ -435,33 +502,46 @@ function Group<Row extends LabelledRow>({
         />
         {path.length > 0 && (
           <button
-            {...part("icon-button")}
+            data-part="icon-button"
+            className={matchIconButton}
             type="button"
-            aria-label={m.workbench_match_remove_group()}
-            {...host.tooltip(m.workbench_match_remove_group())}
+            {...tooltipAttrs(m.workbench_match_remove_group())}
             onClick={() => onChange(removeAt(root, path))}
           >
-            {icon("remove")}
+            <Icon name="trash-2" />
           </button>
         )}
       </div>
-      <ul ref={rows} {...part("rows")} {...reorder.rows(path)}>
+      <ul
+        ref={rows}
+        data-part="rows"
+        className={look(
+          "rows",
+          "zt:flex zt:flex-col zt:gap-2 zt:list-none zt:m-0 zt:p-0",
+        )}
+        {...reorder.rows(path)}
+      >
         {group.conditions.map((node, index) => (
           <li
             key={index}
-            {...part("row", isGroup(node) ? "group" : "condition")}
+            data-part="row"
+            data-state={isGroup(node) ? "group" : "condition"}
+            className={look("row", matchRow)}
             {...reorder.row([...path, index], group.conditions.length)}
           >
             <span
-              {...part("handle")}
-              aria-label={m.workbench_drag_to_reorder()}
-              {...host.tooltip(m.workbench_drag_to_reorder())}
+              data-part="handle"
+              className={look("handle", matchHandle)}
+              {...tooltipAttrs(m.workbench_drag_to_reorder())}
               {...reorder.handle([...path, index], group.conditions.length)}
             >
-              {icon("drag")}
+              <Icon name="grip-vertical" />
             </span>
             {!isGroup(node) && (
-              <span {...part("conjunction")}>
+              <span
+                data-part="conjunction"
+                className={look("conjunction", matchConjunction)}
+              >
                 {index === 0
                   ? m.workbench_match_conjunction_where()
                   : group.match === "all"
@@ -493,24 +573,30 @@ function Group<Row extends LabelledRow>({
           </li>
         ))}
       </ul>
-      <div {...part("actions", "footer")}>
+      <div
+        data-part="actions"
+        data-state={"footer"}
+        className={look("actions", matchActions)}
+      >
         <button
-          {...part("button")}
+          data-part="button"
+          className={look("button", matchButton)}
           type="button"
           onClick={() => {
             focusAdded.current = true;
             onChange(appendAt(root, path, placeholderRow(vocabulary)));
           }}
         >
-          {icon("add")}
+          <Icon name="plus" />
           {m.workbench_match_add_condition()}
         </button>
         <button
-          {...part("button")}
+          data-part="button"
+          className={look("button", matchButton)}
           type="button"
           onClick={() => onChange(appendAt(root, path, freshGroup(vocabulary)))}
         >
-          {icon("add")}
+          <Icon name="plus" />
           {m.workbench_match_add_group()}
         </button>
       </div>
@@ -532,9 +618,7 @@ function Row<Row extends LabelledRow>({
   onChange: (condition: RowCondition<Row>) => void;
   onRemove: () => void;
 }) {
-  const part = useParts("match");
-  const icon = useIcon();
-  const host = useWorkbenchHost();
+  const look = useMatchLook();
   const issue =
     stored === null ? null : (vocabulary.issue?.(condition, stored) ?? null);
   const place = stored === null ? null : placeKey(stored);
@@ -558,11 +642,23 @@ function Row<Row extends LabelledRow>({
     ? undefined
     : vocabulary.kinds.find((entry) => entry.kind === condition.kind);
   return (
-    <div {...part("condition")} data-condition-row="">
-      <div {...part("statement", issue ? "error" : undefined)}>
-        <div {...part("fields")}>
+    <div
+      data-part="condition"
+      className="zt:col-start-3 zt:min-w-0"
+      data-condition-row=""
+    >
+      <div
+        data-part="statement"
+        data-state={issue ? "error" : undefined}
+        className={look("statement", matchStatement)}
+      >
+        <div data-part="fields" className={matchFields}>
           {!isExpression(condition) && (
-            <div {...part("predicate", kind?.icon ? "icon" : undefined)}>
+            <div
+              data-part="predicate"
+              data-state={kind?.icon ? "icon" : undefined}
+              className={look("predicate", matchPredicate)}
+            >
               <MatchSelect
                 searchable
                 aria-label={m.workbench_match_condition_kind()}
@@ -581,7 +677,7 @@ function Row<Row extends LabelledRow>({
               {kind?.renderOperator?.({ condition, onChange })}
             </div>
           )}
-          <div {...part("value")}>
+          <div data-part="value" className={matchValue}>
             {isExpression(condition) ? (
               <MatchExpressionInput
                 aria-label={m.workbench_match_expression()}
@@ -597,45 +693,52 @@ function Row<Row extends LabelledRow>({
             )}
           </div>
         </div>
-        <div {...part("actions")}>
+        <div data-part="actions" className={look("actions", matchActions)}>
           {isExpression(condition) ? (
             <button
-              {...part("icon-button")}
+              data-part="icon-button"
+              className={matchIconButton}
               type="button"
               // Stays hoverable and focusable, so its tooltip gives the reason.
               aria-disabled={labelled === null || undefined}
-              aria-label={editVisually}
-              {...host.tooltip(editVisually)}
+              {...tooltipAttrs(editVisually)}
               onClick={() => {
                 if (labelled) onChange(labelled);
               }}
             >
-              {icon("basic")}
+              <Icon name="sliders-horizontal" />
             </button>
           ) : (
             <button
-              {...part("icon-button")}
+              data-part="icon-button"
+              className={matchIconButton}
               type="button"
-              aria-label={m.workbench_match_edit_as_expression()}
-              {...host.tooltip(m.workbench_match_edit_as_expression())}
+              {...tooltipAttrs(m.workbench_match_edit_as_expression())}
               onClick={() => onChange(asExpression(condition, vocabulary))}
             >
-              {icon("advanced")}
+              <Icon name="code" />
             </button>
           )}
           <button
-            {...part("icon-button")}
+            data-part="icon-button"
+            className={matchIconButton}
             type="button"
-            aria-label={m.workbench_match_remove_condition()}
-            {...host.tooltip(m.workbench_match_remove_condition())}
+            {...tooltipAttrs(m.workbench_match_remove_condition())}
             onClick={onRemove}
           >
-            {icon("remove")}
+            <Icon name="trash-2" />
           </button>
         </div>
       </div>
       {issue && (
-        <p role="alert" {...part("error")}>
+        <p
+          role="alert"
+          data-part="error"
+          className={look(
+            "error",
+            "zt:pt-1 zt:text-xs zt:leading-normal zt:text-pretty zt:text-(--text-error)",
+          )}
+        >
           {issue}
         </p>
       )}

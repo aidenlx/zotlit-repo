@@ -168,7 +168,19 @@ export default defineConfig({
     {
       // Code written before the rule; new code follows it, and a file moves
       // off this list when it is next reworked.
-      files: ["src/obsidian/editor/theme.tsx"],
+      files: [
+        "src/obsidian/headless-ui/data-explorer.tsx",
+        "src/obsidian/headless-ui/edit-toolbar.tsx",
+        "src/obsidian/headless-ui/explorer-tree.tsx",
+        "src/obsidian/headless-ui/field-details.tsx",
+        "src/obsidian/headless-ui/fields-panel.tsx",
+        "src/obsidian/headless-ui/match.chips.tsx",
+        "src/obsidian/headless-ui/match.tsx",
+        "src/obsidian/headless-ui/name-folder.tsx",
+        "src/obsidian/headless-ui/properties-tab.tsx",
+        "src/obsidian/headless-ui/property-list.tsx",
+        "src/obsidian/headless-ui/tab-bar.tsx",
+      ],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
     {

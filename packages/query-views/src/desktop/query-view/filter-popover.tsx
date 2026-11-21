@@ -31,15 +31,9 @@ import {
   createTemplateWorkbenchHost,
   refuseRender,
 } from "@zotlit/template-workbench/obsidian/editor/host.tsx";
-import { matchTheme } from "@zotlit/template-workbench/obsidian/editor/match-pane.tsx";
-import {
-  matchRows,
-  onKeymap,
-} from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
 import {
   MatchEditor,
   WorkbenchHostProvider,
-  WorkbenchThemeProvider,
   filterVocabulary,
   isDatasetFieldKind,
   NO_MATCH_DATA,
@@ -48,7 +42,10 @@ import type {
   FilterField,
   FilterValues,
   MatchFilter,
+  MatchLook,
 } from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
+import { matchRows } from "@zotlit/template-workbench/obsidian/headless-ui/look.ts";
+import { matchPredicate } from "@zotlit/template-workbench/obsidian/headless-ui/match.look.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 
 import { filterValuesAtom } from "./atoms.ts";
@@ -125,66 +122,58 @@ function samePath(a: readonly number[], b: readonly number[]): boolean {
  * background for a condition's fields, the
  * table border on a nested group, a borderless conjunction select, and text
  * actions in the toolbar button's `.text-icon-button` look. The Template
- * Workbench keeps `matchTheme`.
+ * Workbench draws the Match editor in its own look.
  */
 const filterRows = matchRows({ look: "filter" });
-const filterTheme = {
-  ...matchTheme,
-  classes: {
-    ...matchTheme.classes,
-    match: {
-      ...matchTheme.classes.match,
-      // A condition's actions are bare `<button>`s in the popover, rolled
-      // back as its action rows are (see `toolbar-button.css`).
-      button: cn("zt-query-popover-action", toolbarButtonLook),
-      "remove-button": cn("zt-query-popover-action", toolbarButtonLook),
-      fieldset: cn(
-        "zt:m-0 zt:flex zt:min-w-0 zt:flex-col zt:border-0 zt:p-0 zt:text-sm",
-        "zt:[--icon-size:var(--icon-s)] zt:[--icon-stroke:var(--icon-s-stroke-width)]",
-      ),
-      group: cn(
-        "zt:flex zt:w-full zt:min-w-0 zt:flex-col zt:gap-(--size-2-3)",
-        "zt:data-[state=nested]:rounded-md zt:data-[state=nested]:border-(length:--table-border-width) zt:data-[state=nested]:border-(--table-border-color) zt:data-[state=nested]:bg-(--background-primary-alt) zt:data-[state=nested]:p-(--size-2-3)",
-        filterRows.group(),
-      ),
-      // The header holds the conjunction, a select drawn without its box, as
-      // Bases draws it; the footer holds the text actions.
-      actions: cn(
-        "zt:flex zt:flex-wrap zt:items-center",
-        "zt:data-[state=header]:justify-between zt:data-[state=header]:gap-(--size-2-1) zt:data-[state=header]:pb-(--size-2-1)",
-        "zt:data-[state=header]:[--dropdown-background-hover:var(--background-modifier-hover)] zt:data-[state=header]:[--dropdown-background:transparent] zt:data-[state=header]:[--input-shadow:none]",
-        "zt:data-[state=footer]:pt-(--size-2-2)",
-      ),
-      rows: "zt:m-0 zt:flex zt:list-none zt:flex-col zt:gap-(--size-2-3) zt:p-0",
-      row: filterRows.row(),
-      handle: filterRows.handle(),
-      conjunction:
-        "zt:flex zt:min-h-(--input-height) zt:items-center zt:justify-end zt:text-end zt:text-sm zt:[overflow-wrap:anywhere]",
-      statement: cn(
-        "zt:flex zt:min-w-0 zt:items-start zt:overflow-hidden zt:rounded-(--metadata-property-radius) zt:bg-input zt:[corner-shape:var(--metadata-property-corner-shape)]",
-        "zt:shadow-[0_0_0_var(--border-width)_var(--background-modifier-border-hover)] zt:focus-within:shadow-(--metadata-property-box-shadow-focus) zt:data-[state=error]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)] zt:[&:has([aria-invalid=true])]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)]",
-        "zt:[--dropdown-background-hover:var(--background-modifier-form-field-hover)] zt:[--dropdown-background:var(--background-modifier-form-field)] zt:[--input-border-width-focus:0px] zt:[--input-border-width:0px] zt:[--input-radius:0px] zt:[--input-shadow:none]",
-        // The native selects, the operator and a short value list, fit their
-        // text.
-        "zt:[&_[data-part=wrapper]>select]:[field-sizing:content] zt:[&_[data-part=wrapper]>select]:w-full",
-        "zt:[&>[data-part=actions]]:h-(--input-height) zt:[&>[data-part=actions]]:shrink-0 zt:[&>[data-part=actions]]:flex-nowrap zt:[&>[data-part=actions]]:px-(--size-2-1)",
-      ),
-      // The row's layout is the Match theme's: the property select keeps
-      // its name, and the value yields or takes a line of its own. The
-      // property select carries the icon of the property's type, as the
-      // Bases property picker does, and is capped as Bases caps it; the
-      // native operator after it stands behind a rule.
-      predicate: cn(
-        matchTheme.classes.match?.predicate,
-        "zt:[&>[role=combobox]~[data-part=wrapper]]:border-s-(length:--border-width)",
-        "zt:[&>[role=combobox]:first-of-type]:max-w-[14em]",
-      ),
-      "kind-icon":
-        "zt:flex zt:shrink-0 zt:items-center zt:self-stretch zt:ps-(--size-4-2) zt:text-(--icon-color)",
-      error:
-        "zt:pt-(--size-4-1) zt:text-xs zt:leading-normal zt:text-pretty zt:text-(--text-error)",
-    },
-  },
+const filterLook: MatchLook = {
+  // A condition's actions are bare `<button>`s in the popover, rolled
+  // back as its action rows are (see `toolbar-button.css`).
+  button: cn("zt-query-popover-action", toolbarButtonLook),
+  fieldset: cn(
+    "zt:m-0 zt:flex zt:min-w-0 zt:flex-col zt:border-0 zt:p-0 zt:text-sm",
+    "zt:[--icon-size:var(--icon-s)] zt:[--icon-stroke:var(--icon-s-stroke-width)]",
+  ),
+  group: cn(
+    "zt:flex zt:w-full zt:min-w-0 zt:flex-col zt:gap-(--size-2-3)",
+    "zt:data-[state=nested]:rounded-md zt:data-[state=nested]:border-(length:--table-border-width) zt:data-[state=nested]:border-(--table-border-color) zt:data-[state=nested]:bg-(--background-primary-alt) zt:data-[state=nested]:p-(--size-2-3)",
+    filterRows.group(),
+  ),
+  // The header holds the conjunction, a select drawn without its box, as
+  // Bases draws it; the footer holds the text actions.
+  actions: cn(
+    "zt:flex zt:flex-wrap zt:items-center",
+    "zt:data-[state=header]:justify-between zt:data-[state=header]:gap-(--size-2-1) zt:data-[state=header]:pb-(--size-2-1)",
+    "zt:data-[state=header]:[--dropdown-background-hover:var(--background-modifier-hover)] zt:data-[state=header]:[--dropdown-background:transparent] zt:data-[state=header]:[--input-shadow:none]",
+    "zt:data-[state=footer]:pt-(--size-2-2)",
+  ),
+  rows: "zt:m-0 zt:flex zt:list-none zt:flex-col zt:gap-(--size-2-3) zt:p-0",
+  row: filterRows.row(),
+  handle: filterRows.handle(),
+  conjunction:
+    "zt:flex zt:min-h-(--input-height) zt:items-center zt:justify-end zt:text-end zt:text-sm zt:[overflow-wrap:anywhere]",
+  statement: cn(
+    "zt:flex zt:min-w-0 zt:items-start zt:overflow-hidden zt:rounded-(--metadata-property-radius) zt:bg-input zt:[corner-shape:var(--metadata-property-corner-shape)]",
+    "zt:shadow-[0_0_0_var(--border-width)_var(--background-modifier-border-hover)] zt:focus-within:shadow-(--metadata-property-box-shadow-focus) zt:data-[state=error]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)] zt:[&:has([aria-invalid=true])]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)]",
+    "zt:[--dropdown-background-hover:var(--background-modifier-form-field-hover)] zt:[--dropdown-background:var(--background-modifier-form-field)] zt:[--input-border-width-focus:0px] zt:[--input-border-width:0px] zt:[--input-radius:0px] zt:[--input-shadow:none]",
+    // The native selects, the operator and a short value list, fit their
+    // text.
+    "zt:[&_[data-part=wrapper]>select]:[field-sizing:content] zt:[&_[data-part=wrapper]>select]:w-full",
+    "zt:[&>[data-part=actions]]:h-(--input-height) zt:[&>[data-part=actions]]:shrink-0 zt:[&>[data-part=actions]]:flex-nowrap zt:[&>[data-part=actions]]:px-(--size-2-1)",
+  ),
+  // The row's layout is the Workbench's: the property select keeps
+  // its name, and the value yields or takes a line of its own. The
+  // property select carries the icon of the property's type, as the
+  // Bases property picker does, and is capped as Bases caps it; the
+  // native operator after it stands behind a rule.
+  predicate: cn(
+    matchPredicate,
+    "zt:[&>[role=combobox]~[data-part=wrapper]]:border-s-(length:--border-width)",
+    "zt:[&>[role=combobox]:first-of-type]:max-w-[14em]",
+  ),
+  "kind-icon":
+    "zt:flex zt:shrink-0 zt:items-center zt:self-stretch zt:ps-(--size-4-2) zt:text-(--icon-color)",
+  error:
+    "zt:pt-(--size-4-1) zt:text-xs zt:leading-normal zt:text-pretty zt:text-(--text-error)",
 };
 
 export interface FilterEditorProps {
@@ -240,8 +229,6 @@ export function FilterEditor({
       // The Filter offers its own values and tests no Item.
       matchData: NO_MATCH_DATA,
       insertTarget: () => null,
-      // The popover stands in the window that has focus.
-      window: () => activeWindow,
     });
     // The popover stands over Obsidian's suggestion popups.
     return { ...created, inputSuggestions: undefined };
@@ -301,6 +288,7 @@ export function FilterEditor({
       </p>
     ) : (
       <MatchEditor
+        look={filterLook}
         value={value}
         vocabulary={vocabulary(section)}
         onChange={(next) => onChange(section, next)}
@@ -308,7 +296,7 @@ export function FilterEditor({
     );
   return (
     <WorkbenchHostProvider host={host}>
-      <WorkbenchThemeProvider theme={onKeymap(filterTheme, app)}>
+      <>
         {sections.length > 1 ? (
           sections.map(([section, heading, value]) => (
             <FoldSection
@@ -333,7 +321,7 @@ export function FilterEditor({
             ))}
           </div>
         )}
-      </WorkbenchThemeProvider>
+      </>
     </WorkbenchHostProvider>
   );
 }

@@ -9,6 +9,8 @@ import {
 } from "react";
 import type { ReactNode, RefObject } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 // The Fields Panel, the chosen Item's fields in the host's non-modal Fields
 // popover, or docked beside the editor while the reader has it pinned.
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -16,10 +18,19 @@ import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
 
 import { useWorkbenchEditor, useWorkbenchModel } from "./editor.tsx";
-import { useOptionalHost, useTooltip } from "./host.tsx";
+import { useOptionalHost } from "./host.tsx";
 import { pressFieldsPin } from "./model.ts";
 import type { FieldsPlacement } from "./panel-layout.ts";
-import { useIcon, useParts } from "./theme.tsx";
+
+const fieldsPanelPanel = cn(
+  "zt:flex zt:h-full zt:min-w-0 zt:flex-col zt:text-foreground",
+  "zt:data-[state=popover]:w-80 zt:data-[state=popover]:max-w-full zt:data-[state=popover]:rounded-(--radius-m) zt:data-[state=popover]:border zt:data-[state=popover]:border-border zt:data-[state=popover]:bg-(--background-secondary) zt:data-[state=popover]:shadow-(--shadow-l) zt:data-[state=popover]:[--zt-pane-ground:var(--background-secondary)]",
+  "zt:data-[state=popover]:transition-[translate,opacity] zt:data-[state=popover]:duration-150 zt:data-[state=popover]:ease-out zt:motion-reduce:transition-none zt:data-[state=popover]:starting:translate-x-2 zt:data-[state=popover]:starting:opacity-0",
+);
+// Pinned, the pin wears Obsidian's active icon (`theme.css`); with no
+// room to dock, it steps back and keeps its focus and its tooltip.
+const fieldsPanelPin =
+  "clickable-icon zt:shrink-0 zt:aria-disabled:cursor-not-allowed zt:aria-disabled:opacity-50";
 
 /** What the Fields Panel holds, and what names it. */
 interface FieldsPanelContent {
@@ -146,8 +157,6 @@ function FieldsPanelBody({
   readonly escape: RefObject<() => boolean>;
 }) {
   const { model, registry } = useWorkbenchEditor();
-  const part = useParts("fieldsPanel");
-  const icon = useIcon();
   const setState = useAtomSet(model.fieldsPanel);
   const { pinned, canPin } = useAtomValue(model.fieldsPin);
   const panel = useRef<HTMLDivElement>(null);
@@ -157,13 +166,13 @@ function FieldsPanelBody({
     [escape, actions],
   );
   const closeLabel = m.workbench_fields_close();
-  const closeTooltip = useTooltip(closeLabel);
+  const closeTooltip = tooltipAttrs(closeLabel);
   const pinLabel = !canPin
     ? m.workbench_fields_pin_unavailable()
     : pinned
       ? m.workbench_fields_unpin()
       : m.workbench_fields_pin();
-  const pinTooltip = useTooltip(pinLabel);
+  const pinTooltip = tooltipAttrs(pinLabel);
   useLayoutEffect(() => {
     if (placement === "docked") {
       if (!registry.get(model.fieldsFocus)) return;
@@ -182,7 +191,9 @@ function FieldsPanelBody({
     // step through `onEscape`, and a key it took arrives here handled.
     <div
       ref={panel}
-      {...part("panel", placement)}
+      data-part="panel"
+      data-state={placement}
+      className={fieldsPanelPanel}
       onKeyDown={(event) => {
         if (event.key !== "Escape" || event.defaultPrevented) return;
         // Escape that drops an input method's candidate is the method's.
@@ -192,46 +203,68 @@ function FieldsPanelBody({
         event.stopPropagation();
       }}
     >
-      <div {...part("header")}>
-        <span aria-hidden="true" {...part("icon")}>
-          {icon("fields")}
+      <div
+        data-part="header"
+        className="zt:flex zt:shrink-0 zt:items-center zt:gap-1 zt:px-(--size-4-2) zt:pt-(--size-4-2)"
+      >
+        <span
+          aria-hidden="true"
+          data-part="icon"
+          className="zt:flex zt:shrink-0 zt:ps-1 zt:text-(--icon-color) zt:[&_svg]:size-(--icon-s)"
+        >
+          <Icon name="braces" />
         </span>
         {/* A title, not a heading: the popover takes its name from it, and
             a host's heading style would outweigh the theme's part. */}
-        <span id={titleId} {...part("title")}>
+        <span
+          id={titleId}
+          data-part="title"
+          className="zt:min-w-0 zt:flex-1 zt:truncate zt:px-1 zt:text-sm zt:font-semibold"
+        >
           {label}
         </span>
-        <span ref={setActions} {...part("actions")} />
+        <span ref={setActions} data-part="actions" className="zt:contents" />
         {hostActions}
         {/* Disabled by aria-disabled, so the pin keeps its focus and its
             tooltip says why it does not work. */}
         <button
           type="button"
-          aria-label={pinLabel}
           aria-disabled={canPin ? undefined : true}
           onClick={() => pressFieldsPin(registry, model)}
           {...pinTooltip}
-          {...part("pin", pinned && canPin ? "pinned" : undefined)}
+          data-part="pin"
+          data-state={pinned && canPin ? "pinned" : undefined}
+          className={fieldsPanelPin}
         >
-          {icon(pinned && canPin ? "unpin" : "pin")}
+          <Icon name={pinned && canPin ? "pin-off" : "pin"} />
         </button>
         {placement === "popover" && (
           <button
             type="button"
-            aria-label={closeLabel}
             onClick={() => setState("closed")}
             {...closeTooltip}
-            {...part("close")}
+            data-part="close"
+            className="clickable-icon zt:shrink-0"
           >
-            {icon("close")}
+            <Icon name="x" />
           </button>
         )}
       </div>
       {pinned && !canPin && (
-        <p {...part("note")}>{m.workbench_fields_pinned_narrow()}</p>
+        <p
+          data-part="note"
+          className="zt:shrink-0 zt:px-(--size-4-3) zt:pt-(--size-2-1) zt:text-xs zt:text-muted-foreground"
+        >
+          {m.workbench_fields_pinned_narrow()}
+        </p>
       )}
       <FieldsPanelRowsContext.Provider value={rows}>
-        <div {...part("body")}>{content}</div>
+        <div
+          data-part="body"
+          className="zt:flex zt:min-h-0 zt:flex-1 zt:flex-col zt:overflow-auto"
+        >
+          {content}
+        </div>
       </FieldsPanelRowsContext.Provider>
     </div>
   );

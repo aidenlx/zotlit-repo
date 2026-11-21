@@ -7,21 +7,30 @@ import type { AnnotationExample } from "#core/render/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
 import { isPageNumber } from "@zotlit/db";
+import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
-import { useWorkbenchHost } from "./host.tsx";
+import { bar, templateWorkbenchButton } from "./look.ts";
 import { usePartialBoxes } from "./partial-boxes.tsx";
 import type { PartialPlaceholderHost } from "./partial-boxes.tsx";
 import { SampleSuggester } from "./sample-suggester.tsx";
 import type { SampleOption } from "./sample-suggester.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
 import type { SliceEditorProps } from "./slice-editor.tsx";
-import { useIcon, useParts } from "./theme.tsx";
+import { chooseWorkbenchOption } from "./suggester.ts";
 
 import { documentRevision } from "#core/document/atoms.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+
+const sampleSuggesterTrigger = selectionControl({ kind: "icon" });
+const annotationSectionBar = cn(bar, "zt:mb-2");
+const annotationPrimaryAction = cn(templateWorkbenchButton, "zt:ms-auto");
+const annotationSectionGo = cn(templateWorkbenchButton, "zt:ms-auto");
 
 export function AnnotationSampleBar({
   id,
@@ -39,13 +48,10 @@ export function AnnotationSampleBar({
   hideLabel?: boolean;
   compact?: boolean;
 }) {
-  const part = useParts("annotation");
-  const triggerPart = useParts("sampleSuggester");
-  const host = useWorkbenchHost();
+  const app = useObsidianApp();
   const command = useWorkbenchModel().choose(useUniqueId());
   const open = useAtomValue(command).waiting;
   const choose = useAtomSet(command);
-  const icon = useIcon();
   const title = example
     ? m.workbench_change_annotation()
     : m.workbench_choose_annotation();
@@ -61,19 +67,24 @@ export function AnnotationSampleBar({
     },
   ];
   return (
-    <div {...part("sample-bar", compact || hideLabel ? "compact" : "labelled")}>
+    <div
+      data-part="sample-bar"
+      data-state={compact || hideLabel ? "compact" : "labelled"}
+      className="zt:flex zt:items-center zt:gap-2"
+    >
       {hideLabel || compact ? (
         <button
           id={id}
           type="button"
-          {...triggerPart("trigger")}
-          {...host.tooltip(title)}
+          data-part="trigger"
+          className={sampleSuggesterTrigger}
+          {...tooltipAttrs(title)}
           aria-label={title}
           aria-haspopup="dialog"
           aria-expanded={open}
           onClick={(event) => {
             choose({
-              choose: host.suggester({
+              choose: chooseWorkbenchOption(app, {
                 anchor: event.currentTarget,
                 title,
                 selected: example?.id ?? "",
@@ -91,7 +102,7 @@ export function AnnotationSampleBar({
             });
           }}
         >
-          {icon("choose-sample")}
+          <Icon name="search" />
         </button>
       ) : (
         <SampleSuggester
@@ -155,7 +166,6 @@ export function AnnotationPane({
   /** The Shared Partials this section's calls name, previewed as an annotation. */
   partials?: PartialPlaceholderHost;
 }) {
-  const part = useParts("annotation");
   const problemId = useUniqueId();
   useAtomValue(documentRevision(controller));
   const boxes = usePartialBoxes(controller, "annotation", partials);
@@ -170,11 +180,16 @@ export function AnnotationPane({
   return (
     <>
       {problem && (
-        <p id={problemId} role="status" {...part("problem")}>
+        <p
+          id={problemId}
+          role="status"
+          data-part="problem"
+          className="zt:mb-2 zt:text-xs zt:text-(--text-error)"
+        >
           {problem}
         </p>
       )}
-      <div {...part("pane")}>
+      <div data-part="pane" className="zt:flex zt:min-w-0 zt:flex-col zt:gap-3">
         <SliceEditor
           {...editor}
           controller={controller}
@@ -201,7 +216,6 @@ export function AnnotationSectionBar({
   controller: WorkbenchDocumentController;
   onGo: (header: WorkbenchSliceRange) => void;
 }) {
-  const part = useParts("annotation");
   useAtomValue(documentRevision(controller));
   const section = controller.annotationSection;
   // A document mid-repair can hold the section ranges it had, so the refusal
@@ -210,14 +224,19 @@ export function AnnotationSectionBar({
     ({ code }) => code === "missing-annotation-section",
   );
   return (
-    <div {...part("section-bar")}>
-      <span {...part("heading")}>{m.workbench_section_heading()}</span>
+    <div data-part="section-bar" className={annotationSectionBar}>
+      <span data-part="heading" className="zt:font-semibold">
+        {m.workbench_section_heading()}
+      </span>
       {missing ? (
         <>
-          <span {...part("hint")}>{m.workbench_section_missing()}</span>
+          <span data-part="hint" className="zt:text-muted-foreground">
+            {m.workbench_section_missing()}
+          </span>
           <button
             type="button"
-            {...part("primary-action")}
+            data-part="primary-action"
+            className={annotationPrimaryAction}
             disabled={controller.readOnly}
             onClick={() => controller.repairAnnotationSection()}
           >
@@ -228,7 +247,8 @@ export function AnnotationSectionBar({
         section && (
           <button
             type="button"
-            {...part("section-go")}
+            data-part="section-go"
+            className={annotationSectionGo}
             onClick={() => onGo({ ...section.header })}
           >
             {m.workbench_section_go()}

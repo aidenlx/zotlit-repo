@@ -11,7 +11,6 @@ import { useMemo, useRef, useState } from "react";
 
 import { parseExpression } from "@zotlit/filter-expression";
 import { FORMULA_NAME, nameDictionary } from "@zotlit/item-query";
-import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
 import {
   Chooser,
   useChooserPage,
@@ -24,12 +23,7 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { PlacedFault } from "@zotlit/template-workbench/core/language/index.ts";
-import { matchTheme } from "@zotlit/template-workbench/obsidian/editor/match-pane.tsx";
-import { onKeymap } from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
-import {
-  MatchExpressionInput,
-  WorkbenchThemeProvider,
-} from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
+import { MatchExpressionInput } from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
 
 import {
   expressionVocabulary,
@@ -190,7 +184,6 @@ function ExpressionField({
   /** What the validity line reports and the field underlines. */
   check: FormulaCheck;
 }) {
-  const app = useObsidianApp();
   const properties = useViewProperties(view);
   const dataset = useQueryViewState(view, (s) => s.view?.from);
   const formulas = useQueryViewState(view, (s) => s.file?.formulas);
@@ -210,7 +203,7 @@ function ExpressionField({
     [dataset, properties, formulas, formula, view, custom],
   );
   return (
-    <WorkbenchThemeProvider theme={onKeymap(matchTheme, app)}>
+    <>
       <Chooser.PageField
         label={m.query_view_formula_expression()}
         description={value === "" && m.query_view_formula_expression_desc()}
@@ -252,7 +245,7 @@ function ExpressionField({
           onBlur={onBlur}
         />
       </Chooser.PageField>
-    </WorkbenchThemeProvider>
+    </>
   );
 }
 

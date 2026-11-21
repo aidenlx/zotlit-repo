@@ -8,18 +8,62 @@ import type {
   ValueNode,
 } from "#core/data-tree/index.ts";
 import { regex } from "arkregex";
+import type { IconName } from "obsidian";
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
+import { SECTION_ICONS } from "./explorer-sections.ts";
 import type { ExplorerSectionId } from "./explorer-sections.ts";
-import { useTooltip } from "./host.tsx";
-import { useIcon, useParts } from "./theme.tsx";
-import type { WorkbenchIcon } from "./theme.tsx";
+import {} from "./host.tsx";
+import { paneCover } from "./look.ts";
 
 import { formatPath } from "#core/data-tree/index.ts";
+
+/** Stays at the top while its section scrolls past, on the ground of the panel it stands in. */
+const explorerTreeSectionHeading = cn("zt:sticky zt:top-0 zt:z-10", paneCover);
+const explorerTreeChevronIcon =
+  "zt:flex zt:size-(--icon-size) zt:items-center zt:justify-center zt:in-data-[expanded]:rotate-90";
+/**
+ * The row whose details stand open keeps its own ground. The row ↑/↓
+ * selected also wears the ring Obsidian draws on the file explorer's
+ * keyboard row (`.tree-item-self.has-focus`), which hover never shows.
+ */
+const explorerTreeRow =
+  "zt:group/row zt:rounded-sm zt:flex zt:min-w-0 zt:items-start zt:gap-x-1 zt:px-1 zt:py-1 zt:data-line:h-7 zt:data-line:items-center zt:data-line:py-0 zt:hover:bg-muted zt:focus-within:bg-muted zt:data-[state=matched]:bg-(--text-highlight-bg) zt:data-selected:bg-muted zt:data-selected:shadow-[inset_0_0_0_2px_var(--background-modifier-border-focus)] zt:data-open:bg-accent";
+/**
+ * Key and value share one line while both fit; a longer value drops to
+ * its own line beneath the key. A Fields Panel row (`line`) keeps both
+ * on one line, the value cut with an ellipsis, and a click on it shows
+ * its details.
+ */
+const explorerTreeContents =
+  "zt:flex zt:min-w-0 zt:flex-1 zt:flex-wrap zt:gap-x-1.5 zt:select-text zt:[overflow-wrap:anywhere] zt:data-[state=line]:cursor-pointer zt:data-[state=line]:items-center zt:data-[state=line]:self-stretch zt:data-[state=line]:flex-nowrap zt:data-[state=line]:overflow-hidden zt:data-[state=line]:whitespace-nowrap zt:data-[state=line]:*:data-[part=value]:truncate";
+const explorerTreeGroup =
+  "zt:ms-2.5 zt:border-s zt:border-(--nav-indentation-guide-color) zt:ps-2 zt:data-[state=line]:ms-0 zt:data-[state=line]:border-0 zt:data-[state=line]:ps-0 zt:data-[state=line]:in-data-[part=group]:ps-3";
+/** Revealed by hover or focus; a touch device has neither, so it keeps them visible. */
+const explorerTreeActions =
+  "zt:flex zt:shrink-0 zt:items-center zt:gap-0.5 zt:opacity-0 zt:group-hover/row:opacity-100 zt:group-focus-within/row:opacity-100 zt:group-data-selected/row:opacity-100 zt:group-data-open/row:opacity-100 zt:[.is-mobile_&]:opacity-100";
+const explorerTreeKey =
+  "zt:font-mono zt:text-foreground zt:data-[state=labeled]:font-sans zt:data-[state=labeled]:font-medium";
+/**
+ * A Fields Panel row's label, from the section icon's edge, with the
+ * chevron of a field that opens after it. A nested field's label
+ * stands a little in, behind the guide line its siblings continue.
+ */
+const explorerTreeFieldLabel =
+  "zt:flex zt:w-2/5 zt:min-w-0 zt:shrink-0 zt:items-center zt:gap-0.5 zt:self-stretch zt:*:data-[part=key]:truncate zt:data-[state=nested]:ms-1 zt:data-[state=nested]:border-s zt:data-[state=nested]:border-(--nav-indentation-guide-color) zt:data-[state=nested]:ps-2";
+const explorerTreeValue = "zt:min-w-0";
+const explorerTreeHint = "zt:text-muted-foreground zt:tabular-nums";
+const explorerTreePlaceholder = "zt:text-muted-foreground zt:italic";
+const explorerTreeNull = "zt:text-muted-foreground zt:italic";
+const explorerTreeString = "zt:text-green";
+const explorerTreeLongToggle =
+  "zt:rounded-xs zt:ms-0.5 zt:cursor-pointer zt:px-1 zt:text-muted-foreground zt:underline zt:decoration-dotted zt:underline-offset-2 zt:select-none zt:hover:bg-muted zt:hover:text-foreground zt:focus-visible:shadow-(--input-box-shadow-focus)";
 
 /** Shared Enter/Space activation for `role="button"` spans, so keyboard users get the same click behavior as a mouse. */
 function activateOnEnterOrSpace<E extends React.KeyboardEvent>(
@@ -87,16 +131,17 @@ export function DisplayTree({
   onFieldContextMenu,
   rows,
 }: DisplayTreeProps): React.ReactElement {
-  const part = useParts("explorerTree");
   const id = useUniqueId();
   return (
     <FieldRowsContext.Provider value={rows ?? null}>
-      <div {...part("sections")}>
+      <div data-part="sections" className="zt:flex zt:flex-col zt:gap-2">
         {sections.map((section) => (
           <section
             key={section.id}
             data-workbench-section={section.id}
-            {...part("section", section.collapsed ? "collapsed" : "expanded")}
+            data-part="section"
+            data-state={section.collapsed ? "collapsed" : "expanded"}
+            className=""
           >
             <SectionHeader
               section={section}
@@ -107,7 +152,8 @@ export function DisplayTree({
               <ul
                 role="tree"
                 aria-labelledby={`${id}-${section.id}`}
-                {...part("tree")}
+                data-part="tree"
+                className="zt:text-xs zt:leading-normal"
               >
                 {section.nodes.map((node) => (
                   <TreeNode
@@ -145,29 +191,44 @@ function SectionHeader({
   labelId: string;
   onToggle?: () => void;
 }) {
-  const part = useParts("explorerTree");
-  const icon = useIcon();
   return (
-    <div {...part("section-heading")}>
+    <div data-part="section-heading" className={explorerTreeSectionHeading}>
       <button
         type="button"
         aria-expanded={!section.collapsed}
         aria-disabled={onToggle ? undefined : true}
         onClick={onToggle}
-        {...part("section-header")}
+        data-part="section-header"
+        className="clickable-icon zt:[--icon-size:var(--icon-xs)] zt:text-muted-foreground zt:focus-visible:shadow-(--input-box-shadow-focus)"
       >
-        <span aria-hidden="true" {...part("section-icon")}>
-          {icon(`section-${section.id}`)}
+        <span
+          aria-hidden="true"
+          data-part="section-icon"
+          className="zt:flex zt:size-(--icon-size) zt:shrink-0 zt:items-center zt:justify-center zt:text-(--icon-color)"
+        >
+          <Icon name={SECTION_ICONS[section.id]} />
         </span>
-        <span id={labelId} {...part("section-label")}>
+        <span
+          id={labelId}
+          data-part="section-label"
+          className="zt:min-w-0 zt:truncate zt:text-start"
+        >
           {section.label}
         </span>{" "}
-        <span {...part("section-count")}>{section.nodes.length}</span>
+        <span
+          data-part="section-count"
+          className="zt:font-normal zt:tabular-nums zt:text-faint"
+        >
+          {section.nodes.length}
+        </span>
         <span
           data-expanded={section.collapsed ? undefined : ""}
-          {...part("section-chevron")}
+          data-part="section-chevron"
+          className="zt:ms-auto zt:flex zt:size-(--icon-size) zt:shrink-0 zt:items-center zt:justify-center zt:in-aria-disabled:opacity-40"
         >
-          <span {...part("chevron-icon")}>{icon("chevron-right")}</span>
+          <span data-part="chevron-icon" className={explorerTreeChevronIcon}>
+            <Icon name="chevron-right" />
+          </span>
         </span>
       </button>
     </div>
@@ -217,7 +278,6 @@ function TreeNode({
   onTemplateMenu,
   onFieldContextMenu,
 }: TreeNodeProps) {
-  const part = useParts("explorerTree");
   const rows = useContext(FieldRowsContext);
   const label = labels.get(node.key);
   const isExpanded = node.kind === "value" && node.children !== undefined;
@@ -253,7 +313,9 @@ function TreeNode({
       })}
     >
       <div
-        {...part("row", isMatched ? "matched" : undefined)}
+        data-part="row"
+        data-state={isMatched ? "matched" : undefined}
+        className={explorerTreeRow}
         // "true" when selected; Obsidian's variant reads the attribute's
         // presence.
         data-selected={selected ? "true" : undefined}
@@ -275,9 +337,16 @@ function TreeNode({
             : undefined
         }
       >
-        {!rows && (chevron ?? <span {...part("spacer")} />)}
+        {!rows &&
+          (chevron ?? (
+            <span data-part="spacer" className="zt:w-6 zt:shrink-0" />
+          ))}
         {/* The host lays the key and the value out as a wrapping row: one line while both fit, the value on its own line beneath the key when it does not. The space between them survives in text content only. A Fields Panel row keeps one line, its label in a cell of its own with its chevron after it. */}
-        <div {...part("contents", rows ? "line" : undefined)}>
+        <div
+          data-part="contents"
+          data-state={rows ? "line" : undefined}
+          className={explorerTreeContents}
+        >
           <NodeRow node={node} label={label} cell={cell} />
         </div>
         <ActionCluster
@@ -287,7 +356,12 @@ function TreeNode({
         />
       </div>
       {node.kind === "value" && node.children && (
-        <ul role="group" {...part("group", rows ? "line" : undefined)}>
+        <ul
+          role="group"
+          data-part="group"
+          data-state={rows ? "line" : undefined}
+          className={explorerTreeGroup}
+        >
           {node.children.map((child) => (
             <TreeNode
               key={child.key}
@@ -314,8 +388,6 @@ function Chevron({
   expanded: boolean;
   onClick: () => void;
 }) {
-  const part = useParts("explorerTree");
-  const icon = useIcon();
   return (
     <span
       role="button"
@@ -324,9 +396,12 @@ function Chevron({
       onClick={onClick}
       onKeyDown={activateOnEnterOrSpace(() => onClick())}
       data-expanded={expanded ? "" : undefined}
-      {...part("chevron")}
+      data-part="chevron"
+      className="clickable-icon zt:w-6 zt:shrink-0 zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)"
     >
-      <span {...part("chevron-icon")}>{icon("chevron-right")}</span>
+      <span data-part="chevron-icon" className={explorerTreeChevronIcon}>
+        <Icon name="chevron-right" />
+      </span>
     </span>
   );
 }
@@ -341,18 +416,17 @@ function ActionCluster({
   onInsert?: (node: DisplayNode, keepOpen: boolean) => void;
   onTemplateMenu: (node: DisplayNode, event: React.MouseEvent) => void;
 }) {
-  const part = useParts("explorerTree");
   return (
-    <div {...part("actions")}>
+    <div data-part="actions" className={explorerTreeActions}>
       {onInsert && (
         <ClusterButton
-          icon="insert"
+          icon="text-cursor-input"
           label={m.workbench_fields_put_in_note()}
           onClick={(event) => onInsert(node, event.shiftKey)}
         />
       )}
       <ClusterButton
-        icon="more"
+        icon="ellipsis"
         label={m.workbench_explorer_row_actions()}
         onClick={(e) => onTemplateMenu(node, e)}
       />
@@ -365,18 +439,15 @@ function ClusterButton({
   label,
   onClick,
 }: {
-  icon: WorkbenchIcon;
+  icon: IconName;
   label: string;
   onClick: (event: React.MouseEvent) => void;
 }) {
-  const part = useParts("explorerTree");
-  const drawIcon = useIcon();
   return (
     <span
       role="button"
       tabIndex={0}
-      aria-label={label}
-      {...useTooltip(label)}
+      {...tooltipAttrs(label)}
       onClick={onClick}
       // Enter and Space press it as a click does, Shift included.
       onKeyDown={activateOnEnterOrSpace((e) => {
@@ -388,9 +459,10 @@ function ClusterButton({
           }),
         );
       })}
-      {...part("action")}
+      data-part="action"
+      className="clickable-icon zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)"
     >
-      {drawIcon(icon)}
+      <Icon name={icon} />
     </span>
   );
 }
@@ -413,8 +485,7 @@ function NodeRow({ node, label, cell }: RowProps) {
  * top-level field. A named key keeps its raw path in the tooltip.
  */
 function KeyLabel({ node, label, cell }: RowProps) {
-  const part = useParts("explorerTree");
-  const tooltip = useTooltip(formatPath(node.path, "zt"));
+  const tooltip = tooltipAttrs(formatPath(node.path, "zt"));
   // The row's name is the label text alone, apart from the tooltip a host
   // may draw as an aria-label.
   const text = cell ? (
@@ -424,15 +495,26 @@ function KeyLabel({ node, label, cell }: RowProps) {
   );
   const key =
     label === undefined ? (
-      <span {...part("key")}>{text}</span>
+      <span data-part="key" className={explorerTreeKey}>
+        {text}
+      </span>
     ) : (
-      <span {...tooltip} {...part("key", "labeled")}>
+      <span
+        {...tooltip}
+        data-part="key"
+        data-state={"labeled"}
+        className={explorerTreeKey}
+      >
         {text}
       </span>
     );
   if (!cell) return key;
   return (
-    <span {...part("field-label", cell.nested ? "nested" : undefined)}>
+    <span
+      data-part="field-label"
+      data-state={cell.nested ? "nested" : undefined}
+      className={explorerTreeFieldLabel}
+    >
       {key}
       {cell.chevron}
     </span>
@@ -440,11 +522,10 @@ function KeyLabel({ node, label, cell }: RowProps) {
 }
 
 function ValueRow({ node, label, cell }: RowProps<ValueNode>) {
-  const part = useParts("explorerTree");
   return (
     <>
       <KeyLabel node={node} label={label} cell={cell} />{" "}
-      <span id={cell?.valueId} {...part("value")}>
+      <span id={cell?.valueId} data-part="value" className={explorerTreeValue}>
         <ValueContent node={node} labeled={label !== undefined} />
       </span>
     </>
@@ -462,7 +543,6 @@ function ValueContent({
   node: ValueNode;
   labeled?: boolean;
 }) {
-  const part = useParts("explorerTree");
   const line = useContext(FieldRowsContext) !== null;
   if (node.valueType === "array" || node.valueType === "object") {
     const hint = labeled
@@ -474,19 +554,30 @@ function ValueContent({
         : `{${node.size}}`;
     return (
       <>
-        {hint !== null && <span {...part("hint")}>{hint}</span>}
+        {hint !== null && (
+          <span data-part="hint" className={explorerTreeHint}>
+            {hint}
+          </span>
+        )}
         {/* A Fields Panel row keeps its items in view while it stands open. */}
         {(node.children === undefined || line) &&
           node.preview !== undefined && (
             <>
               {hint !== null && " "}
-              <span {...part("placeholder")}>{node.preview}</span>
+              <span data-part="placeholder" className={explorerTreePlaceholder}>
+                {node.preview}
+              </span>
             </>
           )}
       </>
     );
   }
-  if (node.valueType === "getter") return <span {...part("hint")}>…</span>;
+  if (node.valueType === "getter")
+    return (
+      <span data-part="hint" className={explorerTreeHint}>
+        …
+      </span>
+    );
   // A Fields Panel row marks a field this item has no value for.
   if (
     line &&
@@ -494,26 +585,48 @@ function ValueContent({
       node.valueType === "undefined" ||
       node.value === "")
   )
-    return <span {...part("placeholder")}>{m.workbench_fields_empty()}</span>;
+    return (
+      <span data-part="placeholder" className={explorerTreePlaceholder}>
+        {m.workbench_fields_empty()}
+      </span>
+    );
   return <ScalarValue node={node} />;
 }
 
 function ScalarValue({ node }: { node: ValueNode }) {
-  const part = useParts("explorerTree");
   switch (node.valueType) {
     case "string":
       return <StringValue value={node.value as string} />;
     case "number":
-      return <span {...part("number")}>{String(node.value)}</span>;
+      return (
+        <span data-part="number" className="zt:tabular-nums zt:text-blue">
+          {String(node.value)}
+        </span>
+      );
     case "boolean":
-      return <span {...part("boolean")}>{String(node.value)}</span>;
+      return (
+        <span data-part="boolean" className="zt:text-purple">
+          {String(node.value)}
+        </span>
+      );
     case "null":
-      return <span {...part("null")}>null</span>;
+      return (
+        <span data-part="null" className={explorerTreeNull}>
+          null
+        </span>
+      );
     case "undefined":
-      return <span {...part("undefined")}>undefined</span>;
+      return (
+        <span
+          data-part="undefined"
+          className="zt:text-muted-foreground zt:italic"
+        >
+          undefined
+        </span>
+      );
     case "opaque":
       return (
-        <span {...part("opaque")}>
+        <span data-part="opaque" className="zt:break-words zt:text-cyan">
           {
             // oxlint-disable-next-line no-base-to-string -- opaque carries its own toString (Temporal/Date).
             String(node.value)
@@ -526,14 +639,17 @@ function ScalarValue({ node }: { node: ValueNode }) {
 }
 
 function HelperRow({ node, label, cell }: RowProps<HelperNode>) {
-  const part = useParts("explorerTree");
   return (
     <>
       <KeyLabel node={node} label={label} cell={cell} />{" "}
-      <span id={cell?.valueId} {...part("value")}>
-        <span {...part("hint")}>{node.signatureHint}</span>{" "}
+      <span id={cell?.valueId} data-part="value" className={explorerTreeValue}>
+        <span data-part="hint" className={explorerTreeHint}>
+          {node.signatureHint}
+        </span>{" "}
         {node.evaluated === null ? (
-          <span {...part("null")}>null</span>
+          <span data-part="null" className={explorerTreeNull}>
+            null
+          </span>
         ) : (
           <StringValue value={node.evaluated} />
         )}
@@ -543,12 +659,13 @@ function HelperRow({ node, label, cell }: RowProps<HelperNode>) {
 }
 
 function PlaceholderRow({ node, label, cell }: RowProps<PlaceholderNode>) {
-  const part = useParts("explorerTree");
   return (
     <>
       <KeyLabel node={node} label={label} cell={cell} />{" "}
-      <span id={cell?.valueId} {...part("value")}>
-        <span {...part("placeholder")}>{node.reason}</span>
+      <span id={cell?.valueId} data-part="value" className={explorerTreeValue}>
+        <span data-part="placeholder" className={explorerTreePlaceholder}>
+          {node.reason}
+        </span>
       </span>
     </>
   );
@@ -556,12 +673,11 @@ function PlaceholderRow({ node, label, cell }: RowProps<PlaceholderNode>) {
 
 /** A property every item of a list has, with the values of all items in one line. */
 function ListPropertyRow({ node, label, cell }: RowProps<ListPropertyNode>) {
-  const part = useParts("explorerTree");
   return (
     <>
       <KeyLabel node={node} label={label} cell={cell} />{" "}
-      <span id={cell?.valueId} {...part("value")}>
-        <span {...part("placeholder")}>
+      <span id={cell?.valueId} data-part="value" className={explorerTreeValue}>
+        <span data-part="placeholder" className={explorerTreePlaceholder}>
           {node.preview === "" ? m.workbench_fields_empty() : node.preview}
         </span>
       </span>
@@ -581,7 +697,6 @@ const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 const STRING_PREVIEW_LIMIT = 140;
 
 function StringValue({ value }: { value: string }) {
-  const part = useParts("explorerTree");
   const trimmed = value.trim();
 
   const markdown = MARKDOWN_LINK_RE.exec(value);
@@ -600,8 +715,15 @@ function StringValue({ value }: { value: string }) {
 
   if (HEX_COLOR_RE.test(trimmed)) {
     return (
-      <span {...part("color")}>
-        <span {...part("color-swatch")} style={{ backgroundColor: trimmed }} />
+      <span
+        data-part="color"
+        className="zt:inline-flex zt:min-w-0 zt:items-center zt:gap-1 zt:text-green"
+      >
+        <span
+          data-part="color-swatch"
+          className="zt:rounded-xs zt:size-3 zt:shrink-0 zt:border zt:border-border"
+          style={{ backgroundColor: trimmed }}
+        />
         {value}
       </span>
     );
@@ -611,14 +733,14 @@ function StringValue({ value }: { value: string }) {
 }
 
 function LinkValue({ href, label }: { href: string; label: string }) {
-  const part = useParts("explorerTree");
   return (
     <a
       href={href}
-      {...useTooltip(href)}
+      {...tooltipAttrs(href)}
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      {...part("link")}
+      data-part="link"
+      className="zt:[overflow-wrap:anywhere] zt:text-link zt:underline zt:decoration-dotted zt:hover:decoration-solid"
     >
       {label}
     </a>
@@ -626,17 +748,24 @@ function LinkValue({ href, label }: { href: string; label: string }) {
 }
 
 function LongText({ value }: { value: string }) {
-  const part = useParts("explorerTree");
   const [expanded, setExpanded] = useState(false);
   const isLong = value.length > STRING_PREVIEW_LIMIT || value.includes("\n");
   // A Fields Panel row is one line; its details show the whole value.
   const line = useContext(FieldRowsContext) !== null;
 
   if (line) {
-    return <span {...part("string")}>{value.replaceAll(/\s+/g, " ")}</span>;
+    return (
+      <span data-part="string" className={explorerTreeString}>
+        {value.replaceAll(/\s+/g, " ")}
+      </span>
+    );
   }
   if (!isLong) {
-    return <span {...part("string")}>{value}</span>;
+    return (
+      <span data-part="string" className={explorerTreeString}>
+        {value}
+      </span>
+    );
   }
 
   const firstLine = value.split("\n", 1)[0]!;
@@ -648,8 +777,12 @@ function LongText({ value }: { value: string }) {
 
   const toggle = () => setExpanded((prev) => !prev);
   return (
-    <span {...part("string")}>
-      <span {...part("long-text", expanded ? "expanded" : undefined)}>
+    <span data-part="string" className={explorerTreeString}>
+      <span
+        data-part="long-text"
+        data-state={expanded ? "expanded" : undefined}
+        className="zt:line-clamp-3 zt:data-[state=expanded]:line-clamp-none zt:data-[state=expanded]:break-words zt:data-[state=expanded]:whitespace-pre-wrap"
+      >
         {expanded ? value : preview}
       </span>{" "}
       <span
@@ -658,7 +791,8 @@ function LongText({ value }: { value: string }) {
         aria-expanded={expanded}
         onClick={toggle}
         onKeyDown={activateOnEnterOrSpace(() => toggle())}
-        {...part("long-toggle")}
+        data-part="long-toggle"
+        className={explorerTreeLongToggle}
       >
         {expanded
           ? m.workbench_explorer_show_less()

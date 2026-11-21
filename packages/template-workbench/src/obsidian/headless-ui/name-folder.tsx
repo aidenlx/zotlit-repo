@@ -11,17 +11,53 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { joinNotePath } from "@zotlit/templates";
 import { useUniqueId } from "@zotlit/ui";
 
 import { ExampleActions, useExampleState } from "./example-state.tsx";
 import { useOptionalHost } from "./host.tsx";
+import { templateWorkbenchButton, editorBox } from "./look.ts";
 import { renderDiagnosis } from "./problems.ts";
 import { WorkbenchSelect, WorkbenchOption } from "./select.tsx";
 import { SliceEditor } from "./slice-editor.tsx";
 import type { SuggestionSource } from "./slice-editor.tsx";
-import { useParts, useIcon } from "./theme.tsx";
+
+const nameFolderSourceButton = templateWorkbenchButton;
+const nameFolderPane = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:gap-6",
+);
+const nameFolderPathRow = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-1.5",
+  "zt:py-2",
+);
+const nameFolderBindingLabel = "zt:font-medium";
+const nameFolderFilenameEditor = editorBox;
+const nameFolderHelp =
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty";
+const nameFolderMuted =
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty";
+const nameFolderSecondary =
+  "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty";
+const nameFolderIdentityFields = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:pt-3",
+);
+const nameFolderAdvancedFields = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:gap-6 zt:pt-3",
+);
+const nameFolderFields = "zt:flex zt:min-w-0 zt:flex-col zt:gap-3";
+const nameFolderReadonlyInput = "zt:w-full zt:min-w-0";
+const nameFolderConfirmation = cn(
+  "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
+  "zt:rounded-md zt:bg-card zt:p-3",
+);
+const nameFolderConfirmButton = cn(templateWorkbenchButton, "zt:ms-auto");
+const nameFolderCancelButton = templateWorkbenchButton;
 
 /** The manifest, named without depending on the templates package. */
 type ProfileManifest = NonNullable<
@@ -223,8 +259,6 @@ export function NameFolderPane({
   // A name that rendered and still resolves to nothing creates no note.
   const empty = shown?.filename != null && shown.notePath === null;
   const container = useRef<HTMLDivElement>(null);
-  const icon = useIcon();
-  const part = useParts("nameFolder");
   // The control a problem named, brought on screen with the keyboard in it. A
   // key the locked details hold opens that block first, so the reader lands on
   // the field rather than on the summary that hides it.
@@ -241,14 +275,19 @@ export function NameFolderPane({
   }, [focus, prefix]);
 
   const settingsAction = onOpenSettings && (
-    <button type="button" {...part("source-button")} onClick={onOpenSettings}>
+    <button
+      type="button"
+      data-part="source-button"
+      className={nameFolderSourceButton}
+      onClick={onOpenSettings}
+    >
       {m.workbench_open_settings()}
     </button>
   );
   if (!manifest) {
     return (
-      <div {...part("pane")}>
-        <p {...part("unreadable")}>{m.workbench_name_unreadable()}</p>
+      <div data-part="pane" className={nameFolderPane}>
+        <p data-part="unreadable">{m.workbench_name_unreadable()}</p>
         {settingsAction}
       </div>
     );
@@ -267,7 +306,7 @@ export function NameFolderPane({
 
   return (
     <FieldIdContext.Provider value={{ prefix, readOnly: controller.readOnly }}>
-      <div ref={container} {...part("pane")}>
+      <div ref={container} data-part="pane" className={nameFolderPane}>
         {section === "name" && (
           <>
             <Group
@@ -276,7 +315,7 @@ export function NameFolderPane({
               region
             >
               {isDefault ? (
-                <div {...part("path-row")}>
+                <div data-part="path-row" className={nameFolderPathRow}>
                   <DefaultBindings
                     bindings={[FOLDER_BINDING]}
                     defaults={defaults}
@@ -293,12 +332,19 @@ export function NameFolderPane({
                 />
               )}
               {controller.filenameSlice ? (
-                <div {...part("path-row")}>
+                <div data-part="path-row" className={nameFolderPathRow}>
                   {/* The editor carries this name itself; the caption shows it. */}
-                  <span aria-hidden {...part("binding-label")}>
+                  <span
+                    aria-hidden
+                    data-part="binding-label"
+                    className={nameFolderBindingLabel}
+                  >
                     {m.workbench_name_filename_label()}
                   </span>
-                  <div {...part("filename-editor")}>
+                  <div
+                    data-part="filename-editor"
+                    className={nameFolderFilenameEditor}
+                  >
                     <SliceEditor
                       controller={controller}
                       slice="filename"
@@ -313,12 +359,13 @@ export function NameFolderPane({
                   </div>
                 </div>
               ) : (
-                <p {...part("help")}>
+                <p data-part="help" className={nameFolderHelp}>
                   {m.workbench_name_filename_source_only()}
                   {onOpenSource && (
                     <button
                       type="button"
-                      {...part("source-button")}
+                      data-part="source-button"
+                      className={nameFolderSourceButton}
                       onClick={onOpenSource}
                     >
                       {m.workbench_open_source()}
@@ -326,20 +373,28 @@ export function NameFolderPane({
                   )}
                 </p>
               )}
-              <p {...part("filename-result")}>
-                <span id={previewLabelId} {...part("muted")}>
+              <p
+                data-part="filename-result"
+                className="zt:flex zt:flex-wrap zt:items-center zt:gap-x-2 zt:gap-y-1 zt:text-xs zt:leading-normal"
+              >
+                <span
+                  id={previewLabelId}
+                  data-part="muted"
+                  className={nameFolderMuted}
+                >
                   {m.workbench_name_filename_result()}
                 </span>
                 <span
                   id={statusId}
-                  {...part("filename-status", empty ? "failed" : example.kind)}
+                  data-part="filename-status"
+                  data-state={empty ? "failed" : example.kind}
+                  className="zt:flex zt:min-w-0 zt:flex-wrap zt:items-baseline zt:gap-x-2 zt:gap-y-0.5 zt:data-[state=failed]:text-(--text-error)"
                 >
                   <output
                     aria-labelledby={previewLabelId}
-                    {...part(
-                      "filename-output",
-                      empty ? "failed" : example.kind,
-                    )}
+                    data-part="filename-output"
+                    data-state={empty ? "failed" : example.kind}
+                    className="zt:min-w-0 zt:[overflow-wrap:anywhere]"
                   >
                     {fullPath ??
                       (empty
@@ -349,14 +404,20 @@ export function NameFolderPane({
                   {
                     // oxlint-disable-next-line zotlit-errors/no-message-match -- the Example's condition text, not an error's message.
                     shown !== null && example.message !== null && (
-                      <span {...part("secondary")}>{example.message}</span>
+                      <span
+                        data-part="secondary"
+                        className={nameFolderSecondary}
+                      >
+                        {example.message}
+                      </span>
                     )
                   }
                 </span>
                 {example.failure !== null && onShowProblem && (
                   <button
                     type="button"
-                    {...part("source-button")}
+                    data-part="source-button"
+                    className={nameFolderSourceButton}
                     onClick={() =>
                       onShowProblem(renderDiagnosis(example.failure!).id)
                     }
@@ -406,7 +467,10 @@ export function NameFolderPane({
         )}
         {section === "profile" && (
           <>
-            <div {...part("identity-fields")}>
+            <div
+              data-part="identity-fields"
+              className={nameFolderIdentityFields}
+            >
               <Field label={m.workbench_name_field_name()}>
                 <TextValue
                   field="name"
@@ -439,32 +503,46 @@ export function NameFolderPane({
               </Field>
             </div>
 
-            <details {...part("details")}>
-              <summary {...part("summary")}>
-                <span aria-hidden {...part("details-icon")}>
-                  {icon("chevron-right")}
+            <details data-part="details" className="zt:group/details">
+              <summary
+                data-part="summary"
+                className="zt:flex zt:cursor-(--cursor-clickable) zt:items-center zt:gap-2 zt:font-medium"
+              >
+                <span
+                  aria-hidden
+                  data-part="details-icon"
+                  className="zt:inline-flex zt:group-open/details:rotate-90"
+                >
+                  <Icon name="chevron-right" />
                 </span>
                 {m.workbench_name_advanced_summary()}
               </summary>
-              <div {...part("advanced-fields")}>
+              <div
+                data-part="advanced-fields"
+                className={nameFolderAdvancedFields}
+              >
                 <LanguageGroup language={manifest.language} onWrite={write} />
 
-                <div {...part("fields")}>
+                <div data-part="fields" className={nameFolderFields}>
                   <Field label={m.workbench_name_field_id()}>
                     <input
                       type="text"
                       readOnly
                       value={manifest.id}
-                      {...part("readonly-input")}
+                      data-part="readonly-input"
+                      className={nameFolderReadonlyInput}
                     />
                   </Field>
-                  <p {...part("help")}>{m.workbench_name_id_note()}</p>
+                  <p data-part="help" className={nameFolderHelp}>
+                    {m.workbench_name_id_note()}
+                  </p>
                   <Field label={m.workbench_name_field_contract()}>
                     <input
                       type="text"
                       readOnly
                       value={String(manifest.contract)}
-                      {...part("readonly-input")}
+                      data-part="readonly-input"
+                      className={nameFolderReadonlyInput}
                     />
                   </Field>
                   <Field label={m.workbench_name_field_min_app_version()}>
@@ -472,12 +550,15 @@ export function NameFolderPane({
                       type="text"
                       readOnly
                       value={manifest.minAppVersion ?? m.workbench_name_unset()}
-                      {...part("readonly-input")}
+                      data-part="readonly-input"
+                      className={nameFolderReadonlyInput}
                     />
                   </Field>
-                  <p {...part("help")}>{m.workbench_name_locked_note()}</p>
+                  <p data-part="help" className={nameFolderHelp}>
+                    {m.workbench_name_locked_note()}
+                  </p>
                 </div>
-                <div {...part("fields")}>
+                <div data-part="fields" className={nameFolderFields}>
                   <Field label={m.workbench_name_field_sample_item_type()}>
                     <TextValue
                       field="sampleItemType"
@@ -486,7 +567,7 @@ export function NameFolderPane({
                       onCommit={(value) => write("sampleItemType", value)}
                     />
                   </Field>
-                  <p {...part("help")}>
+                  <p data-part="help" className={nameFolderHelp}>
                     {m.workbench_name_sample_item_type_note()}
                   </p>
                 </div>
@@ -511,26 +592,36 @@ function Group({
   region?: boolean;
   children: ReactNode;
 }) {
-  const part = useParts("nameFolder");
   const headingId = useUniqueId();
   return (
     <section
       aria-labelledby={region ? headingId : undefined}
-      {...part("group")}
+      data-part="group"
+      className="zt:flex zt:min-w-0 zt:flex-col zt:gap-3"
     >
-      <h3 id={headingId} {...part("heading")}>
+      <h3
+        id={headingId}
+        data-part="heading"
+        className="zt-template-workbench-heading"
+      >
         {heading}
       </h3>
-      {lede && <p {...part("help")}>{lede}</p>}
+      {lede && (
+        <p data-part="help" className={nameFolderHelp}>
+          {lede}
+        </p>
+      )}
       {children}
     </section>
   );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  const part = useParts("nameFolder");
   return (
-    <label {...part("field")}>
+    <label
+      data-part="field"
+      className="zt:flex zt:min-w-0 zt:flex-col zt:gap-1.5"
+    >
       {label}
       {children}
     </label>
@@ -559,7 +650,6 @@ function DraftText({
   onCommit: (value: string) => void;
   binding?: boolean;
 }) {
-  const part = useParts("nameFolder");
   const readOnly = useContext(FieldIdContext).readOnly;
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
@@ -577,7 +667,8 @@ function DraftText({
         const next = event.currentTarget.value.trim();
         if (next !== value) onCommit(next);
       }}
-      {...part(binding ? "binding-input" : "input")}
+      data-part={binding ? "binding-input" : "input"}
+      className="zt:w-full zt:min-w-0"
     />
   );
 }
@@ -619,20 +710,30 @@ function DefaultBindings({
   defaults: ProfileBindingDefaults;
   note: string;
 }) {
-  const part = useParts("nameFolder");
   return (
     <>
-      <dl {...part("defaults")}>
+      <dl data-part="defaults" className="zt:flex zt:flex-col zt:gap-2">
         {bindings.map((binding) => (
-          <div key={binding.key} {...part("actions")}>
-            <dt {...part("default-label")}>{binding.label()}</dt>
-            <dd {...part("default-value")}>
+          <div
+            key={binding.key}
+            data-part="actions"
+            className="zt:flex zt:flex-wrap zt:items-center zt:gap-2"
+          >
+            <dt data-part="default-label" className="zt:min-w-0 zt:flex-1">
+              {binding.label()}
+            </dt>
+            <dd
+              data-part="default-value"
+              className="zt:min-w-0 zt:text-muted-foreground zt:[overflow-wrap:anywhere]"
+            >
               {valueText(defaults[binding.key])}
             </dd>
           </div>
         ))}
       </dl>
-      <p {...part("secondary")}>{note}</p>
+      <p data-part="secondary" className={nameFolderSecondary}>
+        {note}
+      </p>
     </>
   );
 }
@@ -653,22 +754,31 @@ function BindingRow({
   onWrite: (value: ManifestScalar | undefined) => void;
 }) {
   const { prefix } = useContext(FieldIdContext);
-  const part = useParts("nameFolder");
   const readOnly = useContext(FieldIdContext).readOnly;
   const host = useOptionalHost();
   const Toggle = host?.toggle;
-  const icon = useIcon();
   const label = binding.label();
   const inherits = value === undefined;
   const effective = inherits ? fallback : value;
   const id = fieldId(prefix, binding.key);
   return (
-    <div {...part("binding-row")}>
-      <div {...part("binding-heading")}>
-        <label htmlFor={id} id={`${id}-label`} {...part("binding-label")}>
+    <div
+      data-part="binding-row"
+      className="zt:flex zt:min-w-0 zt:flex-wrap zt:items-center zt:gap-2 zt:py-2"
+    >
+      <div
+        data-part="binding-heading"
+        className="zt:flex zt:min-w-0 zt:basis-full zt:flex-wrap zt:items-center zt:gap-2"
+      >
+        <label
+          htmlFor={id}
+          id={`${id}-label`}
+          data-part="binding-label"
+          className={nameFolderBindingLabel}
+        >
           {label}
         </label>
-        <span {...part("secondary")}>
+        <span data-part="secondary" className={nameFolderSecondary}>
           {inherits
             ? m.workbench_name_origin_default()
             : m.workbench_name_origin_profile()}
@@ -676,14 +786,14 @@ function BindingRow({
         {!inherits && (
           <button
             type="button"
-            {...part("reset-button")}
+            data-part="reset-button"
+            className="clickable-icon zt:ms-auto"
             disabled={readOnly}
-            aria-label={m.workbench_name_use_default_for({ name: label })}
-            {...host?.tooltip(m.workbench_name_use_default())}
+            {...tooltipAttrs(m.workbench_name_use_default())}
             onClick={() => onWrite(undefined)}
           >
-            {icon("reset")}
-            <span {...part("reset-label")}>
+            <Icon name="rotate-ccw" />
+            <span data-part="reset-label" className="zt:sr-only">
               {m.workbench_name_use_default()}
             </span>
           </button>
@@ -697,7 +807,10 @@ function BindingRow({
           onWrite={onWrite}
         />
       ) : binding.kind === "toggle" ? (
-        <span {...part("toggle-row")}>
+        <span
+          data-part="toggle-row"
+          className="zt:flex zt:items-center zt:gap-2"
+        >
           {Toggle ? (
             <Toggle
               id={id}
@@ -713,18 +826,19 @@ function BindingRow({
               role="switch"
               id={id}
               aria-checked={effective === true}
-              {...part("switch", effective === true ? "checked" : "unchecked")}
+              data-part="switch"
+              data-state={effective === true ? "checked" : "unchecked"}
               onClick={() => onWrite(effective !== true)}
             >
               <span
-                {...part(
-                  "switch-thumb",
-                  effective === true ? "checked" : "unchecked",
-                )}
+                data-part="switch-thumb"
+                data-state={effective === true ? "checked" : "unchecked"}
               />
             </button>
           )}
-          <span {...part("muted")}>{valueText(effective)}</span>
+          <span data-part="muted" className={nameFolderMuted}>
+            {valueText(effective)}
+          </span>
         </span>
       ) : (
         <DraftText
@@ -804,7 +918,6 @@ function LanguageGroup({
   onWrite: (key: string, value: ManifestScalar) => void;
 }) {
   const { prefix } = useContext(FieldIdContext);
-  const part = useParts("nameFolder");
   const readOnly = useContext(FieldIdContext).readOnly;
   const [pending, setPending] = useState<string | null>(null);
   return (
@@ -828,16 +941,24 @@ function LanguageGroup({
         </WorkbenchSelect>
       </Field>
       {pending !== null && pending !== language && (
-        <div role="alert" {...part("confirmation")}>
-          <strong {...part("strong")}>
+        <div
+          role="alert"
+          data-part="confirmation"
+          className={nameFolderConfirmation}
+        >
+          <strong data-part="strong">
             {m.workbench_name_language_confirm_heading()}
           </strong>
-          <p {...part("prose")}>{m.workbench_name_language_confirm_body()}</p>
-          <div {...part("confirmation-actions")}>
+          <p data-part="prose">{m.workbench_name_language_confirm_body()}</p>
+          <div
+            data-part="confirmation-actions"
+            className="zt:flex zt:flex-wrap zt:items-center zt:gap-2"
+          >
             <button
               type="button"
               disabled={readOnly}
-              {...part("confirm-button")}
+              data-part="confirm-button"
+              className={nameFolderConfirmButton}
               onClick={() => {
                 onWrite("language", pending);
                 setPending(null);
@@ -847,7 +968,8 @@ function LanguageGroup({
             </button>
             <button
               type="button"
-              {...part("cancel-button")}
+              data-part="cancel-button"
+              className={nameFolderCancelButton}
               onClick={() => setPending(null)}
             >
               {m.workbench_name_language_cancel()}

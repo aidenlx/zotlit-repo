@@ -30,6 +30,7 @@ import type {
   PartialPlaceholderHost,
   ViewSize,
 } from "#obsidian/headless-ui/index.tsx";
+import type { ChooserScope } from "#obsidian/headless-ui/suggester.ts";
 import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
 import { EditorView } from "@codemirror/view";
 // One file-backed authoring session; TextFileView owns vault updates and saves.
@@ -178,13 +179,6 @@ import {
 } from "#obsidian/editor/item-choice.ts";
 import { NativeMatchPane } from "#obsidian/editor/match-pane.tsx";
 import {
-  originatingNoteNotice,
-  PANEL_HANDLE_WIDTH,
-  templateWorkbenchButton,
-  templateWorkbenchTheme,
-  selectionHint,
-} from "#obsidian/editor/theme.tsx";
-import {
   chooseAnnotation,
   chooseCitation,
   chooseItem,
@@ -208,7 +202,6 @@ import {
 import {
   AnnotationPane,
   diagnosticText,
-  useWorkbenchHost,
   createWorkbenchEditor,
   NameFolderPane,
   NotePane,
@@ -226,11 +219,15 @@ import {
   tabsFor,
   WorkbenchEditorProvider,
   WorkbenchHostProvider,
-  WorkbenchThemeProvider,
   SidePanels,
-  useParts,
   AnnotationSampleBar,
 } from "#obsidian/headless-ui/index.tsx";
+import {
+  originatingNoteNotice,
+  PANEL_HANDLE_WIDTH,
+  templateWorkbenchButton,
+  selectionHint,
+} from "#obsidian/headless-ui/look.ts";
 import {
   templateDocumentKind,
   templatePartialName,
@@ -241,6 +238,10 @@ import {
   readPartialChoice,
   writePartialChoice,
 } from "#obsidian/view/partial-choice-memory.ts";
+
+// Show problem reads inside the sentence that reports the failure, so
+// it wears link text rather than the native button box; the box, font
+// and hover Obsidian styles unlayered are taken back in `theme.css`.
 
 export const TEMPLATE_WORKBENCH_VIEW_TYPE = "zotlit-template-workbench";
 
@@ -688,37 +689,32 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         Effect.succeed(
           failedRender(renderIdentity(request), { code: "render-error" }),
         ));
-    this.#host = createTemplateWorkbenchHost(
-      this.app,
-      {
-        run: this.#runner.run,
-        render,
-        ...(deps.nativePreview && {
-          openCitationEngineSettings:
-            deps.nativePreview.openCitationEngineSettings,
-        }),
-        markdown: (props) => <WorkbenchMarkdown {...props} view={this} />,
-        matchData: createMatchData(this.#runner.provide),
-        insertTarget: () => this.insertTarget,
-        window: () => this.contentEl.win,
-        partials: {
-          names: () => this.partialNames,
-          create: (query) =>
-            this.toHostEffect(
-              createSharedPartialEffect(this.app, {
-                name: query,
-                from: this.leaf,
-              }),
-            ),
-        },
-        // The menu runs this on the host's runner, which is this leaf's.
-        extractPartial: (source) =>
-          this.#runner.provide(this.#extractPartial(source)),
-        hoverParent: this,
-        fieldsAction: this.#fieldsAction,
+    this.#host = createTemplateWorkbenchHost(this.app, {
+      run: this.#runner.run,
+      render,
+      ...(deps.nativePreview && {
+        openCitationEngineSettings:
+          deps.nativePreview.openCitationEngineSettings,
+      }),
+      markdown: (props) => <WorkbenchMarkdown {...props} view={this} />,
+      matchData: createMatchData(this.#runner.provide),
+      insertTarget: () => this.insertTarget,
+      partials: {
+        names: () => this.partialNames,
+        create: (query) =>
+          this.toHostEffect(
+            createSharedPartialEffect(this.app, {
+              name: query,
+              from: this.leaf,
+            }),
+          ),
       },
-      (content) => this.provide(content),
-    );
+      // The menu runs this on the host's runner, which is this leaf's.
+      extractPartial: (source) =>
+        this.#runner.provide(this.#extractPartial(source)),
+      hoverParent: this,
+      fieldsAction: this.#fieldsAction,
+    });
     this.#editor = createWorkbenchEditor({
       host: this.#host,
       registry: deps.registry,
@@ -2500,7 +2496,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   chooseItem(): Effect.Effect<boolean> {
     return this.#join<WorkbenchItemChoice>(this.model.chooseItem, () =>
       workbenchItemChoice(
-        this.#host,
+        this.#chooserScope(),
         {
           app: this.app,
           lookup: this.#deps.itemLookup,
@@ -2608,7 +2604,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     return this.#join<string>(this.model.chooseAnnotation, () => {
       const { current, example } = this.registry.get(this.workbench.examples);
       return workbenchAnnotationChoice(
-        this.#host,
+        this.#chooserScope(),
         current,
         example?.id ?? null,
       ).pipe(
@@ -2680,18 +2676,24 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       return;
     if (redo ? this.#controller.redo() : this.#controller.undo()) return false;
   }
+  /** Where this leaf's choosers open and which runner interrupts their searches. */
+  #chooserScope(): ChooserScope {
+    return {
+      app: this.app,
+      window: this.contentEl.win,
+      run: this.#runner.run,
+    };
+  }
   provide(content: ReactNode): ReactNode {
     // The Match tab's selects are Choosers, which hold Obsidian's keyboard.
     return (
       <ViewRegistryProvider registry={this.registry}>
         <AppContext value={this.app}>
-          <WorkbenchThemeProvider theme={templateWorkbenchTheme}>
-            <WorkbenchHostProvider host={this.#host}>
-              <WorkbenchEditorProvider key={this.#loads} editor={this.#editor}>
-                {content}
-              </WorkbenchEditorProvider>
-            </WorkbenchHostProvider>
-          </WorkbenchThemeProvider>
+          <WorkbenchHostProvider host={this.#host}>
+            <WorkbenchEditorProvider key={this.#loads} editor={this.#editor}>
+              {content}
+            </WorkbenchEditorProvider>
+          </WorkbenchHostProvider>
         </AppContext>
       </ViewRegistryProvider>
     );
@@ -2735,8 +2737,6 @@ function EditorContent({
   const unavailable = useAtomValue(view.model.unavailable);
   const bindingDefaults = useAtomValue(view.model.bindingDefaults);
   const { list: citationStyles } = useAtomValue(view.model.styles);
-  const host = useWorkbenchHost();
-  const resultPart = useParts("resultColumn");
   const { workbench } = view;
   const tab = useAtomValue(workbench.tab);
   useAtomValue(workbench.document.revision);
@@ -2947,13 +2947,10 @@ function EditorContent({
     kind,
   ]);
   const state = view.change;
-  // The repair commands both hosts share. The leaf supplies only the Obsidian
-  // notice its host adapter shows.
   const repair = repairCommands({
     registry: view.registry,
     model: { view: view.model.view, fieldsPanel: workbench.fieldsPanel },
     controller,
-    host,
     problems,
   });
   const revealHandler = useRef(repair.goToProblem);
@@ -3187,7 +3184,7 @@ function EditorContent({
               {formatProblem && (
                 <button
                   type="button"
-                  {...resultPart("problem-open")}
+                  data-part="problem-open"
                   className={templateWorkbenchButton}
                   onClick={() =>
                     problems.select(renderDiagnosis(formatProblem).id)

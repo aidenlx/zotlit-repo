@@ -5,12 +5,17 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { ReactNode } from "react";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { useOptionalEditor, useWorkbenchModel } from "./editor.tsx";
-import { useContainerName, useTooltip } from "./host.tsx";
+import { useContainerName } from "./host.tsx";
+import { templateWorkbenchButton } from "./look.ts";
 import { setAdvanced as advancedTransition } from "./model.ts";
-import { useIcon, useParts } from "./theme.tsx";
+
+const editToolbarMode = templateWorkbenchButton;
+const editToolbarEditToolbar = cn("zt:flex zt:items-center zt:gap-2", "zt:p-2");
 
 export function EditToolbar({
   children,
@@ -33,17 +38,15 @@ export function EditToolbar({
   const advanced = useAtomValue(model.advanced);
   const setView = useAtomSet(model.view);
   const setAdvanced = (next: boolean) => setView(advancedTransition(next));
-  const part = useParts("editToolbar");
   const modeName = useContainerName(m.workbench_editing_mode());
-  const icon = useIcon();
-  const undoTooltip = useTooltip(m.workbench_undo());
-  const redoTooltip = useTooltip(m.workbench_redo());
+  const undoTooltip = tooltipAttrs(m.workbench_undo());
+  const redoTooltip = tooltipAttrs(m.workbench_redo());
   const inert = controller === null;
 
   const mode = (
     source: boolean,
     label: string,
-    glyph: "basic" | "advanced",
+    glyph: "sliders-horizontal" | "code",
   ) => (
     <button
       type="button"
@@ -54,9 +57,11 @@ export function EditToolbar({
         setAdvanced(next);
         onModeChange?.(next);
       }}
-      {...part("mode", advanced === source ? "on" : "off")}
+      data-part="mode"
+      data-state={advanced === source ? "on" : "off"}
+      className={editToolbarMode}
     >
-      {icon(glyph)}
+      <Icon name={glyph} />
       {label}
     </button>
   );
@@ -65,43 +70,51 @@ export function EditToolbar({
     <>
       <button
         type="button"
-        aria-label={m.workbench_undo()}
         disabled={!controller?.canUndo}
         onClick={() => controller?.undo()}
         {...undoTooltip}
-        {...part("undo")}
+        data-part="undo"
+        className="clickable-icon"
       >
-        {icon("undo")}
+        <Icon name="undo-2" />
       </button>
       <button
         type="button"
-        aria-label={m.workbench_redo()}
         disabled={!controller?.canRedo}
         onClick={() => controller?.redo()}
         {...redoTooltip}
-        {...part("redo")}
+        data-part="redo"
+        className="clickable-icon"
       >
-        {icon("redo")}
+        <Icon name="redo-2" />
       </button>
     </>
   );
   return (
-    <div {...part("edit-toolbar")}>
+    <div data-part="edit-toolbar" className={editToolbarEditToolbar}>
       {leading}
       {layout === "linear" ? (
         <>
           {history}
-          {mode(true, m.workbench_advanced(), "advanced")}
+          {mode(true, m.workbench_advanced(), "code")}
           {children}
         </>
       ) : (
         <>
-          <div role="group" {...modeName.attrs} {...part("mode-group")}>
+          <div
+            role="group"
+            {...modeName.attrs}
+            data-part="mode-group"
+            className="zt:flex zt:items-center zt:gap-2"
+          >
             {modeName.hiddenName}
-            {mode(false, m.workbench_basic(), "basic")}
-            {mode(true, m.workbench_advanced(), "advanced")}
+            {mode(false, m.workbench_basic(), "sliders-horizontal")}
+            {mode(true, m.workbench_advanced(), "code")}
           </div>
-          <div {...part("toolbar-actions")}>
+          <div
+            data-part="toolbar-actions"
+            className="zt:flex zt:items-center zt:gap-2"
+          >
             {history}
             {children}
           </div>

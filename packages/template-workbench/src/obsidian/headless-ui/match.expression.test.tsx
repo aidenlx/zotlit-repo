@@ -1,11 +1,12 @@
 import { completionStatus, startCompletion } from "@codemirror/autocomplete";
 import { forEachDiagnostic } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, screen } from "@testing-library/react";
 import { useLayoutEffect, useState } from "react";
 import { afterEach, expect, it, onTestFinished } from "vitest";
 
 import { MatchExpressionInput } from "./match.expression.tsx";
+import { renderInApp as render } from "./test-host.tsx";
 
 afterEach(cleanup);
 

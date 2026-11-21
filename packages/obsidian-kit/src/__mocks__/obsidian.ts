@@ -128,11 +128,20 @@ const noticeElStub = {
 } as unknown as HTMLElement;
 
 export class Notice {
+  /** Every notice shown, in order, for a test to read; a test clears it. */
+  static instances: Notice[] = [];
+
   noticeEl: HTMLElement = noticeElStub;
   containerEl: HTMLElement = noticeElStub;
   messageEl: HTMLElement = noticeElStub;
-  constructor(_message: string | DocumentFragment, _duration?: number) {}
-  setMessage(_message: string | DocumentFragment): this {
+  /** The latest message the notice shows. */
+  message: string | DocumentFragment;
+  constructor(message: string | DocumentFragment, _duration?: number) {
+    this.message = message;
+    Notice.instances.push(this);
+  }
+  setMessage(message: string | DocumentFragment): this {
+    this.message = message;
     return this;
   }
   hide(): void {}

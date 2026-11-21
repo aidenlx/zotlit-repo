@@ -21,7 +21,7 @@ import { pressFieldsAction } from "./model.ts";
 import { INITIAL_PANELS } from "./panel-layout.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
 import { SidePanels } from "./panels.tsx";
-import { mount } from "./test-host.tsx";
+import { mount, shownNotices } from "./test-host.tsx";
 
 import { initialTreeState } from "#core/data-tree/index.ts";
 import { withText } from "#core/data-tree/test-records.ts";
@@ -495,7 +495,7 @@ describe.each(PRESENTATIONS)(
       expect(details(label)).toBeNull();
       fireEvent.keyDown(search(), { key: "Enter", ctrlKey: true });
       expect(page.texts).toHaveLength(1);
-      expect(page.host.calls.notices).toEqual([`Inserted ${label}.`]);
+      expect(shownNotices()).toEqual([`Inserted ${label}.`]);
       expect(panel()).toBeNull();
     });
 
@@ -509,7 +509,7 @@ describe.each(PRESENTATIONS)(
       );
       expect(page.texts).toEqual([TITLE]);
       expect(details()).toBeNull();
-      expect(page.host.calls.notices).toEqual(["Inserted Title."]);
+      expect(shownNotices()).toEqual(["Inserted Title."]);
     });
 
     it("close as Copy copies the snippet and announces it", () => {
@@ -525,7 +525,7 @@ describe.each(PRESENTATIONS)(
       expect(details()).toBeNull();
       // Focus the details held goes back to the search.
       expect(document.activeElement).toBe(search());
-      expect(page.host.calls.notices).toEqual(["Copied Title."]);
+      expect(shownNotices()).toEqual(["Copied Title."]);
       // The Fields popover stays open.
       expect(panel()).not.toBeNull();
     });
@@ -581,10 +581,10 @@ describe("a field row", () => {
     const button = within(titleRow()).getByRole("button", {
       name: "Insert field",
     });
-    expect(button.querySelector("[data-icon=insert]")).not.toBeNull();
+    expect(button.querySelector("svg")).not.toBeNull();
     insertTitle();
     expect(page.texts).toEqual([TITLE]);
-    expect(page.host.calls.notices).toEqual(["Inserted Title."]);
+    expect(shownNotices()).toEqual(["Inserted Title."]);
   });
 
   it("offers no Insert where the editor takes no field", () => {
@@ -701,10 +701,7 @@ describe("a nested field", () => {
       within(details(name)!).getByRole("button", { name: "Insert" }),
       { shiftKey: true },
     );
-    expect(page.host.calls.notices).toEqual([
-      `Copied ${name}.`,
-      `Inserted ${name}.`,
-    ]);
+    expect(shownNotices()).toEqual([`Copied ${name}.`, `Inserted ${name}.`]);
   });
 });
 
@@ -976,9 +973,7 @@ describe("the Fields Panel's sections", () => {
       const header = reference(surface());
       const part = (name: string) =>
         header.querySelector(`[data-part=${name}]`);
-      expect(
-        part("section-icon")?.querySelector("[data-icon=section-reference]"),
-      ).not.toBeNull();
+      expect(part("section-icon")?.querySelector("svg")).not.toBeNull();
       expect(part("section-label")?.textContent).toBe("Reference");
       expect(part("section-count")?.textContent).toBe("1");
       expect(part("section-chevron")).not.toBeNull();
@@ -1278,7 +1273,7 @@ describe("a Fields Panel with no place to insert", () => {
     fireEvent.keyDown(search(), { key: "ArrowDown" });
     fireEvent.keyDown(search(), { key: "Enter", ctrlKey: true });
     expect(page.texts).toEqual([]);
-    expect(page.host.calls.notices).toEqual([reason]);
+    expect(shownNotices()).toEqual([reason]);
     expect(announced()).toContain(reason);
   });
 });

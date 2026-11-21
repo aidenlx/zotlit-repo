@@ -23,15 +23,33 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
+import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { PreviewWidget, boxAt, boxField, boxRanges } from "./editor-boxes.ts";
-import { useTooltip, useWorkbenchHost, WorkbenchHostError } from "./host.tsx";
-import { useIcon, useParts } from "./theme.tsx";
+import { useWorkbenchHost, WorkbenchHostError } from "./host.tsx";
+import { editorChip, templateWorkbenchButton, chipIcon } from "./look.ts";
 
 import { documentRevision } from "#core/document/atoms.ts";
 import { partialCalls } from "#core/document/index.ts";
+
+const notePanePartialBox = cn(
+  editorChip,
+  "zt:inline-flex zt:max-w-full zt:items-center zt:gap-1 zt:rounded-md zt:p-0.5 zt:ps-2 zt:align-middle zt:data-[state=missing]:border-(--text-error)",
+);
+// The box's own missing state carries the error color; a bare button
+// takes its text color from Obsidian's unlayered rule regardless.
+const notePanePartialProblem = cn(
+  templateWorkbenchButton,
+  "zt:shrink-0 zt:rounded-sm zt:px-1.5 zt:py-0.5 zt:underline",
+);
+const notePaneAnnotationToggle = chipIcon;
+const notePaneAnnotationEdit = chipIcon;
+const notePaneAnnotationPreview =
+  "zt:mx-2 zt:my-1 zt:cursor-default zt:rounded-md zt:border zt:border-border zt:bg-background zt:p-2 zt:font-sans zt:text-sm zt:whitespace-normal zt:select-text";
+const notePanePending = "zt:text-xs zt:text-muted-foreground";
 
 /** What a failed partial render shows: the host failure's own cause, whole. */
 function failureMessage(cause: Cause.Cause<unknown>): string {
@@ -195,18 +213,28 @@ function PartialPlaceholder({
   previewId: string;
   onToggle: (pressed: boolean) => void;
 }) {
-  const part = useParts("notePane");
-  const icon = useIcon();
-  const previewTooltip = useTooltip(m.workbench_partial_preview());
-  const editTooltip = useTooltip(m.workbench_partial_edit());
+  const previewTooltip = tooltipAttrs(m.workbench_partial_preview());
+  const editTooltip = tooltipAttrs(m.workbench_partial_edit());
   return (
     <span
       data-partial-box
-      {...part("partial-box", missing ? "missing" : "known")}
+      data-part="partial-box"
+      data-state={missing ? "missing" : "known"}
+      className={notePanePartialBox}
     >
-      <span {...part("partial-name")}>{site.name}</span>
+      <span
+        data-part="partial-name"
+        className="zt:min-w-0 zt:whitespace-normal"
+      >
+        {site.name}
+      </span>
       {site.arguments && (
-        <span {...part("partial-arguments")}>{site.arguments}</span>
+        <span
+          data-part="partial-arguments"
+          className="zt:min-w-0 zt:truncate zt:font-normal zt:opacity-75"
+        >
+          {site.arguments}
+        </span>
       )}
       {missing && (
         // A short marker, not an explanation: the source line keeps its shape
@@ -215,33 +243,38 @@ function PartialPlaceholder({
           type="button"
           aria-label={m.workbench_partial_missing_show({ name: site.name })}
           onClick={() => host.onShowProblem(site.name)}
-          {...part("partial-problem")}
+          data-part="partial-problem"
+          className={notePanePartialProblem}
         >
           {m.workbench_partial_missing()}
         </button>
       )}
-      <span {...part("annotation-actions")}>
+      <span
+        data-part="annotation-actions"
+        className="zt:inline-flex zt:shrink-0 zt:items-center"
+      >
         {missing ? null : (
           <>
             <button
               type="button"
-              {...part("annotation-toggle", expanded ? "active" : "inactive")}
-              aria-label={m.workbench_partial_preview()}
+              data-part="annotation-toggle"
+              data-state={expanded ? "active" : "inactive"}
+              className={notePaneAnnotationToggle}
               {...previewTooltip}
               aria-pressed={expanded}
               aria-controls={expanded ? previewId : undefined}
               onClick={() => onToggle(!expanded)}
             >
-              {icon("preview")}
+              <Icon name="eye" />
             </button>
             <button
               type="button"
-              {...part("annotation-edit")}
-              aria-label={m.workbench_partial_edit()}
+              data-part="annotation-edit"
+              className={notePaneAnnotationEdit}
               {...editTooltip}
               onClick={() => host.onEdit(site.name)}
             >
-              {icon("edit")}
+              <Icon name="pencil" />
             </button>
           </>
         )}
@@ -258,7 +291,6 @@ function PartialPreview({
   id: string;
   preview: Atom.Atom<AsyncResult.AsyncResult<string, unknown>>;
 }) {
-  const part = useParts("notePane");
   const { markdown: Markdown } = useWorkbenchHost();
   const result = useAtomValue(preview);
   const state = AsyncResult.isSuccess(result)
@@ -267,13 +299,27 @@ function PartialPreview({
       ? { kind: "error" as const, message: failureMessage(result.cause) }
       : null;
   return (
-    <div id={id} data-partial-preview {...part("annotation-preview")}>
+    <div
+      id={id}
+      data-partial-preview
+      data-part="annotation-preview"
+      className={notePaneAnnotationPreview}
+    >
       {state?.kind === "error" && (
-        <p {...part("annotation-problem")}>{state.message}</p>
+        <p
+          data-part="annotation-problem"
+          className="zt:mb-2 zt:border-s-2 zt:border-(--text-error) zt:ps-2 zt:text-xs zt:text-muted-foreground"
+        >
+          {state.message}
+        </p>
       )}
       {state?.kind === "text" && Markdown ? (
         <Suspense
-          fallback={<p {...part("pending")}>{m.workbench_result_pending()}</p>}
+          fallback={
+            <p data-part="pending" className={notePanePending}>
+              {m.workbench_result_pending()}
+            </p>
+          }
         >
           <Markdown
             surface="partial"
@@ -284,7 +330,9 @@ function PartialPreview({
         </Suspense>
       ) : (
         state?.kind !== "error" && (
-          <p {...part("pending")}>{m.workbench_result_pending()}</p>
+          <p data-part="pending" className={notePanePending}>
+            {m.workbench_result_pending()}
+          </p>
         )
       )}
     </div>

@@ -40,6 +40,7 @@ import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import { workbenchAnnotationChoice } from "#obsidian/editor/item-choice.ts";
 import { WorkbenchHostProvider } from "#obsidian/headless-ui/index.tsx";
+import { TEST_APP, watchChoosers } from "#obsidian/headless-ui/test-host.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 /** What the next Item list's read of the recent Items answers. */
@@ -365,9 +366,7 @@ it("switches annotation data locally through the annotation chooser", async () =
   for (const each of [session, other])
     show(each, { item: group, root: "annotation", annotationId: "ANNT2345" });
   await Promise.all([session.ready(), other.ready()]);
-  const suggester = vi.fn((_request: unknown) =>
-    Effect.succeed<string | null>("ANNT2346g42"),
-  );
+  using choosers = watchChoosers();
   await using cleanup = new AsyncDisposableStack();
   const { run } = cleanup.use(makeViewRunner(host.registry));
   const container = cleanup.adopt(document.createElement("div"), (element) =>
@@ -383,9 +382,7 @@ it("switches annotation data locally through the annotation chooser", async () =
         WorkbenchHostProvider,
         {
           host: stubService<WorkbenchHost>("WorkbenchHost", {
-            tooltip: (text: string) => ({ title: text }),
             persistence: { read: () => null, write: () => {} },
-            suggester,
           }),
         },
         withModel(
@@ -397,13 +394,10 @@ it("switches annotation data locally through the annotation chooser", async () =
             onChooseAnnotation: () => {
               void (async () => {
                 const state = session.state();
-                const chooser = stubService<WorkbenchHost>("WorkbenchHost", {
-                  suggester,
-                });
                 const id = await answerOf(
                   run(
                     workbenchAnnotationChoice(
-                      chooser,
+                      { app: TEST_APP, window, run },
                       state.annotations ?? [],
                       annotationIndexedKey(
                         state.item!.id,
@@ -431,20 +425,35 @@ it("switches annotation data locally through the annotation chooser", async () =
     choose.click();
   });
   await act(async () => session.ready());
-  expect(suggester.mock.calls[0]?.[0]).toMatchObject({
-    selected: "ANNT2345g42",
-    groups: [{ options: [{ id: "ANNT2345g42" }, { id: "ANNT2346g42" }] }, {}],
-  });
+  const chooser = choosers.last;
+  const rows = chooser.getSuggestions("");
+  expect(rows.slice(0, 2).map(({ id }) => id)).toEqual([
+    "ANNT2345g42",
+    "ANNT2346g42",
+  ]);
+  expect(rows.length).toBeGreaterThan(2);
+  const current = document.createElement("div");
+  chooser.renderSuggestion(rows[0]!, current);
+  expect(current.getAttribute("aria-current")).toBe("true");
+  await act(async () =>
+    chooser.selectSuggestion(rows[1]!, { type: "click" } as MouseEvent),
+  );
+  await act(async () => session.ready());
   expect(session.state().data?.comment).toBe("Check the method");
   expect(session.state().annotationId).toBe("ANNT2346g42");
   expect(other.state().annotationId).toBe("ANNT2345");
-  suggester.mockReturnValueOnce(Effect.succeed(SAMPLE_ANNOTATIONS[1]!.id));
   await act(async () => {
     container
       .querySelector<HTMLButtonElement>(
         `[aria-label="${m.workbench_choose_annotation()}"]`,
       )!
       .click();
+  });
+  await act(async () => {
+    const sample = choosers.last
+      .getSuggestions("")
+      .find(({ id }) => id === SAMPLE_ANNOTATIONS[1]!.id)!;
+    choosers.last.selectSuggestion(sample, { type: "click" } as MouseEvent);
   });
   await act(async () => session.ready());
   expect(session.state().data?.text).toBe(SAMPLE_ANNOTATIONS[1]!.root.text);
