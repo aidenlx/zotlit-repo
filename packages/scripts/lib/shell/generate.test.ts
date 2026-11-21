@@ -1,8 +1,12 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import { afterAll, describe, expect, it } from "vitest";
 
+import { compareBuilds } from "./build-check.ts";
 import { generateShell } from "./generate.ts";
 import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import type { PublishedPluginName } from "./plugins.ts";
@@ -18,6 +22,7 @@ async function shell(version: string, plugin: PublishedPluginName = "desktop") {
   await generateShell({ plugin, version, outDir, workspaceRoot });
   const read = (path: string) => readFile(join(outDir, path), "utf8");
   return {
+    outDir,
     read,
     json: async (path: string) => JSON.parse(await read(path)),
   };
@@ -90,7 +95,7 @@ describe("generateShell", () => {
   });
 
   it("builds the Resource Pack's shell as a plain copy of the bundle package's main.js", async () => {
-    const { read, json } = await shell("1.0.0-beta.0", "resources");
+    const { outDir, read, json } = await shell("1.0.0-beta.0", "resources");
     expect(await json("manifest.json")).toMatchObject({
       id: "zotlit-resources",
       isDesktopOnly: false,
@@ -103,9 +108,28 @@ describe("generateShell", () => {
     // No bundler: a bundler would move the bytes that the pack's index names.
     expect(manifest.devDependencies).toBeUndefined();
     expect(manifest.scripts.build).toBe("node scripts/build.mjs");
-    const build = await read("scripts/build.mjs");
-    expect(build).toContain("copyFile");
-    expect(build).not.toContain("vite");
+    // The shell's build gives the bundle package's main.js back unchanged:
+    // a comment, a source-map line and a missing final line feed all stay.
+    const container = Buffer.from(
+      "/*index*/\nmodule.exports = class {};\n/*\r\nAGFzbQ==\n*/\n//# sourceMappingURL=x",
+    );
+    const bundle = join(outDir, "node_modules/@zotlit/resources-plugin");
+    await mkdir(bundle, { recursive: true });
+    await writeFile(
+      join(bundle, "package.json"),
+      JSON.stringify({
+        name: "@zotlit/resources-plugin",
+        exports: { "./main.js": "./main.js" },
+      }),
+    );
+    await writeFile(join(bundle, "main.js"), container);
+    await promisify(execFile)(process.execPath, ["scripts/build.mjs"], {
+      cwd: outDir,
+    });
+    const [built] = await compareBuilds(bundle, outDir, ["main.js"]);
+    expect(built?.shell).toBe(
+      createHash("sha256").update(container).digest("hex"),
+    );
     expect(await read("pnpm-workspace.yaml")).not.toContain("rolldown");
     await expect(read("src/main.ts")).rejects.toThrow();
     await expect(read("tsconfig.json")).rejects.toThrow();

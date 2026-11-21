@@ -50,7 +50,7 @@ const isDev = options.mode === "development";
 
 const packageRoot = resolve(import.meta.dirname, "..");
 const outDir = join(packageRoot, OUT_DIR[options.mode]);
-const packageJson = JSON.parse(
+const packageJson: unknown = JSON.parse(
   await readFile(join(packageRoot, "package.json"), "utf8"),
 );
 
@@ -74,7 +74,12 @@ if (isDev) {
       plugin: PUBLISHED_PLUGINS.resources,
       main: pack,
     },
-    packageJson,
+    {
+      version: manifest.version,
+      description: manifest.description,
+      author: manifest.author,
+      obsidian: { name: manifest.name },
+    },
   );
 }
 await writeFile(

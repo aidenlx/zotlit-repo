@@ -54,9 +54,10 @@ export function bumpOptions(
 
 /**
  * The Resource Pack's line follows the ZotLit release that builds it: a
- * version commit that releases both takes both versions on one line. The
- * message for versions on two lines; null when the lines agree, or when the
- * commit releases one of the two alone.
+ * version commit that releases both takes both versions on one line.
+ *
+ * @returns the message for versions on two lines; null when the lines agree,
+ * or when the commit releases one of the two alone.
  */
 export function lineConflict(next: {
   obsidian?: string;

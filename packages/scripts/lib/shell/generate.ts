@@ -24,8 +24,8 @@ const BUILD_SCRIPT = "scripts/build.mjs";
 /** The build script of a Resource Pack's shell, which that shell carries as `BUILD_SCRIPT`. */
 const CONTAINER_BUILD_SCRIPT = "scripts/build-container.mjs";
 const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
-/** The release workflow of a plugin with no Resource Release. */
-const RELEASE_WORKFLOW_NO_RESOURCES =
+/** The release workflow of a Resource Pack, which has no Resource Release. */
+const CONTAINER_RELEASE_WORKFLOW =
   ".github/workflows/plugin-release-container.yml";
 
 export interface ShellOptions {
@@ -131,9 +131,10 @@ function releaseWorkflow(template: string, plugin: PublishedPlugin): string {
             ${title} \\
             "Release notes: ${plugin.changelog}\${{ steps.meta.outputs.version }}")`
     : `notes=${title}`;
-  return template
-    .replace("@@RESOURCES@@", plugin.resources ?? "")
-    .replace("@@RELEASE_NOTES@@", notes);
+  const workflow = template.replace("@@RELEASE_NOTES@@", notes);
+  return plugin.container
+    ? workflow
+    : workflow.replace("@@RESOURCES@@", plugin.resources);
 }
 
 const gitignore = (plugin: PublishedPlugin) => `node_modules/
@@ -235,9 +236,7 @@ overrides:
       await readFile(
         join(
           TEMPLATES,
-          plugin.resources === undefined
-            ? RELEASE_WORKFLOW_NO_RESOURCES
-            : RELEASE_WORKFLOW,
+          plugin.container ? CONTAINER_RELEASE_WORKFLOW : RELEASE_WORKFLOW,
         ),
         "utf8",
       ),

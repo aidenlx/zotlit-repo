@@ -25,7 +25,7 @@ The pack is the product `resources` (`PRODUCTS`, `packages/scripts/lib/release/l
 
 - **Version line.** `version` in `package.json` is the pack's own line, apart from ZotLit's. The version picks the release line: a pre-release version is a beta. The line follows the ZotLit release that builds the pack: `pnpm release --obsidian <v> --resources <v>` takes both versions on one line and refuses two.
 - **Compatibility integer.** `PACK_COMPAT` in `packages/resource-pack/src/format.ts` changes only when the container format or the meaning of an entry changes. A new version of a binary with the same interface keeps the integer, and so does a new pack version.
-- **Shell.** The generated shell of the pack has no bundler and no source file: its `scripts/build.mjs` copies `main.js` from the bundle package. `pnpm release:check-shell --plugin resources` proves that the copy equals `dist/main.js` byte for byte. `pnpm release:publish resources --dry-run` prints the commands of a release.
+- **Shell.** The `scripts/build.mjs` of the pack's generated shell copies `main.js` from the bundle package, and the shell holds that script alone: it has no bundler and no source file. `pnpm release:check-shell --plugin resources` proves that the copy equals `dist/main.js` byte for byte. `pnpm release:publish resources --dry-run` prints the commands of a release.
 
 ## Update a binary
 

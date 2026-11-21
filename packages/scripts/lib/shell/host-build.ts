@@ -80,13 +80,11 @@ async function buildFromBundlePackage(
  * the bundle package in `<packageRoot>/dist/package/`, completes that package,
  * and copies its main.js into `dist/` with the publish repository's own build
  * script. Every step after the pack writer is a plain copy.
- *
- * @returns the folder that holds the plugin's main.js, `dist/`.
  */
 export async function buildContainerFromBundlePackage(
   host: HostBuild & { readonly main: Uint8Array },
   packageJson: Parameters<typeof buildFromBundlePackage>[1],
-): Promise<string> {
+): Promise<void> {
   const outDir = join(host.packageRoot, "dist");
   const bundleDir = join(host.packageRoot, BUNDLE_PACKAGE_DIR);
   await rm(outDir, { recursive: true, force: true });
@@ -99,7 +97,6 @@ export async function buildContainerFromBundlePackage(
     workspaceRoot: host.workspaceRoot,
   });
   await copyContainer({ main: join(bundleDir, "main.js"), outDir });
-  return outDir;
 }
 
 export function obsidianBuildPlugin({

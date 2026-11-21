@@ -3,8 +3,33 @@
 // lives in its entry here or in its host app's package.json.
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 
-/** One published plugin. */
-export interface PublishedPlugin {
+/**
+ * One published plugin: a bundled plugin, which states what it downloads at
+ * runtime, or a Resource Pack container, which downloads nothing.
+ */
+export type PublishedPlugin = PluginFacts &
+  (
+    | {
+        readonly container?: undefined;
+        /**
+         * What the plugin downloads at runtime from the Resource Release of
+         * its version, as the release notes name it.
+         */
+        readonly resources: string;
+      }
+    | {
+        /**
+         * The plugin's `main.js` is a Resource Pack container, which the
+         * app's own build writes and every later step ships byte for byte.
+         * Its package.json pins each Pack Entry under `packEntries`. Its
+         * publish repository makes no Resource Release.
+         */
+        readonly container: true;
+      }
+  );
+
+/** The facts every published plugin states. */
+interface PluginFacts {
   /**
    * The host app's folder, relative to the workspace root. Its package.json
    * holds the version and the manifest fields, and its production build
@@ -21,21 +46,9 @@ export interface PublishedPlugin {
   readonly readme: string;
   /** Whether the publish repository hosts the docs site's Giscus discussions. */
   readonly giscus: boolean;
-  /**
-   * What the plugin downloads at runtime from the Resource Release of its
-   * version, as the release notes name it. A plugin that downloads nothing
-   * has none, and its publish repository makes no Resource Release.
-   */
-  readonly resources?: string;
   readonly changelog?: string;
   readonly budget: PluginBudget;
   readonly allowedRequires: readonly string[];
-  /**
-   * The plugin's `main.js` is a Resource Pack container, which the app's own
-   * build writes and every later step ships byte for byte. Its package.json
-   * pins each Pack Entry under `packEntries`.
-   */
-  readonly container?: true;
 }
 
 export interface PluginBudget {
