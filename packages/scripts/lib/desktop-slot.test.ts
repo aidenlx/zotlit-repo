@@ -441,6 +441,22 @@ desktopOnly("the Desktop Queue", () => {
     holder.kill("SIGTERM");
     await Promise.all([once(ahead, "exit"), once(holder, "exit")]);
   });
+
+  it("gives up at the Admission Deadline when it comes before the next poll", async () => {
+    const holder = child(HOLD);
+    await printed(holder, "held");
+    // A poll a minute long outlasts the test timeout unless the wait ends at
+    // the deadline.
+    const error = await acquireDesktopSlot({
+      ...IN_TEST,
+      waitMs: 100,
+      pollMs: MINUTE,
+    }).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    expect(error).toBeInstanceOf(DesktopSlotBlockedError);
+  });
 });
 
 desktopOnly("a pool of two Desktop Slots", () => {

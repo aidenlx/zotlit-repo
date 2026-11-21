@@ -533,7 +533,8 @@ export async function acquireDesktopSlot(
         );
         reported = { key, at: now() };
       }
-      await delay(pollMs);
+      // Wake at the deadline when it comes before the next poll.
+      await delay(Math.min(pollMs, deadline - now()));
     }
   } finally {
     dropTicket();
