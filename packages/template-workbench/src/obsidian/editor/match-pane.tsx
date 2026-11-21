@@ -7,7 +7,7 @@ import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import { MatchPane } from "#obsidian/workbench-ui/index.tsx";
 
-export function NativeMatchPane({
+export function ViewMatchPane({
   controller,
   onChooseItem,
 }: {

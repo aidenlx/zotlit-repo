@@ -300,7 +300,7 @@ describe("Profile settings", () => {
   );
 
   it.effect(
-    "keeps native Default customization and offers connected Profile customization",
+    "keeps Default customization in the View and offers connected Profile customization",
     () =>
       Effect.gen(function* () {
         const { ctx, rebuilt, customize } = yield* tabOver({

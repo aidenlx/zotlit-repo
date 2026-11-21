@@ -21,11 +21,11 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { NativeRenderResult } from "./render.ts";
+import type { PreviewRenderResult } from "./render.ts";
 
 import { PropertyList } from "#obsidian/workbench-ui/index.tsx";
 
-export function NativeMarkdown({
+export function PreviewMarkdown({
   app,
   markdown,
   surface = "note",
@@ -39,7 +39,7 @@ export function NativeMarkdown({
   app: App;
   markdown: string;
   surface?: WorkbenchMarkdownProps["surface"];
-  result: NativeRenderResult | null;
+  result: PreviewRenderResult | null;
   /** Source provenance from the shared result; native Markdown keeps its reading-view styling. */
   marks?: readonly RenderedRange[];
   properties?: readonly RenderedProperty[];

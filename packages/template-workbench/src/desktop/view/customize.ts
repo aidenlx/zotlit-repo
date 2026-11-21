@@ -1,9 +1,9 @@
 import type { WorkbenchOpened } from "#desktop/editor/actions.ts";
-import type { NativeOpenError } from "#desktop/view/open.ts";
+import type { WorkbenchOpenError } from "#desktop/view/open.ts";
 // The Customize flow every entry action shares: which Profile and paper an
 // open carries, and the open of that Profile in the Template Workbench View.
 //
-// The open itself is a port (`openNative`), so the decision this module makes
+// The open itself is a port (`openView`), so the decision this module makes
 // is testable apart from the view it opens.
 import { Context, Effect, Layer } from "effect";
 import type { CachedMetadata, TFile } from "obsidian";
@@ -43,7 +43,7 @@ export interface CustomizeRequest {
  * Default Profile's text from the `Profile` service when the document is
  * missing.
  */
-export type NativeProfileTarget = TFile | DefaultProfileTarget;
+export type ProfileTarget = TFile | DefaultProfileTarget;
 
 /** The Default Profile's document path. */
 export interface DefaultProfileTarget {
@@ -56,12 +56,12 @@ export interface CustomizePorts {
    * Open `target` in the Template Workbench View, answering what the open
    * asks the reader to know.
    */
-  readonly openNative: (
+  readonly openView: (
     request: CustomizeRequest,
-    target: NativeProfileTarget,
+    target: ProfileTarget,
   ) => Effect.Effect<
     WorkbenchOpened | void,
-    NativeOpenError,
+    WorkbenchOpenError,
     Workspace | Vault | Profile
   >;
 }
@@ -106,10 +106,10 @@ export const customize = Effect.fn("TemplateWorkbench.customize")(function* (
 ) {
   const item =
     request.item === undefined ? yield* activeNoteItem : request.item;
-  const target = yield* nativeTarget(request.profileId);
+  const target = yield* profileTarget(request.profileId);
   if (target)
     yield* explainWorkbenchOpen(
-      yield* ports.openNative({ ...request, item }, target),
+      yield* ports.openView({ ...request, item }, target),
     );
 });
 
@@ -118,12 +118,12 @@ export const customize = Effect.fn("TemplateWorkbench.customize")(function* (
  * Profile the registry holds; `null` for a Profile it does not hold or whose
  * file is gone.
  */
-const nativeTarget = Effect.fn("TemplateWorkbench.nativeTarget")(function* (
+const profileTarget = Effect.fn("TemplateWorkbench.profileTarget")(function* (
   profileId: ProfileSelector,
 ) {
   const profile = yield* Profile;
   if (profileId === DEFAULT_PROFILE) {
-    const target: NativeProfileTarget = {
+    const target: ProfileTarget = {
       defaultDocumentPath: yield* profile.defaultDocumentPath,
     };
     return target;

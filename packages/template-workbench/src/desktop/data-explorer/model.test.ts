@@ -36,7 +36,7 @@ beforeEach(async () => {
 
 afterEach(() => host.close());
 
-describe("native Explorer sample data", () => {
+describe("Explorer sample data", () => {
   it.each(
     SAMPLE_ITEM_CHOICES.filter((item) => item.id === "sample:conference-paper"),
   )(

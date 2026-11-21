@@ -1,4 +1,4 @@
-// Shared in-memory baseline composition for native preview and CLI checks.
+// Shared in-memory baseline composition for the Preview and CLI checks.
 import { getFrontMatterInfo, parseYaml } from "obsidian";
 
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";

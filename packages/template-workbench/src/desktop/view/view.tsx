@@ -10,8 +10,8 @@ import type {
 } from "#core/render/index.ts";
 import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
 import type {
-  NativeRenderDeps,
-  NativeRenderResult,
+  PreviewRenderDeps,
+  PreviewRenderResult,
 } from "#desktop/view/preview/render.ts";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
@@ -163,9 +163,9 @@ import { makeExportTemplateDataCommand } from "#desktop/data-explorer/atoms.ts";
 import { exportTarget } from "#desktop/data-explorer/export-file.ts";
 import { templateWorkbenchAction } from "#desktop/editor/actions.ts";
 import {
-  nativeResult,
-  retainNativeOutputs,
-  makeNativeRenderer,
+  previewResult,
+  retainPreviewOutputs,
+  makePreviewRenderer,
 } from "#desktop/view/preview/render.ts";
 import { rememberTemplateItem } from "#obsidian/data-explorer/item-memory.ts";
 import { partialCall } from "#obsidian/editor/extract-partial.ts";
@@ -177,7 +177,7 @@ import {
   workbenchAnnotationChoice,
   workbenchItemChoice,
 } from "#obsidian/editor/item-choice.ts";
-import { NativeMatchPane } from "#obsidian/editor/match-pane.tsx";
+import { ViewMatchPane } from "#obsidian/editor/match-pane.tsx";
 import {
   templateDocumentKind,
   templatePartialName,
@@ -325,7 +325,7 @@ export function originatingNoteUpdateNotice(
 export interface TemplateWorkbenchDeps {
   registry: ViewRegistryHandle;
   render?: WorkbenchHost["render"];
-  nativePreview?: NativeRenderDeps;
+  previewRender?: PreviewRenderDeps;
   pluginVersion?: string;
   // The shared Item search modal still reads these capabilities.
   itemLookup: Pick<ItemLookupHandle, "search" | "openSession">;
@@ -336,7 +336,7 @@ export interface TemplateWorkbenchDeps {
 export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   /** The editor hover popover now open, which the next one replaces. */
   hoverPopover: HoverPopover | null = null;
-  readonly #editor: WorkbenchEditorInstance<NativeRenderResult>;
+  readonly #editor: WorkbenchEditorInstance<PreviewRenderResult>;
   /**
    * The leaf's size, which places the side panels; null until measured.
    * Public so a test, whose document lays nothing out, can set it.
@@ -355,7 +355,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   #arrival: ArrivingProblem | null = null;
   /** This leaf's host model: its view state, choices, and Item read. */
   readonly model: TemplateWorkbenchModel;
-  /** A Shared Partial's previews; a leaf without the native renderer has none. */
+  /** A Shared Partial's previews; a leaf without the Preview renderer has none. */
   readonly partialPreviews: ReturnType<typeof makePartialPreviews> | null;
   /** The Fields panel's atoms over {@link model}. */
   readonly fields: FieldsPanelModel;
@@ -365,7 +365,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     return this.#deps.registry;
   }
   /** The Workbench model the editor's tabs read, in this leaf's registry. */
-  get workbench(): WorkbenchModel<NativeRenderResult> {
+  get workbench(): WorkbenchModel<PreviewRenderResult> {
     return this.#editor.model;
   }
   /** The view state's transitions, applied to this leaf's model. */
@@ -651,8 +651,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   constructor(leaf: WorkspaceLeaf, deps: TemplateWorkbenchDeps) {
     super(leaf);
     this.#deps = deps;
-    const renderer = deps.nativePreview
-      ? makeNativeRenderer(deps.nativePreview)
+    const renderer = deps.previewRender
+      ? makePreviewRenderer(deps.previewRender)
       : null;
     this.model = makeTemplateWorkbenchModel();
     this.#release = holdTemplateWorkbenchModel(deps.registry, this.model);
@@ -680,10 +680,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#cleanup.defer(deps.registry.mount(zoteroStateAtom));
     this.#cleanup.defer(deps.registry.mount(profilesAtom));
     this.contentEl.addClass("zt-root", "zt-template-workbench");
-    const nativeRenderer = renderer;
+    const previewRenderer = renderer;
     const render: WorkbenchHost["render"] =
-      (nativeRenderer
-        ? (request) => this.toHostEffect(nativeRenderer.render(request))
+      (previewRenderer
+        ? (request) => this.toHostEffect(previewRenderer.render(request))
         : deps.render) ??
       ((request) =>
         Effect.succeed(
@@ -692,9 +692,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#host = createTemplateWorkbenchHost(this.app, {
       run: this.#runner.run,
       render,
-      ...(deps.nativePreview && {
+      ...(deps.previewRender && {
         openCitationEngineSettings:
-          deps.nativePreview.openCitationEngineSettings,
+          deps.previewRender.openCitationEngineSettings,
       }),
       markdown: (props) => <WorkbenchMarkdown {...props} view={this} />,
       matchData: createMatchData(this.#runner.provide),
@@ -725,8 +725,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       viewSize: this.viewSize,
       controller: this.#controller,
       reportContext: () => this.reportContext(this.#defaultRoot),
-      mapResult: nativeResult,
-      retain: retainNativeOutputs,
+      mapResult: previewResult,
+      retain: retainPreviewOutputs,
     });
     this.partialPreviews =
       renderer &&
@@ -877,15 +877,15 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           });
       }),
     );
-    if (this.#deps.nativePreview) stops.push(this.#followRenderInputs());
+    if (this.#deps.previewRender) stops.push(this.#followRenderInputs());
     return () => {
       for (const stop of stops.reverse()) stop();
     };
   }
-  /** What a native render reads from outside the model: partials, bibliography, the note. */
+  /** What a Preview render reads from outside the model: partials, bibliography, the note. */
   #followRenderInputs(): () => void {
-    const nativePreview = this.#deps.nativePreview!;
-    const { registry } = nativePreview;
+    const previewRender = this.#deps.previewRender!;
+    const { registry } = previewRender;
     const stops: (() => void)[] = [];
     // A saved partial or bibliography changes what a render reads.
     for (const atom of [templateRevisionAtom, bibliographyRevisionAtom])
@@ -896,7 +896,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       );
     // The note a render previews as an update changed on disk.
     this.registerEvent(
-      nativePreview.app.vault.on("modify", (file) => {
+      previewRender.app.vault.on("modify", (file) => {
         if (
           file.path ===
           this.registry.get(this.workbench.scheduler.state).result?.sourcePath
@@ -909,8 +909,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     };
   }
 
-  get nativeRenderDeps(): NativeRenderDeps | undefined {
-    return this.#deps.nativePreview;
+  get previewRenderDeps(): PreviewRenderDeps | undefined {
+    return this.#deps.previewRender;
   }
   /**
    * The Template Document this view holds, which picks its tabs and its root:
@@ -3125,7 +3125,7 @@ function EditorContent({
                   formatProblem ? diagnosticText(formatProblem) : null
                 }
                 annotationSelector={
-                  view.nativeRenderDeps ? (
+                  view.previewRenderDeps ? (
                     <AnnotationSelection view={view} />
                   ) : null
                 }
@@ -3175,7 +3175,7 @@ function EditorContent({
               )}
             </TabPanel>
             <TabPanel tab="match" modeActive={!advanced}>
-              <NativeMatchPane
+              <ViewMatchPane
                 onChooseItem={() => view.startItemChoice()}
                 controller={controller}
               />

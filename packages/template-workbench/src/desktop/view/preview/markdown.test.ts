@@ -8,8 +8,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { NativeMarkdown } from "./markdown.tsx";
-import type { NativeRenderResult } from "./render.ts";
+import { PreviewMarkdown } from "./markdown.tsx";
+import type { PreviewRenderResult } from "./render.ts";
 
 import { emptyRender } from "#core/render/index.ts";
 
@@ -44,7 +44,7 @@ it.each([
         container.remove();
       },
     };
-    const result: NativeRenderResult = {
+    const result: PreviewRenderResult = {
       ...emptyRender({ sourceRevision: "second", snapshotRevision: "paper" }),
       creationBody: markdown,
       annotation: markdown,
@@ -55,7 +55,7 @@ it.each([
     };
     await act(async () => {
       render(
-        h(NativeMarkdown, {
+        h(PreviewMarkdown, {
           app,
           markdown,
           surface,
@@ -109,7 +109,7 @@ it("keeps managed Markdown free of extra borders and unloads children when repla
     "Outside\n%%zt-managed%%\nManaged text\n%%/zt-managed%%\nAfter";
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: source,
         result: null,
@@ -132,7 +132,7 @@ it("keeps managed Markdown free of extra borders and unloads children when repla
   const firstChildren = calls.length;
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: "Replacement",
         result: null,
@@ -153,7 +153,7 @@ it("shows a placeholder instead of a blank sheet when there is nothing to previe
   document.body.append(container);
   await act(async () => {
     render(
-      h(NativeMarkdown, { app, markdown: " \n", result: null }),
+      h(PreviewMarkdown, { app, markdown: " \n", result: null }),
       container,
     );
   });
@@ -162,7 +162,7 @@ it("shows a placeholder instead of a blank sheet when there is nothing to previe
   expect(renderer.render).not.toHaveBeenCalled();
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: "",
         result: null,
@@ -181,7 +181,7 @@ it("shows a placeholder instead of a blank sheet when there is nothing to previe
   ).toContain("No content to preview");
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: "",
         result: null,
@@ -207,7 +207,7 @@ it("shows the placeholder when the source renders to nothing, as an empty Manage
   document.body.append(container);
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: "%%zt-managed%%\n\n%%/zt-managed%%",
         result: null,
@@ -231,7 +231,7 @@ it("prints the render's own frontmatter block above the body in the Markdown vie
   document.body.append(container);
   await act(async () => {
     render(
-      h(NativeMarkdown, {
+      h(PreviewMarkdown, {
         app,
         markdown: "# A study\n",
         result: null,
@@ -250,7 +250,7 @@ it("opens the Properties block when the Properties tab asks, and leaves the togg
   const container = document.createElement("div");
   document.body.append(container);
   const sheet = (expandProperties: boolean) =>
-    h(NativeMarkdown, {
+    h(PreviewMarkdown, {
       app,
       markdown: "",
       result: null,

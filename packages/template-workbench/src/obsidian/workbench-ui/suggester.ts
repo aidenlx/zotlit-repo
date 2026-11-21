@@ -74,13 +74,13 @@ export interface ChooserScope {
   readonly run: WorkbenchRunner;
 }
 
-type NativeSuggestion = WorkbenchSuggesterOption & { group: string };
+type GroupedSuggestion = WorkbenchSuggesterOption & { group: string };
 
-class EditorSuggester extends SuggestModal<NativeSuggestion> {
+class EditorSuggester extends SuggestModal<GroupedSuggestion> {
   #revision = 0;
   /** The latest query's answer, or the search that answers it. */
-  #latest: NativeSuggestion[] | Fiber.Fiber<NativeSuggestion[]> = [];
-  readonly #current = new CurrentAnswer<NativeSuggestion>(
+  #latest: GroupedSuggestion[] | Fiber.Fiber<GroupedSuggestion[]> = [];
+  readonly #current = new CurrentAnswer<GroupedSuggestion>(
     this.resultContainerEl,
   );
   readonly #settle: (answer: string | null) => void;
@@ -109,7 +109,7 @@ class EditorSuggester extends SuggestModal<NativeSuggestion> {
   }
   override getSuggestions(
     query: string,
-  ): NativeSuggestion[] | Promise<NativeSuggestion[]> {
+  ): GroupedSuggestion[] | Promise<GroupedSuggestion[]> {
     const revision = ++this.#revision;
     this.#search = prepareSimpleSearch(query);
     const choices = this.#request.groups
@@ -157,10 +157,7 @@ class EditorSuggester extends SuggestModal<NativeSuggestion> {
    * the hint beneath it, and the group at the trailing edge once the row is
    * wide enough, otherwise as a badge closing the hint line.
    */
-  override renderSuggestion(
-    option: WorkbenchSuggesterOption & { group: string },
-    el: HTMLElement,
-  ): void {
+  override renderSuggestion(option: GroupedSuggestion, el: HTMLElement): void {
     el.addClass("mod-complex", "zt-workbench-suggestion", FLAIR_ROW_CLASS);
     if (option.icon)
       setIcon(
@@ -214,7 +211,7 @@ class EditorSuggester extends SuggestModal<NativeSuggestion> {
       );
   }
   override selectSuggestion(
-    value: WorkbenchSuggesterOption & { group: string },
+    value: GroupedSuggestion,
     event: MouseEvent | KeyboardEvent,
   ): void {
     this.#current.choose(value, event, (option) => {

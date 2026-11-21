@@ -22,7 +22,7 @@ import {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
 } from "#core/render/index.ts";
-import { NativeMarkdown } from "#desktop/view/preview/markdown.tsx";
+import { PreviewMarkdown } from "#desktop/view/preview/markdown.tsx";
 import {
   citationVariantLabel,
   partialContextLabel,
@@ -81,7 +81,7 @@ export function previewTarget(
 export function WorkbenchMarkdown({
   view,
   ...props
-}: Omit<ComponentProps<typeof NativeMarkdown>, "app" | "result"> & {
+}: Omit<ComponentProps<typeof PreviewMarkdown>, "app" | "result"> & {
   view: TemplateWorkbenchView;
 }) {
   const { result, retained } = useAtomValue(view.workbench.scheduler.state);
@@ -102,7 +102,7 @@ export function WorkbenchMarkdown({
               ? markdown
               : null;
   return (
-    <NativeMarkdown
+    <PreviewMarkdown
       {...props}
       app={view.app}
       result={kept === markdown ? retained : result}

@@ -6,14 +6,14 @@ import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/servi
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { presentCitations } from "./markdown.tsx";
-import { retainNativeOutputs, previewBaseline } from "./render.ts";
-import type { NativeRenderResult } from "./render.ts";
+import { retainPreviewOutputs, previewBaseline } from "./render.ts";
+import type { PreviewRenderResult } from "./render.ts";
 
 import {
   createRenderFixture,
   PROFILE_SOURCE,
-  renderNativeProfile,
-  renderNativeTemplate,
+  renderPreviewProfile,
+  renderPreviewTemplate,
   renderRegisteredPartial,
   SAVED_NOTE,
 } from "#__fixtures__/view/preview/render.ts";
@@ -27,7 +27,7 @@ import { annotationSamples } from "#obsidian/workbench-ui/index.tsx";
 /** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";
 
-describe("native Profile rendering", () => {
+describe("Profile Preview rendering", () => {
   it("locates and groups malformed Liquid syntax in the managed note", async () => {
     await using fixture = await createRenderFixture();
     const tag = "{% for annotation i zt.annotations %}";
@@ -35,7 +35,7 @@ describe("native Profile rendering", () => {
       "{% for annotation in zt.annotations %}",
       tag,
     );
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -57,7 +57,7 @@ describe("native Profile rendering", () => {
       "{% render 'annotation' with annotation as zt %}",
       "{% render_annotation annotation %}",
     ).replace("{{ zt.text }}", "{{ zt.text | missing_filter }}");
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -79,7 +79,7 @@ describe("native Profile rendering", () => {
         .mockRejectedValue(new Error("Database offline"));
       const lookup = vi.spyOn(fixture.deps.noteIndex, "getNotesByItemKey");
       const snapshot = getSampleItem(id)!;
-      const result = await renderNativeProfile(fixture.deps, {
+      const result = await renderPreviewProfile(fixture.deps, {
         source: PROFILE_SOURCE.replace(
           "Personal space.",
           "See [@figures2014].",
@@ -109,7 +109,7 @@ describe("native Profile rendering", () => {
       "filename: '{% for tag i zt.tags %}{{ tag }}{% endfor %}'",
     );
     expect(source).not.toBe(PROFILE_SOURCE);
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -129,7 +129,7 @@ describe("native Profile rendering", () => {
       "{% render 'missing-note' %}{% managed %}",
     );
     expect(source).not.toBe(PROFILE_SOURCE);
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -146,7 +146,7 @@ describe("native Profile rendering", () => {
       .spyOn(fixture.deps.zoteroReads, "acquireRead")
       .mockRejectedValue(new Error("Database offline"));
     const lookup = vi.spyOn(fixture.deps.noteIndex, "getNotesByItemKey");
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: { ...sample, item: { ...sample.item, indexedKey: "MAIN2345" } },
       mode: "update",
@@ -182,7 +182,7 @@ frontmatter:
 <%= String(zt.parentItem) %>|<%= zt.fileLink() === null %>`;
     const snapshot = getSampleItem("sample:conference-paper")!;
     await using gated = await createRenderFixture();
-    const disabled = await renderNativeProfile(gated.deps, {
+    const disabled = await renderPreviewProfile(gated.deps, {
       source,
       snapshot,
     });
@@ -192,7 +192,7 @@ frontmatter:
     const acquire = vi
       .spyOn(fixture.deps.zoteroReads, "acquireRead")
       .mockRejectedValue(new Error("Database offline"));
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot,
       annotation: annotationSamples(snapshot, null).example,
@@ -210,7 +210,7 @@ frontmatter:
     "renders $id against its own parent when the note Item differs",
     async (annotation) => {
       await using fixture = await createRenderFixture();
-      const result = await renderNativeProfile(fixture.deps, {
+      const result = await renderPreviewProfile(fixture.deps, {
         source: PROFILE_SOURCE.replace(
           "> {{ zt.text }}",
           "> {{ zt.parentItem.title }}: {{ zt.type }}",
@@ -232,7 +232,7 @@ frontmatter:
   it("renders real TemplateService data with inert links and preserves the source files", async () => {
     await using fixture = await createRenderFixture();
     const { example } = annotationSamples(fixture.snapshot, null);
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "create",
@@ -268,7 +268,7 @@ frontmatter:
 
   it("updates the real note's managed body and properties without changing personal content", async () => {
     await using fixture = await createRenderFixture({ existing: SAVED_NOTE });
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "update",
@@ -298,7 +298,7 @@ frontmatter:
       .edit(
         SAVED_NOTE.replace("Personal introduction.", "Typed introduction."),
       );
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "update",
@@ -308,7 +308,7 @@ frontmatter:
 
   it("uses the synthesized form when no Literature Note exists and keeps a real note with no region", async () => {
     await using fixture = await createRenderFixture();
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "update",
@@ -334,14 +334,14 @@ frontmatter: []
 <%= zt.title %>
 --- zotlit:annotation ---
 <%= zt.text %>`;
-    const gated = await renderNativeProfile(fixture.deps, {
+    const gated = await renderPreviewProfile(fixture.deps, {
       source: eta,
       snapshot: fixture.snapshot,
     });
     expect(gated.creationBody).toBeNull();
     expect(gated.diagnostics[0]?.message).toContain("JavaScript templates");
     await using enabled = await createRenderFixture({ javascript: true });
-    const rendered = await renderNativeProfile(enabled.deps, {
+    const rendered = await renderPreviewProfile(enabled.deps, {
       source: eta,
       snapshot: enabled.snapshot,
     });
@@ -356,7 +356,7 @@ frontmatter: []
       "expr: zt.title",
       'js: zt.title + "!"',
     );
-    const gated = await renderNativeProfile(fixture.deps, {
+    const gated = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -368,7 +368,7 @@ frontmatter: []
       }),
     );
     await using enabled = await createRenderFixture({ javascript: true });
-    const rendered = await renderNativeProfile(enabled.deps, {
+    const rendered = await renderPreviewProfile(enabled.deps, {
       source,
       snapshot: enabled.snapshot,
     });
@@ -379,7 +379,7 @@ frontmatter: []
   it("keeps selected built-in examples separate from the real annotation", async () => {
     await using fixture = await createRenderFixture();
     const example = SAMPLE_ANNOTATIONS[0]!;
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       annotation: example,
@@ -397,11 +397,11 @@ frontmatter: []
       "Personal space.",
       "See [@figures2014].",
     );
-    const numeric = await renderNativeProfile(fixture.deps, {
+    const numeric = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
-    const author = await renderNativeProfile(fixture.deps, {
+    const author = await renderPreviewProfile(fixture.deps, {
       source: source.replace(
         "citationStyle: numeric",
         "citationStyle: author-date",
@@ -433,7 +433,7 @@ frontmatter: []
       "citationStyle: numeric\n",
       "",
     ).replace("Personal space.", "See [@figures2014].");
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -457,7 +457,7 @@ frontmatter: []
         "title: Old title\nlang: de-DE",
       ),
     });
-    const result = await renderNativeProfile(fixture.deps, {
+    const result = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
       mode: "update",
@@ -474,7 +474,7 @@ frontmatter: []
         "title: Old title\nlang: 7",
       ),
     });
-    const failed = await renderNativeProfile(invalid.deps, {
+    const failed = await renderPreviewProfile(invalid.deps, {
       source,
       snapshot: invalid.snapshot,
       mode: "update",
@@ -496,7 +496,7 @@ frontmatter: []
         wikilinks: true,
       });
       const target = `notes/paper.md${fragment}`;
-      const result = await renderNativeProfile(fixture.deps, {
+      const result = await renderPreviewProfile(fixture.deps, {
         source: PROFILE_SOURCE.replace("Personal space.", `[[${target}]]`),
         snapshot: fixture.snapshot,
       });
@@ -529,7 +529,7 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
 --- zotlit:annotation ---
 <%= zt.text %>`;
     try {
-      const result = await renderNativeProfile(fixture.deps, {
+      const result = await renderPreviewProfile(fixture.deps, {
         source: counting,
         snapshot: fixture.snapshot,
         mode: "update",
@@ -547,7 +547,7 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
       "Personal space.",
       "`[@figures2014]`\n\n%% [@figures2014] %%",
     );
-    await renderNativeProfile(fixture.deps, {
+    await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
     });
@@ -557,7 +557,7 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
       reason: "engine-absent",
     });
     const rendered = () =>
-      renderNativeProfile(fixture.deps, {
+      renderPreviewProfile(fixture.deps, {
         source: `${source}\n[@figures2014]`,
         snapshot: fixture.snapshot,
         annotation: annotationSamples(fixture.snapshot, null).example,
@@ -589,7 +589,7 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
   });
 });
 
-describe("native Citation rendering", () => {
+describe("Citation Preview rendering", () => {
   it("reads a real Item from the database, not from the snapshot it was chosen with", async () => {
     await using fixture = await createRenderFixture();
     // The snapshot was taken above; the reader then edits the Item in Zotero.
@@ -599,7 +599,7 @@ describe("native Citation rendering", () => {
       "update itemDataValues set value = 'Readable figures' where valueID = 1;",
     );
 
-    const result = await renderNativeTemplate(fixture.deps, {
+    const result = await renderPreviewTemplate(fixture.deps, {
       source: "{{ zt.items[0].title }}",
       snapshot: fixture.snapshot,
       citation: { variant: "main", example: null },
@@ -661,7 +661,7 @@ describe("renderRegisteredPartial", () => {
 });
 
 describe("retained output metadata", () => {
-  const kept: NativeRenderResult = {
+  const kept: PreviewRenderResult = {
     ...emptyRender({ sourceRevision: "first", snapshotRevision: "paper" }),
     creationBody: "First note [@paper]",
     managedRegion: "First note [@paper]",
@@ -689,7 +689,7 @@ describe("retained output metadata", () => {
   };
 
   it("keeps note metadata while publishing a successful Annotation after a Property failure", () => {
-    const result: NativeRenderResult = {
+    const result: PreviewRenderResult = {
       ...emptyRender({ sourceRevision: "second", snapshotRevision: "paper" }),
       annotation: "New highlight [@paper]",
       annotationCitation: "(Author, 2021)",
@@ -707,7 +707,7 @@ describe("retained output metadata", () => {
       diagnostics: [{ code: "property-error", part: "properties" }],
     };
 
-    expect(retainNativeOutputs(kept, result)).toMatchObject({
+    expect(retainPreviewOutputs(kept, result)).toMatchObject({
       creationBody: "First note [@paper]",
       managedRegion: "First note [@paper]",
       sourcePath: "notes/paper.md",
@@ -738,7 +738,7 @@ describe("retained output metadata", () => {
   });
 
   it("keeps Annotation metadata while publishing a successful note", () => {
-    const result: NativeRenderResult = {
+    const result: PreviewRenderResult = {
       ...emptyRender({ sourceRevision: "second", snapshotRevision: "paper" }),
       creationBody: "New note [@paper]",
       managedRegion: "New note [@paper]",
@@ -756,7 +756,7 @@ describe("retained output metadata", () => {
       diagnostics: [{ code: "render-error", part: "annotation" }],
     };
 
-    expect(retainNativeOutputs(kept, result)).toMatchObject({
+    expect(retainPreviewOutputs(kept, result)).toMatchObject({
       creationBody: "New note [@paper]",
       managedRegion: "New note [@paper]",
       sourcePath: "notes/renamed-paper.md",
@@ -794,12 +794,12 @@ describe("retained output metadata", () => {
       citations: [],
       annotationCitations: [],
     };
-    expect(retainNativeOutputs(kept, empty)).toBe(empty);
+    expect(retainPreviewOutputs(kept, empty)).toBe(empty);
 
     const other = {
       ...empty,
       ...emptyRender({ sourceRevision: "second", snapshotRevision: "other" }),
     };
-    expect(retainNativeOutputs(kept, other)).toBe(other);
+    expect(retainPreviewOutputs(kept, other)).toBe(other);
   });
 });

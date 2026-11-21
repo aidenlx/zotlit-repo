@@ -116,7 +116,7 @@ export const setPresentation = (
   value: Partial<WorkbenchViewState["presentation"]>,
 ) => patchAt<WorkbenchViewState, "presentation">("presentation", value);
 
-/** What a Shared Partial preview renders with: the native renderer's own. */
+/** What a Shared Partial preview renders with: the Preview renderer's own. */
 export type PartialRender = (
   request: RenderRequest,
   partial: PartialPreviewSelection,

@@ -76,7 +76,7 @@ function show(
 ) {
   session.setTarget(item, root, annotationId);
 }
-describe("independent native Explorer", () => {
+describe("independent Explorer", () => {
   it("keeps filter, collapse, and closed sections local to each Explorer", async () => {
     read.mockResolvedValue({
       kind: "data",

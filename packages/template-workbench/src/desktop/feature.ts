@@ -66,7 +66,7 @@ export const templateWorkbench = extendFeature(obsidianTemplateWorkbench, {
       "Customize",
       { provides: [Customize], requires: [Profile] },
       layerCustomize({
-        openNative: ({ item, originatingNote }, target) =>
+        openView: ({ item, originatingNote }, target) =>
           openTemplateWorkbench(target, {
             ...(item ? { itemIndexedKey: item.key } : {}),
             originatingNote,
@@ -101,7 +101,7 @@ export const templateWorkbench = extendFeature(obsidianTemplateWorkbench, {
       defaultProfile,
       itemLookup,
       settings,
-      nativePreview: {
+      previewRender: {
         app,
         registry,
         openCitationEngineSettings: () => {

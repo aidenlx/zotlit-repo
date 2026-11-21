@@ -22,7 +22,7 @@ import {
   createRenderFixture,
   PROFILE_SOURCE,
   SAVED_NOTE,
-  renderNativeProfile,
+  renderPreviewProfile,
 } from "#__fixtures__/view/preview/render.ts";
 
 const LITERATURE_FOLDER = "notes";
@@ -155,7 +155,7 @@ function splitNote(content: string): { block: string; body: string } {
 describe("Note Preview fidelity against the real create path", () => {
   it("shows the filename, Properties block, key order, and body the created note carries", async () => {
     await using fixture = await createRenderFixture();
-    const preview = await renderNativeProfile(fixture.deps, {
+    const preview = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "create",
@@ -172,7 +172,7 @@ describe("Note Preview fidelity against the real create path", () => {
 
   it("shows the saved note's own Properties in update mode, not the created block", async () => {
     await using fixture = await createRenderFixture({ existing: SAVED_NOTE });
-    const update = await renderNativeProfile(fixture.deps, {
+    const update = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE,
       snapshot: fixture.snapshot,
       mode: "update",
@@ -200,7 +200,7 @@ describe("Note Preview fidelity against the real create path", () => {
       "expr: zt.title",
       "js: zt.missing.deep",
     );
-    const preview = await renderNativeProfile(fixture.deps, {
+    const preview = await renderPreviewProfile(fixture.deps, {
       source,
       snapshot: fixture.snapshot,
       mode: "create",
@@ -240,7 +240,7 @@ describe("Note Preview fidelity against the real create path", () => {
     await using fixture = await createRenderFixture({
       defaultStyle: "numeric",
     });
-    const draft = await renderNativeProfile(fixture.deps, {
+    const draft = await renderPreviewProfile(fixture.deps, {
       source: PROFILE_SOURCE.replace("name: Paper", "name: Draft paper")
         .replace("citationStyle: numeric", "citationStyle: author-date")
         .replace("filename:", "folder: Drafts\nfilename:")

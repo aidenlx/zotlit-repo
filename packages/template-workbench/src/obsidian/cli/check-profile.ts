@@ -2,7 +2,7 @@ import type {
   RenderCallerSource,
   RenderDiagnostic,
 } from "#core/render/index.ts";
-// Complete, write-free Profile checking through the native preview's composition boundary.
+// Complete, write-free Profile checking through the Preview's composition boundary.
 import { stringifyYaml } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
@@ -48,8 +48,8 @@ export interface ProfileCheck {
   }[];
 }
 
-/** One native preview/check row per independent Managed Frontmatter contribution. */
-export function nativePropertyRows(
+/** One Preview and check row per independent Managed Frontmatter contribution. */
+export function previewPropertyRows(
   fields: readonly EvaluatedFrontmatterField[],
 ) {
   return fields.map((field) => {
@@ -74,7 +74,7 @@ export function checkDiagnostic(error: unknown, caller: RenderCallerSource) {
 }
 
 /** Each component executes independently; disclosure is applied after all checks finish. */
-export function checkNativeProfile(
+export function checkComposedProfile(
   templates: Pick<TemplateOperations, "render" | "frontmatterFields">,
   input: {
     document: ReturnType<
@@ -221,7 +221,7 @@ export function checkNativeProfile(
       result: ReturnType<typeof prepareManagedFrontmatter>;
       fields: readonly EvaluatedFrontmatterField[];
     };
-    checks.properties.output = nativePropertyRows(fields).map((row, index) =>
+    checks.properties.output = previewPropertyRows(fields).map((row, index) =>
       updating
         ? {
             ...row,

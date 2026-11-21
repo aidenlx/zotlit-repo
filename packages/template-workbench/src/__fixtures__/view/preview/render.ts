@@ -1,8 +1,8 @@
 import { Layer } from "effect";
 import type { PartialPreviewSelection, RenderRequest } from "#core/render/index.ts";
 import { runOnView } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
-import { makeNativeRenderer } from "#desktop/view/preview/render.ts";
-import type { NativeRenderDeps, NativeRenderResult } from "#desktop/view/preview/render.ts";
+import { makePreviewRenderer } from "#desktop/view/preview/render.ts";
+import type { PreviewRenderDeps, PreviewRenderResult } from "#desktop/view/preview/render.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { layerHostApp } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { layerUnreadViewServices } from "@zotlit/notes/__fixtures__/view-atoms.ts";
@@ -57,7 +57,7 @@ import { Stream } from "effect";
 import { buildSettings } from "@zotlit/notes/__fixtures__/settings.ts";
 import { inProcessParseClient } from "@zotlit/citations/core/citation-parse/in-process.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
-// Live database and TemplateService boundaries for native preview tests.
+// Live database and TemplateService boundaries for Preview tests.
 import type { App, Events } from "obsidian";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
@@ -289,12 +289,12 @@ export async function createRenderFixture(options: { existing?: string; javascri
   return { cancelled, deps: previewDeps, settings, templates, client, snapshot, host, vault, zoteroReads, renderCitations, writes, async [Symbol.asyncDispose]() { await handles.disposeAsync(); await templates[Symbol.asyncDispose](); await settings[Symbol.asyncDispose](); await zoteroReads[Symbol.asyncDispose](); sqlite.close(); } };
 }
 
-/** One native render, run on a view runner the render alone owns. */
-export function renderNativeTemplate(deps: NativeRenderDeps, request: RenderRequest): Promise<NativeRenderResult> {
-  return runOnView(deps.registry, makeNativeRenderer(deps).render(request));
+/** One Preview render, run on a view runner the render alone owns. */
+export function renderPreviewTemplate(deps: PreviewRenderDeps, request: RenderRequest): Promise<PreviewRenderResult> {
+  return runOnView(deps.registry, makePreviewRenderer(deps).render(request));
 }
-export const renderNativeProfile = renderNativeTemplate;
-/** One registered Shared Partial render, run as {@link renderNativeTemplate} runs. */
-export function renderRegisteredPartial(deps: NativeRenderDeps, request: RenderRequest, partial: PartialPreviewSelection): Promise<string> {
-  return runOnView(deps.registry, makeNativeRenderer(deps).partial(request, partial));
+export const renderPreviewProfile = renderPreviewTemplate;
+/** One registered Shared Partial render, run as {@link renderPreviewTemplate} runs. */
+export function renderRegisteredPartial(deps: PreviewRenderDeps, request: RenderRequest, partial: PartialPreviewSelection): Promise<string> {
+  return runOnView(deps.registry, makePreviewRenderer(deps).partial(request, partial));
 }

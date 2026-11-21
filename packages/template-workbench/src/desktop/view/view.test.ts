@@ -105,13 +105,13 @@ vi.mock("#desktop/view/preview/render.ts", async (importOriginal) => {
     await import("#core/render/index.ts");
   return {
     ...actual,
-    makeNativeRenderer: (
-      deps: Parameters<typeof actual.makeNativeRenderer>[0],
+    makePreviewRenderer: (
+      deps: Parameters<typeof actual.makePreviewRenderer>[0],
     ) => ({
-      ...actual.makeNativeRenderer(deps),
+      ...actual.makePreviewRenderer(deps),
       render: (request: import("#core/render/index.ts").RenderRequest) =>
         Effect.succeed(
-          actual.nativeResult(
+          actual.previewResult(
             failedRender(renderIdentity(request), { code: "render-error" }),
           ),
         ),
@@ -210,7 +210,7 @@ function setup(
       pluginVersion: "2.1.3",
       noteFeature: undefined,
       query: undefined,
-      nativePreview: undefined,
+      previewRender: undefined,
       render: undefined,
       profile: undefined,
       zoteroReads: stubService<TemplateWorkbenchDeps["zoteroReads"]>(
@@ -1076,7 +1076,7 @@ An annotation.
     ).toBe(false);
   });
 
-  it("keeps native view actions in sync across edits and document replacement", async () => {
+  it("keeps view actions in sync across edits and document replacement", async () => {
     const { view } = setup();
     await act(async () => view.open());
     const action = (title: string) =>
@@ -1834,7 +1834,7 @@ function sharedWorkspace() {
   return { app, file, read, trigger, editor, setActiveLeaf };
 }
 
-describe("native Profile source exchange", () => {
+describe("Profile source exchange", () => {
   it("exchanges one event per edit and keeps controllers, context, selection and history independent", () => {
     const { editor, trigger, setActiveLeaf } = sharedWorkspace();
     const first = editor();
@@ -1978,7 +1978,7 @@ describe("native Profile source exchange", () => {
     const loading = view.loadFileInternal(file, false);
     view.controller.setManifestKey("name", "Final edit");
     let closingSource = "";
-    using _nativeClose = vi
+    using _viewClose = vi
       .spyOn(
         MockTextFileView.prototype as unknown as { onClose(): Promise<void> },
         "onClose",
@@ -3138,7 +3138,7 @@ An annotation.
   });
 });
 
-describe("the native preview session of a plain Template Document", () => {
+describe("the preview session of a plain Template Document", () => {
   const CITATION_SOURCE = `---
 language: liquid
 ---
@@ -3149,7 +3149,7 @@ language: liquid
     const fixture = await createRenderFixture();
     const harness = setup({
       runtime: testRuntime(),
-      nativePreview: fixture.deps,
+      previewRender: fixture.deps,
       templates: stubService<TemplateWorkbenchDeps["templates"]>("Templates", {
         "compile-status-changed": Stream.empty,
         loaded: true,

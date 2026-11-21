@@ -6,7 +6,7 @@ import { scopedViewRunner } from "@zotlit/obsidian-kit/__fixtures__/view-runner.
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import type { ZoteroReadLease } from "@zotlit/zotero-reads/client/service.ts";
 
-import { makeNativeRenderer } from "./render.ts";
+import { makePreviewRenderer } from "./render.ts";
 
 import {
   createRenderFixture,
@@ -26,7 +26,7 @@ describe("preview render commands", () => {
         .mockImplementation(() => pending.promise);
       const runner = yield* scopedViewRunner(fixture.deps.registry);
       const render = runner.run(
-        makeNativeRenderer(fixture.deps).render({
+        makePreviewRenderer(fixture.deps).render({
           source: PROFILE_SOURCE,
           snapshot: fixture.snapshot,
         }),
@@ -48,7 +48,7 @@ describe("preview render commands", () => {
         Effect.promise(() => createRenderFixture()),
       );
       const runner = yield* scopedViewRunner(fixture.deps.registry);
-      const renderer = makeNativeRenderer(fixture.deps);
+      const renderer = makePreviewRenderer(fixture.deps);
       const snapshot = getSampleItem("sample:book")!;
       const first = yield* Fiber.join(
         runner.run(renderer.render({ source: PROFILE_SOURCE, snapshot })),

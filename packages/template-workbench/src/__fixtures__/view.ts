@@ -49,7 +49,7 @@ import type { TemplateDataDeps } from "@zotlit/notes/desktop/template/data.ts";
 import type { TemplateOperations } from "@zotlit/notes/obsidian/template/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import type { ExplorerViewDeps } from "#desktop/data-explorer/view.tsx";
-import type { NativeRenderDeps } from "#desktop/view/preview/render.ts";
+import type { PreviewRenderDeps } from "#desktop/view/preview/render.ts";
 
 import type { WorkbenchActionServices } from "#desktop/editor/actions.ts";
 import type { TemplateWorkbenchDeps, TemplateWorkbenchView } from "#desktop/view/view.tsx";
@@ -108,7 +108,7 @@ export type WorkbenchHostDeps = Omit<
       customFieldNames(signal: AbortSignal): Promise<readonly string[]>;
     };
     render?: WorkbenchHost["render"];
-    nativePreview?: NativeRenderDeps;
+    previewRender?: PreviewRenderDeps;
     pluginVersion?: string;
     templates: Pick<TemplateFixture, "javascriptTemplatesEnabled"> &
       Pick<
@@ -182,7 +182,7 @@ export function makeWorkbenchHost<Unread = never>(
     services: undefined,
     profile: undefined,
     noteFeature: undefined,
-    nativePreview: undefined,
+    previewRender: undefined,
     render: undefined,
     pluginVersion: undefined,
     query: undefined,
@@ -428,7 +428,7 @@ export function makeWorkbenchHost<Unread = never>(
     own: (close: () => void | Promise<void>) => owners.push(close),
     deps: {
       registry,
-      nativePreview: deps.nativePreview,
+      previewRender: deps.previewRender,
       render: deps.render,
       pluginVersion: deps.pluginVersion,
       itemLookup: deps.itemLookup,

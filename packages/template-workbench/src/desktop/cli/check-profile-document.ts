@@ -43,7 +43,7 @@ import { sourceRevision } from "./inspect.ts";
 
 import {
   checkDiagnostic,
-  checkNativeProfile,
+  checkComposedProfile,
   PROFILE_OUTPUTS,
 } from "#obsidian/cli/check-profile.ts";
 
@@ -310,7 +310,7 @@ export const checkProfileDocument = Effect.fn(
     Object.assign(
       checks,
       yield* attempt(() =>
-        checkNativeProfile(templates, {
+        checkComposedProfile(templates, {
           document,
           profile,
           source,

@@ -58,7 +58,7 @@ function harness({ activeNote = null, profiles = [] }: Options = {}) {
   const openedFiles: string[] = [];
   const items: (CustomizeItem | null | undefined)[] = [];
   const ports: CustomizePorts = {
-    openNative: (request, target) =>
+    openView: (request, target) =>
       Effect.sync(() => {
         items.push(request.item);
         openedFiles.push(

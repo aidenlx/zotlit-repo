@@ -78,10 +78,10 @@ import { previewBaseline } from "#obsidian/cli/preview-baseline.ts";
 export { previewBaseline } from "#obsidian/cli/preview-baseline.ts";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
 
-import { nativePropertyRows } from "#obsidian/cli/check-profile.ts";
+import { previewPropertyRows } from "#obsidian/cli/check-profile.ts";
 import { renderDraftCitations } from "#obsidian/view/preview/citations.ts";
 
-export interface NativeRenderDeps {
+export interface PreviewRenderDeps {
   readonly app: App;
   readonly registry: ViewRegistryHandle;
   readonly openCitationEngineSettings: () => void;
@@ -135,7 +135,7 @@ const loadTemplateData = (
     ? readTemplateData(key, root).pipe(withSettings(deps.dataSettings))
     : readTemplateData(key, root);
 
-export interface NativeRenderResult extends TemplateRenderResult {
+export interface PreviewRenderResult extends TemplateRenderResult {
   readonly sourcePath: string;
   /** A retained Annotation can come from a different note path than the body. */
   readonly annotationSourcePath?: string;
@@ -144,10 +144,10 @@ export interface NativeRenderResult extends TemplateRenderResult {
 }
 
 /** Retain each preview's paths and citation spans with its rendered output. */
-export function retainNativeOutputs(
-  kept: NativeRenderResult,
-  result: NativeRenderResult,
-): NativeRenderResult {
+export function retainPreviewOutputs(
+  kept: PreviewRenderResult,
+  result: PreviewRenderResult,
+): PreviewRenderResult {
   const retained = retainOutputs(kept, result);
   if (retained === result) return result;
   const note =
@@ -165,7 +165,9 @@ export function retainNativeOutputs(
 }
 
 /** A result composed outside this renderer, in the shape the preview reads. */
-export function nativeResult(result: TemplateRenderResult): NativeRenderResult {
+export function previewResult(
+  result: TemplateRenderResult,
+): PreviewRenderResult {
   return { sourcePath: "", citations: [], annotationCitations: [], ...result };
 }
 
@@ -176,8 +178,8 @@ export function nativeResult(result: TemplateRenderResult): NativeRenderResult {
  * follows the active editor across document kinds keeps the one render
  * function it was built with.
  */
-const renderNativeTemplateEffect = Effect.fn("NotePreview.render")(function* (
-  deps: NativeRenderDeps,
+const renderPreviewTemplateEffect = Effect.fn("NotePreview.render")(function* (
+  deps: PreviewRenderDeps,
   request: RenderRequest,
 ) {
   const environment: RenderEnvironment = {
@@ -185,22 +187,22 @@ const renderNativeTemplateEffect = Effect.fn("NotePreview.render")(function* (
     ...(yield* renderEnvironment),
   };
   if (request.partial)
-    return yield* renderNativePartial(environment, request, request.partial);
+    return yield* renderPreviewPartial(environment, request, request.partial);
   return yield* request.citation
-    ? renderNativeCitation(environment, request)
-    : renderNativeProfileEffect(environment, request);
+    ? renderPreviewCitation(environment, request)
+    : renderPreviewProfileEffect(environment, request);
 });
 
 /**
- * The native render and the registered-partial render over `deps`, as
+ * The Preview render and the registered-partial render over `deps`, as
  * Effects for a view's runner to fork: interrupting a fiber stops its render.
  */
-export function makeNativeRenderer(deps: NativeRenderDeps) {
+export function makePreviewRenderer(deps: PreviewRenderDeps) {
   return {
     render: (
       request: RenderRequest,
-    ): Effect.Effect<NativeRenderResult, unknown, ViewServices> =>
-      renderNativeTemplateEffect(deps, request),
+    ): Effect.Effect<PreviewRenderResult, unknown, ViewServices> =>
+      renderPreviewTemplateEffect(deps, request),
     partial: (
       request: RenderRequest,
       partial: PartialPreviewSelection,
@@ -226,21 +228,21 @@ export function makeNativeRenderer(deps: NativeRenderDeps) {
  * built under the chosen Profile's bindings, so folder, citation style, and the
  * import settings a partial reads are a real Profile's.
  */
-const renderNativePartial = Effect.fn("NotePreview.renderNativePartial")(
+const renderPreviewPartial = Effect.fn("NotePreview.renderPreviewPartial")(
   function* (
     deps: RenderEnvironment,
     request: RenderRequest,
     selection: PartialPreviewSelection,
-  ): Effect.fn.Return<NativeRenderResult, unknown, ViewServices> {
+  ): Effect.fn.Return<PreviewRenderResult, unknown, ViewServices> {
     const identity = renderIdentity(request);
     return yield* Effect.gen(function* (): Effect.fn.Return<
-      NativeRenderResult,
+      PreviewRenderResult,
       unknown,
       ViewServices
     > {
       const data = yield* partialRootData(deps, request, selection);
       if (data.kind !== "data") {
-        return nativeResult(
+        return previewResult(
           failedRender(identity, {
             code: "render-error",
             message: data.message,
@@ -249,7 +251,7 @@ const renderNativePartial = Effect.fn("NotePreview.renderNativePartial")(
         );
       }
       return {
-        ...nativeResult(emptyRender(identity)),
+        ...previewResult(emptyRender(identity)),
         partial: deps.templates.renderPartialSource(request.source, data.data, {
           name: selection.name,
         }),
@@ -258,7 +260,7 @@ const renderNativePartial = Effect.fn("NotePreview.renderNativePartial")(
       Effect.catchCause((cause) =>
         Effect.sync(() => {
           const error = Cause.squash(cause);
-          return nativeResult(
+          return previewResult(
             failedRender(
               identity,
               renderFault(error, "render", callerSource(deps, request.source)),
@@ -421,21 +423,21 @@ const partialContextData = Effect.fn("NotePreview.partialContextData")(
  * Citation Variant. Nothing else of a note is rendered here: a Citation
  * Template answers one gesture with one line.
  */
-const renderNativeCitation = Effect.fn("NotePreview.renderNativeCitation")(
+const renderPreviewCitation = Effect.fn("NotePreview.renderPreviewCitation")(
   function* (
     deps: RenderEnvironment,
     request: RenderRequest,
-  ): Effect.fn.Return<NativeRenderResult, unknown, ViewServices> {
+  ): Effect.fn.Return<PreviewRenderResult, unknown, ViewServices> {
     const identity = renderIdentity(request);
     return yield* Effect.gen(function* (): Effect.fn.Return<
-      NativeRenderResult,
+      PreviewRenderResult,
       unknown,
       ViewServices
     > {
       const data = yield* citationRootData(deps, request);
       if (data.kind !== "data") throw new Error(data.message);
       return {
-        ...nativeResult(emptyRender(identity)),
+        ...previewResult(emptyRender(identity)),
         citation: deps.templates.renderCitationSource(
           request.source,
           data.data,
@@ -445,7 +447,7 @@ const renderNativeCitation = Effect.fn("NotePreview.renderNativeCitation")(
       Effect.catchCause((cause) =>
         Effect.sync(() => {
           const error = Cause.squash(cause);
-          return nativeResult(
+          return previewResult(
             failedRender(
               identity,
               renderFault(error, "render", callerSource(deps, request.source)),
@@ -493,320 +495,314 @@ const citationRootData = Effect.fn("NotePreview.citationRootData")(function* (
     : { kind: "unavailable", message: m.workbench_example_missing_item() };
 });
 
-const renderNativeProfileEffect = Effect.fn("NotePreview.renderNativeProfile")(
-  function* (
-    deps: RenderEnvironment,
-    request: RenderRequest,
-  ): Effect.fn.Return<NativeRenderResult, unknown, ViewServices> {
-    const identity = renderIdentity(request);
-    let sourcePath = "";
-    // The note name is produced apart from everything else, so a mistake in the
-    // Filename Template leaves the rest of this preview on screen and a mistake
-    // anywhere else leaves the name this attempt produced.
-    let noteName: string | null = null;
-    let noteNameFailure: RenderDiagnostic | null = null;
-    return yield* Effect.gen(function* (): Effect.fn.Return<
-      NativeRenderResult,
-      unknown,
-      ViewServices
-    > {
-      const document = deps.templates.prepareLiteratureNoteTemplateSource(
-        request.source,
-      );
-      const settings = deps.settings;
-      const manifest = document.manifest;
-      const profile = bindUnvalidatedDraftProfile(settings, manifest);
-      const dataDeps = { ...deps, dataSettings: profile.settings };
-      const indexedKey = request.snapshot.item.indexedKey;
-      const sample = request.snapshot.provenance.kind === "sample";
-      const loadRoot = (root: "note" | "filename") =>
-        sample
-          ? Effect.succeed({
-              kind: "data" as const,
-              data: restoreTemplateData(
-                request.snapshot.roots[root],
-                request.snapshot.descriptors[root],
-              ),
-            })
-          : loadTemplateData(dataDeps, indexedKey, root);
-      const [note, filename] = yield* Effect.all(
-        [loadRoot("note"), loadRoot("filename")],
-        { concurrency: "unbounded" },
-      );
-      if (note.kind !== "data" || filename.kind !== "data")
-        throw new Error("The selected Zotero item is unavailable.");
-      const context = note.data as NoteTemplateContext;
-      const composeDeps = { template: deps.templates };
-      const diagnostics: RenderDiagnostic[] = [];
-      // A preview assumes a free filename; the vault resolves collisions on save.
-      const filenameResult = yield* Effect.exit(
-        Effect.sync(() =>
-          replaceSuffixMarkers(
-            document.renderFilename(filename.data),
-            () => "",
-          ),
-        ),
-      );
-      if (Exit.isSuccess(filenameResult)) noteName = filenameResult.value;
-      else {
-        noteNameFailure = filenameErrorDiagnostic(
-          Cause.squash(filenameResult.cause),
-          callerSource(deps, request.source),
-        );
-        diagnostics.push(noteNameFailure);
-      }
-      const onConflict: FrontmatterMergeConflictHandler = (key, detail) =>
-        diagnostics.push({
-          code: "property-append-conflict",
-          part: "properties",
-          position: detail.position,
-          params: { key },
-        });
-      // Update mode keeps the real note's own Properties, so it stops at the
-      // preparation and the body; only create mode composes a Properties block.
-      // The preview reads the plugin runtime's clock, as a write does.
-      const now = toInstant(yield* DateTime.now);
-      const composed =
-        request.mode === "update"
-          ? prepareLiteratureNote(composeDeps, { context, document, now })
-          : composeLiteratureNote(composeDeps, {
-              context,
-              itemKey: indexedKey,
-              profile,
-              document,
-              onConflict,
-              now,
-            });
-      // A write refuses on a failing field; the preview keeps going and shows
-      // the field with its position, reading the view the refusal carries.
-      const { prepared } = composed;
-      const properties: TemplateRenderResult["properties"][number][] = [];
-      if (prepared.kind === "document")
-        properties.push(...nativePropertyRows(prepared.fields));
-      if (composed.outcome === "refused")
-        for (const error of composed.evaluation.errors)
-          // The same answer the web renderer reads, so a row underlines the text
-          // that failed and reads the engine's own words in either host.
-          diagnostics.push(
-            propertyErrorDiagnostic(
-              error,
-              manifest.frontmatter?.[error.position - 1],
+const renderPreviewProfileEffect = Effect.fn(
+  "NotePreview.renderPreviewProfile",
+)(function* (
+  deps: RenderEnvironment,
+  request: RenderRequest,
+): Effect.fn.Return<PreviewRenderResult, unknown, ViewServices> {
+  const identity = renderIdentity(request);
+  let sourcePath = "";
+  // The note name is produced apart from everything else, so a mistake in the
+  // Filename Template leaves the rest of this preview on screen and a mistake
+  // anywhere else leaves the name this attempt produced.
+  let noteName: string | null = null;
+  let noteNameFailure: RenderDiagnostic | null = null;
+  return yield* Effect.gen(function* (): Effect.fn.Return<
+    PreviewRenderResult,
+    unknown,
+    ViewServices
+  > {
+    const document = deps.templates.prepareLiteratureNoteTemplateSource(
+      request.source,
+    );
+    const settings = deps.settings;
+    const manifest = document.manifest;
+    const profile = bindUnvalidatedDraftProfile(settings, manifest);
+    const dataDeps = { ...deps, dataSettings: profile.settings };
+    const indexedKey = request.snapshot.item.indexedKey;
+    const sample = request.snapshot.provenance.kind === "sample";
+    const loadRoot = (root: "note" | "filename") =>
+      sample
+        ? Effect.succeed({
+            kind: "data" as const,
+            data: restoreTemplateData(
+              request.snapshot.roots[root],
+              request.snapshot.descriptors[root],
             ),
-          );
-      manifest.frontmatter?.forEach((entry, index) => {
-        if ("js" in entry && !deps.templates.javascriptTemplatesEnabled)
-          diagnostics.push({
-            code: "render-error",
-            message: m.profile_preview_javascript_disabled(),
-            part: "properties",
-            position: index + 1,
-          });
-      });
-      // Both the composition and the preparation carry the body they rendered,
-      // so only a refusal — which rendered none — renders one here.
-      const created =
-        composed.outcome === "refused"
-          ? document.renderForCreate(context)
-          : composed.body;
-      const managed = document.renderForUpdate(context);
-      const existing = sample
-        ? null
-        : ((yield* (yield* NoteIndex).getNotesByItemKey(indexedKey))[0] ??
-          null);
-      sourcePath = existing?.path ?? "";
-      const file = sourcePath
-        ? yield* (yield* Vault).getFileByPath(sourcePath)
-        : null;
-      const original =
-        request.mode === "update" && file
-          ? yield* Effect.promise((signal) => {
-              void signal;
-              return readLiveText(deps.app, file);
-            })
-          : null;
-      let frontmatter: Record<string, unknown>;
-      let body: string;
-      let frontmatterBlock: string;
-      if (composed.outcome === "composed") {
-        ({ frontmatter, body, frontmatterBlock } = composed);
-      } else {
-        // Update refreshes the real note's own Properties through the stamping
-        // step and refills its Managed Region, entirely in memory.
-        ({ frontmatter, body } = previewBaseline(
-          original,
-          created,
-          request.mode === "update" ? managed : null,
-        ));
-        applyComposedFrontmatter(composeDeps, frontmatter, {
-          context,
-          itemKey: indexedKey,
-          profile,
-          prepared,
-          onConflict,
-        });
-        frontmatterBlock = stringifyYaml(frontmatter);
-      }
-      let annotation: string | null = null;
-      let annotationCitation: string | null = null;
-      const selectedAnnotation = request.annotation;
-      if (selectedAnnotation) {
-        yield* Effect.gen(function* () {
-          const key = selectedAnnotation.root.indexedKey;
-          const live =
-            typeof key === "string" &&
-            !sample &&
-            !SAMPLE_ANNOTATIONS.some(({ id }) => id === selectedAnnotation.id)
-              ? yield* loadTemplateData(dataDeps, key, "annotation")
-              : null;
-          const restored = restoreTemplateData(
-            selectedAnnotation.root,
-            selectedAnnotation.descriptors,
-          ) as unknown as AnnotationTemplateContext;
-          const root =
-            live?.kind === "data"
-              ? live.data
-              : withAnnotationCitation(restored, () =>
-                  renderAnnotationCitation(
-                    restored.parentItem,
-                    restored.pageLabel,
-                    deps.templates,
-                  ),
-                );
-          annotation = document.renderAnnotation(root);
-          annotationCitation =
-            "citation" in root && typeof root.citation === "string"
-              ? root.citation
-              : null;
-        }).pipe(
-          Effect.catchCause((cause) =>
-            Effect.sync(() => {
-              const error = Cause.squash(cause);
-              diagnostics.push(
-                renderFault(
-                  error,
-                  "annotation",
-                  callerSource(deps, request.source),
-                ),
-              );
-            }),
-          ),
-        );
-      }
-      const annotationRanges: { from: number; to: number }[] = [];
-      let cursor = 0;
-      for (const root of context.annotations) {
-        const rendered = yield* Effect.exit(
-          Effect.sync(() => document.renderAnnotation(root)),
-        );
-        if (Exit.isFailure(rendered)) continue;
-        const output = rendered.value;
-        if (!output) continue;
-        const from = body.indexOf(output, cursor);
-        if (from >= 0) {
-          cursor = from + output.length;
-          annotationRanges.push({ from, to: cursor });
-        }
-      }
-      const declaredLanguage = frontmatter[FIELD_DOCUMENT_LANGUAGE];
-      const locale =
-        typeof declaredLanguage === "string" ? declaredLanguage.trim() : "";
-      const invalidLanguage =
-        declaredLanguage !== undefined && !isLanguageTag(locale);
-      if (invalidLanguage)
-        diagnostics.push({
-          code: "citation-style-error",
-          part: "render",
-          message: m.references_document_language_failed_title(),
-        });
-      const presentation = {
-        sourcePath,
-        locale:
-          declaredLanguage === undefined
-            ? (yield* (yield* BibliographyRender).state).vaultPresentation
-                .locale
-            : locale,
-        styleId: profile.bindings["citation.references-style"],
-        wikilinks: settings["citation.wikilink-citations"],
-      };
-      const noteCitations =
-        invalidLanguage || sample
-          ? { citations: [], diagnostics: [] }
-          : yield* renderDraftCitations({
-              ...presentation,
-              markdown: body,
-            });
-      const annotationCitations =
-        invalidLanguage ||
-        sample ||
-        SAMPLE_ANNOTATIONS.some(({ id }) => id === request.annotation?.id)
-          ? { citations: [], diagnostics: [] }
-          : yield* renderDraftCitations({
-              ...presentation,
-              markdown: annotation ?? "",
-            });
-      diagnostics.push(
-        ...noteCitations.diagnostics,
-        ...annotationCitations.diagnostics,
-      );
-      const previewHints = [
-        ...(noteCitations.hint
-          ? [{ ...noteCitations.hint, part: "note" as const }]
-          : []),
-        ...(annotationCitations.hint
-          ? [{ ...annotationCitations.hint, part: "annotation" as const }]
-          : []),
-      ];
-      return {
-        ...identity,
-        sourcePath,
-        citations: noteCitations.citations,
-        annotationCitations: annotationCitations.citations,
-        filename: noteName,
-        notePath: resolveNoteRelPath(noteName),
-        properties,
-        fold: Object.entries(frontmatter).map(([key, value]) => ({
-          key,
-          value,
-          missing: false,
-          position:
-            properties.find((entry) => entry.key === key)?.position ?? 0,
-        })),
-        frontmatterBlock,
-        creationBody: body,
-        managedRegion: managed,
-        annotation,
-        annotationCitation,
-        citation: null,
-        partial: null,
-        annotationRanges,
-        diagnostics,
-        previewHints,
-      };
-    }).pipe(
-      Effect.catchCause((cause) =>
-        Effect.sync(() => {
-          const error = Cause.squash(cause);
-          const failure = failedRender(
-            identity,
-            renderFault(error, "render", callerSource(deps, request.source)),
-          );
-          return {
-            ...failure,
-            filename: noteName,
-            notePath: resolveNoteRelPath(noteName),
-            diagnostics: [
-              ...(noteNameFailure ? [noteNameFailure] : []),
-              ...failure.diagnostics,
-            ],
-            sourcePath,
-            citations: [],
-            annotationCitations: [],
-          };
-        }),
+          })
+        : loadTemplateData(dataDeps, indexedKey, root);
+    const [note, filename] = yield* Effect.all(
+      [loadRoot("note"), loadRoot("filename")],
+      { concurrency: "unbounded" },
+    );
+    if (note.kind !== "data" || filename.kind !== "data")
+      throw new Error("The selected Zotero item is unavailable.");
+    const context = note.data as NoteTemplateContext;
+    const composeDeps = { template: deps.templates };
+    const diagnostics: RenderDiagnostic[] = [];
+    // A preview assumes a free filename; the vault resolves collisions on save.
+    const filenameResult = yield* Effect.exit(
+      Effect.sync(() =>
+        replaceSuffixMarkers(document.renderFilename(filename.data), () => ""),
       ),
     );
-  },
-);
+    if (Exit.isSuccess(filenameResult)) noteName = filenameResult.value;
+    else {
+      noteNameFailure = filenameErrorDiagnostic(
+        Cause.squash(filenameResult.cause),
+        callerSource(deps, request.source),
+      );
+      diagnostics.push(noteNameFailure);
+    }
+    const onConflict: FrontmatterMergeConflictHandler = (key, detail) =>
+      diagnostics.push({
+        code: "property-append-conflict",
+        part: "properties",
+        position: detail.position,
+        params: { key },
+      });
+    // Update mode keeps the real note's own Properties, so it stops at the
+    // preparation and the body; only create mode composes a Properties block.
+    // The preview reads the plugin runtime's clock, as a write does.
+    const now = toInstant(yield* DateTime.now);
+    const composed =
+      request.mode === "update"
+        ? prepareLiteratureNote(composeDeps, { context, document, now })
+        : composeLiteratureNote(composeDeps, {
+            context,
+            itemKey: indexedKey,
+            profile,
+            document,
+            onConflict,
+            now,
+          });
+    // A write refuses on a failing field; the preview keeps going and shows
+    // the field with its position, reading the view the refusal carries.
+    const { prepared } = composed;
+    const properties: TemplateRenderResult["properties"][number][] = [];
+    if (prepared.kind === "document")
+      properties.push(...previewPropertyRows(prepared.fields));
+    if (composed.outcome === "refused")
+      for (const error of composed.evaluation.errors)
+        // The same answer the web renderer reads, so a row underlines the text
+        // that failed and reads the engine's own words in either host.
+        diagnostics.push(
+          propertyErrorDiagnostic(
+            error,
+            manifest.frontmatter?.[error.position - 1],
+          ),
+        );
+    manifest.frontmatter?.forEach((entry, index) => {
+      if ("js" in entry && !deps.templates.javascriptTemplatesEnabled)
+        diagnostics.push({
+          code: "render-error",
+          message: m.profile_preview_javascript_disabled(),
+          part: "properties",
+          position: index + 1,
+        });
+    });
+    // Both the composition and the preparation carry the body they rendered,
+    // so only a refusal — which rendered none — renders one here.
+    const created =
+      composed.outcome === "refused"
+        ? document.renderForCreate(context)
+        : composed.body;
+    const managed = document.renderForUpdate(context);
+    const existing = sample
+      ? null
+      : ((yield* (yield* NoteIndex).getNotesByItemKey(indexedKey))[0] ?? null);
+    sourcePath = existing?.path ?? "";
+    const file = sourcePath
+      ? yield* (yield* Vault).getFileByPath(sourcePath)
+      : null;
+    const original =
+      request.mode === "update" && file
+        ? yield* Effect.promise((signal) => {
+            void signal;
+            return readLiveText(deps.app, file);
+          })
+        : null;
+    let frontmatter: Record<string, unknown>;
+    let body: string;
+    let frontmatterBlock: string;
+    if (composed.outcome === "composed") {
+      ({ frontmatter, body, frontmatterBlock } = composed);
+    } else {
+      // Update refreshes the real note's own Properties through the stamping
+      // step and refills its Managed Region, entirely in memory.
+      ({ frontmatter, body } = previewBaseline(
+        original,
+        created,
+        request.mode === "update" ? managed : null,
+      ));
+      applyComposedFrontmatter(composeDeps, frontmatter, {
+        context,
+        itemKey: indexedKey,
+        profile,
+        prepared,
+        onConflict,
+      });
+      frontmatterBlock = stringifyYaml(frontmatter);
+    }
+    let annotation: string | null = null;
+    let annotationCitation: string | null = null;
+    const selectedAnnotation = request.annotation;
+    if (selectedAnnotation) {
+      yield* Effect.gen(function* () {
+        const key = selectedAnnotation.root.indexedKey;
+        const live =
+          typeof key === "string" &&
+          !sample &&
+          !SAMPLE_ANNOTATIONS.some(({ id }) => id === selectedAnnotation.id)
+            ? yield* loadTemplateData(dataDeps, key, "annotation")
+            : null;
+        const restored = restoreTemplateData(
+          selectedAnnotation.root,
+          selectedAnnotation.descriptors,
+        ) as unknown as AnnotationTemplateContext;
+        const root =
+          live?.kind === "data"
+            ? live.data
+            : withAnnotationCitation(restored, () =>
+                renderAnnotationCitation(
+                  restored.parentItem,
+                  restored.pageLabel,
+                  deps.templates,
+                ),
+              );
+        annotation = document.renderAnnotation(root);
+        annotationCitation =
+          "citation" in root && typeof root.citation === "string"
+            ? root.citation
+            : null;
+      }).pipe(
+        Effect.catchCause((cause) =>
+          Effect.sync(() => {
+            const error = Cause.squash(cause);
+            diagnostics.push(
+              renderFault(
+                error,
+                "annotation",
+                callerSource(deps, request.source),
+              ),
+            );
+          }),
+        ),
+      );
+    }
+    const annotationRanges: { from: number; to: number }[] = [];
+    let cursor = 0;
+    for (const root of context.annotations) {
+      const rendered = yield* Effect.exit(
+        Effect.sync(() => document.renderAnnotation(root)),
+      );
+      if (Exit.isFailure(rendered)) continue;
+      const output = rendered.value;
+      if (!output) continue;
+      const from = body.indexOf(output, cursor);
+      if (from >= 0) {
+        cursor = from + output.length;
+        annotationRanges.push({ from, to: cursor });
+      }
+    }
+    const declaredLanguage = frontmatter[FIELD_DOCUMENT_LANGUAGE];
+    const locale =
+      typeof declaredLanguage === "string" ? declaredLanguage.trim() : "";
+    const invalidLanguage =
+      declaredLanguage !== undefined && !isLanguageTag(locale);
+    if (invalidLanguage)
+      diagnostics.push({
+        code: "citation-style-error",
+        part: "render",
+        message: m.references_document_language_failed_title(),
+      });
+    const presentation = {
+      sourcePath,
+      locale:
+        declaredLanguage === undefined
+          ? (yield* (yield* BibliographyRender).state).vaultPresentation.locale
+          : locale,
+      styleId: profile.bindings["citation.references-style"],
+      wikilinks: settings["citation.wikilink-citations"],
+    };
+    const noteCitations =
+      invalidLanguage || sample
+        ? { citations: [], diagnostics: [] }
+        : yield* renderDraftCitations({
+            ...presentation,
+            markdown: body,
+          });
+    const annotationCitations =
+      invalidLanguage ||
+      sample ||
+      SAMPLE_ANNOTATIONS.some(({ id }) => id === request.annotation?.id)
+        ? { citations: [], diagnostics: [] }
+        : yield* renderDraftCitations({
+            ...presentation,
+            markdown: annotation ?? "",
+          });
+    diagnostics.push(
+      ...noteCitations.diagnostics,
+      ...annotationCitations.diagnostics,
+    );
+    const previewHints = [
+      ...(noteCitations.hint
+        ? [{ ...noteCitations.hint, part: "note" as const }]
+        : []),
+      ...(annotationCitations.hint
+        ? [{ ...annotationCitations.hint, part: "annotation" as const }]
+        : []),
+    ];
+    return {
+      ...identity,
+      sourcePath,
+      citations: noteCitations.citations,
+      annotationCitations: annotationCitations.citations,
+      filename: noteName,
+      notePath: resolveNoteRelPath(noteName),
+      properties,
+      fold: Object.entries(frontmatter).map(([key, value]) => ({
+        key,
+        value,
+        missing: false,
+        position: properties.find((entry) => entry.key === key)?.position ?? 0,
+      })),
+      frontmatterBlock,
+      creationBody: body,
+      managedRegion: managed,
+      annotation,
+      annotationCitation,
+      citation: null,
+      partial: null,
+      annotationRanges,
+      diagnostics,
+      previewHints,
+    };
+  }).pipe(
+    Effect.catchCause((cause) =>
+      Effect.sync(() => {
+        const error = Cause.squash(cause);
+        const failure = failedRender(
+          identity,
+          renderFault(error, "render", callerSource(deps, request.source)),
+        );
+        return {
+          ...failure,
+          filename: noteName,
+          notePath: resolveNoteRelPath(noteName),
+          diagnostics: [
+            ...(noteNameFailure ? [noteNameFailure] : []),
+            ...failure.diagnostics,
+          ],
+          sourcePath,
+          citations: [],
+          annotationCitations: [],
+        };
+      }),
+    ),
+  );
+});
 
 /**
  * The diagnostic one render failure reads as, attributed against the draft the

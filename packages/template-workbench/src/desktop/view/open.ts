@@ -2,7 +2,7 @@ import type {
   WorkbenchActionServices,
   WorkbenchOpened,
 } from "#desktop/editor/actions.ts";
-import type { NativeProfileTarget } from "#desktop/view/customize.ts";
+import type { ProfileTarget } from "#desktop/view/customize.ts";
 // The one open of a Template Workbench View, as Effects over the Workspace
 // and Vault tags: every entry point that shows a Template Document in the
 // Workbench calls `openTemplateWorkbench`, which lands in a Workbench window.
@@ -138,7 +138,7 @@ const launchFile = Effect.fn("TemplateWorkbench.launchFile")(function* (
 /** {@link openTemplateWorkbench} inside a launch turn its caller holds. */
 const launchTemplateWorkbench = Effect.fn(
   "TemplateWorkbench.openTemplateWorkbench",
-)(function* (target: NativeProfileTarget, options: WorkbenchOpenOptions = {}) {
+)(function* (target: ProfileTarget, options: WorkbenchOpenOptions = {}) {
   const vault = yield* Vault;
   if (target instanceof TFile) return yield* launchFile(target, options);
   const path = target.defaultDocumentPath;
@@ -197,14 +197,14 @@ export const openTemplateWorkbench: typeof launchTemplateWorkbench = (
 ) => launchTurn.withPermit(launchTemplateWorkbench(target, options));
 
 /** What an open of a Template Document in the Workbench fails with. */
-export type NativeOpenError = Effect.Error<
+export type WorkbenchOpenError = Effect.Error<
   ReturnType<typeof openTemplateWorkbench>
 >;
 
 /** An entry point's open of the Workbench, or the notice that stands in for it. */
 export type WorkbenchOpen = Effect.Effect<
   WorkbenchOpened | void,
-  NativeOpenError,
+  WorkbenchOpenError,
   WorkbenchActionServices
 >;
 
