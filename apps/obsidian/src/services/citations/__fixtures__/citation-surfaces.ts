@@ -117,9 +117,10 @@ vi.mock("@zotlit/plugin-kernel/clipboard.ts", async (importOriginal) => ({
 }));
 
 
-vi.mock("@zotlit/obsidian-kit/components/obsidian/icon-button.tsx", async () => {
+vi.mock("@zotlit/obsidian-kit/components/obsidian/icon-button.tsx", async (importOriginal) => {
   const { createElement } = await import("react");
   return {
+    ...(await importOriginal<typeof import("@zotlit/obsidian-kit/components/obsidian/icon-button.tsx")>()),
     IconButton: ({ icon, ...props }: { icon: string }) =>
       createElement("button", { ...props, "data-icon": icon }),
   };
