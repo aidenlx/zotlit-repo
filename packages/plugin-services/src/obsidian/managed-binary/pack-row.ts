@@ -1,0 +1,101 @@
+// The settings row of one Managed Binary that ships in the Resource Pack: what
+// the binary is, where it stands, and the way to the pack's page.
+
+import type { SettingsKey } from "#obsidian/setting-tab/context.ts";
+import type {
+  SettingTabEnv,
+  SettingTabShape,
+} from "#obsidian/setting-tab/effect-tab.ts";
+import { Effect } from "effect";
+import type { Setting, SettingDefinition } from "obsidian";
+
+import * as m from "@zotlit/plugin-messages/messages.ts";
+
+import type { PackBinaryApi, PackBinaryStatus } from "./pack-binary.ts";
+import { RESOURCE_PACK_PAGE } from "./pack-platform.ts";
+
+import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
+
+/** The binary's service as the row reads it: its tag, or a fake in a test. */
+export type PackBinaryTag = Effect.Effect<
+  Pick<PackBinaryApi<Disposable | AsyncDisposable>, "check" | "changes">,
+  never,
+  SettingTabEnv
+>;
+
+/** The words one binary's row carries, already in the user's language. */
+export interface PackBinaryCopy {
+  id: string;
+  name: string;
+  /** What the binary is; the status follows it. */
+  desc: string;
+  /** What the feature does without the binary; it follows each status but `ready`. */
+  fallback: string;
+}
+
+/**
+ * The binary row. It reads the pack each time it is shown, so the status is
+ * that of the pack on disk, and shows each later status while it stays open.
+ */
+export function packBinaryDefinition(
+  tab: SettingTabShape,
+  binary: PackBinaryTag,
+  copy: PackBinaryCopy,
+): SettingDefinition<SettingsKey> {
+  return {
+    id: copy.id,
+    name: copy.name,
+    desc: copy.desc,
+    render: (setting) => renderStatus(setting, { tab, binary, copy }),
+  };
+}
+
+/** One sentence per arm, in the words of the step that mends it. */
+function statusSentence(status: PackBinaryStatus): string {
+  switch (status.kind) {
+    case "pack-absent":
+      return m.settings_resource_pack_status_absent();
+    case "pack-outdated":
+      return m.settings_resource_pack_status_pack_outdated();
+    case "plugin-outdated":
+      return m.settings_resource_pack_status_plugin_outdated();
+    case "pack-damaged":
+      return m.settings_resource_pack_status_damaged();
+    case "ready":
+      return m.settings_resource_pack_status_ready({ version: status.version });
+    case "failed":
+      return m.settings_resource_pack_status_failed({ detail: status.detail });
+  }
+}
+
+function renderStatus(
+  setting: Setting,
+  {
+    tab,
+    binary,
+    copy,
+  }: { tab: SettingTabShape; binary: PackBinaryTag; copy: PackBinaryCopy },
+): () => void {
+  const statusEl = createDiv({ attr: { role: "status" } });
+  const desc = createFragment();
+  desc.append(copy.desc, statusEl);
+  setting.setDesc(desc);
+  setting.addButton((button) =>
+    button.setButtonText(m.settings_resource_pack_open()).onClick(() => {
+      window.open(RESOURCE_PACK_PAGE);
+    }),
+  );
+  return tab.mount(
+    Effect.gen(function* () {
+      const api = yield* binary;
+      yield* Effect.forkScoped(api.check);
+      yield* paintEach(api.changes, (status) => {
+        statusEl.setText(
+          status.kind === "ready"
+            ? statusSentence(status)
+            : `${statusSentence(status)} ${copy.fallback}`,
+        );
+      });
+    }),
+  );
+}

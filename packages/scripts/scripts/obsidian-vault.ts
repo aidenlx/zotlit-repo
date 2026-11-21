@@ -59,7 +59,11 @@ import {
 } from "#obsidian-host-readiness";
 import { findVaultId, unregisterVaultFile } from "#obsidian-vault-registry";
 import { getWorkspaceRoot } from "#package-roots";
-import { pluginsOption, resolveVaultPlugins } from "#vault-plugins";
+import {
+  installOption,
+  pluginsOption,
+  resolveVaultPlugins,
+} from "#vault-plugins";
 
 const execFileAsync = promisify(execFile);
 
@@ -280,6 +284,8 @@ interface SeedOptions {
   /** The upgrader case's `note.frontmatter-fields`, in place of its built-in list. */
   upgraderFields?: readonly FrontmatterField[];
   plugins?: readonly VaultPlugin[];
+  /** Plugins to install and leave not enabled. */
+  installed?: readonly VaultPlugin[];
 }
 
 async function create(
@@ -294,6 +300,7 @@ async function create(
     grantLocalApiWrites,
     upgraderFields,
     plugins = defaultPlugins,
+    installed = [],
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -324,6 +331,7 @@ async function create(
     grantLocalApiWrites,
     upgraderFields,
     plugins,
+    installed,
   });
   if (purge) {
     const exists = await access(abs).then(
@@ -342,7 +350,7 @@ async function create(
 
   // Obsidian loads the plugin from the vault, so the bundle has to be in place
   // before the window opens; registering first would only show an empty vault.
-  for (const { id, app } of plugins) {
+  for (const { id, app } of [...plugins, ...installed]) {
     const bundle = join(abs, ".obsidian", "plugins", id, "main.js");
     await access(bundle).catch(() => {
       throw new Error(
@@ -502,6 +510,7 @@ async function sync(
     grantLocalApiWrites,
     upgraderFields,
     plugins = defaultPlugins,
+    installed = [],
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -525,6 +534,7 @@ async function sync(
       grantLocalApiWrites,
       upgraderFields,
       plugins,
+      installed,
     });
 
     // `--purge` deletes the folder first, so renamed or removed Fixture files
@@ -561,6 +571,7 @@ async function rebuildFixtureVault(
     grantLocalApiWrites,
     upgraderFields,
     plugins = defaultPlugins,
+    installed = [],
   }: SeedOptions = {},
 ): Promise<void> {
   if (resolve(target) === resolve(fixtureVault)) return;
@@ -576,17 +587,20 @@ async function rebuildFixtureVault(
       () => true,
       () => false,
     );
-  const bundles = [];
-  for (const { id, devBundleDir } of plugins) {
-    // The target's own bundle stands in when this script runs on its own, with
-    // no dev build in the worktree.
-    const vaultBundleDir = join(resolve(target), ".obsidian", "plugins", id);
-    if (await hasBundle(devBundleDir)) {
-      bundles.push({ id, bundleDir: devBundleDir });
-    } else if (await hasBundle(vaultBundleDir)) {
-      bundles.push({ id, bundleDir: vaultBundleDir });
+  const bundlesOf = async (list: readonly VaultPlugin[]) => {
+    const bundles = [];
+    for (const { id, devBundleDir } of list) {
+      // The target's own bundle stands in when this script runs on its own,
+      // with no dev build in the worktree.
+      const vaultBundleDir = join(resolve(target), ".obsidian", "plugins", id);
+      if (await hasBundle(devBundleDir)) {
+        bundles.push({ id, bundleDir: devBundleDir });
+      } else if (await hasBundle(vaultBundleDir)) {
+        bundles.push({ id, bundleDir: vaultBundleDir });
+      }
     }
-  }
+    return bundles;
+  };
   await buildFixture(fixtureLayout, {
     scopeCase,
     vaultCase,
@@ -596,7 +610,8 @@ async function rebuildFixtureVault(
     grantLocalApiWrites,
     upgraderFields,
     linkedAttachmentVaultDir: resolve(target),
-    plugins: bundles,
+    plugins: await bundlesOf(plugins),
+    installed: await bundlesOf(installed),
   });
 }
 
@@ -613,6 +628,7 @@ async function open(
     grantLocalApiWrites,
     upgraderFields,
     plugins = defaultPlugins,
+    installed = [],
   }: SeedOptions = {},
 ): Promise<void> {
   const abs = resolve(vaultPath);
@@ -629,6 +645,7 @@ async function open(
     grantLocalApiWrites,
     upgraderFields,
     plugins,
+    installed,
   };
   if (!registered) {
     await create(abs, seed);
@@ -1119,7 +1136,8 @@ const vaultCli = yargs(hideBin(process.argv))
         .option("local-api", localApiOption)
         .option("grant-local-api-writes", grantLocalApiWritesOption)
         .option("upgrader-fields", upgraderFieldsOption)
-        .option("plugins", pluginsOption),
+        .option("plugins", pluginsOption)
+        .option("install", installOption),
     async (argv) => {
       await open(
         argv["vault-path"] ?? getDevVaultDir(workspaceRoot, argv["vault-case"]),
@@ -1136,6 +1154,7 @@ const vaultCli = yargs(hideBin(process.argv))
             argv["vault-case"],
           ),
           plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
+          installed: await resolveVaultPlugins(workspaceRoot, argv.install),
         },
       );
     },
@@ -1146,10 +1165,12 @@ const vaultCli = yargs(hideBin(process.argv))
     (y) =>
       y
         .positional("vault-path", vaultPathPosition)
-        .option("plugins", pluginsOption),
+        .option("plugins", pluginsOption)
+        .option("install", installOption),
     async (argv) => {
       await create(argv["vault-path"] ?? defaultVault, {
         plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
+        installed: await resolveVaultPlugins(workspaceRoot, argv.install),
       });
     },
   )
@@ -1166,7 +1187,8 @@ const vaultCli = yargs(hideBin(process.argv))
         .option("local-api", localApiOption)
         .option("grant-local-api-writes", grantLocalApiWritesOption)
         .option("upgrader-fields", upgraderFieldsOption)
-        .option("plugins", pluginsOption),
+        .option("plugins", pluginsOption)
+        .option("install", installOption),
     async (argv) => {
       await sync(
         argv["vault-path"] ?? getDevVaultDir(workspaceRoot, argv["vault-case"]),
@@ -1182,6 +1204,7 @@ const vaultCli = yargs(hideBin(process.argv))
             argv["vault-case"],
           ),
           plugins: await resolveVaultPlugins(workspaceRoot, argv.plugins),
+          installed: await resolveVaultPlugins(workspaceRoot, argv.install),
         },
       );
     },

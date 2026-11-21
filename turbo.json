@@ -55,6 +55,7 @@
         "transit",
         "@zotlit/obsidian#build:dev",
         "@zotlit/reader#build:dev",
+        "@zotlit/resources#build:dev",
         "@zotlit/zotero#build:dev"
       ],
       "cache": false,
@@ -65,6 +66,7 @@
         "transit",
         "@zotlit/obsidian#build:dev",
         "@zotlit/reader#build:dev",
+        "@zotlit/resources#build:dev",
         "@zotlit/zotero#build:dev"
       ],
       "cache": false

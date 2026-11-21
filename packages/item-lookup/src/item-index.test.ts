@@ -59,29 +59,25 @@ const chinese = item({
 });
 const JIEBA_ONLY = "流域";
 const WHOLE_RUN = "长江流域";
-// The web target binary, as the Chinese Segmenter download delivers it.
+// The web target binary, as the Resource Pack holds it.
 const JIEBA_WASM = readFileSync(
   fileURLToPath(
     new URL("jieba_rs_wasm_bg.wasm", import.meta.resolve("jieba-wasm/web")),
   ),
 );
+const PACK = "app://vault/plugins/zotlit-resources/main.js";
 const INSTALLED: SegmenterBinary = {
-  directory: "chinese-segmenter",
-  name: "pinned.wasm",
+  url: PACK,
+  entry: "chinese-segmenter",
+  version: "1.0.0",
 };
-const MISSING: SegmenterBinary = {
-  directory: "chinese-segmenter",
-  name: "missing.wasm",
-};
-const CORRUPT: SegmenterBinary = {
-  directory: "chinese-segmenter",
-  name: "corrupt.wasm",
-};
+const MISSING: SegmenterBinary = { ...INSTALLED, version: "0.9.0" };
+const CORRUPT: SegmenterBinary = { ...INSTALLED, version: "1.0.1" };
 /** The bytes each binary of the tests reads as; another binary is missing. */
 const storedBytes = (binary: SegmenterBinary): BufferSource | undefined =>
-  binary.name === INSTALLED.name
+  binary.version === INSTALLED.version
     ? JIEBA_WASM
-    : binary.name === CORRUPT.name
+    : binary.version === CORRUPT.version
       ? new Uint8Array([0, 1, 2, 3])
       : undefined;
 

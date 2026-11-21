@@ -1,44 +1,41 @@
-// The Chinese Segmenter as a Managed Binary: the pinned web-target `jieba-wasm` binary.
+// The Chinese Segmenter as a Managed Binary: the web-target `jieba-wasm` binary of the Resource Pack.
 
 import type {
-  ManagedBinary,
-  ManagedBinaryApi,
-} from "#obsidian/managed-binary/service.ts";
+  PackBinary,
+  PackBinaryApi,
+} from "#obsidian/managed-binary/pack-binary.ts";
 import { Context } from "effect";
 
-import { layerManagedBinary } from "#obsidian/managed-binary/service.ts";
+import { layerPackBinary } from "#obsidian/managed-binary/pack-binary.ts";
 
 /**
- * The verified binary, compiled. The ZoteroReads worker instantiates the
- * segmenter itself from the bytes in the device-wide store; the renderer
- * compiles them only to prove they start.
+ * The verified binary, compiled. The ZoteroReads worker reads the entry from
+ * the pack and instantiates the segmenter itself; the renderer compiles the
+ * bytes only to prove they start.
  */
 export interface ChineseSegmenterModule extends Disposable {
   readonly module: WebAssembly.Module;
 }
 
-/** The Chinese Segmenter's declaration; its cache is `zotlit/chinese-segmenter`. */
-export const CHINESE_SEGMENTER: ManagedBinary<ChineseSegmenterModule> = {
+/** The Chinese Segmenter's declaration; its Pack Entry is `chinese-segmenter`. */
+export const CHINESE_SEGMENTER: PackBinary<ChineseSegmenterModule> = {
   id: "chinese-segmenter",
   label: "Chinese segmenter",
   logCategory: ["item-lookup", "segmenter"],
-  pin: __CHINESE_SEGMENTER__,
   createEngine: async (binary) => ({
-    module: await WebAssembly.compileStreaming(
-      new Response(binary, { headers: { "content-type": "application/wasm" } }),
-    ),
+    module: await WebAssembly.compile(binary),
     // A compiled module holds no instance and no memory to release.
     [Symbol.dispose]: () => undefined,
   }),
-  startOnInstall: true,
+  startOnCheck: true,
 };
 
 export class ChineseSegmenter extends Context.Service<
   ChineseSegmenter,
-  ManagedBinaryApi<ChineseSegmenterModule>
+  PackBinaryApi<ChineseSegmenterModule>
 >()("zotlit/chinese-segmenter/ChineseSegmenter") {}
 
-export const layerChineseSegmenter = layerManagedBinary(
+export const layerChineseSegmenter = layerPackBinary(
   ChineseSegmenter,
   CHINESE_SEGMENTER,
 );

@@ -3,6 +3,7 @@ import type { Effect } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
+import type { PackBinaryApi } from "./pack-binary.ts";
 import type { ManagedBinaryApi } from "./service.ts";
 
 /** The service and the two ways to enter Effect with it through {@link EffectBridge}. */
@@ -18,6 +19,26 @@ export function bindManagedBinary<Engine extends Disposable | AsyncDisposable>(
   bridge: Pick<EffectBridge, "runSync" | "runPromise">,
   binary: ManagedBinaryApi<Engine>,
 ): ManagedBinaryHandle<Engine> {
+  return {
+    binary,
+    runSync: bridge.runSync,
+    runPromise: bridge.runPromise,
+  };
+}
+
+/** The handle of a Managed Binary that ships in the Resource Pack. */
+export interface PackBinaryHandle<
+  Engine extends Disposable | AsyncDisposable = Disposable | AsyncDisposable,
+> {
+  readonly binary: PackBinaryApi<Engine>;
+  readonly runSync: <A>(effect: Effect.Effect<A>) => A;
+  readonly runPromise: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>;
+}
+
+export function bindPackBinary<Engine extends Disposable | AsyncDisposable>(
+  bridge: Pick<EffectBridge, "runSync" | "runPromise">,
+  binary: PackBinaryApi<Engine>,
+): PackBinaryHandle<Engine> {
   return {
     binary,
     runSync: bridge.runSync,

@@ -391,12 +391,13 @@ export const ItemSnapshotRequestSchema = Schema.Struct({
 // --- Lifecycle ------------------------------------------------------------
 
 /**
- * A verified Chinese Segmenter binary in the device-wide OPFS store: the file
- * `zotlit/<directory>/<name>`. Only verified bytes get that name.
+ * The Chinese Segmenter binary of the installed Resource Pack: the Pack Entry
+ * `entry` of the pack file at `url`. The worker reads and verifies it.
  */
 export const SegmenterBinarySchema = Schema.Struct({
-  directory: Schema.String,
-  name: Schema.String,
+  url: Schema.String,
+  entry: Schema.String,
+  version: Schema.String,
 });
 export type SegmenterBinary = typeof SegmenterBinarySchema.Type;
 type _SegmenterBinary = Expect<
@@ -410,7 +411,7 @@ export const ReadsConfigSchema = Schema.Struct({
   autoRefresh: Schema.Boolean,
   /** The UI locale the Item Index formats creator names with; `null` for none. */
   locale: Schema.NullOr(Schema.String),
-  /** The installed Chinese Segmenter binary the Item Index cuts CJK text with; `null` for none. */
+  /** The Chinese Segmenter binary of the installed Resource Pack, which the Item Index cuts CJK text with; `null` for none. */
   chineseSegmenter: Schema.NullOr(SegmenterBinarySchema),
   /** The lowest level the worker forwards to the plugin's logger; `null` for none. */
   logLevel: Schema.NullOr(

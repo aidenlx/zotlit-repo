@@ -2264,10 +2264,11 @@ describe("ZoteroReads SearchItems", () => {
       "update itemDataValues set value = '长江流域的城市化研究' where valueID = 3;";
     const JIEBA_ONLY = inLibrary(1, "流域");
     const INSTALLED: SegmenterBinary = {
-      directory: "chinese-segmenter",
-      name: "pinned.wasm",
+      url: "app://vault/plugins/zotlit-resources/main.js",
+      entry: "chinese-segmenter",
+      version: "1.0.0",
     };
-    /** The web-target binary the plugin pins, from the dev dependency. */
+    /** The web-target binary the Resource Pack holds, from the dev dependency. */
     const jiebaBytes = () =>
       readFile(
         fileURLToPath(

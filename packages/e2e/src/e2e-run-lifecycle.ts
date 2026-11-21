@@ -10,9 +10,14 @@ import {
   workspaceRoot,
 } from "./e2e-run-fixture.ts";
 import { availableLoopbackPort } from "./e2e-run-helpers.ts";
+import { RESOURCE_PACK_ID } from "./e2e-run-note-helpers.ts";
 import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
 import { pluginStartupMs } from "./startup-record.ts";
-import { clearVault, installPlugins } from "./vault-script.ts";
+import {
+  clearVault,
+  installPlugins,
+  installWithoutEnabling,
+} from "./vault-script.ts";
 
 /** Shared End-to-end Run vault state for every area file. */
 export const run = {
@@ -42,7 +47,14 @@ async function bootstrap(): Promise<void> {
     e2eVaultPath,
     RUN_PLUGINS.join(","),
   );
-  const created = await runVaultScript(["open", e2eVaultPath, plugins]);
+  // The Resource Pack works installed and not enabled, the state Obsidian
+  // leaves it in after an install from the community plugin browser.
+  const pack = await installWithoutEnabling(
+    workspaceRoot,
+    e2eVaultPath,
+    RESOURCE_PACK_ID,
+  );
+  const created = await runVaultScript(["open", e2eVaultPath, plugins, pack]);
   run.vaultId = created.stdout.trim().split("\n")[0]!.trim();
   await recordFirstLoad();
   await obRun(

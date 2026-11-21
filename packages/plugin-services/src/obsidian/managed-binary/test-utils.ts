@@ -1,4 +1,8 @@
 // Test support: a fake device for Managed Binary services, with an in-memory store and consent record.
+import { bytesRange } from "@zotlit/resource-pack/reader.ts";
+import { writePack } from "@zotlit/resource-pack/writer.ts";
+
+import type { ResourcePackHostPorts } from "./pack-platform.ts";
 import type { BinaryStore, ManagedBinaryHostPorts } from "./service.ts";
 
 /**
@@ -53,6 +57,58 @@ export function vaultConsent(): ManagedBinaryHostPorts["consent"] {
     saveLocalStorage: (key, value) => {
       if (value === null) values.delete(key);
       else values.set(key, value);
+    },
+  };
+}
+
+/** The lowercase hex SHA-256 of `bytes`. */
+async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** The file of a Resource Pack that holds `entries`, by entry name. */
+export async function packFile(
+  entries: Readonly<Record<string, Uint8Array<ArrayBuffer>>>,
+  compat?: number,
+): Promise<Uint8Array<ArrayBuffer>> {
+  return writePack({
+    compat,
+    entries: await Promise.all(
+      Object.entries(entries).map(async ([name, bytes]) => ({
+        name,
+        bytes,
+        sha256: await sha256(bytes),
+      })),
+    ),
+  });
+}
+
+/**
+ * A device whose installed plugins hold the Resource Pack `file` at
+ * `version`, or no pack for `null`. `install` puts another pack in its place.
+ */
+export function packDevice(
+  file: Uint8Array | null,
+  version = "1.0.0",
+): ResourcePackHostPorts & {
+  install(file: Uint8Array | null, version?: string): void;
+} {
+  let installed = file && { file, version };
+  return {
+    locate: () =>
+      installed && {
+        version: installed.version,
+        url: "app://device/plugins/zotlit-resources/main.js",
+      },
+    open: () => (offset, length) => {
+      if (!installed) throw new Error("No pack file");
+      return bytesRange(installed.file)(offset, length);
+    },
+    install: (next, nextVersion = version) => {
+      installed = next && { file: next, version: nextVersion };
     },
   };
 }

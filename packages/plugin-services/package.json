@@ -32,6 +32,7 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/protocol": "workspace:*",
+    "@zotlit/resource-pack": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/templates": "workspace:*",
     "@zotlit/zotero-reads": "workspace:*",

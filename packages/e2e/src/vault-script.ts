@@ -136,7 +136,8 @@ export async function clearVault(
   await rm(path, { recursive: true, force: true });
 }
 
-export async function installPlugins(
+/** Copies the fresh dev bundle of each plugin in `list` into the vault, and answers their ids. */
+async function copyDevBundles(
   workspaceRoot: string,
   vaultPath: string,
   list: string,
@@ -148,5 +149,23 @@ export async function installPlugins(
     await mkdir(pluginDir, { recursive: true });
     await cp(plugin.devBundleDir, pluginDir, { recursive: true });
   }
-  return `--plugins=${plugins.map(({ id }) => id).join(",")}`;
+  return plugins.map(({ id }) => id).join(",");
+}
+
+/** Installs the plugins the vault enables; answers the vault script argument that names them. */
+export async function installPlugins(
+  workspaceRoot: string,
+  vaultPath: string,
+  list: string,
+): Promise<string> {
+  return `--plugins=${await copyDevBundles(workspaceRoot, vaultPath, list)}`;
+}
+
+/** Installs plugins that stay not enabled; answers the vault script argument that names them. */
+export async function installWithoutEnabling(
+  workspaceRoot: string,
+  vaultPath: string,
+  list: string,
+): Promise<string> {
+  return `--install=${await copyDevBundles(workspaceRoot, vaultPath, list)}`;
 }

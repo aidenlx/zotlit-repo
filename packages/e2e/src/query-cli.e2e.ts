@@ -25,9 +25,10 @@ import {
   targetItem,
   workspaceRoot,
 } from "./e2e-run-fixture.ts";
+import { openProfilesSettings } from "./e2e-run-helpers.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import {
-  SEGMENTER_CACHE_DIR,
+  RESOURCE_PACK_ID,
   SYNTHETIC_CORPUS_SIZE,
   SYNTHETIC_MARKER,
   addMyLibraryItems,
@@ -2116,77 +2117,29 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   }, 180_000);
 
-  it("finds a word inside a Chinese title once the Chinese Segmenter is installed, with no reload", async () => {
+  it("finds a word inside a Chinese title with the Chinese Segmenter of the installed Resource Pack, with no download", async () => {
     await using cleanup = new AsyncDisposableStack();
-    // The binary cache is device-wide: copy it now and put the copy back at
-    // the end, whatever happens between.
-    await obRun(
+    // The pack is in the vault's plugin folder and Obsidian did not load it:
+    // the state an install from the community plugin browser leaves.
+    const pack = await obRun(
       run.vaultId,
-      async ({ page: pageHelpers }, { SEGMENTER_CACHE_DIR }) => {
-        const saved = [];
-        try {
-          const dir = await (
-            await (
-              await navigator.storage.getDirectory()
-            ).getDirectoryHandle("zotlit")
-          ).getDirectoryHandle(SEGMENTER_CACHE_DIR);
-          for await (let [name, handle] of dir.entries())
-            if (handle.kind === "file")
-              saved.push({
-                name: name,
-                bytes: new Uint8Array(
-                  await (await handle.getFile()).arrayBuffer(),
-                ),
-              });
-        } catch (error) {
-          if ((error as Error).name !== "NotFoundError") throw error;
-        }
-        pageHelpers.scratch.zotlitE2ESegmenterCache = saved;
+      async ({ app }, { RESOURCE_PACK_ID }) => {
+        return {
+          version: app.plugins.manifests[RESOURCE_PACK_ID]?.version ?? null,
+          loaded: RESOURCE_PACK_ID in app.plugins.plugins,
+          enabledList: JSON.parse(
+            await app.vault.adapter.read(
+              `${app.vault.configDir}/community-plugins.json`,
+            ),
+          ) as string[],
+        };
       },
-      { SEGMENTER_CACHE_DIR },
+      { RESOURCE_PACK_ID },
     );
-    cleanup.defer(async () => {
-      await obRun(
-        run.vaultId,
-        async ({ page: pageHelpers }, { SEGMENTER_CACHE_DIR }) => {
-          const root = await (
-            await navigator.storage.getDirectory()
-          ).getDirectoryHandle("zotlit", { create: true });
-          await root
-            .removeEntry(SEGMENTER_CACHE_DIR, { recursive: true })
-            .catch(function (error) {
-              if ((error as Error).name !== "NotFoundError") throw error;
-            });
-          const saved = pageHelpers.scratch.zotlitE2ESegmenterCache;
-          if (saved!.length > 0) {
-            const dir = await root.getDirectoryHandle(SEGMENTER_CACHE_DIR, {
-              create: true,
-            });
-            for (let entry of saved!) {
-              const writable = await (
-                await dir.getFileHandle(entry.name, { create: true })
-              ).createWritable();
-              await writable.write(entry.bytes);
-              await writable.close();
-            }
-          }
-          delete pageHelpers.scratch.zotlitE2ESegmenterCache;
-        },
-        { SEGMENTER_CACHE_DIR },
-      );
-    });
-    // Start from no binary, as a user who has not installed it yet.
-    await obRun(
-      run.vaultId,
-      async ({ zotlit }) => {
-        return await zotlit.services.chineseSegmenter
-          .runPromise(zotlit.services.chineseSegmenter.binary.uninstall)
-          .then(function () {
-            return true;
-          });
-      },
-      undefined,
-    );
+    expect(pack.version).not.toBeNull();
+    expect(pack.loaded).toBe(false);
+    expect(pack.enabledList).not.toContain(RESOURCE_PACK_ID);
+
     const added = addMyLibraryItems(e2eFixture.databasePath, [
       "长江流域的城市化研究",
     ]);
@@ -2196,65 +2149,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await signalDatabaseUpdated(run.vaultId);
 
-    await obRunUntil(
-      run.vaultId,
-      async ({ zotlit }, { searchTerm, firstItemID }) => {
-        const hits = await zotlit.services.itemLookup.search(searchTerm);
-        return hits.some(function (hit) {
-          return hit.item.itemID === firstItemID;
-        });
-      },
-      { searchTerm: "长江流域", firstItemID: added.firstItemID },
-      {
-        what: "the first item to appear in lookup results for the Chinese search term",
-      },
-    );
-    // `Intl.Segmenter` keeps `长江流域` one word, so the word inside misses.
-    expect(
-      await obRun(
-        run.vaultId,
-        async ({ zotlit }, { searchTerm, firstItemID }) => {
-          const hits = await zotlit.services.itemLookup.search(searchTerm);
-          return hits.some(function (hit) {
-            return hit.item.itemID === firstItemID;
-          });
-        },
-        { searchTerm: "流域", firstItemID: added.firstItemID },
-      ),
-    ).toBe(false);
-
-    await obRun(
-      run.vaultId,
-      async ({ app, page: pageHelpers }) => {
-        pageHelpers.scratch.zotlitE2EPlugin = app.plugins.plugins.zotlit;
-      },
-      undefined,
-    );
-    cleanup.defer(async () => {
-      await obRun(
-        run.vaultId,
-        async ({ page: pageHelpers }) => {
-          delete pageHelpers.scratch.zotlitE2EPlugin;
-        },
-        undefined,
-      );
-    });
-    expect(
-      await obRun(
-        run.vaultId,
-        async ({ zotlit }) => {
-          return await zotlit.services.chineseSegmenter
-            .runPromise(zotlit.services.chineseSegmenter.binary.install)
-            .then(function () {
-              return zotlit.services.chineseSegmenter.runSync(
-                zotlit.services.chineseSegmenter.binary.getStatus,
-              ).kind;
-            });
-        },
-        undefined,
-        { timeoutMs: 120000 },
-      ),
-    ).toBe("installed");
+    // `Intl.Segmenter` keeps `长江流域` one word, so the word inside hits only
+    // when the worker cuts the title with the binary it read from the pack.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2265,21 +2161,136 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { searchTerm: "流域", firstItemID: added.firstItemID },
       {
-        what: "the first item to appear in lookup results for the Chinese search term after the segmenter install",
+        what: "the first item to appear in lookup results for a word inside its Chinese title",
+      },
+    );
+    expect(
+      await obRun(
+        run.vaultId,
+        async ({ zotlit }) => {
+          return await zotlit.services.chineseSegmenter.runPromise(
+            zotlit.services.chineseSegmenter.binary.check,
+          );
+        },
+        undefined,
+      ),
+    ).toEqual({ kind: "ready", version: pack.version });
+  }, 180_000);
+
+  it("cuts Chinese titles with the browser's word segmentation and points to the Resource Pack when no pack is installed", async () => {
+    await using cleanup = new AsyncDisposableStack();
+    const added = addMyLibraryItems(e2eFixture.databasePath, [
+      "长江流域的城市化研究",
+    ]);
+    cleanup.defer(async () => {
+      added[Symbol.dispose]();
+      await signalDatabaseUpdated(run.vaultId);
+    });
+    await signalDatabaseUpdated(run.vaultId);
+    await obRunUntil(
+      run.vaultId,
+      async ({ zotlit }, { searchTerm, firstItemID }) => {
+        const hits = await zotlit.services.itemLookup.search(searchTerm);
+        return hits.some(function (hit) {
+          return hit.item.itemID === firstItemID;
+        });
+      },
+      { searchTerm: "流域", firstItemID: added.firstItemID },
+      {
+        what: "the first item to appear in lookup results for a word inside its Chinese title, with the pack installed",
       },
     );
 
+    // Obsidian lists no Resource Pack, as before its install. The pack comes
+    // back at the end, and the next status read sees it again.
     await obRun(
       run.vaultId,
-      async ({ zotlit }) => {
-        return await zotlit.services.chineseSegmenter
-          .runPromise(zotlit.services.chineseSegmenter.binary.uninstall)
-          .then(function () {
-            return true;
-          });
+      async ({ app, page: pageHelpers }, { RESOURCE_PACK_ID }) => {
+        pageHelpers.scratch.zotlitE2EPackManifest =
+          app.plugins.manifests[RESOURCE_PACK_ID];
+        delete app.plugins.manifests[RESOURCE_PACK_ID];
       },
-      undefined,
+      { RESOURCE_PACK_ID },
     );
+    cleanup.defer(async () => {
+      await obRun(
+        run.vaultId,
+        async ({ app, zotlit, page: pageHelpers }, { RESOURCE_PACK_ID }) => {
+          app.setting.close();
+          const manifest = pageHelpers.scratch.zotlitE2EPackManifest;
+          if (manifest) app.plugins.manifests[RESOURCE_PACK_ID] = manifest;
+          delete pageHelpers.scratch.zotlitE2EPackManifest;
+          await zotlit.services.chineseSegmenter.runPromise(
+            zotlit.services.chineseSegmenter.binary.check,
+          );
+        },
+        { RESOURCE_PACK_ID },
+      );
+    });
+
+    // The row reads the pack when it is shown.
+    await openProfilesSettings(run.vaultId, "settings_page_zotero");
+    const rowStatus = await obRunUntil(
+      run.vaultId,
+      async ({ app }, { rowName }) => {
+        const row = Array.from(
+          app.setting.containerEl.querySelectorAll(".setting-item"),
+        ).find(
+          (el) =>
+            el.querySelector(".setting-item-name")?.textContent === rowName,
+        );
+        return row?.querySelector("[role=status]")?.textContent ?? "";
+      },
+      { rowName: run.m.settings_chinese_segmenter_name() },
+      {
+        ready: (value) => value !== "",
+        what: "the Chinese segmenter row to show its status",
+      },
+    );
+    expect(rowStatus).toBe(
+      `${run.m.settings_resource_pack_status_absent()} ${run.m.settings_chinese_segmenter_fallback()}`,
+    );
+
+    // The one action opens the pack's page in the community plugin browser.
+    expect(
+      await obRun(
+        run.vaultId,
+        async ({ app, page }, { rowName, actionLabel }) => {
+          const row = Array.from(
+            app.setting.containerEl.querySelectorAll(".setting-item"),
+          ).find(
+            (el) =>
+              el.querySelector(".setting-item-name")?.textContent === rowName,
+          );
+          const buttons = Array.from(row?.querySelectorAll("button") ?? []);
+          const native = window.open;
+          const opened: string[] = [];
+          window.open = (url) => {
+            opened.push(String(url));
+            return null;
+          };
+          try {
+            page.press(
+              buttons.find((el) => el.textContent === actionLabel),
+              "Resource Pack action",
+            );
+          } finally {
+            window.open = native;
+          }
+          return { buttons: buttons.length, opened };
+        },
+        {
+          rowName: run.m.settings_chinese_segmenter_name(),
+          actionLabel: run.m.settings_resource_pack_open(),
+        },
+      ),
+    ).toEqual({
+      buttons: 1,
+      opened: [`obsidian://show-plugin?id=${RESOURCE_PACK_ID}`],
+    });
+
+    // With no pack the worker cuts with `Intl.Segmenter`, which keeps
+    // `长江流域` one word: the word inside misses, the whole word hits.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2291,7 +2302,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { searchTerm: "流域", firstItemID: added.firstItemID },
       {
         ready: (value) => value === false,
-        what: "the Chinese search term to stop matching the first item in lookup results",
+        what: "the word inside the Chinese title to stop matching the first item in lookup results",
       },
     );
     expect(
@@ -2304,17 +2315,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           });
         },
         { searchTerm: "长江流域", firstItemID: added.firstItemID },
-      ),
-    ).toBe(true);
-    expect(
-      await obRun(
-        run.vaultId,
-        async ({ app, page: pageHelpers }) => {
-          return (
-            pageHelpers.scratch.zotlitE2EPlugin === app.plugins.plugins.zotlit
-          );
-        },
-        undefined,
       ),
     ).toBe(true);
   }, 180_000);

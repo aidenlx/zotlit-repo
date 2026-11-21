@@ -44,7 +44,7 @@ export const makeMemorySegmenterBinaryReader = (
               return bytes === undefined
                 ? Effect.fail(
                     new SegmenterUnavailable({
-                      message: `No Chinese Segmenter binary named ${binary.name}`,
+                      message: `No Chinese Segmenter binary in the pack ${binary.version}`,
                     }),
                   )
                 : Effect.succeed(bytes);

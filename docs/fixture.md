@@ -78,6 +78,8 @@ ZotLit Reader alone runs these PDF reader pages in a vault of its own, with no Z
 
 `reader-absent.md` checks ZotLit without ZotLit Reader: the **ZotLit Reader** row on **Settings → ZotLit → Reader** for each state (connected, turned off, not installed, versions that do not work together), Attachments and Annotation links that open in Obsidian's own PDF view, the notice that shows once per vault for each state, and the ZotLit Reader step of the Welcome View. The `describe` "ZotLit alone" of `src/reader-interop.e2e.ts` turns ZotLit Reader off and runs Z-1 and Z-2; I-5 turns it off under an open tab.
 
+`resource-pack-chinese-segmenter.md` checks the Chinese Segmenter of the ZotLit Resource Pack. Open the vault with `--install zotlit-resources` after `pnpm --filter @zotlit/resources build:dev`: the pack is in the plugin folder and is not turned on. The page lists the **Chinese segmenter** row on **Settings → ZotLit → Zotero** for each state (ready with the pack's version, pack not installed, pack too old, pack too new, pack file damaged), its **Open in Community plugins** button, and the search for a word inside a Chinese title with the pack and with no pack. `pnpm e2e --project=desktop src/query-cli.e2e.ts -t Chinese` runs the search with the pack, and the search, the row and the button with no pack.
+
 `tools-for-thought.md` checks Template Data Explorer permissions in its **Template Data Explorer permissions** section: Liquid-only actions, enabling and removing JavaScript permission with an open Explorer, separate searches in two leaves, and cleanup after both leaves close.
 
 ### Excerpt-rendering acceptance inputs

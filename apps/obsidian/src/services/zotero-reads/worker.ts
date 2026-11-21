@@ -5,7 +5,7 @@
 
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 
-import { readSegmenterFromOpfs } from "@zotlit/plugin-services/core/chinese-segmenter/opfs-reader.ts";
+import { readSegmenterFromPack } from "@zotlit/plugin-services/core/chinese-segmenter/pack-reader.ts";
 import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
 import { prepareRead } from "@zotlit/zotero-reads/desktop/read-source.ts";
 import { layerSource } from "@zotlit/zotero-reads/desktop/source.ts";
@@ -23,6 +23,6 @@ serveZoteroReads(self, {
         prepareRead: (mode, path) => prepareRead(mode, path, snapshotOwner),
       },
     }),
-  handlers: { readSegmenter: readSegmenterFromOpfs, queryJobs: queryJobRunner },
+  handlers: { readSegmenter: readSegmenterFromPack, queryJobs: queryJobRunner },
   fileSystem: NodeFileSystem.layer,
 });

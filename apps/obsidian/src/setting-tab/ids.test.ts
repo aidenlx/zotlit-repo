@@ -95,7 +95,7 @@ function ctx(): SettingTabContext {
         Context.add(
           ChineseSegmenter,
           stubService<ChineseSegmenter["Service"]>("ChineseSegmenter", {
-            getStatus: Effect.succeed({ kind: "absent" }),
+            check: Effect.succeed({ kind: "pack-absent" }),
             changes: Stream.empty,
           }),
         ),

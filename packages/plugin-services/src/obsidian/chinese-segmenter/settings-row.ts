@@ -1,4 +1,4 @@
-// Install and uninstall controls for the device-wide Chinese Segmenter binary.
+// The settings row of the Chinese Segmenter: its status in the Resource Pack.
 
 import type {
   SettingsKey,
@@ -10,40 +10,17 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { ChineseSegmenter } from "./service.ts";
 
-import { managedBinaryDefinition } from "#obsidian/managed-binary/settings-rows.ts";
+import { packBinaryDefinition } from "#obsidian/managed-binary/pack-row.ts";
 
 /** The segmenter row, in the Chinese Segmenter's own words. */
 export function chineseSegmenterDefinition(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
-  return managedBinaryDefinition(ctx.tab, ChineseSegmenter, {
+  return packBinaryDefinition(ctx.tab, ChineseSegmenter, {
     id: "settings_chinese_segmenter",
     name: m.settings_chinese_segmenter_name(),
     desc: m.settings_chinese_segmenter_desc(),
-    status: {
-      absent: m.settings_chinese_segmenter_status_absent(),
-      installing: m.settings_chinese_segmenter_status_installing(),
-      installed: (version) =>
-        m.settings_chinese_segmenter_status_installed({ version }),
-      downloadFailed: (detail) =>
-        m.settings_chinese_segmenter_status_download_failed({ detail }),
-      hashMismatch: m.settings_chinese_segmenter_status_hash_mismatch(),
-      initFailed: (detail) =>
-        m.settings_chinese_segmenter_status_init_failed({ detail }),
-    },
-    actions: {
-      install: m.settings_chinese_segmenter_install(),
-      installing: m.settings_chinese_segmenter_installing(),
-      retry: m.settings_chinese_segmenter_retry(),
-      uninstall: m.settings_chinese_segmenter_uninstall(),
-    },
-    notices: {
-      downloading: m.notice_chinese_segmenter_downloading(),
-      installed: m.notice_chinese_segmenter_installed(),
-      installFailed: m.notice_chinese_segmenter_install_failed(),
-      removed: m.notice_chinese_segmenter_removed(),
-      removeFailed: m.notice_chinese_segmenter_remove_failed(),
-    },
+    fallback: m.settings_chinese_segmenter_fallback(),
   });
 }
 

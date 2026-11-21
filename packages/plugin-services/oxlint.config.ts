@@ -115,7 +115,10 @@ export default defineConfig({
     {
       // Capability backlog: no tag member yet for `vault.adapter`. The file
       // moves off the list when it takes Obsidian from the capability tags.
-      files: ["src/obsidian/log/service.ts"],
+      files: [
+        "src/obsidian/log/service.ts",
+        "src/obsidian/managed-binary/pack-platform.ts",
+      ],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {

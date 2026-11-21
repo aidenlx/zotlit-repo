@@ -3,7 +3,7 @@
 // every Obsidian over Zotero, with the ports it reads that a host's platform
 // fills (the Zotero preferences, the Local Server, the Zotero HTTP client,
 // ZoteroReads).
-import { Effect, Layer, Stream } from "effect";
+import { Effect, Layer } from "effect";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
@@ -44,8 +44,8 @@ import {
   scopeChanges,
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { localServerItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
-import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
-import { layerManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import { bindPackBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
+import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
   layerNoteIndex,
   NoteIndex,
@@ -80,7 +80,7 @@ export const platform = extendFeature(platformBase, {
     serviceGroup(
       "ChineseSegmenter",
       { provides: [ChineseSegmenter] },
-      layerChineseSegmenter.pipe(Layer.provide(layerManagedBinaryPlatform)),
+      layerChineseSegmenter.pipe(Layer.provide(layerResourcePackPlatform)),
     ),
     serviceGroup("NoteIndex", { provides: [NoteIndex] }, layerNoteIndex),
     serviceGroup(
@@ -149,9 +149,6 @@ export const platform = extendFeature(platformBase, {
       ],
     },
     rebuild: [
-      Effect.map(ChineseSegmenter, (segmenter) =>
-        Stream.drop(segmenter.changes, 1),
-      ),
       // A database refresh, a group rename, or a repair moves the scope.
       Effect.map(LibraryScope, (scope) => scopeChanges(scope.changes)),
     ],
@@ -162,7 +159,7 @@ export const platform = extendFeature(platformBase, {
       useLedger: read(UseLedger),
       queryClient: read(QueryClients),
       noteIndex: read(NoteIndex),
-      chineseSegmenter: bindManagedBinary(bridge, read(ChineseSegmenter)),
+      chineseSegmenter: bindPackBinary(bridge, read(ChineseSegmenter)),
       zoteroReads,
       acquireZoteroRead: () => acquireReadLease(zoteroReads, bridge),
       libraryTagNames: libraryTagNamesOf(zoteroReads, bridge),

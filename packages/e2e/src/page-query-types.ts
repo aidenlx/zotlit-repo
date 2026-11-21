@@ -38,11 +38,7 @@ declare module "./page-helpers.ts" {
       requests: { count: number; snapshot: string }[];
       restore: () => void;
     };
-    zotlitE2ESegmenterCache?: {
-      name: string;
-      bytes: Uint8Array<ArrayBuffer>;
-    }[];
-    zotlitE2EPlugin?: { _loaded: boolean };
+    zotlitE2EPackManifest?: import("obsidian").PluginManifest;
     zotlitE2ELogStart?: number;
     zotlitE2EPanes?: { wide: WorkspaceLeaf; narrow: WorkspaceLeaf };
     zotlitE2EPastEdge?: WorkspaceLeaf;

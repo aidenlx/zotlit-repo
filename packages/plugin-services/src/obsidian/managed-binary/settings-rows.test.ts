@@ -1,14 +1,11 @@
-import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { Context, Effect, Exit, Layer } from "effect";
+import { Effect, Exit, Layer } from "effect";
 import { describe } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { renderRow } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
-import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { ManagedBinaryError } from "./platform.ts";
 import { installBinary, managedBinaryDefinition } from "./settings-rows.ts";
@@ -16,8 +13,6 @@ import type { ManagedBinaryCopy } from "./settings-rows.ts";
 
 import { binary, button } from "#__fixtures__/managed-binary-rows.ts";
 import { scopedSettingTab, testSettingTab } from "#__fixtures__/setting-tab.ts";
-import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
-import { chineseSegmenterDefinition } from "#obsidian/chinese-segmenter/settings-row.ts";
 
 const COPY: ManagedBinaryCopy = {
   id: "settings_segmenter",
@@ -148,31 +143,5 @@ describe("managedBinaryDefinition", () => {
       desc: "Cuts words. Download failed: offline.",
     });
     expect(button(renderRow(row)).text).toBe("Retry");
-  });
-});
-
-describe("chineseSegmenterDefinition", () => {
-  it("renders the Chinese segmenter row from its own messages", () => {
-    const ctx = stubService<SettingTabContext>("SettingTabContext", {
-      tab: testSettingTab(
-        Context.make(
-          ChineseSegmenter,
-          stubService<ChineseSegmenter["Service"]>(
-            "ChineseSegmenter",
-            binary({ kind: "absent" }).members,
-          ),
-        ),
-      ).tab,
-    });
-    const row = chineseSegmenterDefinition(ctx);
-
-    expect(row).toMatchObject({
-      id: "settings_chinese_segmenter",
-      name: m.settings_chinese_segmenter_name(),
-      desc: `${m.settings_chinese_segmenter_desc()} ${m.settings_chinese_segmenter_status_absent()}`,
-    });
-    expect(button(renderRow(row)).text).toBe(
-      m.settings_chinese_segmenter_install(),
-    );
   });
 });

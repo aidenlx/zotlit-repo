@@ -382,9 +382,9 @@ async function observeNotices(vaultId: string) {
   };
 }
 
-/** The Chinese Segmenter's device-wide cache directory under OPFS `zotlit/`. */
+/** The plugin id of the Resource Pack, which the End-to-end vault holds installed and not enabled. */
 
-const SEGMENTER_CACHE_DIR = "chinese-segmenter";
+const RESOURCE_PACK_ID = "zotlit-resources";
 
 /** Items a synthetic sync adds: the scale ADR 0069 measured at. */
 const SYNTHETIC_CORPUS_SIZE = 10_000;
@@ -587,7 +587,7 @@ async function rendererHeap(vaultId: string): Promise<number> {
 }
 
 export {
-  SEGMENTER_CACHE_DIR,
+  RESOURCE_PACK_ID,
   SYNTHETIC_CORPUS_SIZE,
   SYNTHETIC_MARKER,
   createFixtureNote,

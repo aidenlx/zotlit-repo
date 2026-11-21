@@ -222,6 +222,11 @@ export interface BuildOptions {
    */
   plugins?: readonly FixturePlugin[];
   /**
+   * Built plugin bundles to copy into `.obsidian/plugins/<id>` and leave out
+   * of the enabled list: installed, not enabled.
+   */
+  installed?: readonly FixturePlugin[];
+  /**
    * TCP port for this build's Live Updates channel, on
    * {@link LIVE_UPDATE_HOSTNAME}. The vault binds it and the profile points the
    * Companion at it, so the two sides always agree. Absent, both keep their
@@ -1368,7 +1373,10 @@ async function writeVaultConfig(
     { recursive: true },
   );
 
-  for (const { id, bundleDir } of options.plugins ?? []) {
+  for (const { id, bundleDir } of [
+    ...(options.plugins ?? []),
+    ...(options.installed ?? []),
+  ]) {
     await cp(bundleDir, join(configDir, "plugins", id), { recursive: true });
   }
 }

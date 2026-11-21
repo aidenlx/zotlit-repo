@@ -1,4 +1,4 @@
-// The Item Index's Chinese Segmenter switch: the installed binary it cuts CJK text with, or `Intl.Segmenter`.
+// The Item Index's Chinese Segmenter switch: the binary of the Resource Pack it cuts CJK text with, or `Intl.Segmenter`.
 import { Context, Effect } from "effect";
 import type { Layer } from "effect";
 
@@ -11,10 +11,14 @@ import {
 } from "./segmenter.ts";
 import type { SegmenterUnavailable } from "./segmenter.ts";
 
-/** An installed Chinese Segmenter binary: the file `<directory>/<name>` of a binary store. */
+/** The Chinese Segmenter binary of an installed Resource Pack: one Pack Entry of the pack file. */
 export interface SegmenterBinary {
-  readonly directory: string;
-  readonly name: string;
+  /** The resource URL of the pack file. */
+  readonly url: string;
+  /** The name of the Pack Entry that holds the binary. */
+  readonly entry: string;
+  /** The version of the pack. */
+  readonly version: string;
 }
 
 /** Whether `a` and `b` name the same binary, or both name none. */
@@ -25,8 +29,9 @@ export const sameSegmenterBinary = (
   a === b ||
   (a !== null &&
     b !== null &&
-    a.directory === b.directory &&
-    a.name === b.name);
+    a.url === b.url &&
+    a.entry === b.entry &&
+    a.version === b.version);
 
 /** Port: reads the bytes of an installed Chinese Segmenter binary. */
 export class SegmenterBinaryReader extends Context.Service<
@@ -62,9 +67,9 @@ type SegmenterService = (typeof Segmenter)["Service"];
  * with that binary tries it again. The caller applies each answer before the
  * next `resolve`.
  *
- * `jieba-wasm` holds one instance per realm: an uninstall stops its use but
- * keeps its memory, and a later binary with another name runs on the bytes
- * that loaded first until the realm restarts.
+ * `jieba-wasm` holds one instance per realm: a removed pack stops its use but
+ * keeps its memory, and the binary of a later pack runs on the bytes that
+ * loaded first until the realm restarts.
  */
 export function makeSegmenterSwitch(
   reader: (typeof SegmenterBinaryReader)["Service"],
@@ -95,13 +100,13 @@ export function makeSegmenterSwitch(
             yield* log(
               "warn",
               "The Chinese Segmenter keeps its first binary until the realm restarts",
-              { loaded: loaded.name, requested: binary.name },
+              { loaded: loaded.version, requested: binary.version },
             );
           }
           loaded ??= binary;
           jieba = true;
           yield* log("info", "The Chinese Segmenter cuts CJK text", {
-            binary: binary.name,
+            pack: binary.version,
           });
         }),
       ),
@@ -113,7 +118,7 @@ export function makeSegmenterSwitch(
             yield* log(
               "warn",
               "The Chinese Segmenter did not start; CJK text uses Intl.Segmenter",
-              { binary: binary.name, error: error.message },
+              { pack: binary.version, error: error.message },
             );
           }),
           toNone,
@@ -131,7 +136,7 @@ export function makeSegmenterSwitch(
       return Effect.andThen(
         log(
           "info",
-          "The Chinese Segmenter is uninstalled; CJK text uses Intl.Segmenter",
+          "No Resource Pack holds the Chinese Segmenter; CJK text uses Intl.Segmenter",
         ),
         toNone,
       );

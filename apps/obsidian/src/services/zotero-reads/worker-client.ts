@@ -51,16 +51,14 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
   yield* reapReadClones().pipe(Effect.forkScoped);
   const configuration = Effect.gen(function* () {
     const current = yield* settings.current;
-    const status = yield* segmenter.getStatus;
     return {
       databasePath: (yield* pref.current).databasePath,
       readMode: current["zotero.read-mode"],
       autoRefresh: current["zotero.auto-refresh"],
       locale: language,
-      chineseSegmenter:
-        status.kind === "installed" || status.kind === "installing"
-          ? status.binary
-          : null,
+      // The worker reads and verifies the entry itself, so the pack reaches
+      // it unread: this thread pays nothing for the binary at start-up.
+      chineseSegmenter: yield* segmenter.entry,
       logLevel: current["log.level"],
     } satisfies ReadsConfig;
   });

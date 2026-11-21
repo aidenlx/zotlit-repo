@@ -26,9 +26,11 @@ import {
   CHINESE_SEGMENTER,
   layerChineseSegmenter,
 } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
-import { managedBinaryPorts } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
-import { ManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
-import { memoryDevice } from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+import {
+  ResourcePackPlatform,
+  resourcePackPorts,
+} from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { packDevice } from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   WorkerInitSchema,
@@ -44,7 +46,7 @@ import { workerClient } from "./worker-client.ts";
 vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 
 /** A controlled browser process boundary with the real worker RPC protocol. */
-const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
+const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   const spawned = yield* Queue.unbounded<StandInWorker>();
   const configured = yield* Queue.unbounded<ReadsConfig>();
   const initial = yield* Queue.unbounded<
@@ -122,23 +124,16 @@ const workerFixture = Effect.fn("workerFixture")(function* (cached = false) {
   const settings = yield* settingsOf({
     plugin: { loadData: async () => null, saveData: async () => undefined },
   });
-  const device = memoryDevice();
-  if (cached)
-    device
-      .files(CHINESE_SEGMENTER.id)
-      .set(`${CHINESE_SEGMENTER.pin.sha256}.wasm`, new Uint8Array());
   const chineseSegmenter = Context.get(
     yield* Layer.build(
       layerChineseSegmenter.pipe(
         Layer.provide(
           Layer.succeed(
-            ManagedBinaryPlatform,
-            managedBinaryPorts({
-              ...device,
-              download: async () => {
-                throw new Error("Unexpected download");
-              },
-            }),
+            ResourcePackPlatform,
+            // The worker reads the pack itself: this thread opens no file.
+            resourcePackPorts(
+              packDevice(installed ? new Uint8Array() : null, "1.2.0"),
+            ),
           ),
         ),
       ),
@@ -194,6 +189,8 @@ it.effect("starts the worker with the loaded profile data directory", () =>
     expect(yield* Queue.take(worker.initial)).toMatchObject({
       databasePath: "/research-data/zotero.sqlite",
       deferOpen: true,
+      // No Resource Pack is installed on this device.
+      chineseSegmenter: null,
     });
     worker.host.layoutReady();
     yield* Queue.take(worker.refreshed);
@@ -230,9 +227,9 @@ it.effect(
     }),
 );
 
-// The installed binary reaches the first worker configuration.
+// The installed pack reaches the first worker configuration.
 it.effect(
-  "sends the cached segmenter in the worker's first configuration",
+  "sends the segmenter entry of the installed pack in the worker's first configuration",
   () =>
     Effect.gen(function* () {
       const worker = yield* workerFixture(true);
@@ -249,8 +246,9 @@ it.effect(
       (yield* Queue.take(worker.spawned)).start();
       yield* Fiber.join(opening);
       expect((yield* Queue.take(worker.initial)).chineseSegmenter).toEqual({
-        directory: "chinese-segmenter",
-        name: `${CHINESE_SEGMENTER.pin.sha256}.wasm`,
+        url: "app://device/plugins/zotlit-resources/main.js",
+        entry: CHINESE_SEGMENTER.id,
+        version: "1.2.0",
       });
     }),
 );
