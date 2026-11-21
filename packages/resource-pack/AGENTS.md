@@ -16,7 +16,7 @@ The package is host-free: web APIs only, with no Node built-in, `obsidian` or `e
 
 ## Decoding
 
-The reader decodes base64 through `fetch` of a `data:` URL, the host's own decoder, and gunzips with `DecompressionStream`. `Uint8Array.fromBase64` is absent on Safari 18.6 and a slow polyfill on WebView 124. Keep the reader inside that API floor.
+The reader decodes base64 through `fetch` of a `data:` URL, the host's own decoder, and gunzips with `DecompressionStream`. `Uint8Array.fromBase64` is a slow polyfill on WebView 124 and absent in its Worker. Keep the reader inside that API floor.
 
 ## Tests
 

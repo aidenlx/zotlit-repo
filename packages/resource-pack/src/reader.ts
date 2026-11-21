@@ -58,8 +58,8 @@ const detailOf = (error: unknown): string =>
 
 /**
  * The binary an entry text holds. The host's own base64 decoder runs through a
- * `data:` URL: `Uint8Array.fromBase64` is absent on Safari 18.6 and a slow
- * polyfill on WebView 124.
+ * `data:` URL: `Uint8Array.fromBase64` is a slow polyfill on WebView 124 and
+ * absent in its Worker.
  */
 async function decodeEntry(text: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   const response = await fetch(
