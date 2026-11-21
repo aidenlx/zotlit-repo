@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// `pnpm release:publish <obsidian|zotero|reader>`: publishes the checked-out
+// `pnpm release:publish <obsidian|zotero|reader|resources>`: publishes the checked-out
 // version of one product (lib/release/obsidian.ts for each Obsidian plugin,
 // lib/release/zotero.ts for the Companion).
 // release.yml runs it for each product its plan job names; the lead runs the
@@ -41,14 +41,16 @@ const publishUrl = (plugin: PublishedPluginName) =>
 const standInOf = (plugin: PublishedPluginName) =>
   join(root, `.scratch/publish-remote/${plugin}.git`);
 
-const epilogue = `Steps of obsidian and reader: build, pack, npm, registry, shell, check, commit, push, source tag. Steps of zotero: build, release zt-<version>, update manifests, update channel, source tag. Each step skips what an earlier run finished, so a run that failed half way is run again as it is.
+const epilogue = `Steps of obsidian, reader and resources: build, pack, npm, registry, shell, check, commit, push, source tag. Steps of zotero: build, release zt-<version>, update manifests, update channel, source tag. Each step skips what an earlier run finished, so a run that failed half way is run again as it is.
 
 A real run publishes the version that apps/<app>/package.json names, from a clean checkout of a commit of origin/${SOURCE_BRANCH}: a beta or a stable version. A stable hotfix publishes from a commit that origin/${SOURCE_BRANCH} lacks: its version is a patch of the latest stable release, greater than it, and HEAD descends from that release's tag. Credentials:
   npm             trusted publishing in GitHub Actions (provenance); elsewhere the npm login
   publish repos   RELEASE_REPO_TOKEN when set; elsewhere the Git and gh login
   source tags     the remote origin of this checkout
 
-Publish repositories: obsidian ${PUBLISHED_PLUGINS.desktop.repository}, reader ${PUBLISHED_PLUGINS.reader.repository}, zotero ${RELEASE_REPOSITORY}. Source tags: obsidian <version>, zotero zt-<version>, reader reader-<version>.
+Publish repositories: obsidian ${PUBLISHED_PLUGINS.desktop.repository}, reader ${PUBLISHED_PLUGINS.reader.repository}, resources ${PUBLISHED_PLUGINS.resources.repository}, zotero ${RELEASE_REPOSITORY}. Source tags: obsidian <version>, zotero zt-<version>, reader reader-<version>, resources resources-<version>.
+
+resources is the Resource Pack: its main.js holds the data files at byte offsets, so the build, the npm package and the shell copy it byte for byte, and the check compares main.js alone. Its version line is its own; its version picks its release line as for each product, and pnpm release holds that line to ZotLit's when one release carries both.
 
 --dry-run publishes nothing: it reports the check of HEAD in place of refusing it, npm publish becomes pnpm pack into a local registry, a plugin's publish repository becomes the bare clone ${join(root, ".scratch/publish-remote/<plugin>.git")} (cloned and refreshed from the publish repository, read-only), and no tag is pushed. It prints each command a real run executes.`;
 
@@ -56,7 +58,7 @@ const argv = await yargs(hideBin(process.argv))
   .scriptName("release:publish")
   .version(false)
   .usage(
-    "pnpm release:publish <obsidian|zotero|reader> [--dry-run [--version <v>]]",
+    "pnpm release:publish <obsidian|zotero|reader|resources> [--dry-run [--version <v>]]",
   )
   .demandCommand(1, `Name the product: ${PRODUCT_NAMES}.`)
   .option("dry-run", {

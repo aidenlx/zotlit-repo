@@ -73,11 +73,12 @@ generated shell that builds the plugin from the npm bundle package
 
 Each app's `apps/{app}/package.json#version` is the sole version source.
 
-| Product                       | Tag format       | Example                               |
-| ----------------------------- | ---------------- | ------------------------------------- |
-| Obsidian (`@zotlit/obsidian`) | bare semver      | `2.0.0`, `2.1.0-beta.1`               |
-| Zotero (`@zotlit/zotero`)     | `zt-` prefix     | `zt-2.0.0`, `zt-2.1.0-beta.1`         |
-| Reader (`@zotlit/reader`)     | `reader-` prefix | `reader-1.0.0`, `reader-1.0.0-beta.0` |
+| Product                             | Tag format          | Example                                     |
+| ----------------------------------- | ------------------- | ------------------------------------------- |
+| Obsidian (`@zotlit/obsidian`)       | bare semver         | `2.0.0`, `2.1.0-beta.1`                     |
+| Zotero (`@zotlit/zotero`)           | `zt-` prefix        | `zt-2.0.0`, `zt-2.1.0-beta.1`               |
+| Reader (`@zotlit/reader`)           | `reader-` prefix    | `reader-1.0.0`, `reader-1.0.0-beta.0`       |
+| Resource Pack (`@zotlit/resources`) | `resources-` prefix | `resources-1.0.0`, `resources-1.0.0-beta.0` |
 
 Both repositories carry the tags of ZotLit and the Companion. In
 `aidenlx/zotlit-repo` a tag names the commit the release was built from; in
@@ -85,7 +86,9 @@ Both repositories carry the tags of ZotLit and the Companion. In
 (Companion). ZotLit Reader publishes to its own publish repository,
 `aidenlx/zotlit-reader`, and the npm bundle package `@zotlit/reader-plugin`:
 `aidenlx/zotlit-repo` tags `reader-<version>` on the source commit, and
-`aidenlx/zotlit-reader` tags the bare version on the shell commit.
+`aidenlx/zotlit-reader` tags the bare version on the shell commit. The
+Resource Pack does the same with `aidenlx/zotlit-resources`,
+`@zotlit/resources-plugin` and the source tag `resources-<version>`.
 
 ### Version policy
 
@@ -95,6 +98,19 @@ beta cycle starts from it (`2.4.0-beta.0`). A stable hotfix (`2.3.1`) is a
 patch of the latest stable release; `release:publish` refuses any other
 version from a commit that `main` lacks.
 
+The Resource Pack has its own version line, apart from ZotLit's, and its
+version picks its release line as for each product. Its line follows the
+ZotLit release that builds it: a version commit that releases ZotLit and the
+pack takes both versions on one line, a pre-release pack version in a beta of
+ZotLit and a stable pack version in a stable release. `pnpm release` offers
+the pack the bumps of ZotLit's line and refuses versions on two lines. A pack
+released alone ships on the line of its own version.
+
+The compatibility integer of the pack (`PACK_COMPAT` in
+`packages/resource-pack/src/format.ts`) is not a version. It changes only when
+the container format or the meaning of an entry changes; a new version of a
+binary with the same interface keeps it.
+
 ### How to release
 
 ```text
@@ -103,10 +119,13 @@ person          pnpm release ─▶ version commit ─▶ Land Queue ─▶ main
 aidenlx/zotlit-repo  release.yml on the push to main:
                 plan ─▶ verify ─▶ obsidian: npm ─▶ shell commit + tag ─▶ tag here
                                ├▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
-                               └▶ reader:   npm ─▶ shell commit + tag ─▶ reader-<v> here
+                               ├▶ reader:   npm ─▶ shell commit + tag ─▶ reader-<v> here
+                               └▶ resources: npm ─▶ shell commit + tag ─▶ resources-<v> here
                 stable version ─▶ docs: production docs site from the tag
 aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the tag:
                 official Obsidian action ─▶ res-<v> ─▶ publish the release
+aidenlx/zotlit-resources  plugin-release.yml of the shell, on the tag:
+                official Obsidian action ─▶ publish the release
 ```
 
 1. Check out `main` at the tip of `origin/main`, with a clean tree.
@@ -126,6 +145,8 @@ aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the t
    pnpm release --obsidian 2.3.0-beta.0 --zotero 2.3.0-beta.0
    pnpm release --obsidian minor --zotero minor             # a stable release
    pnpm release --reader prerelease                         # the next Reader beta
+   pnpm release --resources prerelease                      # the next Resource Pack beta
+   pnpm release --obsidian prerelease --resources prerelease  # a ZotLit beta with a new pack
    ```
 
    On a failure the script deletes its release branch and returns to `main`.
@@ -148,15 +169,25 @@ aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the t
      version tag in `aidenlx/zotlit-reader`, and the tag `reader-<version>`
      in `aidenlx/zotlit-repo`. A stable Reader release also writes
      `apps/reader/versions.json` in step 2.
+   - **Resource Pack:** the same steps as Obsidian, for `apps/resources`:
+     the npm bundle package `@zotlit/resources-plugin`, the shell commit and
+     the bare version tag in `aidenlx/zotlit-resources`, and the tag
+     `resources-<version>` in `aidenlx/zotlit-repo`. The pack's `main.js`
+     holds its data files at byte offsets, so its build, its npm package and
+     its shell copy the file byte for byte: the shell has no bundler, and the
+     check compares `main.js` alone. A stable pack release also writes
+     `apps/resources/versions.json` in step 2.
    - **Companion:** the XPI on the release `zt-<version>`, the update
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
    - **Docs:** after a stable version, the `docs` job deploys the production
      docs site from the release tag (`docs-deploy.yml`).
 4. The tag starts the shell's own `plugin-release.yml` in the publish
-   repository (`aidenlx/zotlit` or `aidenlx/zotlit-reader`). It runs
+   repository (`aidenlx/zotlit`, `aidenlx/zotlit-reader` or
+   `aidenlx/zotlit-resources`). It runs
    the official Obsidian action (scanner lint, attestation, draft release),
    creates and checks the Resource Release `res-<version>`, and publishes the
-   release (a pre-release for a beta). See
+   release (a pre-release for a beta). The Resource Pack downloads nothing at
+   runtime, so its workflow makes no Resource Release. See
    [docs/CI_SETUP.md](docs/CI_SETUP.md#release-workflow).
 
 `pnpm release:publish <product> --dry-run [--version <v>]` runs the whole
@@ -248,7 +279,11 @@ the lead's machine, logged in to npm as the owner of the scope, while the
 `Release` workflow is disabled. The desktop plugin's first release in this
 flow was `2.3.0-beta.0`. ZotLit Reader's was `1.0.0-beta.0`: product `reader`,
 source tag `reader-1.0.0-beta.0`, publish repository `aidenlx/zotlit-reader`,
-npm bundle package `@zotlit/reader-plugin`, on BRAT.
+npm bundle package `@zotlit/reader-plugin`, on BRAT. The Resource Pack's
+first release is open: product `resources`, source tag
+`resources-1.0.0-beta.0`, publish repository `aidenlx/zotlit-resources`, npm
+bundle package `@zotlit/resources-plugin`. Its `publish` switch is off, and
+its publish repository does not exist yet.
 
 1. Add the plugin to `PUBLISHED_PLUGINS`
    (`packages/scripts/lib/shell/plugins.ts`), its product to `PRODUCTS`

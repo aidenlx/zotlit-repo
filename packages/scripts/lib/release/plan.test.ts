@@ -15,6 +15,16 @@ describe("planProduct", () => {
     ).toMatchObject({ publish: true, tag: "zt-2.3.0" });
   });
 
+  it("tags a Resource Pack version with its own prefix, on its own version line", () => {
+    expect(
+      planProduct({
+        product: "resources",
+        version: "1.0.0-beta.0",
+        tags: new Set(["resources-1.0.0-beta.0"]),
+      }),
+    ).toMatchObject({ publish: false, tag: "resources-1.0.0-beta.0" });
+  });
+
   it("stops once the source repository has the release tag, the last step of a publish", () => {
     expect(
       planProduct({ product: "zotero", version: "2.2.4", tags }),

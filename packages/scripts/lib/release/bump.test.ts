@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bumpOptions, resolveVersionSpec } from "./bump.ts";
+import { bumpOptions, lineConflict, resolveVersionSpec } from "./bump.ts";
 
 const kinds = (current: string) => bumpOptions(current).map(({ kind }) => kind);
 
@@ -39,5 +39,38 @@ describe("resolveVersionSpec", () => {
 
   it("refuses a bump that the current version does not offer", () => {
     expect(resolveVersionSpec("2.3.0-beta.1", "patch")).toBeNull();
+  });
+});
+
+describe("bumpOptions on a line", () => {
+  it("offers the Resource Pack the pre-release bumps alone in a beta release of ZotLit", () => {
+    expect(
+      bumpOptions("1.0.0-beta.0", "beta").map(({ version }) => version),
+    ).toEqual(["1.1.0-beta.0", "2.0.0-beta.0", "1.0.0-beta.1"]);
+  });
+
+  it("offers the stable bumps alone in a stable release of ZotLit", () => {
+    expect(
+      bumpOptions("1.0.0-beta.3", "stable").map(({ version }) => version),
+    ).toEqual(["1.0.0", "1.0.0"]);
+  });
+});
+
+describe("lineConflict", () => {
+  it("refuses a stable pack version in a beta release of ZotLit, and a beta one in a stable release", () => {
+    expect(
+      lineConflict({ obsidian: "2.4.0-beta.1", resources: "1.0.0" }),
+    ).toMatch(/1\.0\.0 .*stable.*2\.4\.0-beta\.1 .*beta/);
+    expect(
+      lineConflict({ obsidian: "2.4.0", resources: "1.0.0-beta.1" }),
+    ).not.toBeNull();
+  });
+
+  it("accepts versions of one line, and a pack released alone", () => {
+    expect(
+      lineConflict({ obsidian: "2.4.0-beta.1", resources: "1.1.0-beta.0" }),
+    ).toBeNull();
+    expect(lineConflict({ resources: "1.0.0" })).toBeNull();
+    expect(lineConflict({ obsidian: "2.4.0" })).toBeNull();
   });
 });

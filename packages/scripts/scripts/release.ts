@@ -1,3 +1,4 @@
+import type { ReleaseLine } from "#release/lines";
 import * as p from "@clack/prompts";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -11,7 +12,13 @@ import { exitUnlessDesktopPaints } from "#desktop-paint";
 import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
-import { bumpOptions, preidOf, resolveVersionSpec } from "#release/bump";
+import {
+  bumpOptions,
+  lineConflict,
+  preidOf,
+  resolveVersionSpec,
+} from "#release/bump";
+import { releaseLine } from "#release/lines";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 /**
@@ -25,8 +32,11 @@ import { PUBLISHED_PLUGINS } from "#shell/plugins";
  *
  * The release gate (`pnpm verify --release`) runs once per release, in a Land
  * Turn, on the tree that is pushed. `--obsidian <bump|version>`,
- * `--zotero <bump|version>` and `--reader <bump|version>` name the apps and
- * versions and run without prompts. On a failure the release branch goes
+ * `--zotero <bump|version>`, `--reader <bump|version>` and
+ * `--resources <bump|version>` name the apps and versions and run without
+ * prompts. The Resource Pack has its own version line, and its release line
+ * follows the ZotLit release that builds it: a release of both takes the pack
+ * on ZotLit's line. On a failure the release branch goes
  * away and the checkout is back on its branch; nothing reached the remote
  * unless the output says so.
  *
@@ -36,7 +46,7 @@ import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 
-type AppName = "obsidian" | "zotero" | "reader";
+type AppName = "obsidian" | "zotero" | "reader" | "resources";
 
 interface AppMeta {
   name: AppName;
@@ -60,6 +70,11 @@ const APPS: Record<AppName, AppMeta> = {
     display: "@zotlit/reader",
     pkgPath: join(workspaceRoot, "apps/reader/package.json"),
   },
+  resources: {
+    name: "resources",
+    display: "@zotlit/resources",
+    pkgPath: join(workspaceRoot, "apps/resources/package.json"),
+  },
 };
 
 interface Bump {
@@ -73,6 +88,7 @@ const { values: flags } = parseArgs({
     obsidian: { type: "string" },
     zotero: { type: "string" },
     reader: { type: "string" },
+    resources: { type: "string" },
   },
 });
 
@@ -81,6 +97,7 @@ const requested: Partial<Record<AppName, string>> = {
   ...(flags.obsidian !== undefined && { obsidian: flags.obsidian }),
   ...(flags.zotero !== undefined && { zotero: flags.zotero }),
   ...(flags.reader !== undefined && { reader: flags.reader }),
+  ...(flags.resources !== undefined && { resources: flags.resources }),
 };
 const interactive = Object.keys(requested).length === 0;
 const git = $({ cwd: workspaceRoot, quiet: true });
@@ -108,13 +125,24 @@ const bumps: Bump[] = [];
 for (const app of targets) {
   const current = (await readPackageJson(app.pkgPath)).version;
   const spec = requested[app.name];
+  // ZotLit comes before the pack in `targets`, so its version is picked.
+  const zotlit = bumps.find((b) => b.app.name === "obsidian")?.next;
+  const line =
+    app.name === "resources" && zotlit !== undefined
+      ? releaseLine(zotlit)
+      : undefined;
   const next =
     spec === undefined
-      ? await pickVersion(app, current)
+      ? await pickVersion(app, current, line)
       : resolveSpec(app, current, spec);
   if (next === null) cancel();
   bumps.push({ app, current, next });
 }
+const conflict = lineConflict({
+  obsidian: bumps.find((b) => b.app.name === "obsidian")?.next,
+  resources: bumps.find((b) => b.app.name === "resources")?.next,
+});
+if (conflict !== null) fail(conflict);
 
 await completeRelease();
 
@@ -139,7 +167,8 @@ async function completeRelease(): Promise<void> {
       stagedPaths.add(app.pkgPath);
     }
     await syncObsidian(bumps, stagedPaths);
-    await syncReader(bumps, stagedPaths);
+    await syncVersions("reader", bumps, stagedPaths);
+    await syncVersions("resources", bumps, stagedPaths);
     s.stop("Versions bumped");
 
     s.start("Refreshing lockfile");
@@ -209,26 +238,29 @@ async function pickApps(): Promise<AppMeta[]> {
       { value: "zotero", label: "Zotero (@zotlit/zotero)" },
       { value: "both", label: "Obsidian and Zotero" },
       { value: "reader", label: "ZotLit Reader (@zotlit/reader)" },
+      { value: "resources", label: "Resource Pack (@zotlit/resources)" },
+      { value: "with-pack", label: "Obsidian and the Resource Pack" },
     ] as const,
   });
   if (p.isCancel(selection)) cancel();
-  return selection === "both"
-    ? [APPS.obsidian, APPS.zotero]
-    : [APPS[selection as AppName]];
+  if (selection === "both") return [APPS.obsidian, APPS.zotero];
+  if (selection === "with-pack") return [APPS.obsidian, APPS.resources];
+  return [APPS[selection]];
 }
 
 /**
  * Interactive semver picker over {@link bumpOptions}, with `custom` as the
- * escape hatch.
+ * escape hatch. With `line`, it offers the bumps onto that release line.
  *
  * @returns the chosen version, or `null` if cancelled.
  */
 async function pickVersion(
   app: AppMeta,
   current: string,
+  line?: ReleaseLine,
 ): Promise<string | null> {
   const options = [
-    ...bumpOptions(current).map(({ kind, version }) => ({
+    ...bumpOptions(current, line).map(({ kind, version }) => ({
       value: version,
       label: `${kind} (${version})`,
     })),
@@ -302,16 +334,21 @@ async function syncObsidian(
   staged.add(versionsPath);
 }
 
-async function syncReader(
+/**
+ * On a stable release of ZotLit Reader or the Resource Pack: the plugin's own
+ * `versions.json`, which the shell generator reads.
+ */
+async function syncVersions(
+  name: "reader" | "resources",
   releases: Bump[],
   staged: Set<string>,
 ): Promise<void> {
-  const reader = releases.find((b) => b.app.name === "reader");
-  if (!reader || prerelease(reader.next) !== null) return;
-  const pkg = await readPackageJson(APPS.reader.pkgPath);
-  pkg.version = reader.next;
+  const release = releases.find((b) => b.app.name === name);
+  if (!release || prerelease(release.next) !== null) return;
+  const pkg = await readPackageJson(APPS[name].pkgPath);
+  pkg.version = release.next;
   const manifest = parseObsidianManifest(pkg);
-  const versionsPath = join(workspaceRoot, PUBLISHED_PLUGINS.reader.versions);
+  const versionsPath = join(workspaceRoot, PUBLISHED_PLUGINS[name].versions);
   const versions = JSON.parse(await readFile(versionsPath, "utf-8")) as Record<
     string,
     string

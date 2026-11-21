@@ -4,13 +4,19 @@ name: Release
 # release tag yet. The version picks the line: a pre-release is a beta, any
 # other version a stable release (ADR 0097). The products publish to the
 # publish repository, aidenlx/zotlit (RELEASE_REPOSITORY in
-# packages/config/repositories.ts):
+# packages/config/repositories.ts); ZotLit Reader and the Resource Pack each
+# publish to their own (PUBLISHED_PLUGINS in
+# packages/scripts/lib/shell/plugins.ts):
 #
 #   obsidian  the npm bundle package, then the shell commit and the version
 #             tag in aidenlx/zotlit, whose own workflow builds and releases
 #             the plugin; then the same tag here
 #   zotero    the zt-<version> release and the rolling update channel in
 #             aidenlx/zotlit; then the same tag here
+#   reader    as obsidian, in aidenlx/zotlit-reader; then reader-<version>
+#             here
+#   resources as obsidian, in aidenlx/zotlit-resources, with main.js copied
+#             byte for byte; then resources-<version> here
 #   docs      after a stable version, the production docs site from its tag
 #             (docs-deploy.yml)
 #
@@ -41,6 +47,7 @@ jobs:
       obsidian: ${{ steps.plan.outputs.obsidian }}
       zotero: ${{ steps.plan.outputs.zotero }}
       reader: ${{ steps.plan.outputs.reader }}
+      resources: ${{ steps.plan.outputs.resources }}
       docs-tag: ${{ steps.plan.outputs.docs-tag }}
     steps:
       - uses: actions/checkout@v7
@@ -57,7 +64,7 @@ jobs:
   # `pnpm release` ran them in its Land Turn.
   verify:
     needs: plan
-    if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true' || needs.plan.outputs.reader == 'true'
+    if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true' || needs.plan.outputs.reader == 'true' || needs.plan.outputs.resources == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -143,11 +150,31 @@ jobs:
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
+  resources:
+    needs: [plan, verify]
+    if: needs.plan.outputs.resources == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Publish
+        run: pnpm release:publish resources
+        env:
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+
   # A stable release deploys the production docs site from its release tag,
   # once every product of the run published. A tag pushed with GITHUB_TOKEN
   # starts no workflow, so this job calls the deploy itself.
   docs:
-    needs: [plan, obsidian, zotero, reader]
+    needs: [plan, obsidian, zotero, reader, resources]
     if: >-
       always() && needs.plan.outputs.docs-tag != '' &&
       !contains(needs.*.result, 'failure') &&

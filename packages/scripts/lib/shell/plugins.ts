@@ -21,7 +21,12 @@ export interface PublishedPlugin {
   readonly readme: string;
   /** Whether the publish repository hosts the docs site's Giscus discussions. */
   readonly giscus: boolean;
-  readonly resources: string;
+  /**
+   * What the plugin downloads at runtime from the Resource Release of its
+   * version, as the release notes name it. A plugin that downloads nothing
+   * has none, and its publish repository makes no Resource Release.
+   */
+  readonly resources?: string;
   readonly changelog?: string;
   readonly budget: PluginBudget;
   readonly allowedRequires: readonly string[];
@@ -116,7 +121,6 @@ export const PUBLISHED_PLUGINS = {
     versions: "apps/resources/versions.json",
     readme: "apps/resources/README.md",
     giscus: false,
-    resources: "none",
     budget: {
       mainJsBytes: 25_800_000,
       stylesCssBytes: 0,

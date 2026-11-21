@@ -2,18 +2,19 @@
 // Proves, before anything is published, that each publish repository's shell
 // builds the plugin this workspace releases:
 //   1. builds the host app; its production build writes the bundle package
-//      into dist/package/ and builds dist/main.js from it,
+//      into dist/package/ and builds dist/main.js from it (a Resource Pack's
+//      build copies it),
 //   2. packs the bundle package with `pnpm pack`,
 //   3. generates the shell into .scratch/shell-check/<plugin>/shell/, locked to that
 //      tarball in place of the registry version,
 //   4. installs the shell from its lockfile and runs its `build` script, as
 //      the official Obsidian release action does,
 //   5. compares the shell's main.js and styles.css with the host app's, byte
-//      for byte,
+//      for byte (a Resource Pack has main.js alone),
 //   6. runs the community scanner's ESLint config on the shell tree from its
 //      root, and the manifest rule on its manifest.json.
 // `pnpm verify --release` runs it after the Obsidian guideline review.
-import type { PublishedPlugin, PublishedPluginName } from "#shell/plugins";
+import type { PublishedPluginName } from "#shell/plugins";
 import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -21,6 +22,7 @@ import { $ } from "zx";
 
 import { getWorkspaceRoot } from "#package-roots";
 import {
+  builtFiles,
   compareBuilds,
   describeBuilds,
   installAndBuild,
@@ -30,12 +32,7 @@ import { BUNDLE_PACKAGE_DIR, PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const { values } = parseArgs({ options: { plugin: { type: "string" } } });
 const names = (
-  values.plugin === undefined
-    ? // A Resource Pack container has no shell build yet.
-      Object.entries<PublishedPlugin>(PUBLISHED_PLUGINS)
-        .filter(([, plugin]) => !plugin.container)
-        .map(([name]) => name)
-    : [values.plugin]
+  values.plugin === undefined ? Object.keys(PUBLISHED_PLUGINS) : [values.plugin]
 ) as PublishedPluginName[];
 for (const name of names) {
   if (!(name in PUBLISHED_PLUGINS)) {
@@ -99,7 +96,11 @@ async function checkShell(name: PublishedPluginName): Promise<boolean> {
   await installAndBuild(shellDir);
 
   console.log("\n▸ Compare with the host app's build");
-  const builds = await compareBuilds(join(appDir, "dist"), shellDir);
+  const builds = await compareBuilds(
+    join(appDir, "dist"),
+    shellDir,
+    builtFiles(plugin),
+  );
   console.log(describeBuilds(builds));
   if (builds.some(({ app, shell }) => app !== shell)) {
     console.error(

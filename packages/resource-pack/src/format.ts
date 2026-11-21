@@ -12,7 +12,11 @@
 
 /**
  * The compatibility integer of the container this code reads and writes. It
- * changes when the container format or the meaning of an entry changes.
+ * changes only when the container format or the meaning of an entry changes:
+ * the index, the encoding of an entry, or what the bytes under an entry name
+ * are to their reader. A new version of a binary with the same interface and
+ * a new version of the pack keep the integer. After a change, a pack and a
+ * reader of two integers report `pack-outdated` or `plugin-outdated`.
  */
 export const PACK_COMPAT = 1;
 

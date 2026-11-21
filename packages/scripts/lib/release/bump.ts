@@ -4,6 +4,9 @@
 // version on the stable line.
 import { inc, prerelease, valid } from "semver";
 
+import { releaseLine } from "./lines.ts";
+import type { ReleaseLine } from "./lines.ts";
+
 export type BumpKind =
   | "patch"
   | "minor"
@@ -31,18 +34,39 @@ const ALL_KINDS: readonly BumpKind[] = [
 /**
  * The bumps offered for `current`, each with the version it makes. With a
  * pre-release current version, `patch` and `prepatch` are left out, since
- * they make versions that do not follow from a pre-release.
+ * they make versions that do not follow from a pre-release. With `line`, the
+ * bumps onto that release line alone.
  */
 export function bumpOptions(
   current: string,
+  line?: ReleaseLine,
 ): { kind: BumpKind; version: string }[] {
   const hidden = new Set<BumpKind>(
     prerelease(current) !== null ? ["patch", "prepatch"] : [],
   );
   return ALL_KINDS.filter((kind) => !hidden.has(kind)).flatMap((kind) => {
     const version = inc(current, kind, preidOf(current));
-    return version ? [{ kind, version }] : [];
+    return version && (line === undefined || releaseLine(version) === line)
+      ? [{ kind, version }]
+      : [];
   });
+}
+
+/**
+ * The Resource Pack's line follows the ZotLit release that builds it: a
+ * version commit that releases both takes both versions on one line. The
+ * message for versions on two lines; null when the lines agree, or when the
+ * commit releases one of the two alone.
+ */
+export function lineConflict(next: {
+  obsidian?: string;
+  resources?: string;
+}): string | null {
+  const { obsidian, resources } = next;
+  if (obsidian === undefined || resources === undefined) return null;
+  const line = releaseLine(obsidian);
+  if (releaseLine(resources) === line) return null;
+  return `The Resource Pack version ${resources} is on the ${releaseLine(resources)} line, and the ZotLit version ${obsidian} is on the ${line} line. A release of both takes the pack on ZotLit's line: give the pack a ${line === "beta" ? "pre-release" : "stable"} version.`;
 }
 
 /**

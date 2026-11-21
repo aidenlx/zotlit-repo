@@ -3,7 +3,7 @@ import type { Product } from "#release/lines";
 // The plan job of release.yml: which products a push to `main` publishes.
 //   node packages/scripts/scripts/release-plan.ts
 // Prints `<product>=true|false` for each product of PRODUCTS (`obsidian`,
-// `zotero`, `reader`) on stdout, for
+// `zotero`, `reader`, `resources`) on stdout, for
 // $GITHUB_OUTPUT, and the reason for each on stderr. It also prints
 // `docs-tag=<tag>`: the release tag of a stable version that this push
 // publishes, from which the production docs site deploys; empty when the push

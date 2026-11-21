@@ -88,4 +88,48 @@ describe("generateShell", () => {
     expect(workflow).not.toContain("zotlit.aidenlx.site");
     await expect(read("giscus.json")).rejects.toThrow();
   });
+
+  it("builds the Resource Pack's shell as a plain copy of the bundle package's main.js", async () => {
+    const { read, json } = await shell("1.0.0-beta.0", "resources");
+    expect(await json("manifest.json")).toMatchObject({
+      id: "zotlit-resources",
+      isDesktopOnly: false,
+      version: "1.0.0-beta.0",
+    });
+    const manifest = await json("package.json");
+    expect(manifest.dependencies).toEqual({
+      "@zotlit/resources-plugin": "1.0.0-beta.0",
+    });
+    // No bundler: a bundler would move the bytes that the pack's index names.
+    expect(manifest.devDependencies).toBeUndefined();
+    expect(manifest.scripts.build).toBe("node scripts/build.mjs");
+    const build = await read("scripts/build.mjs");
+    expect(build).toContain("copyFile");
+    expect(build).not.toContain("vite");
+    expect(await read("pnpm-workspace.yaml")).not.toContain("rolldown");
+    await expect(read("src/main.ts")).rejects.toThrow();
+    await expect(read("tsconfig.json")).rejects.toThrow();
+    expect(await read(".gitignore")).not.toContain("styles.css");
+
+    const readme = await read("README.md");
+    expect(readme).toMatch(/^# ZotLit Resource Pack\n/);
+    expect(readme).toContain("## About this repository");
+    expect(readme).not.toContain("Resource Release");
+    expect(readme).not.toContain("styles.css");
+  });
+
+  it("gives the Resource Pack a release workflow with no Resource Release, on the same Obsidian action", async () => {
+    const pack = await (
+      await shell("1.0.0-beta.0", "resources")
+    ).read(".github/workflows/plugin-release.yml");
+    const reader = await (
+      await shell("1.0.0-beta.0", "reader")
+    ).read(".github/workflows/plugin-release.yml");
+    expect(pack).not.toContain("res-");
+    expect(pack).not.toContain("@@");
+    expect(pack).toContain("gh release edit");
+    const action = /uses: obsidianmd\/obsidian-workflows@\S+/;
+    expect(pack.match(action)?.[0]).toBeDefined();
+    expect(pack.match(action)?.[0]).toBe(reader.match(action)?.[0]);
+  });
 });

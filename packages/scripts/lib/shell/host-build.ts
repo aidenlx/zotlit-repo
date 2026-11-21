@@ -1,10 +1,12 @@
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inc, prerelease } from "semver";
 import type { Plugin } from "vite";
 
 import { writeBundlePackage, writeShellEntry } from "./bundle-package.ts";
 import type { PublishedPlugin } from "./plugins.ts";
+import { BUNDLE_PACKAGE_DIR } from "./plugins.ts";
+import { buildPlugin as copyContainer } from "./templates/scripts/build-container.mjs";
 import { buildPlugin } from "./templates/scripts/build.mjs";
 
 import { DEV_VAULT_CASE_ENV, getDevVaultDir } from "#dev-vault";
@@ -71,6 +73,33 @@ async function buildFromBundlePackage(
     outDir,
     alias: { [plugin.bundlePackage]: join(bundleDir, "main.js") },
   });
+}
+
+/**
+ * The production build of a Resource Pack: writes `main`, the container, into
+ * the bundle package in `<packageRoot>/dist/package/`, completes that package,
+ * and copies its main.js into `dist/` with the publish repository's own build
+ * script. Every step after the pack writer is a plain copy.
+ *
+ * @returns the folder that holds the plugin's main.js, `dist/`.
+ */
+export async function buildContainerFromBundlePackage(
+  host: HostBuild & { readonly main: Uint8Array },
+  packageJson: Parameters<typeof buildFromBundlePackage>[1],
+): Promise<string> {
+  const outDir = join(host.packageRoot, "dist");
+  const bundleDir = join(host.packageRoot, BUNDLE_PACKAGE_DIR);
+  await rm(outDir, { recursive: true, force: true });
+  await mkdir(bundleDir, { recursive: true });
+  await writeFile(join(bundleDir, "main.js"), host.main);
+  await writeBundlePackage({
+    plugin: host.plugin,
+    app: packageJson,
+    dir: bundleDir,
+    workspaceRoot: host.workspaceRoot,
+  });
+  await copyContainer({ main: join(bundleDir, "main.js"), outDir });
+  return outDir;
 }
 
 export function obsidianBuildPlugin({

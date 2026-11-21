@@ -20,9 +20,13 @@ import type { PublishedPlugin, PublishedPluginName } from "./plugins.ts";
 import { parseManifest } from "#obsidian-manifest";
 
 const TEMPLATES = join(import.meta.dirname, "templates");
-/** The template files the shell carries as they are. */
-const STATIC_FILES = ["scripts/build.mjs"];
+const BUILD_SCRIPT = "scripts/build.mjs";
+/** The build script of a Resource Pack's shell, which that shell carries as `BUILD_SCRIPT`. */
+const CONTAINER_BUILD_SCRIPT = "scripts/build-container.mjs";
 const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
+/** The release workflow of a plugin with no Resource Release. */
+const RELEASE_WORKFLOW_NO_RESOURCES =
+  ".github/workflows/plugin-release-container.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
@@ -46,7 +50,7 @@ function installedVersion(name: string, from: string): string {
  * decide the bytes of `main.js`, so the shell pins both.
  */
 export function shellToolchain(): { vite: string; rolldown: string } {
-  const buildScript = join(TEMPLATES, "scripts/build.mjs");
+  const buildScript = join(TEMPLATES, BUILD_SCRIPT);
   const vite = installedVersion("vite", buildScript);
   const vitePackage = createRequire(buildScript).resolve("vite/package.json");
   return { vite, rolldown: installedVersion("rolldown", vitePackage) };
@@ -73,17 +77,28 @@ export function shellReadme(
     /(src|srcset)="assets\//g,
     `$1="${assets}`,
   );
-  const section = `## About this repository
+  const source = `The source code, the
+issue tracker and the development history are in
+[${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}). This tree is
+generated at each release: send changes to the source repository.`;
+  const section = plugin.container
+    ? `## About this repository
+
+This repository publishes ${name}: its releases. Its tree takes the pack from
+the npm package
+[\`${plugin.bundlePackage}\`](https://www.npmjs.com/package/${plugin.bundlePackage})
+at the version that \`package.json\` names: \`pnpm install\`, then
+\`pnpm run build\` copies \`main.js\` from the package, byte for byte. ${source}
+
+`
+    : `## About this repository
 
 This repository publishes ${name}: its releases, and the Resource Releases
 (\`res-<version>\`) that the plugin downloads at runtime. Its tree builds the
 plugin from the npm package
 [\`${plugin.bundlePackage}\`](https://www.npmjs.com/package/${plugin.bundlePackage})
 at the version that \`package.json\` names: \`pnpm install\`, then
-\`pnpm run build\` writes \`main.js\` and \`styles.css\`. The source code, the
-issue tracker and the development history are in
-[${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}). This tree is
-generated at each release: send changes to the source repository.
+\`pnpm run build\` writes \`main.js\` and \`styles.css\`. ${source}
 
 `;
   const footer = resolved.lastIndexOf("\n---\n");
@@ -117,15 +132,14 @@ function releaseWorkflow(template: string, plugin: PublishedPlugin): string {
             "Release notes: ${plugin.changelog}\${{ steps.meta.outputs.version }}")`
     : `notes=${title}`;
   return template
-    .replace("@@RESOURCES@@", plugin.resources)
+    .replace("@@RESOURCES@@", plugin.resources ?? "")
     .replace("@@RELEASE_NOTES@@", notes);
 }
 
-const GITIGNORE = `node_modules/
+const gitignore = (plugin: PublishedPlugin) => `node_modules/
 # Written by \`pnpm run build\`, and uploaded to each release.
 main.js
-styles.css
-`;
+${plugin.container ? "" : "styles.css\n"}`;
 
 /** Writes the shell tree for one plugin version into `outDir`. */
 export async function generateShell(options: ShellOptions): Promise<void> {
@@ -138,7 +152,8 @@ export async function generateShell(options: ShellOptions): Promise<void> {
   const rootPackage = await readJson<{ packageManager: string }>(
     join(workspaceRoot, "package.json"),
   );
-  const toolchain = shellToolchain();
+  // A Resource Pack's shell copies main.js and runs no bundler.
+  const toolchain = plugin.container ? undefined : shellToolchain();
 
   await rm(outDir, { recursive: true, force: true });
   const write = async (path: string, content: string) => {
@@ -179,7 +194,7 @@ export async function generateShell(options: ShellOptions): Promise<void> {
       type: "module",
       scripts: { build: "node scripts/build.mjs" },
       dependencies: { [plugin.bundlePackage]: version },
-      devDependencies: { vite: toolchain.vite },
+      ...(toolchain ? { devDependencies: { vite: toolchain.vite } } : {}),
       packageManager: rootPackage.packageManager,
     }),
   );
@@ -189,30 +204,43 @@ export async function generateShell(options: ShellOptions): Promise<void> {
 # it, so the release-age delay leaves it out.
 minimumReleaseAgeExclude:
   - "${plugin.bundlePackage}"
-
+${
+  toolchain
+    ? `
 # Vite and the Rolldown it runs decide the bytes of main.js. These are the
 # versions ZotLit's own release build runs.
 overrides:
   rolldown: ${toolchain.rolldown}
-`,
+`
+    : ""
+}`,
   );
-  await writeShellEntry(outDir, plugin);
-  await write(".gitignore", GITIGNORE);
+  if (!plugin.container) await writeShellEntry(outDir, plugin);
+  await write(".gitignore", gitignore(plugin));
 
   for (const file of LEGAL_FILES) {
     await copyFile(join(workspaceRoot, file), join(outDir, file));
   }
-  const templates = plugin.giscus
-    ? [...STATIC_FILES, "giscus.json"]
-    : STATIC_FILES;
-  for (const file of templates) {
-    await mkdir(dirname(join(outDir, file)), { recursive: true });
-    await copyFile(join(TEMPLATES, file), join(outDir, file));
+  await mkdir(dirname(join(outDir, BUILD_SCRIPT)), { recursive: true });
+  await copyFile(
+    join(TEMPLATES, plugin.container ? CONTAINER_BUILD_SCRIPT : BUILD_SCRIPT),
+    join(outDir, BUILD_SCRIPT),
+  );
+  if (plugin.giscus) {
+    await copyFile(join(TEMPLATES, "giscus.json"), join(outDir, "giscus.json"));
   }
   await write(
     RELEASE_WORKFLOW,
     releaseWorkflow(
-      await readFile(join(TEMPLATES, RELEASE_WORKFLOW), "utf8"),
+      await readFile(
+        join(
+          TEMPLATES,
+          plugin.resources === undefined
+            ? RELEASE_WORKFLOW_NO_RESOURCES
+            : RELEASE_WORKFLOW,
+        ),
+        "utf8",
+      ),
       plugin,
     ),
   );
@@ -252,9 +280,11 @@ export async function lockShell(
     const { bundlePackage } = PUBLISHED_PLUGINS[options.plugin];
     const workspace = join(outDir, "pnpm-workspace.yaml");
     const text = await readFile(workspace, "utf8");
+    // The override joins the shell's `overrides` block, the last of the file.
+    const block = text.includes("\noverrides:\n") ? "" : "\noverrides:\n";
     await writeFile(
       workspace,
-      `${text}  "${bundlePackage}": "file:${options.bundleTarball}"\n`,
+      `${text}${block}  "${bundlePackage}": "file:${options.bundleTarball}"\n`,
     );
   }
   const { registry } = options;

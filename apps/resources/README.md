@@ -14,4 +14,6 @@ The pack redistributes each data file under its own licence. The licence text is
 - Pandoc engine: [Pandoc](https://github.com/jgm/pandoc) 3.10, GPL-2.0-or-later, as built for WebAssembly by [pandoc-wasm](https://github.com/pandoc/pandoc-wasm). The source code of this version is at <https://github.com/jgm/pandoc/tree/3.10>.
 - Chinese word segmenter: [jieba-wasm](https://github.com/fengkx/jieba-wasm), MIT.
 
+ZotLit and the plugin class of this pack are licensed under AGPL-3.0-or-later; see `LICENSE` and `NOTICE`.
+
 The source code is in [aidenlx/zotlit-repo](https://github.com/aidenlx/zotlit-repo), under `apps/resources`.

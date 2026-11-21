@@ -11,6 +11,7 @@ import type { PublishedPluginName } from "#shell/plugins";
 //   shell       generate the shell; pnpm resolves its lockfile from the registry
 //   check       install the shell from its lockfile in a clean folder, build it,
 //               and compare main.js and styles.css with the host app's build
+//               (main.js alone for the Resource Pack, whose shell copies it)
 //   commit      the shell commit on the line's branch of the publish repository
 //   push        the commit and the version tag, in one atomic push; the tag
 //               starts the publish repository's release workflow. When the
@@ -40,6 +41,7 @@ import type { Registry } from "./registry.ts";
 import { tarballDifferences } from "./tarball.ts";
 
 import {
+  builtFiles,
   compareBuilds,
   describeBuilds,
   installAndBuild,
@@ -179,11 +181,15 @@ export async function publishObsidian(
     buildDir,
     standIn ? { npmrc: scopeRegistryNpmrc(options.plugin, standIn) } : {},
   );
-  const builds = await compareBuilds(join(appDir, "dist"), buildDir);
+  const builds = await compareBuilds(
+    join(appDir, "dist"),
+    buildDir,
+    builtFiles(plugin),
+  );
   say(describeBuilds(builds));
   if (builds.some(({ app, shell }) => app !== shell)) {
     throw new Error(
-      "The shell, installed from the registry, does not build the host app's main.js and styles.css.",
+      `The shell, installed from the registry, does not build the host app's ${builtFiles(plugin).join(" and ")}.`,
     );
   }
 

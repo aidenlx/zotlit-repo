@@ -59,6 +59,14 @@ export const PRODUCTS = {
     plugin: "reader",
     publish: true,
   },
+  // Off until the first release of the Resource Pack, which publishes from
+  // the lead's machine (CONTRIBUTING.md "First release of a new plugin").
+  resources: {
+    app: "apps/resources",
+    tagPrefix: "resources-",
+    plugin: "resources",
+    publish: false,
+  },
 } as const satisfies Record<
   string,
   { app: string; tagPrefix: string; plugin?: string; publish: boolean }
@@ -69,7 +77,8 @@ export type Product = keyof typeof PRODUCTS;
 /**
  * The release tag of a product version in the source repository, on the
  * commit the release was built from: `2.3.0` for ZotLit, `zt-2.3.0` for the
- * Companion, `reader-1.0.0` for ZotLit Reader. A plugin's publish repository
+ * Companion, `reader-1.0.0` for ZotLit Reader, `resources-1.0.0` for the
+ * Resource Pack. A plugin's publish repository
  * tags the bare version, which Obsidian reads as the release name.
  */
 export function releaseTag(product: Product, version: string): string {

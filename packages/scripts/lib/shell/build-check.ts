@@ -8,11 +8,20 @@ import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
-/** The files the shell's build writes and the release uploads. */
-export const BUILT_FILES = ["main.js", "styles.css"] as const;
+import type { PublishedPlugin } from "./plugins.ts";
+
+type BuiltFileName = "main.js" | "styles.css";
+
+/**
+ * The files the shell's build writes and the release uploads. A Resource
+ * Pack has no stylesheet.
+ */
+export function builtFiles(plugin: PublishedPlugin): readonly BuiltFileName[] {
+  return plugin.container ? ["main.js"] : ["main.js", "styles.css"];
+}
 
 export interface BuiltFile {
-  file: (typeof BUILT_FILES)[number];
+  file: BuiltFileName;
   /** sha256 of the host app's file. */
   app: string;
   /** sha256 of the shell's file. */
@@ -43,13 +52,14 @@ const sha256 = async (path: string) =>
     .update(await readFile(path))
     .digest("hex");
 
-/** The hashes of each built file in `appDist` and in `shellDir`. */
+/** The hashes of each of `files` in `appDist` and in `shellDir`. */
 export async function compareBuilds(
   appDist: string,
   shellDir: string,
+  files: readonly BuiltFileName[],
 ): Promise<BuiltFile[]> {
   return Promise.all(
-    BUILT_FILES.map(async (file) => ({
+    files.map(async (file) => ({
       file,
       app: await sha256(join(appDist, file)),
       shell: await sha256(join(shellDir, file)),
