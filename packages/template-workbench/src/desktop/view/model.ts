@@ -18,7 +18,7 @@ import type {
   WorkbenchPanels,
   WorkbenchPreviewSettings,
   WorkbenchViewState,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 // The per-leaf host model of the Template Workbench View: the Workbench view
 // state, the one read of the chosen Item, and the commands one leaf owns, as
 // atoms in the view registry. The reader's choices are the Workbench model's.
@@ -47,16 +47,16 @@ import { readChosenItem } from "./atoms.ts";
 
 import { CITATION_EXAMPLE_IDS, PARTIAL_CONTEXTS } from "#core/render/index.ts";
 import {
+  PartialPreviewFailed,
+  PreviewItemMissing,
+} from "#obsidian/view/errors.ts";
+import {
   savedPanelWidth,
   clampPreviewHeight,
   INITIAL_VIEW,
   TABS,
   patchAt,
-} from "#obsidian/headless-ui/index.tsx";
-import {
-  PartialPreviewFailed,
-  PreviewItemMissing,
-} from "#obsidian/view/errors.ts";
+} from "#obsidian/workbench-ui/index.tsx";
 
 /**
  * The Template Document the leaf holds, as the view last loaded it. Its kind

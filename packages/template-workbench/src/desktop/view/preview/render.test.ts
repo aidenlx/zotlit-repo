@@ -22,7 +22,7 @@ import {
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
 import { emptyRender, SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
-import { annotationSamples } from "#obsidian/headless-ui/index.tsx";
+import { annotationSamples } from "#obsidian/workbench-ui/index.tsx";
 
 /** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";

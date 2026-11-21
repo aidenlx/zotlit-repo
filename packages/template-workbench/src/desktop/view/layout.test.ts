@@ -1,4 +1,4 @@
-import type { WorkbenchModel } from "#obsidian/headless-ui/index.tsx";
+import type { WorkbenchModel } from "#obsidian/workbench-ui/index.tsx";
 // The dedicated workbench window: "Open template workbench" and Customize show
 // the one editor with both side panels in a window of its own.
 import { describe, expect, it } from "@effect/vitest";
@@ -18,7 +18,7 @@ import {
 } from "./view.tsx";
 
 import { EXPLORER_VIEW_TYPE } from "#desktop/data-explorer/view.tsx";
-import { INITIAL_PANELS } from "#obsidian/headless-ui/index.tsx";
+import { INITIAL_PANELS } from "#obsidian/workbench-ui/index.tsx";
 
 type Container = ReturnType<WorkspaceLeaf["getContainer"]>;
 const container = () =>

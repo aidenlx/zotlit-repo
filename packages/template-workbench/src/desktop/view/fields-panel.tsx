@@ -13,7 +13,7 @@ import type {
   TemplateRoot,
   WorkbenchInsertTarget,
   WorkbenchModel,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 // The Fields panel shows the Template Data Explorer's tree over the leaf's own chosen Item, derived from the one read every surface shares.
 import { useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -50,7 +50,7 @@ import { copyToClipboard } from "#obsidian/editor/host.tsx";
 import {
   chooseAnnotation,
   visibleSectionIds,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 
 type FieldsData = Omit<ExplorerLoad, "itemId">;
 

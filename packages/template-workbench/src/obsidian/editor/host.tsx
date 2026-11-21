@@ -3,7 +3,7 @@ import type {
   WorkbenchSuggesterOption,
   WorkbenchInputSuggestionsRequest,
   WorkbenchRunner,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 // Native input suggestions, Markdown lifecycle and editor popups for the shared Template Workbench tree.
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
@@ -34,7 +34,7 @@ import {
 import {
   WorkbenchClipboardError,
   WorkbenchHostError,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 
 class MatchInputSuggest extends AbstractInputSuggest<WorkbenchSuggesterOption> {
   readonly #request: WorkbenchInputSuggestionsRequest;

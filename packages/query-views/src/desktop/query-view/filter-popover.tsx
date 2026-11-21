@@ -37,15 +37,15 @@ import {
   filterVocabulary,
   isDatasetFieldKind,
   NO_MATCH_DATA,
-} from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
+} from "@zotlit/template-workbench/obsidian/workbench-ui/index.tsx";
 import type {
   FilterField,
   FilterValues,
   MatchFilter,
   MatchLook,
-} from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
-import { matchRows } from "@zotlit/template-workbench/obsidian/headless-ui/look.ts";
-import { matchPredicate } from "@zotlit/template-workbench/obsidian/headless-ui/match.look.ts";
+} from "@zotlit/template-workbench/obsidian/workbench-ui/index.tsx";
+import { matchRows } from "@zotlit/template-workbench/obsidian/workbench-ui/look.ts";
+import { matchPredicate } from "@zotlit/template-workbench/obsidian/workbench-ui/match.look.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
 
 import { filterValuesAtom } from "./atoms.ts";

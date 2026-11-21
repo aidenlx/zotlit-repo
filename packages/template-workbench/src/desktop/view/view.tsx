@@ -14,6 +14,7 @@ import type {
   NativeRenderResult,
 } from "#desktop/view/preview/render.ts";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
 import type {
   FieldInsertionContext,
   FieldInsertOptions,
@@ -29,9 +30,8 @@ import type {
   WorkbenchPanels,
   PartialPlaceholderHost,
   ViewSize,
-} from "#obsidian/headless-ui/index.tsx";
-import type { ChooserScope } from "#obsidian/headless-ui/suggester.ts";
-import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
+} from "#obsidian/workbench-ui/index.tsx";
+import type { ChooserScope } from "#obsidian/workbench-ui/suggester.ts";
 import { EditorView } from "@codemirror/view";
 // One file-backed authoring session; TextFileView owns vault updates and saves.
 import { useAtomValue } from "@effect/atom-react";
@@ -179,6 +179,16 @@ import {
 } from "#obsidian/editor/item-choice.ts";
 import { NativeMatchPane } from "#obsidian/editor/match-pane.tsx";
 import {
+  templateDocumentKind,
+  templatePartialName,
+} from "#obsidian/view/document-kind.ts";
+import { fieldsActionHost } from "#obsidian/view/fields-popover.tsx";
+import { createMatchData } from "#obsidian/view/match-data.ts";
+import {
+  readPartialChoice,
+  writePartialChoice,
+} from "#obsidian/view/partial-choice-memory.ts";
+import {
   chooseAnnotation,
   chooseCitation,
   chooseItem,
@@ -198,7 +208,7 @@ import {
   setTab,
   showPreview,
   HELP_PAGES,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 import {
   AnnotationPane,
   diagnosticText,
@@ -221,23 +231,13 @@ import {
   WorkbenchHostProvider,
   SidePanels,
   AnnotationSampleBar,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 import {
   originatingNoteNotice,
   PANEL_HANDLE_WIDTH,
   templateWorkbenchButton,
   selectionHint,
-} from "#obsidian/headless-ui/look.ts";
-import {
-  templateDocumentKind,
-  templatePartialName,
-} from "#obsidian/view/document-kind.ts";
-import { fieldsActionHost } from "#obsidian/view/fields-popover.tsx";
-import { createMatchData } from "#obsidian/view/match-data.ts";
-import {
-  readPartialChoice,
-  writePartialChoice,
-} from "#obsidian/view/partial-choice-memory.ts";
+} from "#obsidian/workbench-ui/look.ts";
 
 // Show problem reads inside the sentence that reports the failure, so
 // it wears link text rather than the native button box; the box, font

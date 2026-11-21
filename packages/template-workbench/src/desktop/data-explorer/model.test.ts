@@ -20,7 +20,7 @@ import {
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
-import { annotationSamples } from "#obsidian/headless-ui/index.tsx";
+import { annotationSamples } from "#obsidian/workbench-ui/index.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 const readCitation = vi.fn<NonNullable<ExplorerReads["readCitation"]>>();

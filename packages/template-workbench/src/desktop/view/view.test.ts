@@ -70,7 +70,7 @@ import {
   renderIdentity,
   SAMPLE_ITEMS,
 } from "#core/render/index.ts";
-import { fieldForm } from "#obsidian/headless-ui/index.tsx";
+import { fieldForm } from "#obsidian/workbench-ui/index.tsx";
 
 /**
  * Every entry of `menu` and of the submenus under it, each before its own

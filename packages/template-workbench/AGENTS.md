@@ -2,7 +2,7 @@
 
 The Template Workbench in Obsidian: the Template Workbench View with its Preview and Fields Panel, the Template Data Explorer, the Template Workbench CLI and its guide, and Customize, which opens a Profile in the view. The desktop plugin composes it. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`, "Templates" and "Agent CLI").
 
-The package holds the Workbench core too (the Profile document, the editor language support and rendering in `core/`, and the component tree in `obsidian/headless-ui/`); [`README.md`](README.md) describes the core's units in detail. It builds on `@zotlit/notes` for the Profiles, the Templates and template data, and fills the notes' `TemplateWorkbenchLauncher` port (`desktop/view/open.ts`). It tests Profile Matches through the notes' `ItemMatchQuery` port, which the host fills. `@zotlit/query-views` imports the core's filter fields, expression language and Match editor for the Query View's Filter and Formula pages; no other package imports this one.
+The package holds the Workbench core too (the Profile document, the editor language support and rendering in `core/`, and the Workbench UI in `obsidian/workbench-ui/`); [`README.md`](README.md) describes the core's units in detail. It builds on `@zotlit/notes` for the Profiles, the Templates and template data, and fills the notes' `TemplateWorkbenchLauncher` port (`desktop/view/open.ts`). It tests Profile Matches through the notes' `ItemMatchQuery` port, which the host fills. `@zotlit/query-views` imports the core's filter fields, expression language and Match editor for the Query View's Filter and Formula pages; no other package imports this one.
 
 ## Units
 
@@ -17,20 +17,20 @@ The Workbench core, host-free, in `core/`:
 
 The Obsidian layer: the component tree and the host and surfaces around it:
 
-- `headless-ui/` — the Workbench component tree: the components with their own `zt:` classes (`look.ts` shares class blocks, `workbench.css` the stylesheet), the Workbench model and the Render Scheduler, the host adapter contract (`host.tsx`), the native menu (`menu.ts`) and chooser (`suggester.ts`), and the Match editor's look hook (`match.look.ts`). Its text comes from the plugin's Message facade (`@zotlit/plugin-messages/messages.ts`).
+- `workbench-ui/` — the Workbench UI: the components with their own `zt:` classes (`look.ts` shares class blocks, `workbench.css` the stylesheet), the Workbench model and the Render Scheduler, the host adapter contract (`host.tsx`), the native menu (`menu.ts`) and chooser (`suggester.ts`), and the Match editor's look hook (`match.look.ts`). Its text comes from the plugin's Message facade (`@zotlit/plugin-messages/messages.ts`).
 - `editor/` — the Obsidian host of the Workbench UI, which the View, the Data Explorer and the host's Query View share: the host (`host.tsx`), the Match pane, the editor extensions, hovers and completion, the Item and Annotation choice, the action runner (`actions.ts`) and the workspace's layout turn (`layout-turn.ts`).
 - `data-explorer/` — the Template Data Explorer, which the View embeds as its Fields Panel.
 - `view/` — the Template Workbench View, its Preview, its Match data, its opens, and the Customize flow (`desktop/view/customize.ts`).
 - `cli/` — the Template Workbench CLI: commands, the contract envelope, checks, inspection and the guide (`desktop/cli/guide.ts`).
 
-A unit's source imports the units listed before it; a test may also read the headless UI's test host.
+A unit's source imports the units listed before it; a test may also read the Workbench UI's test host.
 
 ## Layers
 
 Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`); a layer imports the layers below it: core ← obsidian ← desktop.
 
 - `core/` — host-free: the Workbench core, the contract schemas and vocabulary of the CLI, and the Item choice data.
-- `obsidian/` — loads on Obsidian Mobile: the component tree, the editor unit, the Match data and the citations of the Preview, and the view pieces that read no template data.
+- `obsidian/` — loads on Obsidian Mobile: the Workbench UI, the editor unit, the Match data and the citations of the Preview, and the view pieces that read no template data.
 - `desktop/` — Node and Electron: the CLI, the Data Explorer and the View, which read template data that links files on disk.
 - `__fixtures__/` — test support, one folder or file per unit.
 

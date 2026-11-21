@@ -23,7 +23,7 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { PlacedFault } from "@zotlit/template-workbench/core/language/index.ts";
-import { MatchExpressionInput } from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
+import { MatchExpressionInput } from "@zotlit/template-workbench/obsidian/workbench-ui/index.tsx";
 
 import {
   expressionVocabulary,

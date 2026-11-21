@@ -4,7 +4,7 @@ import type {
   ExplorerPresentation,
   TemplateRoot,
   WorkbenchItemChoice,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 // Per-leaf state for one Template Data Explorer, as atoms in the plugin's view
 // registry: its target and reading state, the pure transitions that change
 // them, and its data load. A new target reads its data again and interrupts a
@@ -42,7 +42,7 @@ import {
 import {
   annotationSamples,
   explorerSectionIds,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];
 

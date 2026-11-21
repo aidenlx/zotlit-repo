@@ -1,6 +1,6 @@
 import type { RenderedProperty, RenderedRange } from "#core/render/index.ts";
-import type { WorkbenchMarkdownProps } from "#obsidian/headless-ui/index.tsx";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
+import type { WorkbenchMarkdownProps } from "#obsidian/workbench-ui/index.tsx";
 import { Effect } from "effect";
 // Obsidian owns Markdown rendering; each output owns and unloads its render children.
 import { Component, MarkdownRenderer } from "obsidian";
@@ -23,7 +23,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { NativeRenderResult } from "./render.ts";
 
-import { PropertyList } from "#obsidian/headless-ui/index.tsx";
+import { PropertyList } from "#obsidian/workbench-ui/index.tsx";
 
 export function NativeMarkdown({
   app,

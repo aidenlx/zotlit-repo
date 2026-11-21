@@ -4,7 +4,7 @@
 // @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
 
 import type { SuggestionSource } from "#core/language/index.ts";
-import type { WorkbenchRunner } from "#obsidian/headless-ui/index.tsx";
+import type { WorkbenchRunner } from "#obsidian/workbench-ui/index.tsx";
 import { isolateHistory } from "@codemirror/commands";
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";

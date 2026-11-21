@@ -37,7 +37,7 @@ import {
   INITIAL_VIEW,
   setAdvanced,
   setTab,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 
 const FIRST = "FIRST234";
 const LATER = "LATER234";

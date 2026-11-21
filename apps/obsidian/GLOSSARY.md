@@ -245,8 +245,8 @@ The one surface of the Template Workbench View that shows the Template Data Expl
 _Avoid_: Fields Picker (the retired list popover of narrow views), Fields column (the retired always-docked layout), Fields sheet (a working name during design), Fields pane, linked explorer, Data Explorer (the standalone view)
 
 **Workbench UI**:
-The headless component layer that the Template Workbench View mounts over the Workbench core: it renders structure and behavior and carries no styling, and its Obsidian host supplies the styling and Obsidian's own popups, menus, and dialogs.
-_Avoid_: shared components (too vague), design system (the hosts own their look), Workbench shell (the host's layout)
+The component layer that the Template Workbench View mounts over the Workbench core: it carries its own look in Obsidian's styling and opens Obsidian's own menus, choosers, and notices, and its Obsidian host supplies rendering, Match data, the clipboard, and the editor popups.
+_Avoid_: headless UI (it carries its look), shared components (too vague), design system (its look serves the Workbench alone), Workbench shell (the host's layout)
 
 **Render Scheduler**:
 The one rule of the Template Workbench View for when a Profile draft is rendered: live rendering starts after a short quiet time once typing stops, Run renders now, Stop pauses live rendering while a render already running finishes, and a result the author has already typed or selected past is dropped.

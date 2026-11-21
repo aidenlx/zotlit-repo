@@ -25,4 +25,4 @@ Reviewer checks:
 - A Scope pushed over an Obsidian `Menu` at once, rather than as a child of the menu, ends up beneath the menu's own.
 - An element handler around a CodeMirror editor that acts on a key without checking `defaultPrevented` handles the key a second time.
 - A change to which layer hears a key that adds unit tests alone, while an E2E path already reaches the surface, leaves the Scope order unproved.
-- Workbench code stays headless ([ADR 0044](../docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md)): it exposes open/close and the commands; the Obsidian adapter pushes the Scope.
+- Workbench UI code uses Obsidian's own primitives ([ADR 0044](../docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md)): it exposes open/close and the commands; the Obsidian host pushes the Scope.

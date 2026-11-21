@@ -1,7 +1,7 @@
 import type {
   DataExplorerProps,
   WorkbenchItemChoice,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 // Presentational root for the Template Data Explorer: db-not-ready, no-item, and tree states.
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useContext } from "react";
@@ -30,12 +30,12 @@ import {
 import {
   DataExplorer,
   visibleSectionIds,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 import {
   templateWorkbenchButton,
   selectionBar,
   selectionHint,
-} from "#obsidian/headless-ui/look.ts";
+} from "#obsidian/workbench-ui/look.ts";
 
 const sidebarBar = selectionBar({ placement: "sidebar" });
 

@@ -17,7 +17,7 @@ import {
 import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles.ts";
 
 import { WorkbenchDocumentController } from "#core/document/index.ts";
-import { workbenchDiagnoses } from "#obsidian/headless-ui/problems.ts";
+import { workbenchDiagnoses } from "#obsidian/workbench-ui/problems.ts";
 
 /** The default Profile with the annotation section printing `zt.citation`. */
 const SAMPLE_WITH_CITATION = ANNOTATION_LIST_PROFILE_SOURCE.replace(

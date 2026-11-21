@@ -65,7 +65,7 @@ export default defineConfig({
         test: { name: "node", include: ["src/**/*.test.ts"] },
       },
       {
-        // The headless UI's component suite, on Preact in a DOM as Obsidian
+        // The Workbench UI's component suite, on Preact in a DOM as Obsidian
         // runs it, with Testing Library's Preact build.
         extends: true,
         resolve: {
@@ -73,7 +73,7 @@ export default defineConfig({
         },
         test: {
           name: "ui",
-          include: ["src/obsidian/headless-ui/**/*.test.tsx"],
+          include: ["src/obsidian/workbench-ui/**/*.test.tsx"],
           environment: "happy-dom",
         },
       },

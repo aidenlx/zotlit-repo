@@ -3,7 +3,7 @@
 The host-free units under `src/core/` that the Template Workbench View, the
 Template Data Explorer and the Query View build on: `document`, `data-tree`,
 `language`, `filter-fields` and `render`, and the component tree
-`src/obsidian/headless-ui/` over them (`AGENTS.md` lists them). Only the
+`src/obsidian/workbench-ui/` over them (`AGENTS.md` lists them). Only the
 component tree reads React, which the plugin bundles as Preact. The units target CodeMirror at the versions Obsidian pins.
 
 What the plugin's other packages share with the Workbench lives with its
@@ -125,7 +125,7 @@ writes — has no such catch.
 
 ## UI
 
-`obsidian/headless-ui/` is the component tree the Obsidian host mounts over one
+`obsidian/workbench-ui/` is the component tree the Obsidian host mounts over one
 Profile document (ADR 0044). Each component marks its parts with `data-part`
 and their state with `data-state`, and wears its own `zt:` utilities, Obsidian's
 classes where the stylesheet below needs them, and Obsidian's icons through
@@ -245,7 +245,7 @@ text helpers call the `workbench_*` messages of
 `runtime.getLocale()` from `@zotlit/plugin-messages/runtime.ts`, as every
 feature package does. Turbo generates the facade before `test`, `typecheck`, and
 `typecheck:test`. The tree stays inside the
-`preact/compat` surface, and its suite under `src/obsidian/headless-ui/` runs in the `ui` Vitest
+`preact/compat` surface, and its suite under `src/obsidian/workbench-ui/` runs in the `ui` Vitest
 project with React aliased to `preact/compat` and Testing Library to its Preact
 build, as Obsidian runs it.
 
@@ -263,7 +263,7 @@ community, where one format keeps reports comparable. A scheduler's
 and versions that only its host knows.
 
 `render/` renders a Profile against an Item Snapshot; the Render Scheduler
-that decides when lives in `headless-ui/`:
+that decides when lives in `obsidian/workbench-ui/`:
 
 - `renderProfile(source, snapshot, options)` — the result set with diagnostics,
   stamped with the source, snapshot, and selected annotation revisions. Options

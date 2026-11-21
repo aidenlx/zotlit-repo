@@ -5,7 +5,10 @@
 import "./preview-panel.css";
 import type { WorkbenchDocumentKind } from "#core/document/index.ts";
 import type { PartialContext, RenderDiagnostic } from "#core/render/index.ts";
-import type { ResultMode, TemplateRoot } from "#obsidian/headless-ui/index.tsx";
+import type {
+  ResultMode,
+  TemplateRoot,
+} from "#obsidian/workbench-ui/index.tsx";
 import { useAtomValue } from "@effect/atom-react";
 import type { ComponentProps } from "react";
 
@@ -27,12 +30,12 @@ import {
   previewFilename,
   ResultBody,
   setPreview,
-} from "#obsidian/headless-ui/index.tsx";
+} from "#obsidian/workbench-ui/index.tsx";
 import {
   paneCover,
   selectionHint,
   templateWorkbenchButton,
-} from "#obsidian/headless-ui/look.ts";
+} from "#obsidian/workbench-ui/look.ts";
 
 /**
  * What the Preview renders for the document kind and root: which result, the

@@ -2,7 +2,7 @@ import type {
   ExplorerHost,
   ExplorerReads,
 } from "#__fixtures__/data-explorer.ts";
-import type { WorkbenchItemChoice } from "#obsidian/headless-ui/index.tsx";
+import type { WorkbenchItemChoice } from "#obsidian/workbench-ui/index.tsx";
 import { Deferred, Effect } from "effect";
 import type { App, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";

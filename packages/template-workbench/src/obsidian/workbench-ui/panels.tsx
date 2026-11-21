@@ -4,13 +4,12 @@ import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-// The side panels around the editor, headless: the pinned Fields Panel docked
-// at the leading edge, the Preview Panel at the trailing edge or under the
-// editor, each a labelled region the reader sizes with its handle, and the
-// Fields Panel in the host's Fields popover while the reader has it open
-// unpinned. The model says which panels show and where they go; the host's
-// theme draws the parts and names the custom properties that carry each
-// drawn size.
+// The side panels around the editor: the pinned Fields Panel docked at the
+// leading edge, the Preview Panel at the trailing edge or under the editor,
+// each a labelled region the reader sizes with its handle, and the Fields
+// Panel in the host's Fields popover while the reader has it open unpinned.
+// The model says which panels show and where they go; each part's classes
+// read its drawn size from a custom property.
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { useUniqueId } from "@zotlit/ui";
 

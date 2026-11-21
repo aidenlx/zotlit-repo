@@ -1,4 +1,4 @@
-import type { WorkbenchSuggesterRequest } from "#obsidian/headless-ui/suggester.ts";
+import type { WorkbenchSuggesterRequest } from "#obsidian/workbench-ui/suggester.ts";
 // @vitest-environment happy-dom
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
@@ -18,8 +18,8 @@ import {
   NO_MATCH_DATA,
   WorkbenchClipboardError,
   WorkbenchHostError,
-} from "#obsidian/headless-ui/index.tsx";
-import { chooseWorkbenchOption } from "#obsidian/headless-ui/suggester.ts";
+} from "#obsidian/workbench-ui/index.tsx";
+import { chooseWorkbenchOption } from "#obsidian/workbench-ui/suggester.ts";
 
 /** How `fiber` ended: its value, or its failure as a rejection. */
 function settled<A, E>(fiber: Fiber.Fiber<A, E>): Promise<A> {

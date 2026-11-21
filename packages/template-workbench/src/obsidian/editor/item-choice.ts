@@ -1,9 +1,9 @@
 import type { AnnotationExample } from "#core/render/index.ts";
-import type { WorkbenchItemChoice } from "#obsidian/headless-ui/index.tsx";
+import type { WorkbenchItemChoice } from "#obsidian/workbench-ui/index.tsx";
 import type {
   ChooserScope,
   WorkbenchSuggesterRequest,
-} from "#obsidian/headless-ui/suggester.ts";
+} from "#obsidian/workbench-ui/suggester.ts";
 // The Item and annotation choosers of the Template Workbench, as Effects on
 // the native chooser: an interrupt closes it, and a dismissal answers `null`.
 import { useAtomValue } from "@effect/atom-react";
@@ -27,8 +27,8 @@ import {
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
-import { annotationOption } from "#obsidian/headless-ui/index.tsx";
-import { chooseWorkbenchOption } from "#obsidian/headless-ui/suggester.ts";
+import { annotationOption } from "#obsidian/workbench-ui/index.tsx";
+import { chooseWorkbenchOption } from "#obsidian/workbench-ui/suggester.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

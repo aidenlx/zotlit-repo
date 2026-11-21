@@ -5,7 +5,7 @@ import { useAtomValue } from "@effect/atom-react";
 
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
-import { MatchPane } from "#obsidian/headless-ui/index.tsx";
+import { MatchPane } from "#obsidian/workbench-ui/index.tsx";
 
 export function NativeMatchPane({
   controller,
