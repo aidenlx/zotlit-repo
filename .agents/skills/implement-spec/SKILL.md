@@ -25,15 +25,23 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Create the worktree with `wt switch --create <branch> --base <integration-branch> --no-cd` (the project's pre-start hook bootstraps it) and name its path in the prompt. Each implementer subagent:
    - confirms its worktree is based on the integration branch before starting, and resets onto it if not;
-   - calls the Skill tool with `tdd` to build the ticket;
+   - calls the Skill tool with `tdd` to build the ticket, and proves it with the tests of its package and of the packages that consume it; the End-to-end Run waits for step 7;
    - adds the ticket’s Fixture Vault page cases (`policies/fixture-pages.md`);
    - merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** completes, run the Standards axis of `code-review` on the ticket's diff (`<integration-branch>...<ticket-branch>`) in a fresh subagent, and send its hard violations back to the implementer. Merge once the axis is clean: merge its work to the integration branch with a **merger subagent**. Then give the ticket its one progress comment and close it, as `docs/agents/issue-tracker.md` describes.
+5. Once an **implementer subagent** completes, review the ticket in rounds, 3 at most. Each round runs the Standards axis of `code-review` in a fresh subagent: round 1 on the ticket's diff (`<integration-branch>...<ticket-branch>`), and each later round with the head that the round before it read as the fixed point, so it reads only the new diff. Send the findings back to the implementer, which fixes the Important ones and gives each finding its outcome (`code-review` → Finding lines). A round with no Important finding left ends the loop. After round 3, a finding that is still open gets the outcome `open point`. Then merge the work to the integration branch with a **merger subagent**, give the ticket its one progress comment with its finding lines and open points, and close it, as `docs/agents/issue-tracker.md` describes.
 
 6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
 
-7. Once all tickets are complete, merge the PR base branch into the integration branch and read the policies and standards that the merge changed. Run the final review and fix round from that merged tip. Call the Skill tool with `code-review` on the integration branch, and call `improve-codebase-architecture` scoped to the integration diff. Confirm each suspected bug in the running app before it counts as a finding; the user picks which architecture candidates to address. Fix all findings in a single **implementer subagent**, each at its **root**: the fix changes the design that let the defect happen — the module that owns the decision, the function every surface should share, the fake that hid it — and a local patch stands only where the root is out of scope and recorded as an open point (`policies/root-fixes.md`).
+7. Once all tickets are complete, merge the PR base branch into the integration branch and read the policies and standards that the merge changed. Run the final review and fix round from that merged tip. Call the Skill tool with `code-review` on the integration branch, and call `improve-codebase-architecture` scoped to the integration diff. Confirm each suspected bug in the running app before it counts as a finding; the user picks which architecture candidates to address. Fix all findings in a single **implementer subagent**, each at its **root**: the fix changes the design that let the defect happen — the module that owns the decision, the function every surface should share, the fake that hid it — and a local patch stands only where the root is out of scope and recorded as an open point (`policies/root-fixes.md`). Review the fixes in rounds as in step 5, 3 at most, each later round on the new diff only. Then run the affected End-to-end Run files once, on the integration tip: the spec's one e2e journey and the files whose cases read the changed code (`packages/e2e/AGENTS.md` names the focused selections).
+
+   Write the record file of the land (`land` → The record file):
+   - **Summary:** what the spec changed for its users.
+   - **Testing:** the suites and commands that ran, with their results.
+   - **Risk** and **How to revert:** what can break for a user, and the commits or steps that undo it.
+   - **Review:** the counts, then every finding line of the ticket rounds and the final round, each with its outcome (`code-review` → Finding lines).
+   - **Open points:** a `- [ ] ` checklist item for each open point, collected from the ticket comments and the final round.
+   - **e2e:** the e2e files that ran, and their result.
 
 8. If a draft PR exists, mark it ready for review. Otherwise, resolve each ticket the way the issue tracker closes work, and report the integration branch. Notify peer sessions that build on the integration branch once, now that it is done.
 

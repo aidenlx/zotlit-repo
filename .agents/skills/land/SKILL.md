@@ -30,6 +30,7 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them.
 
+- Fill the sections as `implement-spec` step 7 describes, also for a land outside a spec. The Review section holds finding lines (`code-review` → Finding lines).
 - Put `Closes #<n>` for each ticket of the change in the Summary. GitHub closes the tickets when the PR shows as merged.
 - The repository is public, so the PR is public: write paths relative to the repository, never local absolute paths or scratch log locations.
 
@@ -62,6 +63,17 @@ The End-to-end Run of the new tip runs detached, in its own checkout, under a De
 ## Releases
 
 `pnpm release` lands the version commit of a release, beta or stable, through the same queue onto `main`, with the release gate; the maintainer runs it. See `CONTRIBUTING.md` "Releasing".
+
+Before a release, the maintainer reads the record PRs merged since the last release tag of the product, and their unchecked open points. Give `--match` the tag pattern of the product from `CONTRIBUTING.md` "Releasing" (`'[0-9]*'`, `'zt-*'`, `'reader-*'`, `'resources-*'`):
+
+```sh
+since=$(git log -1 --format=%cI "$(git describe --tags --abbrev=0 --match '[0-9]*' origin/main)")
+gh pr list --state merged --base main --limit 200 --search "merged:>$since" \
+  --json url,title,body --jq '.[] | select(.body | test("(?m)^## Open points\\r?$"))
+    | "\(.url) \(.title)",
+      (.body | capture("(?ms)^## Open points\\r?\\n(?<s>.*?)(^## |\\z)").s
+        | split("\n")[] | select(test("^\\s*- \\[ \\]")) | "  \(.)")'
+```
 
 ## Commits
 

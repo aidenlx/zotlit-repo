@@ -22,6 +22,8 @@ Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so th
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
+In a later round of a review loop (`implement-spec` step 5), the fixed point is the head that the previous round read, so the round reads only the new diff.
+
 ### 2. Identify the spec source
 
 Look for the originating spec, in this order:
@@ -55,27 +57,55 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Spawn both sub-agents in parallel
+### 4. Spawn the sub-agents in parallel
+
+Each axis has one reviewer. A finding stands on the rule or spec line it cites.
 
 **Standards sub-agent prompt** should include:
 
 - The full diff command and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
-- The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+- The [finding line](#finding-lines) format and its severities, pasted in full.
+- The brief: "Report each finding as one finding line, then cite under it: (a) for a place where the diff violates a documented standard, the standard (file + the rule); (b) for a baseline smell, its name and the hunk. A documented-standard breach can be Important; a baseline smell is always a Nit, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** should include:
 
 - The diff command and commit list.
 - The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+- The [finding line](#finding-lines) format and its severities, pasted in full.
+- The brief: "Report each finding as one finding line: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line under each finding. Under 400 words."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
+**Security sub-agent**, only when the diff touches the risky surface:
+
+- the Zotero connection: `packages/protocol`, and `zotero-local-api`, `local-server` and `zotero-pref` under `packages/plugin-services/src/`;
+- the database: `packages/db`, `packages/zotero-reads`, and `database` under `packages/plugin-services/src/`;
+- the release scripts: `packages/scripts/lib/release`, `packages/scripts/lib/shell`, `.github/workflows/release.yml`;
+- the Companion: `apps/zotero`.
+
+Its prompt holds the diff command, the commit list, the finding line format, and the brief: "Report each way the diff lets untrusted input, a credential, or a published artifact do harm, as one finding line with the axis `Security`, and say how it can be exploited. Under 400 words."
+
 ### 5. Aggregate
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
+Start with the counts: findings per axis, and per severity within each axis. Then present each axis's finding lines under its own `## Standards`, `## Spec` (and `## Security`) heading, in the reviewer's order. Keep the findings of each axis apart, because the axes are deliberately separate (see _Why two axes_).
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
+The record PR is public. A Security finding that stays unfixed goes to a private place, a draft GitHub security advisory or a local note under `.scratch/notes/`, and the record shows only the count of such findings.
+
+## Finding lines
+
+Each finding is one line, and the Review section of the record file (`land` → The record file) holds these lines:
+
+```text
+<severity> · <axis> · <location> · <outcome>
+```
+
+- **Severity:** `Important` (a breach of a documented standard, or a spec requirement that is missing, partial or wrong), `Nit` (a judgement call, such as a baseline smell), or `Pre-existing` (a defect in code the diff did not change).
+- **Axis:** `Standards`, `Spec` or `Security` from this review, `Architecture` from `improve-codebase-architecture` in the final round of `implement-spec`.
+- **Location:** `path:line`, relative to the repository root.
+- **Outcome:** `fixed <sha>`, `waived: <reason>`, or `open point`. A reviewer writes the first three fields; the author who answers the finding writes the outcome.
+
+The Review section starts with the counts: findings per severity, and per outcome.
 
 ## Why two axes
 

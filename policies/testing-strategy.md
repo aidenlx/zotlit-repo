@@ -1,6 +1,6 @@
 # Testing strategy
 
-- **E2E and integration first:** Prove features through real modules and complete user workflows. Extend an existing E2E path when it reaches the behavior.
+- **Integration first, one e2e journey per spec:** Prove features through real modules. Test behavior below the user interface in package integration tests. Each spec has one e2e journey that walks its user workflow through the running app; extend an existing journey when it reaches the workflow.
 - **Unit-test scope:** Use unit tests for syntax, queries, and dense pure logic. List failure modes before writing an isolated test.
 - **Boundary mocks:** Mock only process, network, and OS boundaries. Assert outputs and effects. `zotlit-tests/no-internal-mock` enforces the module boundary.
 - **Behavior:** Test the behavior a file produces. Use fixtures for test data. `zotlit-tests/no-source-text` enforces source, configuration, workflow, and documentation reads.
