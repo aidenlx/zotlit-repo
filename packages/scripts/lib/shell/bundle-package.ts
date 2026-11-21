@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 
 import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
+import { LEGAL_FILES } from "./legal-files.ts";
 import type { PublishedPlugin } from "./plugins.ts";
 
 /** The fields of a host app's package.json the bundle package reads. */
@@ -25,9 +26,6 @@ export async function workspaceLicense(workspaceRoot: string): Promise<string> {
   ) as { license: string };
   return license;
 }
-
-/** The workspace files every bundle package and publish repository carries. */
-export const LEGAL_FILES = ["LICENSE", "NOTICE"] as const;
 
 /** `src/main.ts` of the publish repository: the plugin class, from the bundle package. */
 function shellEntrySource(plugin: PublishedPlugin): string {

@@ -9,19 +9,15 @@ import { $ } from "zx";
 
 import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
-import {
-  LEGAL_FILES,
-  workspaceLicense,
-  writeShellEntry,
-} from "./bundle-package.ts";
+import { workspaceLicense, writeShellEntry } from "./bundle-package.ts";
+import { LEGAL_FILES } from "./legal-files.ts";
 import { PUBLISHED_PLUGINS } from "./plugins.ts";
 import type { PublishedPlugin, PublishedPluginName } from "./plugins.ts";
+import { SHELL_BUILD_SCRIPT, SHELL_RELEASE_WORKFLOW } from "./profiles.ts";
 
 import { parseManifest } from "#obsidian-manifest";
 
 const TEMPLATES = join(import.meta.dirname, "templates");
-const BUILD_SCRIPT = "scripts/build.mjs";
-const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
@@ -45,7 +41,7 @@ function installedVersion(name: string, from: string): string {
  * decide the bytes of `main.js`, so the shell pins both.
  */
 export function shellToolchain(): { vite: string; rolldown: string } {
-  const buildScript = join(TEMPLATES, BUILD_SCRIPT);
+  const buildScript = join(TEMPLATES, SHELL_BUILD_SCRIPT);
   const vite = installedVersion("vite", buildScript);
   const vitePackage = createRequire(buildScript).resolve("vite/package.json");
   return { vite, rolldown: installedVersion("rolldown", vitePackage) };
@@ -203,16 +199,16 @@ overrides:
   for (const file of LEGAL_FILES) {
     await copyFile(join(workspaceRoot, file), join(outDir, file));
   }
-  await mkdir(dirname(join(outDir, BUILD_SCRIPT)), { recursive: true });
+  await mkdir(dirname(join(outDir, SHELL_BUILD_SCRIPT)), { recursive: true });
   await copyFile(
     join(TEMPLATES, profile.templates.buildScript),
-    join(outDir, BUILD_SCRIPT),
+    join(outDir, SHELL_BUILD_SCRIPT),
   );
   if (plugin.giscus) {
     await copyFile(join(TEMPLATES, "giscus.json"), join(outDir, "giscus.json"));
   }
   await write(
-    RELEASE_WORKFLOW,
+    SHELL_RELEASE_WORKFLOW,
     releaseWorkflow(
       await readFile(
         join(TEMPLATES, profile.templates.releaseWorkflow),

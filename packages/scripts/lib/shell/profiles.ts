@@ -1,17 +1,20 @@
+// The kinds of published plugin, a profile each: what a plugin of the kind ships, and how its bundle package, its shell and its bundle check differ.
+
 import type { PackReport } from "#pack-gate";
 
-// The kinds of published plugin, a profile each: what a plugin of the kind
-// ships, and how its bundle package, its shell and its bundle check differ
-// from the other kind's. Each entry of `PUBLISHED_PLUGINS` names its profile,
-// and the scripts read the profile's fields.
 import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 import { parsePackPins } from "@zotlit/resource-pack/pins.ts";
 
-import { LEGAL_FILES } from "./bundle-package.ts";
+import { LEGAL_FILES } from "./legal-files.ts";
 
 import { checkPack } from "#pack-gate";
 
 export type BuiltFileName = "main.js" | "styles.css";
+
+/** The path of the build script in every shell, and of its template for a bundled plugin. */
+export const SHELL_BUILD_SCRIPT = "scripts/build.mjs";
+/** The path of the release workflow in every shell, and of its template for a bundled plugin. */
+export const SHELL_RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface PluginProfile {
   /** The files the shell's build writes and the release uploads. */
@@ -75,8 +78,8 @@ export function bundledPlugin(options: {
     builtFiles: ["main.js", "styles.css"],
     entryModule: true,
     templates: {
-      buildScript: "scripts/build.mjs",
-      releaseWorkflow: ".github/workflows/plugin-release.yml",
+      buildScript: SHELL_BUILD_SCRIPT,
+      releaseWorkflow: SHELL_RELEASE_WORKFLOW,
     },
     workflowValues: { RESOURCES: options.resources },
     bundlePackage: {
