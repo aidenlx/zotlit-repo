@@ -25,6 +25,12 @@ export interface PublishedPlugin {
   readonly changelog?: string;
   readonly budget: PluginBudget;
   readonly allowedRequires: readonly string[];
+  /**
+   * The plugin's `main.js` is a Resource Pack container, which the app's own
+   * build writes and every later step ships byte for byte. Its package.json
+   * pins each Pack Entry under `packEntries`.
+   */
+  readonly container?: true;
 }
 
 export interface PluginBudget {
@@ -102,6 +108,21 @@ export const PUBLISHED_PLUGINS = {
       startupUpdateMs: 50,
     },
     allowedRequires: ["obsidian"],
+  },
+  resources: {
+    app: "apps/resources",
+    bundlePackage: "@zotlit/resources-plugin",
+    repository: "aidenlx/zotlit-resources",
+    versions: "apps/resources/versions.json",
+    readme: "apps/resources/README.md",
+    giscus: false,
+    resources: "none",
+    budget: {
+      mainJsBytes: 3_900_000,
+      stylesCssBytes: 0,
+    },
+    allowedRequires: ["obsidian"],
+    container: true,
   },
 } as const satisfies Record<string, PublishedPlugin>;
 

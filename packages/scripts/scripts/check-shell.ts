@@ -13,7 +13,7 @@
 //   6. runs the community scanner's ESLint config on the shell tree from its
 //      root, and the manifest rule on its manifest.json.
 // `pnpm verify --release` runs it after the Obsidian guideline review.
-import type { PublishedPluginName } from "#shell/plugins";
+import type { PublishedPlugin, PublishedPluginName } from "#shell/plugins";
 import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -30,7 +30,12 @@ import { BUNDLE_PACKAGE_DIR, PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const { values } = parseArgs({ options: { plugin: { type: "string" } } });
 const names = (
-  values.plugin === undefined ? Object.keys(PUBLISHED_PLUGINS) : [values.plugin]
+  values.plugin === undefined
+    ? // A Resource Pack container has no shell build yet.
+      Object.entries<PublishedPlugin>(PUBLISHED_PLUGINS)
+        .filter(([, plugin]) => !plugin.container)
+        .map(([name]) => name)
+    : [values.plugin]
 ) as PublishedPluginName[];
 for (const name of names) {
   if (!(name in PUBLISHED_PLUGINS)) {

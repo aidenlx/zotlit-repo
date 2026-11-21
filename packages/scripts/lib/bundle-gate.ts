@@ -1,7 +1,10 @@
+import type { PackPins } from "#pack-gate";
 import type { PublishedPlugin } from "#shell/plugins";
 import { regex } from "arkregex";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
+
+import { checkPack } from "#pack-gate";
 
 const REQUIRE_CALL = regex(
   "\\brequire\\(\\s*([\"'`])(?<id>[^\"'`]+)\\1\\s*\\)",
@@ -40,10 +43,23 @@ function sizeLine(
 export async function checkBundle(
   name: string,
   plugin: Pick<PublishedPlugin, "budget" | "allowedRequires">,
-  distDir: string,
+  {
+    distDir,
+    packPins,
+  }: {
+    readonly distDir: string;
+    /** The pins of the Pack Entries, when `main.js` is a Resource Pack container. */
+    readonly packPins?: PackPins;
+  },
 ): Promise<BundleReport> {
   const mainJs = await readFile(join(distDir, "main.js"), "utf8");
-  const stylesBytes = (await stat(join(distDir, "styles.css"))).size;
+  // A Resource Pack has no stylesheet.
+  const stylesBytes = packPins
+    ? 0
+    : (await stat(join(distDir, "styles.css"))).size;
+  const pack = packPins
+    ? await checkPack(mainJs, packPins)
+    : { lines: [], failures: [] };
   const sizes = [
     sizeLine("main.js", Buffer.byteLength(mainJs), plugin.budget.mainJsBytes),
     sizeLine("styles.css", stylesBytes, plugin.budget.stylesCssBytes),
@@ -53,12 +69,13 @@ export async function checkBundle(
   );
   return {
     name,
-    lines: sizes.map(({ line }) => line),
+    lines: [...sizes.map(({ line }) => line), ...pack.lines],
     failures: [
       ...sizes.flatMap(({ failure }) => (failure ? [failure] : [])),
       ...unexpected.map(
         (id) => `main.js requires "${id}", which is not in its allowedRequires`,
       ),
+      ...pack.failures,
     ],
   };
 }

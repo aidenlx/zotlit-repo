@@ -1,0 +1,41 @@
+{
+  "name": "@zotlit/resources",
+  "version": "1.0.0-beta.0",
+  "private": true,
+  "description": "Data files for ZotLit: the Chinese word segmenter for item search. ZotLit reads them when the pack is installed.",
+  "author": "AidenLx",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.ts && npm run typecheck",
+    "build:dev": "node scripts/build.ts --mode development",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/resource-pack": "workspace:*",
+    "@zotlit/scripts": "workspace:*",
+    "jieba-wasm": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "authorUrl": "https://github.com/aidenlx",
+  "obsidian": {
+    "id": "zotlit-resources",
+    "name": "ZotLit Resource Pack",
+    "minAppVersion": "1.15.1",
+    "isDesktopOnly": false,
+    "fundingUrl": {
+      "GitHub Sponsor": "https://github.com/sponsors/aidenlx"
+    }
+  },
+  "packEntries": {
+    "chinese-segmenter": {
+      "version": "2.4.0",
+      "sha256": "f285288e12b2fee4966e2f766cb30cc465637d8679af7006269dfa25871adbf5"
+    }
+  }
+}

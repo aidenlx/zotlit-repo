@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import type { PackPins } from "#pack-gate";
+import type { PublishedPlugin } from "#shell/plugins";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
@@ -8,10 +11,17 @@ import { getWorkspaceRoot } from "#package-roots";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-const plugins = Object.entries(PUBLISHED_PLUGINS).map(([name, plugin]) => ({
-  name,
-  plugin,
-}));
+const plugins = Object.entries<PublishedPlugin>(PUBLISHED_PLUGINS).map(
+  ([name, plugin]) => ({ name, plugin }),
+);
+
+/** The pins a Resource Pack's package.json states for its Pack Entries. */
+async function packPins(app: string): Promise<PackPins> {
+  const { packEntries } = JSON.parse(
+    await readFile(join(root, app, "package.json"), "utf8"),
+  ) as { packEntries: PackPins };
+  return packEntries;
+}
 
 await $({
   cwd: root,
@@ -20,11 +30,10 @@ await $({
 
 let failed = false;
 for (const { name, plugin } of plugins) {
-  const report = await checkBundle(
-    name,
-    plugin,
-    join(root, plugin.app, "dist"),
-  );
+  const report = await checkBundle(name, plugin, {
+    distDir: join(root, plugin.app, "dist"),
+    packPins: plugin.container ? await packPins(plugin.app) : undefined,
+  });
   console.log(`${report.name}: ${report.lines.join("; ")}`);
   for (const failure of report.failures) {
     console.error(`  ✖ ${failure}`);

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": ["$TURBO_EXTENDS$", "MIN_APP_VERSION"]
+    },
+    "build:dev": {
+      "cache": false,
+      "env": ["MIN_APP_VERSION", "ZT_VAULT_CASE"]
+    }
+  }
+}

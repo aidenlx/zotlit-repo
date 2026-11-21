@@ -12,11 +12,14 @@ import { getWorkspaceRoot } from "#package-roots";
 import { pluginPackages, reviewedPluginPackages } from "#plugin-packages";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
+/** The hosts that bundle plugin packages; a Resource Pack bundles none. */
+type HostName = Exclude<PublishedPluginName, "resources">;
+
 const HOSTS = {
   desktop: { stylesheet: "src/zt-main.css", reviewTask: "//#review:plugin" },
   reader: { stylesheet: "src/main.css", reviewTask: "//#review:reader" },
 } as const satisfies Record<
-  PublishedPluginName,
+  HostName,
   { stylesheet: string; reviewTask: string }
 >;
 
@@ -26,7 +29,7 @@ const turbo = JSON.parse(readFileSync(join(root, "turbo.json"), "utf8")) as {
 };
 const errors: string[] = [];
 
-for (const name of Object.keys(PUBLISHED_PLUGINS) as PublishedPluginName[]) {
+for (const name of Object.keys(HOSTS) as HostName[]) {
   const host = join(root, PUBLISHED_PLUGINS[name].app);
   const { stylesheet, reviewTask } = HOSTS[name];
   const sourcesOf = (packages: readonly { root: string }[]) =>

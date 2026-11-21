@@ -127,6 +127,13 @@ const config: KnipConfig = {
     "packages/scripts": {
       entry: ["scripts/*.ts"],
     },
+    "packages/resource-pack": {
+      // The Electron renderer suite of apps/resources bundles the cases.
+      entry: ["src/**/*.browser-test.ts"],
+    },
+    "apps/resources": {
+      entry: ["scripts/*.ts"],
+    },
     "packages/e2e": {
       entry: [
         "src/*.e2e.ts",

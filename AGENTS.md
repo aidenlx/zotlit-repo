@@ -6,6 +6,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 
 - `apps/obsidian` — the desktop Obsidian plugin (`@zotlit/obsidian`): a thin host that composes the feature packages on `@zotlit/plugin-shell`.
 - `apps/reader` — ZotLit Reader (`@zotlit/reader`, plugin id `zotlit-reader`), the second Obsidian plugin: a thin host on `@zotlit/plugin-shell` that opens vault PDFs in the ZotLit PDF Reader, with no ZotLit and no Zotero. ZotLit adds its Zotero features to the Reader's view through `@zotlit/reader-api`, and opens PDFs in Obsidian's own PDF view when the Reader is absent.
+- `apps/resources` — the Resource Pack (`@zotlit/resources`, plugin id `zotlit-resources`), the third Obsidian plugin: its `main.js` is a container of Pack Entries (the Chinese Segmenter) that ZotLit reads through `@zotlit/resource-pack`. Its build is a Node script, with no bundler.
 - `apps/zotero` — Zotero-side companion.
 - `apps/docs` — documentation and landing sites.
 - `packages/annotations`, `packages/citations`, `packages/notes`, `packages/template-workbench`, `packages/query-views`, `packages/library-view` — the plugin's features, one package each, in layers (`core/` host-free, `obsidian/` without Node, `desktop/` with Node and Electron) that lint enforces. Each package's `AGENTS.md` names what it owns.
@@ -26,6 +27,7 @@ Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zot
 - `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
 - `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
 - `packages/reader-api`, `packages/reader-feature`, `packages/reader-messages` — the Reader API (the versioned contract between ZotLit Reader and a client plugin, which both plugins build against), the `reader` feature of ZotLit Reader, and the Reader's generated Message facade and Language Packs. See each package's `AGENTS.md`.
+- `packages/resource-pack` — the Resource Pack container: its format, the writer that the pack build runs, and the reader that every host loads (web APIs only, with the pack file as one `ReadRange` capability).
 - `packages/scripts` — the repository's tooling: `verify`, `land`, the Desktop Slot, the Fixture, and the release and shell generator scripts.
 - `packages/shared`, `packages/ui` — app-agnostic utilities and UI components that several packages use.
 - `packages/templates` — Eta-based template rendering.
