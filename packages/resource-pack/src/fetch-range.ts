@@ -46,14 +46,18 @@ async function readUpTo(
   return bytes;
 }
 
-/**
- * A `ReadRange` over the file at `url`.
- *
- * @param fetch the host's `fetch`; a test gives a server's answer.
- */
+export interface FetchRangeOptions {
+  /**
+   * The `fetch` to call; a test gives a server's answer.
+   * @default globalThis.fetch
+   */
+  readonly fetch?: RangeFetch;
+}
+
+/** A `ReadRange` over the file at `url`. */
 export function fetchRange(
   url: string,
-  fetch: RangeFetch = globalThis.fetch,
+  { fetch = globalThis.fetch }: FetchRangeOptions = {},
 ): ReadRange {
   return async (offset, length) => {
     const response = await fetch(url, {

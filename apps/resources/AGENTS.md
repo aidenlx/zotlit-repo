@@ -8,7 +8,7 @@ The container format, its writer and its reader are in `@zotlit/resource-pack` (
 
 - `package.json` — the version and the manifest fields (`obsidian`), and `packEntries`: the pin of each Pack Entry, the version of its upstream package and the SHA-256 of its binary. `pnpm check:bundle` reads the same pins.
 - `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack.
-- `scripts/build.ts` — the build: `main.js` and `manifest.json`.
+- `scripts/build.ts` — the build: `main.js` and `manifest.json`. `node scripts/build.ts --help` has its options.
 - `scripts/container.electron.test.ts` — runs the Pack container cases of `@zotlit/resource-pack` in an Electron renderer.
 - `versions.json`, `README.md` — what the publish repository `aidenlx/zotlit-resources` shows (`PUBLISHED_PLUGINS.resources`, `packages/scripts/lib/shell/plugins.ts`).
 

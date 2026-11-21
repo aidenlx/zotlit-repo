@@ -4,6 +4,7 @@
 import type { PackIndexEntry } from "#format.ts";
 
 import { PACK_COMPAT, PACK_INDEX_BYTES, encodeIndex } from "#format.ts";
+import { sha256Hex } from "#sha256.ts";
 
 /** One binary to pack. */
 export interface PackSource {
@@ -40,13 +41,6 @@ const ENTRY_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const BASE64_CHUNK = 3 * 0x4000;
 
 const encoder = new TextEncoder();
-
-async function sha256Hex(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
-  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-}
 
 function base64(bytes: Uint8Array): string {
   const parts: string[] = [];

@@ -1,8 +1,9 @@
-import type { PackPins } from "#pack-gate";
 import type { PublishedPlugin } from "#shell/plugins";
 import { regex } from "arkregex";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
+
+import type { PackPins } from "@zotlit/resource-pack/pins.ts";
 
 import { checkPack } from "#pack-gate";
 

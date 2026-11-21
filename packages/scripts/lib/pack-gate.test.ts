@@ -8,6 +8,12 @@ import { checkPack } from "./pack-gate.ts";
 const sha256 = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
+/** The pin of `bytes`, as package.json states one. */
+const pin = (bytes: Uint8Array) => ({
+  version: "1.0.0",
+  sha256: sha256(bytes),
+});
+
 const ALPHA = new TextEncoder().encode("\0asm alpha");
 const BETA = new TextEncoder().encode("\0asm beta");
 
@@ -27,8 +33,8 @@ describe("checkPack", () => {
   it("passes a pack whose entries read back as their pins after Obsidian's install", async () => {
     expect(
       await checkPack(await pack(["alpha", ALPHA], ["beta", BETA]), {
-        alpha: { sha256: sha256(ALPHA) },
-        beta: { sha256: sha256(BETA) },
+        alpha: pin(ALPHA),
+        beta: pin(BETA),
       }),
     ).toEqual({
       lines: [
@@ -41,7 +47,7 @@ describe("checkPack", () => {
 
   it("fails an entry whose bytes differ from its pin", async () => {
     const report = await checkPack(await pack(["alpha", BETA]), {
-      alpha: { sha256: sha256(ALPHA) },
+      alpha: pin(ALPHA),
     });
     expect(report.failures).toEqual([
       `Pack Entry "alpha" reads back as ${sha256(BETA)}, and its pin is ${sha256(ALPHA)}`,
@@ -50,8 +56,8 @@ describe("checkPack", () => {
 
   it("fails a pinned entry that the pack does not hold", async () => {
     const report = await checkPack(await pack(["alpha", ALPHA]), {
-      alpha: { sha256: sha256(ALPHA) },
-      beta: { sha256: sha256(BETA) },
+      alpha: pin(ALPHA),
+      beta: pin(BETA),
     });
     expect(report.failures).toEqual([
       'Pack Entry "beta" does not read back: entry-missing',
@@ -62,7 +68,7 @@ describe("checkPack", () => {
     const report = await checkPack(
       await pack(["alpha", ALPHA], ["beta", BETA]),
       {
-        alpha: { sha256: sha256(ALPHA) },
+        alpha: pin(ALPHA),
       },
     );
     expect(report.failures).toEqual(['Pack Entry "beta" has no pin']);
@@ -75,7 +81,7 @@ describe("checkPack", () => {
         "/* Pack Entries",
         "//# sourceMappingURL=data:application/json;base64,e30=\n/* Pack Entries",
       ),
-      { alpha: { sha256: sha256(ALPHA) } },
+      { alpha: pin(ALPHA) },
     );
     expect(report.failures).toEqual([
       'Pack Entry "alpha" does not read back: entry-damaged',
@@ -87,7 +93,7 @@ describe("checkPack", () => {
     const report = await checkPack(
       built.replace("module.exports =", "module.exports )"),
       {
-        alpha: { sha256: sha256(ALPHA) },
+        alpha: pin(ALPHA),
       },
     );
     expect(report.failures).toEqual([

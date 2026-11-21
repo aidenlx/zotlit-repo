@@ -14,13 +14,15 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/yargs": "catalog:",
     "@zotlit/config": "workspace:*",
     "@zotlit/resource-pack": "workspace:*",
     "@zotlit/scripts": "workspace:*",
     "jieba-wasm": "catalog:",
     "oxlint": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yargs": "catalog:"
   },
   "authorUrl": "https://github.com/aidenlx",
   "obsidian": {

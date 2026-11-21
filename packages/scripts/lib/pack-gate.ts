@@ -6,10 +6,8 @@ import { Script } from "node:vm";
 
 import { PACK_INDEX_BYTES, parseIndex } from "@zotlit/resource-pack/format.ts";
 import { applyObsidianInstall } from "@zotlit/resource-pack/obsidian-install.ts";
+import type { PackPins } from "@zotlit/resource-pack/pins.ts";
 import { bytesRange, readPackEntry } from "@zotlit/resource-pack/reader.ts";
-
-/** The pins of a pack's entries, by entry name. */
-export type PackPins = Readonly<Record<string, { readonly sha256: string }>>;
 
 export interface PackReport {
   readonly lines: readonly string[];

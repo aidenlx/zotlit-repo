@@ -4,29 +4,49 @@
 // writes `dist-dev/` and copies it into this worktree's Development Vault.
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { parseArgs } from "node:util";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
+import { parsePackPins } from "@zotlit/resource-pack/pins.ts";
 import { DEV_VAULT_CASE_ENV, getDevVaultDir } from "@zotlit/scripts/dev-vault";
 import { parseManifest } from "@zotlit/scripts/obsidian-manifest";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { deriveDevVersion } from "@zotlit/scripts/shell/host-build";
 
-import type { EntryPins } from "./pack.ts";
 import { buildResourcePack } from "./pack.ts";
 
-const { values } = parseArgs({
-  options: { mode: { type: "string", default: "production" } },
-});
-const isDev = values.mode === "development";
+const OUT_DIR = { production: "dist", development: "dist-dev" } as const;
+
+const options = await yargs(hideBin(process.argv))
+  .usage(
+    "build: the Resource Pack plugin, main.js (the pack container) and manifest.json",
+  )
+  .option("mode", {
+    describe: "the build to write",
+    choices: ["production", "development"] as const,
+    default: "production" as const,
+  })
+  .epilogue(
+    [
+      `production writes ${OUT_DIR.production}/, which pnpm check:bundle reads.`,
+      `development writes ${OUT_DIR.development}/ with a dev version in the manifest, and copies it`,
+      `into this worktree's Development Vault; ${DEV_VAULT_CASE_ENV}=<case> selects a Vault Case vault.`,
+      "Each Pack Entry comes from its installed upstream package and must equal its pin",
+      "in package.json (packEntries): the package version and the SHA-256 of the binary.",
+    ].join("\n"),
+  )
+  .strict()
+  .parse();
+const isDev = options.mode === "development";
 
 const packageRoot = resolve(import.meta.dirname, "..");
-const outDir = join(packageRoot, isDev ? "dist-dev" : "dist");
-const packageJson = JSON.parse(
+const outDir = join(packageRoot, OUT_DIR[options.mode]);
+const packageJson: unknown = JSON.parse(
   await readFile(join(packageRoot, "package.json"), "utf8"),
-) as { packEntries: EntryPins };
+);
 
 const pack = await buildResourcePack({
-  pins: packageJson.packEntries,
+  pins: parsePackPins(packageJson),
   jiebaWasm: join(packageRoot, "node_modules", "jieba-wasm"),
 });
 const manifest = parseManifest(packageJson);

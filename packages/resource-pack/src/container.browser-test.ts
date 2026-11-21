@@ -1,17 +1,22 @@
+import type { RangeFetch } from "#fetch-range.ts";
+import type { ReadRange } from "#reader.ts";
 // The Pack container cases. Each case builds a pack from small fixture entries
 // with the writer, reads it back with the reader, and returns a plain outcome
 // beside the outcome it must give. The Node suite (`container.test.ts`) and the
 // Electron renderer suite (`apps/resources`) run the same cases, so the reader
 // is proven on Node's web APIs and on a browser's real `fetch`, `crypto.subtle`
 // and `DecompressionStream`.
-import type { RangeFetch } from "#fetch-range.ts";
-import type { ReadRange } from "#reader.ts";
+import { regex } from "arkregex";
 
 import { fetchRange } from "#fetch-range.ts";
 import { PACK_INDEX_BYTES, parseIndex } from "#format.ts";
 import { applyObsidianInstall } from "#obsidian-install.ts";
 import { bytesRange, readPackEntry } from "#reader.ts";
+import { sha256Hex } from "#sha256.ts";
 import { writePack } from "#writer.ts";
+
+/** A `Range` header as the capability writes it. */
+const RANGE = regex("^bytes=(?<start>\\d+)-(?<end>\\d+)$");
 
 /** Deterministic bytes that gzip poorly, so an entry spans several stream chunks. */
 function noise(length: number, seed: number): Uint8Array<ArrayBuffer> {
@@ -24,13 +29,6 @@ function noise(length: number, seed: number): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
-  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-}
-
 const ALPHA = new TextEncoder().encode("\0asm alpha ".repeat(40));
 const BETA = noise(300_000, 42);
 
@@ -39,8 +37,8 @@ async function fixturePack(compat?: number): Promise<Uint8Array<ArrayBuffer>> {
     compat,
     notice: "alpha: MIT, https://example.invalid/alpha",
     entries: [
-      { name: "alpha", bytes: ALPHA, sha256: await sha256(ALPHA) },
-      { name: "beta", bytes: BETA, sha256: await sha256(BETA) },
+      { name: "alpha", bytes: ALPHA, sha256: await sha256Hex(ALPHA) },
+      { name: "beta", bytes: BETA, sha256: await sha256Hex(BETA) },
     ],
   });
 }
@@ -76,9 +74,11 @@ async function both(read: ReadRange) {
 
 type Fetch = RangeFetch;
 
-/** The first byte a `Range: bytes=<start>-<end>` header asks for. */
-function rangeStart(init: Parameters<Fetch>[1]): number {
-  return Number(/^bytes=(\d+)-/u.exec(init.headers.Range)?.[1]);
+/** The first and the last byte a `Range` header asks for. */
+function rangeOf(init: Parameters<Fetch>[1]): { start: number; end: number } {
+  const match = RANGE.exec(init.headers.Range);
+  if (!match) throw new Error(`Unexpected Range header ${init.headers.Range}`);
+  return { start: Number(match.groups.start), end: Number(match.groups.end) };
 }
 
 /**
@@ -87,7 +87,7 @@ function rangeStart(init: Parameters<Fetch>[1]): number {
  */
 function toEndOfFile(pack: Uint8Array<ArrayBuffer>): Fetch {
   return async (_url, init) => {
-    const start = rangeStart(init);
+    const { start } = rangeOf(init);
     return new Response(new Blob([pack.subarray(start)]).stream(), {
       status: 206,
       headers: {
@@ -103,11 +103,10 @@ function toEndOfFile(pack: Uint8Array<ArrayBuffer>): Fetch {
  */
 function rangeAs200(pack: Uint8Array<ArrayBuffer>): Fetch {
   return async (_url, init) => {
-    const [, start, end] = /^bytes=(\d+)-(\d+)$/u.exec(init.headers.Range)!;
-    return new Response(
-      new Blob([pack.subarray(Number(start), Number(end) + 1)]).stream(),
-      { status: 200 },
-    );
+    const { start, end } = rangeOf(init);
+    return new Response(new Blob([pack.subarray(start, end + 1)]).stream(), {
+      status: 200,
+    });
   };
 }
 
@@ -150,7 +149,7 @@ export const cases: readonly ContainerCase[] = [
         hashesOfTheNamedRanges: await Promise.all(
           (index?.entries ?? []).map(
             async (entry) =>
-              (await sha256(
+              (await sha256Hex(
                 pack.slice(entry.offset, entry.offset + entry.length),
               )) === entry.sha256,
           ),
@@ -255,7 +254,9 @@ export const cases: readonly ContainerCase[] = [
         ALPHA,
       ),
       serverError: await outcome(
-        fetchRange("pack", async () => new Response(null, { status: 500 })),
+        fetchRange("pack", {
+          fetch: async () => new Response(null, { status: 500 }),
+        }),
         "alpha",
         ALPHA,
       ),
@@ -271,7 +272,9 @@ export const cases: readonly ContainerCase[] = [
     name: "reports a pack file the host does not find as absent",
     run: async () =>
       outcome(
-        fetchRange("pack", async () => new Response(null, { status: 404 })),
+        fetchRange("pack", {
+          fetch: async () => new Response(null, { status: 404 }),
+        }),
         "alpha",
         ALPHA,
       ),
@@ -282,9 +285,11 @@ export const cases: readonly ContainerCase[] = [
     run: async () => {
       const pack = bytesOf(applyObsidianInstall(text(await fixturePack())));
       return {
-        toEndOfFile: await both(fetchRange("pack", toEndOfFile(pack))),
-        fullFile: await both(fetchRange("pack", fullFile(pack))),
-        rangeAs200: await both(fetchRange("pack", rangeAs200(pack))),
+        toEndOfFile: await both(
+          fetchRange("pack", { fetch: toEndOfFile(pack) }),
+        ),
+        fullFile: await both(fetchRange("pack", { fetch: fullFile(pack) })),
+        rangeAs200: await both(fetchRange("pack", { fetch: rangeAs200(pack) })),
       };
     },
     expected: {
@@ -296,12 +301,12 @@ export const cases: readonly ContainerCase[] = [
   {
     name: "reads through the host's own fetch",
     run: async () => {
-      const url = URL.createObjectURL(new Blob([await fixturePack()]));
-      try {
-        return await both(fetchRange(url));
-      } finally {
-        URL.revokeObjectURL(url);
-      }
+      using stack = new DisposableStack();
+      const url = stack.adopt(
+        URL.createObjectURL(new Blob([await fixturePack()])),
+        (objectUrl) => URL.revokeObjectURL(objectUrl),
+      );
+      return await both(fetchRange(url));
     },
     expected: { alpha: "same", beta: "same" },
   },

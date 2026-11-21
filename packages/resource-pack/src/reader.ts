@@ -4,6 +4,7 @@
 import type { PackFailure } from "#format.ts";
 
 import { PACK_COMPAT, PACK_INDEX_BYTES, parseIndex } from "#format.ts";
+import { sha256Hex } from "#sha256.ts";
 
 /**
  * The one capability the reader takes: `length` bytes at `offset` of the pack
@@ -30,15 +31,6 @@ const refused = (failure: PackFailure): PackRead => ({ ok: false, failure });
 
 const detailOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
-
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>),
-  );
-  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-}
 
 /**
  * The binary an entry text holds. The host's own base64 decoder runs through a
@@ -97,7 +89,7 @@ export async function readPackEntry(
     return refused({ kind: "pack-unreadable", detail: detailOf(error) });
   }
   const actual = await sha256Hex(text);
-  if (text.length !== entry.length || actual !== entry.sha256) {
+  if (actual !== entry.sha256) {
     return refused({
       kind: "entry-damaged",
       name,

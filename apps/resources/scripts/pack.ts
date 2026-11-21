@@ -3,21 +3,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import type { PackEntryPin, PackPins } from "@zotlit/resource-pack/pins.ts";
 import type { PackSource } from "@zotlit/resource-pack/writer.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
-
-/** What the build pins a Pack Entry to. */
-export interface EntryPin {
-  /** The version of the upstream package that holds the binary. */
-  readonly version: string;
-  /** Lowercase hex SHA-256 of the binary. */
-  readonly sha256: string;
-}
-
-/** The pins of `packEntries` in package.json, by entry name. */
-export interface EntryPins {
-  readonly "chinese-segmenter": EntryPin;
-}
 
 interface PinnedSource {
   readonly source: PackSource;
@@ -32,11 +20,19 @@ interface PinnedSource {
 const JIEBA_BINARY = "pkg/web/jieba_rs_wasm_bg.wasm";
 const JIEBA_SOURCE = "https://github.com/fengkx/jieba-wasm";
 
+/** @throws when package.json pins no entry `name`. */
+function pinOf(pins: PackPins, name: string): PackEntryPin {
+  const pin = pins[name];
+  if (!pin) throw new Error(`package.json has no pin for "${name}"`);
+  return pin;
+}
+
 async function chineseSegmenter(
-  pin: EntryPin,
+  pins: PackPins,
   packageDir: string,
 ): Promise<PinnedSource> {
   const name = "chinese-segmenter";
+  const pin = pinOf(pins, name);
   const { version } = JSON.parse(
     await readFile(join(packageDir, "package.json"), "utf8"),
   ) as { version: string };
@@ -57,7 +53,8 @@ async function chineseSegmenter(
 }
 
 export interface ResourcePackOptions {
-  readonly pins: EntryPins;
+  /** `packEntries` of package.json. */
+  readonly pins: PackPins;
   /** Root of the installed `jieba-wasm` package. */
   readonly jiebaWasm: string;
 }
@@ -65,18 +62,13 @@ export interface ResourcePackOptions {
 /**
  * The bytes of the pack's `main.js`.
  *
- * @throws when an installed package has another version than its pin, or its
- *   binary another hash.
+ * @throws when an entry has no pin, or when an installed package has another
+ *   version than its pin or its binary another hash.
  */
 export async function buildResourcePack(
   options: ResourcePackOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const sources = [
-    await chineseSegmenter(
-      options.pins["chinese-segmenter"],
-      options.jiebaWasm,
-    ),
-  ];
+  const sources = [await chineseSegmenter(options.pins, options.jiebaWasm)];
   return writePack({
     notice: [
       "The Resource Pack redistributes these binaries under their own licences.",

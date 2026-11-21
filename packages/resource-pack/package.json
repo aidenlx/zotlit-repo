@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
+    "arkregex": "catalog:",
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
