@@ -57,7 +57,10 @@ export const createSharedPartialEffect = Effect.fn(
       const created = yield* createSharedPartial(app, create);
       if (!created) return null;
       if (open !== false)
-        yield* openTemplateWorkbench(created.file, (from ? { from: { leaf: from, place: open } } : {}));
+        yield* openTemplateWorkbench(
+          created.file,
+          from ? { from: { leaf: from, place: open } } : {},
+        );
       return created.name;
     }),
     {
