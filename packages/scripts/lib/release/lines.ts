@@ -59,13 +59,11 @@ export const PRODUCTS = {
     plugin: "reader",
     publish: true,
   },
-  // Off until the first release of the Resource Pack, which publishes from
-  // the lead's machine (CONTRIBUTING.md "First release of a new plugin").
   resources: {
     app: "apps/resources",
     tagPrefix: "resources-",
     plugin: "resources",
-    publish: false,
+    publish: true,
   },
 } as const satisfies Record<
   string,

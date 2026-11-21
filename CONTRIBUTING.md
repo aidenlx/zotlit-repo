@@ -282,8 +282,8 @@ source tag `reader-1.0.0-beta.0`, publish repository `aidenlx/zotlit-reader`,
 npm bundle package `@zotlit/reader-plugin`, on BRAT. The Resource Pack's
 first release is open: product `resources`, source tag
 `resources-1.0.0-beta.0`, publish repository `aidenlx/zotlit-resources`, npm
-bundle package `@zotlit/resources-plugin`. Its `publish` switch is off, and
-its publish repository does not exist yet.
+bundle package `@zotlit/resources-plugin`. Its publish repository exists and
+its `publish` switch is on; the first npm publish (step 3) is open.
 
 1. Add the plugin to `PUBLISHED_PLUGINS`
    (`packages/scripts/lib/shell/plugins.ts`), its product to `PRODUCTS`
