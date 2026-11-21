@@ -13,8 +13,8 @@ import {
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
-import type { PackBinaryStatus } from "./pack-binary.ts";
 import { packNotice } from "./pack-notice.ts";
 
 import { PACK_NOTICE_KEY } from "#core/managed-binary/resource-pack.ts";

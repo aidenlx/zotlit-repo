@@ -1,25 +1,32 @@
-// Where a binary of the Resource Pack stands for the plugin that reads it.
-// The realm that reads the Pack Entry and starts the binary states it; it
-// crosses to another realm as a plain value.
 import type { PackFailure } from "#format.ts";
+// Where a binary of the Resource Pack stands for the plugin that reads it, as one Schema that each realm and each wire format reads.
+import { Schema } from "effect";
 
-/** Where a binary stands. Each arm but `ready` names the one step that mends it. */
-export type PackBinaryStatus =
+/** A status in which the pack gives no binary that runs. Each arm names the one step that mends it. */
+export const PackBinaryRefusalSchema = Schema.Union([
   /** Obsidian lists no Resource Pack: install it. */
-  | { readonly kind: "pack-absent" }
+  Schema.Struct({ kind: Schema.Literal("pack-absent") }),
   /** The pack is older than this plugin reads, or lacks the entry: update the pack. */
-  | { readonly kind: "pack-outdated" }
+  Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
   /** The pack is newer than this plugin reads: update the plugin. */
-  | { readonly kind: "plugin-outdated" }
+  Schema.Struct({ kind: Schema.Literal("plugin-outdated") }),
   /** The pack file is not what its index states: install the pack again. */
-  | { readonly kind: "pack-damaged" }
-  /** The pack of `version` holds the verified binary. */
-  | { readonly kind: "ready"; readonly version: string }
+  Schema.Struct({ kind: Schema.Literal("pack-damaged") }),
   /** The verified binary did not start. */
-  | { readonly kind: "failed"; readonly detail: string };
+  Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
+]);
+export type PackBinaryRefusal = typeof PackBinaryRefusalSchema.Type;
 
-/** A status in which the pack gives no binary that runs. */
-export type PackBinaryRefusal = Exclude<PackBinaryStatus, { kind: "ready" }>;
+/**
+ * Where a binary stands: a refusal, or `ready` with the version of the pack
+ * whose verified binary runs or starts at the next use. The realm that reads
+ * the Pack Entry and starts the binary states it.
+ */
+export const PackBinaryStatusSchema = Schema.Union([
+  ...PackBinaryRefusalSchema.members,
+  Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
+]);
+export type PackBinaryStatus = typeof PackBinaryStatusSchema.Type;
 
 /** The status a refused pack read gives. */
 export function refusalStatus(failure: PackFailure): PackBinaryRefusal {

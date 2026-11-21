@@ -7,8 +7,8 @@ import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
-import type { PackBinaryStatus } from "./pack-binary.ts";
 import {
   openPackStatusPage,
   packReaderId,

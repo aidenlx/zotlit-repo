@@ -28,8 +28,8 @@ import type { AnnotationPositionRaw } from "@zotlit/db";
 import type {
   SearchHit as ItemIndexHit,
   SegmenterBinary as ItemIndexSegmenterBinary,
-  SegmenterStatus as ItemIndexSegmenterStatus,
 } from "@zotlit/item-lookup";
+import { PackBinaryStatusSchema } from "@zotlit/resource-pack/status.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
 import type {
@@ -405,28 +405,6 @@ type _SegmenterBinary = Expect<
   Equals<SegmenterBinary, ItemIndexSegmenterBinary>
 >;
 
-/**
- * Where the Chinese Segmenter stands in the worker: `ready` while the Item
- * Index cuts CJK text with the binary of the pack, and each other arm, with
- * the step that mends it, while it cuts with `Intl.Segmenter`.
- */
-export const SegmenterStatusSchema = Schema.Union([
-  Schema.Struct({
-    kind: Schema.Literals([
-      "pack-absent",
-      "pack-outdated",
-      "plugin-outdated",
-      "pack-damaged",
-    ]),
-  }),
-  Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
-  Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
-]);
-export type SegmenterStatus = typeof SegmenterStatusSchema.Type;
-type _SegmenterStatus = Expect<
-  Equals<SegmenterStatus, ItemIndexSegmenterStatus>
->;
-
 /** Settings that drive the source; `Configure` pushes them. */
 export const ReadsConfigSchema = Schema.Struct({
   databasePath: Schema.String,
@@ -724,13 +702,15 @@ export class ZoteroReads extends RpcGroup.make(
   Rpc.make("Configure", { payload: ReadsConfigSchema }),
   /**
    * Reads the Chinese Segmenter binary `binary` again and answers where the
-   * Segmenter stands in the worker. A binary that the read gives starts when
+   * Segmenter stands in the worker: `ready` while the Item Index cuts CJK
+   * text with the binary, with the version of the pack whose bytes run, and
+   * each other arm while it cuts with `Intl.Segmenter`. A binary that the read gives starts when
    * the Item Index does not cut with it; one that the read refuses stops, as
    * the binary does with `null`, for no installed pack.
    */
   Rpc.make("CheckChineseSegmenter", {
     payload: { binary: Schema.NullOr(SegmenterBinarySchema) },
-    success: SegmenterStatusSchema,
+    success: PackBinaryStatusSchema,
   }),
   /** Answers at once: the renderer's proof that the worker still runs. */
   Rpc.make("Ping", {}),

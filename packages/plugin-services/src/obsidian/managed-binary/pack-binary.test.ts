@@ -4,13 +4,10 @@ import { describe, expect } from "vitest";
 
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
 import { packBinary } from "./__fixtures__.ts";
-import type {
-  PackBinary,
-  PackBinaryApi,
-  PackBinaryStatus,
-} from "./pack-binary.ts";
+import type { PackBinary, PackBinaryApi } from "./pack-binary.ts";
 import { packDevice, packFile } from "./test-utils.ts";
 
 const BINARY = new Uint8Array(new TextEncoder().encode("jieba wasm bytes"));
@@ -384,6 +381,56 @@ describe("a Managed Binary of the Resource Pack", () => {
         expect(first).toEqual([...BINARY]);
         expect([...((yield* service.getEngine)?.bytes ?? [])]).toEqual([
           1, 2, 3,
+        ]);
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "logs an engine that does not release, and starts the next borrow from the pack that is there",
+    () =>
+      Effect.gen(function* () {
+        const logs = yield* Effect.acquireRelease(
+          Effect.sync(() => captureLogRecords()),
+          (captured) => Effect.sync(captured.release),
+        );
+        const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+        const service = yield* packBinary(
+          {
+            ...SEGMENTER,
+            createEngine: (bytes) =>
+              Promise.resolve({
+                bytes,
+                [Symbol.dispose]: () => {
+                  throw new Error("The engine holds a lock");
+                },
+              }),
+          },
+          device,
+        );
+        yield* Effect.scoped(service.getEngine);
+
+        device.install(
+          yield* pack({ "chinese-segmenter": new Uint8Array([1, 2, 3]) }),
+          "1.3.0",
+        );
+        device.announce();
+        yield* nextStatus(service, "ready", "1.3.0");
+
+        expect([
+          ...((yield* Effect.scoped(service.getEngine))?.bytes ?? []),
+        ]).toEqual([1, 2, 3]);
+        expect(
+          logs.records
+            .filter(({ level }) => level === "error")
+            .map(({ rawMessage, properties }) => ({
+              rawMessage,
+              error: (properties["error"] as Error).message,
+            })),
+        ).toEqual([
+          {
+            rawMessage: "Could not release the binary engine",
+            error: "The engine holds a lock",
+          },
         ]);
       }).pipe(Effect.scoped),
   );

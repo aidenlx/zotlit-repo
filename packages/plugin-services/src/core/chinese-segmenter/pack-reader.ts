@@ -11,7 +11,7 @@ import type { ReadSegmenter } from "@zotlit/zotero-reads/worker/segmenter.ts";
 export const readSegmenterOver = (
   open: (url: string) => ReadRange,
 ): ReadSegmenter =>
-  Effect.fn("readSegmenterFromPack")(function* ({ url, entry }) {
+  Effect.fn("readSegmenterOver")(function* ({ url, entry }) {
     // boundary: the pack reader answers each failure as a value.
     const read = yield* Effect.promise(() => readPackEntry(open(url), entry));
     return read.ok ? read.bytes : yield* Effect.fail(read.failure);

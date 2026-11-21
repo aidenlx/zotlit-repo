@@ -771,6 +771,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../../packages/db-testing
+      '@zotlit/resource-pack':
+        specifier: workspace:*
+        version: link:../../packages/resource-pack
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../../packages/scripts
@@ -1203,6 +1206,9 @@ importers:
       '@zotlit/plugin-shell':
         specifier: workspace:*
         version: link:../plugin-shell
+      '@zotlit/resource-pack':
+        specifier: workspace:*
+        version: link:../resource-pack
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
@@ -2715,6 +2721,10 @@ importers:
         version: 7.0.2
 
   packages/resource-pack:
+    dependencies:
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.2
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -3118,6 +3128,9 @@ importers:
       '@zotlit/plugin-kernel':
         specifier: workspace:*
         version: link:../plugin-kernel
+      '@zotlit/resource-pack':
+        specifier: workspace:*
+        version: link:../resource-pack
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared

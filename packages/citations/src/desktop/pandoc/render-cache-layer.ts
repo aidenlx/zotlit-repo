@@ -9,7 +9,6 @@ import type {
   BibliographyRenderState,
   RenderPresentation,
 } from "#obsidian/pandoc/render-cache.ts";
-import type { PandocEngineRefusal } from "#obsidian/pandoc/service.ts";
 import { hashKey } from "@tanstack/query-core";
 import type { QueryFunction } from "@tanstack/query-core";
 import {
@@ -35,6 +34,7 @@ import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { packNotice } from "@zotlit/plugin-services/obsidian/managed-binary/pack-notice.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { PackBinaryRefusal } from "@zotlit/resource-pack/status.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { InstalledStyleCache } from "./styles.ts";
@@ -85,7 +85,7 @@ export const layerBibliographyRender = Layer.effect(
      * A render that gets no engine tells the researcher once which plugin
      * gives it; the render itself answers without the notice.
      */
-    const noticeRefusal = (status: PandocEngineRefusal) =>
+    const noticeRefusal = (status: PackBinaryRefusal) =>
       packNotice(status).pipe(Effect.provide(noticeServices));
     /** The engine for one render; a refused borrow shows the notice. */
     const borrowEngine = Effect.suspend(() => engine.getEngine).pipe(

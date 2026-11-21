@@ -49,11 +49,9 @@ import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts"
 import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
-import type {
-  PackBinaryApi,
-  PackBinaryStatus,
-} from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
+import type { PackBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";

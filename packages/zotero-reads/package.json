@@ -27,6 +27,7 @@
     "@zotlit/obsidian-desktop": "workspace:*",
     "@zotlit/obsidian-kit": "workspace:*",
     "@zotlit/plugin-kernel": "workspace:*",
+    "@zotlit/resource-pack": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

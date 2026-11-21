@@ -4,7 +4,10 @@ import { Cause, Duration, Effect, Layer, RcRef, Schema, Stream } from "effect";
 import type { Context, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-import { refusalStatus } from "@zotlit/resource-pack/status.ts";
+import {
+  PackBinaryRefusalSchema,
+  refusalStatus,
+} from "@zotlit/resource-pack/status.ts";
 import type {
   PackBinaryRefusal,
   PackBinaryStatus,
@@ -13,8 +16,6 @@ import type {
 import { ResourcePackPlatform } from "./pack-platform.ts";
 import { makePackStatus } from "./pack-status.ts";
 import type { PackStatusApi } from "./pack-status.ts";
-
-export type { PackBinaryStatus };
 
 /**
  * A Managed Binary gave no engine: the Resource Pack gave no binary, or the
@@ -28,19 +29,18 @@ export class ManagedBinaryError extends Schema.TaggedError<
   { readonly brand: unique symbol }
 >()("ManagedBinaryError", {
   message: Schema.String,
-  status: Schema.Union([
-    Schema.Struct({ kind: Schema.Literal("pack-absent") }),
-    Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
-    Schema.Struct({ kind: Schema.Literal("plugin-outdated") }),
-    Schema.Struct({ kind: Schema.Literal("pack-damaged") }),
-    Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
-  ]),
+  status: PackBinaryRefusalSchema,
   cause: Schema.optional(Schema.Defect()),
 }) {}
-/** The error's status is each refusal, and no other status. */
-type _Status = Expect<Equals<ManagedBinaryError["status"], PackBinaryRefusal>>;
-type Expect<T extends true> = T;
-type Equals<A, B> = [A, B] extends [B, A] ? true : false;
+
+/** An engine did not release. The layer logs it; no borrower sees it. */
+class EngineReleaseError extends Schema.TaggedError<
+  EngineReleaseError,
+  { readonly brand: unique symbol }
+>()("EngineReleaseError", {
+  message: Schema.String,
+  cause: Schema.Defect(),
+}) {}
 
 /** What a start of the engine threw, as the refusal `failed` with its message. */
 function startError(cause: unknown): ManagedBinaryError {
@@ -190,11 +190,17 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
         ),
       ),
       (engine) =>
-        // A release that throws is a defect, which the log below takes.
-        Effect.promise(async () => {
-          if (Symbol.asyncDispose in engine)
-            await engine[Symbol.asyncDispose]();
-          else engine[Symbol.dispose]();
+        Effect.tryPromise({
+          try: async () => {
+            if (Symbol.asyncDispose in engine)
+              await engine[Symbol.asyncDispose]();
+            else engine[Symbol.dispose]();
+          },
+          catch: (cause) =>
+            new EngineReleaseError({
+              message: Error.isError(cause) ? cause.message : String(cause),
+              cause,
+            }),
         }).pipe(
           Effect.catchCause((cause) =>
             log(

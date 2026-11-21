@@ -7,11 +7,11 @@ import type {
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { PackBinaryStatus } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import {
   openPackStatusPage,
   packStatusSentence,
 } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
 /**
  * The engine is the one prerequisite the command cannot supply itself: the

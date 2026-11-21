@@ -12,8 +12,8 @@ import type { Setting, SettingDefinition } from "obsidian";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
-import type { PackBinaryStatus } from "./pack-binary.ts";
 import { openResourcePackPage } from "./pack-platform.ts";
 import type { PackStatusApi } from "./pack-status.ts";
 

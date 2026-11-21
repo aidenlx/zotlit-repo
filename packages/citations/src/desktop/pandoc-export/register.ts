@@ -2,7 +2,6 @@ import type { CslStyleRequest } from "#core/pandoc/csl-style.ts";
 import type { BibliographyItemRef } from "#desktop/pandoc/bibliography.ts";
 import type { ExportPorts } from "#desktop/pandoc/export.ts";
 import type { CitationEngine } from "#obsidian/pandoc/engine.ts";
-import type { PandocEngineRefusal } from "#obsidian/pandoc/service.ts";
 import { Cause, Effect, FileSystem, Schema } from "effect";
 import type { Context } from "effect";
 // Registers the built-in export command and drives one export end to end:
@@ -25,6 +24,7 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import { packReaderId } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { PackBinaryRefusal } from "@zotlit/resource-pack/status.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
@@ -161,7 +161,7 @@ export function runPandocExport(
 
 /** How one export ended. */
 export type PandocExportOutcome =
-  | { kind: "engine-missing"; status: PandocEngineRefusal }
+  | { kind: "engine-missing"; status: PackBinaryRefusal }
   | { kind: "failed"; problem: ExportProblem }
   /** The user dismissed the dialog, or the plugin unloaded during the run. */
   | { kind: "stopped" }

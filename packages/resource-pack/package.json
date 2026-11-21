@@ -18,6 +18,9 @@
     "lint": "oxlint",
     "test": "vitest run"
   },
+  "dependencies": {
+    "effect": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
