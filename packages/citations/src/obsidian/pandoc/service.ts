@@ -1,43 +1,38 @@
-// The Pandoc engine as a Managed Binary: the pinned `pandoc.wasm` inside the official release archive.
+// The Pandoc engine as a Managed Binary: the `pandoc.wasm` of the Resource Pack.
 
 import { Context } from "effect";
-import { unzipSync } from "fflate";
 
-import { layerManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import { layerPackBinary } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import type {
-  ManagedBinary,
-  ManagedBinaryApi,
-  ManagedBinaryFailure,
-  ManagedBinaryStatus,
-} from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+  PackBinary,
+  PackBinaryApi,
+  PackBinaryStatus,
+} from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 
 import { createCitationEngine } from "./engine.ts";
 import type { CitationEngine } from "./engine.ts";
 
-import { PINNED_PANDOC_ENGINE } from "#core/pandoc/pinned-engine.ts";
+/**
+ * Where the Pandoc engine stands; `null` while the installed Resource Pack is
+ * unread, which the first render or export ends.
+ */
+export type PandocEngineStatus = PackBinaryStatus | null;
 
-/** Name the official WASM asset carries the binary under, inside its archive. */
-const BINARY_ENTRY = "pandoc.wasm";
+/** A render or an export asks for the engine in this status. */
+export const engineUsable = (status: PandocEngineStatus): boolean =>
+  status === null || status.kind === "ready";
 
-/** Why the engine is unusable, in the terms the fallback surface guides out of. */
-export type PandocEngineFailure = ManagedBinaryFailure;
-
-/** Where the Pandoc engine stands. */
-export type PandocEngineStatus = ManagedBinaryStatus;
-
-/** The Pandoc engine's declaration; its cache is `zotlit/pandoc-engine`. */
-export const PANDOC_ENGINE: ManagedBinary<CitationEngine> = {
+/** The Pandoc engine's declaration; its Pack Entry is `pandoc-engine`. */
+export const PANDOC_ENGINE: PackBinary<CitationEngine> = {
   id: "pandoc-engine",
   label: "Pandoc engine",
   logCategory: ["pandoc", "engine"],
-  pin: PINNED_PANDOC_ENGINE,
-  extract: extractBinary,
   createEngine: createCitationEngine,
 };
 
 export class PandocEngine extends Context.Service<
   PandocEngine,
-  ManagedBinaryApi<CitationEngine>
+  PackBinaryApi<CitationEngine>
 >()("zotlit/pandoc/PandocEngine") {}
 
 declare module "@zotlit/obsidian-kit/view-atoms.ts" {
@@ -46,21 +41,4 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-export const layerPandocEngine = layerManagedBinary(
-  PandocEngine,
-  PANDOC_ENGINE,
-);
-
-/** The official asset nests the binary under a release-named directory. */
-function extractBinary(
-  archive: Uint8Array<ArrayBuffer>,
-): Uint8Array<ArrayBuffer> {
-  const entries = unzipSync(archive, {
-    filter: (file) => file.name.split("/").at(-1) === BINARY_ENTRY,
-  });
-  const [binary] = Object.values(entries);
-  if (!binary) {
-    throw new Error(`The downloaded asset carries no ${BINARY_ENTRY} entry`);
-  }
-  return binary;
-}
+export const layerPandocEngine = layerPackBinary(PandocEngine, PANDOC_ENGINE);

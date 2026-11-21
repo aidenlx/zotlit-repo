@@ -4,14 +4,13 @@
 // desktop feature (`#desktop/feature.ts`) extends it with the bibliography
 // render, the popovers, the References view, Pandoc export and the Citation
 // Presentation.
-import { Effect, Stream } from "effect";
 import { Layer } from "effect";
 
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
-import { layerManagedBinaryPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
@@ -62,7 +61,7 @@ export const citations = defineFeature({
     serviceGroup(
       "PandocEngine",
       { provides: [PandocEngine] },
-      layerPandocEngine.pipe(Layer.provide(layerManagedBinaryPlatform)),
+      layerPandocEngine.pipe(Layer.provide(layerResourcePackPlatform)),
     ),
     serviceGroup(
       "CitationLookup",
@@ -150,9 +149,6 @@ export const citations = defineFeature({
     slots: {
       [advancedPageSlots.recovery]: (ctx) => [citationIndexResetItem(ctx)],
     },
-    rebuild: [
-      Effect.map(PandocEngine, (engine) => Stream.drop(engine.changes, 1)),
-    ],
   },
   handles: ({ bridge, read }) => {
     const citationLookup = read(CitationLookup);

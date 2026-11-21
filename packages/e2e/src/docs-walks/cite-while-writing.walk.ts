@@ -19,13 +19,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import {
-  closeWelcome,
-  openDocsWalk,
-  readNotices,
-  recordRequested,
-  watchNotices,
-} from "./docs-walk.ts";
+import { closeWelcome, openDocsWalk, watchNotices } from "./docs-walk.ts";
 import type { DocsWalk } from "./docs-walk.ts";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
@@ -104,31 +98,14 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
     await walk?.[Symbol.asyncDispose]();
   });
 
-  it("step 1: in Settings, ZotLit, Citations, select Install at Pandoc engine; Pandoc … is installed", async () => {
-    // The clip shows the install from the start: the engine is removed from
-    // this computer first, and the reader's Install puts it back.
-    const recording = recordRequested("step-1");
-    const removed = recording
-      ? await obRun(walk.vaultId, async ({ zotlit }) => {
-          const h = zotlit.services.pandocEngine;
-          await h.runPromise(h.binary.uninstall);
-          const s = await h.runPromise(h.binary.getStatus);
-          return s.kind;
-        })
-      : null;
-    expect(removed).toBe(recording ? "absent" : null);
-    const before = await obRun(walk.vaultId, async ({ zotlit }) => {
-      const h = zotlit.services.pandocEngine;
-      const s = await h.runPromise(h.binary.getStatus);
-      return s.kind;
-    });
+  it("step 1: in Settings, ZotLit, Citations, the Pandoc engine is ready from the Resource Pack", async () => {
+    // OUTLINE-MISMATCH: the lesson says to select Install. The engine now
+    // comes with the ZotLit Resource Pack plugin, which the walk's vault holds
+    // installed, so the row shows the pack's status and no Install.
     const row = await walk.record("step-1", () =>
       obRun(
         walk.vaultId,
-        async (
-          { app, page },
-          { citationsName, engineName, install, installingStatus, uninstall },
-        ) => {
+        async ({ app, page }, { citationsName, engineName }) => {
           const pointer = page.scratch.docsWalkPointer;
           app.vault.setConfig("settingsPopoutWindow", false);
           app.setting.open();
@@ -168,67 +145,30 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
             const b = row.getBoundingClientRect();
             await pointer?.park(b.right - 40, b.bottom + 30);
           };
-          const buttons = [...row.querySelectorAll("button")].map(
-            (b) => b.textContent,
-          );
-          // The engine is installed once per computer: an earlier run on this
-          // computer leaves it installed, and the row offers Uninstall instead.
-          const press = [...row.querySelectorAll<HTMLElement>("button")].find(
-            (b) => b.textContent === install,
-          );
-          let installing = false;
-          if (press) {
-            // The reader reads "Not installed" before pressing Install.
-            if (pointer) await new Promise((r) => setTimeout(r, 1000));
-            await pointer?.point(press);
-            page.press(press, "Install");
-            // The row re-renders as the status moves: it shows the download,
-            // then the installed engine and its Uninstall.
-            await page.until(
-              "installing state",
-              () =>
-                named(engineName)
-                  ?.querySelector(".setting-item-description")
-                  ?.textContent.includes(installingStatus),
-              5000,
-            );
-            installing = true;
-            await rest();
-            await page.until(
-              "installed state",
-              () =>
-                [...(named(engineName)?.querySelectorAll("button") ?? [])].some(
-                  (b) => b.textContent === uninstall,
-                ),
-              300000,
-            );
-          } else await rest();
+          await rest();
           // The step ends on the row, where the status appears.
           await pointer?.look(named(engineName) ?? row);
-          return { buttons, pressed: !!press, installing };
+          return {
+            buttons: [...row.querySelectorAll("button")].map(
+              (b) => b.textContent,
+            ),
+          };
         },
         {
           citationsName: m.settings_page_citations(),
           engineName: m.settings_citation_engine_name(),
-          install: m.settings_citation_engine_install(),
-          installingStatus: m.settings_citation_engine_status_installing(),
-          uninstall: m.settings_citation_engine_uninstall(),
         },
-        // A real download can take minutes.
-        { timeoutMs: 330000 },
       ),
     );
-    // A recorded step starts from the removed engine and shows its install.
-    expect(!recording || (row.pressed && row.installing)).toBe(true);
     const version = await obRunUntil(
       walk.vaultId,
       async ({ zotlit }) => {
         const h = zotlit.services.pandocEngine;
-        const s = await h.runPromise(h.binary.getStatus);
-        return s.kind === "installed" ? s.version : null;
+        const s = await h.runPromise(h.binary.check);
+        return s.kind === "ready" ? s.version : null;
       },
       undefined,
-      { what: "the engine installed", ready: (v) => v !== null, tries: 300 },
+      { what: "the engine ready", ready: (v) => v !== null },
     );
     const desc = await obRunUntil(
       walk.vaultId,
@@ -245,25 +185,19 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
       },
       { engineName: m.settings_citation_engine_name() },
       {
-        what: "the installed status",
+        what: "the ready status",
         ready: (d) =>
           d.includes(
-            m.settings_citation_engine_status_installed({ version: version! }),
+            m.settings_resource_pack_status_ready({ version: version! }),
           ),
       },
     );
-    console.log("[walk] engine", JSON.stringify({ before, row, version }));
+    console.log("[walk] engine", JSON.stringify({ row, version }));
     expect(desc).toContain(
-      m.settings_citation_engine_status_installed({ version: version! }),
+      m.settings_resource_pack_status_ready({ version: version! }),
     );
     expect(desc).toContain(m.settings_citation_engine_desc());
-    // Pressed, Install ends in its notice; an engine installed before offers Uninstall.
-    const notices = await readNotices(walk.vaultId);
-    expect(
-      row.pressed
-        ? notices.includes(m.notice_pandoc_engine_installed())
-        : row.buttons.includes(m.settings_citation_engine_uninstall()),
-    ).toBe(true);
+    expect(row.buttons).toEqual([m.settings_resource_pack_open()]);
     await walk.capture("step-1");
     await walk.compose("step-1");
     await obRun(walk.vaultId, ({ app }) => {

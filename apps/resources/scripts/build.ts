@@ -48,6 +48,7 @@ const packageJson: unknown = JSON.parse(
 const pack = await buildResourcePack({
   pins: parsePackPins(packageJson),
   jiebaWasm: join(packageRoot, "node_modules", "jieba-wasm"),
+  pandocWasm: join(packageRoot, "node_modules", "pandoc-wasm"),
 });
 const manifest = parseManifest(packageJson);
 if (isDev) manifest.version = deriveDevVersion(manifest.version);

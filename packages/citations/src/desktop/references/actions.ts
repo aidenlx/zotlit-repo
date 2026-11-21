@@ -47,12 +47,12 @@ export interface ReferenceActions {
    * straight away; several offer a menu at the click.
    */
   onOpenAttachment: (source: ReferenceSource, event: MouseEvent) => void;
-  /** Open the settings page the engine install lives on. */
+  /** Reveal the Pandoc engine row in settings, which states why the engine is unavailable. */
   onOpenEngineSettings: () => void;
   /** Reveal the Citation and References Style row in settings. */
   onChangeStyle: () => void;
   onSwitchProfile: (path: string) => void;
-  /** Dismiss the install hint for good. */
+  /** Close the hint that offers the Resource Pack. */
   onDismissEngineHint: () => void;
   /**
    * Put the offered bibliography on the clipboard as a Copied Bibliography.

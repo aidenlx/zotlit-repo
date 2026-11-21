@@ -246,7 +246,7 @@ export async function createRenderFixture(options: { existing?: string; javascri
       ),
     },
     bibliographyRender: { changed: Stream.empty, settled: Stream.empty, invalidated: Stream.empty, "style-missing": Stream.empty, renderCitations, readCitations, readBibliography: async (..._args: Parameters<PreviewHostDeps["bibliographyRender"]["readBibliography"]>) => null, vaultPresentation: { styleId: null, locale: null } },
-    pandocEngine: { status: ((): PandocEngineStatus => ({ kind: "absent" }))() },
+    pandocEngine: { status: ((): PandocEngineStatus => ({ kind: "pack-absent" }))() },
     openCitationEngineSettings: vi.fn<() => void>(),
   } satisfies PreviewHostDeps;
   const cancelled: number[] = [];
@@ -272,7 +272,7 @@ export async function createRenderFixture(options: { existing?: string; javascri
     Layer.mock(Profile, { resolveProfile: (selector) => Effect.suspend(() => deps.profile.resolveProfile(selector)), getBuiltInSource: Effect.suspend(() => deps.profile.getBuiltInSource), changes: Stream.unwrap(Effect.suspend(() => Effect.map(deps.profile.profiles, (profiles) => Stream.make({ loaded: true, profiles, diagnostics: [], defaultDocumentPath: "", templateStatus: templates.bridge.runSync(templates.status) })))) }),
     Layer.mock(CitationParse, { parse: (request) => Effect.suspend(() => deps.citationParse.parse(request)) }),
     Layer.mock(CitationLookup, { read: (request) => Effect.tryPromise(() => deps.citationLookup.read(request)).pipe(Effect.orDie) }),
-    Layer.mock(PandocEngine, { getStatus: Effect.sync(() => deps.pandocEngine.status) }),
+    Layer.mock(PandocEngine, { current: Effect.sync(() => deps.pandocEngine.status) }),
     Layer.mock(BibliographyRender, {
       state: Effect.sync(() => ({ missingStyle: null, vaultPresentation: deps.bibliographyRender.vaultPresentation })),
       events: Stream.unwrap(Effect.sync(() => Stream.map(deps.bibliographyRender.invalidated, () => ({ _tag: "invalidated" as const })))),

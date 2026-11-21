@@ -7,7 +7,8 @@ The container format, its writer and its reader are in `@zotlit/resource-pack` (
 ## Files
 
 - `package.json` — the version and the manifest fields (`obsidian`), and `packEntries`: the pin of each Pack Entry, the version of its upstream package and the SHA-256 of its binary. `pnpm check:bundle` reads the same pins.
-- `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack.
+- `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`, `pandoc-wasm` for `pandoc-engine`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack.
+- `licences/pandoc-COPYING.txt` — the GNU General Public License, version 2: `COPYING.md` of the Pandoc source at the pinned release, byte for byte. `pandoc-wasm` ships Pandoc's licence statement without this text, so the pack takes it from here.
 - `scripts/build.ts` — the build: `main.js` and `manifest.json`. `node scripts/build.ts --help` has its options.
 - `scripts/container.electron.test.ts` — runs the Pack container cases of `@zotlit/resource-pack` in an Electron renderer.
 - `versions.json`, `README.md` — what the publish repository `aidenlx/zotlit-resources` shows (`PUBLISHED_PLUGINS.resources`, `packages/scripts/lib/shell/plugins.ts`).
@@ -20,7 +21,7 @@ The container format, its writer and its reader are in `@zotlit/resource-pack` (
 
 ## Update a binary
 
-Update the upstream package in the catalog, then set the entry's `version` and `sha256` in `packEntries` to the new package's. The build prints the hash of the installed binary when it differs from the pin.
+Update the upstream package in the catalog, then set the entry's `version` and `sha256` in `packEntries` to the new package's. The version of `pandoc-engine` is the Pandoc release that `pandoc-wasm/pandoc-version.txt` states; the README names it too. The build prints the hash of the installed binary when it differs from the pin.
 
 ## Tests
 

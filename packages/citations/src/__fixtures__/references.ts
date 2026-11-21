@@ -40,7 +40,6 @@ export interface ReferencesHostOptions {
   zoteroEvents?: Stream.Stream<ZoteroReadsEvent>;
   getDocumentCitationSet?: CitationIndex["Service"]["getDocumentCitationSet"];
   render?: BibliographyRender["Service"]["render"];
-  decline?: Effect.Effect<void>;
   openIndexedKey?: CitekeyEditor["Service"]["openIndexedKey"];
 }
 
@@ -122,12 +121,7 @@ export async function makeReferencesHost(options: ReferencesHostOptions = {}) {
           ),
       }),
       Layer.mock(PandocEngine, {
-        changes: Stream.make({
-          kind: "installed",
-          version: "test",
-          binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-        }),
-        decline: options.decline ?? Effect.void,
+        changes: Stream.make({ kind: "ready", version: "test" }),
       }),
       Layer.mock(BibliographyRender, {
         state: Effect.succeed({

@@ -19,7 +19,7 @@ import { advanceOccurrence } from "./model.ts";
 import { makeReferencesHost } from "#__fixtures__/references.ts";
 import { bibliographyRevisionsAtom } from "#obsidian/pandoc/atoms.ts";
 import {
-  dismissEngineHintCommand,
+  engineHintDismissedAtom,
   openIndexedKeyCommand,
   openReferenceLinkCommand,
   revealReferenceOccurrenceCommand,
@@ -282,10 +282,24 @@ it.effect(
     }),
 );
 
+it.effect("keeps the closed hint closed for every later reader", () =>
+  Effect.gen(function* () {
+    const host = yield* hostEffect();
+    host.follow("draft.md");
+    const session = yield* open(host);
+    expect(session.state().engineHintDismissed).toBe(false);
+
+    host.registry.set(engineHintDismissedAtom, true);
+
+    yield* waitFor(() =>
+      expect(session.state().engineHintDismissed).toBe(true),
+    );
+  }),
+);
+
 it.effect("runs service gestures while their commands are held", () =>
   Effect.gen(function* () {
     const opened: string[] = [];
-    const declined: boolean[] = [];
     const host = yield* Effect.acquireRelease(
       Effect.promise(() =>
         makeReferencesHost({
@@ -293,9 +307,6 @@ it.effect("runs service gestures while their commands are held", () =>
             Effect.sync(() => {
               opened.push(key);
             }),
-          decline: Effect.sync(() => {
-            declined.push(true);
-          }),
         }),
       ),
       (host) => Effect.promise(() => host.close()),
@@ -303,7 +314,6 @@ it.effect("runs service gestures while their commands are held", () =>
     for (const command of [
       openIndexedKeyCommand,
       openReferenceLinkCommand,
-      dismissEngineHintCommand,
       revealReferenceOccurrenceCommand,
     ]) {
       yield* Effect.acquireRelease(
@@ -322,8 +332,6 @@ it.effect("runs service gestures while their commands are held", () =>
         { linktext: "notes/BOOK0001", sourcePath: "draft.md", newLeaf: false },
       ]),
     );
-    host.registry.set(dismissEngineHintCommand, undefined);
-    yield* waitFor(() => expect(declined).toEqual([true]));
     const view = host.workspace.openMarkdownEditor("draft.md");
     const flash = vi.fn<typeof view.setEphemeralState>();
     view.setEphemeralState = flash;

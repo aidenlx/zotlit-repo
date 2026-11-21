@@ -418,10 +418,10 @@ Each toggle applies to its editing mode or the graph view. ZotLit checks the mod
 
 ### Formatting
 
-| Label                                                | Key               | Control                                                                                                                     | Default                                                 | Dependency          | Storage    |
-| ---------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------- | ---------- |
-| <UiLabel name={m.settings_citation_locale_name()} /> | `citation.locale` | Text                                                                                                                        | <UiLabel name={m.settings_citation_locale_default()} /> | None                | Synced     |
-| <UiLabel name={m.settings_citation_engine_name()} /> | None              | <UiLabel name={m.settings_citation_engine_install()} /> or <UiLabel name={m.settings_citation_engine_uninstall()} /> action | Not installed                                           | Network for install | Per device |
+| Label                                                | Key               | Control                                            | Default                                                 | Dependency                                   | Storage   |
+| ---------------------------------------------------- | ----------------- | -------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------- | --------- |
+| <UiLabel name={m.settings_citation_locale_name()} /> | `citation.locale` | Text                                               | <UiLabel name={m.settings_citation_locale_default()} /> | None                                         | Synced    |
+| <UiLabel name={m.settings_citation_engine_name()} /> | None              | <UiLabel name={m.settings_resource_pack_open()} /> | Not installed                                           | The ZotLit Resource Pack plugin of the vault | Per vault |
 
 <UiLabel name={m.settings_citation_references_style_name()} /> is on the main
 page. See [Citation and references style](#citation-style).
@@ -441,9 +441,16 @@ A note whose `lang` is not a language tag stops instead of using this setting. I
 Both note properties are set from the <Command inline name={m.command_set_citation_presentation_name()} /> command, which is also in the note's **More options** menu. See [Commands](/docs/reference/commands).
 
 <UiLabel name={m.settings_citation_engine_name()} />: Formats in-text citations,
-references, and exports. Installation applies to every vault on this device.
+references, and exports. It comes with the ZotLit Resource Pack plugin: install
+that plugin from Obsidian's community plugins. You do not need to turn it on.
+Until you install it, references stay a plain list, and the built-in export does
+not run.
 
-Before installation, its status reads <UiLabel name={m.settings_citation_engine_status_absent()} />. This supported state does not show a lifecycle notice.
+The row shows the state: ready with the version of the pack, pack not installed,
+pack or ZotLit to update, or pack file damaged. <UiLabel name={m.settings_resource_pack_open()} />
+opens the page of ZotLit Resource Pack in the community plugin browser. ZotLit
+Resource Pack redistributes Pandoc under the GNU General Public License, version
+2 or later; the row links to the [Pandoc source code](https://github.com/jgm/pandoc).
 
 ### Citation text [#citation-templates]
 

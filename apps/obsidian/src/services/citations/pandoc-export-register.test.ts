@@ -37,6 +37,7 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
+  controlsOf,
   DropdownComponent,
   Modal,
   settingsOf,
@@ -49,6 +50,7 @@ import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { ManagedBinaryError } from "@zotlit/plugin-services/obsidian/managed-binary/platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -129,6 +131,11 @@ interface VaultOptions {
       "citation.references-style"
     >;
   engineInstalled?: boolean;
+  /**
+   * `false` for an installed pack that is unread and refuses its first read
+   * as damaged.
+   */
+  engineStarts?: boolean;
   /** Where the vault stands on disk, which is where an export is written. */
   basePath?: string;
 }
@@ -138,6 +145,7 @@ function openVault({
   note,
   settings = {},
   engineInstalled = true,
+  engineStarts = true,
   basePath = BASE_PATH,
   fileSystem = nodeFileSystem,
 }: VaultOptions = {}) {
@@ -145,6 +153,7 @@ function openVault({
   const frontmatter = note ?? {};
   // The export stub above still needs an available engine handle.
   const getEngine = vi.fn(() => Promise.resolve({}));
+  let borrowed = false;
   let command: Command | undefined;
   const {
     ["citation.references-style"]: referencesStyle,
@@ -223,19 +232,26 @@ function openVault({
     Context.add(
       PandocEngine,
       stubService<PandocEngine["Service"]>("PandocEngine", {
-        getStatus: Effect.succeed(
-          engineInstalled
-            ? {
-                kind: "installed",
-                version: "test",
-                binary: {
-                  directory: "pandoc-engine",
-                  name: "pandoc.wasm",
-                },
-              }
-            : { kind: "absent" },
+        current: Effect.sync(() =>
+          !engineInstalled
+            ? { kind: "pack-absent" }
+            : engineStarts
+              ? { kind: "ready", version: "test" }
+              : borrowed
+                ? { kind: "pack-damaged" }
+                : null,
         ),
-        getEngine: Effect.promise(() => getEngine()).pipe(
+        getEngine: Effect.suspend(
+          (): Effect.Effect<unknown, ManagedBinaryError> => {
+            if (engineStarts) return Effect.promise(() => getEngine());
+            borrowed = true;
+            return Effect.fail(
+              new ManagedBinaryError({
+                message: "The Resource Pack gave no Pandoc engine",
+              }),
+            );
+          },
+        ).pipe(
           Effect.map(() =>
             stubService<CitationEngine>("CitationEngine", {
               [Symbol.asyncDispose]: async () => {},
@@ -269,7 +285,6 @@ function openVault({
   const deps: PandocExportDeps = {
     app,
     bridge,
-    openSettings: () => undefined,
     context,
   };
   registerPandocExport(
@@ -297,6 +312,8 @@ function openVault({
     export: runExport,
     /** Run one export, and read the dialog it opens. */
     openDialog: () => dialog(runExport()),
+    /** Run the command from the palette. */
+    runFromPalette: () => void palette.checkCallback?.(false),
     /** Run the command from the palette, and read the dialog it opens. */
     openDialogFromPalette() {
       palette.checkCallback?.(false);
@@ -608,6 +625,56 @@ describe("the Export note with citations command", () => {
         }),
       ),
     );
+  });
+
+  it("names the Resource Pack and opens its page where no pack is installed", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const vault = openVault({ note: {}, engineInstalled: false });
+
+    expect(await vault.export()).toEqual({
+      kind: "engine-missing",
+      status: { kind: "pack-absent" },
+    });
+    vault.runFromPalette();
+
+    const notice = await vi.waitFor(() => {
+      const shown = vault.notices
+        .flatMap(({ messages }) => messages)
+        .find(
+          (message): message is DocumentFragment =>
+            message instanceof DocumentFragment,
+        );
+      expect(shown).toBeDefined();
+      return shown!;
+    });
+    expect(Modal.instances).toHaveLength(0);
+    expect(notice.textContent).toContain(
+      m.notice_pandoc_export_engine_missing(),
+    );
+    expect(notice.textContent).toContain(
+      m.settings_resource_pack_status_absent(),
+    );
+    const action = controlsOf(
+      notice.querySelector<HTMLElement>(".zt-notice-actions")!,
+    ).find((control) => control instanceof ButtonComponent)!;
+    expect(action.text).toBe(m.settings_resource_pack_open());
+    action.click();
+    expect(open.mock.calls).toEqual([
+      ["obsidian://show-plugin?id=zotlit-resources"],
+    ]);
+    open.mockRestore();
+  });
+
+  it("answers a pack that gives no engine at the first borrow as a missing engine", async () => {
+    const vault = openVault({ note: {}, engineStarts: false });
+
+    const dialog = await vault.openDialog();
+    dialog.confirm();
+
+    expect(await dialog.outcome).toEqual({
+      kind: "engine-missing",
+      status: { kind: "pack-damaged" },
+    });
   });
 
   it("stops without a file where the export run is interrupted", async () => {

@@ -183,6 +183,61 @@ describe("a Managed Binary of the Resource Pack", () => {
       }).pipe(Effect.scoped),
   );
 
+  it.effect(
+    "states where the binary stands with no read of the pack file",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(null);
+        let reads = 0;
+        const service = yield* packBinary(SEGMENTER, {
+          ...device,
+          open: (url) => {
+            reads += 1;
+            return device.open(url);
+          },
+        });
+
+        // No pack: the installed plugins say so, and each watcher hears it.
+        expect(yield* service.current).toEqual({ kind: "pack-absent" });
+        expect(yield* Stream.runHead(service.changes)).toMatchObject({
+          value: { kind: "pack-absent" },
+        });
+        // A pack installed since then is unread.
+        device.install(yield* pack({ "chinese-segmenter": BINARY }), "1.3.0");
+        expect(yield* service.current).toBeNull();
+        expect(reads).toBe(0);
+
+        yield* service.getEngine;
+        expect(yield* service.current).toEqual({
+          kind: "ready",
+          version: "1.3.0",
+        });
+        expect(reads).toBe(1);
+        device.install(null);
+        expect(yield* service.current).toEqual({ kind: "pack-absent" });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect("keeps the refusal of the last read until the next read", () =>
+    Effect.gen(function* () {
+      const device = packDevice(
+        yield* pack({ "chinese-segmenter": BINARY }, PACK_COMPAT - 1),
+      );
+      const service = yield* packBinary(SEGMENTER, device);
+
+      expect(yield* service.current).toBeNull();
+      yield* Effect.flip(service.getEngine);
+      expect(yield* service.current).toEqual({ kind: "pack-outdated" });
+      device.install(yield* pack({ "chinese-segmenter": BINARY }));
+      expect(yield* service.current).toEqual({ kind: "pack-outdated" });
+      yield* service.check;
+      expect(yield* service.current).toEqual({
+        kind: "ready",
+        version: "1.0.0",
+      });
+    }).pipe(Effect.scoped),
+  );
+
   it.effect("logs each refusal of the pack with its reason", () =>
     Effect.gen(function* () {
       const logs = yield* Effect.acquireRelease(

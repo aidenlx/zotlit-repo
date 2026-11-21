@@ -20,7 +20,7 @@ const pandocTab = (settings: Settings) =>
     Context.make(
       PandocEngine,
       stubService<PandocEngine["Service"]>("PandocEngine", {
-        getStatus: Effect.succeed({ kind: "absent" }),
+        current: Effect.succeed({ kind: "pack-absent" }),
       }),
     ).pipe(
       Context.add(

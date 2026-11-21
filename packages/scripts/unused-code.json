@@ -1,5 +1,7 @@
 {
   "exports": [
+    "packages/plugin-services/src/obsidian/managed-binary/platform.ts: layerManagedBinaryPlatform",
+    "packages/plugin-services/src/obsidian/managed-binary/service.ts: layerManagedBinaryPlatform",
     "packages/citations/src/obsidian/citation-index/service.ts: toZoteroOpenableAttachments",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: citationTarget",
     "packages/citations/src/obsidian/citekey-navigation/index.ts: hoverEditingMode",

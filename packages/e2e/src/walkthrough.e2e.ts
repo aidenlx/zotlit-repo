@@ -7,6 +7,7 @@ import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/ser
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { prepareRunWindow } from "./background-throttling.ts";
+import { RESOURCE_PACK_ID } from "./e2e-run-note-helpers.ts";
 import { EFFECT_MODULE_PATH } from "./effect-module.ts";
 import { useListingProfile } from "./listing-profile.ts";
 import { cliCommand, obRun, obRunUntil } from "./obsidian-cli.ts";
@@ -33,7 +34,15 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   let vaultId = "";
   beforeAll(async () => {
     await clearVault(run, path);
-    const opened = await run(["open", path, "--vault-case", "demo"]);
+    // The Resource Pack holds the Pandoc engine. It is installed and not
+    // enabled, the state Obsidian leaves it in after an install.
+    const opened = await run([
+      "open",
+      path,
+      "--vault-case",
+      "demo",
+      `--install=${RESOURCE_PACK_ID}`,
+    ]);
     vaultId = opened.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(vaultId);
   }, 180_000);
@@ -2494,30 +2503,8 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     ).toEqual(expected);
   });
 
-  it("suggests the Pandoc engine beside a preview that stands without it", async () => {
+  it("points a preview that stands without the Pandoc engine to the Resource Pack", async () => {
     await using cleanup = new AsyncDisposableStack();
-    const restartWith = async (empty: boolean) => {
-      await obRun(
-        vaultId,
-        async ({ app, page }, { emptyStore }) => {
-          for (const type of [
-            "zotlit-template-workbench",
-            "zotlit-template-data-explorer",
-          ] as const)
-            for (const leaf of page.leavesOfType(type)) leaf.detach();
-          await app.plugins.disablePlugin("zotlit");
-          // The dev-build store holds no binary, and the device's stays as it was.
-          app.saveLocalStorage(
-            "zotlit-e2e-empty-binary-store",
-            emptyStore ? true : null,
-          );
-          app.saveLocalStorage("zotlit-pandoc-engine-declined", null);
-          await app.plugins.enablePlugin("zotlit");
-        },
-        { emptyStore: empty },
-        { timeoutMs: 30_000 },
-      );
-    };
     const popout = await obRun(
       vaultId,
       async ({ app: host }) => {
@@ -2526,6 +2513,29 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       },
       undefined,
     );
+    // Obsidian lists no Resource Pack, as before its install.
+    await obRun(
+      vaultId,
+      async ({ app, page }, { RESOURCE_PACK_ID }) => {
+        page.scratch.zotlitE2EPackManifest =
+          app.plugins.manifests[RESOURCE_PACK_ID];
+        delete app.plugins.manifests[RESOURCE_PACK_ID];
+      },
+      { RESOURCE_PACK_ID },
+    );
+    const installPack = () =>
+      obRun(
+        vaultId,
+        async ({ app, zotlit, page }, { RESOURCE_PACK_ID }) => {
+          const manifest = page.scratch.zotlitE2EPackManifest;
+          if (manifest) app.plugins.manifests[RESOURCE_PACK_ID] = manifest;
+          delete page.scratch.zotlitE2EPackManifest;
+          const { pandocEngine } = zotlit.services;
+          return (await pandocEngine.runPromise(pandocEngine.binary.check))
+            .kind;
+        },
+        { RESOURCE_PACK_ID },
+      );
     cleanup.defer(async () => {
       await obRun(
         vaultId,
@@ -2536,21 +2546,19 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         },
         { previous: popout },
       );
-      await restartWith(false);
+      await installPack();
     });
-    await restartWith(true);
-    await obRunUntil(
-      vaultId,
-      async ({ zotlit }) => {
-        const { pandocEngine } = zotlit.services;
-        const status = await pandocEngine.runPromise(
-          pandocEngine.binary.getStatus,
-        );
-        return status.kind === "absent";
-      },
-      undefined,
-      { what: "the Pandoc engine status to be absent on the empty store" },
-    );
+    expect(
+      await obRun(
+        vaultId,
+        async ({ zotlit }) => {
+          const { pandocEngine } = zotlit.services;
+          return (await pandocEngine.runPromise(pandocEngine.binary.current))
+            ?.kind;
+        },
+        undefined,
+      ),
+    ).toBe("pack-absent");
 
     await obRun(
       vaultId,
@@ -2614,7 +2622,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
             page.leavesOfType("zotlit-template-workbench")[0]?.view,
           );
           const text = preview?.textContent ?? "";
-          return text.includes("Install the Pandoc engine")
+          return text.includes("Install the ZotLit Resource Pack plugin")
             ? {
                 citationStaysNative: /\[@\w+/.test(text),
                 problem: text.includes("Preview needs attention"),
@@ -2623,7 +2631,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         },
         undefined,
         {
-          what: "the preview to suggest the Pandoc engine",
+          what: "the preview to suggest the Resource Pack",
           ready: (value) => value !== null,
         },
       ),
@@ -2662,24 +2670,71 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
             candidate.querySelector<HTMLElement>(".setting-item-name")
               ?.textContent === "Pandoc engine",
         );
-        return row?.textContent ?? app.setting.containerEl.textContent;
+        return row?.querySelector("[role=status]")?.textContent ?? "";
       },
       undefined,
       {
-        what: "the Open settings button to reveal the Pandoc engine row",
-        ready: (text) => text.includes("Not installed"),
+        what: "the Open settings button to reveal the Pandoc engine row, with no pack installed",
+        ready: (text) =>
+          text.includes("The ZotLit Resource Pack plugin is not installed."),
       },
     );
+    // The row's one action opens the pack's page in the community plugin
+    // browser, and the row states the licence of Pandoc with its source.
+    expect(
+      await obRun(
+        vaultId,
+        async ({ app: host, page }) => {
+          const app = host as WalkthroughApp;
+          const row = Array.from(
+            app.setting.containerEl.querySelectorAll<HTMLElement>(
+              ".setting-item",
+            ),
+          ).find(
+            (candidate) =>
+              candidate.querySelector<HTMLElement>(".setting-item-name")
+                ?.textContent === "Pandoc engine",
+          );
+          const buttons = Array.from(row?.querySelectorAll("button") ?? []);
+          const native = window.open;
+          const opened: string[] = [];
+          window.open = (url) => {
+            opened.push(String(url));
+            return null;
+          };
+          try {
+            page.press(buttons[0], "Resource Pack action");
+          } finally {
+            window.open = native;
+          }
+          return {
+            buttons: buttons.map((button) => button.textContent),
+            opened,
+            licence: row?.textContent.includes(
+              "redistributes Pandoc under the GNU General Public License, version 2 or later",
+            ),
+            source: row?.querySelector("a")?.getAttribute("href"),
+          };
+        },
+        undefined,
+      ),
+    ).toEqual({
+      buttons: ["Open in Community plugins"],
+      opened: [`obsidian://show-plugin?id=${RESOURCE_PACK_ID}`],
+      licence: true,
+      source: "https://github.com/jgm/pandoc",
+    });
     await obRun(
       vaultId,
-      async ({ app: host, zotlit }) => {
+      async ({ app: host }) => {
         const app = host as WalkthroughApp;
         app.setting.close();
-        const { pandocEngine } = zotlit.services;
-        await pandocEngine.runPromise(pandocEngine.binary.decline);
       },
       undefined,
     );
+    // The pack installed during the session: the next read of it gives the
+    // engine, and the preview formats the citation.
+    expect(await installPack()).toBe("ready");
     await obRunUntil(
       vaultId,
       async ({ page }) => {
@@ -2689,11 +2744,11 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           )?.textContent ?? "";
         return (
           text.includes("Scientific visualization") &&
-          !text.includes("Install the Pandoc engine")
+          !text.includes("Install the ZotLit Resource Pack plugin")
         );
       },
       undefined,
-      { what: "a declined engine to take the suggestion off the preview" },
+      { what: "the installed pack to take the suggestion off the preview" },
     );
   });
 

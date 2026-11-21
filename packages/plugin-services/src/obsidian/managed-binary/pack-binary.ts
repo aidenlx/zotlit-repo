@@ -58,7 +58,13 @@ export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
    * pack file again, so it sees a pack installed since the last call.
    */
   readonly check: Effect.Effect<PackBinaryStatus>;
-  /** The status of the last read, then each one that differs; none before the first read. */
+  /**
+   * Where the binary stands, with no read of the pack file: `pack-absent`
+   * with no pack installed, else the status of the last read. `null` while
+   * the installed pack is unread; a borrow of the engine reads it.
+   */
+  readonly current: Effect.Effect<PackBinaryStatus | null>;
+  /** The status last stated, then each one that differs; none before the first. */
   readonly changes: Stream.Stream<PackBinaryStatus>;
   /** The binary's entry in the installed pack, unread; `null` with no pack installed. */
   readonly entry: Effect.Effect<PackEntryLocation | null>;
@@ -247,8 +253,16 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       yield* PubSub.shutdown(status.pubsub);
     }),
   );
+  const current = Effect.gen(function* () {
+    if (!(yield* platform.locate))
+      return yield* publish({ kind: "pack-absent" });
+    const last = yield* SubscriptionRef.get(status);
+    // A pack installed after that status is unread.
+    return last?.kind === "pack-absent" ? null : last;
+  }).pipe(Effect.withSpan("PackBinary.current"));
   return {
     check,
+    current,
     changes: SubscriptionRef.changes(status).pipe(
       Stream.filter((current) => current !== null),
     ),

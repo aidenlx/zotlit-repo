@@ -42,9 +42,7 @@ export default defineConfig({
     {
       // Node runs these straight from source, where the `@/` alias does not
       // resolve; and they stay independent of plugin code, which
-      // tsconfig.node.json cannot type-check. The pin
-      // (`@zotlit/plugin-services/core/managed-binary/pin.ts`) is the one
-      // shared contract, a module with no imports.
+      // tsconfig.node.json cannot type-check.
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": [

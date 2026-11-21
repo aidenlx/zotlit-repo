@@ -24,7 +24,7 @@ import {
 import { References } from "./References.tsx";
 
 import {
-  dismissEngineHintCommand,
+  engineHintDismissedAtom,
   openIndexedKeyCommand,
   openReferenceLinkCommand,
   revealReferenceOccurrenceCommand,
@@ -72,7 +72,6 @@ export class ReferencesView extends ItemView {
     this.#release ??= holdReferencesModel(registry, this.model);
     cleanup.defer(registry.mount(openIndexedKeyCommand));
     cleanup.defer(registry.mount(showInLibraryCommand));
-    cleanup.defer(registry.mount(dismissEngineHintCommand));
     cleanup.defer(registry.mount(openReferenceLinkCommand));
     cleanup.defer(registry.mount(revealReferenceOccurrenceCommand));
     const actions = createReferenceActions({
@@ -93,8 +92,7 @@ export class ReferencesView extends ItemView {
         }),
       onOpenEngineSettings: this.#deps.openSettings,
       onChangeStyle: this.#deps.openStyleSettings,
-      onDismissEngineHint: () =>
-        registry.set(dismissEngineHintCommand, undefined),
+      onDismissEngineHint: () => registry.set(engineHintDismissedAtom, true),
       getCopySnapshot: () => registry.get(this.model.snapshot),
       writeClipboard: writeClipboardRichText,
       reportCopy: (outcome) =>

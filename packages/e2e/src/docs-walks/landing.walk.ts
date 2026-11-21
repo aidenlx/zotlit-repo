@@ -269,17 +269,13 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       { apa: APA },
       STEP,
     );
-    // The engine is installed once per computer.
-    await obRun(
-      walk.vaultId,
-      async ({ zotlit }) => {
+    // The engine comes with the Resource Pack, which the walk's vault holds.
+    expect(
+      await obRun(walk.vaultId, async ({ zotlit }) => {
         const h = zotlit.services.pandocEngine;
-        const status = await h.runPromise(h.binary.getStatus);
-        if (status.kind !== "installed") await h.runPromise(h.binary.install);
-      },
-      undefined,
-      { timeoutMs: 600000 },
-    );
+        return (await h.runPromise(h.binary.check)).kind;
+      }),
+    ).toBe("ready");
     // Obsidian's PDF view reopens a PDF where it last was; the clips open
     // Sandve et al. 2013 at page 1, as on a first read.
     const pdfPath = await walk.zotero.json<string>(

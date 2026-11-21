@@ -112,7 +112,7 @@ export const citations = extendFeature(obsidianCitations, {
   }),
   // The Cited By view registers after the References view, as it did before
   // the Obsidian feature took the citekey and Graph Citations actions.
-  onload: ({ plugin, app, manifest, bridge, read }) => {
+  onload: ({ plugin, app, bridge, read }) => {
     const registry = read(ViewRegistry);
     registerReferencesView(plugin, { app, registry });
     registerCitedByView(plugin, { app, registry });
@@ -120,10 +120,6 @@ export const citations = extendFeature(obsidianCitations, {
       app,
       context: read(Effect.context<PandocExportServices>()),
       bridge,
-      openSettings: () => {
-        app.setting.open();
-        app.setting.openTabById(manifest.id);
-      },
     });
     const presentation = {
       workspace: read(Workspace),

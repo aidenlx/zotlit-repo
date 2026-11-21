@@ -52,11 +52,56 @@ async function chineseSegmenter(
   };
 }
 
+/** The binary inside `pandoc-wasm`: the `pandoc.wasm` of the official Pandoc release. */
+const PANDOC_BINARY = "src/pandoc.wasm";
+/** The file of `pandoc-wasm` that states the Pandoc release its binary is. */
+const PANDOC_VERSION = "pandoc-version.txt";
+/** The GNU General Public License, version 2: `COPYING.md` of the Pandoc source. */
+const PANDOC_COPYING = join(
+  import.meta.dirname,
+  "..",
+  "licences",
+  "pandoc-COPYING.txt",
+);
+
+async function pandocEngine(
+  pins: PackPins,
+  packageDir: string,
+): Promise<PinnedSource> {
+  const name = "pandoc-engine";
+  const pin = pinOf(pins, name);
+  const version = (
+    await readFile(join(packageDir, PANDOC_VERSION), "utf8")
+  ).trim();
+  if (version !== pin.version) {
+    throw new Error(
+      `The installed pandoc-wasm holds Pandoc ${version}, and the pin of "${name}" is ${pin.version}`,
+    );
+  }
+  const licence = await readFile(join(packageDir, "LICENSE"), "utf8");
+  const copying = await readFile(PANDOC_COPYING, "utf8");
+  return {
+    source: {
+      name,
+      bytes: new Uint8Array(await readFile(join(packageDir, PANDOC_BINARY))),
+      sha256: pin.sha256,
+    },
+    notice: [
+      `${name}: Pandoc ${version}, GPL-2.0-or-later. Source code: https://github.com/jgm/pandoc/tree/${version}`,
+      `Packaged for WebAssembly by pandoc-wasm, https://github.com/pandoc/pandoc-wasm`,
+      licence.trim(),
+      copying.trim(),
+    ].join("\n\n"),
+  };
+}
+
 export interface ResourcePackOptions {
   /** `packEntries` of package.json. */
   readonly pins: PackPins;
   /** Root of the installed `jieba-wasm` package. */
   readonly jiebaWasm: string;
+  /** Root of the installed `pandoc-wasm` package. */
+  readonly pandocWasm: string;
 }
 
 /**
@@ -68,7 +113,10 @@ export interface ResourcePackOptions {
 export async function buildResourcePack(
   options: ResourcePackOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const sources = [await chineseSegmenter(options.pins, options.jiebaWasm)];
+  const sources = [
+    await chineseSegmenter(options.pins, options.jiebaWasm),
+    await pandocEngine(options.pins, options.pandocWasm),
+  ];
   return writePack({
     notice: [
       "The Resource Pack redistributes these binaries under their own licences.",

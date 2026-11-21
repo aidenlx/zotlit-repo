@@ -29,7 +29,6 @@ import packageJson from "./package.json" with { type: "json" };
 import { chineseSegmenterGlue } from "./scripts/chinese-segmenter.ts";
 import { embeddedWorker } from "./scripts/embedded-worker.ts";
 import { nodeHttpModules } from "./scripts/node-http-modules.ts";
-import { resolvePandocEnginePin } from "./scripts/pandoc-engine.ts";
 
 const builtins = [
   ...builtinModules,
@@ -62,10 +61,6 @@ const fullContractIRPath = fileURLToPath(
 );
 /** The plugin this app publishes, and the bundle package its production build writes. */
 const publishedPlugin = PUBLISHED_PLUGINS.desktop;
-
-// Resolved once per Vite process, so a watch rebuild never re-runs the cross-check.
-const pandocEngine = await resolvePandocEnginePin();
-console.log(`Pinning Pandoc ${pandocEngine.version}: ${pandocEngine.url}`);
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
@@ -101,7 +96,6 @@ export default defineConfig(({ mode }) => {
     __MIN_ELECTRON_VERSION__: JSON.stringify(
       parseMinElectronVersion(packageJson),
     ),
-    __PANDOC_ENGINE__: JSON.stringify(pandocEngine),
     "process.env.NODE_ENV": JSON.stringify(mode),
   };
 

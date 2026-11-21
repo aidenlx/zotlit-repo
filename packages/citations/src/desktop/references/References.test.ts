@@ -9,7 +9,6 @@ import type {
   ReferencesListMode,
   ReferencesState,
 } from "#obsidian/references/state.ts";
-import { Deferred } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
@@ -94,11 +93,8 @@ async function render(
   {
     formattingFailed = false,
     documentPresentationError = null,
-    engine = {
-      kind: "installed",
-      version: "test",
-      binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-    },
+    engine = { kind: "ready", version: "test" },
+    engineHintDismissed = false,
     copy = { kind: "blocked", reason: "pending" },
     citekeyResolution = "fresh",
   }: Partial<
@@ -107,6 +103,7 @@ async function render(
       | "formattingFailed"
       | "documentPresentationError"
       | "engine"
+      | "engineHintDismissed"
       | "copy"
       | "citekeyResolution"
     >
@@ -116,6 +113,7 @@ async function render(
     entries,
     listMode,
     engine,
+    engineHintDismissed,
     formattingFailed,
     documentPresentationError,
     dbReady: true,
@@ -518,28 +516,19 @@ describe("References banners", () => {
    */
   it.each([
     [
-      "the install hint",
-      { engine: { kind: "absent" } } satisfies Partial<ReferencesState>,
+      "the hint that offers the Resource Pack",
+      { engine: { kind: "pack-absent" } } satisfies Partial<ReferencesState>,
       "Format these references",
     ],
     [
-      "the install progress",
-      {
-        engine: {
-          kind: "installing",
-          done: Deferred.makeUnsafe(),
-          binary: null,
-        },
-      } satisfies Partial<ReferencesState>,
-      "Downloading the Pandoc engine…",
+      "a pack that gives no engine",
+      { engine: { kind: "pack-damaged" } } satisfies Partial<ReferencesState>,
+      "The Pandoc engine is unavailable",
     ],
     [
       "an engine failure",
       {
-        engine: {
-          kind: "failed",
-          failure: { code: "hash-mismatch", expected: "a", actual: "b" },
-        },
+        engine: { kind: "failed", detail: "CompileError: bad magic" },
       } satisfies Partial<ReferencesState>,
       "The Pandoc engine is unavailable",
     ],
@@ -642,17 +631,47 @@ describe("References toolbar", () => {
     expect(actions.onChangeStyle).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the style action live while the engine is still installing", async () => {
+  it("opens the page of the Resource Pack from the hint, and keeps a closed hint closed", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
     const container = await render(
       [summaryEntry],
       { kind: "minimal" },
-      {
-        engine: {
-          kind: "installing",
-          done: Deferred.makeUnsafe(),
-          binary: null,
-        },
-      },
+      { engine: { kind: "pack-absent" } },
+    );
+    Array.from(container.querySelectorAll("[data-references-banner] button"))
+      .find((button) => button.textContent === m.settings_resource_pack_open())!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(open.mock.calls).toEqual([
+      ["obsidian://show-plugin?id=zotlit-resources"],
+    ]);
+    open.mockRestore();
+    await act(() => root?.unmount());
+    const closed = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: { kind: "pack-absent" }, engineHintDismissed: true },
+    );
+    expect(closed.querySelector("[data-references-banner]")).toBeNull();
+  });
+
+  it("states why a pack gives no engine", async () => {
+    const container = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: { kind: "pack-outdated" } },
+    );
+
+    expect(
+      container.querySelector("[data-references-banner]")?.textContent,
+    ).toContain(m.settings_resource_pack_status_pack_outdated());
+  });
+
+  it("keeps the style action live while the installed pack is unread", async () => {
+    const container = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: null },
     );
     await activateStyleAction(container);
 
@@ -664,7 +683,7 @@ describe("References toolbar", () => {
       [summaryEntry],
       { kind: "minimal" },
       {
-        engine: { kind: "absent" },
+        engine: { kind: "pack-absent" },
       },
     );
     await activateStyleAction(container);

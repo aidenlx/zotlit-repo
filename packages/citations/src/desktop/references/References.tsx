@@ -1,9 +1,6 @@
 import type { ReferenceSource } from "#obsidian/citation-index/service.ts";
 import type { DocumentPresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
-import type {
-  PandocEngineFailure,
-  PandocEngineStatus,
-} from "#obsidian/pandoc/service.ts";
+import type { PandocEngineStatus } from "#obsidian/pandoc/service.ts";
 import type { ReferenceEntry } from "#obsidian/references/entries.ts";
 import type { ReferencesCopyBlock } from "#obsidian/references/state.ts";
 import { useAtomValue } from "@effect/atom-react";
@@ -15,12 +12,15 @@ import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button
 import { SidebarToolbar } from "@zotlit/obsidian-kit/components/sidebar-toolbar.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { RESOURCE_PACK_PAGE } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { packStatusSentence } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 
 import { useReferenceActions } from "./actions.ts";
 import { useReferencesModel } from "./model.ts";
 
 import { AmbiguousCandidates } from "#obsidian/citation-index/ambiguous-candidates.tsx";
 import { InlineContent } from "#obsidian/pandoc/inline-content.tsx";
+import { engineUsable } from "#obsidian/pandoc/service.ts";
 
 /**
  * The pane: the fixed toolbar above, then one scrolling region holding the
@@ -34,6 +34,7 @@ export function References() {
     entries,
     listMode,
     engine,
+    engineHintDismissed,
     formattingFailed,
     documentPresentationError,
     dbReady,
@@ -54,11 +55,11 @@ export function References() {
       >
         {/* The banners head this region rather than the pane, so they travel
             with the list they describe and the toolbar keeps its own place. */}
-        <EngineSurface status={engine} />
+        <EngineSurface status={engine} hintDismissed={engineHintDismissed} />
         {/* The note itself is the repair, so this banner stands in front of
             the vault-level guidance the failure banner gives, and it names the
             property on that note the reader repairs. */}
-        {documentPresentationError !== null && engine.kind === "installed" && (
+        {documentPresentationError !== null && engineUsable(engine) && (
           <Banner
             tone="warning"
             title={documentPresentationTitle(documentPresentationError)}
@@ -76,7 +77,7 @@ export function References() {
             )}
           </Banner>
         )}
-        {formattingFailed && engine.kind === "installed" && (
+        {formattingFailed && engineUsable(engine) && (
           <Banner tone="warning" title={m.references_format_failed_title()}>
             {m.references_format_failed_body()}
           </Banner>
@@ -584,24 +585,36 @@ function EntryAction({
 }
 
 /**
- * The one surface the engine speaks through: the dismissible install hint while
- * the engine is merely absent, and one banner per genuine failure. Both sit
- * above the same reference list, which stays the sidebar's normal content.
+ * The one surface the engine speaks through: the dismissible hint that offers
+ * the Resource Pack while none is installed, and one banner for a pack or an
+ * engine that gives no formatting. Both sit above the same reference list,
+ * which stays the sidebar's normal content.
  */
-function EngineSurface({ status }: { status: PandocEngineStatus }) {
+function EngineSurface({
+  status,
+  hintDismissed,
+}: {
+  status: PandocEngineStatus;
+  hintDismissed: boolean;
+}) {
   const actions = useReferenceActions();
 
+  if (status === null) return null;
   switch (status.kind) {
-    case "installed":
-    case "declined":
+    case "ready":
       return null;
-    case "absent":
-      return (
+    case "pack-absent":
+      return hintDismissed ? null : (
         <Banner
           title={m.references_engine_hint_title()}
           action={
-            <Button variant="cta" onClick={actions.onOpenEngineSettings}>
-              {m.references_engine_open_settings()}
+            <Button
+              variant="cta"
+              onClick={() => {
+                window.open(RESOURCE_PACK_PAGE);
+              }}
+            >
+              {m.settings_resource_pack_open()}
             </Button>
           }
           onDismiss={actions.onDismissEngineHint}
@@ -609,12 +622,9 @@ function EngineSurface({ status }: { status: PandocEngineStatus }) {
           {m.references_engine_hint_body()}
         </Banner>
       );
-    case "installing":
-      return (
-        <Banner title={m.notice_pandoc_engine_downloading()}>
-          {m.settings_citation_engine_status_installing()}
-        </Banner>
-      );
+    case "pack-outdated":
+    case "plugin-outdated":
+    case "pack-damaged":
     case "failed":
       return (
         <Banner
@@ -626,25 +636,9 @@ function EngineSurface({ status }: { status: PandocEngineStatus }) {
             </Button>
           }
         >
-          {failureSentence(status.failure)}
+          {packStatusSentence(status)}
         </Banner>
       );
-  }
-}
-
-/** One sentence per arm, shared with the settings row that offers the fix. */
-function failureSentence(failure: PandocEngineFailure): string {
-  switch (failure.code) {
-    case "download-failed":
-      return m.settings_citation_engine_status_download_failed({
-        detail: failure.detail,
-      });
-    case "hash-mismatch":
-      return m.settings_citation_engine_status_hash_mismatch();
-    case "init-failed":
-      return m.settings_citation_engine_status_init_failed({
-        detail: failure.detail,
-      });
   }
 }
 

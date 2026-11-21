@@ -182,7 +182,7 @@ export const renderDraftCitations = Effect.fn(
   );
   // Citations stay as the author wrote them, which the engine only improves.
   if (outcome.kind === "unavailable" && outcome.reason === "engine-absent") {
-    const hint = engineHint(yield* (yield* PandocEngine).getStatus);
+    const hint = engineHint(yield* (yield* PandocEngine).current);
     return { citations: [], diagnostics: [], ...(hint ? { hint } : {}) };
   }
   const formatted =
@@ -227,28 +227,26 @@ export const renderDraftCitations = Effect.fn(
     diagnostics: [],
   };
 });
-/** What a preview suggests for each status; a declined engine stays quiet. */
+/** What a preview suggests for each status that gives no engine. */
 function engineHint(
   status: PandocEngineStatus,
 ): Omit<PreviewHint, "part"> | null {
+  if (status === null) return null;
   switch (status.kind) {
-    case "absent":
+    case "pack-absent":
       return {
         message: m.profile_preview_citation_engine_absent(),
         opensEngineSettings: true,
       };
-    case "installing":
-      return {
-        message: m.notice_pandoc_engine_downloading(),
-        opensEngineSettings: false,
-      };
+    case "pack-outdated":
+    case "plugin-outdated":
+    case "pack-damaged":
     case "failed":
       return {
         message: m.references_engine_failed_title(),
         opensEngineSettings: true,
       };
-    case "installed":
-    case "declined":
+    case "ready":
       return null;
   }
 }

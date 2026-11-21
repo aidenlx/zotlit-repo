@@ -29,7 +29,6 @@ import {
   missingStyleChanges,
 } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
 import type { CitationRenderOutcome } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
-import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import { PandocEngine } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import type { CslItemData } from "@zotlit/db";
 import { profileRuntimeOf } from "@zotlit/notes/__fixtures__/profile.ts";
@@ -46,7 +45,10 @@ import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts"
 import { layerQueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
-import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import type {
+  PackBinaryApi,
+  PackBinaryStatus,
+} from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { buildSeededSettings } from "@/services/settings/__fixtures__.ts";
@@ -85,7 +87,7 @@ it.effect.each(["Profile", "preference override"] as const)(
               Layer.succeed(
                 PandocEngine,
                 stubService<PandocEngine["Service"]>("PandocEngine", {
-                  getStatus: Effect.succeed({ kind: "absent" }),
+                  current: Effect.succeed({ kind: "pack-absent" }),
                   changes: Stream.never,
                 }),
               ),
@@ -209,7 +211,7 @@ it.effect("a late native subscriber sees the unavailable selected style", () =>
 it.effect("released reads retain the engine-absent outcome", () =>
   Effect.gen(function* () {
     const h = yield* harnessOf();
-    h.pandocEngine.setStatus({ kind: "absent" });
+    h.pandocEngine.setStatus({ kind: "pack-absent" });
     yield* Effect.promise(() => h.cache.runtime.dispose());
     yield* Effect.promise(() =>
       expect(
@@ -437,30 +439,23 @@ function citationValue(outcome: CitationRenderOutcome) {
 
 class PandocEngineStub {
   readonly engine = new EngineStub();
-  #status: PandocEngineStatus = {
-    kind: "installed",
-    version: "3.10",
-    binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-  };
+  #status: PackBinaryStatus = { kind: "ready", version: "3.10" };
   readonly #events = testEvent<void>();
-  readonly binary = stubService<ManagedBinaryApi<CitationEngine>>(
-    "PandocEngine",
-    {
-      getStatus: Effect.sync(() => this.#status),
-      getEngine: Effect.promise(() => Promise.resolve(this.engine)),
-      changes: Stream.suspend(() =>
-        this.#events.stream.pipe(
-          Stream.map(() => this.#status),
-          Stream.prepend([this.#status]),
-        ),
+  readonly binary = stubService<PackBinaryApi<CitationEngine>>("PandocEngine", {
+    current: Effect.sync(() => this.#status),
+    getEngine: Effect.promise(() => Promise.resolve(this.engine)),
+    changes: Stream.suspend(() =>
+      this.#events.stream.pipe(
+        Stream.map(() => this.#status),
+        Stream.prepend([this.#status]),
       ),
-    },
-  );
+    ),
+  });
   readonly runSync = Effect.runSync;
   readonly runPromise = Effect.runPromise;
 
-  /** An install, an uninstall, or a restart: every one wakes the subscribers. */
-  setStatus(status: PandocEngineStatus): void {
+  /** A read of the pack that gives another status wakes the subscribers. */
+  setStatus(status: PackBinaryStatus): void {
     this.#status = status;
     this.#events.emit();
   }
@@ -826,21 +821,21 @@ describe("BibliographyRenderCache", () => {
       }),
   );
 
-  it.effect("drops every render when the engine comes or goes", () =>
+  it.effect("drops every render when the engine goes and when it comes", () =>
     Effect.gen(function* () {
       const harness = yield* harnessOf();
       const { cache, engine, pandocEngine, invalidations } = harness;
       const items = [item("alpha")];
 
       yield* Effect.promise(() => cache.bridge.runPromise(cache.render(items)));
-      pandocEngine.setStatus({
-        kind: "installed",
-        version: "3.11",
-        binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-      });
+      pandocEngine.setStatus({ kind: "pack-damaged" });
       yield* Effect.promise(() => cache.bridge.runPromise(cache.render(items)));
-
       expect(invalidations).toHaveLength(1);
+      expect(engine.requests).toHaveLength(1);
+
+      pandocEngine.setStatus({ kind: "ready", version: "3.11" });
+      yield* Effect.promise(() => cache.bridge.runPromise(cache.render(items)));
+      expect(invalidations).toHaveLength(2);
       expect(engine.requests).toHaveLength(2);
     }),
   );
@@ -851,7 +846,7 @@ describe("BibliographyRenderCache", () => {
         "citation.references-style": APA,
       });
       const { cache, engine, pandocEngine, missingStyles } = harness;
-      pandocEngine.setStatus({ kind: "absent" });
+      pandocEngine.setStatus({ kind: "pack-absent" });
 
       yield* Effect.promise(() =>
         expect(
@@ -1430,7 +1425,7 @@ describe("BibliographyRenderCache citations", () => {
     Effect.gen(function* () {
       const harness = yield* harnessOf();
       const { cache, engine, pandocEngine } = harness;
-      pandocEngine.setStatus({ kind: "absent" });
+      pandocEngine.setStatus({ kind: "pack-absent" });
 
       yield* Effect.promise(() =>
         expect(

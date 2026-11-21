@@ -31,6 +31,11 @@ export interface PackBinaryCopy {
   desc: string;
   /** What the feature does without the binary; it follows each status but `ready`. */
   fallback: string;
+  /**
+   * The terms the pack redistributes the binary under, with a link to its
+   * source code; shown between the description and the status.
+   */
+  licence?: { text: string; source: { text: string; url: string } };
 }
 
 /**
@@ -51,7 +56,7 @@ export function packBinaryDefinition(
 }
 
 /** One sentence per arm, in the words of the step that mends it. */
-function statusSentence(status: PackBinaryStatus): string {
+export function packStatusSentence(status: PackBinaryStatus): string {
   switch (status.kind) {
     case "pack-absent":
       return m.settings_resource_pack_status_absent();
@@ -78,7 +83,16 @@ function renderStatus(
 ): () => void {
   const statusEl = createDiv({ attr: { role: "status" } });
   const desc = createFragment();
-  desc.append(copy.desc, statusEl);
+  desc.append(copy.desc);
+  if (copy.licence) {
+    const { text, source } = copy.licence;
+    const licenceEl = desc.createDiv();
+    licenceEl.append(
+      `${text} `,
+      createEl("a", { text: source.text, href: source.url }),
+    );
+  }
+  desc.append(statusEl);
   setting.setDesc(desc);
   setting.addButton((button) =>
     button.setButtonText(m.settings_resource_pack_open()).onClick(() => {
@@ -92,8 +106,8 @@ function renderStatus(
       yield* paintEach(api.changes, (status) => {
         statusEl.setText(
           status.kind === "ready"
-            ? statusSentence(status)
-            : `${statusSentence(status)} ${copy.fallback}`,
+            ? packStatusSentence(status)
+            : `${packStatusSentence(status)} ${copy.fallback}`,
         );
       });
     }),

@@ -21,7 +21,6 @@ import {
   samePresentation,
 } from "#obsidian/pandoc/document-presentation.ts";
 import { ProfileStyles } from "#obsidian/pandoc/profile-styles.ts";
-import { PandocEngine } from "#obsidian/pandoc/service.ts";
 
 export const metadataRevisionAtom = held(
   Stream.unwrap(
@@ -109,11 +108,11 @@ export const openIndexedKeyCommand = Atom.keepAlive(
     { concurrent: true },
   ),
 );
-export const dismissEngineHintCommand = viewRuntime.fn(() =>
-  Effect.gen(function* () {
-    yield* (yield* PandocEngine).decline;
-  }),
-);
+/**
+ * The reader closed the hint that offers the Resource Pack. It stays closed
+ * in every References pane until the plugin loads again.
+ */
+export const engineHintDismissedAtom = Atom.keepAlive(Atom.make(false));
 
 export const openReferenceLinkCommand = viewRuntime.fn(
   (target: { readonly linkpath: string; readonly sourcePath: string }) =>

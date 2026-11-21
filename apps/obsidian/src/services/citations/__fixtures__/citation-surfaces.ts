@@ -57,7 +57,7 @@ import { citationPopoverFixture } from "@zotlit/citations/__fixtures__/citation-
 import { firstText } from "@zotlit/citations/__fixtures__/citation-text.ts";
 import { citationTextFixture } from "@zotlit/citations/__fixtures__/citation-text.ts";
 import { CitationText } from "@zotlit/citations/obsidian/citation-text/service.ts";
-import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import type { PackBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { createCitationEngine } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 import type { CitationEngine } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 import { BibliographyRender } from "@zotlit/citations/obsidian/pandoc/render-cache.ts";
@@ -206,15 +206,10 @@ const WASM_PATH = join(
 
 function pandocEngineHandle(engine: CitationEngine) {
   return {
-    binary: stubService<ManagedBinaryApi<CitationEngine>>("PandocEngine", {
-      getStatus: Effect.succeed({
-        kind: "installed",
-        version: "test",
-        binary: { directory: "pandoc-engine", name: "pandoc.wasm" },
-      }),
+    binary: stubService<PackBinaryApi<CitationEngine>>("PandocEngine", {
+      current: Effect.succeed({ kind: "ready", version: "test" }),
       changes: Stream.empty,
       getEngine: Effect.succeed(engine),
-      decline: Effect.void,
     }),
     runSync: Effect.runSync,
     runPromise: Effect.runPromise,
@@ -441,11 +436,8 @@ export async function openCitationVault({
         cache.runtime.runSync(BibliographyRender),
       ),
       Layer.mock(PandocEngine, {
-        changes: Stream.concat(
-          Stream.fromEffect(pandocEngine.binary.getStatus),
-          pandocEngine.binary.changes,
-        ),
-        decline: pandocEngine.binary.decline,
+        current: pandocEngine.binary.current,
+        changes: pandocEngine.binary.changes,
       }),
       Layer.mock(ProfileStyles, {
         loaded: Effect.sync(() => profile.loaded),
@@ -502,8 +494,8 @@ export async function openCitationVault({
     {
       registry,
       app: sidebarApp(harness),
-      openSettings: () => undefined,
-      openStyleSettings: () => undefined,
+        openSettings: () => undefined,
+        openStyleSettings: () => undefined,
     },
   );
   document.body.append(view.contentEl);
@@ -758,7 +750,6 @@ function exportAdapter({
       }),
     }),
     bridge: settings.bridge,
-    openSettings: () => undefined,
     context: Context.make(
       ZoteroPref,
       stubService<ZoteroPref["Service"]>("ZoteroPref", {

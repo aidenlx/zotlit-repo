@@ -7,19 +7,28 @@ import type {
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import type { PackBinaryStatus } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
+import { RESOURCE_PACK_PAGE } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { packStatusSentence } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 
-/** The engine is the one prerequisite the command cannot supply itself. */
+/**
+ * The engine is the one prerequisite the command cannot supply itself: the
+ * notice names the Resource Pack, states where the engine stands, and opens
+ * the pack's page in the community plugin browser.
+ */
 export function engineMissingMessage(
-  openSettings: () => void,
+  status: PackBinaryStatus,
 ): DocumentFragment {
   return BaseNotice.render((renderer) => {
-    renderer.setTitle(m.notice_pandoc_export_engine_missing());
+    renderer
+      .setTitle(m.notice_pandoc_export_engine_missing())
+      .addText(packStatusSentence(status));
     renderer.addAction((button) => {
       button
-        .setButtonText(m.references_engine_open_settings())
+        .setButtonText(m.settings_resource_pack_open())
         .setCta()
         .onClick(() => {
-          openSettings();
+          window.open(RESOURCE_PACK_PAGE);
         });
     });
   });

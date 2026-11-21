@@ -60,7 +60,7 @@ function ctx(): SettingTabContext {
         Context.add(
           PandocEngine,
           stubService<PandocEngine["Service"]>("PandocEngine", {
-            getStatus: Effect.succeed({ kind: "absent" }),
+            current: Effect.succeed({ kind: "pack-absent" }),
             changes: Stream.empty,
           }),
         ),

@@ -40,7 +40,7 @@ import {
 import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
-import type { ManagedBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/service.ts";
+import type { PackBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 import {
   citedWorkSeed,
@@ -662,16 +662,12 @@ describe("CitationText", () => {
                   changes: Stream.empty,
                 },
                 pandocEngine: {
-                  binary: stubService<ManagedBinaryApi<CitationEngine>>(
+                  binary: stubService<PackBinaryApi<CitationEngine>>(
                     "PandocEngine",
                     {
-                      getStatus: Effect.succeed({
-                        kind: "installed",
+                      current: Effect.succeed({
+                        kind: "ready",
                         version: "3.10",
-                        binary: {
-                          directory: "pandoc-engine",
-                          name: "pandoc.wasm",
-                        },
                       }),
                       changes: Stream.empty,
                       getEngine: Effect.succeed(

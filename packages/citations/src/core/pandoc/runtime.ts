@@ -88,12 +88,11 @@ const decoder = new TextDecoder("utf-8", { fatal: true });
  * path: virtual files arrive as bytes rather than Blobs, which keeps `convert`
  * synchronous, and media extraction is left out.
  *
- * @param wasmBinary the verified `pandoc.wasm` binary, streamed rather than
- *   materialized.
+ * @param wasmBinary the verified `pandoc.wasm` binary.
  * @see https://github.com/pandoc/pandoc-wasm/blob/v1.1.0/src/core.js
  */
 export async function createPandocRuntime(
-  wasmBinary: Blob,
+  wasmBinary: Blob | Uint8Array<ArrayBuffer>,
 ): Promise<PandocRuntime> {
   const fileSystem = new Map<string, Inode>();
   const wasi = new WASI(
@@ -122,9 +121,8 @@ export async function createPandocRuntime(
     { debug: false },
   );
 
-  // instantiateStreaming requires an `application/wasm` Content-Type; an OPFS
-  // File's own `type` is empty, so the header is set explicitly rather than
-  // left to the Blob.
+  // instantiateStreaming requires an `application/wasm` Content-Type, which
+  // bytes and a typeless Blob lack, so the header is set explicitly.
   const response = new Response(wasmBinary, {
     headers: { "Content-Type": "application/wasm" },
   });

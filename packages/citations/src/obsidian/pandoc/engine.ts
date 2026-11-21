@@ -221,11 +221,10 @@ const PROPERTIES_FILE = "document-properties.yaml";
 /**
  * Instantiate one engine over the Pandoc WASM binary.
  *
- * @param wasmBinary the verified `pandoc.wasm` binary, streamed rather than
- *   materialized.
+ * @param wasmBinary the verified `pandoc.wasm` binary.
  */
 export async function createCitationEngine(
-  wasmBinary: Blob,
+  wasmBinary: Blob | Uint8Array<ArrayBuffer>,
 ): Promise<CitationEngine> {
   return new PandocCitationEngine(await createPandocRuntime(wasmBinary));
 }

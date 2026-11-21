@@ -8,9 +8,17 @@ import { BibliographyRender } from "./render-cache.ts";
 import { PandocEngine } from "./service.ts";
 import type { PandocEngineStatus } from "./service.ts";
 
+/**
+ * Where the engine stands. Its first value needs no read of the pack file, so
+ * a vault with no pack shows that at once.
+ */
 export const pandocEngineAtom = held<PandocEngineStatus>(
-  Stream.unwrap(Effect.map(PandocEngine, (engine) => engine.changes)),
-  { kind: "absent" },
+  Stream.unwrap(
+    Effect.map(PandocEngine, (engine) =>
+      Stream.concat(Stream.fromEffect(engine.current), engine.changes),
+    ),
+  ),
+  null,
 );
 
 export const bibliographyRevisionsAtom = held(

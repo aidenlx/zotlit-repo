@@ -36,13 +36,6 @@ export default defineConfig({
     __DEV__: JSON.stringify(true),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
     __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),
-    // Resolving the real pin needs the network; a test that cares about engine
-    // metadata takes it as an argument rather than reading this placeholder.
-    __PANDOC_ENGINE__: JSON.stringify({
-      version: "0.0.0",
-      url: "https://example.invalid/pandoc.wasm.zip",
-      sha256: "0".repeat(64),
-    }),
   },
   plugins: [
     effectEntry("renderer", { vitest: true, scopes: pluginCode }),

@@ -44,7 +44,7 @@ import {
   BibliographyRender,
   BibliographyRenderError,
 } from "#obsidian/pandoc/render-cache.ts";
-import { PandocEngine } from "#obsidian/pandoc/service.ts";
+import { engineUsable, PandocEngine } from "#obsidian/pandoc/service.ts";
 
 const BIBLIOGRAPHY_RENDER = "bibliography-render";
 
@@ -111,9 +111,15 @@ export const layerBibliographyRender = Layer.effect(
     yield* listen(reads.events, (event) =>
       event._tag === "changed" ? invalidate() : Effect.void,
     );
-    const initialEngine = yield* engine.getStatus;
+    // A render stands until the engine comes or goes: the first read of an
+    // installed pack only confirms the engine the renders already asked for.
+    const initialUsable = engineUsable(yield* engine.current);
     yield* listen(
-      Stream.dropWhile(engine.changes, (next) => next === initialEngine),
+      engine.changes.pipe(
+        Stream.map((status) => engineUsable(status)),
+        Stream.changes,
+        Stream.dropWhile((usable) => usable === initialUsable),
+      ),
       () => invalidate(),
     );
     let previousPref = yield* pref.current;
@@ -179,7 +185,7 @@ export const layerBibliographyRender = Layer.effect(
 
     const prepare = Effect.fn("BibliographyRender.prepare")(
       function* (presentation: RenderPresentation | undefined) {
-        if ((yield* engine.getStatus).kind !== "installed")
+        if (!engineUsable(yield* engine.current))
           return { reason: "engine-absent" } as const;
         const selected = (yield* SubscriptionRef.get(state)).vaultPresentation;
         const request = effectivePresentation(presentation ?? {}, selected);

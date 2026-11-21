@@ -415,10 +415,10 @@ preview）插件的设置。
 
 ### 参考文献 [#formatting]
 
-| 标签                                                 | 键名              | 控件                                                                                                                      | 默认值                                                  | 依赖             | 存储   |
-| ---------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------- | ------ |
-| <UiLabel name={m.settings_citation_locale_name()} /> | `citation.locale` | 文本                                                                                                                      | <UiLabel name={m.settings_citation_locale_default()} /> | 无               | 已同步 |
-| <UiLabel name={m.settings_citation_engine_name()} /> | 无                | <UiLabel name={m.settings_citation_engine_install()} /> 或 <UiLabel name={m.settings_citation_engine_uninstall()} /> 操作 | 未安装                                                  | 安装时需网络连接 | 按设备 |
+| 标签                                                 | 键名              | 控件                                               | 默认值                                                  | 依赖                               | 存储   |
+| ---------------------------------------------------- | ----------------- | -------------------------------------------------- | ------------------------------------------------------- | ---------------------------------- | ------ |
+| <UiLabel name={m.settings_citation_locale_name()} /> | `citation.locale` | 文本                                               | <UiLabel name={m.settings_citation_locale_default()} /> | 无                                 | 已同步 |
+| <UiLabel name={m.settings_citation_engine_name()} /> | 无                | <UiLabel name={m.settings_resource_pack_open()} /> | 未安装                                                  | 仓库中的 ZotLit Resource Pack 插件 | 按仓库 |
 
 <UiLabel name={m.settings_citation_references_style_name()} />
 位于主页面。参见[参考文献样式](#citation-style)。
@@ -437,9 +437,11 @@ preview）插件的设置。
 这两个笔记属性均可通过 <Command inline name={m.command_set_citation_presentation_name()} /> 命令设置，该命令也可在笔记的**更多选项**（More options）菜单中找到。参见[命令](/docs/reference/commands)。
 
 <UiLabel name={m.settings_citation_engine_name()} />
-：用于排版文内引用、参考文献及导出。安装后适用于该设备上的所有仓库。
+：用于排版文内引用、参考文献及导出。由 ZotLit Resource Pack 插件提供：在
+Obsidian
+的第三方插件中安装该插件即可，无需启用。在安装它之前，参考文献以纯列表显示，内置导出无法运行。
 
-安装前，其状态显示为 <UiLabel name={m.settings_citation_engine_status_absent()} />。该受支持的状态不会弹出生命周期通知。
+该行显示当前状态：已就绪及资源包版本、未安装资源包、需要更新资源包或 ZotLit、资源包文件已损坏。<UiLabel name={m.settings_resource_pack_open()} /> 会在第三方插件浏览器中打开 ZotLit Resource Pack 的页面。ZotLit Resource Pack 依据 GNU 通用公共许可证（第 2 版或更高版本）再分发 Pandoc；该行附有 [Pandoc 源代码](https://github.com/jgm/pandoc)的链接。
 
 ### 引文文本 [#citation-templates]
 

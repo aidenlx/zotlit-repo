@@ -11,7 +11,8 @@ import {
   layerQueryClients,
 } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type { ManagedBinaryHandle } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
+import type { BinaryHandle } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
+import type { PackBinaryApi } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -45,7 +46,7 @@ export interface BibliographyRenderFixtureOptions {
   profile: Pick<ProfileStyles["Service"], "changes"> &
     Partial<Pick<ProfileStyles["Service"], "vaultStyleId">>;
   db: Pick<ZoteroReads["Service"], "events">;
-  pandocEngine: Pick<ManagedBinaryHandle<CitationEngine>, "binary">;
+  pandocEngine: Pick<BinaryHandle<PackBinaryApi<CitationEngine>>, "binary">;
   zoteroPref: {
     readonly dataDir: string;
     /** Each move of the profile or data folder Zotero reads from. */
@@ -110,7 +111,7 @@ export async function bibliographyRenderFixture(
         Layer.succeed(
           PandocEngine,
           stubService<PandocEngine["Service"]>("PandocEngine", {
-            getStatus: options.pandocEngine.binary.getStatus,
+            current: options.pandocEngine.binary.current,
             getEngine: options.pandocEngine.binary.getEngine,
             changes: options.pandocEngine.binary.changes,
           }),

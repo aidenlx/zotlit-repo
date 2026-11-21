@@ -118,7 +118,7 @@ export const PUBLISHED_PLUGINS = {
     giscus: false,
     resources: "none",
     budget: {
-      mainJsBytes: 3_900_000,
+      mainJsBytes: 26_000_000,
       stylesCssBytes: 0,
     },
     allowedRequires: ["obsidian"],

@@ -20,6 +20,7 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { PackBinaryStatus } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -68,8 +69,6 @@ export type PandocExportServices =
 export interface PandocExportDeps {
   app: App;
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
-  /** Opens the settings page the engine install lives on. */
-  openSettings: () => void;
   /** The services the command callback runs each export with. */
   context: Context.Context<PandocExportServices>;
 }
@@ -94,7 +93,8 @@ export function registerPandocExport(
 /**
  * One export, from the dialog to the written file, with its outcome shown as
  * a notice. The engine is the one prerequisite the command cannot supply
- * itself, so its absence is answered with the settings page that installs it.
+ * itself, so its absence is answered with the page of the Resource Pack that
+ * holds it.
  */
 class PandocExportError extends Schema.TaggedError<
   PandocExportError,
@@ -124,7 +124,7 @@ export function runPandocExport(
                   new PandocExportError({
                     notice:
                       outcome.kind === "engine-missing"
-                        ? engineMissingMessage(deps.openSettings)
+                        ? engineMissingMessage(outcome.status)
                         : exportFailureMessage(outcome.problem),
                   }),
                 );
@@ -156,7 +156,10 @@ export function runPandocExport(
 
 /** How one export ended. */
 export type PandocExportOutcome =
-  | { kind: "engine-missing" }
+  | {
+      kind: "engine-missing";
+      status: Exclude<PackBinaryStatus, { kind: "ready" }>;
+    }
   | { kind: "failed"; problem: ExportProblem }
   /** The user dismissed the dialog, or the plugin unloaded during the run. */
   | { kind: "stopped" }
@@ -187,8 +190,11 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   const citationLookup = yield* CitationLookup;
   const db = yield* ZoteroReads;
   const pref = yield* zoteroPref.current;
-  if ((yield* pandocEngine.getStatus).kind !== "installed")
-    return { run: Effect.succeed({ kind: "engine-missing" }) };
+  const engineStatus = yield* pandocEngine.current;
+  if (engineStatus !== null && engineStatus.kind !== "ready")
+    return {
+      run: Effect.succeed({ kind: "engine-missing", status: engineStatus }),
+    };
   // A note whose own presentation property names nothing stops here: a vault
   // selection never stands in for it, in the dialog or in the exported run.
   const profiles = yield* ProfileStyles;
@@ -280,7 +286,21 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   return {
     run: Effect.gen(function* (): Effect.fn.Return<PandocExportOutcome> {
       const conversion = yield* Effect.gen(function* () {
-        const engine = yield* pandocEngine.getEngine;
+        // An unread pack states its refusal at this first borrow.
+        const borrowed = yield* Effect.result(pandocEngine.getEngine);
+        if (borrowed._tag === "Failure") {
+          const status = yield* pandocEngine.current;
+          return {
+            missing:
+              status !== null && status.kind !== "ready"
+                ? status
+                : ({
+                    kind: "failed",
+                    detail: borrowed.failure.message,
+                  } as const),
+          };
+        }
+        const engine = borrowed.success;
         if (!engine) return yield* Effect.interrupt;
         const markdown = yield* Effect.promise(() =>
           app.vault.cachedRead(file),
@@ -328,6 +348,8 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
           );
         }),
       );
+      if ("missing" in conversion)
+        return { kind: "engine-missing", status: conversion.missing };
       if ("error" in conversion)
         return { kind: "failed", problem: conversion.error };
       const written = yield* fileSystem

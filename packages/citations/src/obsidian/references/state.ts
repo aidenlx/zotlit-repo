@@ -63,6 +63,8 @@ export interface ReferencesState {
   listMode: ReferencesListMode;
   /** Drives the one fallback surface above the list. */
   engine: PandocEngineStatus;
+  /** The reader closed the hint that offers the Resource Pack. */
+  engineHintDismissed: boolean;
   /** A completed formatting attempt failed while the engine remained available. */
   formattingFailed: boolean;
   /**

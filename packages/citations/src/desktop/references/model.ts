@@ -44,7 +44,9 @@ import {
   samePresentation,
 } from "#obsidian/pandoc/document-presentation.ts";
 import { BibliographyRender } from "#obsidian/pandoc/render-cache.ts";
+import { engineUsable } from "#obsidian/pandoc/service.ts";
 import {
+  engineHintDismissedAtom,
   metadataRevisionAtom,
   referencesSelectionAtom,
 } from "#obsidian/references/atoms.ts";
@@ -128,7 +130,7 @@ export function makeReferencesModel() {
       Option.flatMap((result) => AsyncResult.value(result)),
       Option.getOrElse(() => EMPTY_RENDER),
     );
-    return loadReferences(current, previous, engine.kind === "installed");
+    return loadReferences(current, previous, engineUsable(engine));
   });
   const state = Atom.make((get): ReferencesState => {
     const result = get(loaded);
@@ -164,6 +166,7 @@ export function makeReferencesModel() {
               entrySerials: path ? get(entrySerialsAtom(path)) : false,
             },
       engine,
+      engineHintDismissed: get(engineHintDismissedAtom),
       formattingFailed:
         AsyncResult.isFailure(result) || render.formattingFailed,
       documentPresentationError: render.documentPresentationError,

@@ -2,7 +2,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { parse } from "yaml";
 
-import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { presentCitations } from "./markdown.tsx";
@@ -572,20 +571,18 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
         opensEngineSettings: true,
       })),
     );
-    fixture.deps.pandocEngine.status = {
-      kind: "installing",
-    } as PandocEngineStatus;
+    fixture.deps.pandocEngine.status = { kind: "pack-outdated" };
     expect((await rendered()).previewHints).toEqual(
       (["note", "annotation"] as const).map((part) => ({
         part,
-        message: m.notice_pandoc_engine_downloading(),
-        opensEngineSettings: false,
+        message: m.references_engine_failed_title(),
+        opensEngineSettings: true,
       })),
     );
-    fixture.deps.pandocEngine.status = { kind: "declined" };
-    const declined = await rendered();
-    expect(declined.previewHints).toEqual([]);
-    expect(declined.diagnostics).toEqual([]);
+    fixture.deps.pandocEngine.status = null;
+    const unread = await rendered();
+    expect(unread.previewHints).toEqual([]);
+    expect(unread.diagnostics).toEqual([]);
   });
 });
 
