@@ -12,6 +12,7 @@ import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-sto
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 
@@ -52,12 +53,12 @@ export function layerLibraryScopeOf(
 }
 
 /**
- * The Item search over `client`, the Library Scope `scope`, and no Uses. Its
+ * The Item search over `reads`, the Library Scope `scope`, and no Uses. Its
  * Chinese Segmenter is ready unless the test gives `segmenter`, and its
  * notices go to `notifier`, or to a recorder that no test reads.
  */
 export function layerTestItemLookup(
-  client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>,
+  reads: Layer.Layer<ZoteroReads>,
   scope: Layer.Layer<LibraryScope>,
   {
     segmenter = Layer.mock(ChineseSegmenter, {
@@ -72,7 +73,7 @@ export function layerTestItemLookup(
   return layerItemLookup.pipe(
     Layer.provide(
       Layer.mergeAll(
-        layerZoteroReads(client),
+        reads,
         scope,
         Layer.mock(UseLedger, { uses: Effect.succeed({}) }),
         segmenter,
@@ -95,7 +96,7 @@ export async function buildItemLookup(
 ): Promise<ItemLookupHandle> {
   const runtime = buildRuntime(
     layerTestItemLookup(
-      client,
+      layerZoteroReads(client),
       Layer.mock(LibraryScope, {
         current: Effect.succeed(scopeState(libraries).current),
         changes: Stream.make(scopeState(libraries)),

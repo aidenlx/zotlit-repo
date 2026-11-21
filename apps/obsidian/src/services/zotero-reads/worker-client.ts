@@ -8,7 +8,8 @@ import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { ZoteroReadMode } from "@zotlit/plugin-services/core/database/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { segmenterBinary } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   connectWorker,
@@ -38,7 +39,7 @@ const sameConfig = (a: ReadsConfig, b: ReadsConfig) =>
 export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
   const settings = yield* PluginSettings;
   const pref = yield* ZoteroPref;
-  const segmenter = yield* ChineseSegmenter;
+  const pack = yield* ResourcePackPlatform;
   const { language } = yield* ObsidianEnv;
   const workspace = yield* Workspace;
   // `makeWorkerReads` takes a connect step with no requirement but its Scope
@@ -58,7 +59,9 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
       locale: language,
       // The worker reads and verifies the entry itself, so the pack reaches
       // it unread: this thread pays nothing for the binary at start-up.
-      chineseSegmenter: yield* segmenter.entry,
+      chineseSegmenter: yield* segmenterBinary.pipe(
+        Effect.provideService(ResourcePackPlatform, pack),
+      ),
       logLevel: current["log.level"],
     } satisfies ReadsConfig;
   });
@@ -91,7 +94,7 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
     [
       Stream.as(settings.changes, undefined),
       Stream.as(pref.changes, undefined),
-      Stream.as(segmenter.changes, undefined),
+      pack.changes,
     ],
     { concurrency: "unbounded" },
   ).pipe(

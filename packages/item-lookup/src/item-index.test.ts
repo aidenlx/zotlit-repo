@@ -13,7 +13,7 @@ import { makeMemoryItemSource } from "./memory-item-source.ts";
 import type { MemoryItemRow, MemoryItemSource } from "./memory-item-source.ts";
 import { makeMemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
 import type { MemorySegmenterBinaryReader } from "./memory-segmenter-binary-reader.ts";
-import type { SegmenterBinary } from "./segmenter-switch.ts";
+import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 
 const GROUP_LIBRARY_ID = 2;
 
@@ -70,10 +70,7 @@ const INSTALLED: SegmenterBinary = {
   url: PACK,
   entry: "chinese-segmenter",
   version: "1.0.0",
-  sha256: null,
 };
-/** The same entry once the renderer read the pack and knows its hash. */
-const VERIFIED: SegmenterBinary = { ...INSTALLED, sha256: "9f".repeat(32) };
 const MISSING: SegmenterBinary = { ...INSTALLED, version: "0.9.0" };
 const CORRUPT: SegmenterBinary = { ...INSTALLED, version: "1.0.1" };
 /** The bytes each binary of the tests reads as; another binary is missing. */
@@ -101,6 +98,7 @@ interface Harness {
     query: string,
   ) => Effect.Effect<readonly SearchHit[], SourceUnavailable>;
   configure: (settings: IndexSettings) => Effect.Effect<void>;
+  checkSegmenter: (binary: SegmenterBinary) => Effect.Effect<SegmenterStatus>;
 }
 
 interface Setup {
@@ -136,7 +134,10 @@ function withIndex<A>(
         setup.initial ?? { locale: "en", segmenterBinary: null },
       ).pipe(Layer.provide([source.layer, reader.layer])),
     );
-    const { search, configure } = Context.get(context, ItemIndex);
+    const { search, configure, checkSegmenter } = Context.get(
+      context,
+      ItemIndex,
+    );
     return yield* body({
       source,
       reader,
@@ -146,6 +147,7 @@ function withIndex<A>(
         ),
       hits: (libraries, query) => search(libraries, query, { limit: 50 }),
       configure,
+      checkSegmenter,
     });
   }).pipe(
     Effect.scoped,
@@ -788,9 +790,6 @@ describe("Item Index with the Chinese Segmenter", () => {
   it.each([
     ["no binary", null, null],
     ["the installed binary", INSTALLED, INSTALLED],
-    // The renderer reads the pack after the worker did, and then names the
-    // hash of the entry the worker loaded.
-    ["the hash of the loaded binary", INSTALLED, VERIFIED],
   ])(
     "rebuilds nothing on a configure with equal settings and %s",
     async (_, binary, next) => {
@@ -816,6 +815,106 @@ describe("Item Index with the Chinese Segmenter", () => {
       expect(result).toEqual({ scans: 1, asked: binary ? 1 : 0 });
     },
   );
+
+  it("states the Segmenter ready after a read of the binary it cuts with, and rebuilds nothing", async () => {
+    const result = await withIndex(
+      ({ source, reader, search, checkSegmenter }) =>
+        Effect.gen(function* () {
+          yield* search(USER, JIEBA_ONLY);
+          const status = yield* checkSegmenter(INSTALLED);
+          yield* source.notify;
+          yield* eventually(() => source.reads.released === 1);
+          const hits = yield* search(USER, JIEBA_ONLY);
+          return {
+            status,
+            hits,
+            scans: source.reads.scans,
+            asked: reader.asked.length,
+          };
+        }),
+      installed,
+    );
+
+    expect(result).toEqual({
+      status: { kind: "ready", version: "1.0.0" },
+      hits: ["CHINA"],
+      scans: 1,
+      asked: 2,
+    });
+  });
+
+  it.each([
+    ["missing", MISSING, { kind: "pack-outdated" }],
+    ["corrupt", CORRUPT, { kind: "failed", detail: expect.any(String) }],
+  ])(
+    "states why the Segmenter does not cut with a %s binary",
+    async (_, binary, expected) => {
+      const status = await withIndex(
+        ({ checkSegmenter }) => checkSegmenter(binary),
+        { ...rows, initial: { locale: "en", segmenterBinary: binary } },
+      );
+
+      expect(status).toEqual(expected);
+    },
+  );
+
+  it("starts the binary at a check after a failed load, and states it ready", async () => {
+    let reads = 0;
+    const result = await withIndex(
+      ({ search, checkSegmenter }) =>
+        Effect.gen(function* () {
+          const failed = yield* search(USER, JIEBA_ONLY);
+          const status = yield* checkSegmenter(INSTALLED);
+          const retried = yield* until(
+            search(USER, JIEBA_ONLY),
+            (keys) => keys.length > 0,
+          );
+          return { failed, status, retried };
+        }),
+      {
+        ...installed,
+        bytesFor: () => {
+          reads++;
+          return reads === 1 ? undefined : JIEBA_WASM;
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      failed: [],
+      status: { kind: "ready", version: "1.0.0" },
+      retried: ["CHINA"],
+    });
+  });
+
+  it("leaves jieba at a check that finds the pack without the binary", async () => {
+    let reads = 0;
+    const result = await withIndex(
+      ({ search, checkSegmenter }) =>
+        Effect.gen(function* () {
+          const before = yield* search(USER, JIEBA_ONLY);
+          const status = yield* checkSegmenter(INSTALLED);
+          const after = yield* until(
+            search(USER, JIEBA_ONLY),
+            (keys) => keys.length === 0,
+          );
+          return { before, status, after };
+        }),
+      {
+        ...installed,
+        bytesFor: () => {
+          reads++;
+          return reads === 1 ? JIEBA_WASM : undefined;
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      before: ["CHINA"],
+      status: { kind: "pack-outdated" },
+      after: [],
+    });
+  });
 });
 
 /** The title of each hit, keyed by Indexed Key in rank order. */

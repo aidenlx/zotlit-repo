@@ -142,8 +142,8 @@ export interface HandlersOptions {
   chineseSegmenter?: SegmenterBinary | null;
   /**
    * Reads the binary's bytes: the worker reads its entry in the Resource Pack; tests
-   * pass the bytes of the `jieba-wasm` dev dependency. Without it every binary
-   * reads as unavailable.
+   * pass the bytes of the `jieba-wasm` dev dependency. Without it every pack
+   * reads as unreadable.
    */
   readSegmenter?: ReadSegmenter;
   /**
@@ -635,6 +635,7 @@ export function handlersLayer(options?: HandlersOptions) {
         Refresh: () => connection.refresh,
         NotifyExternalChange: () => connection.notifyExternalChange,
         Configure: configure,
+        CheckChineseSegmenter: ({ binary }) => itemIndex.checkSegmenter(binary),
 
         Ping: () => Effect.void,
 

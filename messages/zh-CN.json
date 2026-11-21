@@ -1760,6 +1760,7 @@
   "settings_chinese_segmenter_name": "中文分词器",
   "settings_chinese_segmenter_desc": "将中文标题切分为词语，使搜索词可以按标题中的任一词语找到条目。由 ZotLit Resource Pack 提供。",
   "settings_chinese_segmenter_fallback": "在此之前，搜索按内置规则切分中文标题，可能漏掉部分词语。",
+  "settings_resource_pack_status_checking": "正在检查 ZotLit Resource Pack…",
   "settings_resource_pack_status_absent": "尚未安装 ZotLit Resource Pack。请在第三方插件中安装，无需启用。",
   "settings_resource_pack_status_pack_outdated": "ZotLit Resource Pack 版本过旧，无法与当前版本的 ZotLit 配合使用。请更新 ZotLit Resource Pack。",
   "settings_resource_pack_status_plugin_outdated": "ZotLit Resource Pack 版本过新，无法与当前版本的 ZotLit 配合使用。请更新 ZotLit。",

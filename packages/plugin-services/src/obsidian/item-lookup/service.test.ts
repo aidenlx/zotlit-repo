@@ -13,6 +13,9 @@ import {
   Stream,
   SubscriptionRef,
 } from "effect";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { describe, expect } from "vitest";
 
@@ -21,13 +24,17 @@ import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
+import type { ReadRange } from "@zotlit/resource-pack/reader.ts";
 import {
   inProcessClient,
   memoryOpener,
+  seedWorksSql,
 } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
+import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { AvailableLibrary } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
+import type { HandlersOptions } from "@zotlit/zotero-reads/worker/handlers.ts";
 
 import {
   layerLibraryScopeOf,
@@ -38,21 +45,67 @@ import { ItemLookup } from "./service.ts";
 import type { SearchHit } from "./service.ts";
 
 import {
-  ChineseSegmenter,
-  layerChineseSegmenter,
-} from "#obsidian/chinese-segmenter/service.ts";
-import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
+  layerDeviceSegmenter,
+  segmenterHandlers,
+} from "#obsidian/chinese-segmenter/__fixtures__.ts";
+import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
 import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
-
-/** The smallest module that compiles: the magic number and the version. */
-const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
 
 /** A turn of the event loop, as between two keystrokes. */
 const nextTurn = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 const keys = (hits: readonly SearchHit[]) => hits.map((hit) => hit.item.key);
 
+/** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
+const JIEBA = new Uint8Array(
+  await readFile(
+    join(
+      dirname(createRequire(import.meta.url).resolve("jieba-wasm/web")),
+      "jieba_rs_wasm_bg.wasm",
+    ),
+  ),
+);
+
 describe("ItemLookup", () => {
+  // Regression: the settings row said "ready" from this thread's own read of
+  // the pack while the worker, which could not read it, cut Chinese text with
+  // Intl.Segmenter.
+  it.effect(
+    "states the Chinese Segmenter that the worker runs when the worker cannot read the pack",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(
+          yield* Effect.promise(() => packFile({ "chinese-segmenter": JIEBA })),
+        );
+        const reads = yield* readsOver(
+          () =>
+            seedWorksSql([
+              { itemID: 1, key: "RIVER", title: "长江流域的城市化研究" },
+            ]),
+          {
+            chineseSegmenter: {
+              ...device.locate()!,
+              entry: "chinese-segmenter",
+            },
+            readSegmenter: () =>
+              Effect.fail({
+                kind: "pack-unreadable",
+                detail: "The worker's request for the pack file failed",
+              } as const),
+          },
+        );
+        const { lookup, segmenter } = yield* lookupOver(
+          reads,
+          [library(USER_LIBRARY_ID)],
+          device,
+        );
+
+        // jieba cuts the word out of the title; Intl.Segmenter does not.
+        expect(keys(yield* lookup.search("流域"))).toEqual([]);
+        expect(yield* segmenter!.check).toEqual({ kind: "pack-damaged" });
+      }),
+  );
+
   it.effect(
     "names the Resource Pack once when a search of Chinese text finds no pack",
     () =>
@@ -81,18 +134,22 @@ describe("ItemLookup", () => {
     "reads the installed pack at the first search of Chinese text, and names the plugin to update when the pack is too new",
     () =>
       Effect.gen(function* () {
-        const reads = yield* readsOver(() => seed(perLibraryRows()));
+        const device = packDevice(
+          yield* Effect.promise(() =>
+            packFile(
+              { "chinese-segmenter": new Uint8Array([0]) },
+              PACK_COMPAT + 1,
+            ),
+          ),
+        );
+        const reads = yield* readsOver(
+          () => seed(perLibraryRows()),
+          segmenterHandlers(device),
+        );
         const { lookup, notices } = yield* lookupOver(
           reads,
           [library(USER_LIBRARY_ID)],
-          packDevice(
-            yield* Effect.promise(() =>
-              packFile(
-                { "chinese-segmenter": new Uint8Array([0]) },
-                PACK_COMPAT + 1,
-              ),
-            ),
-          ),
+          device,
         );
 
         yield* lookup.search("长江");
@@ -137,33 +194,37 @@ describe("ItemLookup", () => {
     ],
   ] as const) {
     it.effect(
-      `reads the installed pack once for ${name} while the Segmenter is unread`,
+      `asks the worker for one read of the installed pack for ${name} while the Segmenter's status is unknown`,
       () =>
         Effect.gen(function* () {
-          const reads = yield* readsOver(() => seed(perLibraryRows()));
-          const device = packDevice(
+          const installed = packDevice(
             yield* Effect.promise(() =>
-              packFile({ "chinese-segmenter": EMPTY_MODULE }),
+              packFile({ "chinese-segmenter": JIEBA }),
             ),
           );
           /** Holds each read of the pack file until the searches are out. */
           const held = Promise.withResolvers<void>();
           let packReads = 0;
+          const device = {
+            ...installed,
+            open: (url: string): ReadRange => {
+              const range = installed.open(url);
+              return async (offset, length) => {
+                // One read of an entry reads the index first.
+                if (offset === 0) packReads += 1;
+                await held.promise;
+                return range(offset, length);
+              };
+            },
+          };
+          const reads = yield* readsOver(
+            () => seed(perLibraryRows()),
+            segmenterHandlers(device),
+          );
           const { lookup, segmenter } = yield* lookupOver(
             reads,
             [library(USER_LIBRARY_ID)],
-            {
-              ...device,
-              open: (url) => {
-                const range = device.open(url);
-                return async (offset, length) => {
-                  // One read of an entry reads the index first.
-                  if (offset === 0) packReads += 1;
-                  await held.promise;
-                  return range(offset, length);
-                };
-              },
-            },
+            device,
           );
 
           yield* searches(lookup);
@@ -617,13 +678,15 @@ const lookupOver = Effect.fnUntraced(function* (
 ) {
   const state = yield* SubscriptionRef.make(scopeState(libraries));
   const notifier = testNotifier();
+  // One worker answers the search and states the Segmenter.
+  const zoteroReads = Layer.succeedContext(
+    yield* Layer.build(layerZoteroReads(reads.client)),
+  );
   const segmenter = pack
-    ? yield* Layer.build(
-        layerChineseSegmenter.pipe(Layer.provide(layerPackDevice(pack))),
-      )
+    ? yield* Layer.build(layerDeviceSegmenter(pack, zoteroReads))
     : undefined;
   const context = yield* Layer.build(
-    layerTestItemLookup(reads.client, layerLibraryScopeOf(state), {
+    layerTestItemLookup(zoteroReads, layerLibraryScopeOf(state), {
       notifier: notifier.layer,
       ...(segmenter ? { segmenter: Layer.succeedContext(segmenter) } : {}),
     }),
@@ -685,6 +748,7 @@ interface ObservedReads {
  */
 const readsOver = Effect.fnUntraced(function* (
   seedFor: (open: number) => string | null,
+  handlers?: HandlersOptions,
 ) {
   const searches: SearchPayload[] = [];
   const interrupted: string[] = [];
@@ -723,7 +787,7 @@ const readsOver = Effect.fnUntraced(function* (
 
   const reads: ObservedReads = {
     client: Effect.map(
-      inProcessClient(layerRcRef(memoryOpener(seedFor).open)),
+      inProcessClient(layerRcRef(memoryOpener(seedFor).open), handlers),
       (client) => wrap(client),
     ),
     searches,

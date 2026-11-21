@@ -1,41 +1,69 @@
-// The Chinese Segmenter as a Managed Binary: the web-target `jieba-wasm` binary of the Resource Pack.
+// The Chinese Segmenter in the renderer: where the web-target `jieba-wasm`
+// binary of the Resource Pack stands in the ZoteroReads worker, which reads
+// the binary and cuts with it.
 
-import type {
-  PackBinary,
-  PackBinaryApi,
-} from "#obsidian/managed-binary/pack-binary.ts";
-import { Context } from "effect";
+import type { PackStatusApi } from "#obsidian/managed-binary/pack-status.ts";
+import { Context, Effect, Layer, Stream } from "effect";
 
-import { layerPackBinary } from "#obsidian/managed-binary/pack-binary.ts";
+import type { SegmenterBinary } from "@zotlit/item-lookup";
+import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+
+import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts";
+import { makePackStatus } from "#obsidian/managed-binary/pack-status.ts";
+
+/** The name of the Chinese Segmenter's Pack Entry. */
+const SEGMENTER_ENTRY = "chinese-segmenter";
 
 /**
- * The verified binary, compiled. The ZoteroReads worker reads the entry from
- * the pack and instantiates the segmenter itself; the renderer compiles the
- * bytes only to prove they start.
+ * The Chinese Segmenter's entry in the installed pack, which the worker
+ * reads; `null` with no pack installed.
  */
-export interface ChineseSegmenterModule extends Disposable {
-  readonly module: WebAssembly.Module;
-}
+export const segmenterBinary: Effect.Effect<
+  SegmenterBinary | null,
+  never,
+  ResourcePackPlatform
+> = Effect.gen(function* () {
+  const location = yield* (yield* ResourcePackPlatform).locate;
+  return location && { ...location, entry: SEGMENTER_ENTRY };
+});
 
-/** The Chinese Segmenter's declaration; its Pack Entry is `chinese-segmenter`. */
-export const CHINESE_SEGMENTER: PackBinary<ChineseSegmenterModule> = {
-  id: "chinese-segmenter",
-  label: "Chinese segmenter",
-  logCategory: ["item-lookup", "segmenter"],
-  createEngine: async (binary) => ({
-    module: await WebAssembly.compile(binary),
-    // A compiled module holds no instance and no memory to release.
-    [Symbol.dispose]: () => undefined,
-  }),
-  startOnCheck: true,
-};
-
+/**
+ * The status of the Chinese Segmenter that search runs. This thread locates
+ * the pack; the worker reads the binary, starts it and states where it
+ * stands. `check` asks the worker for a new read, and waits for a worker
+ * that still starts; with no pack installed it answers `pack-absent` with no
+ * request. A worker that does not answer reads as `failed`.
+ */
 export class ChineseSegmenter extends Context.Service<
   ChineseSegmenter,
-  PackBinaryApi<ChineseSegmenterModule>
+  PackStatusApi
 >()("zotlit/chinese-segmenter/ChineseSegmenter") {}
 
-export const layerChineseSegmenter = layerPackBinary(
+export const layerChineseSegmenter = Layer.effect(
   ChineseSegmenter,
-  CHINESE_SEGMENTER,
+  Effect.gen(function* () {
+    const platform = yield* ResourcePackPlatform;
+    const { reads } = yield* ZoteroReads;
+    const { check, checkChanged, current, changes } = yield* makePackStatus(
+      Effect.gen(function* () {
+        const binary = yield* segmenterBinary;
+        if (!binary) return { kind: "pack-absent" } as const;
+        return yield* reads.CheckChineseSegmenter({ binary }).pipe(
+          Effect.catch((error) =>
+            Effect.succeed({
+              kind: "failed",
+              detail: error.message,
+            } as const),
+          ),
+        );
+      }).pipe(Effect.provideService(ResourcePackPlatform, platform)),
+    );
+    // Each watcher learns where the Segmenter stands in the pack that is
+    // there now.
+    yield* platform.changes.pipe(
+      Stream.runForEach(() => checkChanged),
+      Effect.forkScoped({ startImmediately: true }),
+    );
+    return { check, current, changes };
+  }),
 );

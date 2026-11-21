@@ -822,7 +822,7 @@ The searches one search surface — a picker or the Citation Suggester — asks 
 _Avoid_: search handle (names the mechanism), query session
 
 **Chinese Segmenter**:
-The Managed Binary that cuts Chinese text into search words for the Item Index: the pinned `jieba-wasm` binary, a Pack Entry of the Resource Pack, loaded inside the ZoteroReads worker for indexing and for queries. Optional; without it, Chinese runs segment through the browser's own word segmentation.
+The Managed Binary that cuts Chinese text into search words for the Item Index: the pinned `jieba-wasm` binary, a Pack Entry of the Resource Pack, loaded inside the ZoteroReads worker for indexing and for queries. The worker states its status, which the settings row shows. Optional; without it, Chinese runs segment through the browser's own word segmentation.
 _Avoid_: jieba plugin, cm-chs-patch (a separate third-party plugin ZotLit no longer reads), tokenizer (the whole word-splitting step, of which the segmenter is one part)
 
 **Citekey Resolution Snapshot**:

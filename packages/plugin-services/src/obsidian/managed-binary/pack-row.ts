@@ -13,14 +13,15 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import type { PackBinaryApi, PackBinaryStatus } from "./pack-binary.ts";
+import type { PackBinaryStatus } from "./pack-binary.ts";
 import { openResourcePackPage } from "./pack-platform.ts";
+import type { PackStatusApi } from "./pack-status.ts";
 
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
 
 /** The binary's service as the row reads it: its tag, or a fake in a test. */
 export type PackBinaryTag = Effect.Effect<
-  Pick<PackBinaryApi<Disposable | AsyncDisposable>, "check" | "changes">,
+  Pick<PackStatusApi, "check" | "changes">,
   never,
   SettingTabEnv
 >;
@@ -43,6 +44,7 @@ export interface PackBinaryCopy {
 /**
  * The binary row. It reads the pack each time it is shown, so the status is
  * that of the pack on disk, and shows each later status while it stays open.
+ * Until the first status it says that it checks the pack.
  */
 export function packBinaryDefinition(
   tab: SettingTabShape,
@@ -102,7 +104,12 @@ function renderStatus(
     copy,
   }: { tab: SettingTabShape; binary: PackBinaryTag; copy: PackBinaryCopy },
 ): () => void {
-  const statusEl = createDiv({ attr: { role: "status" } });
+  // The first status takes a read of the pack; the Chinese Segmenter's also
+  // waits for the worker that states it.
+  const statusEl = createDiv({
+    attr: { role: "status" },
+    text: m.settings_resource_pack_status_checking(),
+  });
   const desc = createFragment();
   desc.append(copy.desc);
   if (copy.licence) {

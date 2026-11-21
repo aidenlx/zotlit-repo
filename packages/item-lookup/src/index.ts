@@ -12,4 +12,5 @@ export {
   sameSegmenterBinary,
   SegmenterBinaryReader,
   type SegmenterBinary,
+  type SegmenterStatus,
 } from "./segmenter-switch.ts";

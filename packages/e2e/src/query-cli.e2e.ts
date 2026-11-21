@@ -2171,6 +2171,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the first item to appear in lookup results for a word inside its Chinese title",
       },
     );
+    // The status is the worker's own: it read the pack again and cuts with
+    // the binary.
     expect(
       await obRun(
         run.vaultId,
@@ -2394,12 +2396,17 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         })
       ).opened,
     ).toEqual(["obsidian://show-plugin?id=zotlit"]);
-    // Two searches of Chinese text need the Segmenter: one notice.
+    // The row states the Segmenter of the worker: the worker read the pack
+    // again, and left the binary it had started from the pack before. Two
+    // searches of Chinese text need the Segmenter: one notice.
     await wordInsideHits(
-      true,
-      "the search of Chinese text to answer while the pack is too new",
+      false,
+      "the word inside the Chinese title to stop matching while the pack is too new",
     );
-    await wordInsideHits(true, "the second search of Chinese text to answer");
+    await wordInsideHits(
+      false,
+      "the second search of Chinese text to answer without the binary",
+    );
     expect(
       await packNotices(1, "one notice for the pack that is too new"),
     ).toEqual([

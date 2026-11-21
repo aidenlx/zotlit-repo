@@ -24,12 +24,6 @@ export interface PackEntryLocation {
   readonly entry: string;
   /** The version of the pack, as its manifest states it. */
   readonly version: string;
-  /**
-   * The SHA-256 of the entry text, from the index of the last read that gave
-   * the verified binary: the identity of the bytes. `null` while that pack is
-   * unread, and after a read that gave no binary.
-   */
-  readonly sha256: string | null;
 }
 
 /** A `ReadRange` rejects with this when the host has no pack file. */

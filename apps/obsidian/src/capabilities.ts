@@ -9,7 +9,7 @@ import {
 // its Vite config, and the ZoteroReads client that opens the Zotero database
 // through one of them.
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
+import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
   defineFeature,
   serviceGroup,
@@ -28,7 +28,7 @@ export const desktopCapabilities = defineFeature({
       "ZoteroReads",
       {
         provides: [ZoteroReads],
-        requires: [ChineseSegmenter, FileSystem.FileSystem, ZoteroPref],
+        requires: [ResourcePackPlatform, FileSystem.FileSystem, ZoteroPref],
       },
       layerZoteroReads(workerClient()),
     ),

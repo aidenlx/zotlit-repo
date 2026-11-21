@@ -1,7 +1,10 @@
 import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Context, Effect, Layer, Stream } from "effect";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { afterEach, describe, vi } from "vitest";
 
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
@@ -11,20 +14,27 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
-import { layerPackDevice } from "./__fixtures__.ts";
 import { packDevice, packFile } from "./test-utils.ts";
 
 import { button } from "#__fixtures__/managed-binary-rows.ts";
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
-import { layerChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
+import { layerDeviceSegmenter } from "#obsidian/chinese-segmenter/__fixtures__.ts";
+import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
 import { chineseSegmenterDefinition } from "#obsidian/chinese-segmenter/settings-row.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** The smallest module that compiles: the magic number and the version. */
-const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
+/** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
+const JIEBA = new Uint8Array(
+  await readFile(
+    join(
+      dirname(createRequire(import.meta.url).resolve("jieba-wasm/web")),
+      "jieba_rs_wasm_bg.wasm",
+    ),
+  ),
+);
 
 /** The Chinese Segmenter row, shown on a device with the file `pack` installed as the pack, or on the device `pack`. */
 const segmenterRow = Effect.fnUntraced(function* (
@@ -32,14 +42,10 @@ const segmenterRow = Effect.fnUntraced(function* (
 ) {
   const services = yield* Layer.build(
     Layer.merge(
-      layerChineseSegmenter.pipe(
-        Layer.provide(
-          layerPackDevice(
-            pack === null || pack instanceof Uint8Array
-              ? packDevice(pack, "1.2.0")
-              : pack,
-          ),
-        ),
+      layerDeviceSegmenter(
+        pack === null || pack instanceof Uint8Array
+          ? packDevice(pack, "1.2.0")
+          : pack,
       ),
       // The plugin that reads the pack: the row opens its page by this id.
       testPluginHost({ manifest: { id: "zotlit" } }).layer,
@@ -54,7 +60,12 @@ const segmenterRow = Effect.fnUntraced(function* (
   const status = () =>
     (setting.desc as unknown as DocumentFragment).querySelector("[role=status]")
       ?.textContent;
-  return { row, setting, status };
+  const segmenter = Context.get(services, ChineseSegmenter);
+  /** Waits for the worker to start the binary, which takes more than a turn. */
+  const ready = Stream.runHead(
+    Stream.filter(segmenter.changes, ({ kind }) => kind === "ready"),
+  );
+  return { row, setting, status, ready };
 });
 
 describe("the Chinese Segmenter row", () => {
@@ -70,6 +81,27 @@ describe("the Chinese Segmenter row", () => {
         });
       }),
     ),
+  );
+
+  it.effect(
+    "says that it checks the pack until the worker states the status",
+    () =>
+      Effect.scoped(
+        Effect.gen(function* () {
+          const file = yield* Effect.promise(() =>
+            packFile({ "chinese-segmenter": JIEBA }),
+          );
+          const { status, ready } = yield* segmenterRow(file);
+
+          expect(status()).toBe(m.settings_resource_pack_status_checking());
+          yield* ready;
+          yield* eventually(() =>
+            expect(status()).toBe(
+              m.settings_resource_pack_status_ready({ version: "1.2.0" }),
+            ),
+          );
+        }),
+      ),
   );
 
   it.effect("asks to install the pack and opens its page", () =>
@@ -93,23 +125,6 @@ describe("the Chinese Segmenter row", () => {
     ),
   );
 
-  it.effect("shows the pack's version once the binary is ready", () =>
-    Effect.scoped(
-      Effect.gen(function* () {
-        const file = yield* Effect.promise(() =>
-          packFile({ "chinese-segmenter": EMPTY_MODULE }),
-        );
-        const { status } = yield* segmenterRow(file);
-
-        yield* eventually(() =>
-          expect(status()).toBe(
-            m.settings_resource_pack_status_ready({ version: "1.2.0" }),
-          ),
-        );
-      }),
-    ),
-  );
-
   for (const [name, compat, sentence, page] of [
     [
       "an old pack",
@@ -128,7 +143,7 @@ describe("the Chinese Segmenter row", () => {
       Effect.scoped(
         Effect.gen(function* () {
           const file = yield* Effect.promise(() =>
-            packFile({ "chinese-segmenter": EMPTY_MODULE }, compat),
+            packFile({ "chinese-segmenter": JIEBA }, compat),
           );
           const { setting, status } = yield* segmenterRow(file);
 
@@ -151,7 +166,7 @@ describe("the Chinese Segmenter row", () => {
       Effect.scoped(
         Effect.gen(function* () {
           const device = packDevice(null, "1.2.0");
-          const { status } = yield* segmenterRow(device);
+          const { status, ready } = yield* segmenterRow(device);
           yield* eventually(() =>
             expect(status()).toContain(
               m.settings_resource_pack_status_absent(),
@@ -160,11 +175,12 @@ describe("the Chinese Segmenter row", () => {
 
           device.install(
             yield* Effect.promise(() =>
-              packFile({ "chinese-segmenter": EMPTY_MODULE }),
+              packFile({ "chinese-segmenter": JIEBA }),
             ),
           );
           device.announce();
 
+          yield* ready;
           yield* eventually(() =>
             expect(status()).toBe(
               m.settings_resource_pack_status_ready({ version: "1.2.0" }),

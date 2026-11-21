@@ -51,7 +51,7 @@ import {
   makeSegmenterSwitch,
   SegmenterBinaryReader,
 } from "./segmenter-switch.ts";
-import type { SegmenterBinary } from "./segmenter-switch.ts";
+import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 import { layerSegmenterNone, Segmenter } from "./segmenter.ts";
 
 /** The source behind an {@link ItemSource} cannot answer. */
@@ -135,6 +135,16 @@ export class ItemIndex extends Context.Service<
      * (not finished).
      */
     readonly configure: (settings: IndexSettings) => Effect.Effect<void>;
+    /**
+     * Read `binary` again and answer where the Chinese Segmenter stands: the
+     * status of the Segmenter that the builds cut with. A binary that this
+     * read gives starts when the index does not cut with it, and a binary
+     * that it refuses stops; either one rebuilds the held lists. `binary`
+     * replaces the one of the settings, in arrival order with `configure`.
+     */
+    readonly checkSegmenter: (
+      binary: SegmenterBinary,
+    ) => Effect.Effect<SegmenterStatus>;
   }
 >()("zotlit/item-lookup/ItemIndex") {}
 
@@ -468,6 +478,21 @@ function makeItemIndex(initial: IndexSettings) {
         if (changed) yield* onConfig;
       }).pipe(configuring.withPermits(1));
 
+    const checkSegmenter = (
+      binary: SegmenterBinary,
+    ): Effect.Effect<SegmenterStatus> =>
+      Effect.gen(function* () {
+        const switched = yield* segmenterSwitch.resolve(binary, {
+          reread: true,
+        });
+        settings = { ...settings, segmenterBinary: binary };
+        if (switched) {
+          segmenter = switched;
+          yield* onConfig;
+        }
+        return yield* segmenterSwitch.status;
+      }).pipe(configuring.withPermits(1));
+
     /** The list's entry once it holds an index, waiting for a build when none. */
     const indexFor = (
       libraries: readonly number[],
@@ -559,7 +584,7 @@ function makeItemIndex(initial: IndexSettings) {
         }),
       );
 
-    return { search, configure };
+    return { search, configure, checkSegmenter };
   });
 }
 

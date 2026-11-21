@@ -28,6 +28,7 @@ import type { AnnotationPositionRaw } from "@zotlit/db";
 import type {
   SearchHit as ItemIndexHit,
   SegmenterBinary as ItemIndexSegmenterBinary,
+  SegmenterStatus as ItemIndexSegmenterStatus,
 } from "@zotlit/item-lookup";
 import type { ItemFields } from "@zotlit/zotero-types";
 
@@ -398,12 +399,32 @@ export const SegmenterBinarySchema = Schema.Struct({
   url: Schema.String,
   entry: Schema.String,
   version: Schema.String,
-  /** The SHA-256 of the entry the renderer verified; `null` while it read none. */
-  sha256: Schema.NullOr(Schema.String),
 });
 export type SegmenterBinary = typeof SegmenterBinarySchema.Type;
 type _SegmenterBinary = Expect<
   Equals<SegmenterBinary, ItemIndexSegmenterBinary>
+>;
+
+/**
+ * Where the Chinese Segmenter stands in the worker: `ready` while the Item
+ * Index cuts CJK text with the binary of the pack, and each other arm, with
+ * the step that mends it, while it cuts with `Intl.Segmenter`.
+ */
+export const SegmenterStatusSchema = Schema.Union([
+  Schema.Struct({
+    kind: Schema.Literals([
+      "pack-absent",
+      "pack-outdated",
+      "plugin-outdated",
+      "pack-damaged",
+    ]),
+  }),
+  Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
+  Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
+]);
+export type SegmenterStatus = typeof SegmenterStatusSchema.Type;
+type _SegmenterStatus = Expect<
+  Equals<SegmenterStatus, ItemIndexSegmenterStatus>
 >;
 
 /** Settings that drive the source; `Configure` pushes them. */
@@ -701,6 +722,15 @@ export class ZoteroReads extends RpcGroup.make(
   Rpc.make("Refresh", { error: DbUnavailable }),
   Rpc.make("NotifyExternalChange", {}),
   Rpc.make("Configure", { payload: ReadsConfigSchema }),
+  /**
+   * Reads the Chinese Segmenter binary `binary` again and answers where the
+   * Segmenter stands in the worker. A binary that the read gives starts when
+   * the Item Index does not cut with it; one that the read refuses stops.
+   */
+  Rpc.make("CheckChineseSegmenter", {
+    payload: { binary: SegmenterBinarySchema },
+    success: SegmenterStatusSchema,
+  }),
   /** Answers at once: the renderer's proof that the worker still runs. */
   Rpc.make("Ping", {}),
   /** Attachments of one library by key; a key with no live attachment is absent. */

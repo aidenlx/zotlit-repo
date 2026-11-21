@@ -92,7 +92,10 @@ export const platform = extendFeature(platformBase, {
     ),
     serviceGroup(
       "ChineseSegmenter",
-      { provides: [ChineseSegmenter], requires: [ResourcePackPlatform] },
+      {
+        provides: [ChineseSegmenter],
+        requires: [ResourcePackPlatform, ZoteroReads],
+      },
       layerChineseSegmenter,
     ),
     serviceGroup(

@@ -3,11 +3,7 @@ import { Effect, Option, Stream } from "effect";
 import { describe, expect } from "vitest";
 
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
-import {
-  PACK_COMPAT,
-  PACK_INDEX_BYTES,
-  parseIndex,
-} from "@zotlit/resource-pack/format.ts";
+import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
 import { packBinary } from "./__fixtures__.ts";
 import type {
@@ -207,33 +203,22 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect(
-    "joins status reads that run at the same time into one read of the pack and one start",
+    "joins status reads that run at the same time into one read of the pack",
     () =>
       Effect.gen(function* () {
         const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
         let reads = 0;
-        let starts = 0;
-        const service = yield* packBinary(
-          {
-            ...SEGMENTER,
-            startOnCheck: true,
-            createEngine: (bytes) => {
-              starts += 1;
-              return SEGMENTER.createEngine(bytes);
-            },
+        const service = yield* packBinary(SEGMENTER, {
+          ...device,
+          open: (url) => {
+            const range = device.open(url);
+            return (offset, length) => {
+              // One read of an entry reads the index first.
+              if (offset === 0) reads += 1;
+              return range(offset, length);
+            };
           },
-          {
-            ...device,
-            open: (url) => {
-              const range = device.open(url);
-              return (offset, length) => {
-                // One read of an entry reads the index first.
-                if (offset === 0) reads += 1;
-                return range(offset, length);
-              };
-            },
-          },
-        );
+        });
 
         const statuses = yield* Effect.all(
           [service.check, service.check, service.check],
@@ -246,74 +231,10 @@ describe("a Managed Binary of the Resource Pack", () => {
             version: "1.0.0",
           })),
         );
-        expect({ reads, starts }).toEqual({ reads: 1, starts: 1 });
+        expect(reads).toBe(1);
         // A status read after those ended reads the pack again.
         yield* service.check;
-        expect({ reads, starts }).toEqual({ reads: 2, starts: 2 });
-      }).pipe(Effect.scoped),
-  );
-
-  it.effect(
-    "starts the engine in a status read when the binary asks for it",
-    () =>
-      Effect.gen(function* () {
-        const file = yield* pack({ "chinese-segmenter": BINARY });
-        const service = yield* packBinary(
-          { ...NO_START, startOnCheck: true },
-          packDevice(file),
-        );
-
-        expect(yield* service.check).toEqual({
-          kind: "failed",
-          detail: "Not a wasm module",
-        });
-      }).pipe(Effect.scoped),
-  );
-
-  it.effect(
-    "names the entry of the installed pack, and none without a pack",
-    () =>
-      Effect.gen(function* () {
-        const device = packDevice(null);
-        const service = yield* packBinary(SEGMENTER, device);
-
-        expect(yield* service.entry).toBeNull();
-        device.install(new Uint8Array(), "1.3.0");
-        expect(yield* service.entry).toEqual({
-          url: "app://device/plugins/zotlit-resources/main.js",
-          entry: "chinese-segmenter",
-          version: "1.3.0",
-          sha256: null,
-        });
-      }).pipe(Effect.scoped),
-  );
-
-  it.effect(
-    "names the entry by the hash its index states once a read verified it, so a repaired pack of the same version is another entry",
-    () =>
-      Effect.gen(function* () {
-        const good = yield* pack({ "chinese-segmenter": BINARY });
-        const stated = parseIndex(good.subarray(0, PACK_INDEX_BYTES))!
-          .entries[0]!.sha256;
-        const damaged = new TextEncoder().encode("module.exports = {};\n");
-        const device = packDevice(damaged, "1.3.0");
-        const service = yield* packBinary(SEGMENTER, device);
-        const hashes: (string | null | undefined)[] = [];
-        const note = Effect.map(service.entry, (entry) => {
-          hashes.push(entry?.sha256);
-        });
-
-        yield* note; // unread
-        yield* service.check;
-        yield* note; // read, and refused as damaged
-        device.install(good, "1.3.0");
-        yield* service.check;
-        yield* note; // the same version, repaired
-        device.install(damaged, "1.3.0");
-        yield* service.check;
-        yield* note; // damaged again
-
-        expect(hashes).toEqual([null, null, stated, null]);
+        expect(reads).toBe(2);
       }).pipe(Effect.scoped),
   );
 

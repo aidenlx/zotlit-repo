@@ -4,7 +4,6 @@ import { Effect, Layer } from "effect";
 import { makeGate } from "./make-gate.ts";
 import { SegmenterBinaryReader } from "./segmenter-switch.ts";
 import type { SegmenterBinary } from "./segmenter-switch.ts";
-import { SegmenterUnavailable } from "./segmenter.ts";
 
 /**
  * A {@link SegmenterBinaryReader} that answers the bytes `bytesFor` names,
@@ -22,8 +21,8 @@ export interface MemorySegmenterBinaryReader {
 }
 
 /**
- * `bytesFor` answers the bytes of a binary; `undefined` reads as a missing
- * binary and fails with {@link SegmenterUnavailable}.
+ * `bytesFor` answers the bytes of a binary; `undefined` reads as a pack that
+ * lacks the entry.
  */
 export const makeMemorySegmenterBinaryReader = (
   bytesFor: (binary: SegmenterBinary) => BufferSource | undefined,
@@ -42,11 +41,10 @@ export const makeMemorySegmenterBinaryReader = (
             Effect.suspend(() => {
               const bytes = bytesFor(binary);
               return bytes === undefined
-                ? Effect.fail(
-                    new SegmenterUnavailable({
-                      message: `No Chinese Segmenter binary in the pack ${binary.version}`,
-                    }),
-                  )
+                ? Effect.fail({
+                    kind: "entry-missing",
+                    name: binary.entry,
+                  } as const)
                 : Effect.succeed(bytes);
             }),
           ),

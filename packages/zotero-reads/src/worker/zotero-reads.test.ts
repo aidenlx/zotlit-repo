@@ -2267,7 +2267,6 @@ describe("ZoteroReads SearchItems", () => {
       url: "app://vault/plugins/zotlit-resources/main.js",
       entry: "chinese-segmenter",
       version: "1.0.0",
-      sha256: null,
     };
     /** The web-target binary the Resource Pack holds, from the dev dependency. */
     const jiebaBytes = () =>
@@ -2329,6 +2328,52 @@ describe("ZoteroReads SearchItems", () => {
           );
           expect(asked).toEqual([INSTALLED]);
           expect(keysOf(hits)).toEqual(["RELA2345"]);
+        }),
+    );
+
+    it.effect(
+      "CheckChineseSegmenter states the Segmenter that the Item Index cuts with",
+      () =>
+        Effect.gen(function* () {
+          const bytes = yield* Effect.promise(() => jiebaBytes());
+          let readable = false;
+          const result = yield* withSegmenter(
+            {
+              chineseSegmenter: INSTALLED,
+              readSegmenter: () =>
+                readable
+                  ? Effect.succeed(bytes)
+                  : Effect.fail({
+                      kind: "pack-unreadable",
+                      detail: "The request for the pack file failed",
+                    } as const),
+            },
+            (reads) =>
+              Effect.gen(function* () {
+                const refused = {
+                  status: yield* reads.CheckChineseSegmenter({
+                    binary: INSTALLED,
+                  }),
+                  hits: keysOf(yield* reads.SearchItems(JIEBA_ONLY)),
+                };
+                readable = true;
+                const status = yield* reads.CheckChineseSegmenter({
+                  binary: INSTALLED,
+                });
+                const hits = yield* eventually(
+                  reads.SearchItems(JIEBA_ONLY),
+                  (found) => found.length > 0,
+                );
+                return { refused, ready: { status, hits: keysOf(hits) } };
+              }),
+          );
+          expect(result).toEqual({
+            refused: { status: { kind: "pack-damaged" }, hits: [] },
+            ready: {
+              status: { kind: "ready", version: "1.0.0" },
+              hits: ["RELA2345"],
+            },
+          });
         }),
     );
 

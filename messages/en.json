@@ -744,6 +744,7 @@
   "settings_chinese_segmenter_name": "Chinese segmenter",
   "settings_chinese_segmenter_desc": "Splits Chinese titles into words, so that a search term finds an item by any word of its title. It comes with ZotLit Resource Pack.",
   "settings_chinese_segmenter_fallback": "Until then, search splits Chinese titles with built-in rules, which miss some words.",
+  "settings_resource_pack_status_checking": "Checking ZotLit Resource Pack…",
   "settings_resource_pack_status_absent": "ZotLit Resource Pack is not installed. Install it from Community plugins. You do not need to turn it on.",
   "settings_resource_pack_status_pack_outdated": "ZotLit Resource Pack is too old for this version of ZotLit. Update ZotLit Resource Pack.",
   "settings_resource_pack_status_plugin_outdated": "ZotLit Resource Pack is too new for this version of ZotLit. Update ZotLit.",
