@@ -77,7 +77,8 @@ type SegmenterService = (typeof Segmenter)["Service"];
  *
  * `jieba-wasm` holds one instance per realm: a removed pack stops its use but
  * keeps its memory, and the binary of a later pack runs on the bytes that
- * loaded first until the realm restarts.
+ * loaded first until the realm restarts. `ready` names the version of the
+ * pack those bytes came from.
  */
 export function makeSegmenterSwitch(
   reader: (typeof SegmenterBinaryReader)["Service"],
@@ -136,14 +137,17 @@ export function makeSegmenterSwitch(
                 { loaded, requested: binary.version },
               );
             }
-            status = { kind: "ready", version: binary.version };
             // The index cuts with the one instance of this realm already.
-            if (jieba) return undefined;
-            const segmenter = yield* segmenterOf(layerSegmenterJieba(bytes));
+            const segmenter = jieba
+              ? undefined
+              : yield* segmenterOf(layerSegmenterJieba(bytes));
             loaded ??= binary.version;
+            // The version of the pack whose bytes run, not of the pack read.
+            status = { kind: "ready", version: loaded };
+            if (!segmenter) return undefined;
             jieba = true;
             yield* log("info", "The Chinese Segmenter cuts CJK text", {
-              pack: binary.version,
+              pack: loaded,
             });
             return segmenter;
           }).pipe(

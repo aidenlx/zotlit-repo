@@ -71,11 +71,13 @@ const INSTALLED: SegmenterBinary = {
   entry: "chinese-segmenter",
   version: "1.0.0",
 };
+/** A later pack with the same binary. */
+const UPDATED: SegmenterBinary = { ...INSTALLED, version: "1.1.0" };
 const MISSING: SegmenterBinary = { ...INSTALLED, version: "0.9.0" };
 const CORRUPT: SegmenterBinary = { ...INSTALLED, version: "1.0.1" };
 /** The bytes each binary of the tests reads as; another binary is missing. */
 const storedBytes = (binary: SegmenterBinary): BufferSource | undefined =>
-  binary.version === INSTALLED.version
+  binary.version === INSTALLED.version || binary.version === UPDATED.version
     ? JIEBA_WASM
     : binary.version === CORRUPT.version
       ? new Uint8Array([0, 1, 2, 3])
@@ -843,6 +845,22 @@ describe("Item Index with the Chinese Segmenter", () => {
       scans: 1,
       asked: 2,
     });
+  });
+
+  it("states the version of the pack whose binary runs, after an update of the pack", async () => {
+    const result = await withIndex(
+      ({ configure, checkSegmenter }) =>
+        Effect.gen(function* () {
+          const checked = yield* checkSegmenter(UPDATED);
+          // The pack goes and comes back: the realm keeps its first binary.
+          yield* configure({ locale: "en", segmenterBinary: null });
+          return { checked, again: yield* checkSegmenter(UPDATED) };
+        }),
+      installed,
+    );
+
+    const running = { kind: "ready", version: INSTALLED.version };
+    expect(result).toEqual({ checked: running, again: running });
   });
 
   it.each([
