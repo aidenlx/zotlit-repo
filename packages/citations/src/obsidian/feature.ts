@@ -4,13 +4,11 @@
 // desktop feature (`#desktop/feature.ts`) extends it with the bibliography
 // render, the popovers, the References view, Pandoc export and the Citation
 // Presentation.
-import { Layer } from "effect";
-
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
-import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import {
@@ -60,8 +58,8 @@ export const citations = defineFeature({
   services: [
     serviceGroup(
       "PandocEngine",
-      { provides: [PandocEngine] },
-      layerPandocEngine.pipe(Layer.provide(layerResourcePackPlatform)),
+      { provides: [PandocEngine], requires: [ResourcePackPlatform] },
+      layerPandocEngine,
     ),
     serviceGroup(
       "CitationLookup",

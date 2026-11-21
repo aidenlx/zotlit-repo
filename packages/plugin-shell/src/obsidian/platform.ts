@@ -49,7 +49,10 @@ import {
   layerOldStoreCleanup,
   OldStoreCleanup,
 } from "@zotlit/plugin-services/obsidian/managed-binary/old-store-cleanup.ts";
-import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import {
+  layerResourcePackPlatform,
+  ResourcePackPlatform,
+} from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
   layerNoteIndex,
   NoteIndex,
@@ -81,10 +84,16 @@ export const platform = extendFeature(platformBase, {
   ],
   services: [
     serviceGroup("UseLedger", { provides: [UseLedger] }, layerUseLedger),
+    // One watch of the installed Resource Pack, for every Managed Binary.
+    serviceGroup(
+      "ResourcePackPlatform",
+      { provides: [ResourcePackPlatform] },
+      layerResourcePackPlatform,
+    ),
     serviceGroup(
       "ChineseSegmenter",
-      { provides: [ChineseSegmenter] },
-      layerChineseSegmenter.pipe(Layer.provide(layerResourcePackPlatform)),
+      { provides: [ChineseSegmenter], requires: [ResourcePackPlatform] },
+      layerChineseSegmenter,
     ),
     serviceGroup(
       "OldStoreCleanup",
