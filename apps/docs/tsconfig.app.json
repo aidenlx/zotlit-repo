@@ -9,6 +9,10 @@
       "es2025.regexp",
       "esnext.array",
       "esnext.disposable",
+      // The query function reference reads @zotlit/item-query source, which
+      // types dates with `Temporal`.
+      // @see src/lib/query-functions/reference.ts
+      "esnext.temporal",
       "DOM"
     ],
     "module": "esnext",
