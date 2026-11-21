@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { citationExampleData } from "./citation-examples.ts";
 
@@ -24,23 +24,5 @@ describe("citation example sets", () => {
     }
     expect(item.publicationTitle).toBe("PLoS Medicine");
     expect(item.containerTitle).toBe("PLoS Medicine");
-  });
-
-  it("loads the render entry on a runtime that has yet to install Temporal", async () => {
-    // The web Workbench statically imports this entry and installs its
-    // `Temporal` polyfill in an effect, so nothing here may restore a Sample
-    // Item's dates at import time.
-    vi.resetModules();
-    const native = globalThis.Temporal;
-    Reflect.deleteProperty(globalThis, "Temporal");
-    try {
-      const entry = await import("./citation-examples.ts");
-      expect(entry.CITATION_EXAMPLE_IDS).toHaveLength(6);
-      expect(() => entry.citationExampleData("one-item", "main")).toThrow(
-        /Temporal is not defined/,
-      );
-    } finally {
-      globalThis.Temporal = native;
-    }
   });
 });

@@ -101,10 +101,7 @@ const monograph = book as unknown as ItemSnapshot;
 export const CITATION_EXAMPLE_ITEM: ItemSnapshot = article;
 
 /**
- * The refs each example set names, built on demand. A browser without native
- * `Temporal` installs its polyfill after this module loads, and restoring a
- * Sample Item's `dateAdded` needs `Temporal`, so the restoration waits for the
- * first read instead of running at import.
+ * The refs each example set names, built on demand.
  */
 function exampleRefs(): Record<CitationExampleId, readonly CiteRef[]> {
   const cited = citedRef(article);
