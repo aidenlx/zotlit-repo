@@ -151,18 +151,22 @@ describe("the Chinese Segmenter row", () => {
   it.effect("names why a verified binary did not start", () =>
     Effect.scoped(
       Effect.gen(function* () {
+        const notWasm = new Uint8Array(new TextEncoder().encode("not wasm"));
+        // The detail is what the host's compiler says of these bytes.
+        const detail = yield* Effect.promise(() =>
+          WebAssembly.compile(notWasm).then(
+            () => "compiled",
+            (error: Error) => error.message,
+          ),
+        );
         const file = yield* Effect.promise(() =>
-          packFile({
-            "chinese-segmenter": new Uint8Array(
-              new TextEncoder().encode("not wasm"),
-            ),
-          }),
+          packFile({ "chinese-segmenter": notWasm }),
         );
         const { status } = yield* segmenterRow(file);
 
         yield* eventually(() =>
-          expect(status()).toMatch(
-            /^It did not start: .+ Until then, search splits Chinese titles/u,
+          expect(status()).toBe(
+            `${m.settings_resource_pack_status_failed({ detail })} ${m.settings_chinese_segmenter_fallback()}`,
           ),
         );
       }),

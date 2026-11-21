@@ -1535,6 +1535,9 @@ importers:
       '@zotlit/db':
         specifier: workspace:*
         version: link:../db
+      '@zotlit/resource-pack':
+        specifier: workspace:*
+        version: link:../resource-pack
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared

@@ -8,7 +8,7 @@ import { describe, expect } from "vitest";
 
 import { CHINESE_SEGMENTER } from "./service.ts";
 
-import { openPackBinary } from "#obsidian/managed-binary/__fixtures__.ts";
+import { packBinary } from "#obsidian/managed-binary/__fixtures__.ts";
 import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
 
 /** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
@@ -21,18 +21,22 @@ const BINARY = new Uint8Array(
   ),
 );
 
+/** The Chinese Segmenter on a device whose installed pack holds `binary`. */
+const segmenter = Effect.fnUntraced(function* (
+  binary: Uint8Array<ArrayBuffer>,
+) {
+  const file = yield* Effect.promise(() =>
+    packFile({ [CHINESE_SEGMENTER.id]: binary }),
+  );
+  return yield* packBinary(CHINESE_SEGMENTER, packDevice(file));
+});
+
 describe("Chinese Segmenter", () => {
   it.effect("cuts a Chinese title with the binary of the pack", () =>
-    Effect.promise(async () => {
-      const file = await packFile({ [CHINESE_SEGMENTER.id]: BINARY });
-      await using segmenter = await openPackBinary(
-        CHINESE_SEGMENTER,
-        packDevice(file),
-      );
+    Effect.gen(function* () {
+      const service = yield* segmenter(BINARY);
 
-      const { module } = (await segmenter.handle.runPromise(
-        Effect.scoped(segmenter.service.getEngine),
-      ))!;
+      const { module } = (yield* service.getEngine)!;
       initSync({ module });
 
       expect(cut_for_search("长江流域的城市化研究", true)).toEqual([
@@ -45,24 +49,16 @@ describe("Chinese Segmenter", () => {
         "城市化",
         "研究",
       ]);
-    }),
+    }).pipe(Effect.scoped),
   );
 
   it.effect("reports a binary of the pack that does not start as failed", () =>
-    Effect.promise(async () => {
-      const file = await packFile({
-        [CHINESE_SEGMENTER.id]: new Uint8Array(
-          new TextEncoder().encode("not wasm"),
-        ),
-      });
-      await using segmenter = await openPackBinary(
-        CHINESE_SEGMENTER,
-        packDevice(file),
+    Effect.gen(function* () {
+      const service = yield* segmenter(
+        new Uint8Array(new TextEncoder().encode("not wasm")),
       );
 
-      expect(
-        await segmenter.handle.runPromise(segmenter.service.check),
-      ).toMatchObject({ kind: "failed" });
-    }),
+      expect(yield* service.check).toMatchObject({ kind: "failed" });
+    }).pipe(Effect.scoped),
   );
 });

@@ -141,7 +141,7 @@ export interface HandlersOptions {
    */
   chineseSegmenter?: SegmenterBinary | null;
   /**
-   * Reads an installed binary's bytes: the worker reads its OPFS store; tests
+   * Reads the binary's bytes: the worker reads its entry in the Resource Pack; tests
    * pass the bytes of the `jieba-wasm` dev dependency. Without it every binary
    * reads as unavailable.
    */

@@ -1,5 +1,6 @@
 // Test support: a fake device for Managed Binary services, with an in-memory store and consent record.
 import { bytesRange } from "@zotlit/resource-pack/reader.ts";
+import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 
 import type { ResourcePackHostPorts } from "./pack-platform.ts";
@@ -61,14 +62,6 @@ export function vaultConsent(): ManagedBinaryHostPorts["consent"] {
   };
 }
 
-/** The lowercase hex SHA-256 of `bytes`. */
-async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)]
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 /** The file of a Resource Pack that holds `entries`, by entry name. */
 export async function packFile(
   entries: Readonly<Record<string, Uint8Array<ArrayBuffer>>>,
@@ -80,7 +73,7 @@ export async function packFile(
       Object.entries(entries).map(async ([name, bytes]) => ({
         name,
         bytes,
-        sha256: await sha256(bytes),
+        sha256: await sha256Hex(bytes),
       })),
     ),
   });

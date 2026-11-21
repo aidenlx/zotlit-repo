@@ -13,7 +13,7 @@ export type ReadSegmenter = (
 ) => Effect.Effect<BufferSource, SegmenterUnavailable>;
 
 /** No pack reader: every binary reads as unavailable. */
-const noStore: ReadSegmenter = ({ entry }) =>
+const noPackReader: ReadSegmenter = ({ entry }) =>
   Effect.fail(
     new SegmenterUnavailable({
       message: `No reader gives the Pack Entry ${entry}`,
@@ -26,7 +26,7 @@ const noStore: ReadSegmenter = ({ entry }) =>
  * unavailable.
  */
 export const layerSegmenterBinaryReader = (
-  read: ReadSegmenter = noStore,
+  read: ReadSegmenter = noPackReader,
 ): Layer.Layer<SegmenterBinaryReader> =>
   Layer.succeed(SegmenterBinaryReader, {
     read,

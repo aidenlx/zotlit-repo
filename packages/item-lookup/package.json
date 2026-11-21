@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@zotlit/db": "workspace:*",
+    "@zotlit/resource-pack": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

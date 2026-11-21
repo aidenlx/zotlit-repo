@@ -5,7 +5,7 @@ import { describe, expect } from "vitest";
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
-import { openPackBinary } from "./__fixtures__.ts";
+import { packBinary } from "./__fixtures__.ts";
 import type { PackBinary } from "./pack-binary.ts";
 import { packDevice, packFile } from "./test-utils.ts";
 
@@ -24,27 +24,40 @@ const SEGMENTER: PackBinary<Started> = {
     Promise.resolve({ bytes, [Symbol.dispose]: () => undefined }),
 };
 
-/** The status and the engine borrow of `binary` on a device with `file` installed. */
-async function read(
+const NO_START: PackBinary<Started> = {
+  ...SEGMENTER,
+  createEngine: () => Promise.reject(new Error("Not a wasm module")),
+};
+
+/** The file of a pack that holds `entries`, at the compatibility integer `compat`. */
+const pack = (
+  entries: Readonly<Record<string, Uint8Array<ArrayBuffer>>>,
+  compat?: number,
+) => Effect.promise(() => packFile(entries, compat));
+
+/**
+ * The status of `binary` on a device with `file` installed, and what a borrow
+ * of its engine gives: the bytes it started from, or the failure's message.
+ */
+const read = Effect.fnUntraced(function* (
   file: Uint8Array | null,
   binary: PackBinary<Started> = SEGMENTER,
 ) {
-  await using opened = await openPackBinary(binary, packDevice(file, "1.2.0"));
-  const { handle, service } = opened;
-  const status = await handle.runPromise(service.check);
-  const engine = await handle.runPromise(Effect.scoped(service.getEngine)).then(
-    (started) => started && [...started.bytes],
-    (error: unknown) => (error instanceof Error ? error.message : error),
+  const service = yield* packBinary(binary, packDevice(file, "1.2.0"));
+  const status = yield* service.check;
+  const engine = yield* service.getEngine.pipe(
+    Effect.map((started) => started && [...started.bytes]),
+    Effect.catch((error) => Effect.succeed(error.message)),
   );
   return { status, engine };
-}
+}, Effect.scoped);
 
 describe("a Managed Binary of the Resource Pack", () => {
   it.effect("is ready from an installed pack and starts from its bytes", () =>
-    Effect.promise(async () => {
-      const file = await packFile({ "chinese-segmenter": BINARY });
+    Effect.gen(function* () {
+      const file = yield* pack({ "chinese-segmenter": BINARY });
 
-      expect(await read(file)).toEqual({
+      expect(yield* read(file)).toEqual({
         status: { kind: "ready", version: "1.2.0" },
         engine: [...BINARY],
       });
@@ -52,8 +65,8 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect("reports no installed pack as pack-absent", () =>
-    Effect.promise(async () => {
-      expect(await read(null)).toEqual({
+    Effect.gen(function* () {
+      expect(yield* read(null)).toEqual({
         status: { kind: "pack-absent" },
         engine: "The Resource Pack gave no Chinese segmenter: pack-absent",
       });
@@ -63,13 +76,13 @@ describe("a Managed Binary of the Resource Pack", () => {
   it.effect(
     "reports a pack below its compatibility integer as pack-outdated",
     () =>
-      Effect.promise(async () => {
-        const file = await packFile(
+      Effect.gen(function* () {
+        const file = yield* pack(
           { "chinese-segmenter": BINARY },
           PACK_COMPAT - 1,
         );
 
-        expect(await read(file)).toEqual({
+        expect(yield* read(file)).toEqual({
           status: { kind: "pack-outdated" },
           engine: "The Resource Pack gave no Chinese segmenter: pack-outdated",
         });
@@ -77,23 +90,23 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect("reports a pack without the entry as pack-outdated", () =>
-    Effect.promise(async () => {
-      const file = await packFile({ "pandoc-engine": BINARY });
+    Effect.gen(function* () {
+      const file = yield* pack({ "pandoc-engine": BINARY });
 
-      expect((await read(file)).status).toEqual({ kind: "pack-outdated" });
+      expect((yield* read(file)).status).toEqual({ kind: "pack-outdated" });
     }),
   );
 
   it.effect(
     "reports a pack above its compatibility integer as plugin-outdated",
     () =>
-      Effect.promise(async () => {
-        const file = await packFile(
+      Effect.gen(function* () {
+        const file = yield* pack(
           { "chinese-segmenter": BINARY },
           PACK_COMPAT + 1,
         );
 
-        expect(await read(file)).toEqual({
+        expect(yield* read(file)).toEqual({
           status: { kind: "plugin-outdated" },
           engine:
             "The Resource Pack gave no Chinese segmenter: plugin-outdated",
@@ -102,13 +115,13 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect("reports a pack with a changed entry byte as pack-damaged", () =>
-    Effect.promise(async () => {
-      const file = await packFile({ "chinese-segmenter": BINARY });
+    Effect.gen(function* () {
+      const file = yield* pack({ "chinese-segmenter": BINARY });
       // The entry line is the last line of the file, before `*/`.
       const at = file.length - 8;
       file[at] = file[at] === 0x41 ? 0x42 : 0x41;
 
-      expect(await read(file)).toEqual({
+      expect(yield* read(file)).toEqual({
         status: { kind: "pack-damaged" },
         engine: "The Resource Pack gave no Chinese segmenter: pack-damaged",
       });
@@ -116,33 +129,82 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect("reports a file that is no pack as pack-damaged", () =>
-    Effect.promise(async () => {
+    Effect.gen(function* () {
       const file = new TextEncoder().encode("module.exports = {};\n");
 
-      expect((await read(file)).status).toEqual({ kind: "pack-damaged" });
+      expect((yield* read(file)).status).toEqual({ kind: "pack-damaged" });
     }),
   );
 
-  it.effect("logs each refusal of the pack with its reason", () =>
-    Effect.promise(async () => {
-      using logs = captureLogRecords();
-      const device = packDevice(null);
-      await using opened = await openPackBinary(SEGMENTER, device);
-      const check = () => opened.handle.runPromise(opened.service.check);
+  it.effect("reports a verified binary that does not start as failed", () =>
+    Effect.gen(function* () {
+      const file = yield* pack({ "chinese-segmenter": BINARY });
+      const service = yield* packBinary(NO_START, packDevice(file));
 
-      await check();
-      device.install(
-        await packFile({ "chinese-segmenter": BINARY }, PACK_COMPAT - 1),
+      const error = yield* Effect.flip(service.getEngine);
+      expect(error.message).toBe("Not a wasm module");
+      expect(yield* Stream.runHead(service.changes)).toMatchObject({
+        value: { kind: "failed", detail: "Not a wasm module" },
+      });
+    }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "starts the engine in a status read when the binary asks for it",
+    () =>
+      Effect.gen(function* () {
+        const file = yield* pack({ "chinese-segmenter": BINARY });
+        const service = yield* packBinary(
+          { ...NO_START, startOnCheck: true },
+          packDevice(file),
+        );
+
+        expect(yield* service.check).toEqual({
+          kind: "failed",
+          detail: "Not a wasm module",
+        });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "names the entry of the installed pack, and none without a pack",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(null);
+        const service = yield* packBinary(SEGMENTER, device);
+
+        expect(yield* service.entry).toBeNull();
+        device.install(new Uint8Array(), "1.3.0");
+        expect(yield* service.entry).toEqual({
+          url: "app://device/plugins/zotlit-resources/main.js",
+          entry: "chinese-segmenter",
+          version: "1.3.0",
+        });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect("logs each refusal of the pack with its reason", () =>
+    Effect.gen(function* () {
+      const logs = yield* Effect.acquireRelease(
+        Effect.sync(() => captureLogRecords()),
+        (captured) => Effect.sync(captured.release),
       );
-      await check();
+      const device = packDevice(null);
+      const service = yield* packBinary(SEGMENTER, device);
+
+      yield* service.check;
       device.install(
-        await packFile({ "chinese-segmenter": BINARY }, PACK_COMPAT + 1),
+        yield* pack({ "chinese-segmenter": BINARY }, PACK_COMPAT - 1),
       );
-      await check();
+      yield* service.check;
+      device.install(
+        yield* pack({ "chinese-segmenter": BINARY }, PACK_COMPAT + 1),
+      );
+      yield* service.check;
       device.install(new TextEncoder().encode("module.exports = {};\n"));
-      await check();
-      device.install(await packFile({ "chinese-segmenter": BINARY }));
-      await check();
+      yield* service.check;
+      device.install(yield* pack({ "chinese-segmenter": BINARY }));
+      yield* service.check;
 
       expect(
         logs.records.map(({ level, rawMessage, properties }) => ({
@@ -154,7 +216,8 @@ describe("a Managed Binary of the Resource Pack", () => {
       ).toEqual(
         (
           [
-            ["info", "pack-absent"],
+            // No pack is the state before its install, not a degraded one.
+            ["debug", "pack-absent"],
             ["warning", "pack-outdated"],
             ["warning", "plugin-outdated"],
             ["warning", "pack-unreadable"],
@@ -166,71 +229,6 @@ describe("a Managed Binary of the Resource Pack", () => {
           reason,
         })),
       );
-    }),
-  );
-
-  it.effect("reports a verified binary that does not start as failed", () =>
-    Effect.promise(async () => {
-      const file = await packFile({ "chinese-segmenter": BINARY });
-      await using opened = await openPackBinary(
-        {
-          ...SEGMENTER,
-          createEngine: () => Promise.reject(new Error("Not a wasm module")),
-        },
-        packDevice(file),
-      );
-      const { handle, service } = opened;
-
-      await expect(
-        handle.runPromise(Effect.scoped(service.getEngine)),
-      ).rejects.toThrow("Not a wasm module");
-      const seen: unknown[] = [];
-      await handle.runPromise(
-        service.changes.pipe(
-          Stream.take(1),
-          Stream.runForEach((status) => Effect.sync(() => seen.push(status))),
-        ),
-      );
-      expect(seen).toEqual([{ kind: "failed", detail: "Not a wasm module" }]);
-    }),
-  );
-
-  it.effect(
-    "starts the engine in a status read when the binary asks for it",
-    () =>
-      Effect.promise(async () => {
-        const file = await packFile({ "chinese-segmenter": BINARY });
-        await using opened = await openPackBinary(
-          {
-            ...SEGMENTER,
-            startOnCheck: true,
-            createEngine: () => Promise.reject(new Error("Not a wasm module")),
-          },
-          packDevice(file),
-        );
-
-        expect(await opened.handle.runPromise(opened.service.check)).toEqual({
-          kind: "failed",
-          detail: "Not a wasm module",
-        });
-      }),
-  );
-
-  it.effect(
-    "names the entry of the installed pack, and none without a pack",
-    () =>
-      Effect.promise(async () => {
-        const device = packDevice(null);
-        await using opened = await openPackBinary(SEGMENTER, device);
-        const { handle, service } = opened;
-
-        expect(handle.runSync(service.entry)).toBeNull();
-        device.install(new Uint8Array(), "1.3.0");
-        expect(handle.runSync(service.entry)).toEqual({
-          url: "app://device/plugins/zotlit-resources/main.js",
-          entry: "chinese-segmenter",
-          version: "1.3.0",
-        });
-      }),
+    }).pipe(Effect.scoped),
   );
 });

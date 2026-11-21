@@ -44,7 +44,7 @@ import {
   scopeChanges,
 } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { localServerItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
-import { bindPackBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
+import { bindManagedBinary } from "@zotlit/plugin-services/obsidian/managed-binary/handle.ts";
 import { layerResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
   layerNoteIndex,
@@ -159,7 +159,7 @@ export const platform = extendFeature(platformBase, {
       useLedger: read(UseLedger),
       queryClient: read(QueryClients),
       noteIndex: read(NoteIndex),
-      chineseSegmenter: bindPackBinary(bridge, read(ChineseSegmenter)),
+      chineseSegmenter: bindManagedBinary(bridge, read(ChineseSegmenter)),
       zoteroReads,
       acquireZoteroRead: () => acquireReadLease(zoteroReads, bridge),
       libraryTagNames: libraryTagNamesOf(zoteroReads, bridge),

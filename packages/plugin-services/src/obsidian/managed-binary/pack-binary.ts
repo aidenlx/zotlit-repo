@@ -14,6 +14,7 @@ import type { Context, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { PackFailure } from "@zotlit/resource-pack/format.ts";
+import type { PackEntryLocation } from "@zotlit/resource-pack/reader.ts";
 
 import { ResourcePackPlatform } from "./pack-platform.ts";
 import { ManagedBinaryError, managedBinaryError } from "./platform.ts";
@@ -49,16 +50,6 @@ export type PackBinaryStatus =
   | { readonly kind: "ready"; readonly version: string }
   /** The verified binary did not start. */
   | { readonly kind: "failed"; readonly detail: string };
-
-/** Where the ZoteroReads worker reads a binary itself. */
-export interface PackEntryLocation {
-  /** The resource URL of the pack file. */
-  readonly url: string;
-  /** The name of the Pack Entry. */
-  readonly entry: string;
-  /** The version of the pack. */
-  readonly version: string;
-}
 
 /** Effect-native operations; the layer owns the reads and the shared engine. */
 export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
@@ -131,13 +122,13 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   const log = (
     message: string,
     fields: Record<string, unknown>,
-    level: "info" | "warn" | "error" = "info",
+    level: "debug" | "warn" | "error",
   ) =>
     (level === "error"
       ? Effect.logError(message)
       : level === "warn"
         ? Effect.logWarning(message)
-        : Effect.logInfo(message)
+        : Effect.logDebug(message)
     ).pipe(
       Effect.annotateLogs({ binary: binary.id, ...fields }),
       withLogCategory(...binary.logCategory),
@@ -153,9 +144,13 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   const load = Effect.fn("PackBinary.load")(function* () {
     const location = yield* platform.locate;
     if (!location) {
-      yield* log("The Resource Pack gave no binary", {
-        reason: "pack-absent",
-      });
+      // No pack is the state before its install, read each time the row is
+      // shown: a decision branch, not a degraded state.
+      yield* log(
+        "The Resource Pack gave no binary",
+        { reason: "pack-absent" },
+        "debug",
+      );
       return { ok: false, status: { kind: "pack-absent" } } satisfies Loaded;
     }
     const read = yield* platform.readEntry(location, binary.id);
@@ -163,7 +158,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       yield* log(
         "The Resource Pack gave no binary",
         { reason: read.failure.kind, failure: read.failure, pack: location },
-        read.failure.kind === "pack-absent" ? "info" : "warn",
+        read.failure.kind === "pack-absent" ? "debug" : "warn",
       );
       return {
         ok: false,
@@ -259,7 +254,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
     ),
     entry: Effect.map(platform.locate, (location) =>
       location ? { ...location, entry: binary.id } : null,
-    ),
+    ).pipe(Effect.withSpan("PackBinary.entry")),
     getEngine,
   } satisfies PackBinaryApi<Engine>;
 });

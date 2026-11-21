@@ -1,10 +1,10 @@
 // A Managed Binary layer over fake device ports, with the same handle as the plugin.
-import { Context, Layer } from "effect";
+import { Context, Effect, Layer } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
-import { bindManagedBinary, bindPackBinary } from "./handle.ts";
+import { bindManagedBinary } from "./handle.ts";
 import { layerPackBinary } from "./pack-binary.ts";
 import type { PackBinary, PackBinaryApi } from "./pack-binary.ts";
 import { ResourcePackPlatform, resourcePackPorts } from "./pack-platform.ts";
@@ -54,30 +54,19 @@ export async function openManagedBinary<
   });
 }
 
-/** Build one Resource Pack binary over fake host ports; the caller's stack owns it. */
-export async function openPackBinary<
-  Engine extends Disposable | AsyncDisposable,
->(binary: PackBinary<Engine>, ports: ResourcePackHostPorts) {
-  await using stack = new AsyncDisposableStack();
+/** One Resource Pack binary over fake host ports, built on the caller's Scope. */
+export function packBinary<Engine extends Disposable | AsyncDisposable>(
+  binary: PackBinary<Engine>,
+  ports: ResourcePackHostPorts,
+) {
   const tag = Context.Service<PackBinaryApi<Engine>>(
     "zotlit/managed-binary/TestPackBinary",
   );
-  const runtime = buildRuntime(
+  return Layer.build(
     layerPackBinary(tag, binary).pipe(
       Layer.provide(
         Layer.succeed(ResourcePackPlatform, resourcePackPorts(ports)),
       ),
     ),
-    stack,
-  );
-  await runtime.context();
-  const service = runtime.runSync(tag);
-  const handle = bindPackBinary(effectBridge(runtime), service);
-  const owned = stack.move();
-  return {
-    service,
-    handle,
-    runtime,
-    [Symbol.asyncDispose]: () => owned.disposeAsync(),
-  };
+  ).pipe(Effect.map((context) => Context.get(context, tag)));
 }

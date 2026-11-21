@@ -1119,8 +1119,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { what: "the update-all-notes result modal to show its Close button" },
     );
     // All seeded personal notes now use Default, plus the new group note;
-    // the citekey-created note is the one existing Books note. The three
-    // remaining group items (8, 9, 10, 79) are created under Default, the batch's
+    // the citekey-created note is the one existing Books note. The
+    // remaining group items (8, 9, 10, 79, 97) are created under Default, the batch's
     // fallback: the Books choice made in the citekey picker stayed with that
     // operation. The demo items have no seeded note: the demo book matches
     // Books and is created there, the demo papers are created under Default.
@@ -1148,7 +1148,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     for (const [label, count] of [
       [
         run.m.settings_profile_default_name(),
-        4 + DEMO_ITEMS.length - demoBookCount,
+        5 + DEMO_ITEMS.length - demoBookCount,
       ],
       [booksProfile.label, demoBookCount],
     ] as const) {

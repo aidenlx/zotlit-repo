@@ -3,42 +3,28 @@ import type { Effect } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import type { PackBinaryApi } from "./pack-binary.ts";
 import type { ManagedBinaryApi } from "./service.ts";
 
-/** The service and the two ways to enter Effect with it through {@link EffectBridge}. */
-export interface ManagedBinaryHandle<
-  Engine extends Disposable | AsyncDisposable = Disposable | AsyncDisposable,
-> {
-  readonly binary: ManagedBinaryApi<Engine>;
+/**
+ * A binary's service and the two ways to enter Effect with it through
+ * {@link EffectBridge}. `Api` is the service of either source: a downloaded
+ * binary (`ManagedBinaryApi`) or one of the Resource Pack (`PackBinaryApi`).
+ */
+export interface BinaryHandle<Api> {
+  readonly binary: Api;
   readonly runSync: <A>(effect: Effect.Effect<A>) => A;
   readonly runPromise: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>;
 }
 
-export function bindManagedBinary<Engine extends Disposable | AsyncDisposable>(
-  bridge: Pick<EffectBridge, "runSync" | "runPromise">,
-  binary: ManagedBinaryApi<Engine>,
-): ManagedBinaryHandle<Engine> {
-  return {
-    binary,
-    runSync: bridge.runSync,
-    runPromise: bridge.runPromise,
-  };
-}
-
-/** The handle of a Managed Binary that ships in the Resource Pack. */
-export interface PackBinaryHandle<
+/** The handle of a downloaded Managed Binary. */
+export type ManagedBinaryHandle<
   Engine extends Disposable | AsyncDisposable = Disposable | AsyncDisposable,
-> {
-  readonly binary: PackBinaryApi<Engine>;
-  readonly runSync: <A>(effect: Effect.Effect<A>) => A;
-  readonly runPromise: <A, E>(effect: Effect.Effect<A, E>) => Promise<A>;
-}
+> = BinaryHandle<ManagedBinaryApi<Engine>>;
 
-export function bindPackBinary<Engine extends Disposable | AsyncDisposable>(
+export function bindManagedBinary<Api>(
   bridge: Pick<EffectBridge, "runSync" | "runPromise">,
-  binary: PackBinaryApi<Engine>,
-): PackBinaryHandle<Engine> {
+  binary: Api,
+): BinaryHandle<Api> {
   return {
     binary,
     runSync: bridge.runSync,

@@ -29,9 +29,9 @@ import { openProfilesSettings } from "./e2e-run-helpers.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import {
   RESOURCE_PACK_ID,
+  addMyLibraryItems,
   SYNTHETIC_CORPUS_SIZE,
   SYNTHETIC_MARKER,
-  addMyLibraryItems,
   clickModalButton,
   recordFrames,
   rendererHeap,
@@ -51,6 +51,9 @@ import { obRun } from "./obsidian-cli.ts";
 import { obRunUntil } from "./obsidian-cli.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
 import { clearVault, e2eVaultDir, vaultScript } from "./vault-script.ts";
+
+/** The Fixture's Item with a Chinese title of several words. */
+const CHINESE_TITLE_ITEM = ITEMS.find(({ key }) => key === "CHNSEG5A")!;
 
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
@@ -2118,7 +2121,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   }, 180_000);
 
   it("finds a word inside a Chinese title with the Chinese Segmenter of the installed Resource Pack, with no download", async () => {
-    await using cleanup = new AsyncDisposableStack();
     // The pack is in the vault's plugin folder and Obsidian did not load it:
     // the state an install from the community plugin browser leaves.
     const pack = await obRun(
@@ -2140,17 +2142,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(pack.loaded).toBe(false);
     expect(pack.enabledList).not.toContain(RESOURCE_PACK_ID);
 
-    const added = addMyLibraryItems(e2eFixture.databasePath, [
-      "长江流域的城市化研究",
-    ]);
-    cleanup.defer(async () => {
-      added[Symbol.dispose]();
-      await signalDatabaseUpdated(run.vaultId);
-    });
-    await signalDatabaseUpdated(run.vaultId);
-
-    // `Intl.Segmenter` keeps `长江流域` one word, so the word inside hits only
-    // when the worker cuts the title with the binary it read from the pack.
+    // The Fixture holds `长江流域的城市化研究`. `Intl.Segmenter` keeps `长江流域`
+    // one word, so the word inside hits only when the worker cuts the title
+    // with the binary it read from the pack.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2159,7 +2153,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return hit.item.itemID === firstItemID;
         });
       },
-      { searchTerm: "流域", firstItemID: added.firstItemID },
+      { searchTerm: "流域", firstItemID: CHINESE_TITLE_ITEM.itemID },
       {
         what: "the first item to appear in lookup results for a word inside its Chinese title",
       },
@@ -2179,14 +2173,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("cuts Chinese titles with the browser's word segmentation and points to the Resource Pack when no pack is installed", async () => {
     await using cleanup = new AsyncDisposableStack();
-    const added = addMyLibraryItems(e2eFixture.databasePath, [
-      "长江流域的城市化研究",
-    ]);
-    cleanup.defer(async () => {
-      added[Symbol.dispose]();
-      await signalDatabaseUpdated(run.vaultId);
-    });
-    await signalDatabaseUpdated(run.vaultId);
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2195,7 +2181,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return hit.item.itemID === firstItemID;
         });
       },
-      { searchTerm: "流域", firstItemID: added.firstItemID },
+      { searchTerm: "流域", firstItemID: CHINESE_TITLE_ITEM.itemID },
       {
         what: "the first item to appear in lookup results for a word inside its Chinese title, with the pack installed",
       },
@@ -2299,7 +2285,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return hit.item.itemID === firstItemID;
         });
       },
-      { searchTerm: "流域", firstItemID: added.firstItemID },
+      { searchTerm: "流域", firstItemID: CHINESE_TITLE_ITEM.itemID },
       {
         ready: (value) => value === false,
         what: "the word inside the Chinese title to stop matching the first item in lookup results",
@@ -2314,7 +2300,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             return hit.item.itemID === firstItemID;
           });
         },
-        { searchTerm: "长江流域", firstItemID: added.firstItemID },
+        { searchTerm: "长江流域", firstItemID: CHINESE_TITLE_ITEM.itemID },
       ),
     ).toBe(true);
   }, 180_000);

@@ -13,6 +13,19 @@ import { sha256Hex } from "#sha256.ts";
  */
 export type ReadRange = (offset: number, length: number) => Promise<Uint8Array>;
 
+/**
+ * One Pack Entry of an installed pack, for a reader in another realm: the
+ * main thread names it, and a Web Worker reads it through `fetchRange(url)`.
+ */
+export interface PackEntryLocation {
+  /** The resource URL of the pack file. */
+  readonly url: string;
+  /** The name of the Pack Entry. */
+  readonly entry: string;
+  /** The version of the pack, as its manifest states it. */
+  readonly version: string;
+}
+
 /** A `ReadRange` rejects with this when the host has no pack file. */
 export class PackAbsentError extends Error {
   override readonly name = "PackAbsentError";

@@ -1073,6 +1073,22 @@ export const ITEMS: readonly FixtureItem[] = [
     dateModified: "2024-12-22 12:00:00",
     collectionIDs: [2],
   },
+  {
+    // A Chinese title of several words. `Intl.Segmenter` keeps `长江流域` one
+    // word, so a search for `流域` finds this Item only when the Chinese
+    // Segmenter of the Resource Pack cuts the title.
+    itemID: 97,
+    libraryID: 2,
+    key: "CHNSEG5A",
+    itemType: "journalArticle",
+    citationKey: "wangChangjiangUrbanization2015",
+    title: "长江流域的城市化研究",
+    venue: "地理学报",
+    date: "2015",
+    creators: [author("建国", "王")],
+    dateModified: "2024-12-21 12:00:00",
+    collectionIDs: [2],
+  },
   ...DEMO_ITEMS,
 ];
 

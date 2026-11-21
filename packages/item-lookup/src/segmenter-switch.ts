@@ -2,6 +2,7 @@
 import { Context, Effect } from "effect";
 import type { Layer } from "effect";
 
+import type { PackEntryLocation } from "@zotlit/resource-pack/reader.ts";
 import { withLogCategory } from "@zotlit/shared/logging";
 
 import {
@@ -12,14 +13,7 @@ import {
 import type { SegmenterUnavailable } from "./segmenter.ts";
 
 /** The Chinese Segmenter binary of an installed Resource Pack: one Pack Entry of the pack file. */
-export interface SegmenterBinary {
-  /** The resource URL of the pack file. */
-  readonly url: string;
-  /** The name of the Pack Entry that holds the binary. */
-  readonly entry: string;
-  /** The version of the pack. */
-  readonly version: string;
-}
+export type SegmenterBinary = PackEntryLocation;
 
 /** Whether `a` and `b` name the same binary, or both name none. */
 export const sameSegmenterBinary = (

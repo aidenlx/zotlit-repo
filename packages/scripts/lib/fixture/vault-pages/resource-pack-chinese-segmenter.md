@@ -24,13 +24,25 @@ it, run the build and open the vault again.
 | Change the value to `"compat":2`. Open the row. | The row says the installed pack is too new and asks you to update ZotLit. |
 | Restore `"compat":1`, then change one letter in the long line near the end of the file. Open the row. | The row says the file of ZotLit Resource Pack is damaged and asks you to uninstall it and install it again. |
 | Replace the pack file with the text `module.exports = {};`. Open the row. | The row says the file is damaged, as in the row before. |
-| With the pack installed, search the Library View for `流域` when the library holds an Item with the title `长江流域的城市化研究`. | The Item is in the results. With no pack, `流域` finds nothing and `长江流域` finds the Item. |
+| Write a pack whose entry is not a WebAssembly module (command A below). Open the row. | The row says **It did not start:** and the reason the WebAssembly compiler gives, and that until then search splits Chinese titles with built-in rules. |
+| Write a pack that has no `chinese-segmenter` entry (command B below). Open the row. | The row says the installed pack is too old and asks you to update ZotLit Resource Pack, as for `"compat":0`. |
+| With the pack installed, search the Library View for `流域`. | The results hold `长江流域的城市化研究` (王建国, 2015), the Item `CHNSEG5A` of the group Library **Shared Reading**. |
+| With no pack, search the Library View for `流域`, then for `长江流域`. | `流域` finds nothing. `长江流域` finds the Item. |
 
-The Fixture holds no Item with a Chinese title of several words. The desktop
-check adds one on a data fork (`docs/fixture.md` → **Write to a data fork**)
-and covers the search with the pack, the search with no pack, the row with no
-pack and its button:
+Run the two commands from `apps/resources`, with the path of the pack file in
+the vault as `<pack>`:
+
+```sh
+# A: a verified entry that does not start
+node -e "Promise.all([import('@zotlit/resource-pack/writer.ts'),import('@zotlit/resource-pack/sha256.ts')]).then(async([w,h])=>{const bytes=new TextEncoder().encode('not wasm');require('fs').writeFileSync(process.argv[1],await w.writePack({entries:[{name:process.argv[2],bytes,sha256:await h.sha256Hex(bytes)}]}))})" <pack> chinese-segmenter
+# B: a pack without the Chinese Segmenter entry
+node -e "Promise.all([import('@zotlit/resource-pack/writer.ts'),import('@zotlit/resource-pack/sha256.ts')]).then(async([w,h])=>{const bytes=new TextEncoder().encode('not wasm');require('fs').writeFileSync(process.argv[1],await w.writePack({entries:[{name:process.argv[2],bytes,sha256:await h.sha256Hex(bytes)}]}))})" <pack> another-entry
+```
+
+The Fixture Spec holds the Item with the Chinese title (`CHNSEG5A` in
+`packages/scripts/lib/fixture/spec.ts`). The desktop check covers the search
+with the pack, the search with no pack, the row with no pack and its button:
 `pnpm e2e --project=desktop src/query-cli.e2e.ts -t Chinese`. The unit suite
 `packages/plugin-services/src/obsidian/managed-binary/pack-row.test.ts` covers
 the text of each row state. Each refusal of the pack is in ZotLit's log under
-`item-lookup` → `segmenter`, with its reason.
+`item-lookup` → `segmenter`, with its reason: a warning for each state but "not installed", which is a debug record.
