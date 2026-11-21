@@ -1,6 +1,7 @@
 // The plugin class Obsidian loads: a small entry that starts the plugin body.
 // It imports no Effect and no feature code, so a host can load the body after
 // Obsidian's own start-up.
+import { Notice } from "obsidian";
 import type {
   ObsidianProtocolData,
   ObsidianProtocolHandler,
@@ -147,8 +148,11 @@ export function shellEntry(
         });
       }
       workspace.onLayoutReady(() => {
-        // Obsidian reports a failed `onload` this way; nothing awaits this start.
+        // Nothing awaits this start, so the entry reports its failure as
+        // Obsidian reports a failed `onload`: a notice and a console line.
+        // The notice is English: the entry holds no Language Pack.
         this.#start().catch((error: unknown) => {
+          new Notice(`Failed to load plugin ${this.manifest.name}`);
           // oxlint-disable-next-line effecttsgo/global-console, zotlit-logging/effect-logging-only -- the entry module stays free of Effect
           console.error(`Plugin failure: ${this.manifest.id}`, error);
         });
