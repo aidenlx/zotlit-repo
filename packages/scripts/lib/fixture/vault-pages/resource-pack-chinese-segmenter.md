@@ -21,11 +21,11 @@ or uninstalls the pack while it runs, and the notice.
 | --- | --- |
 | Open **Settings → ZotLit → Zotero** with the pack installed and turned off. | The row says **Ready, from ZotLit Resource Pack** and the pack's version. It has one button, **Open in Community plugins**. |
 | Turn the pack on in **Settings → Community plugins**, then open the row. | Obsidian shows no error. The row says the same as with the pack turned off. |
-| Uninstall the pack in **Settings → Community plugins**, then open the row. | The row says the ZotLit Resource Pack plugin is not installed, and that until then search splits Chinese titles with built-in rules. |
+| Uninstall the pack in **Settings → Community plugins**, then open the row. | The row says ZotLit Resource Pack is not installed, and that until then search splits Chinese titles with built-in rules. |
 | Select **Open in Community plugins**. | Obsidian's community plugin browser opens on the page of ZotLit Resource Pack (`obsidian://show-plugin?id=zotlit-resources`). |
 | In the pack file, change `"compat":1` on line 1 to `"compat":0`. Open the row. | The row says the installed pack is too old and asks you to update ZotLit Resource Pack. |
 | Change the value to `"compat":2`. Open the row. | The row says the installed pack is too new and asks you to update ZotLit. **Open in Community plugins** now opens the page of ZotLit (`obsidian://show-plugin?id=zotlit`). |
-| Restore `"compat":1`, then change one letter in the long line near the end of the file. Open the row. | The row says the file of ZotLit Resource Pack is damaged and asks you to uninstall it and install it again. |
+| Restore `"compat":1`, then change one letter in the long line near the end of the file. Open the row. | The row says ZotLit Resource Pack is damaged and asks you to uninstall it and install it again. |
 | Replace the pack file with the text `module.exports = {};`. Open the row. | The row says the file is damaged, as in the row before. |
 | Write a pack whose entry is not a WebAssembly module (command A below). Open the row. | The row says **It did not start:** and the reason the WebAssembly compiler gives, and that until then search splits Chinese titles with built-in rules. |
 | Write a pack that has no `chinese-segmenter` entry (command B below). Open the row. | The row says the installed pack is too old and asks you to update ZotLit Resource Pack, as for `"compat":0`. |

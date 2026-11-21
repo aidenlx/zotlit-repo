@@ -32,7 +32,7 @@ ZotLit → Zotero** open for the **Chinese segmenter** row.
 | Action | Expected result |
 | --- | --- |
 | With the pack installed, read the row and the **References** Sidebar. | The row says **Ready, from ZotLit Resource Pack** and the version. The Sidebar holds the formatted reference of Hensher 2011, with no banner. |
-| Uninstall ZotLit Resource Pack in **Settings → Community plugins**. Open the Zotero page again. | The row says the ZotLit Resource Pack plugin is not installed. The Sidebar shows the plain list and the banner **Format these references**. A search for `流域` in the Library View finds nothing. |
+| Uninstall ZotLit Resource Pack in **Settings → Community plugins**. Open the Zotero page again. | The row says ZotLit Resource Pack is not installed. The Sidebar shows the plain list and the banner **Format these references**. A search for `流域` in the Library View finds nothing. |
 | Put the built pack folder back in `.obsidian/plugins/` and select **Reload plugins** in **Settings → Community plugins** (or install the pack from the community plugin browser when it is listed there). | The row says **Ready** again. The banner goes and the reference is formatted. A search for `流域` finds `长江流域的城市化研究`. |
 | With the row open, change `"compat":1` on line 1 of the pack file to `"compat":2`, and run the console lines. | The open row changes to "too new", and asks you to update ZotLit. Its button opens the page of ZotLit. The Sidebar shows the warning banner **The Pandoc engine is unavailable** with the same sentence. |
 | Change the value to `"compat":0` and run the console lines. | The open row changes to "too old", and asks you to update ZotLit Resource Pack. Its button opens the page of ZotLit Resource Pack. |
@@ -54,7 +54,7 @@ Workbench preview) or a search of Chinese text.
 
 | Action | Expected result |
 | --- | --- |
-| Clear the notice record (console line above). With no pack, open this page with the **References** Sidebar. | One notice says that the ZotLit Resource Pack plugin is not installed. Its button opens the page of ZotLit Resource Pack. |
+| Clear the notice record (console line above). With no pack, open this page with the **References** Sidebar. | One notice says that ZotLit Resource Pack is not installed. Its button opens the page of ZotLit Resource Pack. |
 | Close the notice. Search the Library View for `流域`, open another note with citations, and restart Obsidian. | No second notice for this state, in this session or the next one. |
 | Start Obsidian with no pack and with no note open, and do not search. | No notice. |
 | With no pack, run **ZotLit: Export note with citations**. | The export shows its own notice each time. It adds no second notice. |
