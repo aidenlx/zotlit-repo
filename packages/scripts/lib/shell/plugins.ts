@@ -49,7 +49,7 @@ export const PUBLISHED_PLUGINS = {
       mainJsBytes: 5_000_000,
       stylesCssBytes: 146_143,
       startupDailyMs: 100,
-      startupUpdateMs: 190,
+      startupUpdateMs: 100,
     },
     allowedRequires: [
       "obsidian",
