@@ -17,7 +17,6 @@ import type { ArrivingProblem } from "@zotlit/notes/obsidian/template/workbench-
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import { WorkbenchDocumentController } from "@zotlit/workbench/document";
 
 import {
   findWorkbenchLayout,
@@ -30,6 +29,7 @@ import {
   TemplateWorkbenchView,
 } from "./view.tsx";
 
+import { WorkbenchDocumentController } from "#core/document/index.ts";
 import { explainWorkbenchOpen } from "#desktop/editor/actions.ts";
 
 /** An open that asks the reader to know nothing. */

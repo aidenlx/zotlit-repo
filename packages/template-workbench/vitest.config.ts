@@ -56,8 +56,28 @@ export default defineConfig({
   ],
   test: {
     ...testDefaults,
-    include: ["src/**/*.test.ts"],
+    // `include` lives on the projects: Vite merges a root `include` into each
+    // project's own, which would widen every project back to everything.
     environment: "node",
+    projects: [
+      {
+        extends: true,
+        test: { name: "node", include: ["src/**/*.test.ts"] },
+      },
+      {
+        // The headless UI's component suite, on Preact in a DOM as Obsidian
+        // runs it, with Testing Library's Preact build.
+        extends: true,
+        resolve: {
+          alias: { "@testing-library/react": "@testing-library/preact" },
+        },
+        test: {
+          name: "ui",
+          include: ["src/core/headless-ui/**/*.test.tsx"],
+          environment: "happy-dom",
+        },
+      },
+    ],
     clearMocks: true,
     server: {
       deps: {
@@ -69,6 +89,7 @@ export default defineConfig({
     setupFiles: [obsidianSetupFile],
     globalSetup: [
       ...testDefaults.globalSetup,
+      "./scripts/message-types-setup.ts",
       fileURLToPath(
         import.meta.resolve("@zotlit/plugin-messages/vitest-setup"),
       ),

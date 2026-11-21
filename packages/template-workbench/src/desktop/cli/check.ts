@@ -1,3 +1,4 @@
+import type { RenderDiagnostic, PartialContext } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
 // Saved-source checking and attempt retention. Output flags only disclose completed work.
 import { Clock, Effect, FileSystem, Result, Schema } from "effect";
@@ -33,15 +34,6 @@ import type {
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
-import {
-  captureRenderReport,
-  renderIdentity,
-  isCitationExampleId,
-} from "@zotlit/workbench/render";
-import type {
-  RenderDiagnostic,
-  PartialContext,
-} from "@zotlit/workbench/render";
 
 import { selectCheckBaseline } from "./check-baseline.ts";
 import {
@@ -67,6 +59,11 @@ import {
   CITATION_VARIANT_NAMES,
   PARTIAL_CONTEXT_NAMES,
 } from "#core/cli/vocabulary.ts";
+import {
+  captureRenderReport,
+  renderIdentity,
+  isCitationExampleId,
+} from "#core/render/index.ts";
 import { PROFILE_OUTPUTS } from "#obsidian/cli/check-profile.ts";
 
 export const TEMPLATE_CHECK_COMMAND = "zotlit:template-check";

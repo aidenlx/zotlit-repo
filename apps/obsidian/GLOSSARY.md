@@ -245,7 +245,7 @@ The one surface of the Template Workbench View that shows the Template Data Expl
 _Avoid_: Fields Picker (the retired list popover of narrow views), Fields column (the retired always-docked layout), Fields sheet (a working name during design), Fields pane, linked explorer, Data Explorer (the standalone view)
 
 **Workbench UI**:
-The headless component layer that the Template Workbench View mounts over the Workbench core: it renders structure and behavior and carries no styling, and each host supplies styling and the platform's own popups, menus, and dialogs.
+The headless component layer that the Template Workbench View mounts over the Workbench core: it renders structure and behavior and carries no styling, and its Obsidian host supplies the styling and Obsidian's own popups, menus, and dialogs.
 _Avoid_: shared components (too vague), design system (the hosts own their look), Workbench shell (the host's layout)
 
 **Render Scheduler**:

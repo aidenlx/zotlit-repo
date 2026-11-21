@@ -1,3 +1,8 @@
+import type {
+  WorkbenchHost,
+  WorkbenchLibrary,
+  WorkbenchMatchResult,
+} from "#core/headless-ui/index.tsx";
 // Match vocabulary spans every Library in the pinned live database.
 import { Effect } from "effect";
 
@@ -6,11 +11,6 @@ import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matche
 import { readerText } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { ViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
-import type {
-  WorkbenchHost,
-  WorkbenchLibrary,
-  WorkbenchMatchResult,
-} from "@zotlit/workbench/ui";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import {
   resolveLibraryScope,

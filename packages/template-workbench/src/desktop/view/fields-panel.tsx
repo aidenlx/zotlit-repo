@@ -1,3 +1,12 @@
+import type { DisplayNode, TreeState } from "#core/data-tree/index.ts";
+import type { WorkbenchDocumentAtoms } from "#core/document/index.ts";
+import type {
+  ExplorerPresentation,
+  TemplateRoot,
+  WorkbenchHost,
+  WorkbenchInsertTarget,
+  WorkbenchModel,
+} from "#core/headless-ui/index.tsx";
 import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
 import type {
   ExplorerLoad,
@@ -15,26 +24,20 @@ import { javascriptTemplatesEnabledAtom } from "@zotlit/notes/obsidian/template/
 import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { WorkbenchDocumentAtoms } from "@zotlit/workbench/document";
-import { initialTreeState, setAnchor } from "@zotlit/workbench/explorer";
-import type { DisplayNode, TreeState } from "@zotlit/workbench/explorer";
-import {
-  citationExampleData,
-  restoreTemplateData,
-  sampleItemCitation,
-} from "@zotlit/workbench/render";
-import { chooseAnnotation, visibleSectionIds } from "@zotlit/workbench/ui";
-import type {
-  ExplorerPresentation,
-  TemplateRoot,
-  WorkbenchHost,
-  WorkbenchInsertTarget,
-  WorkbenchModel,
-} from "@zotlit/workbench/ui";
 
 import type { TemplateWorkbenchModel, WorkbenchItemRead } from "./model.ts";
 import type { TemplateWorkbenchView } from "./view.tsx";
 
+import { initialTreeState, setAnchor } from "#core/data-tree/index.ts";
+import {
+  chooseAnnotation,
+  visibleSectionIds,
+} from "#core/headless-ui/index.tsx";
+import {
+  citationExampleData,
+  restoreTemplateData,
+  sampleItemCitation,
+} from "#core/render/index.ts";
 import { Explorer } from "#desktop/data-explorer/Explorer.tsx";
 import { exportTarget } from "#desktop/data-explorer/export-file.ts";
 import {

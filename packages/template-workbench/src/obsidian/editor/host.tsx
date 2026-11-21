@@ -1,3 +1,12 @@
+import type {
+  WorkbenchHost,
+  WorkbenchDialogRequest,
+  WorkbenchMenuItem,
+  WorkbenchSuggesterRequest,
+  WorkbenchSuggesterOption,
+  WorkbenchInputSuggestionsRequest,
+  WorkbenchRunner,
+} from "#core/headless-ui/index.tsx";
 // Native overlays and Markdown lifecycle for the shared Template Workbench tree.
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
@@ -40,24 +49,6 @@ import {
   appendTrailingFlair,
   FLAIR_ROW_CLASS,
 } from "@zotlit/plugin-services/obsidian/item-lookup/render-hit.ts";
-import {
-  completionSuggestion,
-  templateCompletion,
-} from "@zotlit/workbench/language";
-import {
-  WorkbenchClipboardError,
-  WorkbenchHostError,
-  WorkbenchMessagesProvider,
-} from "@zotlit/workbench/ui";
-import type {
-  WorkbenchHost,
-  WorkbenchDialogRequest,
-  WorkbenchMenuItem,
-  WorkbenchSuggesterRequest,
-  WorkbenchSuggesterOption,
-  WorkbenchInputSuggestionsRequest,
-  WorkbenchRunner,
-} from "@zotlit/workbench/ui";
 
 import { extractPartialMenu } from "./extract-partial.ts";
 import type { ExtractPartial } from "./extract-partial.ts";
@@ -66,6 +57,15 @@ import { templateHover } from "./hover.tsx";
 import { templateWorkbenchIcons } from "./theme.tsx";
 
 import { nativeCompletion } from "#core/editor/native-completion.ts";
+import {
+  WorkbenchClipboardError,
+  WorkbenchHostError,
+  WorkbenchMessagesProvider,
+} from "#core/headless-ui/index.tsx";
+import {
+  completionSuggestion,
+  templateCompletion,
+} from "#core/language/index.ts";
 
 class EditorDialog extends Modal {
   #root: Root | null = null;

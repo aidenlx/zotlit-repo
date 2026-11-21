@@ -6,8 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TemplateDataLoadResult } from "@zotlit/notes/desktop/template/data.ts";
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
-import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
-import { annotationSamples } from "@zotlit/workbench/ui";
 
 import {
   setCollapsedSections,
@@ -21,6 +19,8 @@ import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
+import { annotationSamples } from "#core/headless-ui/index.tsx";
+import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 const readCitation = vi.fn<NonNullable<ExplorerReads["readCitation"]>>();

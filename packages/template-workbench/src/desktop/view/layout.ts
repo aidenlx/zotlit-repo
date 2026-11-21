@@ -7,7 +7,6 @@ import type { Cause } from "effect";
 import type { ViewState, WorkspaceLeaf } from "obsidian";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import { showPreview } from "@zotlit/workbench/ui";
 
 import {
   TEMPLATE_WORKBENCH_VIEW_TYPE,
@@ -15,6 +14,7 @@ import {
 } from "./view.tsx";
 
 import { inLayoutTurn } from "#core/editor/layout-turn.ts";
+import { showPreview } from "#core/headless-ui/index.tsx";
 
 type ProfileSource = { file: string | null; defaultProfile: boolean };
 

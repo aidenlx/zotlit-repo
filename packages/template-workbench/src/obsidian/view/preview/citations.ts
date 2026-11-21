@@ -1,3 +1,4 @@
+import type { PreviewHint, RenderDiagnostic } from "#core/render/index.ts";
 // Draft citations use their own source and presentation, without entering the saved-note cache.
 import { Effect } from "effect";
 
@@ -22,7 +23,6 @@ import {
 } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
-import type { PreviewHint, RenderDiagnostic } from "@zotlit/workbench/render";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 export interface PreviewCitation extends PresentedCitation {

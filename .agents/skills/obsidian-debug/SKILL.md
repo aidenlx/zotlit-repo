@@ -44,8 +44,8 @@ pnpm exec turbo run build --filter='@zotlit/obsidian^...'
 pnpm --filter @zotlit/obsidian build:dev
 ```
 
-The first command rebuilds the workspace packages the plugin bundles from
-their `dist`, such as `@zotlit/workbench`. The second builds the plugin and
+The first command runs the build tasks of the workspace packages the plugin
+bundles. The second builds the plugin and
 copies it into the vault.
 
 Editing the Fixture Spec or its committed vault-page assets changes the next

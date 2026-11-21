@@ -10,7 +10,7 @@ import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
-import type { FilterValues } from "@zotlit/workbench/ui";
+import type { FilterValues } from "@zotlit/template-workbench/core/headless-ui/index.tsx";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { selectorKey } from "@zotlit/zotero-reads/contract/library-scope.ts";
 

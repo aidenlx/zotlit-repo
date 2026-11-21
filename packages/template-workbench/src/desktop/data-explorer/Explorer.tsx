@@ -1,3 +1,7 @@
+import type {
+  DataExplorerProps,
+  WorkbenchItemChoice,
+} from "#core/headless-ui/index.tsx";
 // Presentational root for the Template Data Explorer: db-not-ready, no-item, and tree states.
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useContext } from "react";
@@ -7,15 +11,6 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import {
-  DataExplorer,
-  useWorkbenchHost,
-  visibleSectionIds,
-} from "@zotlit/workbench/ui";
-import type {
-  DataExplorerProps,
-  WorkbenchItemChoice,
-} from "@zotlit/workbench/ui";
 
 import {
   clearRestore,
@@ -25,6 +20,11 @@ import {
   useExplorerModel,
 } from "./model.ts";
 
+import {
+  DataExplorer,
+  useWorkbenchHost,
+  visibleSectionIds,
+} from "#core/headless-ui/index.tsx";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import {
   ItemSelectionList,

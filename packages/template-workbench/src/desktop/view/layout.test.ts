@@ -1,3 +1,4 @@
+import type { WorkbenchModel } from "#core/headless-ui/index.tsx";
 // The dedicated workbench window: "Open template workbench" and Customize show
 // the one editor with both side panels in a window of its own.
 import { describe, expect, it } from "@effect/vitest";
@@ -9,8 +10,6 @@ import { vi } from "vitest";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { INITIAL_PANELS } from "@zotlit/workbench/ui";
-import type { WorkbenchModel } from "@zotlit/workbench/ui";
 
 import { findWorkbenchLayout, openWorkbenchLayout } from "./layout.ts";
 import {
@@ -18,6 +17,7 @@ import {
   TemplateWorkbenchView,
 } from "./view.tsx";
 
+import { INITIAL_PANELS } from "#core/headless-ui/index.tsx";
 import { EXPLORER_VIEW_TYPE } from "#desktop/data-explorer/view.tsx";
 
 type Container = ReturnType<WorkspaceLeaf["getContainer"]>;

@@ -1,4 +1,5 @@
 import type { WorkbenchHostDeps as TemplateWorkbenchDeps } from "#__fixtures__/view.ts";
+import type { DisplayNode } from "#core/data-tree/index.ts";
 import { forceParsing } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { Cause, Effect, Exit } from "effect";
@@ -38,15 +39,6 @@ import {
   formatPlainTemplateDocument,
   parsePlainTemplateDocument,
 } from "@zotlit/templates/facade";
-import type { DisplayNode } from "@zotlit/workbench/explorer";
-import {
-  captureRenderReport,
-  emptyRender,
-  formatRenderReport,
-  renderIdentity,
-  SAMPLE_ITEMS,
-} from "@zotlit/workbench/render";
-import { fieldForm } from "@zotlit/workbench/ui";
 import {
   inProcessReadsService,
   memoryOpener,
@@ -71,6 +63,14 @@ import {
 } from "#__fixtures__/view.ts";
 import { createRenderFixture } from "#__fixtures__/view/preview/render.ts";
 import { SAMPLE_ITEM_CHOICES } from "#core/editor/selection-data.ts";
+import { fieldForm } from "#core/headless-ui/index.tsx";
+import {
+  captureRenderReport,
+  emptyRender,
+  formatRenderReport,
+  renderIdentity,
+  SAMPLE_ITEMS,
+} from "#core/render/index.ts";
 
 /**
  * Every entry of `menu` and of the submenus under it, each before its own
@@ -105,14 +105,14 @@ vi.mock("#desktop/view/preview/render.ts", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("#desktop/view/preview/render.ts")>();
   const { failedRender, renderIdentity } =
-    await import("@zotlit/workbench/render");
+    await import("#core/render/index.ts");
   return {
     ...actual,
     makeNativeRenderer: (
       deps: Parameters<typeof actual.makeNativeRenderer>[0],
     ) => ({
       ...actual.makeNativeRenderer(deps),
-      render: (request: import("@zotlit/workbench/render").RenderRequest) =>
+      render: (request: import("#core/render/index.ts").RenderRequest) =>
         Effect.succeed(
           actual.nativeResult(
             failedRender(renderIdentity(request), { code: "render-error" }),

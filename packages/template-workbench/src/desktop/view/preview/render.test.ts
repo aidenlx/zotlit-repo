@@ -4,8 +4,6 @@ import { parse } from "yaml";
 
 import type { PandocEngineStatus } from "@zotlit/citations/obsidian/pandoc/service.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { emptyRender, SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
-import { annotationSamples } from "@zotlit/workbench/ui";
 
 import { presentCitations } from "./markdown.tsx";
 import { retainNativeOutputs, previewBaseline } from "./render.ts";
@@ -23,6 +21,8 @@ import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
+import { annotationSamples } from "#core/headless-ui/index.tsx";
+import { emptyRender, SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 
 /** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";

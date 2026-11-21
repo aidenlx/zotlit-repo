@@ -20,7 +20,6 @@
     "../../packages/plugin-shell/src",
     "../../packages/query-views/src",
     "../../packages/template-workbench/src",
-    "../../packages/workbench/src",
     "../../packages/zotero-reads/src"
   ],
   "exclude": [

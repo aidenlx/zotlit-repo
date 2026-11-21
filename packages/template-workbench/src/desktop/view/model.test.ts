@@ -19,14 +19,6 @@ import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { SAMPLE_ITEMS } from "@zotlit/workbench/render";
-import {
-  chooseItem,
-  INITIAL_CHOICES,
-  INITIAL_VIEW,
-  setAdvanced,
-  setTab,
-} from "@zotlit/workbench/ui";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import {
@@ -38,6 +30,14 @@ import {
 } from "./model.ts";
 
 import { makeWorkbenchHost } from "#__fixtures__/view.ts";
+import {
+  chooseItem,
+  INITIAL_CHOICES,
+  INITIAL_VIEW,
+  setAdvanced,
+  setTab,
+} from "#core/headless-ui/index.tsx";
+import { SAMPLE_ITEMS } from "#core/render/index.ts";
 
 const FIRST = "FIRST234";
 const LATER = "LATER234";

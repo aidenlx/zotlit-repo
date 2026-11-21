@@ -45,7 +45,7 @@ Preact provides the UI runtime through `@preact/preset-vite` and its React compa
 
 Read `packages/annotations/src/obsidian/annot-view/store.ts` for view state, `packages/annotations/src/desktop/annot-view/menus.ts` and `actions.tsx` for menus, and `packages/obsidian-kit/src/menu.ts` for anchoring.
 
-Drag to reorder: a flat list uses `packages/query-views/src/obsidian/query-view/reorder.tsx`; a Match tree or a Template Workbench list uses `packages/workbench/src/ui/reorder.ts`.
+Drag to reorder: a flat list uses `packages/query-views/src/obsidian/query-view/reorder.tsx`; a Match tree or a Template Workbench list uses `packages/template-workbench/src/core/headless-ui/reorder.ts`.
 
 The Annotation Marks and the Creation Toolbar inside the ZotLit PDF Reader are vanilla DOM ([ADR 0042](docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md)). The Mark Popup is one Preact root on Obsidian's popover, rendered synchronously by its host ([ADR 0065](docs/adr/0065-the-mark-popup-is-one-preact-root-on-obsidians-popover.md)).
 

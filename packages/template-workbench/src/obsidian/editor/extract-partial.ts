@@ -3,6 +3,8 @@
 //
 // @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
 
+import type { WorkbenchRunner } from "#core/headless-ui/index.tsx";
+import type { SuggestionSource } from "#core/language/index.ts";
 import { isolateHistory } from "@codemirror/commands";
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
@@ -14,8 +16,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
-import type { SuggestionSource } from "@zotlit/workbench/language";
-import type { WorkbenchRunner } from "@zotlit/workbench/ui";
 
 /**
  * Move `source` into a new Shared Partial: the host asks a name, writes the

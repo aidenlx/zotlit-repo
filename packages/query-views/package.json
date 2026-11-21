@@ -37,7 +37,6 @@
     "@zotlit/template-workbench": "workspace:*",
     "@zotlit/templates": "workspace:*",
     "@zotlit/ui": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
     "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

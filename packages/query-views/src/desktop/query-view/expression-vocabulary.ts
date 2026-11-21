@@ -12,8 +12,8 @@ import * as Atom from "effect/reactivity/Atom";
 import { useMemo } from "react";
 
 import type { ContextRecord } from "@zotlit/item-query";
-import { datasetVocabulary } from "@zotlit/workbench/language";
-import type { ExpressionVocabulary } from "@zotlit/workbench/language";
+import { datasetVocabulary } from "@zotlit/template-workbench/core/language/index.ts";
+import type { ExpressionVocabulary } from "@zotlit/template-workbench/core/language/index.ts";
 
 import { customFieldNamesAtom } from "./atoms.ts";
 import { datasetSpec } from "./datasets.ts";

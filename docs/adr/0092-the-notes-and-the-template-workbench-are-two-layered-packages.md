@@ -37,3 +37,7 @@ The plugin base (ADR 0087), ZoteroReads (ADR 0088), the platform services (ADR 0
 - One build-time edge to the app remains: the Template Data Explorer's stylesheet reads the app's `zt-main.css` through `@reference`, for the Tailwind theme. It goes away when the theme moves into a base package.
 - A host composes the notes' slices into its settings definition, provides `ItemMatchQuery`, `TemplateWorkbenchLauncher` and the Profile revision, and passes both packages' source to `effectEntry` and to Tailwind `@source`.
 - A further cut that moves the Note Feature to `obsidian/` splits the tags of Attachment Import and Excerpt Preparation from their desktop layers.
+
+## Amendment (2026-11-21): one Template Workbench package
+
+[ADR 0100](0100-the-web-template-workbench-is-retired.md) retired the web Workbench, so the Workbench core has one host. `@zotlit/workbench` is folded into `@zotlit/template-workbench`: the core is its host-free units under `src/core/`, and the "names follow the glossary" bullet above no longer names a separate core package.

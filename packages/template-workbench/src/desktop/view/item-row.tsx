@@ -8,11 +8,11 @@ import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selec
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
-import { citationExampleLabel, ItemRow } from "@zotlit/workbench/ui";
 
 import { previewTarget } from "./preview-panel.tsx";
 import type { TemplateWorkbenchView } from "./view.tsx";
 
+import { citationExampleLabel, ItemRow } from "#core/headless-ui/index.tsx";
 import { selectionName } from "#obsidian/editor/selection.tsx";
 
 /** The chooser keeps its width beside the name, which gives way first. */

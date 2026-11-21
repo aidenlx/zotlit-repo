@@ -27,6 +27,20 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
+  MatchEditor,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  filterVocabulary,
+  isDatasetFieldKind,
+  NO_MATCH_DATA,
+} from "@zotlit/template-workbench/core/headless-ui/index.tsx";
+import type {
+  FilterField,
+  FilterValues,
+  MatchFilter,
+} from "@zotlit/template-workbench/core/headless-ui/index.tsx";
+import type { ExpressionVocabulary } from "@zotlit/template-workbench/core/language/index.ts";
+import {
   createTemplateWorkbenchHost,
   refuseRender,
 } from "@zotlit/template-workbench/obsidian/editor/host.tsx";
@@ -36,20 +50,6 @@ import {
   onKeymap,
 } from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
 import type { MatchTree } from "@zotlit/templates/facade";
-import type { ExpressionVocabulary } from "@zotlit/workbench/language";
-import {
-  MatchEditor,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  filterVocabulary,
-  isDatasetFieldKind,
-  NO_MATCH_DATA,
-} from "@zotlit/workbench/ui";
-import type {
-  FilterField,
-  FilterValues,
-  MatchFilter,
-} from "@zotlit/workbench/ui";
 
 import { filterValuesAtom } from "./atoms.ts";
 import {

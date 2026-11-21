@@ -6,14 +6,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { windowMigration } from "@zotlit/obsidian-kit/__fixtures__/window-migration.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
+import { codePane } from "./editor-extension.ts";
+
 import {
   eta,
   jsonRule,
   liquidTemplate,
   templateHighlighting,
-} from "@zotlit/workbench/language";
-
-import { codePane } from "./editor-extension.ts";
+} from "#core/language/index.ts";
 
 let view: EditorView | null = null;
 afterEach(() => {

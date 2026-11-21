@@ -1,3 +1,8 @@
+import type {
+  WorkbenchHost,
+  WorkbenchItemChoice,
+} from "#core/headless-ui/index.tsx";
+import type { AnnotationExample } from "#core/render/index.ts";
 // The Item and annotation choosers of the Template Workbench, as Effects on
 // the host's suggester: an interrupt closes the chooser, and a dismissal
 // answers `null`.
@@ -17,10 +22,6 @@ import {
   ItemLookup,
 } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
-import type { AnnotationExample } from "@zotlit/workbench/render";
-import { annotationOption } from "@zotlit/workbench/ui";
-import type { WorkbenchHost, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
 import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
 
@@ -28,6 +29,8 @@ import {
   getSampleItemType,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
+import { annotationOption } from "#core/headless-ui/index.tsx";
+import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

@@ -2500,9 +2500,6 @@ importers:
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-reads':
         specifier: workspace:*
         version: link:../zotero-reads
@@ -2777,9 +2774,24 @@ importers:
 
   packages/template-workbench:
     dependencies:
+      '@codemirror/autocomplete':
+        specifier: 6.20.3
+        version: 6.20.3
       '@codemirror/commands':
         specifier: 'catalog:'
         version: 6.11.0
+      '@codemirror/lang-json':
+        specifier: ^6.0.2
+        version: 6.0.2
+      '@codemirror/lang-liquid':
+        specifier: 6.3.2
+        version: 6.3.2(patch_hash=c08dbf9b3ed9c6dd75099907aa4647734830c442605d86a0c79eae41046e0c84)
+      '@codemirror/language':
+        specifier: 6.12.3
+        version: 6.12.3
+      '@codemirror/lint':
+        specifier: 6.9.5
+        version: 6.9.5
       '@codemirror/state':
         specifier: 6.7.6
         version: 6.7.6
@@ -2789,6 +2801,18 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)(react@19.2.7)(scheduler@0.27.0)
+      '@lezer/common':
+        specifier: 'catalog:'
+        version: 1.5.2
+      '@lezer/highlight':
+        specifier: 'catalog:'
+        version: 1.2.3
+      '@lezer/lr':
+        specifier: 'catalog:'
+        version: 1.4.10
+      '@lezer/markdown':
+        specifier: 'catalog:'
+        version: 1.7.2
       '@zotlit/annotations':
         specifier: workspace:*
         version: link:../annotations
@@ -2798,6 +2822,9 @@ importers:
       '@zotlit/db':
         specifier: workspace:*
         version: link:../db
+      '@zotlit/filter-expression':
+        specifier: workspace:*
+        version: link:../filter-expression
       '@zotlit/item-query':
         specifier: workspace:*
         version: link:../item-query
@@ -2831,34 +2858,52 @@ importers:
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-reads':
         specifier: workspace:*
         version: link:../zotero-reads
       '@zotlit/zotero-types':
         specifier: workspace:*
         version: link:../zotero-types
+      arkregex:
+        specifier: 'catalog:'
+        version: 0.0.5
+      diff:
+        specifier: 'catalog:'
+        version: 8.0.4
       effect:
         specifier: 'catalog:'
         version: 4.1.2
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       preact:
         specifier: 'catalog:'
         version: 11.0.0-rc.2
+      yaml:
+        specifier: 'catalog:'
+        version: 2.9.1
     devDependencies:
-      '@codemirror/language':
-        specifier: 6.12.3
-        version: 6.12.3
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)(redis@6.3.0)
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
+      '@lezer/generator':
+        specifier: 1.8.0
+        version: 1.8.0
       '@preact/preset-vite':
         specifier: 'catalog:'
         version: 2.10.6(@babel/core@7.29.7(supports-color@10.2.2))(preact@11.0.0-rc.2)(supports-color@10.2.2)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.1
+      '@testing-library/preact':
+        specifier: 'catalog:'
+        version: 3.2.4(preact@11.0.0-rc.2)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.2
@@ -2877,6 +2922,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
+      '@zotlit/obsidian-i18n':
+        specifier: workspace:*
+        version: link:../obsidian-i18n
       '@zotlit/scripts':
         specifier: workspace:*
         version: link:../scripts
@@ -2901,9 +2949,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      yaml:
-        specifier: 'catalog:'
-        version: 2.9.1
 
   packages/templates:
     dependencies:
@@ -2995,151 +3040,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
-
-  packages/workbench:
-    dependencies:
-      '@codemirror/commands':
-        specifier: 6.11.0
-        version: 6.11.0
-      '@codemirror/lang-json':
-        specifier: ^6.0.2
-        version: 6.0.2
-      '@codemirror/lang-liquid':
-        specifier: 6.3.2
-        version: 6.3.2(patch_hash=c08dbf9b3ed9c6dd75099907aa4647734830c442605d86a0c79eae41046e0c84)
-      '@codemirror/lint':
-        specifier: 6.9.5
-        version: 6.9.5
-      '@lezer/common':
-        specifier: 'catalog:'
-        version: 1.5.2
-      '@lezer/highlight':
-        specifier: 'catalog:'
-        version: 1.2.3
-      '@lezer/lr':
-        specifier: 'catalog:'
-        version: 1.4.10
-      '@lezer/markdown':
-        specifier: 'catalog:'
-        version: 1.7.2
-      '@zotlit/db':
-        specifier: workspace:*
-        version: link:../db
-      '@zotlit/filter-expression':
-        specifier: workspace:*
-        version: link:../filter-expression
-      '@zotlit/item-query':
-        specifier: workspace:*
-        version: link:../item-query
-      '@zotlit/notes':
-        specifier: workspace:*
-        version: link:../notes
-      '@zotlit/plugin-kernel':
-        specifier: workspace:*
-        version: link:../plugin-kernel
-      '@zotlit/templates':
-        specifier: workspace:*
-        version: link:../templates
-      '@zotlit/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@zotlit/zotero-reads':
-        specifier: workspace:*
-        version: link:../zotero-reads
-      '@zotlit/zotero-types':
-        specifier: workspace:*
-        version: link:../zotero-types
-      arkregex:
-        specifier: 'catalog:'
-        version: 0.0.5
-      diff:
-        specifier: 'catalog:'
-        version: 8.0.4
-      effect:
-        specifier: 'catalog:'
-        version: 4.1.2
-      jsonc-parser:
-        specifier: ^3.3.1
-        version: 3.3.1
-      valibot:
-        specifier: 'catalog:'
-        version: 1.4.2(typescript@7.0.2)
-      yaml:
-        specifier: 'catalog:'
-        version: 2.9.1
-    devDependencies:
-      '@codemirror/autocomplete':
-        specifier: 6.20.3
-        version: 6.20.3
-      '@codemirror/language':
-        specifier: 6.12.3
-        version: 6.12.3
-      '@codemirror/state':
-        specifier: 6.7.6
-        version: 6.7.6
-      '@codemirror/view':
-        specifier: 6.43.13
-        version: 6.43.13
-      '@effect/atom-react':
-        specifier: 'catalog:'
-        version: 4.1.2(effect@4.1.2)(react@19.2.7)(scheduler@0.27.0)
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.1.2(effect@4.1.2)(vitest@5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))
-      '@lezer/generator':
-        specifier: 1.8.0
-        version: 1.8.0
-      '@testing-library/dom':
-        specifier: 'catalog:'
-        version: 10.4.1
-      '@testing-library/preact':
-        specifier: 'catalog:'
-        version: 3.2.4(preact@11.0.0-rc.2)
-      '@testing-library/react':
-        specifier: 'catalog:'
-        version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.1.2
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.2.17
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.2.3(@types/react@19.2.17)
-      '@zotlit/config':
-        specifier: workspace:*
-        version: link:../config
-      '@zotlit/obsidian-i18n':
-        specifier: workspace:*
-        version: link:../obsidian-i18n
-      ajv:
-        specifier: 'catalog:'
-        version: 8.20.0
-      happy-dom:
-        specifier: 'catalog:'
-        version: 20.9.0
-      oxlint:
-        specifier: 'catalog:'
-        version: 1.93.0(oxlint-tsgolint@7.0.2006)
-      preact:
-        specifier: 'catalog:'
-        version: 11.0.0-rc.2
-      react:
-        specifier: 'catalog:'
-        version: 19.2.7
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.7(react@19.2.7)
-      scheduler:
-        specifier: 'catalog:'
-        version: 0.27.0
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.5(@types/node@26.1.2)(happy-dom@20.9.0)(vite@8.1.5(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/zotero-reads:
     dependencies:

@@ -1,3 +1,10 @@
+import type { DisplayNode, TreeState } from "#core/data-tree/index.ts";
+import type {
+  ExplorerPresentation,
+  TemplateRoot,
+  WorkbenchItemChoice,
+} from "#core/headless-ui/index.tsx";
+import type { AnnotationExample } from "#core/render/index.ts";
 // Per-leaf state for one Template Data Explorer, as atoms in the plugin's view
 // registry: its target and reading state, the pure transitions that change
 // them, and its data load. A new target reads its data again and interrupts a
@@ -15,31 +22,27 @@ import { javascriptTemplatesEnabledAtom } from "@zotlit/notes/obsidian/template/
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { indexedKeyForClipboard } from "@zotlit/plugin-services/obsidian/indexed-key/actions.ts";
+import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
+import { parseIndexedKey } from "@zotlit/zotero-types/keys";
+
 import {
   initialTreeState,
   setAnchor,
   setFilter as filterTree,
   toggleNode as toggleTreeNode,
-} from "@zotlit/workbench/explorer";
-import type { DisplayNode, TreeState } from "@zotlit/workbench/explorer";
+} from "#core/data-tree/index.ts";
+import { getSampleItem } from "#core/editor/selection-data.ts";
+import {
+  annotationSamples,
+  explorerSectionIds,
+} from "#core/headless-ui/index.tsx";
 import {
   citationExampleData,
   DEFAULT_CITATION_EXAMPLE,
   restoreTemplateData,
   SAMPLE_ANNOTATIONS,
   sampleItemCitation,
-} from "@zotlit/workbench/render";
-import type { AnnotationExample } from "@zotlit/workbench/render";
-import type {
-  ExplorerPresentation,
-  TemplateRoot,
-  WorkbenchItemChoice,
-} from "@zotlit/workbench/ui";
-import { annotationSamples, explorerSectionIds } from "@zotlit/workbench/ui";
-import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
-import { parseIndexedKey } from "@zotlit/zotero-types/keys";
-
-import { getSampleItem } from "#core/editor/selection-data.ts";
+} from "#core/render/index.ts";
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];
 

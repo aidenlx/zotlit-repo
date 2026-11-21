@@ -10,7 +10,7 @@ import type {
 import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary } from "@zotlit/item-query";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
-import type { PlacedFault } from "@zotlit/workbench/language";
+import type { PlacedFault } from "@zotlit/template-workbench/core/language/index.ts";
 
 import type { ShownRecord } from "./record-rows.tsx";
 import type { LayoutGroup } from "./rows.ts";

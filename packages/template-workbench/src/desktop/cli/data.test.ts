@@ -1,3 +1,4 @@
+import type { CitationExampleId } from "#core/render/index.ts";
 import { it } from "@effect/vitest";
 import Ajv2020 from "ajv/dist/2020";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
@@ -41,8 +42,6 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateEngine } from "@zotlit/templates";
-import { CITATION_EXAMPLE_IDS } from "@zotlit/workbench/render";
-import type { CitationExampleId } from "@zotlit/workbench/render";
 import {
   inProcessReadsService,
   sharedClientOpener,
@@ -56,6 +55,7 @@ import {
 import { registerTemplateWorkbench } from "./register.ts";
 
 import { workbenchContext, workbenchIdentity } from "#__fixtures__/cli.ts";
+import { CITATION_EXAMPLE_IDS } from "#core/render/index.ts";
 
 function registeredData(deps: FixtureDeps) {
   const { host, command } = fakeCliHost();

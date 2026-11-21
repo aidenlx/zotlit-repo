@@ -9,11 +9,12 @@ import { afterEach, expect, it, vi } from "vitest";
 import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { emptyRender } from "@zotlit/workbench/render";
-import { WorkbenchMessagesProvider } from "@zotlit/workbench/ui";
 
 import { NativeMarkdown } from "./markdown.tsx";
 import type { NativeRenderResult } from "./render.ts";
+
+import { WorkbenchMessagesProvider } from "#core/headless-ui/index.tsx";
+import { emptyRender } from "#core/render/index.ts";
 
 const renderer = vi.hoisted(() => ({ render: vi.fn() }));
 const app = stubService<App>("App", {

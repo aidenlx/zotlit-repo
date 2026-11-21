@@ -1,5 +1,5 @@
 import { Layer } from "effect";
-import type { PartialPreviewSelection, RenderRequest } from "@zotlit/workbench/render";
+import type { PartialPreviewSelection, RenderRequest } from "#core/render/index.ts";
 import { runOnView } from "@zotlit/obsidian-kit/__fixtures__/view-runner.ts";
 import { makeNativeRenderer } from "#desktop/view/preview/render.ts";
 import type { NativeRenderDeps, NativeRenderResult } from "#desktop/view/preview/render.ts";
@@ -16,7 +16,7 @@ import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { DEFAULT_PROFILE_SOURCE } from "@zotlit/workbench/render";
+import { DEFAULT_PROFILE_SOURCE } from "#core/render/index.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { SubscriptionRuntime } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type { TemplateDataDeps } from "@zotlit/notes/desktop/template/data.ts";

@@ -24,7 +24,7 @@ import type { VaultHost, VaultValue } from "#desktop/query-view/table-notes.ts";
 // @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
 import type { QueryContext } from "@zotlit/item-query";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
-import type { Span } from "@zotlit/workbench/language";
+import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import { planVaultFilter } from "./vault-filter.ts";

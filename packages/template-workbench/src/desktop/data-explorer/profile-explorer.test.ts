@@ -3,6 +3,11 @@ import type {
   ExplorerReads,
   ExplorerSessionHandle,
 } from "#__fixtures__/data-explorer.ts";
+import type {
+  TemplateRoot,
+  WorkbenchHost,
+  WorkbenchItemChoice,
+} from "#core/headless-ui/index.tsx";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 // @vitest-environment happy-dom
 import { Effect } from "effect";
@@ -20,13 +25,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-import { SAMPLE_ANNOTATIONS } from "@zotlit/workbench/render";
-import { WorkbenchHostProvider } from "@zotlit/workbench/ui";
-import type {
-  TemplateRoot,
-  WorkbenchHost,
-  WorkbenchItemChoice,
-} from "@zotlit/workbench/ui";
 
 import { Explorer } from "./Explorer.tsx";
 import {
@@ -39,6 +37,8 @@ import {
 import type { ExplorerModel } from "./model.ts";
 
 import { makeExplorerHost } from "#__fixtures__/data-explorer.ts";
+import { WorkbenchHostProvider } from "#core/headless-ui/index.tsx";
+import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import { workbenchAnnotationChoice } from "#obsidian/editor/item-choice.ts";
 

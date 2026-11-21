@@ -1,20 +1,16 @@
 // Selector vocabulary shared by request.ts and guide.ts: the accepted `template`
 // values, and the phrasing every vocabulary message and value list uses.
 
+import type { CitationExampleId, PartialContext } from "#core/render/index.ts";
+
 import { CITATION_VARIANTS, TEMPLATE_SLOT_ROOTS } from "@zotlit/db";
 import type { CitationVariant, TemplateSlot } from "@zotlit/db";
 import type {
   FrontmatterLanguage,
   FrontmatterMergeStrategy,
 } from "@zotlit/templates/constants";
-import {
-  CITATION_EXAMPLE_IDS,
-  PARTIAL_CONTEXTS,
-} from "@zotlit/workbench/render";
-import type {
-  CitationExampleId,
-  PartialContext,
-} from "@zotlit/workbench/render";
+
+import { CITATION_EXAMPLE_IDS, PARTIAL_CONTEXTS } from "#core/render/index.ts";
 
 /** The accepted `template` values, in the order selector messages list them. */
 export const TEMPLATE_SLOT_NAMES = Object.keys(

@@ -25,7 +25,10 @@ import type {
   FilterLeaf,
   FilterTree,
 } from "@zotlit/filter-expression";
-import type { PlacedFault, Span } from "@zotlit/workbench/language";
+import type {
+  PlacedFault,
+  Span,
+} from "@zotlit/template-workbench/core/language/index.ts";
 
 import { allViewsDataset } from "#core/query-view/query-file.ts";
 

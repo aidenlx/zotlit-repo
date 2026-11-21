@@ -3,6 +3,9 @@
 // chosen Item, read from the leaf's scheduler and host model. It owns no
 // model, scheduler, or runner; its settings live in the editor's pane menu.
 import "./preview-panel.css";
+import type { WorkbenchDocumentKind } from "#core/document/index.ts";
+import type { ResultMode, TemplateRoot } from "#core/headless-ui/index.tsx";
+import type { PartialContext, RenderDiagnostic } from "#core/render/index.ts";
 import { useAtomValue } from "@effect/atom-react";
 import type { ComponentProps } from "react";
 
@@ -10,15 +13,9 @@ import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import * as workbenchM from "@zotlit/plugin-messages/workbench-messages.ts";
-import type { WorkbenchDocumentKind } from "@zotlit/workbench/document";
-import {
-  DEFAULT_PARTIAL_CONTEXT,
-  isPartialContext,
-} from "@zotlit/workbench/render";
-import type {
-  PartialContext,
-  RenderDiagnostic,
-} from "@zotlit/workbench/render";
+
+import type { TemplateWorkbenchView } from "./view.tsx";
+
 import {
   citationVariantLabel,
   partialContextLabel,
@@ -26,11 +23,11 @@ import {
   previewFilename,
   ResultBody,
   setPreview,
-} from "@zotlit/workbench/ui";
-import type { ResultMode, TemplateRoot } from "@zotlit/workbench/ui";
-
-import type { TemplateWorkbenchView } from "./view.tsx";
-
+} from "#core/headless-ui/index.tsx";
+import {
+  DEFAULT_PARTIAL_CONTEXT,
+  isPartialContext,
+} from "#core/render/index.ts";
 import { NativeMarkdown } from "#desktop/view/preview/markdown.tsx";
 import {
   paneCover,

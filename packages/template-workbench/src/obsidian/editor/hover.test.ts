@@ -1,3 +1,4 @@
+import type { SuggestionConfig } from "#core/language/index.ts";
 // @vitest-environment happy-dom
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
@@ -7,14 +8,14 @@ import { act } from "preact/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
+import { templateHover } from "./hover.tsx";
+
 import {
   eta,
   liquidTemplate,
   templateHighlighting,
-} from "@zotlit/workbench/language";
-import type { SuggestionConfig } from "@zotlit/workbench/language";
-
-import { templateHover } from "./hover.tsx";
+} from "#core/language/index.ts";
 
 const config: SuggestionConfig = {
   root: "note",

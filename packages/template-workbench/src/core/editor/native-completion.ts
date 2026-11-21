@@ -1,7 +1,8 @@
+import type { CompletionPresentation } from "#core/language/index.ts";
+
 // The typing popup of every editor the plugin hosts, Template Completion and
 // Expression Completion alike, in Obsidian's own suggestion skin.
-import { appendProse } from "@zotlit/workbench/language";
-import type { CompletionPresentation } from "@zotlit/workbench/language";
+import { appendProse } from "#core/language/index.ts";
 
 /** One entry of CodeMirror's list, as the presentation receives it. */
 type Completion = Parameters<

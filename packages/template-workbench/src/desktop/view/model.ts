@@ -1,3 +1,24 @@
+import type {
+  BUILT_IN_BINDING_DEFAULTS,
+  NameFolderPaneProps,
+  TemplateRoot,
+  WorkbenchChoices,
+  WorkbenchInsertTarget,
+  WorkbenchItemChoice,
+  WorkbenchItemData,
+  WorkbenchItemDataInput,
+  WorkbenchModel,
+  FieldsDock,
+  WorkbenchPanel,
+  WorkbenchPanels,
+  WorkbenchPreviewSettings,
+  WorkbenchViewState,
+} from "#core/headless-ui/index.tsx";
+import type {
+  RenderRequest,
+  PartialContext,
+  PartialPreviewSelection,
+} from "#core/render/index.ts";
 // The per-leaf host model of the Template Workbench View: the Workbench view
 // state, the one read of the chosen Item, and the commands one leaf owns, as
 // atoms in the view registry. The reader's choices are the Workbench model's.
@@ -17,38 +38,6 @@ import type {
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
-  CITATION_EXAMPLE_IDS,
-  PARTIAL_CONTEXTS,
-} from "@zotlit/workbench/render";
-import type {
-  RenderRequest,
-  PartialContext,
-  PartialPreviewSelection,
-} from "@zotlit/workbench/render";
-import {
-  savedPanelWidth,
-  clampPreviewHeight,
-  INITIAL_VIEW,
-  TABS,
-  patchAt,
-} from "@zotlit/workbench/ui";
-import type {
-  BUILT_IN_BINDING_DEFAULTS,
-  NameFolderPaneProps,
-  TemplateRoot,
-  WorkbenchChoices,
-  WorkbenchInsertTarget,
-  WorkbenchItemChoice,
-  WorkbenchItemData,
-  WorkbenchItemDataInput,
-  WorkbenchModel,
-  FieldsDock,
-  WorkbenchPanel,
-  WorkbenchPanels,
-  WorkbenchPreviewSettings,
-  WorkbenchViewState,
-} from "@zotlit/workbench/ui";
-import {
   zoteroRevisionAtom,
   zoteroStateAtom,
 } from "@zotlit/zotero-reads/client/atoms.ts";
@@ -56,6 +45,14 @@ import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.
 
 import { readChosenItem } from "./atoms.ts";
 
+import {
+  savedPanelWidth,
+  clampPreviewHeight,
+  INITIAL_VIEW,
+  TABS,
+  patchAt,
+} from "#core/headless-ui/index.tsx";
+import { CITATION_EXAMPLE_IDS, PARTIAL_CONTEXTS } from "#core/render/index.ts";
 import {
   PartialPreviewFailed,
   PreviewItemMissing,

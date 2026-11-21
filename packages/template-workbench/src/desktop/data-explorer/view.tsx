@@ -1,3 +1,8 @@
+import type { DisplayNode } from "#core/data-tree/index.ts";
+import type {
+  TemplateRoot,
+  WorkbenchItemChoice,
+} from "#core/headless-ui/index.tsx";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 // A standalone Explorer owns its Item, its annotation, its data and its
 // navigation; it follows no editor.
@@ -31,19 +36,6 @@ import { indexedKeyForClipboard } from "@zotlit/plugin-services/obsidian/indexed
 import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type { DisplayNode } from "@zotlit/workbench/explorer";
-import {
-  failedRender,
-  renderIdentity,
-  SAMPLE_ANNOTATIONS,
-} from "@zotlit/workbench/render";
-import {
-  visibleSectionIds,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  NO_MATCH_DATA,
-} from "@zotlit/workbench/ui";
-import type { TemplateRoot, WorkbenchItemChoice } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { makeExportTemplateDataCommand } from "./atoms.ts";
@@ -65,6 +57,17 @@ import {
 import type { ExplorerSession, ExplorerState } from "./model.ts";
 
 import { getSampleItem } from "#core/editor/selection-data.ts";
+import {
+  visibleSectionIds,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  NO_MATCH_DATA,
+} from "#core/headless-ui/index.tsx";
+import {
+  failedRender,
+  renderIdentity,
+  SAMPLE_ANNOTATIONS,
+} from "#core/render/index.ts";
 import {
   createExplorerActions,
   ExplorerActionsContext,

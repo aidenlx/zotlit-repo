@@ -1,13 +1,13 @@
 // Which Template Document the view holds, read from the filename — and only
 // inside the template folder, which is where the scan reads one.
 
+import type { WorkbenchDocumentKind } from "#core/document/index.ts";
 import type { TFile } from "obsidian";
 
 import {
   classifyTemplateFolderFile,
   inTemplateFolder,
 } from "@zotlit/notes/core/template/defaults.ts";
-import type { WorkbenchDocumentKind } from "@zotlit/workbench/document";
 
 /**
  * The kind the Template Workbench View opens `file` as. Every kind the

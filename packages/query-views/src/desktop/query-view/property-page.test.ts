@@ -6,7 +6,7 @@ import { formulaCheck } from "./property-page.tsx";
 // not on an edited one are proved on the Formula page in the running app
 // (query-view-properties e2e). Where the field underlines each Fault is the
 // field's own behavior, proved through MatchExpressionInput in
-// @zotlit/workbench.
+// @zotlit/template-workbench.
 describe("what the formula page reports", () => {
   it("reports an empty formula, which the status line explains", () => {
     const check = formulaCheck("", null);

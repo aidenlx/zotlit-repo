@@ -6,12 +6,12 @@ Each plugin bundle has one Effect Logger, `pluginLogger` in `packages/plugin-ker
 
 The ZoteroReads worker logs through Effect, and its records travel to the renderer over a port. The host re-emits them into the renderer's Effect logger, so the plugin's sinks and log level apply to them unchanged, and each record keeps the time the worker logged it (`LogTimestamp`).
 
-An app-agnostic library without Effect in a file can call `logLibrary` from `@zotlit/shared/logging`. The sink is a module global of one JavaScript realm, and the realm's entry installs it: importing the renderer's `effect-log.ts` plugin logger (every Effect entry point does), or the ZoteroReads log port while that worker runs. A realm that runs a `logLibrary` caller (today the `@zotlit/db` readers of Zotero rows) installs a sink before it does; one that imports only `@zotlit/db` helpers that never log (the citation-parse worker, the Zotero plugin, `@zotlit/workbench` pages) needs none.
+An app-agnostic library without Effect in a file can call `logLibrary` from `@zotlit/shared/logging`. The sink is a module global of one JavaScript realm, and the realm's entry installs it: importing the renderer's `effect-log.ts` plugin logger (every Effect entry point does), or the ZoteroReads log port while that worker runs. A realm that runs a `logLibrary` caller (today the `@zotlit/db` readers of Zotero rows) installs a sink before it does; one that imports only `@zotlit/db` helpers that never log (the citation-parse worker, the Zotero plugin) needs none.
 
 Only an app configures sinks: a library logs and leaves the sinks to the app that hosts it (in the Obsidian plugins, `layerLogging`).
 
 Packages designed as a third-party contract instead accept a structured-logger port and default it to a no-op, so a consumer keeps its own logging stack. `@zotlit/obsidian-i18n` is the one such package today: its generated message runtime takes the logger through `setLogger`, and ZotLit passes one that writes through `Effect.log*` under `i18n`; see [ADR 0013](../docs/adr/0013-obsidian-i18n-is-one-package-behind-injected-ports.md).
 
-A shared core whose host does its logging carries no logger of its own, and names every decision a host acts on in the value it returns instead — a Problem, a render diagnostic — so the host logs. `@zotlit/workbench` is the one such package today; see [its README](../packages/workbench/README.md).
+A shared core whose host does its logging carries no logger of its own, and names every decision a host acts on in the value it returns instead — a Problem, a render diagnostic — so the host logs. The Workbench core in `@zotlit/template-workbench` (the units of `src/core/` its README describes) is the one such code today; see [its README](../packages/template-workbench/README.md).
 
 Prefer structured logging (named fields object) over interpolated template strings. Build expensive context only on the branch that logs it, behind `logLevelEnabled`.

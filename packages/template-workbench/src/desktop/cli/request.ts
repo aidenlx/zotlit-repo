@@ -1,6 +1,7 @@
 // Selector parsing: the request each command accepts, and the identity it asserts.
 
 import type { RenderTemplate } from "#core/cli/vocabulary.ts";
+import type { PartialContext } from "#core/render/index.ts";
 import { Schema } from "effect";
 import type { Effect } from "effect";
 import type { CliData } from "obsidian";
@@ -28,7 +29,6 @@ import type {
   CliParamName,
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
-import type { PartialContext } from "@zotlit/workbench/render";
 import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { diagnostic } from "./envelope.ts";

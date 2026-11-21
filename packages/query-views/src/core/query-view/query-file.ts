@@ -12,8 +12,8 @@ import { readFilterTree } from "@zotlit/filter-expression";
 import type { FilterTree } from "@zotlit/filter-expression";
 import { FORMULA_SEGMENT, nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary } from "@zotlit/item-query";
-import { VAULT_SEGMENT } from "@zotlit/workbench/language";
-import type { PlacedFault } from "@zotlit/workbench/language";
+import { VAULT_SEGMENT } from "@zotlit/template-workbench/core/language/index.ts";
+import type { PlacedFault } from "@zotlit/template-workbench/core/language/index.ts";
 
 /** The file extension of a Query File, and the language of a Query Block. */
 export const QUERY_FILE_EXTENSION = "zotquery";

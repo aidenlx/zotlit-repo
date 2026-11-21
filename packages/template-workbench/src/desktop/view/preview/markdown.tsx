@@ -1,3 +1,5 @@
+import type { WorkbenchMarkdownProps } from "#core/headless-ui/index.tsx";
+import type { RenderedProperty, RenderedRange } from "#core/render/index.ts";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
 import { Effect } from "effect";
 // Obsidian owns Markdown rendering; each output owns and unloads its render children.
@@ -18,11 +20,10 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { RenderedProperty, RenderedRange } from "@zotlit/workbench/render";
-import { PropertyList } from "@zotlit/workbench/ui";
-import type { WorkbenchMarkdownProps } from "@zotlit/workbench/ui";
 
 import type { NativeRenderResult } from "./render.ts";
+
+import { PropertyList } from "#core/headless-ui/index.tsx";
 
 export function NativeMarkdown({
   app,

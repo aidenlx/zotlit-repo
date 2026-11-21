@@ -1,3 +1,11 @@
+import type {
+  PartialContext,
+  PartialPreviewSelection,
+  RenderCallerSource,
+  TemplateRenderResult,
+  RenderRequest,
+  RenderDiagnostic,
+} from "#core/render/index.ts";
 // Read-only rendering of a draft Profile against the installed template pipeline.
 import { Cause, DateTime, Effect, Exit } from "effect";
 import { stringifyYaml } from "obsidian";
@@ -51,7 +59,8 @@ import { replaceSuffixMarkers, resolveNoteRelPath } from "@zotlit/templates";
 import type { LiteratureNoteTemplateManifest } from "@zotlit/templates/facade";
 import { parsePlainTemplateDocument } from "@zotlit/templates/facade";
 import type { FrontmatterMergeConflictHandler } from "@zotlit/templates/frontmatter-merge";
-import { restoreTemplateData } from "@zotlit/workbench/render";
+
+import { restoreTemplateData } from "#core/render/index.ts";
 import {
   citationExampleData,
   emptyRender,
@@ -64,16 +73,7 @@ import {
   retainOutputs,
   sampleItemCitation,
   SAMPLE_ANNOTATIONS,
-} from "@zotlit/workbench/render";
-import type {
-  PartialContext,
-  PartialPreviewSelection,
-  RenderCallerSource,
-  TemplateRenderResult,
-  RenderRequest,
-  RenderDiagnostic,
-} from "@zotlit/workbench/render";
-
+} from "#core/render/index.ts";
 import { previewBaseline } from "#obsidian/cli/preview-baseline.ts";
 export { previewBaseline } from "#obsidian/cli/preview-baseline.ts";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
@@ -812,7 +812,7 @@ const renderNativeProfileEffect = Effect.fn("NotePreview.renderNativeProfile")(
  * The diagnostic one render failure reads as, attributed against the draft the
  * render read: what the engine reported, whose call reached it, and the one
  * call a reader repairs it at.
- * @see packages/workbench/src/render/attribution.ts renderFailureDiagnostic
+ * @see packages/template-workbench/src/core/render/call-attribution.ts renderFailureDiagnostic
  */
 function renderFault(
   error: unknown,

@@ -73,7 +73,7 @@
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
+        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/item-query#generate:schema",
         "@zotlit/pdf-reader#generate",
         "@zotlit/docs#generate:messages",
@@ -96,7 +96,7 @@
       "dependsOn": [
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
+        "@zotlit/template-workbench#generate:message-types",
         "@zotlit/pdf-reader#generate"
       ]
     },
@@ -130,8 +130,6 @@
         "packages/plugin-shell/tsconfig*.json",
         "packages/template-workbench/src/**",
         "packages/template-workbench/tsconfig*.json",
-        "packages/workbench/src/**",
-        "packages/workbench/tsconfig*.json",
         "packages/query-views/src/**",
         "packages/query-views/tsconfig*.json",
         "packages/library-view/src/**",

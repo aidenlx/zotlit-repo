@@ -1,3 +1,4 @@
+import type { FieldPopupKeyHost } from "#core/language/index.ts";
 // The keys of a field's own popup — an editor's completion list or Signature
 // Hint — on Obsidian's keymap, the way a native suggester takes them. While a
 // popup stands in a focused field, a Scope of its own sits on top of the
@@ -10,10 +11,9 @@ import { Scope } from "obsidian";
 import type { App } from "obsidian";
 
 import { composing } from "@zotlit/ui";
-import { fieldPopupKeyHost } from "@zotlit/workbench/language";
-import type { FieldPopupKeyHost } from "@zotlit/workbench/language";
 
 import { onEditorWindowMigrated } from "#core/editor/editor-migration.ts";
+import { fieldPopupKeyHost } from "#core/language/index.ts";
 
 /**
  * Pushes the popup's Scope while a popup stands, parented to `app.scope` as

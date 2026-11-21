@@ -1,14 +1,15 @@
+import type { WorkbenchDocumentController } from "#core/document/index.ts";
 // The Match tab of the Template Workbench View: it tests the selected Item
 // independently of preview rendering mode.
 import { useAtomValue } from "@effect/atom-react";
 
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
 import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
-import type { WorkbenchDocumentController } from "@zotlit/workbench/document";
-import { MatchPane, WorkbenchThemeProvider } from "@zotlit/workbench/ui";
 import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";
+
+import { MatchPane, WorkbenchThemeProvider } from "#core/headless-ui/index.tsx";
 
 /**
  * The Workbench theme with the plugin's own Select for the Match editor's

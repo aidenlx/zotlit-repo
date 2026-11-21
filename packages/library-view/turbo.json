@@ -8,14 +8,14 @@
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/template-workbench#generate:message-types"
       ]
     },
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/template-workbench#generate:message-types"
       ]
     },
     "test": {

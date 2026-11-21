@@ -457,7 +457,7 @@ const cli = yargs(hideBin(process.argv))
     async () => {
       const generated = await regenerateFixtureSampleItems(workspaceRoot);
       console.log(
-        `Regenerated ${generated.length} Sample Items in packages/workbench/src/samples.`,
+        `Regenerated ${generated.length} Sample Items in packages/notes/src/core/template-preview/samples.`,
       );
     },
   )

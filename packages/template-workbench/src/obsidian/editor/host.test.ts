@@ -16,17 +16,18 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { WorkbenchDocumentController } from "@zotlit/workbench/document";
-import { liquidTemplate } from "@zotlit/workbench/language";
+
+import { createTemplateWorkbenchHost } from "./host.tsx";
+import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
+
+import { WorkbenchDocumentController } from "#core/document/index.ts";
 import {
   AnnotationSectionBar,
   NO_MATCH_DATA,
   WorkbenchClipboardError,
   WorkbenchHostError,
-} from "@zotlit/workbench/ui";
-
-import { createTemplateWorkbenchHost } from "./host.tsx";
-import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
+} from "#core/headless-ui/index.tsx";
+import { liquidTemplate } from "#core/language/index.ts";
 
 const SECTIONLESS_PROFILE = `---
 id: paper

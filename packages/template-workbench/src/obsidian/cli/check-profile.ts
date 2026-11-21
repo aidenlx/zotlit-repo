@@ -1,3 +1,7 @@
+import type {
+  RenderCallerSource,
+  RenderDiagnostic,
+} from "#core/render/index.ts";
 // Complete, write-free Profile checking through the native preview's composition boundary.
 import { stringifyYaml } from "obsidian";
 
@@ -10,16 +14,10 @@ import { replaceSuffixMarkers } from "@zotlit/templates";
 import { stringifyFrontmatterInOrder } from "@zotlit/templates/frontmatter";
 import { FRONTMATTER_ABSENT } from "@zotlit/templates/frontmatter-merge";
 import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-merge";
-import {
-  engineEvidence,
-  renderFailureDiagnostic,
-} from "@zotlit/workbench/render";
-import type {
-  RenderCallerSource,
-  RenderDiagnostic,
-} from "@zotlit/workbench/render";
 
 import { previewBaseline } from "./preview-baseline.ts";
+
+import { engineEvidence, renderFailureDiagnostic } from "#core/render/index.ts";
 
 export const PROFILE_OUTPUTS = [
   "filename",

@@ -30,8 +30,10 @@
     "packages/obsidian-kit/src/components/obsidian/dropdown.tsx: DropdownGroup",
     "packages/obsidian-kit/src/disposables.ts: registerInterval",
     "packages/obsidian-kit/src/toast.ts: toast.rethrowWithNotice",
-    "packages/workbench/src/language/contract.ts: sampleValue",
-    "packages/workbench/src/ui/example-state.tsx: useExampleMessage"
+    "packages/template-workbench/src/core/language/contract.ts: sampleValue",
+    "packages/template-workbench/src/core/headless-ui/example-state.tsx: useExampleMessage",
+    "packages/template-workbench/src/core/headless-ui/explorer-fields.ts: rowMatches",
+    "packages/template-workbench/src/core/headless-ui/panel-menu.ts: pickPanelSize"
   ],
   "types": [
     "packages/plugin-services/src/desktop/attachment-import/service.ts: BlockedSource",

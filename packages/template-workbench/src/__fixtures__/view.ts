@@ -22,12 +22,12 @@ import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service
 import type { SearchOptions } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
-import { chooseItem, setPreview } from "@zotlit/workbench/ui";
+import { chooseItem, setPreview } from "#core/headless-ui/index.tsx";
 import type {
   WorkbenchHost,
   WorkbenchItemChoice,
   WorkbenchPreviewSettings,
-} from "@zotlit/workbench/ui";
+} from "#core/headless-ui/index.tsx";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type {
   ZoteroReadLease,

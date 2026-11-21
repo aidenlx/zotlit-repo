@@ -1,3 +1,8 @@
+import type {
+  WorkbenchFieldDetailsProps,
+  WorkbenchFieldsAction,
+  WorkbenchFieldsPopoverProps,
+} from "#core/headless-ui/index.tsx";
 // The Fields popover in Obsidian: a `PinnedPopover` inset at the right edge of
 // the Workbench view, as tall as the view less Obsidian's gap, which the
 // Fields view action opens and closes (ADR 0044, "Menus and popovers are
@@ -15,11 +20,6 @@ import type {
   PinnedPopoverHandle,
 } from "@zotlit/obsidian-kit/components/pinned-popover.tsx";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type {
-  WorkbenchFieldDetailsProps,
-  WorkbenchFieldsAction,
-  WorkbenchFieldsPopoverProps,
-} from "@zotlit/workbench/ui";
 
 /**
  * Mod+Enter inserts the field selected in the panel's search, ahead of the

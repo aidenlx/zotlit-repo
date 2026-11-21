@@ -20,7 +20,7 @@ import type { VaultValue } from "#desktop/query-view/table-notes.ts";
 import { planItemFilter } from "@zotlit/item-query";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { Span } from "@zotlit/workbench/language";
+import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
 
 /** The Literature Notes a vault filter reads. */
 export interface VaultFilterNotes {

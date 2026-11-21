@@ -1,3 +1,4 @@
+import type { Suggestion, SuggestionSource } from "#core/language/index.ts";
 // What the template token under the pointer means, shown in Obsidian's own
 // popover: the shared resolver names the field, tag, or filter; the popover
 // opens once per pointer visit and follows the pointer between tokens. As in
@@ -13,8 +14,8 @@ import type { Root } from "react-dom/client";
 
 import { SingletonHoverPopover } from "@zotlit/obsidian-kit/singleton-hover-popover.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
-import { hoverHint } from "@zotlit/workbench/completion";
-import type { Suggestion, SuggestionSource } from "@zotlit/workbench/language";
+
+import { hoverHint } from "#core/language/semantics.ts";
 
 /**
  * Obsidian's own hover delay, which every popover of its own opens after. It

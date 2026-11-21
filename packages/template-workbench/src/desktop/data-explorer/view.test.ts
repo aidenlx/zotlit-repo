@@ -2,6 +2,7 @@ import type {
   ExplorerHost,
   ExplorerReads,
 } from "#__fixtures__/data-explorer.ts";
+import type { WorkbenchItemChoice } from "#core/headless-ui/index.tsx";
 import { Deferred, Effect } from "effect";
 import type { App, Workspace, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
@@ -14,7 +15,6 @@ import type { ItemView as MockItemView } from "@zotlit/obsidian-kit/__mocks__/ob
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
 
 import { TemplateDataExplorerView } from "./view.tsx";
 import type { ExplorerViewDeps } from "./view.tsx";

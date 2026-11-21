@@ -4,8 +4,11 @@ import type { VaultHost, VaultValue } from "#desktop/query-view/table-notes.ts";
 import { describe, expect, it } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { formatFilterRow, freshFilterRow } from "@zotlit/workbench/match";
-import type { FilterField } from "@zotlit/workbench/match";
+import {
+  formatFilterRow,
+  freshFilterRow,
+} from "@zotlit/template-workbench/core/filter-fields/index.ts";
+import type { FilterField } from "@zotlit/template-workbench/core/filter-fields/index.ts";
 
 import { ViewPlanner } from "./view-plan.ts";
 import type { ViewPlanSources } from "./view-plan.ts";

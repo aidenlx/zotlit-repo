@@ -7,6 +7,7 @@
 // again — ZotLit rewrites nothing on a rename, and a preview choice is not
 // worth following one.
 
+import type { PartialChoice } from "#core/render/index.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
 
@@ -14,11 +15,11 @@ import {
   logServices,
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
+
 import {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
-} from "@zotlit/workbench/render";
-import type { PartialChoice } from "@zotlit/workbench/render";
+} from "#core/render/index.ts";
 
 /** Device-local, so a vault synced between machines carries no preview choice. */
 const STORAGE_KEY = "zotlit-partial-choice";

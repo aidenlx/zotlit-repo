@@ -1,3 +1,29 @@
+import type {
+  WorkbenchDocumentKind,
+  WorkbenchProblem,
+  WorkbenchSliceRange,
+} from "#core/document/index.ts";
+import type {
+  FieldInsertionContext,
+  FieldInsertOptions,
+  WorkbenchHostError,
+  WorkbenchEditorInstance,
+  WorkbenchFieldsAction,
+  WorkbenchHost,
+  WorkbenchInsertTarget,
+  WorkbenchItemChoice,
+  WorkbenchModel,
+  WorkbenchViewState,
+  TemplateRoot,
+  WorkbenchPanels,
+  PartialPlaceholderHost,
+  ViewSize,
+} from "#core/headless-ui/index.tsx";
+import type {
+  PartialChoice,
+  PartialContext,
+  WorkbenchReportContext,
+} from "#core/render/index.ts";
 import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
 import type {
   NativeRenderDeps,
@@ -85,91 +111,6 @@ import type { ItemLookupHandle } from "@zotlit/plugin-services/obsidian/item-loo
 import type { ItemSearchDeps } from "@zotlit/plugin-services/obsidian/item-lookup/search-modal.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
-import {
-  externalEdit,
-  WorkbenchDocumentController,
-  entryPosition,
-} from "@zotlit/workbench/document";
-import type {
-  WorkbenchDocumentKind,
-  WorkbenchProblem,
-  WorkbenchSliceRange,
-} from "@zotlit/workbench/document";
-import {
-  CITATION_EXAMPLE_IDS,
-  DEFAULT_PARTIAL_CONTEXT,
-  failedRender,
-  isPartialContext,
-  renderIdentity,
-} from "@zotlit/workbench/render";
-import type {
-  PartialChoice,
-  PartialContext,
-  WorkbenchReportContext,
-} from "@zotlit/workbench/render";
-import {
-  chooseAnnotation,
-  chooseCitation,
-  chooseItem,
-  choosePartialProfile,
-  citationExampleLabel,
-  entryDiagnostics,
-  fieldsActionAttributes,
-  patchAt,
-  pressFieldsAction,
-  repairCommands,
-  insertionTarget,
-  setAdvanced,
-  setPanelWidth,
-  setPreview,
-  setPreviewHeight,
-  setRoot,
-  setTab,
-  showPreview,
-  HELP_PAGES,
-} from "@zotlit/workbench/ui";
-import {
-  AnnotationPane,
-  diagnosticText,
-  useWorkbenchHost,
-  createWorkbenchEditor,
-  NameFolderPane,
-  NotePane,
-  PropertiesPane,
-  ProblemsFooter,
-  WorkbenchDiagnosticsProvider,
-  useWorkbenchProblems,
-  workbenchDiagnoses,
-  renderDiagnosis,
-  SliceEditor,
-  usePartialBoxes,
-  TabBar,
-  TabPanel,
-  TABS,
-  tabsFor,
-  WorkbenchEditorProvider,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  SidePanels,
-  useParts,
-  AnnotationSampleBar,
-} from "@zotlit/workbench/ui";
-import type {
-  FieldInsertionContext,
-  FieldInsertOptions,
-  WorkbenchHostError,
-  WorkbenchEditorInstance,
-  WorkbenchFieldsAction,
-  WorkbenchHost,
-  WorkbenchInsertTarget,
-  WorkbenchItemChoice,
-  WorkbenchModel,
-  WorkbenchViewState,
-  TemplateRoot,
-  WorkbenchPanels,
-  PartialPlaceholderHost,
-  ViewSize,
-} from "@zotlit/workbench/ui";
 import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import {
@@ -205,7 +146,66 @@ import {
   previewTarget,
 } from "./preview-panel.tsx";
 
+import {
+  externalEdit,
+  WorkbenchDocumentController,
+  entryPosition,
+} from "#core/document/index.ts";
 import { getSampleItem } from "#core/editor/selection-data.ts";
+import {
+  chooseAnnotation,
+  chooseCitation,
+  chooseItem,
+  choosePartialProfile,
+  citationExampleLabel,
+  entryDiagnostics,
+  fieldsActionAttributes,
+  patchAt,
+  pressFieldsAction,
+  repairCommands,
+  insertionTarget,
+  setAdvanced,
+  setPanelWidth,
+  setPreview,
+  setPreviewHeight,
+  setRoot,
+  setTab,
+  showPreview,
+  HELP_PAGES,
+} from "#core/headless-ui/index.tsx";
+import {
+  AnnotationPane,
+  diagnosticText,
+  useWorkbenchHost,
+  createWorkbenchEditor,
+  NameFolderPane,
+  NotePane,
+  PropertiesPane,
+  ProblemsFooter,
+  WorkbenchDiagnosticsProvider,
+  useWorkbenchProblems,
+  workbenchDiagnoses,
+  renderDiagnosis,
+  SliceEditor,
+  usePartialBoxes,
+  TabBar,
+  TabPanel,
+  TABS,
+  tabsFor,
+  WorkbenchEditorProvider,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  SidePanels,
+  useParts,
+  AnnotationSampleBar,
+} from "#core/headless-ui/index.tsx";
+import {
+  CITATION_EXAMPLE_IDS,
+  DEFAULT_PARTIAL_CONTEXT,
+  failedRender,
+  isPartialContext,
+  renderIdentity,
+} from "#core/render/index.ts";
 import { makeExportTemplateDataCommand } from "#desktop/data-explorer/atoms.ts";
 import { exportTarget } from "#desktop/data-explorer/export-file.ts";
 import { templateWorkbenchAction } from "#desktop/editor/actions.ts";

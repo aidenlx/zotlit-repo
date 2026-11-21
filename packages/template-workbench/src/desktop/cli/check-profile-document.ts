@@ -1,3 +1,4 @@
+import type { RenderCallerSource } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
 // The check's Profile document branch: a saved Profile or a Profile draft,
 // checked against real item data and the baseline the entry module selected. The
@@ -30,7 +31,6 @@ import {
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
-import type { RenderCallerSource } from "@zotlit/workbench/render";
 
 import { attempt, CheckSourceThrew, thrown } from "./check-plain-document.ts";
 import type {

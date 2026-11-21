@@ -1,4 +1,8 @@
 import "./theme.css";
+import type {
+  WorkbenchTheme,
+  WorkbenchIcon,
+} from "#core/headless-ui/index.tsx";
 import type { App } from "obsidian";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -7,17 +11,16 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { tv } from "@zotlit/plugin-kernel/tw.ts";
-// Shared authoring controls inherit Obsidian's surfaces and editor typography.
-import {
-  expressionOption,
-  templateHighlighting,
-} from "@zotlit/workbench/language";
-import type { WorkbenchTheme, WorkbenchIcon } from "@zotlit/workbench/ui";
 
 import { codePane, hostedEditor, popoverTooltips } from "./editor-extension.ts";
 import { obsidianPopupKeys } from "./field-popup.ts";
 
 import { nativeCompletion } from "#core/editor/native-completion.ts";
+// Shared authoring controls inherit Obsidian's surfaces and editor typography.
+import {
+  expressionOption,
+  templateHighlighting,
+} from "#core/language/index.ts";
 
 export const templateWorkbenchIcons: Record<WorkbenchIcon, string> = {
   copy: "copy",
