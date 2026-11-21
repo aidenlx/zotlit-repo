@@ -1,10 +1,10 @@
 import type { DisplayNode, TreeState } from "#core/data-tree/index.ts";
+import type { AnnotationExample } from "#core/render/index.ts";
 import type {
   ExplorerPresentation,
   TemplateRoot,
   WorkbenchItemChoice,
-} from "#core/headless-ui/index.tsx";
-import type { AnnotationExample } from "#core/render/index.ts";
+} from "#obsidian/headless-ui/index.tsx";
 // Per-leaf state for one Template Data Explorer, as atoms in the plugin's view
 // registry: its target and reading state, the pure transitions that change
 // them, and its data load. A new target reads its data again and interrupts a
@@ -33,16 +33,16 @@ import {
 } from "#core/data-tree/index.ts";
 import { getSampleItem } from "#core/editor/selection-data.ts";
 import {
-  annotationSamples,
-  explorerSectionIds,
-} from "#core/headless-ui/index.tsx";
-import {
   citationExampleData,
   DEFAULT_CITATION_EXAMPLE,
   restoreTemplateData,
   SAMPLE_ANNOTATIONS,
   sampleItemCitation,
 } from "#core/render/index.ts";
+import {
+  annotationSamples,
+  explorerSectionIds,
+} from "#obsidian/headless-ui/index.tsx";
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];
 

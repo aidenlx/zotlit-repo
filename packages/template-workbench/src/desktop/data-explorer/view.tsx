@@ -1,9 +1,9 @@
 import type { DisplayNode } from "#core/data-tree/index.ts";
+import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 import type {
   TemplateRoot,
   WorkbenchItemChoice,
-} from "#core/headless-ui/index.tsx";
-import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+} from "#obsidian/headless-ui/index.tsx";
 // A standalone Explorer owns its Item, its annotation, its data and its
 // navigation; it follows no editor.
 import { Effect } from "effect";
@@ -59,12 +59,6 @@ import type { ExplorerSession, ExplorerState } from "./model.ts";
 
 import { getSampleItem } from "#core/editor/selection-data.ts";
 import {
-  visibleSectionIds,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  NO_MATCH_DATA,
-} from "#core/headless-ui/index.tsx";
-import {
   failedRender,
   renderIdentity,
   SAMPLE_ANNOTATIONS,
@@ -88,6 +82,12 @@ import {
   updateSelectionTitle,
 } from "#obsidian/editor/selection.tsx";
 import { templateWorkbenchTheme } from "#obsidian/editor/theme.tsx";
+import {
+  visibleSectionIds,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  NO_MATCH_DATA,
+} from "#obsidian/headless-ui/index.tsx";
 
 export const EXPLORER_VIEW_TYPE = "zotlit-template-data-explorer";
 export interface ExplorerViewDeps {

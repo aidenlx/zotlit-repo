@@ -30,14 +30,14 @@ import {
 } from "./model.ts";
 
 import { makeWorkbenchHost } from "#__fixtures__/view.ts";
+import { SAMPLE_ITEMS } from "#core/render/index.ts";
 import {
   chooseItem,
   INITIAL_CHOICES,
   INITIAL_VIEW,
   setAdvanced,
   setTab,
-} from "#core/headless-ui/index.tsx";
-import { SAMPLE_ITEMS } from "#core/render/index.ts";
+} from "#obsidian/headless-ui/index.tsx";
 
 const FIRST = "FIRST234";
 const LATER = "LATER234";

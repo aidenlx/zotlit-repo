@@ -2,7 +2,7 @@ import "./theme.css";
 import type {
   WorkbenchTheme,
   WorkbenchIcon,
-} from "#core/headless-ui/index.tsx";
+} from "#obsidian/headless-ui/index.tsx";
 import type { App } from "obsidian";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";

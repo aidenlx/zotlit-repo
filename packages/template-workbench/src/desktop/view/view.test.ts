@@ -63,7 +63,6 @@ import {
 } from "#__fixtures__/view.ts";
 import { createRenderFixture } from "#__fixtures__/view/preview/render.ts";
 import { SAMPLE_ITEM_CHOICES } from "#core/editor/selection-data.ts";
-import { fieldForm } from "#core/headless-ui/index.tsx";
 import {
   captureRenderReport,
   emptyRender,
@@ -71,6 +70,7 @@ import {
   renderIdentity,
   SAMPLE_ITEMS,
 } from "#core/render/index.ts";
+import { fieldForm } from "#obsidian/headless-ui/index.tsx";
 
 /**
  * Every entry of `menu` and of the submenus under it, each before its own

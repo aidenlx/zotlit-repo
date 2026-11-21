@@ -21,8 +21,8 @@ import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
-import { annotationSamples } from "#core/headless-ui/index.tsx";
 import { emptyRender, SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+import { annotationSamples } from "#obsidian/headless-ui/index.tsx";
 
 /** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";

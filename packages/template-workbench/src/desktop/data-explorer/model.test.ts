@@ -19,8 +19,8 @@ import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
-import { annotationSamples } from "#core/headless-ui/index.tsx";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+import { annotationSamples } from "#obsidian/headless-ui/index.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 const readCitation = vi.fn<NonNullable<ExplorerReads["readCitation"]>>();

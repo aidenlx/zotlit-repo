@@ -4,6 +4,17 @@ import type {
   WorkbenchSliceRange,
 } from "#core/document/index.ts";
 import type {
+  PartialChoice,
+  PartialContext,
+  WorkbenchReportContext,
+} from "#core/render/index.ts";
+import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
+import type {
+  NativeRenderDeps,
+  NativeRenderResult,
+} from "#desktop/view/preview/render.ts";
+import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+import type {
   FieldInsertionContext,
   FieldInsertOptions,
   WorkbenchHostError,
@@ -18,18 +29,7 @@ import type {
   WorkbenchPanels,
   PartialPlaceholderHost,
   ViewSize,
-} from "#core/headless-ui/index.tsx";
-import type {
-  PartialChoice,
-  PartialContext,
-  WorkbenchReportContext,
-} from "#core/render/index.ts";
-import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
-import type {
-  NativeRenderDeps,
-  NativeRenderResult,
-} from "#desktop/view/preview/render.ts";
-import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+} from "#obsidian/headless-ui/index.tsx";
 import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
 import { EditorView } from "@codemirror/view";
 // One file-backed authoring session; TextFileView owns vault updates and saves.
@@ -152,53 +152,6 @@ import {
 } from "#core/document/index.ts";
 import { getSampleItem } from "#core/editor/selection-data.ts";
 import {
-  chooseAnnotation,
-  chooseCitation,
-  chooseItem,
-  choosePartialProfile,
-  citationExampleLabel,
-  entryDiagnostics,
-  fieldsActionAttributes,
-  patchAt,
-  pressFieldsAction,
-  repairCommands,
-  insertionTarget,
-  setAdvanced,
-  setPanelWidth,
-  setPreview,
-  setPreviewHeight,
-  setRoot,
-  setTab,
-  showPreview,
-  HELP_PAGES,
-} from "#core/headless-ui/index.tsx";
-import {
-  AnnotationPane,
-  diagnosticText,
-  useWorkbenchHost,
-  createWorkbenchEditor,
-  NameFolderPane,
-  NotePane,
-  PropertiesPane,
-  ProblemsFooter,
-  WorkbenchDiagnosticsProvider,
-  useWorkbenchProblems,
-  workbenchDiagnoses,
-  renderDiagnosis,
-  SliceEditor,
-  usePartialBoxes,
-  TabBar,
-  TabPanel,
-  TABS,
-  tabsFor,
-  WorkbenchEditorProvider,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  SidePanels,
-  useParts,
-  AnnotationSampleBar,
-} from "#core/headless-ui/index.tsx";
-import {
   CITATION_EXAMPLE_IDS,
   DEFAULT_PARTIAL_CONTEXT,
   failedRender,
@@ -231,6 +184,53 @@ import {
   templateWorkbenchTheme,
   selectionHint,
 } from "#obsidian/editor/theme.tsx";
+import {
+  chooseAnnotation,
+  chooseCitation,
+  chooseItem,
+  choosePartialProfile,
+  citationExampleLabel,
+  entryDiagnostics,
+  fieldsActionAttributes,
+  patchAt,
+  pressFieldsAction,
+  repairCommands,
+  insertionTarget,
+  setAdvanced,
+  setPanelWidth,
+  setPreview,
+  setPreviewHeight,
+  setRoot,
+  setTab,
+  showPreview,
+  HELP_PAGES,
+} from "#obsidian/headless-ui/index.tsx";
+import {
+  AnnotationPane,
+  diagnosticText,
+  useWorkbenchHost,
+  createWorkbenchEditor,
+  NameFolderPane,
+  NotePane,
+  PropertiesPane,
+  ProblemsFooter,
+  WorkbenchDiagnosticsProvider,
+  useWorkbenchProblems,
+  workbenchDiagnoses,
+  renderDiagnosis,
+  SliceEditor,
+  usePartialBoxes,
+  TabBar,
+  TabPanel,
+  TABS,
+  tabsFor,
+  WorkbenchEditorProvider,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  SidePanels,
+  useParts,
+  AnnotationSampleBar,
+} from "#obsidian/headless-ui/index.tsx";
 import {
   templateDocumentKind,
   templatePartialName,

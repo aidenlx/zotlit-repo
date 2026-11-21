@@ -6,7 +6,7 @@ import type {
   WorkbenchSuggesterOption,
   WorkbenchInputSuggestionsRequest,
   WorkbenchRunner,
-} from "#core/headless-ui/index.tsx";
+} from "#obsidian/headless-ui/index.tsx";
 // Native overlays and Markdown lifecycle for the shared Template Workbench tree.
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
@@ -55,13 +55,13 @@ import { templateWorkbenchIcons } from "./theme.tsx";
 
 import { nativeCompletion } from "#core/editor/native-completion.ts";
 import {
-  WorkbenchClipboardError,
-  WorkbenchHostError,
-} from "#core/headless-ui/index.tsx";
-import {
   completionSuggestion,
   templateCompletion,
 } from "#core/language/index.ts";
+import {
+  WorkbenchClipboardError,
+  WorkbenchHostError,
+} from "#obsidian/headless-ui/index.tsx";
 
 class EditorDialog extends Modal {
   #root: Root | null = null;

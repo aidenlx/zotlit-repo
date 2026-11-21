@@ -1,6 +1,6 @@
 // Export rebuilds the selected contract root through the native loader so its
 // request remains reproducible and device image handling stays with that loader.
-import type { TemplateRoot } from "#core/headless-ui/index.tsx";
+import type { TemplateRoot } from "#obsidian/headless-ui/index.tsx";
 import { Effect } from "effect";
 
 import type { TemplateDataLoadResult } from "@zotlit/notes/desktop/template/data.ts";

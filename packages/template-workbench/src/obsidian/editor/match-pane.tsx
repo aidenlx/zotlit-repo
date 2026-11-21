@@ -9,7 +9,10 @@ import { zoteroRevisionAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
 import { onKeymap, templateWorkbenchTheme } from "./theme.tsx";
 
-import { MatchPane, WorkbenchThemeProvider } from "#core/headless-ui/index.tsx";
+import {
+  MatchPane,
+  WorkbenchThemeProvider,
+} from "#obsidian/headless-ui/index.tsx";
 
 /**
  * The Workbench theme with the plugin's own Select for the Match editor's

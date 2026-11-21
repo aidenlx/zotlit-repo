@@ -1,8 +1,8 @@
+import type { AnnotationExample } from "#core/render/index.ts";
 import type {
   WorkbenchHost,
   WorkbenchItemChoice,
-} from "#core/headless-ui/index.tsx";
-import type { AnnotationExample } from "#core/render/index.ts";
+} from "#obsidian/headless-ui/index.tsx";
 // The Item and annotation choosers of the Template Workbench, as Effects on
 // the host's suggester: an interrupt closes the chooser, and a dismissal
 // answers `null`.
@@ -28,8 +28,8 @@ import {
   getSampleItemType,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
-import { annotationOption } from "#core/headless-ui/index.tsx";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+import { annotationOption } from "#obsidian/headless-ui/index.tsx";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

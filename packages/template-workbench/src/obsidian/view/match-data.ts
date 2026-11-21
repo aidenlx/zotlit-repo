@@ -2,7 +2,7 @@ import type {
   WorkbenchHost,
   WorkbenchLibrary,
   WorkbenchMatchResult,
-} from "#core/headless-ui/index.tsx";
+} from "#obsidian/headless-ui/index.tsx";
 // Match vocabulary spans every Library in the pinned live database.
 import { Effect } from "effect";
 

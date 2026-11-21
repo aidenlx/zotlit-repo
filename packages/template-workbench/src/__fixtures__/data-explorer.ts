@@ -12,7 +12,7 @@ import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
-import type { TemplateRoot, WorkbenchItemChoice } from "#core/headless-ui/index.tsx";
+import type { TemplateRoot, WorkbenchItemChoice } from "#obsidian/headless-ui/index.tsx";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsEvent } from "@zotlit/zotero-reads/client/service.ts";
 

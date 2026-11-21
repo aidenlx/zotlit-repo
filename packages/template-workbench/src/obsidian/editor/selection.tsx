@@ -1,7 +1,7 @@
 // Shared selection UI: Item and annotation lists, search, and labels.
 import "./selection.css";
-import type { WorkbenchItemChoice } from "#core/headless-ui/index.tsx";
 import type { AnnotationExample } from "#core/render/index.ts";
+import type { WorkbenchItemChoice } from "#obsidian/headless-ui/index.tsx";
 import type { ItemView } from "obsidian";
 
 import { isPageNumber } from "@zotlit/db";
@@ -27,8 +27,8 @@ import {
   getSampleItem,
   SAMPLE_ITEM_CHOICES,
 } from "#core/editor/selection-data.ts";
-import { annotationOption } from "#core/headless-ui/index.tsx";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
+import { annotationOption } from "#obsidian/headless-ui/index.tsx";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 

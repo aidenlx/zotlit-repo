@@ -2,7 +2,7 @@
 
 ZotLit Query in Obsidian and the views that show its results: the Item Query adapter over `@zotlit/item-query` (`QueryService`, the Query Job runs, the `zotlit:query` CLI contract and its decode), the Query View with its layouts, cards and Query Files, the sidebar Annotation View that shows the annotation cards in a Query View, the Annotation Suggester, and the PDF view's note button. The desktop plugin composes it. The terms are defined in the Item Query glossary (`packages/item-query/GLOSSARY.md`) and the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`, "Query views" and "Annotation view").
 
-`@zotlit/item-query` is the query engine and imports nothing of Obsidian; this package is its Obsidian host. It reads the Workbench core of `@zotlit/template-workbench` (`core/filter-fields/`, `core/language/`, `core/headless-ui/`) for its Filter and Formula editors.
+`@zotlit/item-query` is the query engine and imports nothing of Obsidian; this package is its Obsidian host. It reads the Workbench core of `@zotlit/template-workbench` (`core/filter-fields/`, `core/language/`, `obsidian/headless-ui/`) for its Filter and Formula editors.
 
 The package fills ports of the features it shows:
 

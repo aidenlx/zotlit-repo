@@ -73,7 +73,7 @@ export default defineConfig({
         },
         test: {
           name: "ui",
-          include: ["src/core/headless-ui/**/*.test.tsx"],
+          include: ["src/obsidian/headless-ui/**/*.test.tsx"],
           environment: "happy-dom",
         },
       },

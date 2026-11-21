@@ -4,8 +4,8 @@
 // model, scheduler, or runner; its settings live in the editor's pane menu.
 import "./preview-panel.css";
 import type { WorkbenchDocumentKind } from "#core/document/index.ts";
-import type { ResultMode, TemplateRoot } from "#core/headless-ui/index.tsx";
 import type { PartialContext, RenderDiagnostic } from "#core/render/index.ts";
+import type { ResultMode, TemplateRoot } from "#obsidian/headless-ui/index.tsx";
 import { useAtomValue } from "@effect/atom-react";
 import type { ComponentProps } from "react";
 
@@ -16,14 +16,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateWorkbenchView } from "./view.tsx";
 
 import {
-  citationVariantLabel,
-  partialContextLabel,
-  PreviewFilenameLabel,
-  previewFilename,
-  ResultBody,
-  setPreview,
-} from "#core/headless-ui/index.tsx";
-import {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
 } from "#core/render/index.ts";
@@ -33,6 +25,14 @@ import {
   selectionHint,
   templateWorkbenchButton,
 } from "#obsidian/editor/theme.tsx";
+import {
+  citationVariantLabel,
+  partialContextLabel,
+  PreviewFilenameLabel,
+  previewFilename,
+  ResultBody,
+  setPreview,
+} from "#obsidian/headless-ui/index.tsx";
 
 /**
  * What the Preview renders for the document kind and root: which result, the

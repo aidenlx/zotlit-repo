@@ -61,6 +61,6 @@
     // The test support of the Workbench core.
     "./src/core/data-tree/test-records.ts",
     "./src/core/render/test-profiles.ts",
-    "./src/core/headless-ui/test-host.tsx"
+    "./src/obsidian/headless-ui/test-host.tsx"
   ]
 }

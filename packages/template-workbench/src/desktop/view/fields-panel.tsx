@@ -1,11 +1,5 @@
 import type { DisplayNode, TreeState } from "#core/data-tree/index.ts";
 import type { WorkbenchDocumentAtoms } from "#core/document/index.ts";
-import type {
-  ExplorerPresentation,
-  TemplateRoot,
-  WorkbenchInsertTarget,
-  WorkbenchModel,
-} from "#core/headless-ui/index.tsx";
 import type { TemplateDataExportTarget } from "#desktop/data-explorer/export-file.ts";
 import type {
   ExplorerLoad,
@@ -14,6 +8,12 @@ import type {
   ExplorerSurface,
 } from "#desktop/data-explorer/model.ts";
 import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+import type {
+  ExplorerPresentation,
+  TemplateRoot,
+  WorkbenchInsertTarget,
+  WorkbenchModel,
+} from "#obsidian/headless-ui/index.tsx";
 // The Fields panel shows the Template Data Explorer's tree over the leaf's own chosen Item, derived from the one read every surface shares.
 import { useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -29,10 +29,6 @@ import type { TemplateWorkbenchModel, WorkbenchItemRead } from "./model.ts";
 import type { TemplateWorkbenchView } from "./view.tsx";
 
 import { initialTreeState, setAnchor } from "#core/data-tree/index.ts";
-import {
-  chooseAnnotation,
-  visibleSectionIds,
-} from "#core/headless-ui/index.tsx";
 import {
   citationExampleData,
   restoreTemplateData,
@@ -51,6 +47,10 @@ import {
   ExplorerActionsContext,
 } from "#obsidian/data-explorer/actions.ts";
 import { copyToClipboard } from "#obsidian/editor/host.tsx";
+import {
+  chooseAnnotation,
+  visibleSectionIds,
+} from "#obsidian/headless-ui/index.tsx";
 
 type FieldsData = Omit<ExplorerLoad, "itemId">;
 

@@ -240,7 +240,7 @@ text helpers call the `workbench_*` messages of
 `runtime.getLocale()` from `@zotlit/plugin-messages/runtime.ts`, as every
 feature package does. Turbo generates the facade before `test`, `typecheck`, and
 `typecheck:test`. The tree stays inside the
-`preact/compat` surface, and its suite under `src/core/headless-ui/` runs in the `ui` Vitest
+`preact/compat` surface, and its suite under `src/obsidian/headless-ui/` runs in the `ui` Vitest
 project with React aliased to `preact/compat` and Testing Library to its Preact
 build, as Obsidian runs it.
 

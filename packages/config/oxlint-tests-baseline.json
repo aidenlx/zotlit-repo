@@ -376,22 +376,22 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
-  "packages/template-workbench/src/core/headless-ui/annotation.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/annotation.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "packages/template-workbench/src/core/headless-ui/properties-tab.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/properties-tab.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "packages/template-workbench/src/core/headless-ui/result-column.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/result-column.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "packages/template-workbench/src/core/headless-ui/source-diagnostics.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/source-diagnostics.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "packages/template-workbench/src/core/headless-ui/ui.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/ui.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
-  "packages/template-workbench/src/core/headless-ui/workbench.test.tsx": [
+  "packages/template-workbench/src/obsidian/headless-ui/workbench.test.tsx": [
     "zotlit-tests/no-markup-assertion"
   ],
   "skills/zotlit-query/evals/run.test.mjs": [

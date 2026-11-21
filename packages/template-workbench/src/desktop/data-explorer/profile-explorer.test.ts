@@ -3,12 +3,12 @@ import type {
   ExplorerReads,
   ExplorerSessionHandle,
 } from "#__fixtures__/data-explorer.ts";
+import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
 import type {
   TemplateRoot,
   WorkbenchHost,
   WorkbenchItemChoice,
-} from "#core/headless-ui/index.tsx";
-import type { ExplorerActions } from "#obsidian/data-explorer/actions.ts";
+} from "#obsidian/headless-ui/index.tsx";
 // @vitest-environment happy-dom
 import { Effect } from "effect";
 import { act } from "preact/test-utils";
@@ -36,10 +36,10 @@ import {
 import type { ExplorerModel } from "./model.ts";
 
 import { makeExplorerHost } from "#__fixtures__/data-explorer.ts";
-import { WorkbenchHostProvider } from "#core/headless-ui/index.tsx";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import { workbenchAnnotationChoice } from "#obsidian/editor/item-choice.ts";
+import { WorkbenchHostProvider } from "#obsidian/headless-ui/index.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 /** What the next Item list's read of the recent Items answers. */

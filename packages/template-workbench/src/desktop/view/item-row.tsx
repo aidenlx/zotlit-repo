@@ -11,8 +11,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { previewTarget } from "./preview-panel.tsx";
 import type { TemplateWorkbenchView } from "./view.tsx";
 
-import { citationExampleLabel, ItemRow } from "#core/headless-ui/index.tsx";
 import { selectionName } from "#obsidian/editor/selection.tsx";
+import { citationExampleLabel, ItemRow } from "#obsidian/headless-ui/index.tsx";
 
 /** The chooser keeps its width beside the name, which gives way first. */
 const trigger = cn(selectionControl({ kind: "trigger" }), "zt:shrink-0");

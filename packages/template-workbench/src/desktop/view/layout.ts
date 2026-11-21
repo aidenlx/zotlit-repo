@@ -14,7 +14,7 @@ import {
 } from "./view.tsx";
 
 import { inLayoutTurn } from "#core/editor/layout-turn.ts";
-import { showPreview } from "#core/headless-ui/index.tsx";
+import { showPreview } from "#obsidian/headless-ui/index.tsx";
 
 type ProfileSource = { file: string | null; defaultProfile: boolean };
 

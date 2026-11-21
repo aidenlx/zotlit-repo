@@ -5,6 +5,7 @@
 
 import type { WorkbenchDocumentAtoms } from "#core/document/atoms.ts";
 import type { WorkbenchDocumentController } from "#core/document/controller.ts";
+import type { WorkbenchItemChoice } from "#core/editor/selection-data.ts";
 import type { RenderRequest } from "#core/render/request.ts";
 import type { TemplateRenderResult } from "#core/render/result.ts";
 import { Cause, Effect } from "effect";
@@ -67,6 +68,8 @@ import type { WorkbenchTab } from "./tabs.ts";
 
 import { workbenchDocumentAtoms } from "#core/document/atoms.ts";
 
+export type { WorkbenchItemChoice };
+
 /** The template root a pane edits, which the Explorer and the preview follow. */
 export type TemplateRoot = "note" | "annotation" | "filename" | "citation";
 
@@ -90,13 +93,6 @@ export type PreviewMode = "create" | "update";
 export interface PreviewSettings {
   readonly mode: PreviewMode;
   readonly live: boolean;
-}
-
-/** The Item the editor is shown against, as the host names it. */
-export interface WorkbenchItemChoice {
-  /** A Sample Item's id, or the host's Item key. */
-  readonly id: string;
-  readonly title: string | null;
 }
 
 export interface EditorPresentation {

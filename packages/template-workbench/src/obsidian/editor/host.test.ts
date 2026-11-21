@@ -21,13 +21,13 @@ import { createTemplateWorkbenchHost } from "./host.tsx";
 import type { NativeWorkbenchSuggesterRequest } from "./host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/index.ts";
+import { liquidTemplate } from "#core/language/index.ts";
 import {
   AnnotationSectionBar,
   NO_MATCH_DATA,
   WorkbenchClipboardError,
   WorkbenchHostError,
-} from "#core/headless-ui/index.tsx";
-import { liquidTemplate } from "#core/language/index.ts";
+} from "#obsidian/headless-ui/index.tsx";
 
 const SECTIONLESS_PROFILE = `---
 id: paper

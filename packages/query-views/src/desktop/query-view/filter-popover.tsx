@@ -26,19 +26,6 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import type { ViewRun } from "@zotlit/obsidian-kit/view-runner.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import {
-  MatchEditor,
-  WorkbenchHostProvider,
-  WorkbenchThemeProvider,
-  filterVocabulary,
-  isDatasetFieldKind,
-  NO_MATCH_DATA,
-} from "@zotlit/template-workbench/core/headless-ui/index.tsx";
-import type {
-  FilterField,
-  FilterValues,
-  MatchFilter,
-} from "@zotlit/template-workbench/core/headless-ui/index.tsx";
 import type { ExpressionVocabulary } from "@zotlit/template-workbench/core/language/index.ts";
 import {
   createTemplateWorkbenchHost,
@@ -49,6 +36,19 @@ import {
   matchRows,
   onKeymap,
 } from "@zotlit/template-workbench/obsidian/editor/theme.tsx";
+import {
+  MatchEditor,
+  WorkbenchHostProvider,
+  WorkbenchThemeProvider,
+  filterVocabulary,
+  isDatasetFieldKind,
+  NO_MATCH_DATA,
+} from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
+import type {
+  FilterField,
+  FilterValues,
+  MatchFilter,
+} from "@zotlit/template-workbench/obsidian/headless-ui/index.tsx";
 import type { MatchTree } from "@zotlit/templates/facade";
 
 import { filterValuesAtom } from "./atoms.ts";
