@@ -11,7 +11,6 @@ import type {
 
 import { PandocEngine } from "./service.ts";
 
-/** Where the source code of Pandoc is. */
 const PANDOC_SOURCE = "https://github.com/jgm/pandoc";
 
 /** The engine row, in the Pandoc engine's own words. */

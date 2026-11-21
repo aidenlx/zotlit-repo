@@ -21,6 +21,12 @@ export interface PackOptions {
   /** The licence text and source link of each binary, shown in a comment. */
   readonly notice?: string;
   readonly entries: readonly PackSource[];
+  /**
+   * Compresses one binary to gzip. A host with a stronger compressor gives
+   * its own; the reader takes any gzip stream.
+   * @default `CompressionStream` at its own level
+   */
+  readonly gzip?: (bytes: Uint8Array<ArrayBuffer>) => Promise<Uint8Array>;
 }
 
 /**
@@ -52,7 +58,7 @@ function base64(bytes: Uint8Array): string {
   return parts.join("");
 }
 
-async function gzip(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array> {
+async function streamGzip(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array> {
   const packed = new Blob([bytes])
     .stream()
     .pipeThrough(new CompressionStream("gzip"));
@@ -76,7 +82,7 @@ function noticeComment(notice: string): string {
 export async function writePack(
   options: PackOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {
-  const { compat = PACK_COMPAT, notice, entries } = options;
+  const { compat = PACK_COMPAT, notice, entries, gzip = streamGzip } = options;
   const before = encoder.encode(
     PLUGIN + (notice === undefined ? "" : noticeComment(notice)) + ENTRIES_OPEN,
   );

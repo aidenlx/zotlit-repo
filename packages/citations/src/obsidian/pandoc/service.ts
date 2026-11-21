@@ -18,9 +18,21 @@ import type { CitationEngine } from "./engine.ts";
  */
 export type PandocEngineStatus = PackBinaryStatus | null;
 
+/** A status in which the pack gives no engine. */
+export type PandocEngineRefusal = Exclude<PackBinaryStatus, { kind: "ready" }>;
+
+/**
+ * The status when it gives no engine; `null` for a status in which a render
+ * or an export asks for the engine: unread, or ready.
+ */
+export const engineRefusal = (
+  status: PandocEngineStatus,
+): PandocEngineRefusal | null =>
+  status === null || status.kind === "ready" ? null : status;
+
 /** A render or an export asks for the engine in this status. */
 export const engineUsable = (status: PandocEngineStatus): boolean =>
-  status === null || status.kind === "ready";
+  engineRefusal(status) === null;
 
 /** The Pandoc engine's declaration; its Pack Entry is `pandoc-engine`. */
 export const PANDOC_ENGINE: PackBinary<CitationEngine> = {

@@ -2504,6 +2504,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("points a preview that stands without the Pandoc engine to the Resource Pack", async () => {
+    const m = await import("@zotlit/plugin-messages/messages.ts");
     await using cleanup = new AsyncDisposableStack();
     const popout = await obRun(
       vaultId,
@@ -2617,19 +2618,19 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       vaultId,
       obRunUntil(
         vaultId,
-        async ({ page }) => {
+        async ({ page }, { hint }) => {
           const preview = page.previewPanel(
             page.leavesOfType("zotlit-template-workbench")[0]?.view,
           );
           const text = preview?.textContent ?? "";
-          return text.includes("Install the ZotLit Resource Pack plugin")
+          return text.includes(hint)
             ? {
                 citationStaysNative: /\[@\w+/.test(text),
                 problem: text.includes("Preview needs attention"),
               }
             : null;
         },
-        undefined,
+        { hint: m.profile_preview_citation_engine_absent() },
         {
           what: "the preview to suggest the Resource Pack",
           ready: (value) => value !== null,
@@ -2676,7 +2677,8 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       {
         what: "the Open settings button to reveal the Pandoc engine row, with no pack installed",
         ready: (text) =>
-          text.includes("The ZotLit Resource Pack plugin is not installed."),
+          text ===
+          `${m.settings_resource_pack_status_absent()} ${m.settings_citation_engine_fallback()}`,
       },
     );
     // The row's one action opens the pack's page in the community plugin
@@ -2684,7 +2686,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     expect(
       await obRun(
         vaultId,
-        async ({ app: host, page }) => {
+        async ({ app: host, page }, { licence, rowName }) => {
           const app = host as WalkthroughApp;
           const row = Array.from(
             app.setting.containerEl.querySelectorAll<HTMLElement>(
@@ -2693,7 +2695,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           ).find(
             (candidate) =>
               candidate.querySelector<HTMLElement>(".setting-item-name")
-                ?.textContent === "Pandoc engine",
+                ?.textContent === rowName,
           );
           const buttons = Array.from(row?.querySelectorAll("button") ?? []);
           const native = window.open;
@@ -2710,16 +2712,17 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           return {
             buttons: buttons.map((button) => button.textContent),
             opened,
-            licence: row?.textContent.includes(
-              "redistributes Pandoc under the GNU General Public License, version 2 or later",
-            ),
+            licence: row?.textContent.includes(licence),
             source: row?.querySelector("a")?.getAttribute("href"),
           };
         },
-        undefined,
+        {
+          licence: m.settings_citation_engine_licence(),
+          rowName: m.settings_citation_engine_name(),
+        },
       ),
     ).toEqual({
-      buttons: ["Open in Community plugins"],
+      buttons: [m.settings_resource_pack_open()],
       opened: [`obsidian://show-plugin?id=${RESOURCE_PACK_ID}`],
       licence: true,
       source: "https://github.com/jgm/pandoc",
@@ -2737,17 +2740,16 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     expect(await installPack()).toBe("ready");
     await obRunUntil(
       vaultId,
-      async ({ page }) => {
+      async ({ page }, { hint }) => {
         const text =
           page.previewPanel(
             page.leavesOfType("zotlit-template-workbench")[0]?.view,
           )?.textContent ?? "";
         return (
-          text.includes("Scientific visualization") &&
-          !text.includes("Install the ZotLit Resource Pack plugin")
+          text.includes("Scientific visualization") && !text.includes(hint)
         );
       },
-      undefined,
+      { hint: m.profile_preview_citation_engine_absent() },
       { what: "the installed pack to take the suggestion off the preview" },
     );
   });

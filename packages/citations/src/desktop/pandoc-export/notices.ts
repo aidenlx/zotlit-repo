@@ -8,7 +8,7 @@ import type {
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { PackBinaryStatus } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
-import { RESOURCE_PACK_PAGE } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { openResourcePackPage } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { packStatusSentence } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 
 /**
@@ -27,9 +27,7 @@ export function engineMissingMessage(
       button
         .setButtonText(m.settings_resource_pack_open())
         .setCta()
-        .onClick(() => {
-          window.open(RESOURCE_PACK_PAGE);
-        });
+        .onClick(openResourcePackPage);
     });
   });
 }

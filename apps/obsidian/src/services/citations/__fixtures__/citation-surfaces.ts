@@ -494,8 +494,8 @@ export async function openCitationVault({
     {
       registry,
       app: sidebarApp(harness),
-        openSettings: () => undefined,
-        openStyleSettings: () => undefined,
+      openSettings: () => undefined,
+      openStyleSettings: () => undefined,
     },
   );
   document.body.append(view.contentEl);

@@ -282,19 +282,22 @@ it.effect(
     }),
 );
 
-it.effect("keeps the closed hint closed for every later reader", () =>
-  Effect.gen(function* () {
-    const host = yield* hostEffect();
-    host.follow("draft.md");
-    const session = yield* open(host);
-    expect(session.state().engineHintDismissed).toBe(false);
+it.effect(
+  "keeps the closed hint closed for a pane opened after its pane closed",
+  () =>
+    Effect.gen(function* () {
+      const host = yield* hostEffect();
+      host.follow("draft.md");
+      const first = host.openSession();
+      expect(first.state().engineHintDismissed).toBe(false);
+      host.registry.set(engineHintDismissedAtom, true);
+      // The host's registry drops a node at once when its last reader goes.
+      first[Symbol.dispose]();
 
-    host.registry.set(engineHintDismissedAtom, true);
+      const later = yield* open(host);
 
-    yield* waitFor(() =>
-      expect(session.state().engineHintDismissed).toBe(true),
-    );
-  }),
+      expect(later.state().engineHintDismissed).toBe(true);
+    }),
 );
 
 it.effect("runs service gestures while their commands are held", () =>

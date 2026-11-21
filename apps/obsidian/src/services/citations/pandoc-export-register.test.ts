@@ -383,6 +383,7 @@ function markdownFile(path: string): TFile {
 const runtimes: ManagedRuntime.ManagedRuntime<Notifier, never>[] = [];
 afterEach(async () => {
   await Promise.all(runtimes.splice(0).map((runtime) => runtime.dispose()));
+  vi.restoreAllMocks();
 });
 
 beforeEach(() => {
@@ -662,7 +663,6 @@ describe("the Export note with citations command", () => {
     expect(open.mock.calls).toEqual([
       ["obsidian://show-plugin?id=zotlit-resources"],
     ]);
-    open.mockRestore();
   });
 
   it("answers a pack that gives no engine at the first borrow as a missing engine", async () => {

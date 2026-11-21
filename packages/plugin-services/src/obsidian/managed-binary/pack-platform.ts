@@ -11,7 +11,12 @@ import type { PackRead, ReadRange } from "@zotlit/resource-pack/reader.ts";
 export const RESOURCE_PACK_ID = "zotlit-resources";
 
 /** The page of the Resource Pack in Obsidian's community plugin browser. */
-export const RESOURCE_PACK_PAGE = `obsidian://show-plugin?id=${RESOURCE_PACK_ID}`;
+const RESOURCE_PACK_PAGE = `obsidian://show-plugin?id=${RESOURCE_PACK_ID}`;
+
+/** Opens the Resource Pack's page in Obsidian's community plugin browser. */
+export function openResourcePackPage(): void {
+  window.open(RESOURCE_PACK_PAGE);
+}
 
 /** The installed Resource Pack. */
 export interface PackLocation {

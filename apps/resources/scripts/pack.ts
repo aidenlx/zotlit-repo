@@ -2,6 +2,8 @@
 // package, checked against the pin in this app's package.json (`packEntries`).
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { promisify } from "node:util";
+import { constants, gzip } from "node:zlib";
 
 import type { PackEntryPin, PackPins } from "@zotlit/resource-pack/pins.ts";
 import type { PackSource } from "@zotlit/resource-pack/writer.ts";
@@ -95,6 +97,12 @@ async function pandocEngine(
   };
 }
 
+/**
+ * The smallest gzip zlib writes. The pack is built once and downloaded by
+ * each researcher, so the build takes the time.
+ */
+const gzipSmallest = promisify(gzip);
+
 export interface ResourcePackOptions {
   /** `packEntries` of package.json. */
   readonly pins: PackPins;
@@ -123,5 +131,7 @@ export async function buildResourcePack(
       ...sources.map(({ notice }) => notice),
     ].join("\n\n"),
     entries: sources.map(({ source }) => source),
+    gzip: (bytes) =>
+      gzipSmallest(bytes, { level: constants.Z_BEST_COMPRESSION }),
   });
 }

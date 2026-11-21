@@ -61,7 +61,9 @@ export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
   /**
    * Where the binary stands, with no read of the pack file: `pack-absent`
    * with no pack installed, else the status of the last read. `null` while
-   * the installed pack is unread; a borrow of the engine reads it.
+   * the installed pack is unread; a borrow of the engine reads it. A
+   * `pack-absent` answer is also stated to `changes`, so a watcher learns of
+   * a missing pack with no read.
    */
   readonly current: Effect.Effect<PackBinaryStatus | null>;
   /** The status last stated, then each one that differs; none before the first. */

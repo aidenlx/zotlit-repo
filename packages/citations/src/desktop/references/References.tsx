@@ -12,7 +12,7 @@ import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button
 import { SidebarToolbar } from "@zotlit/obsidian-kit/components/sidebar-toolbar.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { RESOURCE_PACK_PAGE } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
+import { openResourcePackPage } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { packStatusSentence } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 
 import { useReferenceActions } from "./actions.ts";
@@ -608,12 +608,7 @@ function EngineSurface({
         <Banner
           title={m.references_engine_hint_title()}
           action={
-            <Button
-              variant="cta"
-              onClick={() => {
-                window.open(RESOURCE_PACK_PAGE);
-              }}
-            >
+            <Button variant="cta" onClick={openResourcePackPage}>
               {m.settings_resource_pack_open()}
             </Button>
           }

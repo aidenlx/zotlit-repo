@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { PACK_INDEX_BYTES, parseIndex } from "@zotlit/resource-pack/format.ts";
 import { bytesRange, readPackEntry } from "@zotlit/resource-pack/reader.ts";
+import { writePack } from "@zotlit/resource-pack/writer.ts";
 
 import { buildResourcePack } from "./pack.ts";
 
@@ -156,5 +158,43 @@ describe("buildResourcePack", () => {
     ).rejects.toThrow(
       'The installed pandoc-wasm holds Pandoc 3.11, and the pin of "pandoc-engine" is 3.10',
     );
+  });
+
+  it("compresses an entry at least as small as the writer's own gzip does", async () => {
+    // A real WebAssembly binary: a higher level finds more in it.
+    const binary = new Uint8Array(
+      await readFile(
+        join(
+          import.meta.dirname,
+          "../node_modules/jieba-wasm/pkg/web/jieba_rs_wasm_bg.wasm",
+        ),
+      ),
+    );
+    await using installed = await installedPackage();
+    await using pandoc = await installedPandoc();
+    await writeFile(join(pandoc.packageDir, "src", "pandoc.wasm"), binary);
+    const pins = {
+      ...PINS,
+      "pandoc-engine": { version: PANDOC_VERSION, sha256: sha256(binary) },
+    };
+    const lengthOf = (pack: Uint8Array) =>
+      parseIndex(pack.subarray(0, PACK_INDEX_BYTES))!.entries.find(
+        ({ name }) => name === "pandoc-engine",
+      )!.length;
+
+    const built = await buildResourcePack({
+      pins,
+      jiebaWasm: installed.packageDir,
+      pandocWasm: pandoc.packageDir,
+    });
+    const plain = await writePack({
+      entries: [
+        { name: "pandoc-engine", bytes: binary, sha256: sha256(binary) },
+      ],
+    });
+
+    expect(lengthOf(built)).toBeLessThan(lengthOf(plain));
+    const read = await readPackEntry(bytesRange(built), "pandoc-engine");
+    expect(read.ok && read.bytes.length).toBe(binary.length);
   });
 });

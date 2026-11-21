@@ -85,6 +85,7 @@ afterEach(async () => {
   host = undefined;
   document.body.replaceChildren();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 async function render(
@@ -588,6 +589,45 @@ describe("References banners", () => {
       container.querySelector("[data-references-scroll]")!.contains(banner),
     ).toBe(true);
   });
+
+  it("opens the page of the Resource Pack from the hint", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const container = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: { kind: "pack-absent" } },
+    );
+
+    Array.from(container.querySelectorAll("[data-references-banner] button"))
+      .find((button) => button.textContent === m.settings_resource_pack_open())!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(open.mock.calls).toEqual([
+      ["obsidian://show-plugin?id=zotlit-resources"],
+    ]);
+  });
+
+  it("keeps a closed hint closed", async () => {
+    const container = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: { kind: "pack-absent" }, engineHintDismissed: true },
+    );
+
+    expect(container.querySelector("[data-references-banner]")).toBeNull();
+  });
+
+  it("states why a pack gives no engine", async () => {
+    const container = await render(
+      [summaryEntry],
+      { kind: "minimal" },
+      { engine: { kind: "pack-outdated" } },
+    );
+
+    expect(
+      container.querySelector("[data-references-banner]")?.textContent,
+    ).toContain(m.settings_resource_pack_status_pack_outdated());
+  });
 });
 
 describe("References toolbar", () => {
@@ -629,42 +669,6 @@ describe("References toolbar", () => {
     await activateStyleAction(container);
 
     expect(actions.onChangeStyle).toHaveBeenCalledTimes(1);
-  });
-
-  it("opens the page of the Resource Pack from the hint, and keeps a closed hint closed", async () => {
-    const open = vi.spyOn(window, "open").mockReturnValue(null);
-    const container = await render(
-      [summaryEntry],
-      { kind: "minimal" },
-      { engine: { kind: "pack-absent" } },
-    );
-    Array.from(container.querySelectorAll("[data-references-banner] button"))
-      .find((button) => button.textContent === m.settings_resource_pack_open())!
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
-
-    expect(open.mock.calls).toEqual([
-      ["obsidian://show-plugin?id=zotlit-resources"],
-    ]);
-    open.mockRestore();
-    await act(() => root?.unmount());
-    const closed = await render(
-      [summaryEntry],
-      { kind: "minimal" },
-      { engine: { kind: "pack-absent" }, engineHintDismissed: true },
-    );
-    expect(closed.querySelector("[data-references-banner]")).toBeNull();
-  });
-
-  it("states why a pack gives no engine", async () => {
-    const container = await render(
-      [summaryEntry],
-      { kind: "minimal" },
-      { engine: { kind: "pack-outdated" } },
-    );
-
-    expect(
-      container.querySelector("[data-references-banner]")?.textContent,
-    ).toContain(m.settings_resource_pack_status_pack_outdated());
   });
 
   it("keeps the style action live while the installed pack is unread", async () => {

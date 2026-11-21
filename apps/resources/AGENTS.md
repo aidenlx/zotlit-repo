@@ -7,7 +7,7 @@ The container format, its writer and its reader are in `@zotlit/resource-pack` (
 ## Files
 
 - `package.json` — the version and the manifest fields (`obsidian`), and `packEntries`: the pin of each Pack Entry, the version of its upstream package and the SHA-256 of its binary. `pnpm check:bundle` reads the same pins.
-- `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`, `pandoc-wasm` for `pandoc-engine`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack.
+- `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`, `pandoc-wasm` for `pandoc-engine`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack. It gives the writer `node:zlib` gzip at level 9, the smallest that Node writes.
 - `licences/pandoc-COPYING.txt` — the GNU General Public License, version 2: `COPYING.md` of the Pandoc source at the pinned release, byte for byte. `pandoc-wasm` ships Pandoc's licence statement without this text, so the pack takes it from here.
 - `scripts/build.ts` — the build: `main.js` and `manifest.json`. `node scripts/build.ts --help` has its options.
 - `scripts/container.electron.test.ts` — runs the Pack container cases of `@zotlit/resource-pack` in an Electron renderer.

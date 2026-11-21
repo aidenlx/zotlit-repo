@@ -12,7 +12,7 @@ import type { Setting, SettingDefinition } from "obsidian";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PackBinaryApi, PackBinaryStatus } from "./pack-binary.ts";
-import { RESOURCE_PACK_PAGE } from "./pack-platform.ts";
+import { openResourcePackPage } from "./pack-platform.ts";
 
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
 
@@ -95,9 +95,9 @@ function renderStatus(
   desc.append(statusEl);
   setting.setDesc(desc);
   setting.addButton((button) =>
-    button.setButtonText(m.settings_resource_pack_open()).onClick(() => {
-      window.open(RESOURCE_PACK_PAGE);
-    }),
+    button
+      .setButtonText(m.settings_resource_pack_open())
+      .onClick(openResourcePackPage),
   );
   return tab.mount(
     Effect.gen(function* () {

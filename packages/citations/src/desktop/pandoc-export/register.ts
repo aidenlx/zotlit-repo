@@ -2,6 +2,7 @@ import type { CslStyleRequest } from "#core/pandoc/csl-style.ts";
 import type { BibliographyItemRef } from "#desktop/pandoc/bibliography.ts";
 import type { ExportPorts } from "#desktop/pandoc/export.ts";
 import type { CitationEngine } from "#obsidian/pandoc/engine.ts";
+import type { PandocEngineRefusal } from "#obsidian/pandoc/service.ts";
 import { Cause, Effect, FileSystem, Schema } from "effect";
 import type { Context } from "effect";
 // Registers the built-in export command and drives one export end to end:
@@ -20,7 +21,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type { PackBinaryStatus } from "@zotlit/plugin-services/obsidian/managed-binary/pack-binary.ts";
 import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -48,7 +48,7 @@ import {
   vaultPresentation,
 } from "#obsidian/pandoc/document-presentation.ts";
 import { ProfileStyles } from "#obsidian/pandoc/profile-styles.ts";
-import { PandocEngine } from "#obsidian/pandoc/service.ts";
+import { engineRefusal, PandocEngine } from "#obsidian/pandoc/service.ts";
 
 /**
  * The services an export reads. `ZoteroHttp` is the loopback client the
@@ -156,10 +156,7 @@ export function runPandocExport(
 
 /** How one export ended. */
 export type PandocExportOutcome =
-  | {
-      kind: "engine-missing";
-      status: Exclude<PackBinaryStatus, { kind: "ready" }>;
-    }
+  | { kind: "engine-missing"; status: PandocEngineRefusal }
   | { kind: "failed"; problem: ExportProblem }
   /** The user dismissed the dialog, or the plugin unloaded during the run. */
   | { kind: "stopped" }
@@ -190,10 +187,10 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   const citationLookup = yield* CitationLookup;
   const db = yield* ZoteroReads;
   const pref = yield* zoteroPref.current;
-  const engineStatus = yield* pandocEngine.current;
-  if (engineStatus !== null && engineStatus.kind !== "ready")
+  const refusal = engineRefusal(yield* pandocEngine.current);
+  if (refusal)
     return {
-      run: Effect.succeed({ kind: "engine-missing", status: engineStatus }),
+      run: Effect.succeed({ kind: "engine-missing", status: refusal }),
     };
   // A note whose own presentation property names nothing stops here: a vault
   // selection never stands in for it, in the dialog or in the exported run.
@@ -289,16 +286,8 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
         // An unread pack states its refusal at this first borrow.
         const borrowed = yield* Effect.result(pandocEngine.getEngine);
         if (borrowed._tag === "Failure") {
-          const status = yield* pandocEngine.current;
-          return {
-            missing:
-              status !== null && status.kind !== "ready"
-                ? status
-                : ({
-                    kind: "failed",
-                    detail: borrowed.failure.message,
-                  } as const),
-          };
+          const missing = engineRefusal(yield* pandocEngine.current);
+          return missing ? { missing } : yield* borrowed.failure;
         }
         const engine = borrowed.success;
         if (!engine) return yield* Effect.interrupt;
