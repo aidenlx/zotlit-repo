@@ -78,8 +78,25 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
   if (main?.type !== "chunk" || others.length > 0) {
     throw new Error("The build must produce one file, main.js.");
   }
-  await writeFile(join(outDir, "main.js"), main.code);
+  await writeFile(join(outDir, "main.js"), asciiOnly(main.code));
   await copyFile(styles, join(outDir, "styles.css"));
+}
+
+/**
+ * `code` with each character outside ASCII written as a `\uXXXX` escape.
+ * V8 keeps a script that is all ASCII as a one-byte string, half the size of
+ * the two-byte string one other character forces on the whole file, so
+ * Obsidian reads and compiles `main.js` faster at every start. The minified
+ * code holds such characters in string, template and regular expression
+ * literals, where the escape means the same character.
+ *
+ * @param {string} code
+ */
+function asciiOnly(code) {
+  return code.replaceAll(
+    /[\u0080-\uffff]/g,
+    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
