@@ -139,7 +139,7 @@ A plain `git worktree add` runs none of these hooks: the worktree has no depende
 
 A change reaches `main`, the one long-lived branch, only through `pnpm land`. Run `/land` for the full procedure.
 
-- **Run:** commit every change, then run `pnpm land` from the task worktree, on its branch. The gate takes minutes, so run it in the background and wait for it to exit.
+- **Run:** commit every change, write the record file that `/land` describes, then run `pnpm land` from the task worktree, on its branch. The gate takes minutes, so run it in the background and wait for it to exit.
 - **Queue:** lands on this machine run one at a time, in the order they started. A land waits up to 1 h for its turn and exits 75 when the turn does not come: blocked, not a failure. `pnpm land status` shows the holder and the waiters.
 - **Failure:** a non-zero exit names the failed step and prints the path of the full log. The worktree stays on its branch with a clean tree. After a rebase conflict the branch is as it was: rebase onto `origin/main`, resolve, and land again. After a failed gate the branch is rebased onto `origin/main`: fix it there, commit, and land again.
 - **Pushes:** the pre-push hook lets only `pnpm land` push `main`, and in an agent session it refuses every other push. A person can push a task branch to share it; that push runs no gate.

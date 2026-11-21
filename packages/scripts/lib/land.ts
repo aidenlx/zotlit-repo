@@ -308,8 +308,9 @@ export async function land(options: LandOptions): Promise<LandResult> {
 
   try {
     const pre = await preflight(sh, remote);
-    source = pre.branch;
+    // A refused record, like the other preflight checks, writes no wait line.
     const record = options.github ? await readRecord(sh) : undefined;
+    source = pre.branch;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
     for (const signal of SIGNALS) process.on(signal, onSignal);
     current = "queue";

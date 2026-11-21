@@ -437,11 +437,41 @@ describe("the record PR", () => {
   );
 
   it(
-    "keeps the branch and says so when GitHub does not show the PR as merged",
+    "fails at the record step, with main unchanged, when GitHub refuses the PR",
     async () => {
       const cwd = await taskClone("a");
       await writeRecord(cwd);
+      const { github } = fakeGitHub();
+      github.createPullRequest = async () => {
+        throw new Error("HTTP 401: Bad credentials");
+      };
+
+      const result = await land({ ...quiet, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({ ok: false, step: "record" });
+      expect(result.ok || result.message).toContain("Bad credentials");
+      expect(await subjects("main")).toEqual(["seed"]);
+      expect(await git(repos.remote, "rev-parse", "feat/a")).toBe(
+        await git(cwd, "rev-parse", "HEAD"),
+      );
+    },
+    SLOW,
+  );
+
+  it.each([
+    { name: "does not show the PR as merged", reads: "OPEN" },
+    { name: "cannot be read", reads: "an error" },
+  ])(
+    "keeps the branch and says so when GitHub $name after main moved",
+    async ({ reads }) => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
       const { github } = fakeGitHub({ merges: false });
+      if (reads === "an error") {
+        github.pullRequestState = async () => {
+          throw new Error("HTTP 502");
+        };
+      }
       const lines: string[] = [];
 
       const result = await land({
