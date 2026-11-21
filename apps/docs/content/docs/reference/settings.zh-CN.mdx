@@ -441,7 +441,7 @@ preview）插件的设置。
 Obsidian
 的第三方插件中安装该插件即可，无需启用。在安装它之前，参考文献以纯列表显示，内置导出无法运行。
 
-该行显示当前状态：已就绪及资源包版本、未安装资源包、需要更新资源包或 ZotLit、资源包文件已损坏。<UiLabel name={m.settings_resource_pack_open()} /> 会在第三方插件浏览器中打开 ZotLit Resource Pack 的页面。ZotLit Resource Pack 依据 GNU 通用公共许可证（第 2 版或更高版本）再分发 Pandoc；该行附有 [Pandoc 源代码](https://github.com/jgm/pandoc)的链接。
+该行显示资源包的当前状态。安装步骤和各种状态参见 [ZotLit Resource Pack](#resource-pack)。ZotLit Resource Pack 依据 GNU 通用公共许可证（第 2 版或更高版本）再分发 Pandoc；该行附有 [Pandoc 源代码](https://github.com/jgm/pandoc)的链接。
 
 ### 引文文本 [#citation-templates]
 
@@ -639,7 +639,7 @@ ZotLit 仅将此授权保存在本设备上该仓库的 Obsidian 密钥链（Key
 插件提供：在 Obsidian
 的第三方插件中安装该插件即可，无需启用。在安装它之前，搜索会使用内置规则切分中文标题，可能会遗漏某些词语。安装后，文库视图、引文建议器和快速切换器能够更准确地找到标题中间包含搜索词的文献。
 
-该行显示当前状态：已就绪及资源包版本、未安装资源包、需要更新资源包或 ZotLit、资源包文件已损坏。<UiLabel name={m.settings_resource_pack_open()} /> 会在第三方插件浏览器中打开 ZotLit Resource Pack 的页面。
+该行显示资源包的当前状态。安装步骤和各种状态参见 [ZotLit Resource Pack](#resource-pack)。
 
 ## 附件 [#attachments]
 
@@ -859,6 +859,32 @@ PDF、悬停预览和白板卡片。关闭时，PDF 在 Obsidian 自带的 PDF �
 PDF](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs)。
 
 早期版本的 ZotLit 在自己的阅读器页面上有此设置，名为 <UiLabel name={m.settings_reader_open_all_pdfs_name()} />。ZotLit Reader 不会读取该值：它安装后此设置为开启。
+
+## ZotLit Resource Pack [#resource-pack]
+
+ZotLit Resource Pack 是一个独立的插件。它提供 <UiLabel name={m.settings_citation_engine_name()} /> 和 <UiLabel name={m.settings_chinese_segmenter_name()} />，没有自己的设置标签页。ZotLit 直接从该插件的文件中读取这两个组件，因此插件无需启用即可使用。
+
+安装步骤：
+
+1. 打开 Obsidian 的**设置**（Settings）> **第三方插件**（Community plugins），然后选择**浏览**（Browse）。
+2. 搜索“ZotLit Resource Pack”，然后选择**安装**（Install）。无需启用它。
+3. 打开 <SettingsPath page={m.settings_page_citations()} />。<UiLabel name={m.settings_citation_engine_name()} /> 一行显示 <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} />（版本号可以更高）。
+
+Obsidian 会将 ZotLit Resource Pack 与其他插件一同更新。在 Obsidian 运行期间安装、更新或卸载资源包，ZotLit 都能识别，无需重启。
+
+<UiLabel name={m.settings_citation_engine_name()} /> 一行和
+<UiLabel name={m.settings_chinese_segmenter_name()} /> 一行各显示以下状态之一：
+
+| 行内文字                                                                       | 含义                                                                      | 处理方法                                                                                           |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} /> | ZotLit 正在使用已安装资源包中的组件。                                     | 无需操作。                                                                                         |
+| <UiLabel name={m.settings_resource_pack_status_absent()} />                    | 仓库中没有 ZotLit Resource Pack。                                         | 按上述步骤安装。                                                                                   |
+| <UiLabel name={m.settings_resource_pack_status_pack_outdated()} />             | 资源包的版本低于当前 ZotLit 所能读取的版本。                              | 在 Obsidian 的第三方插件中更新 ZotLit Resource Pack。                                              |
+| <UiLabel name={m.settings_resource_pack_status_plugin_outdated()} />           | 资源包的版本高于当前 ZotLit 所能读取的版本。                              | 在 Obsidian 的第三方插件中更新 ZotLit。                                                            |
+| <UiLabel name={m.settings_resource_pack_status_damaged()} />                   | 资源包的文件在安装后发生了变化（例如被同步工具改动），ZotLit 不会使用它。 | 卸载 ZotLit Resource Pack，然后重新安装。                                                          |
+| <UiLabel name={m.settings_resource_pack_status_failed({ detail: "…" })} />     | 资源包本身正确，但组件未能启动。冒号后的文字是原因。                      | 重启 Obsidian。如果该行仍显示相同文字，请附上[调试日志](/docs/how-to/collect-debug-logs)进行反馈。 |
+
+除第一种状态外，该行还会说明缺少该组件时 ZotLit 的行为。<UiLabel name={m.settings_resource_pack_open()} /> 会在 Obsidian 的第三方插件浏览器中打开需要安装或更新的插件页面。
 
 ## 设置项位置变动 [#moved]
 

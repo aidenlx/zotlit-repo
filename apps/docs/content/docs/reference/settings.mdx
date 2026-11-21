@@ -446,9 +446,7 @@ that plugin from Obsidian's community plugins. You do not need to turn it on.
 Until you install it, references stay a plain list, and the built-in export does
 not run.
 
-The row shows the state: ready with the version of the pack, pack not installed,
-pack or ZotLit to update, or pack file damaged. <UiLabel name={m.settings_resource_pack_open()} />
-opens the page of ZotLit Resource Pack in the community plugin browser. ZotLit
+The row shows the state of the pack. See [ZotLit Resource Pack](#resource-pack) for the install steps and each state. ZotLit
 Resource Pack redistributes Pandoc under the GNU General Public License, version
 2 or later; the row links to the [Pandoc source code](https://github.com/jgm/pandoc).
 
@@ -657,9 +655,7 @@ it on. Until you install it, search splits Chinese titles with built-in rules,
 which miss some words. With it, the Library View, citation suggester, and quick
 switcher find more papers whose title holds your search term in the middle.
 
-The row shows the state: ready with the version of the pack, pack not installed,
-pack or ZotLit to update, or pack file damaged. <UiLabel name={m.settings_resource_pack_open()} />
-opens the page of ZotLit Resource Pack in the community plugin browser.
+The row shows the state of the pack. See [ZotLit Resource Pack](#resource-pack) for the install steps and each state.
 
 ## Attachments
 
@@ -880,6 +876,31 @@ use ZotLit Reader. ZotLit Reader keeps the value in its own `data.json`. See
 Reader](/docs/how-to/read-pdfs-in-zotlit-reader#open-all-pdfs).
 
 Earlier versions of ZotLit had this setting on their own Reader page, as <UiLabel name={m.settings_reader_open_all_pdfs_name()} />. ZotLit Reader does not read that value: it starts with the setting on.
+
+## ZotLit Resource Pack [#resource-pack]
+
+ZotLit Resource Pack is a separate plugin. It holds the <UiLabel name={m.settings_citation_engine_name()} /> and the <UiLabel name={m.settings_chinese_segmenter_name()} />, and it has no settings tab. ZotLit reads the two parts from the plugin's file, so the plugin works while it is turned off.
+
+To install it:
+
+1. Open Obsidian's **Settings** > **Community plugins**, then select **Browse**.
+2. Search for "ZotLit Resource Pack", then select **Install**. You do not need to turn it on.
+3. Open <SettingsPath page={m.settings_page_citations()} />. The <UiLabel name={m.settings_citation_engine_name()} /> row reads <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} /> (the version can be higher).
+
+Obsidian updates ZotLit Resource Pack with your other plugins. ZotLit sees a pack that you install, update or uninstall while Obsidian runs, so no restart is necessary.
+
+The <UiLabel name={m.settings_citation_engine_name()} /> row and the <UiLabel name={m.settings_chinese_segmenter_name()} /> row each show one of these states:
+
+| Row text                                                                       | Meaning                                                                                             | What to do                                                                                                           |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} /> | ZotLit uses the part from the installed pack.                                                       | Nothing.                                                                                                             |
+| <UiLabel name={m.settings_resource_pack_status_absent()} />                    | The vault has no ZotLit Resource Pack.                                                              | Install it with the steps above.                                                                                     |
+| <UiLabel name={m.settings_resource_pack_status_pack_outdated()} />             | The pack is older than this version of ZotLit reads.                                                | Update ZotLit Resource Pack in Obsidian's community plugins.                                                         |
+| <UiLabel name={m.settings_resource_pack_status_plugin_outdated()} />           | The pack is newer than this version of ZotLit reads.                                                | Update ZotLit in Obsidian's community plugins.                                                                       |
+| <UiLabel name={m.settings_resource_pack_status_damaged()} />                   | The pack's file changed after the install, for example through a sync tool. ZotLit does not use it. | Uninstall ZotLit Resource Pack, then install it again.                                                               |
+| <UiLabel name={m.settings_resource_pack_status_failed({ detail: "…" })} />     | The pack is correct, but the part did not start. The text after the colon is the reason.            | Restart Obsidian. If the row shows the same text, report it with your [debug logs](/docs/how-to/collect-debug-logs). |
+
+In each state except the first, the row also says what ZotLit does without the part. <UiLabel name={m.settings_resource_pack_open()} /> opens the page of the plugin to install or update in Obsidian's community plugin browser.
 
 ## Where settings moved [#moved]
 

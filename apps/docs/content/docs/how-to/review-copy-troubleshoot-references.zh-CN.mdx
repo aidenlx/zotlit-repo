@@ -96,14 +96,14 @@ import { m } from "@/paraglide/messages.js";
 
 悬停在被禁用的操作项上可查看具体原因。
 
-| 提示文本                                                     | 应对方法                                 |
-| ------------------------------------------------------------ | ---------------------------------------- |
-| <UiLabel name={m.references_copy_blocked_no_note()} />       | 打开需要复制参考文献的 Markdown 笔记。   |
-| <UiLabel name={m.references_copy_blocked_no_references()} /> | 在当前笔记中添加已被识别的引用。         |
-| <UiLabel name={m.references_copy_blocked_pending()} />       | 等待当前排版流程完成。                   |
-| <UiLabel name={m.references_copy_blocked_unavailable()} />   | 安装或恢复 Pandoc 引擎以及可用样式。     |
-| <UiLabel name={m.references_copy_blocked_failed()} />        | 检查引擎和所选样式，待侧边栏刷新后重试。 |
-| <UiLabel name={m.references_copy_blocked_errors()} />        | 修正侧边栏中列出的所有参考文献错误。     |
+| 提示文本                                                     | 应对方法                                                                                                    |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| <UiLabel name={m.references_copy_blocked_no_note()} />       | 打开需要复制参考文献的 Markdown 笔记。                                                                      |
+| <UiLabel name={m.references_copy_blocked_no_references()} /> | 在当前笔记中添加已被识别的引用。                                                                            |
+| <UiLabel name={m.references_copy_blocked_pending()} />       | 等待当前排版流程完成。                                                                                      |
+| <UiLabel name={m.references_copy_blocked_unavailable()} />   | [安装 ZotLit Resource Pack](/docs/reference/settings#resource-pack)（它提供 Pandoc 引擎），并选择可用样式。 |
+| <UiLabel name={m.references_copy_blocked_failed()} />        | 检查引擎和所选样式，待侧边栏刷新后重试。                                                                    |
+| <UiLabel name={m.references_copy_blocked_errors()} />        | 修正侧边栏中列出的所有参考文献错误。                                                                        |
 
 当当前笔记、样式、语言或 Zotero 数据发生变动时，该操作也会暂时不可用。请等待新的参考文献列表排版完成。
 
@@ -127,7 +127,7 @@ import { m } from "@/paraglide/messages.js";
 | **此笔记的引用与参考文献样式不可用** | 修正笔记中的 `zotlit-csl`，在 Zotero 中安装该样式，或使用仓库样式。                                                                                                               |
 | **此笔记的文档语言无效**             | 将 `lang` 设置为标准语言代码（如 `de-DE`），或直接移除该属性。                                                                                                                    |
 | **ZotLit 无法排版这些参考文献**      | 在 <SettingsPath page={m.settings_page_citations()} setting={m.settings_citation_references_heading()} /> 下检查所选样式和 <UiLabel name={m.settings_citation_engine_name()} />。 |
-| **Pandoc 引擎不可用**                | 打开相同的设置页面，修复或重新安装该引擎。                                                                                                                                        |
+| **Pandoc 引擎不可用**                | 打开相同的设置页面，按 <UiLabel name={m.settings_citation_engine_name()} /> 一行给出的步骤操作。参见[该行的各种状态](/docs/reference/settings#resource-pack)。                    |
 
 当排版输出不可用时，侧边栏会显示简略列表。在 ZotLit 生成无参考文献错误的完整参考文献列表之前，“复制”将保持禁用状态。
 

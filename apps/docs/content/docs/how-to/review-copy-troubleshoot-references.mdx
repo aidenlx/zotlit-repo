@@ -95,14 +95,14 @@ Selecting the row's chevron navigates to citation occurrences. It does not copy 
 
 Hover the disabled action to see its current reason.
 
-| Tooltip                                                      | What to do                                                                   |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| <UiLabel name={m.references_copy_blocked_no_note()} />       | Open the Markdown note whose bibliography you need.                          |
-| <UiLabel name={m.references_copy_blocked_no_references()} /> | Add a recognized citation to the active note.                                |
-| <UiLabel name={m.references_copy_blocked_pending()} />       | Wait for the current formatting pass to finish.                              |
-| <UiLabel name={m.references_copy_blocked_unavailable()} />   | Install or restore the Pandoc engine and an available style.                 |
-| <UiLabel name={m.references_copy_blocked_failed()} />        | Check the engine and selected style, then retry after the sidebar refreshes. |
-| <UiLabel name={m.references_copy_blocked_errors()} />        | Correct every Reference Error listed in the sidebar.                         |
+| Tooltip                                                      | What to do                                                                                                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| <UiLabel name={m.references_copy_blocked_no_note()} />       | Open the Markdown note whose bibliography you need.                                                                                   |
+| <UiLabel name={m.references_copy_blocked_no_references()} /> | Add a recognized citation to the active note.                                                                                         |
+| <UiLabel name={m.references_copy_blocked_pending()} />       | Wait for the current formatting pass to finish.                                                                                       |
+| <UiLabel name={m.references_copy_blocked_unavailable()} />   | [Install ZotLit Resource Pack](/docs/reference/settings#resource-pack), which holds the Pandoc engine, and select an available style. |
+| <UiLabel name={m.references_copy_blocked_failed()} />        | Check the engine and selected style, then retry after the sidebar refreshes.                                                          |
+| <UiLabel name={m.references_copy_blocked_errors()} />        | Correct every Reference Error listed in the sidebar.                                                                                  |
 
 The action also becomes temporarily unavailable when the active note, style, locale, or Zotero data changes. Wait for the new bibliography to finish formatting.
 
@@ -126,7 +126,7 @@ An ambiguous row lists every matching item with its library and item key. <UiLab
 | **This note's citation and references style is unavailable** | Correct the note's `zotlit-csl`, install that style in Zotero, or use the vault style.                                                                                                          |
 | **This note's document language is invalid**                 | Set `lang` to a language tag such as `de-DE`, or remove the property.                                                                                                                           |
 | **ZotLit could not format these references**                 | Check the selected style and <UiLabel name={m.settings_citation_engine_name()} /> under <SettingsPath page={m.settings_page_citations()} setting={m.settings_citation_references_heading()} />. |
-| **The Pandoc engine is unavailable**                         | Open the same settings page and repair or reinstall the engine.                                                                                                                                 |
+| **The Pandoc engine is unavailable**                         | Open the same settings page and do the step that the <UiLabel name={m.settings_citation_engine_name()} /> row gives. See [the states of the row](/docs/reference/settings#resource-pack).       |
 
 The sidebar shows a minimal list when formatted output is unavailable. Copy remains disabled until ZotLit produces a complete bibliography without Reference Errors.
 

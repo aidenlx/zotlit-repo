@@ -24,7 +24,9 @@ import { m } from "@/paraglide/messages.js";
 你需要：
 
 - 打开了一篇 Markdown 笔记的 Obsidian 桌面端。
-- 在 <SettingsPath page={m.settings_page_citations()} setting={m.settings_citation_references_heading()} /> 下已安装 <UiLabel name={m.settings_citation_engine_name()} />。
+- <UiLabel name={m.settings_citation_engine_name()} />
+  。它由 ZotLit Resource Pack 插件提供：请在 Obsidian
+  的第三方插件中[安装该插件](/docs/reference/settings#resource-pack)。
 - Zotero 处于运行状态，以便 ZotLit 获取参考文献数据。
 
 ZotLit 会优先使用 Better BibTeX（如果可用）；否则，它将使用 Zotero 本地 API。
@@ -93,21 +95,21 @@ Pandoc 负责解析笔记，因此被视作普通文本的内容（如代码块�
 
 ## 解决导出错误 [#fix-an-export-error]
 
-| 现象                                                    | 解决方法                                                                                                                                                                                   |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ZotLit 提示安装 Pandoc 引擎                             | 打开 <SettingsPath page={m.settings_page_citations()} setting={m.settings_citation_references_heading()} />，然后安装该引擎。                                                              |
-| `#cite:` 片段格式错误、指向非文献笔记，或链接目标未解析 | 修正片段或链接目标。                                                                                                                                                                       |
-| ZotLit 无法读取 Zotero 数据库                           | 检查 <UiLabel name={m.settings_page_zotero()} /> 设置，然后重新运行导出。                                                                                                                  |
-| Zotero 中缺少文献笔记对应的条目                         | 恢复缺失的条目或更新文献笔记的 `zotero-key`。                                                                                                                                              |
-| Better BibTeX 中没有该文献笔记的文献引用标识            | 在 Better BibTeX 中分配文献引用标识，然后重新运行导出。                                                                                                                                    |
-| 没有 Zotero 条目匹配该字面文献引用标识                  | 检查标识的拼写，或扩大 <UiLabel name={m.settings_library_scope_name()} />。                                                                                                                |
-| 字面文献引用标识匹配到多个 Zotero 条目                  | 在 Zotero 中修改其中一个标识，或缩小 <UiLabel name={m.settings_library_scope_name()} />。                                                                                                  |
-| ZotLit 提示启动 Zotero                                  | 启动 Zotero 并在导出期间保持其运行。                                                                                                                                                       |
-| Zotero 本地 API 已禁用                                  | 在 Zotero 中，打开**设置 > 高级**（Settings > Advanced），启用**允许此计算机上的其他应用程序与 Zotero 进行通信**（Allow other applications on this computer to communicate with Zotero）。 |
-| Better BibTeX 或 Zotero 本地 API 拒绝了请求             | 检查错误信息中指出的来源，待其响应正常后重试。                                                                                                                                             |
-| Zotero 无法提供所选样式                                 | 在 Zotero 中安装该样式，或在对话框中选择其他样式。ZotLit 不会改用其他样式导出。                                                                                                            |
-| Pandoc 终止了转换                                       | 修正错误信息中指出的源文件或样式问题，然后重新运行导出。                                                                                                                                   |
-| ZotLit 无法写入导出的文档                               | 选择一个可写入的目标位置，然后重新运行导出。                                                                                                                                               |
+| 现象                                                       | 解决方法                                                                                                                                                                                   |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| <UiLabel name={m.notice_pandoc_export_engine_missing()} /> | 在通知中选择 <UiLabel name={m.settings_resource_pack_open()} />，然后[安装 ZotLit Resource Pack](/docs/reference/settings#resource-pack)。无需启用它。                                     |
+| `#cite:` 片段格式错误、指向非文献笔记，或链接目标未解析    | 修正片段或链接目标。                                                                                                                                                                       |
+| ZotLit 无法读取 Zotero 数据库                              | 检查 <UiLabel name={m.settings_page_zotero()} /> 设置，然后重新运行导出。                                                                                                                  |
+| Zotero 中缺少文献笔记对应的条目                            | 恢复缺失的条目或更新文献笔记的 `zotero-key`。                                                                                                                                              |
+| Better BibTeX 中没有该文献笔记的文献引用标识               | 在 Better BibTeX 中分配文献引用标识，然后重新运行导出。                                                                                                                                    |
+| 没有 Zotero 条目匹配该字面文献引用标识                     | 检查标识的拼写，或扩大 <UiLabel name={m.settings_library_scope_name()} />。                                                                                                                |
+| 字面文献引用标识匹配到多个 Zotero 条目                     | 在 Zotero 中修改其中一个标识，或缩小 <UiLabel name={m.settings_library_scope_name()} />。                                                                                                  |
+| ZotLit 提示启动 Zotero                                     | 启动 Zotero 并在导出期间保持其运行。                                                                                                                                                       |
+| Zotero 本地 API 已禁用                                     | 在 Zotero 中，打开**设置 > 高级**（Settings > Advanced），启用**允许此计算机上的其他应用程序与 Zotero 进行通信**（Allow other applications on this computer to communicate with Zotero）。 |
+| Better BibTeX 或 Zotero 本地 API 拒绝了请求                | 检查错误信息中指出的来源，待其响应正常后重试。                                                                                                                                             |
+| Zotero 无法提供所选样式                                    | 在 Zotero 中安装该样式，或在对话框中选择其他样式。ZotLit 不会改用其他样式导出。                                                                                                            |
+| Pandoc 终止了转换                                          | 修正错误信息中指出的源文件或样式问题，然后重新运行导出。                                                                                                                                   |
+| ZotLit 无法写入导出的文档                                  | 选择一个可写入的目标位置，然后重新运行导出。                                                                                                                                               |
 
 任何错误都会终止整个导出过程。ZotLit 不会写入仅包含部分参考文献的文档。
 
@@ -123,7 +125,7 @@ Pandoc 负责解析笔记，因此被视作普通文本的内容（如代码块�
   />
   <Card
     title="设置"
-    description="安装引擎并选择引文与参考文献样式。"
+    description="检查 Pandoc 引擎并选择引文与参考文献样式。"
     href="/docs/reference/settings"
   />
   <Card

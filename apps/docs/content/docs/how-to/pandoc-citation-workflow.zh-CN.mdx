@@ -56,7 +56,7 @@ import { m } from "@/paraglide/messages.js";
 
     ![引文设置页面，引用来源下的 Pandoc 引用和 Wiki 链接引用均已开启](/img/tutorial/pandoc-workflow-citation-sources.webp)
 
-    在 <UiLabel name={m.settings_citation_references_heading()} /> 下，安装 <UiLabel name={m.settings_citation_engine_name()} />。该托管引擎用于排版侧边栏的 <UiLabel name={m.references_view_name()} /> 并驱动内置导出。
+    在 <UiLabel name={m.settings_citation_references_heading()} /> 下，确认 <UiLabel name={m.settings_citation_engine_name()} /> 一行显示 <UiLabel name={m.settings_resource_pack_status_ready({ version: "1.0.0" })} />（版本号可以更高）。如果不是，请在 Obsidian 的第三方插件中[安装 ZotLit Resource Pack](/docs/reference/settings#resource-pack)。该引擎用于排版侧边栏的 <UiLabel name={m.references_view_name()} /> 并驱动内置导出。
 
     打开 <SettingsPath /> 并将 **APA Style 7th edition** 选为 <UiLabel name={m.settings_citation_references_style_name()} />。其“作者-日期”格式的输出便于对比定位符（locator）和作者模式。
 
