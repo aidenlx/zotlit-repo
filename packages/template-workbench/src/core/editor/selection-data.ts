@@ -1,7 +1,7 @@
 // Canonical native selections for the Workbench's built-in Item snapshots.
 import { SAMPLE_ITEMS } from "@zotlit/workbench/render";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import type { WorkbenchItemChoice } from "@zotlit/workbench/ui";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 const samples = new Map<string, ItemSnapshot>(
   SAMPLE_ITEMS.flatMap((snapshot) =>

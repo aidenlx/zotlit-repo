@@ -1,15 +1,16 @@
 // Pure value-walker mapping an anchor root object + expansion set to typed display nodes.
 
-import { formatAccessorPath, memberAccessor } from "./accessor-path.ts";
-import type { TemplatePathSegment } from "./accessor-path.ts";
-import { inertPlaceholderReason } from "./inert-placeholder.ts";
+import { formatAccessorPath, memberAccessor } from "@zotlit/db/template-data";
+import type { TemplatePathSegment } from "@zotlit/db/template-data";
+import { inertPlaceholderReason } from "@zotlit/db/template-data";
+import { coerceToString } from "@zotlit/db/template-data";
+
 import {
   evaluateHelper,
   isPlainObject,
   readList,
   shownTexts,
 } from "./list-items.ts";
-import { coerceToString } from "./string-coercion.ts";
 
 export type PathSegment = TemplatePathSegment;
 

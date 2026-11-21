@@ -1,10 +1,25 @@
 # @zotlit/workbench
 
 The Workbench core of the Template Workbench View in the Obsidian plugin.
-Subpath exports: `document`, `explorer`, `language`, `render`, the
-headless `ui`, and the Node-only `snapshot`. React is a peer dependency of `ui`
-alone; every other subpath is free of it. The package targets CodeMirror at the
-versions Obsidian pins.
+Subpath exports: `document`, `explorer`, `language`, `render`, and the
+headless `ui`. React is a peer dependency of `ui` alone; every other subpath is
+free of it. The package targets CodeMirror at the versions Obsidian pins.
+
+What the plugin's other packages share with the Workbench lives with its
+owner, and the Workbench imports it from there:
+
+- the Item Snapshot — its shape in `@zotlit/zotero-reads/contract/snapshot/`,
+  its export in `@zotlit/zotero-reads/worker/snapshot/export.ts`, which the
+  ItemSnapshot RPC answers with;
+- the Template data helpers — accessor paths, the inert-helper mark, and
+  `serializeTemplateData` — in `@zotlit/db/template-data`;
+- the render diagnostics and reports, the render failure readers, and the
+  side-effect-free note resolvers in `@zotlit/notes/core/template/`, and the
+  Sample Items, Sample Annotations, Citation examples and Shared Partial
+  preview contexts in `@zotlit/notes/core/template-preview/`, which a refused
+  note operation and the template data service read too;
+- `observeExit` and `joinForked` in `@zotlit/plugin-kernel/fiber-exit.ts`, and
+  the Signature Hint class in the plugin's theme hooks.
 
 It carries no logger: it names every decision a host acts on in the value it
 returns — a `WorkbenchProblem`, a `RenderDiagnostic` — so the host logs. That is a package-scoped exception to
@@ -279,6 +294,7 @@ facade, so the host writes each code in the reader's own language. `message`
 carries the wording this package did not author: the template engine's failure
 text, the host's own, and the document parser's.
 
+The `render` subpath re-exports the diagnostics, reports and examples above.
 `renderFailureDiagnostic(error, caller)` reads one thrown render failure
 against the source that render read and keeps its three answers apart:
 `engine` is where the engine itself said it happened, `caller` the document a
@@ -287,7 +303,8 @@ reached the failing template — the one verified repair location. Each is set
 only on its own evidence, so a name the source never spells leaves `callSite`
 absent and the host says the location is unverified rather than sending the
 reader to a guessed line. `templateCalls` in `@zotlit/workbench/document` is
-the scan behind it, and reads the reserved names `partialCalls` drops.
+the scan behind it, and reads the reserved names `partialCalls` drops; the
+notes' own reader takes that scan as a parameter and finds no call without it.
 `renderFailureCause(error)` reads the same evidence as the cause alone — the
 template the engine could not resolve, or the place it stopped in the one it
 named — so a render path that tries one document part after another reports

@@ -79,7 +79,7 @@
     "@zotlit/config": "workspace:*",
     "@zotlit/db": "workspace:*",
     "@zotlit/templates": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
+    "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "effect": "catalog:",

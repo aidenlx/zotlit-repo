@@ -3,15 +3,15 @@ import { Cause, Effect, Exit } from "effect";
 import { describe, expect, vi } from "vitest";
 
 import { rowInstant } from "@zotlit/db-testing";
+import {
+  ContractMetadataError,
+  markInertPlaceholder,
+} from "@zotlit/db/template-data";
 import type {
   CompileError,
   SettleOutcome,
   TemplateFileStatus,
 } from "@zotlit/notes/obsidian/template/service.ts";
-import {
-  ContractMetadataError,
-  markInertPlaceholder,
-} from "@zotlit/workbench/explorer";
 
 import {
   createTemplateWorkbenchHandlers as createHandlers,

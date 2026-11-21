@@ -25,7 +25,6 @@
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/templates": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
     "cn": "catalog:",
     "effect": "catalog:",
     "tailwind-variants": "catalog:",

@@ -1,8 +1,9 @@
 // How a list's items read in a note: the one source for the list preview, the list shape and the list snippets.
 
+import { inertPlaceholderReason } from "@zotlit/db/template-data";
+import { coerceToString } from "@zotlit/db/template-data";
+
 import type { DisplayNode } from "./display-tree.ts";
-import { inertPlaceholderReason } from "./inert-placeholder.ts";
-import { coerceToString } from "./string-coercion.ts";
 
 /** What separates the items of a list joined in one line. */
 export const JOIN_SEPARATOR = ", ";

@@ -9,14 +9,25 @@ import {
   getItemsByKey,
   USER_LIBRARY_ID,
 } from "@zotlit/db";
-import type { Annotation, Attachment, ChildNote } from "@zotlit/db";
+import type {
+  Annotation,
+  Attachment,
+  ChildNote,
+  NoteResolvers,
+} from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import { inertPlaceholderReason } from "@zotlit/db/template-data";
 
-import { inertPlaceholderReason } from "./inert-placeholder.ts";
 import { buildInertNoteResolvers } from "./inert-resolvers.ts";
-import type { InertNoteResolverDeps } from "./inert-resolvers.ts";
+import type {
+  InertNoteFile,
+  InertNoteResolverDeps,
+} from "./inert-resolvers.ts";
+
+/** The Item a note resolver reads its identity from. */
+type ItemRef = Parameters<NoteResolvers["item"]["notePath"]>[0];
 
 function makeAttachment(overrides: Partial<Attachment>): Attachment {
   return {
@@ -70,8 +81,8 @@ const VAULT_FOLDER = "attachments/zotero";
 const VAULT_IMAGE_PATH = `${VAULT_FOLDER}/ANNO0001.png`;
 
 function makeFakeNoteIndex() {
-  const stubFile = { path: NOTE_PATH } as never;
-  const importedFile = { path: IMPORTED_NOTE_PATH } as never;
+  const stubFile: InertNoteFile = { path: NOTE_PATH };
+  const importedFile: InertNoteFile = { path: IMPORTED_NOTE_PATH };
   return {
     getNotesByItemKey: (indexedKey: string) =>
       indexedKey === INDEXED_KEY ? [stubFile] : [],
@@ -95,7 +106,7 @@ function makeFakeFileManager() {
 function makeFakeVault(existingPaths: readonly string[] = []) {
   return {
     getFileByPath: (path: string) =>
-      existingPaths.includes(path) ? ({ path } as never) : null,
+      existingPaths.includes(path) ? { path } : null,
   };
 }
 
@@ -171,13 +182,13 @@ describe("buildInertNoteResolvers", () => {
       resolvers.item.notePath({
         indexedKey: INDEXED_KEY,
         citationKey: null,
-      } as never),
+      } as ItemRef),
     ).toBe(NOTE_PATH);
     expect(
       resolvers.item.notePath({
         indexedKey: "UNKNOWN1",
         citationKey: null,
-      } as never),
+      } as ItemRef),
     ).toBeNull();
   });
 
@@ -185,7 +196,7 @@ describe("buildInertNoteResolvers", () => {
     const resolvers = buildResolvers();
     expect(
       resolvers.item.noteLink(
-        { indexedKey: INDEXED_KEY, citationKey: null } as never,
+        { indexedKey: INDEXED_KEY, citationKey: null } as ItemRef,
         "Alias",
       ),
     ).toBe(`[[${NOTE_PATH}|Alias]]<-`);
@@ -193,7 +204,7 @@ describe("buildInertNoteResolvers", () => {
       resolvers.item.noteLink({
         indexedKey: "UNKNOWN1",
         citationKey: null,
-      } as never),
+      } as ItemRef),
     ).toBeNull();
   });
 
@@ -203,7 +214,7 @@ describe("buildInertNoteResolvers", () => {
       resolvers.item.notePath({
         indexedKey: "UNKNOWN1",
         citationKey: "smith2024",
-      } as never),
+      } as ItemRef),
     ).toBeNull();
   });
 
@@ -390,9 +401,7 @@ describe("buildInertNoteResolvers over a real fetchNoteContext tree", () => {
 
     const noteIndex = {
       getNotesByItemKey: (indexedKey: string) => {
-        return indexedKey === MAIN_KEY
-          ? [{ path: MAIN_NOTE_PATH } as never]
-          : [];
+        return indexedKey === MAIN_KEY ? [{ path: MAIN_NOTE_PATH }] : [];
       },
       getImportedNoteByNoteKey: (_noteKey: string) => {
         return [];

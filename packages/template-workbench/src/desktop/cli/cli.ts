@@ -3,6 +3,10 @@ import { Effect, Result } from "effect";
 import type { CliData } from "obsidian";
 
 import type { CitationVariant, ContractRoot } from "@zotlit/db";
+import {
+  ContractMetadataError,
+  serializeTemplateData,
+} from "@zotlit/db/template-data";
 import { InertTemplateError } from "@zotlit/notes/core/template/errors.ts";
 import type {
   CitationDataLoadResult,
@@ -32,10 +36,6 @@ import {
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { LiteratureNoteTemplateError } from "@zotlit/templates/facade";
-import {
-  ContractMetadataError,
-  serializeTemplateData,
-} from "@zotlit/workbench/explorer";
 
 import {
   dataLoadDiagnostic,

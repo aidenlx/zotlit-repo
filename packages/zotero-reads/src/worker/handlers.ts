@@ -66,7 +66,6 @@ import type {
   ZoteroDatabase,
 } from "@zotlit/db";
 import { ItemIndex, layerItemIndex } from "@zotlit/item-lookup";
-import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 
 import { CITEKEY_WINDOW, makeCitationLookup } from "./citation-lookup.ts";
 import { Connection, read } from "./connection.ts";
@@ -76,6 +75,7 @@ import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
 import { listCollectionChoices } from "./membership.ts";
 import { layerSegmenterBinaryReader } from "./segmenter.ts";
 import type { ReadSegmenter } from "./segmenter.ts";
+import { exportItemSnapshot } from "./snapshot/export.ts";
 
 import {
   DbUnavailable,

@@ -25,7 +25,6 @@ import type {
   PartialContext,
   PartialPreviewSelection,
 } from "@zotlit/workbench/render";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import {
   savedPanelWidth,
   clampPreviewHeight,
@@ -53,6 +52,7 @@ import {
   zoteroRevisionAtom,
   zoteroStateAtom,
 } from "@zotlit/zotero-reads/client/atoms.ts";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import { readChosenItem } from "./atoms.ts";
 

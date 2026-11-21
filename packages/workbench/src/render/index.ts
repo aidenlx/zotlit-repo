@@ -2,7 +2,6 @@
 // Obsidian because this preview produces the Profile's generated Markdown and
 // has no bibliography or citation processor.
 
-import type { ItemSnapshot } from "#snapshot/index.ts";
 import { stringify as stringifyYaml } from "yaml";
 
 import {
@@ -12,6 +11,17 @@ import {
   withAnnotationCitation,
 } from "@zotlit/db";
 import type { AnnotationTemplateContext, TemplateAnnotation } from "@zotlit/db";
+import { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
+import book from "@zotlit/notes/core/template-preview/samples/book.json" with { type: "json" };
+import conferencePaper from "@zotlit/notes/core/template-preview/samples/conference-paper.json" with { type: "json" };
+import journalArticle from "@zotlit/notes/core/template-preview/samples/journal-article.json" with { type: "json" };
+import thesis from "@zotlit/notes/core/template-preview/samples/thesis.json" with { type: "json" };
+import { renderFailureSpan } from "@zotlit/notes/core/template/render-failure.ts";
+import type { RenderCallerSource } from "@zotlit/notes/core/template/render-failure.ts";
+import {
+  engineEvidence,
+  errorChain,
+} from "@zotlit/notes/core/template/render-report.ts";
 import {
   inlineCitation,
   replaceSuffixMarkers,
@@ -30,12 +40,10 @@ import {
 } from "@zotlit/templates/frontmatter-merge";
 import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-merge";
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
-import { renderFailureDiagnostic, renderFailureSpan } from "./attribution.ts";
-import type { RenderCallerSource } from "./attribution.ts";
-import { engineEvidence, errorChain } from "./report.ts";
+import { renderFailureDiagnostic } from "./call-attribution.ts";
 import type { RenderOptions } from "./request.ts";
-import { restoreTemplateData } from "./restore-template-data.ts";
 import { failedRender, renderIdentity } from "./result.ts";
 import type {
   SliceSite,
@@ -45,11 +53,6 @@ import type {
   RenderedRange,
 } from "./result.ts";
 
-import book from "#samples/book.json" with { type: "json" };
-import conferencePaper from "#samples/conference-paper.json" with { type: "json" };
-import journalArticle from "#samples/journal-article.json" with { type: "json" };
-import thesis from "#samples/thesis.json" with { type: "json" };
-
 export {
   CITATION_EXAMPLE_IDS,
   CITATION_EXAMPLE_ITEM,
@@ -57,34 +60,34 @@ export {
   DEFAULT_CITATION_EXAMPLE,
   isCitationExampleId,
   sampleItemCitation,
-} from "./citation-examples.ts";
+} from "@zotlit/notes/core/template-preview/citation-examples.ts";
 export type {
   CitationExampleId,
   CitationPreviewSelection,
-} from "./citation-examples.ts";
+} from "@zotlit/notes/core/template-preview/citation-examples.ts";
 export { DEFAULT_PROFILE_SOURCE } from "./default-profile.ts";
 export {
   DEFAULT_PARTIAL_CONTEXT,
   isPartialContext,
   PARTIAL_CONTEXTS,
-} from "./partial-preview.ts";
+} from "@zotlit/notes/core/template-preview/partial-preview.ts";
 export type {
   PartialChoice,
   PartialContext,
   PartialPreviewSelection,
-} from "./partial-preview.ts";
+} from "@zotlit/notes/core/template-preview/partial-preview.ts";
+export { captureProblemReport } from "./problem-report.ts";
 export {
-  captureProblemReport,
   captureRenderReport,
   engineEvidence,
   formatRenderReport,
   REPORT_UNAVAILABLE,
-} from "./report.ts";
+} from "@zotlit/notes/core/template/render-report.ts";
 export type {
   EngineEvidence,
   RenderReport,
   WorkbenchReportContext,
-} from "./report.ts";
+} from "@zotlit/notes/core/template/render-report.ts";
 export {
   emptyRender,
   failedRender,
@@ -107,15 +110,18 @@ export type {
 } from "./result.ts";
 export {
   renderFailureCause,
-  renderFailureDiagnostic,
   renderFailureSpan,
-} from "./attribution.ts";
+} from "@zotlit/notes/core/template/render-failure.ts";
+export { renderFailureDiagnostic } from "./call-attribution.ts";
 export { currentCallSite, currentSliceSite } from "./locate.ts";
-export type { RenderCallerSource, RenderFailureCause } from "./attribution.ts";
+export type {
+  RenderCallerSource,
+  RenderFailureCause,
+} from "@zotlit/notes/core/template/render-failure.ts";
 export type { RenderRequest, RenderOptions } from "./request.ts";
-export { restoreTemplateData } from "./restore-template-data.ts";
-export { SAMPLE_ANNOTATIONS } from "./sample-annotations.ts";
-export type { AnnotationExample } from "./sample-annotations.ts";
+export { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
+export { SAMPLE_ANNOTATIONS } from "@zotlit/notes/core/template-preview/sample-annotations.ts";
+export type { AnnotationExample } from "@zotlit/notes/core/template-preview/sample-annotations.ts";
 
 export const SAMPLE_ITEMS = [
   journalArticle,

@@ -6,6 +6,7 @@ import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
 import { Effect } from "effect";
 
 import type { NoteTemplateContext } from "@zotlit/db";
+import { serializeTemplateData } from "@zotlit/db/template-data";
 import {
   readTemplateData,
   withSelectedNote,
@@ -29,7 +30,6 @@ import {
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { parseLiteratureNoteTemplate } from "@zotlit/templates/facade";
-import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 
 import { attempt, CheckSourceThrew, thrown } from "./check-plain-document.ts";

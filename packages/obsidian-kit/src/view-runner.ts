@@ -11,7 +11,7 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
-import { joinForked, observeExit } from "@zotlit/workbench/ui";
+import { joinForked, observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 
 import { viewRuntime } from "./view-atoms.ts";
 import type { ViewServices } from "./view-atoms.ts";

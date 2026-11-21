@@ -5,16 +5,8 @@
 
 import type { WorkbenchDocumentAtoms } from "#document/atoms.ts";
 import type { WorkbenchDocumentController } from "#document/controller.ts";
-import type {
-  CitationExampleId,
-  CitationPreviewSelection,
-} from "#render/citation-examples.ts";
-import type { PartialPreviewSelection } from "#render/partial-preview.ts";
-import type { WorkbenchReportContext } from "#render/report.ts";
 import type { RenderRequest } from "#render/request.ts";
 import type { TemplateRenderResult } from "#render/result.ts";
-import type { AnnotationExample } from "#render/sample-annotations.ts";
-import type { ItemSnapshot } from "#snapshot/index.ts";
 import { Cause, Effect } from "effect";
 import type * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -22,7 +14,20 @@ import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import { DEFAULT_CITATION_VARIANT } from "@zotlit/db";
 import type { CitationVariant } from "@zotlit/db";
+import type {
+  CitationExampleId,
+  CitationPreviewSelection,
+} from "@zotlit/notes/core/template-preview/citation-examples.ts";
+import {
+  CITATION_EXAMPLE_ITEM,
+  DEFAULT_CITATION_EXAMPLE,
+} from "@zotlit/notes/core/template-preview/citation-examples.ts";
+import type { PartialPreviewSelection } from "@zotlit/notes/core/template-preview/partial-preview.ts";
+import { isPartialContext } from "@zotlit/notes/core/template-preview/partial-preview.ts";
+import type { AnnotationExample } from "@zotlit/notes/core/template-preview/sample-annotations.ts";
+import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-report.ts";
 import type { MatchTree } from "@zotlit/templates/facade";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import {
   annotationExamples,
@@ -61,11 +66,6 @@ import type { SliceReveal } from "./slice-editor.tsx";
 import type { WorkbenchTab } from "./tabs.ts";
 
 import { workbenchDocumentAtoms } from "#document/atoms.ts";
-import {
-  CITATION_EXAMPLE_ITEM,
-  DEFAULT_CITATION_EXAMPLE,
-} from "#render/citation-examples.ts";
-import { isPartialContext } from "#render/partial-preview.ts";
 
 /** The template root a pane edits, which the Explorer and the preview follow. */
 export type TemplateRoot = "note" | "annotation" | "filename" | "citation";

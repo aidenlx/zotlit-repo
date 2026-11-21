@@ -21,7 +21,7 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import type { SearchOptions } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 import { chooseItem, setPreview } from "@zotlit/workbench/ui";
 import type {
   WorkbenchHost,

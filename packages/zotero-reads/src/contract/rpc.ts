@@ -29,7 +29,6 @@ import type {
   SearchHit as ItemIndexHit,
   SegmenterBinary as ItemIndexSegmenterBinary,
 } from "@zotlit/item-lookup";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import type { ItemFields } from "@zotlit/zotero-types";
 
 import type {
@@ -42,6 +41,7 @@ import type { ItemQueryAnswer, ItemQueryJob } from "./item-query.ts";
 import { libraryScopeWire } from "./library-scope.ts";
 import type { LibraryScope } from "./library-scope.ts";
 import { DecodedQuery, DecodedValues } from "./query-codec.ts";
+import type { ItemSnapshot } from "./snapshot/types.ts";
 
 /** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;

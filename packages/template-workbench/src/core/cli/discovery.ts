@@ -10,8 +10,8 @@ import {
   formatAccessorPath,
   isAccessorIdentifier,
   serializeTemplatePath,
-} from "@zotlit/workbench/explorer";
-import type { TemplatePathSegment } from "@zotlit/workbench/explorer";
+} from "@zotlit/db/template-data";
+import type { TemplatePathSegment } from "@zotlit/db/template-data";
 
 const ir = irJson as ContractIR;
 export const DISCOVERY_LIMIT = 8;

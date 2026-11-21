@@ -4,11 +4,11 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { createClient } from "@zotlit/db/client/node";
-import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
 import type {
   SnapshotLibrarySelector,
   SnapshotVaultTargets,
-} from "@zotlit/workbench/snapshot";
+} from "@zotlit/zotero-reads/contract/snapshot/types.ts";
+import { exportItemSnapshot } from "@zotlit/zotero-reads/worker/snapshot/export.ts";
 
 import { buildFixture } from "./build.ts";
 import { getFixtureLayout } from "./layout.ts";
@@ -81,7 +81,10 @@ export async function regenerateFixtureSampleItems(
 
   const layout = getFixtureLayout(fixtureRoot);
   await buildFixture(layout);
-  const sampleDir = join(workspaceRoot, "packages/workbench/src/samples");
+  const sampleDir = join(
+    workspaceRoot,
+    "packages/notes/src/core/template-preview/samples",
+  );
   return await generateSampleItems({
     databasePath: layout.databasePath,
     manifestPath: join(sampleDir, "selection.json"),

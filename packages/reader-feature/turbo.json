@@ -7,7 +7,6 @@
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",
         "@zotlit/reader-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types",
         "@zotlit/pdf-reader#generate"
       ]
     }

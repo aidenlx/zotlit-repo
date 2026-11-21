@@ -1,5 +1,11 @@
 // Node-only export of redacted, renderable Item Snapshots from Zotero data.
 
+import type {
+  ExportItemSnapshotOptions,
+  ItemSnapshot,
+  SnapshotLibrarySelector,
+  SnapshotSelection,
+} from "#contract/snapshot/types.ts";
 import { Effect } from "effect";
 import { createHash } from "node:crypto";
 
@@ -19,30 +25,20 @@ import {
 } from "@zotlit/db";
 import type { Item, ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
+import { serializeTemplateData } from "@zotlit/db/template-data";
 import { readQueryItemSeed } from "@zotlit/item-query";
 
 import { applyFieldAllowList } from "./allowlist.ts";
-import { collectRootDescriptors } from "./descriptors.ts";
 import {
   authorsShort,
   normalizeTargets,
   snapshotResolvers,
   validateProvenance,
 } from "./resolvers.ts";
-import type {
-  ExportItemSnapshotOptions,
-  ItemSnapshot,
-  SnapshotLibrarySelector,
-  SnapshotSelection,
-} from "./types.ts";
-import { SnapshotSelectionError } from "./types.ts";
 import { collectUnavailable } from "./unavailable.ts";
 
-import { serializeTemplateData } from "#explorer/index.ts";
-
-export type * from "./descriptors.ts";
-export type * from "./types.ts";
-export { SnapshotSelectionError } from "./types.ts";
+import { collectRootDescriptors } from "#contract/snapshot/descriptors.ts";
+import { SnapshotSelectionError } from "#contract/snapshot/types.ts";
 
 /**
  * @throws SnapshotSelectionError when the selected Library or Item is absent,

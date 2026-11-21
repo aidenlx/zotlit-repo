@@ -33,7 +33,6 @@
     "@zotlit/plugin-shell": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/templates": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
     "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

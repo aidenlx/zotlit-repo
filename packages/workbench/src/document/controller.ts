@@ -1,4 +1,3 @@
-import type { PartialContext } from "#render/partial-preview.ts";
 import {
   history,
   isolateHistory,
@@ -17,6 +16,8 @@ import type {
 } from "@codemirror/state";
 import { diffChars } from "diff";
 
+import type { PartialContext } from "@zotlit/notes/core/template-preview/partial-preview.ts";
+import { DEFAULT_PARTIAL_CONTEXT } from "@zotlit/notes/core/template-preview/partial-preview.ts";
 import { ANNOTATION_HEADER } from "@zotlit/templates/constants";
 import type { TemplateLanguage } from "@zotlit/templates/constants";
 import { updateLiteratureNoteTemplateMatch } from "@zotlit/templates/facade";
@@ -60,7 +61,6 @@ import { jsonCodec, scalarCodec, sourceCodec } from "./slice-codec.ts";
 import type { SliceCodec } from "./slice-codec.ts";
 
 import { pairingState, pairingHistory } from "#language/pairing-state.ts";
-import { DEFAULT_PARTIAL_CONTEXT } from "#render/partial-preview.ts";
 
 /** The pane that edits one Managed Frontmatter entry's expression. */
 export type WorkbenchEntrySliceId = `entry:${number}`;

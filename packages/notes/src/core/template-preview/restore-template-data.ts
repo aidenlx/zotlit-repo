@@ -1,10 +1,9 @@
 // Pure restoration of the JSON-safe Template-data graph used by browser renders.
 
-import type { TemplatePathSegment } from "#explorer/accessor-path.ts";
-import type { SnapshotRootDescriptors } from "#snapshot/descriptors.ts";
-
-import { formatAccessorPath } from "#explorer/accessor-path.ts";
-import { formatWikiLink } from "#snapshot/wiki-link.ts";
+import type { TemplatePathSegment } from "@zotlit/db/template-data";
+import { formatAccessorPath } from "@zotlit/db/template-data";
+import type { SnapshotRootDescriptors } from "@zotlit/zotero-reads/contract/snapshot/descriptors.ts";
+import { formatWikiLink } from "@zotlit/zotero-reads/contract/snapshot/wiki-link.ts";
 
 export class SnapshotRestorationError extends Error {
   constructor(message: string) {

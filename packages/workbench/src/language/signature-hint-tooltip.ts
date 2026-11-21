@@ -9,6 +9,8 @@ import { showTooltip } from "@codemirror/view";
 import type { EditorView } from "@codemirror/view";
 import type { Tooltip, TooltipView, ViewUpdate } from "@codemirror/view";
 
+import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+
 import { fieldPopup } from "./field-popup.ts";
 import { appendProse } from "./prose.ts";
 import { signatureAt } from "./signature-hint.ts";
@@ -19,10 +21,10 @@ import type {
 } from "./signature-hint.ts";
 
 /**
- * The public theme hook of the Signature Hint tooltip. A host styles it; the
- * web host leaves CodeMirror's own tooltip look.
+ * The public theme hook of the Signature Hint tooltip, which the plugin's
+ * theme hooks own. A host styles it.
  */
-export const SIGNATURE_HINT_CLASS = "zt-signature-hint";
+export const SIGNATURE_HINT_CLASS = themeHook.signatureHint;
 
 /** Closes the hint until the text or the caret changes. */
 const dismiss = StateEffect.define<null>();

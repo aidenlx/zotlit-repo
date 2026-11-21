@@ -1,6 +1,6 @@
 // Reports redacted Template-data fields as explicit unavailable values.
 
-import type { SnapshotUnavailableValue } from "./types.ts";
+import type { SnapshotUnavailableValue } from "#contract/snapshot/types.ts";
 
 /**
  * Fields the exporter leaves null on purpose, and why. A `weblink` is null for

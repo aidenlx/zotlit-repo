@@ -1,7 +1,5 @@
 // The built-in Citation example sets a Citation Template preview renders.
 
-import type { ItemSnapshot } from "#snapshot/types.ts";
-
 import {
   citekeysToCiteTemplateData,
   narrowBaseDataToCiteItemData,
@@ -13,12 +11,12 @@ import type {
   TemplateCiteItemData,
   TemplateFilenameItemData,
 } from "@zotlit/db";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import { restoreTemplateData } from "./restore-template-data.ts";
 import { SAMPLE_ANNOTATIONS } from "./sample-annotations.ts";
-
-import book from "#samples/book.json" with { type: "json" };
-import journalArticle from "#samples/journal-article.json" with { type: "json" };
+import book from "./samples/book.json" with { type: "json" };
+import journalArticle from "./samples/journal-article.json" with { type: "json" };
 
 /** Every example set, in the order a chooser lists them. */
 export const CITATION_EXAMPLE_IDS = [

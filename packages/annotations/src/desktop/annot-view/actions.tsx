@@ -39,9 +39,9 @@ import {
   logServices,
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
+import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/indexed-key/menu.ts";
-import { observeExit } from "@zotlit/workbench/ui";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 

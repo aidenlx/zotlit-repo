@@ -2,20 +2,17 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The source reads the plugin's Message facade and the Workbench message
-    // contract, both generated.
+    // The source reads the plugin's generated Message facade.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs",
-        "@zotlit/workbench#generate:message-types"
+        "@zotlit/plugin-messages#generate:language-packs"
       ]
     },
     "test": {

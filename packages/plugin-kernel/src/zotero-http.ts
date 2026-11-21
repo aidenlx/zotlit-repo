@@ -122,7 +122,9 @@ export function exchangeWithZotero(
       body:
         body === undefined
           ? undefined
-          : HttpBody.raw(body, { contentLength: Buffer.byteLength(body) }),
+          : HttpBody.raw(body, {
+              contentLength: new TextEncoder().encode(body).byteLength,
+            }),
     },
   ).pipe(HttpClientRequest.setHeaders(headers));
   return Effect.flatMap(http.execute(request), (response) =>

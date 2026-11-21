@@ -1,7 +1,8 @@
 // Selection resolves by source and Indexed Key, so refreshing or reordering an item preserves its example.
 
 import type { AnnotationExample } from "#render/index.ts";
-import type { ItemSnapshot } from "#snapshot/index.ts";
+
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import { SAMPLE_ANNOTATIONS, SAMPLE_ITEMS } from "#render/index.ts";
 

@@ -12,7 +12,7 @@ import { planItemFilter, queryItemFrom } from "@zotlit/item-query";
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 
 import { MARKER_KEYS } from "./allowlist.ts";
-import { exportItemSnapshot } from "./index.ts";
+import { exportItemSnapshot } from "./export.ts";
 
 /**
  * The three CSL-named aliases the Template contract adds beside the field names

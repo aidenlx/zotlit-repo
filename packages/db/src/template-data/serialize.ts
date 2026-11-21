@@ -1,17 +1,18 @@
 // Converts live Template data into the Workbench's JSON-safe contract form.
 
-import type { ContractRoot } from "@zotlit/db";
 import type {
   ContractHelper,
   ContractType,
   RuntimeContractIR,
-} from "@zotlit/db/contract/ir";
-import contractIRJson from "@zotlit/db/contract/ir.runtime.json" with { type: "json" };
+} from "#contract/ir.ts";
+import type { ContractRoot } from "#contract/roots.ts";
 
 import { formatAccessorPath } from "./accessor-path.ts";
 import type { TemplatePathSegment } from "./accessor-path.ts";
 import { inertPlaceholderReason } from "./inert-placeholder.ts";
 import { coerceToString } from "./string-coercion.ts";
+
+import contractIRJson from "#contract/generated/ir.runtime.json" with { type: "json" };
 const UNKNOWN_CONTRACT_TYPE: ContractType = { kind: "unknown" };
 const contractIR = contractIRJson as RuntimeContractIR;
 

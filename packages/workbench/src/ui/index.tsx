@@ -109,8 +109,7 @@ export {
   useTooltip,
   useWorkbenchHost,
 } from "./host.tsx";
-export { joinForked, observeExit } from "#language/host-effects.ts";
-export type { ExitHandlers, WorkbenchRunner } from "#language/host-effects.ts";
+export type { WorkbenchRunner } from "#language/host-effects.ts";
 export type {
   WorkbenchConfirmRequest,
   WorkbenchDialogHandle,

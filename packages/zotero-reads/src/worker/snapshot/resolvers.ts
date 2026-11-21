@@ -1,13 +1,16 @@
 // Redacting Zotero resolvers and validation for permitted vault targets.
 
+import type {
+  SnapshotProvenance,
+  SnapshotVaultTargets,
+} from "#contract/snapshot/types.ts";
+
 import { formatAnnotationFragment, zoteroNoteLink } from "@zotlit/db";
 import type { Attachment, Item, NoteResolvers, TemplateLink } from "@zotlit/db";
+import { markInertPlaceholder } from "@zotlit/db/template-data";
 
-import type { SnapshotProvenance, SnapshotVaultTargets } from "./types.ts";
-import { SnapshotSelectionError } from "./types.ts";
-import { formatWikiLink } from "./wiki-link.ts";
-
-import { markInertPlaceholder } from "#explorer/index.ts";
+import { SnapshotSelectionError } from "#contract/snapshot/types.ts";
+import { formatWikiLink } from "#contract/snapshot/wiki-link.ts";
 
 export function normalizeTargets(
   targets: SnapshotVaultTargets | undefined,

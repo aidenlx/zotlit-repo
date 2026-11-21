@@ -27,7 +27,7 @@ describe("generateSampleItems", () => {
       outputDir,
       manifestPath: join(
         workspaceRoot,
-        "packages/workbench/src/samples/selection.json",
+        "packages/notes/src/core/template-preview/samples/selection.json",
       ),
     });
 
@@ -40,7 +40,7 @@ describe("generateSampleItems", () => {
     for (const { id, path } of generated) {
       const committed = join(
         workspaceRoot,
-        "packages/workbench/src/samples",
+        "packages/notes/src/core/template-preview/samples",
         `${id}.json`,
       );
       expect(await readFile(path, "utf8")).toBe(

@@ -16,6 +16,7 @@
     "./item-fixture": "./src/item-fixture.ts",
     "./item-query": "./src/item-query/index.ts",
     "./path": "./src/lib/zt-path.ts",
+    "./template-data": "./src/template-data/index.ts",
     "./contract/ir.json": "./src/contract/generated/ir.json",
     "./contract/ir.runtime.json": "./src/contract/generated/ir.runtime.json",
     "./contract/note.schema.json": "./src/contract/generated/note.schema.json",

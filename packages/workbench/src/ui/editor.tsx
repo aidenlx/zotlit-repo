@@ -2,7 +2,6 @@
 // in the Workbench model.
 
 import type { WorkbenchDocumentController } from "#document/controller.ts";
-import type { WorkbenchReportContext } from "#render/report.ts";
 import type { TemplateRenderResult } from "#render/result.ts";
 import {
   RegistryContext,
@@ -15,6 +14,7 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
+import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-report.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { NO_MATCH_DATA } from "./host.tsx";

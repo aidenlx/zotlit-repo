@@ -36,6 +36,10 @@ The `zt` types plus their doc comments are the single source of truth for the te
 - The extractor parses with ts-morph's vendored frozen TypeScript 6, not the repo's TypeScript 7. See [ADR 0015](../../docs/adr/0015-template-contract-artifacts-generate-from-ts-types.md).
 - Three doc tags on a contract member carry emitter data: `@ztFilter <name>` names the Liquid filter of a helper member, `@ztInert` (empty tag) marks a helper the resolver can leave inert, and `@example` holds exactly one fenced code block. Any other content in any tag fails the extractor.
 
+### Template data helpers
+
+`@zotlit/db/template-data` (`src/template-data/`) holds what every host reads Template data through: accessor paths (`formatAccessorPath`), the mark of an inert helper (`markInertPlaceholder`), and `serializeTemplateData`, the JSON-safe contract form the contract IR describes.
+
 ## Item Query readers
 
 `src/item-query/` holds every SQL statement of Item Query, behind the `@zotlit/db/item-query` export. It is the only entry that loads `effect`; keep `effect` imports inside it. Define each statement with `defineStatement` in `src/item-query/database.ts` and name its reader: it is the one place where a driver call becomes an Effect, a thrown value becomes `ItemQueryDatabaseError`, and `ItemQueryStatementObserver` (a reference with a no-op default) gets the reader, the parameters, and the rows of each statement. Test readers on the scenario database (`@zotlit/db-testing/scenario`, opened with `connectClient` from `src/client/node.ts`); `seedBulkLibrary` adds a Library of any size for a test that needs several pages.

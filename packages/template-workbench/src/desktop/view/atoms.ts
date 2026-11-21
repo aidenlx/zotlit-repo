@@ -7,8 +7,8 @@ import { isChildItemFields } from "@zotlit/db";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { itemSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { getSampleItem } from "#core/editor/selection-data.ts";

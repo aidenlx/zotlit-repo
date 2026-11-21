@@ -1,8 +1,5 @@
 // The render scheduler as atoms: a sleep a newer input interrupts, then the host's render Effect.
 
-import type { CitationPreviewSelection } from "#render/citation-examples.ts";
-import type { PartialPreviewSelection } from "#render/partial-preview.ts";
-import type { WorkbenchReportContext } from "#render/report.ts";
 import type { RenderRequest } from "#render/request.ts";
 import type {
   TemplateRenderResult,
@@ -10,17 +7,24 @@ import type {
   RenderedProperty,
   RenderIdentity,
 } from "#render/result.ts";
-import type { AnnotationExample } from "#render/sample-annotations.ts";
-import type { ItemSnapshot } from "#snapshot/index.ts";
 import { Cause, Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
+
+import type { CitationPreviewSelection } from "@zotlit/notes/core/template-preview/citation-examples.ts";
+import type { PartialPreviewSelection } from "@zotlit/notes/core/template-preview/partial-preview.ts";
+import type { AnnotationExample } from "@zotlit/notes/core/template-preview/sample-annotations.ts";
+import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-report.ts";
+import {
+  captureRenderReport,
+  engineEvidence,
+} from "@zotlit/notes/core/template/render-report.ts";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import { WorkbenchHostError } from "./host.tsx";
 import type { PreviewMode } from "./model.ts";
 
 import { followEntries } from "#document/manifest-patch.ts";
-import { captureRenderReport, engineEvidence } from "#render/report.ts";
 import {
   failedRender,
   renderFailed,

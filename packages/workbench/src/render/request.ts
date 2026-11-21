@@ -1,10 +1,9 @@
 // What one render is asked for: the draft and the paper it is shown against.
 
-import type { ItemSnapshot } from "#snapshot/index.ts";
-
-import type { CitationPreviewSelection } from "./citation-examples.ts";
-import type { PartialPreviewSelection } from "./partial-preview.ts";
-import type { AnnotationExample } from "./sample-annotations.ts";
+import type { CitationPreviewSelection } from "@zotlit/notes/core/template-preview/citation-examples.ts";
+import type { PartialPreviewSelection } from "@zotlit/notes/core/template-preview/partial-preview.ts";
+import type { AnnotationExample } from "@zotlit/notes/core/template-preview/sample-annotations.ts";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 export interface RenderOptions {
   /** Update uses a synthesized note when the host has no existing note. */

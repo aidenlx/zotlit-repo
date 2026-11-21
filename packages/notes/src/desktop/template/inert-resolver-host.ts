@@ -1,5 +1,6 @@
 // Adapts Obsidian services to the shared side-effect-free resolver core.
 
+import type { ExcerptImageContext } from "#core/template/inert-resolvers.ts";
 import { normalizePath } from "obsidian";
 import type { FileManager, TFile, Vault } from "obsidian";
 import TurndownService from "turndown";
@@ -14,13 +15,13 @@ import {
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+
+import { attachmentFileLink } from "./annotation-render.ts";
+
 import {
   buildInertNoteResolvers,
   findExistingLitNote,
-} from "@zotlit/workbench/explorer";
-import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
-
-import { attachmentFileLink } from "./annotation-render.ts";
+} from "#core/template/inert-resolvers.ts";
 
 export { findExistingLitNote };
 export type { ExcerptImageContext };

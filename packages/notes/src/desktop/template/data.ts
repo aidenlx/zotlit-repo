@@ -1,5 +1,7 @@
 // Resolves an Indexed Key and builds side-effect-free Template data.
 
+import type { CitationExampleId } from "#core/template-preview/citation-examples.ts";
+import type { ExcerptImageContext } from "#core/template/inert-resolvers.ts";
 import type { Template } from "#obsidian/template/service.ts";
 import { Data, Effect, Stream } from "effect";
 
@@ -29,9 +31,6 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateError } from "@zotlit/templates/facade";
-import type { ExcerptImageContext } from "@zotlit/workbench/explorer";
-import { citationExampleData } from "@zotlit/workbench/render";
-import type { CitationExampleId } from "@zotlit/workbench/render";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -41,6 +40,7 @@ import {
   findExistingLitNote,
 } from "./inert-resolver-host.ts";
 
+import { citationExampleData } from "#core/template-preview/citation-examples.ts";
 import { CITATION_TEMPLATE_NAME } from "#core/template/defaults.ts";
 import { InertTemplateError } from "#core/template/errors.ts";
 import { itemFacets } from "#desktop/note-feature/context.ts";

@@ -1,7 +1,8 @@
 import { findNodeAtLocation, getNodeValue, parseTree } from "jsonc-parser";
 import type { Node } from "jsonc-parser";
 
-import type { RenderCallerSource } from "./attribution.ts";
+import type { RenderCallerSource } from "@zotlit/notes/core/template/render-failure.ts";
+
 import type { RenderDiagnostic } from "./result.ts";
 
 // Retained repair targets are re-read against the source the reader edits now.

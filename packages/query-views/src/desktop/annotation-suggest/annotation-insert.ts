@@ -8,7 +8,7 @@ import type {
   InsertFiber,
   InsertRunner,
 } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
-import { observeExit } from "@zotlit/workbench/ui";
+import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 
 import type { AnnotationHit } from "./annotation-search.ts";
 

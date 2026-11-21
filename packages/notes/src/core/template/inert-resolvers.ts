@@ -12,8 +12,7 @@ import type {
   TemplateNoteLink,
 } from "@zotlit/db";
 import { zoteroNoteLink } from "@zotlit/db";
-
-import { markInertPlaceholder } from "./inert-placeholder.ts";
+import { markInertPlaceholder } from "@zotlit/db/template-data";
 
 /** Which side-effect-free excerpt-image rendering path applies for the current item. */
 export type ExcerptImageContext =

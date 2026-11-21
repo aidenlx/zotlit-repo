@@ -1,3 +1,4 @@
+import type { RenderDiagnostic } from "#core/template/render-diagnostic.ts";
 // The route back to the Template Workbench from a note operation that refused:
 // one notice, shared by every surface that reports one.
 import { Effect } from "effect";
@@ -10,14 +11,13 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
+
+import { MissingPartialError } from "#core/template/errors.ts";
+import { renderFailureDiagnostic } from "#core/template/render-failure.ts";
 import {
   captureRenderReport,
   engineEvidence,
-  renderFailureDiagnostic,
-} from "@zotlit/workbench/render";
-import type { RenderDiagnostic } from "@zotlit/workbench/render";
-
-import { MissingPartialError } from "#core/template/errors.ts";
+} from "#core/template/render-report.ts";
 
 /**
  * The failure a refused note operation asks the Workbench to explain: the

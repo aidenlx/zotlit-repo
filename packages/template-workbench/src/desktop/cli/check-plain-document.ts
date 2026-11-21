@@ -6,6 +6,7 @@ import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
 import { Effect, Schema } from "effect";
 
 import type { CitationTemplateData } from "@zotlit/db";
+import { serializeTemplateData } from "@zotlit/db/template-data";
 import { plainTemplateError } from "@zotlit/notes/core/template/errors.ts";
 import {
   readCitationData,
@@ -20,7 +21,6 @@ import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { templateCall } from "@zotlit/notes/obsidian/template/sync-template.ts";
 import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { parsePlainTemplateDocument } from "@zotlit/templates/facade";
-import { serializeTemplateData } from "@zotlit/workbench/explorer";
 import { isCitationExampleId } from "@zotlit/workbench/render";
 import type { RenderCallerSource } from "@zotlit/workbench/render";
 

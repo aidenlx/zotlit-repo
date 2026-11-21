@@ -14,15 +14,13 @@ import {
 } from "@zotlit/templates/facade";
 import { ParseError, TokenizationError } from "@zotlit/templates/liquid";
 
-import { errorChain } from "./report.ts";
 import type {
   RenderCaller,
   RenderDiagnostic,
   RenderEngineLocation,
   SliceSite,
-} from "./result.ts";
-
-import { templateCalls } from "#document/regions.ts";
+} from "./render-diagnostic.ts";
+import { errorChain } from "./render-report.ts";
 
 /** The source one render read, which a repair location is an offset into. */
 export interface RenderCallerSource {
@@ -31,6 +29,19 @@ export interface RenderCallerSource {
   /** The Profile whose section templates this source owns. */
   readonly profileId?: string;
 }
+
+/**
+ * Every call in `caller` naming `template`, in source order. Empty for a name
+ * the source never spells, so an unnamed location stays unnamed. The Template
+ * Workbench reads the calls off the source; a caller with no source to read
+ * names none.
+ */
+export type TemplateCallSites = (
+  caller: RenderCallerSource,
+  template: string | undefined,
+) => readonly { from: number; to: number }[];
+
+const noCallSites: TemplateCallSites = () => [];
 
 /**
  * The diagnostic one thrown render failure reads as, attributed against the
@@ -48,6 +59,7 @@ export interface RenderCallerSource {
 export function renderFailureDiagnostic(
   error: unknown,
   caller: RenderCallerSource,
+  callSites: TemplateCallSites = noCallSites,
 ): Omit<RenderDiagnostic, "part"> {
   const chain = errorChain(error);
   const syntax = chain.find(
@@ -62,7 +74,7 @@ export function renderFailureDiagnostic(
   // every other failure is repaired where the template it names was called.
   const site = named
     ? callSites(caller, named.templateName)[0]
-    : verifiedCallSite(caller, engine?.template);
+    : verifiedCallSite(callSites, caller, engine?.template);
   const from = callerOf(chain);
   const located =
     syntax ??
@@ -247,20 +259,6 @@ function liquidToken(
 }
 
 /**
- * Every call in `caller` naming `template`, in source order. Empty for a name
- * the source never spells, so an unnamed location stays unnamed.
- */
-function callSites(
-  { source, language }: RenderCallerSource,
-  template: string | undefined,
-): { from: number; to: number }[] {
-  if (template === undefined) return [];
-  return templateCalls(source, { from: 0, to: source.length }, language)
-    .filter(({ name }) => name === template)
-    .map(({ call }) => call);
-}
-
-/**
  * Where a failure the engine reported inside `template` is repaired: the one
  * call that reached it. A source spelling that name twice reached it from one
  * of them and nothing here says which, so the repair location stays absent
@@ -269,6 +267,7 @@ function callSites(
  * every call naming the missing document needs the same repair.
  */
 function verifiedCallSite(
+  callSites: TemplateCallSites,
   caller: RenderCallerSource,
   template: string | undefined,
 ): { from: number; to: number } | undefined {

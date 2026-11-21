@@ -14,13 +14,13 @@ A capability of a unit outside the package comes in as a port that the host fill
 - `TemplateWorkbenchLauncher` (`obsidian/template/workbench-launcher.ts`) opens a Template Document in the Template Workbench View; `@zotlit/template-workbench` fills it (`desktop/view/open.ts`).
 - `layerProfile` takes the Profile document revision (`ProfileRevision`, a hash of the source) as a parameter; the desktop host passes `@zotlit/obsidian-desktop/profile-revision.ts`.
 
-No feature package imports this one; `@zotlit/template-workbench` builds on it.
+No feature package imports this one; `@zotlit/template-workbench` and the Workbench core `@zotlit/workbench` build on it.
 
 ## Layers
 
 Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
 
-- `core/` — host-free: no Node built-in, `obsidian`, `electron`, Obsidian kit, or client and desktop layers of the other plugin packages. The note filename and frontmatter rules, the note import's Markdown conversion and marks, the template defaults, errors and paths, the template and note import settings slices, and the Item Match port.
+- `core/` — host-free: no Node built-in, `obsidian`, `electron`, Obsidian kit, or client and desktop layers of the other plugin packages. The note filename and frontmatter rules, the note import's Markdown conversion and marks, the template defaults, errors and paths, the render diagnostics and reports and the side-effect-free note resolvers (`core/template/`), the built-in data of the template previews — Sample Items, Sample Annotations, Citation examples and Shared Partial contexts (`core/template-preview/`) — the template and note import settings slices, and the Item Match port.
 - `obsidian/` — loads on Obsidian Mobile: the Obsidian API, the kit, the client and Obsidian layers of the other plugin packages, and no Node or Electron. The Profile service, its bindings, atoms and settings slice, the Profile picker and the Profile modals that need no note preview, Profile selection, the Template service and its atoms, the template workbench recovery and launch port, and the batch run.
 - `desktop/` — Node and Electron: the Note Feature and the note import, which read Excerpt Images and Attachment Import; template data and the annotation render, which link files on disk; the template conversion; the Profile dialogs, which read the system file dialog; and the batch modal, which shows the Note Feature's results.
 - `__fixtures__/` — test support, one folder or file per unit. `settings.ts`, `view-atoms.ts` and `service-stubs.ts` hold this package's own slices, view services and service stubs; the Template Workbench's tests read them too.

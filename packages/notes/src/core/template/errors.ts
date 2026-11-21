@@ -7,12 +7,9 @@ import { regex } from "arkregex";
 import { Predicate, Schema } from "effect";
 
 import { MissingTemplateError } from "@zotlit/templates/facade";
-import {
-  renderFailureCause,
-  renderFailureSpan,
-} from "@zotlit/workbench/render";
 
 import type { PartialNameRefusal } from "./defaults.ts";
+import { renderFailureCause, renderFailureSpan } from "./render-failure.ts";
 
 /**
  * Thrown when an operation requires an artifact the JavaScript Templates gate

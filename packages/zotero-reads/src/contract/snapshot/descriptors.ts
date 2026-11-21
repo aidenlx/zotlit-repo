@@ -1,6 +1,6 @@
 // Browser-safe descriptor contract and extraction for serialized Template data.
 
-import type { TemplatePathSegment } from "#explorer/accessor-path.ts";
+import type { TemplatePathSegment } from "@zotlit/db/template-data";
 
 import type {
   SnapshotGraphReference,
@@ -9,12 +9,7 @@ import type {
   SnapshotTemporalValue,
 } from "./schema.ts";
 
-export type {
-  SnapshotGraphReference,
-  SnapshotRootDescriptors,
-  SnapshotStringCoercion,
-  SnapshotTemporalValue,
-} from "./schema.ts";
+export type { SnapshotRootDescriptors } from "./schema.ts";
 
 export function collectRootDescriptors(root: object): SnapshotRootDescriptors {
   const stringCoercions: SnapshotStringCoercion[] = [];

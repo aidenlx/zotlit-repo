@@ -1,4 +1,3 @@
-import type { RenderReport, WorkbenchReportContext } from "#render/report.ts";
 import type { RenderDiagnostic } from "#render/result.ts";
 // The editor's Problems area: one detected problem at a time, led by the
 // object it is about, and the disclosure the reader controls. Automatic checks
@@ -31,6 +30,11 @@ import {
   useState,
 } from "react";
 
+import type {
+  RenderReport,
+  WorkbenchReportContext,
+} from "@zotlit/notes/core/template/render-report.ts";
+import { formatRenderReport } from "@zotlit/notes/core/template/render-report.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchModel } from "./editor.tsx";
@@ -52,7 +56,7 @@ import type { RenderTrigger } from "./scheduler-atoms.ts";
 import { WorkbenchOption, WorkbenchSelect } from "./select.tsx";
 import { useParts, useIcon } from "./theme.tsx";
 
-import { captureProblemReport, formatRenderReport } from "#render/report.ts";
+import { captureProblemReport } from "#render/problem-report.ts";
 
 export { problemWhere } from "./problems.ts";
 

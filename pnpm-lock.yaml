@@ -1037,9 +1037,6 @@ importers:
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-reads':
         specifier: workspace:*
         version: link:../zotero-reads
@@ -1760,9 +1757,6 @@ importers:
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-reads':
         specifier: workspace:*
         version: link:../zotero-reads
@@ -1940,9 +1934,6 @@ importers:
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-types':
         specifier: workspace:*
         version: link:../zotero-types
@@ -2183,9 +2174,6 @@ importers:
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       cn:
         specifier: 'catalog:'
         version: 0.2.4
@@ -2725,9 +2713,9 @@ importers:
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
-      '@zotlit/workbench':
+      '@zotlit/zotero-reads':
         specifier: workspace:*
-        version: link:../workbench
+        version: link:../zotero-reads
       '@zotlit/zotero-types':
         specifier: workspace:*
         version: link:../zotero-types
@@ -3043,12 +3031,21 @@ importers:
       '@zotlit/item-query':
         specifier: workspace:*
         version: link:../item-query
+      '@zotlit/notes':
+        specifier: workspace:*
+        version: link:../notes
+      '@zotlit/plugin-kernel':
+        specifier: workspace:*
+        version: link:../plugin-kernel
       '@zotlit/templates':
         specifier: workspace:*
         version: link:../templates
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui
+      '@zotlit/zotero-reads':
+        specifier: workspace:*
+        version: link:../zotero-reads
       '@zotlit/zotero-types':
         specifier: workspace:*
         version: link:../zotero-types
@@ -3113,9 +3110,6 @@ importers:
       '@zotlit/config':
         specifier: workspace:*
         version: link:../config
-      '@zotlit/db-testing':
-        specifier: workspace:*
-        version: link:../db-testing
       '@zotlit/obsidian-i18n':
         specifier: workspace:*
         version: link:../obsidian-i18n
@@ -3176,9 +3170,6 @@ importers:
       '@zotlit/shared':
         specifier: workspace:*
         version: link:../shared
-      '@zotlit/workbench':
-        specifier: workspace:*
-        version: link:../workbench
       '@zotlit/zotero-types':
         specifier: workspace:*
         version: link:../zotero-types
@@ -3210,6 +3201,9 @@ importers:
       '@zotlit/db-testing':
         specifier: workspace:*
         version: link:../db-testing
+      ajv:
+        specifier: 'catalog:'
+        version: 8.20.0
       jieba-wasm:
         specifier: 'catalog:'
         version: 2.4.0

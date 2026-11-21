@@ -9,8 +9,9 @@ import type {
   TemplateEngine,
 } from "#explorer/index.ts";
 
+import { formatAccessorPath } from "@zotlit/db/template-data";
+
 import {
-  formatAccessorPath,
   isList,
   JOIN_SEPARATOR,
   listItemTexts,

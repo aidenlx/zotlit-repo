@@ -11,10 +11,10 @@ import { Menu } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { SuggestionSource } from "@zotlit/workbench/language";
-import { observeExit } from "@zotlit/workbench/ui";
 import type { WorkbenchRunner } from "@zotlit/workbench/ui";
 
 /**

@@ -38,7 +38,6 @@
     "@zotlit/reader-api": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/ui": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
     "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

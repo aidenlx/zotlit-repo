@@ -1,11 +1,11 @@
 // Built-in annotation examples and the serialized root/descriptor pair a preview renders.
 
-import type { SnapshotRootDescriptors } from "#snapshot/descriptors.ts";
-import type { ItemSnapshot } from "#snapshot/types.ts";
+import type { SnapshotRootDescriptors } from "@zotlit/zotero-reads/contract/snapshot/descriptors.ts";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
-import { templateSourceRevision } from "./result.ts";
+import conferencePaper from "./samples/conference-paper.json" with { type: "json" };
 
-import conferencePaper from "#samples/conference-paper.json" with { type: "json" };
+import { templateSourceRevision } from "#core/template/render-diagnostic.ts";
 
 export interface AnnotationExample {
   readonly id: string;

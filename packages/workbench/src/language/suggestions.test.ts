@@ -1,6 +1,8 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
+import { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
+
 import {
   completionEdit,
   hoverHint,
@@ -9,7 +11,6 @@ import {
 } from "./suggestions.ts";
 import type { SuggestionConfig } from "./suggestions.ts";
 
-import { restoreTemplateData } from "#render/restore-template-data.ts";
 import { m } from "#ui/test-messages.ts";
 
 const note: SuggestionConfig = { root: "note", partials: ["cite", "content"] };

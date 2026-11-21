@@ -63,7 +63,7 @@ import { Effect } from "effect";
 import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db-testing";
-import { exportItemSnapshot } from "@zotlit/workbench/snapshot";
+import { exportItemSnapshot } from "@zotlit/zotero-reads/worker/snapshot/export.ts";
 import type { RenderedCitation } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 
 import { buildTemplate } from "@zotlit/notes/__fixtures__/template.ts";

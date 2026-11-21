@@ -1,9 +1,8 @@
 // The names a host shows for the Citation Template preview's own two choices:
 // which built-in example set it renders, and which Citation Variant.
 
-import type { CitationExampleId } from "#render/citation-examples.ts";
-
 import type { CitationVariant } from "@zotlit/db";
+import type { CitationExampleId } from "@zotlit/notes/core/template-preview/citation-examples.ts";
 
 import type { WorkbenchMessages } from "./generated/messages.ts";
 import type { WorkbenchMessageLabel } from "./messages.tsx";

@@ -20,7 +20,6 @@ import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { SAMPLE_ITEMS } from "@zotlit/workbench/render";
-import type { ItemSnapshot } from "@zotlit/workbench/snapshot";
 import {
   chooseItem,
   INITIAL_CHOICES,
@@ -28,6 +27,7 @@ import {
   setAdvanced,
   setTab,
 } from "@zotlit/workbench/ui";
+import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
 import {
   holdTemplateWorkbenchModel,

@@ -1,11 +1,9 @@
-import type { TemplatePathSegment } from "#explorer/accessor-path.ts";
-
 // Template Contract traversal shared by completion and local-variable inference.
 import type { ContractMember, ContractType } from "@zotlit/db/contract/ir";
 import type { ContractIR } from "@zotlit/db/contract/ir";
 import contractJson from "@zotlit/db/contract/ir.json";
-
-import { formatAccessorPath } from "#explorer/accessor-path.ts";
+import type { TemplatePathSegment } from "@zotlit/db/template-data";
+import { formatAccessorPath } from "@zotlit/db/template-data";
 export const contract = contractJson as ContractIR;
 
 export function resolve(type: ContractType): ContractType {

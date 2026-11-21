@@ -25,7 +25,6 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/plugin-messages": "workspace:*",
     "@zotlit/ui": "workspace:*",
-    "@zotlit/workbench": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "cn": "catalog:",

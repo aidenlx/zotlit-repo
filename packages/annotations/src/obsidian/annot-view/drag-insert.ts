@@ -7,8 +7,8 @@ import type { App, Editor, MarkdownFileInfo, TFile } from "obsidian";
 
 import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import { latestSlot } from "@zotlit/obsidian-kit/view-runner.ts";
+import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { observeExit } from "@zotlit/workbench/ui";
 
 import type {
   AnnotationInsertOutcome,

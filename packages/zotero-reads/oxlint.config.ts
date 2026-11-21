@@ -128,6 +128,17 @@ export default defineConfig({
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     {
+      // The Item Snapshot export, moved here from the Workbench core as it
+      // stood: the Worker answers the ItemSnapshot RPC on the desktop alone,
+      // where Node runs, and the snapshot revision is a Node SHA-256 digest;
+      // the Item Query seed read runs synchronously inside that answer.
+      files: ["src/worker/snapshot/export.ts"],
+      rules: {
+        "import/no-nodejs-modules": "off",
+        "zotlit-services/no-default-runtime": "off",
+      },
+    },
+    {
       // Worker migration backlog: move snapshot integrity checks to effect/rpc,
       // then remove this file from the list.
       files: ["src/desktop/snapshot-integrity.ts"],

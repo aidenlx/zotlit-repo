@@ -7,8 +7,9 @@ import type {
   WorkbenchProblem,
   WorkbenchSliceId,
 } from "#document/controller.ts";
-import type { RenderReport } from "#render/report.ts";
 import type { RenderDiagnostic } from "#render/result.ts";
+
+import type { RenderReport } from "@zotlit/notes/core/template/render-report.ts";
 
 import type { WorkbenchMessages } from "./generated/messages.ts";
 import type { WorkbenchMessageLabel } from "./messages.tsx";
