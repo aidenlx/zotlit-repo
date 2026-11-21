@@ -152,3 +152,21 @@ it("reports a stalled leftovers check without failing the file when the vault an
   expect(String(outcome)).not.toContain("run vault stopped answering");
   expect(() => guard.before(caseContext(file, "next case"))).not.toThrow();
 });
+
+it("asks a vault without a leftovers check only after a failed case", async () => {
+  const guard = createRunVaultGuard(() => "own-vault", { leftovers: false });
+  const file = "/suite/walkthrough.e2e.ts";
+  socketBoundary.answer = dead;
+  await guard.after(caseContext(file, "passes"));
+  expect(socketBoundary.calls).toBe(0);
+  expect(
+    String(
+      await settled(
+        guard.after(caseContext(file, "fails", [new Error("step failed")])),
+      ),
+    ),
+  ).toContain("run vault stopped answering");
+  expect(() => guard.before(caseContext(file, "next step"))).toThrow(
+    /"fails"[\s\S]*step failed/,
+  );
+});

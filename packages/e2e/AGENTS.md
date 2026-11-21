@@ -91,7 +91,7 @@ The type and serialization proofs are in `src/ob-run.types.ts` and
 
 Shared Fixture setup, vault bootstrap, and helpers live in `src/e2e-run-*.ts` (`e2e-run-fixture.ts`, `e2e-run-lifecycle.ts`, `e2e-run-suite-helpers.ts`, and related modules). Every area file calls `registerEndToEndRunHooks()` so the Fixture vault opens once per run across files.
 
-`registerRunVaultGuard` (`src/run-vault-guard.ts`) holds the per-case hooks: after each case it checks for menus, dialogs and popovers left open (`expectNothingLeftOpen`). After a failed case it asks the vault for a short answer. When the vault does not answer, every later case of that file fails at once, and the message names the first failed case and its errors, with the inner errors of a `SuppressedError`. Cases of other files still run. `registerEndToEndRunHooks()` registers it. A file that opens its own vault registers it in its `describe` with `{ leftovers: false }`.
+`registerRunVaultGuard` (`src/run-vault-guard.ts`) holds the per-case hooks: after each case it checks for menus, dialogs and popovers left open (`expectNothingLeftOpen`). When that check gets no reply, or a case fails in a file without the check, it asks the vault for `1`. When the vault does not answer, each later case of that file fails in its `beforeEach`, and the message names the first failed case and its errors, with the inner errors of a `SuppressedError`. Cases of other files still run. The file's own hooks still call the vault, each with its own deadline. `registerEndToEndRunHooks()` registers it. A file that opens its own vault registers it in its `describe` with `{ leftovers: false }`.
 
 Add a new case to the area file that matches its feature (create a new area file only when an existing one would pass ~2,000 lines):
 

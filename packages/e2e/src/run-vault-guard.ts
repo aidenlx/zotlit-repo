@@ -8,9 +8,6 @@ import { afterEach, beforeEach } from "vitest";
 import { expectNothingLeftOpen } from "./case-leftovers.ts";
 import { cli } from "./obsidian-cli.ts";
 
-/** Short next to the CLI deadline: a live window answers `1` in milliseconds. */
-const PROBE_TIMEOUT_MS = 5_000;
-
 /** What a per-case hook reads of Vitest's context. */
 interface GuardedCase {
   task: {
@@ -58,10 +55,12 @@ function describeError(error: unknown, indent = ""): string {
 /**
  * The per-case hooks of a file that runs in one Obsidian vault.
  *
- * After a case fails, or its leftovers check fails, one short call asks the
- * vault whether it still answers. When it gets no answer, every later case of
- * the same file fails before it starts, with the first failed case's name and
- * errors in its message. Cases of other files still run.
+ * The vault still answers when the leftovers check got a reply. When that
+ * check got no reply, or a case failed with no leftovers check, one more call
+ * with the suite's deadline asks the vault for `1`. When that call gets no
+ * answer, every later case of the same file fails before it starts, with the
+ * first failed case's name and errors in its message. Cases of other files
+ * still run.
  *
  * @param leftovers run {@link expectNothingLeftOpen} after each case
  */
@@ -91,11 +90,14 @@ export function createRunVaultGuard(
         }
       }
       const caseErrors = task.result?.errors ?? [];
-      if (task.result?.state !== "fail" && leftover === undefined) return;
-      const probe = await cli(
-        [`vault=${vaultId()}`, "eval", "code=1"],
-        PROBE_TIMEOUT_MS,
-      ).then(
+      const unanswered = leftovers
+        ? leftover !== undefined && leftover.name !== "AssertionError"
+        : task.result?.state === "fail";
+      if (!unanswered) {
+        if (leftover !== undefined) throw leftover;
+        return;
+      }
+      const probe = await cli([`vault=${vaultId()}`, "eval", "code=1"]).then(
         () => undefined,
         (error: unknown) => error ?? new Error("no answer"),
       );
