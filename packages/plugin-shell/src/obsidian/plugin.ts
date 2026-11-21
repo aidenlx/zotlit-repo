@@ -12,6 +12,7 @@ import {
 import { registerFileMenu } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { startI18n } from "@zotlit/plugin-services/obsidian/language-pack/start.ts";
 
+import { checkLinkActions } from "./compose.ts";
 import type { HostDeclaration } from "./compose.ts";
 import { shellEntry } from "./entry.ts";
 import type { StartShell } from "./entry.ts";
@@ -26,12 +27,21 @@ import { reportStartupFailure } from "./startup-notice.ts";
  * `preflight` is a host's check before the plugin acquires anything. Throw to
  * stop the load; the Language Pack is already applied, so a notice reads in
  * the user's language.
+ *
+ * `linkActions` is the list a host also gave its entry (`shellEntry`). The
+ * start fails when it differs from the actions the features register.
  */
 export function shellStart<const F extends readonly Feature<any, any, any>[]>(
   host: HostDeclaration<F>,
-  options?: { readonly preflight?: () => void },
+  options?: {
+    readonly preflight?: () => void;
+    readonly linkActions?: readonly string[];
+  },
 ): StartShell {
   return async (plugin) => {
+    if (options?.linkActions)
+      checkLinkActions(host.features, options.linkActions);
+
     if (__DEV__) enableStartupLogging();
 
     // Install the current session's pack before any copy shows: the

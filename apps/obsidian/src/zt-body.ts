@@ -8,6 +8,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { shellStart } from "@zotlit/plugin-shell/obsidian/plugin.ts";
 
 import { host } from "./host.ts";
+import { linkActions } from "./link-actions.ts";
 
 export function showInstallerUpdateNotice(): BaseNotice {
   return new BaseNotice(
@@ -59,4 +60,7 @@ function assertElectronVersion(): void {
 }
 
 /** Desktop ZotLit's start: block load on too-old Obsidian installers before allocating any resources. */
-export const start = shellStart(host, { preflight: assertElectronVersion });
+export const start = shellStart(host, {
+  preflight: assertElectronVersion,
+  linkActions,
+});
