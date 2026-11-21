@@ -5,14 +5,12 @@ import { describe, expect } from "vitest";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { LinkOutcome } from "@zotlit/plugin-services/obsidian/protocol/outcome.ts";
 
 import { showWorkbenchLinkOutcome } from "./notices.ts";
-import { WorkbenchLinkOutcome } from "./outcome.ts";
 
 /** The notices `outcome` shows: each one's text and duration. */
-const noticesOf = Effect.fn("noticesOf")(function* (
-  outcome: WorkbenchLinkOutcome,
-) {
+const noticesOf = Effect.fn("noticesOf")(function* (outcome: LinkOutcome) {
   const notifier = testNotifier();
   yield* showWorkbenchLinkOutcome(outcome).pipe(
     Effect.provideService(Notifier, notifier.service),
@@ -25,7 +23,7 @@ const noticesOf = Effect.fn("noticesOf")(function* (
 
 describe("showWorkbenchLinkOutcome", () => {
   it.effect.each([
-    [WorkbenchLinkOutcome.InvalidLink(), m.notice_protocol_invalid()],
+    [LinkOutcome.InvalidLink(), m.notice_protocol_invalid()],
   ] as const)("tells a refused link: %o", ([outcome, message]) =>
     Effect.gen(function* () {
       expect(yield* noticesOf(outcome)).toEqual([
@@ -34,11 +32,9 @@ describe("showWorkbenchLinkOutcome", () => {
     }),
   );
 
-  it.effect.each([WorkbenchLinkOutcome.Opened()])(
-    "shows nothing for %o",
-    (outcome) =>
-      Effect.gen(function* () {
-        expect(yield* noticesOf(outcome)).toEqual([]);
-      }),
+  it.effect.each([LinkOutcome.Opened()])("shows nothing for %o", (outcome) =>
+    Effect.gen(function* () {
+      expect(yield* noticesOf(outcome)).toEqual([]);
+    }),
   );
 });

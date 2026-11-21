@@ -7,6 +7,7 @@ import {
   parseProtocolData,
   resolveProtocolItem,
 } from "@zotlit/plugin-services/obsidian/protocol/link.ts";
+import { LinkOutcome } from "@zotlit/plugin-services/obsidian/protocol/outcome.ts";
 import { protocolHandler } from "@zotlit/plugin-shell/obsidian/feature.ts";
 import {
   exploreProtocolActionId,
@@ -14,7 +15,6 @@ import {
 } from "@zotlit/protocol";
 
 import { showWorkbenchLinkOutcome } from "./notices.ts";
-import { WorkbenchLinkOutcome } from "./outcome.ts";
 
 import { openTemplateDataExplorer } from "#desktop/data-explorer/register.ts";
 
@@ -46,6 +46,6 @@ const handleExploreProtocol = Effect.fn("protocol.handleExploreProtocol")(
       },
       { paneType: query.success.paneType },
     );
-    return WorkbenchLinkOutcome.Opened();
+    return LinkOutcome.Opened();
   },
 );

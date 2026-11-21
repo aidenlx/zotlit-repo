@@ -1,9 +1,0 @@
-// What one Template Workbench link ended with: the notice it shows reads it,
-// and so do the tests.
-import { Data } from "effect";
-
-import type { LinkOutcomeVariants } from "@zotlit/plugin-services/obsidian/protocol/outcome.ts";
-
-export type WorkbenchLinkOutcome = Data.TaggedEnum<LinkOutcomeVariants>;
-
-export const WorkbenchLinkOutcome = Data.taggedEnum<WorkbenchLinkOutcome>();
