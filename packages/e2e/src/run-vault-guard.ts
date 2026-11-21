@@ -3,10 +3,14 @@
 // 27 failures and 15 minutes. The guard ends a file at the first case after
 // which the vault stops answering, and names that case as the cause.
 
-import { afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, expect } from "vitest";
 
-import { expectNothingLeftOpen } from "./case-leftovers.ts";
-import { cli } from "./obsidian-cli.ts";
+import { leftOpen } from "./case-leftovers.ts";
+import {
+  cli,
+  refuseRunVaultCalls,
+  RunVaultStoppedError,
+} from "./obsidian-cli.ts";
 
 /** What a per-case hook reads of Vitest's context. */
 interface GuardedCase {
@@ -17,8 +21,25 @@ interface GuardedCase {
   };
 }
 
-/** The first case of each file after which the run vault stopped answering. */
-const stoppedFiles = new Map<string, { caseName: string; failure: string }>();
+/**
+ * The first case after which a vault stopped answering, keyed by the file
+ * and the vault: one file's stop leaves other files' calls alone.
+ */
+const stops = new Map<string, { caseName: string; failure: string }>();
+
+const stopKey = (file: string, vaultId: string): string =>
+  `${file}\0${vaultId}`;
+
+function stoppedError(
+  file: string,
+  vaultId: string,
+): RunVaultStoppedError | undefined {
+  const stop = stops.get(stopKey(file, vaultId));
+  if (!stop) return undefined;
+  return new RunVaultStoppedError(
+    `Not run: the run vault stopped answering after "${stop.caseName}" failed, so the rest of this file fails at once.\n\nFirst failure:\n${stop.failure}`,
+  );
+}
 
 /**
  * One error as indented lines: `name: message`, then the inner errors that a
@@ -52,72 +73,82 @@ function describeError(error: unknown, indent = ""): string {
   return lines.join("\n");
 }
 
+/** Whether the vault answers `1` within the suite's CLI deadline. */
+async function answers(vaultId: string): Promise<boolean> {
+  try {
+    await cli([`vault=${vaultId}`, "eval", "code=1"]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The per-case hooks of a file that runs in one Obsidian vault.
  *
- * The vault still answers when the leftovers check got a reply. When that
- * check got no reply, or a case failed with no leftovers check, one more call
- * with the suite's deadline asks the vault for `1`. When that call gets no
- * answer, every later case of the same file fails before it starts, with the
- * first failed case's name and errors in its message. Cases of other files
- * still run.
- *
- * @param leftovers run {@link expectNothingLeftOpen} after each case
+ * A reply to the leftovers check shows that the vault answers. When that
+ * check gets no reply, or a case fails with no leftovers check, one more call
+ * asks the vault for `1`. When that call gets no answer, the file stops for
+ * that vault: each later case fails in its `beforeEach`, and each later CLI
+ * call of the file to that vault, its own hooks' included, fails at once.
+ * The message names the first failed case and its errors. Other files still
+ * reach the vault.
  */
 export function createRunVaultGuard(
   vaultId: () => string,
-  { leftovers = true }: { leftovers?: boolean } = {},
+  {
+    leftovers = true,
+  }: {
+    /**
+     * Check after each case for menus, dialogs and popovers left open.
+     * @default true
+     */
+    leftovers?: boolean;
+  } = {},
 ): {
   before: (context: GuardedCase) => void;
   after: (context: GuardedCase) => Promise<void>;
 } {
+  refuseRunVaultCalls((vault) =>
+    stoppedError(expect.getState().testPath ?? "", vault),
+  );
   return {
     before({ task }) {
-      const stopped = stoppedFiles.get(task.file.filepath);
-      if (!stopped) return;
-      throw new Error(
-        `Not run: the run vault stopped answering after "${stopped.caseName}" failed, so the remaining cases of this file fail at once.\n\nFirst failure:\n${stopped.failure}`,
-      );
+      const stopped = stoppedError(task.file.filepath, vaultId());
+      if (stopped) throw stopped;
     },
     async after({ task }) {
-      if (stoppedFiles.has(task.file.filepath)) return;
-      let leftover: Error | undefined;
+      const file = task.file.filepath;
+      const vault = vaultId();
+      if (stops.has(stopKey(file, vault))) return;
+      const noReply: unknown[] = [];
       if (leftovers) {
-        try {
-          await expectNothingLeftOpen(vaultId());
-        } catch (error) {
-          leftover = error instanceof Error ? error : new Error(String(error));
+        const left = await leftOpen(vault).then(
+          (list) => ({ answered: true as const, list }),
+          (error: unknown) => ({ answered: false as const, error }),
+        );
+        if (left.answered) {
+          expect(
+            left.list,
+            "menus, dialogs and popovers the case left open",
+          ).toEqual([]);
+          return;
         }
-      }
-      const caseErrors = task.result?.errors ?? [];
-      const unanswered = leftovers
-        ? leftover !== undefined && leftover.name !== "AssertionError"
-        : task.result?.state === "fail";
-      if (!unanswered) {
-        if (leftover !== undefined) throw leftover;
+        noReply.push(left.error);
+      } else if (task.result?.state !== "fail") return;
+      if (await answers(vault)) {
+        if (noReply.length > 0)
+          throw new Error("The leftovers check got no reply", {
+            cause: noReply[0],
+          });
         return;
       }
-      const probe = await cli([`vault=${vaultId()}`, "eval", "code=1"]).then(
-        () => undefined,
-        (error: unknown) => error ?? new Error("no answer"),
-      );
-      if (probe === undefined) {
-        if (leftover !== undefined) throw leftover;
-        return;
-      }
-      const failure = [
-        ...caseErrors,
-        ...(leftover === undefined ? [] : [leftover]),
-      ]
+      const failure = [...(task.result?.errors ?? []), ...noReply]
         .map((error) => `- ${describeError(error, "  ").slice(2)}`)
         .join("\n");
-      stoppedFiles.set(task.file.filepath, {
-        caseName: task.fullName,
-        failure,
-      });
+      stops.set(stopKey(file, vault), { caseName: task.fullName, failure });
       throw new Error(
-        `The run vault stopped answering after this case, so the remaining cases of this file fail at once.\n\nThis case's failure:\n${failure}`,
-        { cause: probe },
+        `The run vault stopped answering after this case, so the rest of this file fails at once.\n\nThis case's failure:\n${failure}`,
       );
     },
   };

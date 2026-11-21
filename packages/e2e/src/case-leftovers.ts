@@ -1,9 +1,11 @@
-import { expect } from "vitest";
-
 import { obRun } from "./obsidian-cli.ts";
 
-export async function expectNothingLeftOpen(vaultId: string): Promise<void> {
-  const left = await obRun(
+/**
+ * Close the menus, dialogs and popovers a case left open in any window of
+ * `vaultId`, and name each one. Rejects when the vault gives no reply.
+ */
+export async function leftOpen(vaultId: string): Promise<string[]> {
+  return obRun(
     vaultId,
     async ({ app, page }) => {
       const { until } = page;
@@ -54,5 +56,4 @@ export async function expectNothingLeftOpen(vaultId: string): Promise<void> {
     },
     undefined,
   );
-  expect(left, "menus, dialogs and popovers the case left open").toEqual([]);
 }

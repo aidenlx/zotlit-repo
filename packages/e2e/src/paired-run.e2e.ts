@@ -96,6 +96,7 @@ import {
   watchExcerptPixels,
 } from "./reader-gestures.ts";
 import { READER_VIEW_TYPE } from "./reader-handle.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 
 const effectPath = createRequire(
   join(
@@ -135,6 +136,7 @@ const baseUrl = environment?.baseUrl ?? null;
 const debuggerPort = environment?.debuggerPort ?? null;
 
 describe.skipIf(!baseUrl)("Paired Run", () => {
+  registerRunVaultGuard(() => vaultId!, { leftovers: false });
   const api = baseUrl!;
   let serverID = "";
   let authorizationFixture: { secret: string; rdp: ZoteroRdp } | undefined;

@@ -31,6 +31,7 @@ vi.mock("node:net", () => ({
   },
 }));
 
+import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { createRunVaultGuard } from "./run-vault-guard.ts";
 
 const live = (): Promise<string> => Promise.resolve('=> {"value":[]}');
@@ -148,7 +149,10 @@ it("reports a stalled leftovers check without failing the file when the vault an
   let stalls = 1;
   socketBoundary.answer = () => (stalls-- > 0 ? dead() : live());
   const outcome = await settled(guard.after(caseContext(file, "stalls once")));
-  expect(String(outcome)).toContain("did not answer");
+  expect(outcome).toMatchObject({
+    message: "The leftovers check got no reply",
+    cause: { name: "ObsidianUnreachableError" },
+  });
   expect(String(outcome)).not.toContain("run vault stopped answering");
   expect(() => guard.before(caseContext(file, "next case"))).not.toThrow();
 });
@@ -169,4 +173,26 @@ it("asks a vault without a leftovers check only after a failed case", async () =
   expect(() => guard.before(caseContext(file, "next step"))).toThrow(
     /"fails"[\s\S]*step failed/,
   );
+});
+
+it("refuses at once a hook's call to the stopped vault from the same file", async () => {
+  const guard = createRunVaultGuard(() => "hook-vault");
+  // The hooks of this test file call the vault, as a file's own afterEach does.
+  const thisFile = expect.getState().testPath!;
+  socketBoundary.answer = dead;
+  await settled(
+    guard.after(caseContext(thisFile, "breaks", [new Error("popout lost")])),
+  );
+  socketBoundary.answer = live;
+  const calls = socketBoundary.calls;
+  // No clock advance: neither the call nor the poll waits on a deadline.
+  await expect(obRun("hook-vault", () => true)).rejects.toThrow(
+    /Not run[\s\S]*"breaks"[\s\S]*popout lost/,
+  );
+  await expect(
+    obRunUntil("hook-vault", () => true, undefined, { what: "ready" }),
+  ).rejects.toThrow(/Not run/);
+  expect(socketBoundary.calls).toBe(calls);
+  // Another vault from the same file still answers.
+  await expect(obRun("other-vault", () => true)).resolves.toEqual([]);
 });

@@ -18,6 +18,26 @@ const CLI_TIMEOUT_MS = 15_000;
 const boundedCall = createObsidianCall({ timeoutMs: CLI_TIMEOUT_MS });
 
 /**
+ * A call refused at once because the run vault stopped answering earlier in
+ * the same file. Its message names the first failed case.
+ */
+export class RunVaultStoppedError extends Error {
+  override name = "RunVaultStoppedError";
+}
+
+let refusal: (vaultId: string) => RunVaultStoppedError | undefined = () =>
+  undefined;
+
+/**
+ * Set the check that {@link cli} runs before each call to a vault. The
+ * run-vault guard sets it; scripts outside Vitest keep the default, which
+ * refuses nothing.
+ */
+export function refuseRunVaultCalls(check: typeof refusal): void {
+  refusal = check;
+}
+
+/**
  * Obsidian reports failures only as output text.
  *
  * A call that gets no reply — a window that reloads mid-call, or one whose
@@ -28,6 +48,9 @@ const boundedCall = createObsidianCall({ timeoutMs: CLI_TIMEOUT_MS });
  * longer measurement is still answered or reported unreachable.
  */
 export function cli(args: string[], timeoutMs?: number): Promise<string> {
+  const vault = args.find((arg) => arg.startsWith("vault="));
+  const refused = vault && refusal(vault.slice("vault=".length));
+  if (refused) return Promise.reject(refused);
   const call =
     timeoutMs === undefined ? boundedCall : createObsidianCall({ timeoutMs });
   return call(args);
@@ -228,6 +251,7 @@ export async function obRunUntil<A = undefined, R = boolean>(
       last = value;
       if (ready(value)) return value;
     } catch (error) {
+      if (error instanceof RunVaultStoppedError) throw error;
       last = error instanceof Error ? error.message : String(error);
     }
     await delay(250);
