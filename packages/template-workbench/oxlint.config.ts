@@ -183,57 +183,6 @@ export default defineConfig({
       files: ["src/obsidian/editor/host.test.ts"],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },
-    // The Workbench core's backlog: code written in its own package before it
-    // took the plugin code rules. A file moves off a list when it is next
-    // reworked.
-    {
-      // Timers, `instanceof` and inline styles on the main window: the
-      // headless UI draws in the window it stands in once these read it.
-      files: [
-        "src/core/headless-ui/editor.tsx",
-        "src/core/headless-ui/editor-boxes.ts",
-        "src/core/headless-ui/problems-footer.tsx",
-        "src/core/headless-ui/reorder.ts",
-      ],
-      rules: {
-        "obsidianmd/no-global-this": "off",
-        "obsidianmd/no-static-styles-assignment": "off",
-        "obsidianmd/prefer-window-timers": "off",
-        "zotlit-obsidian/no-cross-window-instanceof": "off",
-        "zotlit-obsidian/no-global-timer": "off",
-      },
-    },
-    {
-      files: ["src/core/headless-ui/editor.tsx"],
-      rules: { "zotlit-effect-style/no-tacit": "off" },
-    },
-    {
-      // They test whether a message is present, not its wording.
-      files: [
-        "src/core/headless-ui/name-folder.tsx",
-        "src/core/headless-ui/problems.ts",
-      ],
-      rules: { "zotlit-errors/no-message-match": "off" },
-    },
-    {
-      files: ["src/core/headless-ui/scheduler-atoms.ts"],
-      rules: { "zotlit-services/temporal-in-effect": "off" },
-    },
-    {
-      // Test support of the headless UI, run outside the plugin runtime.
-      files: ["src/core/headless-ui/test-host.tsx"],
-      rules: { "zotlit-services/no-default-runtime": "off" },
-    },
-    {
-      // Effect tests in plain Vitest. A file moves off this list when its
-      // cases move to it.effect.
-      files: [
-        "src/core/headless-ui/partial-suggestions.test.ts",
-        "src/core/headless-ui/scheduler-atoms.test.ts",
-        "src/core/language/suggestions.test.ts",
-      ],
-      rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
-    },
     {
       // Tests read their own LF fixtures and set up state they then check.
       files: ["**/*.test.{ts,tsx}"],

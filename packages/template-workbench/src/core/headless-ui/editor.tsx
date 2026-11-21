@@ -15,6 +15,7 @@ import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
 import type { WorkbenchReportContext } from "@zotlit/notes/core/template/render-report.ts";
+import { scheduleBrowserTask } from "@zotlit/plugin-kernel/browser-scheduler.ts";
 import { useUniqueId } from "@zotlit/ui";
 
 import { NO_MATCH_DATA } from "./host.tsx";
@@ -116,7 +117,7 @@ export function createWorkbenchEditor<R extends TemplateRenderResult>({
     render: (request) => {
       const result = host.render(request);
       return mapResult
-        ? Effect.map(result, mapResult)
+        ? Effect.map(result, (value) => mapResult(value))
         : (result as Effect.Effect<R, WorkbenchHostError>);
     },
     failed: mapResult ?? ((result) => result as R),
@@ -165,12 +166,6 @@ function inertModel(): WorkbenchModel {
   return inert;
 }
 
-/** A browser task, as the registry schedules its notifications. */
-function scheduleTask(task: () => void): () => void {
-  const timeout = setTimeout(task, 0);
-  return () => clearTimeout(timeout);
-}
-
 /**
  * Puts `editor` and its registry in context. `null` paints the tree inert in
  * a registry of its own, which goes with the provider.
@@ -185,7 +180,7 @@ export function WorkbenchEditorProvider<R extends TemplateRenderResult>({
   const id = useUniqueId();
   if (editor === null)
     return (
-      <RegistryProvider scheduleTask={scheduleTask} defaultIdleTTL={400}>
+      <RegistryProvider scheduleTask={scheduleBrowserTask} defaultIdleTTL={400}>
         {children}
       </RegistryProvider>
     );

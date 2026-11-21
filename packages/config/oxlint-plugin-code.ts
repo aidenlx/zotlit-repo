@@ -373,6 +373,7 @@ export function pluginCodeOverrides({
         "**/__mocks__/**",
         // Test support and benchmarks, not plugin code: no plugin runtime exists there.
         "**/test-harness.ts",
+        "**/test-host.tsx",
         "**/*.bench.ts",
       ],
       rules: { "zotlit-services/no-default-runtime": "error" },

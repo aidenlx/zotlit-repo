@@ -137,13 +137,12 @@ export function useReorder({
       onDragLeave: (event: DragEvent<HTMLElement>) => {
         // Chromium may leave `relatedTarget` empty on a drag event, so the
         // point the pointer went to answers where it is.
-        const into =
-          event.relatedTarget ??
+        const into = (event.relatedTarget ??
           event.currentTarget.ownerDocument.elementFromPoint(
             event.clientX,
             event.clientY,
-          );
-        if (!(into instanceof Node) || !event.currentTarget.contains(into))
+          )) as Node | null;
+        if (!into?.instanceOf(Node) || !event.currentTarget.contains(into))
           setOver(null);
       },
     },
@@ -169,20 +168,21 @@ export function useReorder({
             // it takes; a row on its own compositing layer keeps them clear.
             // The layer stays only until the image is taken.
             const transform = row.style.transform;
+            // oxlint-disable-next-line obsidianmd/no-static-styles-assignment -- the layer is set and cleared within one drag start, which a stylesheet class cannot time.
             row.style.transform = "translateZ(0)";
             event.dataTransfer.setDragImage?.(
               row,
               event.clientX - rect.left,
               event.clientY - rect.top,
             );
-            setTimeout(() => {
+            row.win.setTimeout(() => {
               row.style.transform = transform;
             });
           }
         }
         draggingRef.current = path;
         // The row fades once the browser has taken its drag image.
-        setTimeout(() => {
+        event.currentTarget.win.setTimeout(() => {
           if (draggingRef.current === path) setDraggingState(path);
         });
       },

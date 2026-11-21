@@ -1,5 +1,6 @@
+import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -30,22 +31,22 @@ describe("partialSuggestions", () => {
     expect(config.createPartial).toBeUndefined();
   });
 
-  it("hands the create flow the name the reader typed", async () => {
-    const asked: string[] = [];
-    const config = partialSuggestions([], {
-      partials: {
-        names: () => [],
-        create: (query) => {
-          asked.push(query);
-          return Effect.succeed("venue-line");
+  it.effect("hands the create flow the name the reader typed", () =>
+    Effect.gen(function* () {
+      const asked: string[] = [];
+      const config = partialSuggestions([], {
+        partials: {
+          names: () => [],
+          create: (query) => {
+            asked.push(query);
+            return Effect.succeed("venue-line");
+          },
         },
-      },
-      start: () => {},
-    });
+        start: () => {},
+      });
 
-    await expect(
-      Effect.runPromise(config.createPartial!.run("ven")),
-    ).resolves.toBe("venue-line");
-    expect(asked).toEqual(["ven"]);
-  });
+      expect(yield* config.createPartial!.run("ven")).toBe("venue-line");
+      expect(asked).toEqual(["ven"]);
+    }),
+  );
 });

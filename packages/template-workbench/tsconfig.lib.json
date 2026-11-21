@@ -11,12 +11,16 @@
         "name": "@effect/language-service",
         "effectFn": ["inferred-span"],
         "allowedUnstableApis": [
+          // The Workbench's atom model (its atoms, scheduler and React hooks)
+          // is built on the Effect Atom APIs.
+          "@effect/atom-react",
           "@effect/platform-browser",
           "@effect/platform-node",
           "@effect/vitest",
           "effect/FileSystem",
           "effect/http",
           "effect/PlatformError",
+          "effect/reactivity",
           "effect/rpc",
           "effect/testing",
           "effect/workers"

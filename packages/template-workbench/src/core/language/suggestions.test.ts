@@ -1,5 +1,6 @@
+import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect } from "vitest";
 
 import { restoreTemplateData } from "@zotlit/notes/core/template-preview/restore-template-data.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -375,7 +376,7 @@ describe("suggestions: filters, tags, and partials", () => {
         label: "New partial…",
         detail: "Name a new partial, then insert the call.",
         run: () => Effect.succeed(null),
-        start: (flow, answered) => void Effect.runPromise(flow).then(answered),
+        start: () => {},
       },
     };
     // No call names either partial yet, and the list still holds both.
@@ -392,31 +393,36 @@ describe("suggestions: filters, tags, and partials", () => {
     expect(labels('{% render "zzz', vault)).toEqual(["New partial…"]);
   });
 
-  it("hands the create entry the typed name and writes the answer", async () => {
-    const asked: string[] = [];
-    const source = '{% render "ven';
-    const result = suggestions(source, source.length, {
-      ...note,
-      partials: [],
-      createPartial: {
-        label: "New partial…",
-        detail: "Name a new partial, then insert the call.",
-        run: (query) => {
-          asked.push(query);
-          return Effect.succeed("venue-line");
+  it.effect("hands the create entry the typed name and writes the answer", () =>
+    Effect.gen(function* () {
+      const asked: string[] = [];
+      const source = '{% render "ven';
+      const result = suggestions(source, source.length, {
+        ...note,
+        partials: [],
+        createPartial: {
+          label: "New partial…",
+          detail: "Name a new partial, then insert the call.",
+          run: (query) => {
+            asked.push(query);
+            return Effect.succeed("venue-line");
+          },
+          start: () => {},
         },
-        start: (flow, answered) => void Effect.runPromise(flow).then(answered),
-      },
-    })!;
-    const option = result.options.find((o) => o.label === "New partial…")!;
-    const insert = await Effect.runPromise(option.resolveInsert!.insert);
-    expect(insert).toBe('venue-line" with zt as zt %}');
-    expect(asked).toEqual(["ven"]);
-    const edit = completionEdit(source, result, { ...option, insert: insert! });
-    expect(
-      source.slice(0, edit.from) + edit.insert + source.slice(edit.to),
-    ).toBe('{% render "venue-line" with zt as zt %}');
-  });
+      })!;
+      const option = result.options.find((o) => o.label === "New partial…")!;
+      const insert = yield* option.resolveInsert!.insert;
+      expect(insert).toBe('venue-line" with zt as zt %}');
+      expect(asked).toEqual(["ven"]);
+      const edit = completionEdit(source, result, {
+        ...option,
+        insert: insert!,
+      });
+      expect(
+        source.slice(0, edit.from) + edit.insert + source.slice(edit.to),
+      ).toBe('{% render "venue-line" with zt as zt %}');
+    }),
+  );
 
   describe("an accepted name finishes the call it was opened on", () => {
     /** The source an accepted `venue-line` leaves behind; `|` is the caret. */

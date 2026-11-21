@@ -480,6 +480,7 @@ export function diagnosisExplanation(
             .split("\n", 1)[0]
         : undefined) || diagnosticText(diagnostic),
     suggestion: diagnosticSuggestion(diagnostic),
+    // oxlint-disable-next-line zotlit-errors/no-message-match -- the diagnostic's own text field, not an error's message.
     ...(diagnostic.message === undefined
       ? {}
       : { evidence: diagnostic.message }),

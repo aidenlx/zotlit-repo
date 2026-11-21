@@ -138,8 +138,8 @@ export function revealSourceOnClick(
   range: WorkbenchSliceRange,
 ): void {
   element.onclick = (event) => {
-    if (event.target instanceof Element && event.target.closest(INTERACTIVE))
-      return;
+    const target = event.target as Node | null;
+    if (target?.instanceOf(Element) && target.closest(INTERACTIVE)) return;
     view.focus();
     view.dispatch({
       selection: { anchor: range.to, head: range.from },

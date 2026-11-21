@@ -421,6 +421,7 @@ export function makeRenderSchedulerAtoms<
     if (result.diagnostics.every(({ report }) => report !== undefined)) {
       return result;
     }
+    // oxlint-disable-next-line zotlit-services/temporal-in-effect -- stamped inside a synchronous atom read, which no Effect runs, so no Clock is in scope; the host-failure command lands here too.
     const capturedAt = Temporal.Now.instant().toString();
     const context = reportContext?.() ?? {};
     return {

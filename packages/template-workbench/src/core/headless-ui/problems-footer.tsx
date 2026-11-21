@@ -183,7 +183,7 @@ export function useWorkbenchProblems({
   // render, so an early invalid draft remains uncaptured here.
   const documentReports = useRef(new Map<string, RenderReport>());
   const held = new Map<string, RenderReport>();
-  const temporal = globalThis.Temporal;
+  const temporal = window.Temporal;
   for (const diagnosis of diagnoses) {
     if (diagnosis.kind !== "document" || capture === undefined) continue;
     const kept = documentReports.current.get(diagnosis.id);

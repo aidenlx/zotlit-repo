@@ -211,6 +211,7 @@ export function NameFolderPane({
   // the Filename Template is under repair. Anything else the tab cannot show,
   // and its condition is read in place of a name.
   const shown =
+    // oxlint-disable-next-line zotlit-errors/no-message-match -- the Example's condition text, not an error's message.
     example.message === null
       ? { filename, notePath }
       : example.retained
@@ -345,9 +346,12 @@ export function NameFolderPane({
                         ? m.workbench_name_path_empty()
                         : (example.message ?? m.workbench_property_unset()))}
                   </output>
-                  {shown !== null && example.message !== null && (
-                    <span {...part("secondary")}>{example.message}</span>
-                  )}
+                  {
+                    // oxlint-disable-next-line zotlit-errors/no-message-match -- the Example's condition text, not an error's message.
+                    shown !== null && example.message !== null && (
+                      <span {...part("secondary")}>{example.message}</span>
+                    )
+                  }
                 </span>
                 {example.failure !== null && onShowProblem && (
                   <button

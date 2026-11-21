@@ -1,11 +1,12 @@
 import type { RenderRequest } from "#core/render/request.ts";
 import type { TemplateRenderResult } from "#core/render/result.ts";
+import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Queue } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { TestClock } from "effect/testing";
-import { expect, it, vi } from "vitest";
+import { expect, vi } from "vitest";
 
 import { WorkbenchHostError } from "./host.tsx";
 import { makeRenderSchedulerAtoms } from "./scheduler-atoms.ts";
@@ -272,9 +273,8 @@ it("drops the quiet time on Stop and starts no render", async () => {
 it("interrupts a pending render when the registry is disposed", async () => {
   const scheduler = open();
   await scheduler.advance(300);
-  const [pending] = scheduler.host.renders;
   scheduler[Symbol.dispose]();
-  await Effect.runPromise(Deferred.await(pending!.interruption));
+  await scheduler.interrupted(0);
 });
 
 it("interrupts the quiet time when the registry is disposed", async () => {
@@ -791,49 +791,51 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
   ).toBe(text);
 });
 
-it("renders once for a host whose render answers at once", async () => {
-  // A render that answers on the caller's own thread completes inside the
-  // step that starts it.
-  const requests: RenderRequest[] = [];
-  const input = Atom.make<RenderSchedulerInput>({
-    source: "Draft",
-    snapshot: PAPER,
-    annotation: EXAMPLE,
-    mode: "create",
-    live: true,
-  });
-  const runtime = Atom.runtime(TestClock.layer());
-  const scheduler = makeRenderSchedulerAtoms({
-    runtime,
-    input,
-    render: (request) =>
-      Effect.sync(() => {
-        requests.push(request);
-        return {
-          ...failedRender(renderIdentity(request), { code: "render-error" }),
-          diagnostics: [],
-        };
-      }),
-    failed: (result) => result,
-  });
-  const registry = AtomRegistry.make({
-    defaultIdleTTL: 0,
-    timeoutResolution: 1,
-  });
-  const landings = Effect.runSync(Queue.unbounded<number>());
-  const release = registry.subscribe(
-    scheduler.state,
-    ({ attempt }) => Queue.offerUnsafe(landings, attempt),
-    { immediate: true },
-  );
-  registry.set(scheduler.run, undefined);
-  // Every attempt the state lands on, up to the first result.
-  while ((await Effect.runPromise(Queue.take(landings))) < 1);
-  expect(requests).toHaveLength(1);
-  expect(registry.get(scheduler.state).attempt).toBe(1);
-  release();
-  registry.dispose();
-});
+it.effect("renders once for a host whose render answers at once", () =>
+  Effect.gen(function* () {
+    // A render that answers on the caller's own thread completes inside the
+    // step that starts it.
+    const requests: RenderRequest[] = [];
+    const input = Atom.make<RenderSchedulerInput>({
+      source: "Draft",
+      snapshot: PAPER,
+      annotation: EXAMPLE,
+      mode: "create",
+      live: true,
+    });
+    const runtime = Atom.runtime(TestClock.layer());
+    const scheduler = makeRenderSchedulerAtoms({
+      runtime,
+      input,
+      render: (request) =>
+        Effect.sync(() => {
+          requests.push(request);
+          return {
+            ...failedRender(renderIdentity(request), { code: "render-error" }),
+            diagnostics: [],
+          };
+        }),
+      failed: (result) => result,
+    });
+    const registry = AtomRegistry.make({
+      defaultIdleTTL: 0,
+      timeoutResolution: 1,
+    });
+    const landings = yield* Queue.unbounded<number>();
+    const release = registry.subscribe(
+      scheduler.state,
+      ({ attempt }) => Queue.offerUnsafe(landings, attempt),
+      { immediate: true },
+    );
+    registry.set(scheduler.run, undefined);
+    // Every attempt the state lands on, up to the first result.
+    while ((yield* Queue.take(landings)) < 1);
+    expect(requests).toHaveLength(1);
+    expect(registry.get(scheduler.state).attempt).toBe(1);
+    release();
+    registry.dispose();
+  }),
+);
 
 /** A Profile draft whose Managed Frontmatter lists `keys`, in order. */
 const listing = (...keys: string[]) =>

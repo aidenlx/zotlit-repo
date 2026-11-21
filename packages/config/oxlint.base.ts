@@ -128,6 +128,10 @@ export const hostModulePattern = {
     "electron/**",
     "@zotlit/db/client/node",
     "#client/node.ts",
+    // The patterns match a module's last segment, so the host-free entry of
+    // a workspace package that is named `obsidian` (`@zotlit/templates/obsidian`)
+    // is let through.
+    "!@zotlit/*/obsidian",
   ],
   message:
     "Engine source runs on every host. Take the host capability as a value; only a desktop host and Node tests load Obsidian, Electron or @zotlit/db/client/node.",

@@ -39,7 +39,6 @@ import {
   mergeManagedFrontmatterEntries,
 } from "@zotlit/templates/frontmatter-merge";
 import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-merge";
-// oxlint-disable-next-line no-restricted-imports -- this entry of the templates is host-free; the host pattern matches its name.
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
