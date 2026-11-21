@@ -43,7 +43,7 @@ import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-me
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
-import { renderFailureDiagnostic } from "./call-attribution.ts";
+import { renderFailureDiagnosticWithCallSite } from "./call-attribution.ts";
 import type { RenderOptions } from "./request.ts";
 import { failedRender, renderIdentity } from "./result.ts";
 import type {
@@ -95,7 +95,7 @@ export type {
   RenderedProperty,
   RenderedRange,
 } from "./result.ts";
-export { renderFailureDiagnostic } from "./call-attribution.ts";
+export { renderFailureDiagnosticWithCallSite } from "./call-attribution.ts";
 export { currentSliceSite } from "./locate.ts";
 export type { RenderCallerSource } from "@zotlit/notes/core/template/render-failure.ts";
 export type { RenderRequest, RenderOptions } from "./request.ts";
@@ -210,7 +210,10 @@ export function renderProfile(
     } catch (error) {
       preview = null;
       formatFailure = {
-        ...withCallIdentity(renderFailureDiagnostic(error, caller), caller),
+        ...withCallIdentity(
+          renderFailureDiagnosticWithCallSite(error, caller),
+          caller,
+        ),
         evidence: engineEvidence(error),
         part: "annotation",
       };
@@ -271,7 +274,10 @@ export function renderProfile(
     };
   } catch (error) {
     const failure = failedRender(identity, {
-      ...withCallIdentity(renderFailureDiagnostic(error, caller), caller),
+      ...withCallIdentity(
+        renderFailureDiagnosticWithCallSite(error, caller),
+        caller,
+      ),
       evidence: engineEvidence(error),
       part: isAnnotationError(error) ? "annotation" : "render",
     });
@@ -310,7 +316,7 @@ export function filenameErrorDiagnostic(
     sourceSite: _read,
     callSite: _called,
     ...attributed
-  } = renderFailureDiagnostic(error, caller);
+  } = renderFailureDiagnosticWithCallSite(error, caller);
   const site = renderFailureSpan(error);
   return {
     ...attributed,

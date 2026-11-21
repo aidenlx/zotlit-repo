@@ -14,7 +14,7 @@ import { templateCalls } from "#core/document/regions.ts";
  *
  * @see renderFailureDiagnostic in `@zotlit/notes/core/template/render-failure.ts`
  */
-export function renderFailureDiagnostic(
+export function renderFailureDiagnosticWithCallSite(
   error: unknown,
   caller: RenderCallerSource,
 ): Omit<RenderDiagnostic, "part"> {

@@ -68,7 +68,7 @@ import {
   failedRender,
   filenameErrorDiagnostic,
   propertyErrorDiagnostic,
-  renderFailureDiagnostic,
+  renderFailureDiagnosticWithCallSite,
   renderIdentity,
   retainOutputs,
   sampleItemCitation,
@@ -812,7 +812,7 @@ const renderNativeProfileEffect = Effect.fn("NotePreview.renderNativeProfile")(
  * The diagnostic one render failure reads as, attributed against the draft the
  * render read: what the engine reported, whose call reached it, and the one
  * call a reader repairs it at.
- * @see packages/template-workbench/src/core/render/call-attribution.ts renderFailureDiagnostic
+ * @see packages/template-workbench/src/core/render/call-attribution.ts renderFailureDiagnosticWithCallSite
  */
 function renderFault(
   error: unknown,
@@ -823,7 +823,7 @@ function renderFault(
   // below this line the failure is a code and a message, and a reader who
   // copies the report would otherwise get neither the stack nor the excerpt.
   const evidence = engineEvidence(error);
-  const diagnostic = renderFailureDiagnostic(error, caller);
+  const diagnostic = renderFailureDiagnosticWithCallSite(error, caller);
   return {
     ...diagnostic,
     evidence,

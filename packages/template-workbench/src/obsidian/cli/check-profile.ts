@@ -17,7 +17,10 @@ import type { EvaluatedFrontmatterField } from "@zotlit/templates/frontmatter-me
 
 import { previewBaseline } from "./preview-baseline.ts";
 
-import { engineEvidence, renderFailureDiagnostic } from "#core/render/index.ts";
+import {
+  engineEvidence,
+  renderFailureDiagnosticWithCallSite,
+} from "#core/render/index.ts";
 
 export const PROFILE_OUTPUTS = [
   "filename",
@@ -64,7 +67,7 @@ export function nativePropertyRows(
 /** Keep the original engine report and only source locations verified by shared diagnosis. */
 export function checkDiagnostic(error: unknown, caller: RenderCallerSource) {
   return {
-    ...renderFailureDiagnostic(error, caller),
+    ...renderFailureDiagnosticWithCallSite(error, caller),
     evidence: engineEvidence(error),
     hint: "Repair the reported source, then run template-check again. Use attempt=<id> evidence=full to read this attempt's original engine report.",
   };

@@ -25,7 +25,7 @@ import {
   formatRenderReport,
   engineEvidence,
   renderProfile,
-  renderFailureDiagnostic,
+  renderFailureDiagnosticWithCallSite,
   SAMPLE_ITEMS,
 } from "#core/render/index.ts";
 import { ANNOTATION_LIST_PROFILE_SOURCE } from "#core/render/test-profiles.ts";
@@ -201,17 +201,20 @@ describe("attribution", () => {
   it("locates a missing partial at the first call when several calls name it", () => {
     const source =
       '{% if false %}{% render "venue-line" %}{% endif %}\n{% render "venue-line" %}';
-    const failure = renderFailureDiagnostic(
+    const failure = renderFailureDiagnosticWithCallSite(
       new MissingTemplateError("venue-line"),
       { source, language: "liquid" },
     );
 
     expect(failure.callSite).toEqual({ from: 14, to: 39 });
     expect(
-      renderFailureDiagnostic(new MissingTemplateError("venue-line"), {
-        source: '{% render "venue-line" %}',
-        language: "liquid",
-      }).callSite,
+      renderFailureDiagnosticWithCallSite(
+        new MissingTemplateError("venue-line"),
+        {
+          source: '{% render "venue-line" %}',
+          language: "liquid",
+        },
+      ).callSite,
     ).toEqual({ from: 0, to: '{% render "venue-line" %}'.length });
   });
 
@@ -227,7 +230,7 @@ describe("attribution", () => {
         ),
       },
     );
-    const diagnostic = renderFailureDiagnostic(error, {
+    const diagnostic = renderFailureDiagnosticWithCallSite(error, {
       source: '{{ "bad" | pandoc_cite }}',
       language: "liquid",
     });
@@ -347,10 +350,13 @@ describe("attribution", () => {
 
   it("keeps a named missing partial selected without a verified source location", () => {
     const failure = (): RenderDiagnostic => ({
-      ...renderFailureDiagnostic(new MissingTemplateError("venue-line"), {
-        source: '{% render "summary" %}',
-        language: "liquid",
-      }),
+      ...renderFailureDiagnosticWithCallSite(
+        new MissingTemplateError("venue-line"),
+        {
+          source: '{% render "summary" %}',
+          language: "liquid",
+        },
+      ),
       part: "render",
     });
     const first = failure();

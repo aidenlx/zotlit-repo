@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { TemplateFacade } from "@zotlit/templates/facade";
 
-import { renderFailureDiagnostic } from "./call-attribution.ts";
+import { renderFailureDiagnosticWithCallSite } from "./call-attribution.ts";
 
 /** The diagnostic `render` attributes to the thrown failure, or `null` when
  *  rendering succeeded. Keeps the expectations below unconditional. */
@@ -11,7 +11,10 @@ function diagnosticOf(source: string, render: () => void) {
     render();
     return null;
   } catch (error) {
-    return renderFailureDiagnostic(error, { source, language: "liquid" });
+    return renderFailureDiagnosticWithCallSite(error, {
+      source,
+      language: "liquid",
+    });
   }
 }
 

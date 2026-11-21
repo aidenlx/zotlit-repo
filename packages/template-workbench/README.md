@@ -287,7 +287,7 @@ carries the wording the core did not author: the template engine's failure
 text, the host's own, and the document parser's.
 
 `render/index.ts` re-exports the diagnostics, reports and examples above.
-`renderFailureDiagnostic(error, caller)` reads one thrown render failure
+`renderFailureDiagnosticWithCallSite(error, caller)` reads one thrown render failure
 against the source that render read and keeps its three answers apart:
 `engine` is where the engine itself said it happened, `caller` the document a
 failure named as holding the call, and `callSite` the call in that source which
