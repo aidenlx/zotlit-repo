@@ -54,5 +54,6 @@ After the cases, remove the folder with
 The desktop check `pnpm e2e --project=desktop src/query-cli.e2e.ts -t 'first start after the update'`
 runs the first, second, third and fifth rows. The unit suite
 `packages/plugin-services/src/obsidian/managed-binary/old-store-cleanup.test.ts`
-covers each row, and a device that refuses the removal: the next start
-removes the folder.
+covers the cleanup rows, and a device that refuses the removal: the next
+start removes the folder. `pack-binary.test.ts` and `pack-notice.test.ts`
+beside it cover the "not installed" state and its notice.

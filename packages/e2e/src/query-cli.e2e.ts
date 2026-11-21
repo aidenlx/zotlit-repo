@@ -1,7 +1,6 @@
 import { copyFile, mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { setTimeout as delay } from "node:timers/promises";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -2494,15 +2493,15 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ],
     });
 
-    await restartZotlit(run.vaultId, { asUpdated: true });
+    expect(await restartZotlit(run.vaultId, { asUpdated: true })).toBe(
+      "removed",
+    );
 
-    // The start does not wait for the cleanup.
-    await expect
-      .poll(() => downloadedBinaries(run.vaultId), {
-        timeout: 20_000,
-        interval: 250,
-      })
-      .toEqual({ folders: null, dismissed: [], cleaned: true });
+    expect(await downloadedBinaries(run.vaultId)).toEqual({
+      folders: null,
+      dismissed: [],
+      cleaned: true,
+    });
     // The binary that was installed is gone with its folder: the status
     // names the pack to install, and the first need of a binary shows the
     // notice.
@@ -2544,10 +2543,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
     // A later start reads the vault's record and leaves the device alone.
     await seedDownloadedBinaries(run.vaultId);
-    await restartZotlit(run.vaultId, { asUpdated: false });
-    // A cleanup that does not run gives no signal: the first start above
-    // ended its cleanup well inside this time.
-    await delay(1000);
+    expect(await restartZotlit(run.vaultId, { asUpdated: false })).toBe(
+      "skipped",
+    );
 
     expect(await downloadedBinaries(run.vaultId)).toEqual({
       folders: ["chinese-segmenter", "pandoc-engine"],

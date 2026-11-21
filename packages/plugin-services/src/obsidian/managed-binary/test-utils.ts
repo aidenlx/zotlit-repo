@@ -83,7 +83,7 @@ export function originFiles(tree: OriginFolder) {
         ? Promise.resolve(directory(entry))
         : Promise.reject(notFound(name));
     },
-    removeEntry: (name) => {
+    removeEntry: (name, options) => {
       if (refused) {
         refused = false;
         return Promise.reject(
@@ -91,6 +91,15 @@ export function originFiles(tree: OriginFolder) {
         );
       }
       if (!(name in folder)) return Promise.reject(notFound(name));
+      const entry = folder[name];
+      // As the browser: a folder that holds an entry goes only with `recursive`.
+      if (entry && Object.keys(entry).length > 0 && !options?.recursive)
+        return Promise.reject(
+          new DOMException(
+            "The folder is not empty",
+            "InvalidModificationError",
+          ),
+        );
       delete folder[name];
       return Promise.resolve();
     },

@@ -11,8 +11,10 @@ import {
   PACK_NOTICE_KEY,
   RESOURCE_PACK_ID,
 } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
+import type { OldStoreCleanupOutcome } from "@zotlit/plugin-services/obsidian/managed-binary/old-store-cleanup.ts";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
+import { turnZotlitOff } from "./zotlit-restart.ts";
 
 /**
  * Keeps the installed pack of the run vault for {@link restoreRunPack}: its
@@ -131,6 +133,15 @@ export async function pressSettingRowAction(
   );
 }
 
+/** The names of the device data of the versions that downloaded the binaries. */
+const OLD_DEVICE_DATA = {
+  root: OLD_STORE_ROOT,
+  folders: OLD_BINARY_IDS,
+  keys: OLD_BINARY_IDS.map(oldDeclinedKey),
+  cleanupKey: OLD_STORE_CLEANUP_KEY,
+  noticeKey: PACK_NOTICE_KEY,
+};
+
 /**
  * Puts on the device what a version that downloaded the Managed Binaries
  * left: a file in each binary's folder of the origin's private file system,
@@ -153,11 +164,7 @@ export async function seedDownloadedBinaries(vaultId: string): Promise<void> {
       }
       for (const key of keys) app.saveLocalStorage(key, true);
     },
-    {
-      root: OLD_STORE_ROOT,
-      folders: OLD_BINARY_IDS,
-      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
-    },
+    OLD_DEVICE_DATA,
   );
 }
 
@@ -195,11 +202,7 @@ export async function downloadedBinaries(
         cleaned: app.loadLocalStorage(cleanupKey) === true,
       };
     },
-    {
-      root: OLD_STORE_ROOT,
-      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
-      cleanupKey: OLD_STORE_CLEANUP_KEY,
-    },
+    OLD_DEVICE_DATA,
   );
 }
 
@@ -222,48 +225,34 @@ export async function removeDownloadedBinaries(vaultId: string): Promise<void> {
       for (const key of keys) app.saveLocalStorage(key, null);
       app.saveLocalStorage(cleanupKey, true);
     },
-    {
-      root: OLD_STORE_ROOT,
-      keys: OLD_BINARY_IDS.map(oldDeclinedKey),
-      cleanupKey: OLD_STORE_CLEANUP_KEY,
-    },
+    OLD_DEVICE_DATA,
   );
 }
 
 /**
  * Starts ZotLit again in the open vault, as a start of Obsidian does, and
- * waits for the Chinese Segmenter's read of the pack. `asUpdated` starts it as
- * the first start after the update from a version that downloaded the
- * binaries: the vault holds no record of the cleanup and none of a pack
- * notice, which those versions did not have.
+ * answers how the cleanup of that start ended. `asUpdated` starts it as the
+ * first start after the update from a version that downloaded the binaries:
+ * the vault holds no record of the cleanup and none of a pack notice, which
+ * those versions did not have.
  */
 export async function restartZotlit(
   vaultId: string,
   { asUpdated }: { asUpdated: boolean },
-): Promise<void> {
-  await obRun(
+): Promise<OldStoreCleanupOutcome> {
+  await turnZotlitOff(vaultId);
+  return await obRun(
     vaultId,
     async ({ app, zotlit }, { cleanupKey, noticeKey, asUpdated }) => {
-      const oldServices = zotlit.services;
-      await app.plugins.disablePlugin("zotlit");
-      for (let i = 0; i < 400 && !oldServices.bridge.closed(); i++)
-        await new Promise((r) => setTimeout(r, 25));
-      if (!oldServices.bridge.closed())
-        throw new Error("The ZotLit services did not close");
       if (asUpdated) {
         app.saveLocalStorage(cleanupKey, null);
         app.saveLocalStorage(noticeKey, null);
       }
       await app.plugins.enablePlugin("zotlit");
-      await zotlit.services.chineseSegmenter.runPromise(
-        zotlit.services.chineseSegmenter.binary.check,
-      );
+      const s = zotlit.services;
+      return await s.bridge.runPromise(s.oldStoreCleanup.outcome);
     },
-    {
-      cleanupKey: OLD_STORE_CLEANUP_KEY,
-      noticeKey: PACK_NOTICE_KEY,
-      asUpdated,
-    },
+    { ...OLD_DEVICE_DATA, asUpdated },
     { timeoutMs: 120_000 },
   );
 }

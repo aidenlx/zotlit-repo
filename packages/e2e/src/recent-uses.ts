@@ -11,6 +11,7 @@ import { cli, cliCommand } from "./obsidian-cli.ts";
 import type { LinkMarkdownView } from "./page-library-types.ts";
 import type {} from "./page-library-types.ts";
 import type { FileExplorerView } from "./page-notes-types.ts";
+import { turnZotlitOff } from "./zotlit-restart.ts";
 
 const target = "AAAAAAAA";
 const targetPath = "literatures/AAAAAAAA.md";
@@ -41,19 +42,17 @@ export async function verifyRecentUses(
   );
   await using cleanup = new AsyncDisposableStack();
   cleanup.defer(async () => {
+    await obRun(
+      vaultId,
+      ({ app }) => {
+        app.workspace.requestActiveLeafEvents.run();
+      },
+      undefined,
+    );
+    await turnZotlitOff(vaultId);
     const restored = await obRun(
       vaultId,
       async ({ app, zotlit }, { saved }) => {
-        app.workspace.requestActiveLeafEvents.run();
-        const oldServices = zotlit.services;
-        await app.plugins.disablePlugin("zotlit");
-        const stillOpen = () =>
-          !oldServices.bridge.closed() ||
-          oldServices.bridge.runSync(oldServices.pdfAnnotationEditor.bindings)
-            .length > 0;
-        for (let i = 0; i < 200 && stillOpen(); i++)
-          await new Promise((r) => setTimeout(r, 25));
-        if (stillOpen()) throw new Error("The ZotLit services did not close");
         app.saveLocalStorage("zotlit-use-ledger", JSON.parse(saved).ledger);
         await app.plugins.enablePlugin("zotlit");
         return JSON.stringify(

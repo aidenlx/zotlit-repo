@@ -1,18 +1,13 @@
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { describe } from "vitest";
 
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
-import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { packBinary } from "./__fixtures__.ts";
 import { removeOldStore } from "./old-store-cleanup.ts";
-import type { PackBinary } from "./pack-binary.ts";
-import { packNotice } from "./pack-notice.ts";
-import { originFiles, packDevice, packFile } from "./test-utils.ts";
+import { originFiles } from "./test-utils.ts";
 import type { OriginFolder } from "./test-utils.ts";
 
 /** What a device holds after ZotLit downloaded both Managed Binaries. */
@@ -48,8 +43,9 @@ describe("the cleanup of the downloaded Managed Binaries", () => {
         const storage = dismissedVault();
         const files = originFiles(downloaded());
 
-        yield* start(storage, files);
+        const first = yield* start(storage, files);
 
+        expect(first).toBe("removed");
         expect(files.paths()).toEqual([]);
         expect(
           storage.loadLocalStorage("zotlit-chinese-segmenter-declined"),
@@ -59,8 +55,9 @@ describe("the cleanup of the downloaded Managed Binaries", () => {
         ).toBeNull();
 
         const later = originFiles(downloaded());
-        yield* start(storage, later);
+        const second = yield* start(storage, later);
 
+        expect(second).toBe("skipped");
         expect(later.opens).toBe(0);
         expect(later.paths()).toContain("zotlit/pandoc-engine/b47c.wasm");
       }),
@@ -109,61 +106,13 @@ describe("the cleanup of the downloaded Managed Binaries", () => {
         const files = originFiles(downloaded());
         files.refuse();
 
-        yield* start(storage, files);
+        const refused = yield* start(storage, files);
+        expect(refused).toBe("failed");
         expect(files.paths()).toContain("zotlit");
 
-        yield* start(storage, files);
+        const next = yield* start(storage, files);
+        expect(next).toBe("removed");
         expect(files.paths()).toEqual([]);
-      }),
-  );
-
-  it.effect(
-    "leaves a researcher who had a binary installed without it, with the notice, until the Resource Pack is installed",
-    () =>
-      Effect.gen(function* () {
-        const bytes = new Uint8Array(new TextEncoder().encode("pandoc wasm"));
-        const engine: PackBinary<Disposable> = {
-          id: "pandoc-engine",
-          label: "Pandoc engine",
-          logCategory: ["pandoc", "engine"],
-          createEngine: () =>
-            Promise.resolve({ [Symbol.dispose]: () => undefined }),
-        };
-        const storage = dismissedVault();
-        const device = packDevice(null);
-        const notifier = testNotifier();
-        const vault = Layer.merge(
-          notifier.layer,
-          layerDeviceStorageFrom(storage),
-        );
-        const service = yield* packBinary(engine, device);
-
-        yield* start(storage, originFiles(downloaded()));
-        const before = yield* service.check;
-        yield* packNotice(before).pipe(Effect.provide(vault));
-        const borrowed = yield* Effect.flip(service.getEngine);
-
-        expect(before).toEqual({ kind: "pack-absent" });
-        expect(borrowed.message).toBe(
-          "The Resource Pack gave no Pandoc engine: pack-absent",
-        );
-        expect(
-          notifier.notices.map(
-            ({ messages }) => (messages[0] as DocumentFragment).textContent,
-          ),
-        ).toEqual([
-          m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
-        ]);
-
-        device.install(
-          yield* Effect.promise(() => packFile({ "pandoc-engine": bytes })),
-          "1.2.0",
-        );
-
-        expect(yield* service.check).toEqual({
-          kind: "ready",
-          version: "1.2.0",
-        });
       }),
   );
 });
