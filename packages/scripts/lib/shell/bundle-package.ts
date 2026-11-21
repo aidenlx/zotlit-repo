@@ -80,39 +80,12 @@ export default plugin;
 function bundleReadme(plugin: PublishedPlugin, app: AppPackage): string {
   const { name } = app.obsidian;
   const version = app.version;
-  if (plugin.container) {
-    return `# ${plugin.bundlePackage}
-
-The bundle of the ${name} Obsidian plugin, version ${version}, for its publish
-repository, [${plugin.repository}](https://github.com/${plugin.repository}).
-
-- \`main.js\`: the file Obsidian installs. It holds a small plugin class, and
-  the data files as text inside comments, each with its licence. An index on
-  its first line names each data file by its byte offset, so every copy of
-  the file is byte for byte.
-
-Obsidian does not load this package. The publish repository copies
-\`main.js\` from it with \`scripts/build.mjs\`. The source code is in
-[${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}), under
-\`${plugin.app}\`.
-`;
-  }
   return `# ${plugin.bundlePackage}
 
 The bundle of the ${name} Obsidian plugin, version ${version}, for its publish
 repository, [${plugin.repository}](https://github.com/${plugin.repository}).
 
-- \`main.js\`: the plugin as one ES module. It holds ${name}'s code and its
-  third-party code. It imports only the modules Obsidian provides at runtime.
-- \`styles.css\`: the plugin's stylesheet.
-- \`resources/\`: the files the plugin downloads at runtime from the Resource
-  Release \`res-${version}\` of the publish repository.
-
-Obsidian does not load this package. The publish repository builds the
-plugin's \`main.js\` and \`styles.css\` from it with \`scripts/build.mjs\`. The
-source code is in [${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}),
-under \`${plugin.app}\`.
-`;
+${plugin.profile.bundleContents({ name, version, app: plugin.app })}`;
 }
 
 function bundleManifest(
@@ -133,31 +106,7 @@ function bundleManifest(
       url: `https://github.com/${SOURCE_REPOSITORY}`,
       directory: plugin.app,
     },
-    ...(plugin.container
-      ? {
-          // main.js is a CommonJS file that the shell copies and never loads.
-          exports: {
-            "./main.js": "./main.js",
-            "./package.json": "./package.json",
-          },
-          files: ["main.js", ...LEGAL_FILES],
-        }
-      : {
-          type: "module",
-          exports: {
-            ".": { types: "./main.d.ts", default: "./main.js" },
-            "./styles.css": "./styles.css",
-            "./package.json": "./package.json",
-          },
-          files: [
-            "main.js",
-            "main.d.ts",
-            "styles.css",
-            "resources",
-            ...LEGAL_FILES,
-          ],
-          sideEffects: true,
-        }),
+    ...plugin.profile.bundlePackage,
   };
 }
 
@@ -178,7 +127,9 @@ export async function writeBundlePackage(options: {
     join(dir, "package.json"),
     `${JSON.stringify(bundleManifest(plugin, app, await workspaceLicense(workspaceRoot)), null, 2)}\n`,
   );
-  if (!plugin.container) await writeFile(join(dir, "main.d.ts"), BUNDLE_TYPES);
+  if (plugin.profile.entryModule) {
+    await writeFile(join(dir, "main.d.ts"), BUNDLE_TYPES);
+  }
   await writeFile(join(dir, "README.md"), bundleReadme(plugin, app));
   for (const file of LEGAL_FILES) {
     await copyFile(join(workspaceRoot, file), join(dir, file));

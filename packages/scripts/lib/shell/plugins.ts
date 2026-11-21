@@ -3,33 +3,13 @@
 // lives in its entry here or in its host app's package.json.
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 
-/**
- * One published plugin: a bundled plugin, which states what it downloads at
- * runtime, or a Resource Pack container, which downloads nothing.
- */
-export type PublishedPlugin = PluginFacts &
-  (
-    | {
-        readonly container?: undefined;
-        /**
-         * What the plugin downloads at runtime from the Resource Release of
-         * its version, as the release notes name it.
-         */
-        readonly resources: string;
-      }
-    | {
-        /**
-         * The plugin's `main.js` is a Resource Pack container, which the
-         * app's own build writes and every later step ships byte for byte.
-         * Its package.json pins each Pack Entry under `packEntries`. Its
-         * publish repository makes no Resource Release.
-         */
-        readonly container: true;
-      }
-  );
+import { bundledPlugin, CONTAINER_PLUGIN } from "./profiles.ts";
+import type { PluginProfile } from "./profiles.ts";
 
-/** The facts every published plugin states. */
-interface PluginFacts {
+/** One published plugin. */
+export interface PublishedPlugin {
+  /** The plugin's kind: what it ships, and how its shell builds it. */
+  readonly profile: PluginProfile;
   /**
    * The host app's folder, relative to the workspace root. Its package.json
    * holds the version and the manifest fields, and its production build
@@ -60,14 +40,16 @@ export interface PluginBudget {
 
 export const PUBLISHED_PLUGINS = {
   desktop: {
+    profile: bundledPlugin({
+      resources:
+        "Language Packs, template data JSON Schemas, and the Item Query Schema",
+    }),
     app: "apps/obsidian",
     bundlePackage: "@zotlit/obsidian-plugin",
     repository: RELEASE_REPOSITORY,
     versions: "versions.json",
     readme: "README.md",
     giscus: true,
-    resources:
-      "Language Packs, template data JSON Schemas, and the Item Query Schema",
     changelog: "https://zotlit.aidenlx.site/changelog/",
     budget: {
       mainJsBytes: 5_000_000,
@@ -112,13 +94,13 @@ export const PUBLISHED_PLUGINS = {
     ],
   },
   reader: {
+    profile: bundledPlugin({ resources: "Language Packs" }),
     app: "apps/reader",
     bundlePackage: "@zotlit/reader-plugin",
     repository: "aidenlx/zotlit-reader",
     versions: "apps/reader/versions.json",
     readme: "apps/reader/README.md",
     giscus: false,
-    resources: "Language Packs",
     budget: {
       mainJsBytes: 1_700_000,
       stylesCssBytes: 291_892,
@@ -128,6 +110,7 @@ export const PUBLISHED_PLUGINS = {
     allowedRequires: ["obsidian"],
   },
   resources: {
+    profile: CONTAINER_PLUGIN,
     app: "apps/resources",
     bundlePackage: "@zotlit/resources-plugin",
     repository: "aidenlx/zotlit-resources",
@@ -139,7 +122,6 @@ export const PUBLISHED_PLUGINS = {
       stylesCssBytes: 0,
     },
     allowedRequires: ["obsidian"],
-    container: true,
   },
 } as const satisfies Record<string, PublishedPlugin>;
 

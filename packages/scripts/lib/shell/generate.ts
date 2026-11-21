@@ -21,12 +21,7 @@ import { parseManifest } from "#obsidian-manifest";
 
 const TEMPLATES = join(import.meta.dirname, "templates");
 const BUILD_SCRIPT = "scripts/build.mjs";
-/** The build script of a Resource Pack's shell, which that shell carries as `BUILD_SCRIPT`. */
-const CONTAINER_BUILD_SCRIPT = "scripts/build-container.mjs";
 const RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
-/** The release workflow of a Resource Pack, which has no Resource Release. */
-const CONTAINER_RELEASE_WORKFLOW =
-  ".github/workflows/plugin-release-container.yml";
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
@@ -81,24 +76,9 @@ export function shellReadme(
 issue tracker and the development history are in
 [${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY}). This tree is
 generated at each release: send changes to the source repository.`;
-  const section = plugin.container
-    ? `## About this repository
+  const section = `## About this repository
 
-This repository publishes ${name}: its releases. Its tree takes the pack from
-the npm package
-[\`${plugin.bundlePackage}\`](https://www.npmjs.com/package/${plugin.bundlePackage})
-at the version that \`package.json\` names: \`pnpm install\`, then
-\`pnpm run build\` copies \`main.js\` from the package, byte for byte. ${source}
-
-`
-    : `## About this repository
-
-This repository publishes ${name}: its releases, and the Resource Releases
-(\`res-<version>\`) that the plugin downloads at runtime. Its tree builds the
-plugin from the npm package
-[\`${plugin.bundlePackage}\`](https://www.npmjs.com/package/${plugin.bundlePackage})
-at the version that \`package.json\` names: \`pnpm install\`, then
-\`pnpm run build\` writes \`main.js\` and \`styles.css\`. ${source}
+${plugin.profile.aboutRepository({ name, bundlePackage: plugin.bundlePackage })} ${source}
 
 `;
   const footer = resolved.lastIndexOf("\n---\n");
@@ -131,16 +111,16 @@ function releaseWorkflow(template: string, plugin: PublishedPlugin): string {
             ${title} \\
             "Release notes: ${plugin.changelog}\${{ steps.meta.outputs.version }}")`
     : `notes=${title}`;
-  const workflow = template.replace("@@RELEASE_NOTES@@", notes);
-  return plugin.container
-    ? workflow
-    : workflow.replace("@@RESOURCES@@", plugin.resources);
+  return Object.entries(plugin.profile.workflowValues).reduce(
+    (workflow, [name, value]) => workflow.replace(`@@${name}@@`, value),
+    template.replace("@@RELEASE_NOTES@@", notes),
+  );
 }
 
 const gitignore = (plugin: PublishedPlugin) => `node_modules/
 # Written by \`pnpm run build\`, and uploaded to each release.
-main.js
-${plugin.container ? "" : "styles.css\n"}`;
+${plugin.profile.builtFiles.join("\n")}
+`;
 
 /** Writes the shell tree for one plugin version into `outDir`. */
 export async function generateShell(options: ShellOptions): Promise<void> {
@@ -153,8 +133,9 @@ export async function generateShell(options: ShellOptions): Promise<void> {
   const rootPackage = await readJson<{ packageManager: string }>(
     join(workspaceRoot, "package.json"),
   );
-  // A Resource Pack's shell copies main.js and runs no bundler.
-  const toolchain = plugin.container ? undefined : shellToolchain();
+  const { profile } = plugin;
+  // A shell with no entry module copies main.js and runs no bundler.
+  const toolchain = profile.entryModule ? shellToolchain() : undefined;
 
   await rm(outDir, { recursive: true, force: true });
   const write = async (path: string, content: string) => {
@@ -216,7 +197,7 @@ overrides:
     : ""
 }`,
   );
-  if (!plugin.container) await writeShellEntry(outDir, plugin);
+  if (profile.entryModule) await writeShellEntry(outDir, plugin);
   await write(".gitignore", gitignore(plugin));
 
   for (const file of LEGAL_FILES) {
@@ -224,7 +205,7 @@ overrides:
   }
   await mkdir(dirname(join(outDir, BUILD_SCRIPT)), { recursive: true });
   await copyFile(
-    join(TEMPLATES, plugin.container ? CONTAINER_BUILD_SCRIPT : BUILD_SCRIPT),
+    join(TEMPLATES, profile.templates.buildScript),
     join(outDir, BUILD_SCRIPT),
   );
   if (plugin.giscus) {
@@ -234,10 +215,7 @@ overrides:
     RELEASE_WORKFLOW,
     releaseWorkflow(
       await readFile(
-        join(
-          TEMPLATES,
-          plugin.container ? CONTAINER_RELEASE_WORKFLOW : RELEASE_WORKFLOW,
-        ),
+        join(TEMPLATES, profile.templates.releaseWorkflow),
         "utf8",
       ),
       plugin,

@@ -3,10 +3,6 @@ import { regex } from "arkregex";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
-import type { PackPins } from "@zotlit/resource-pack/pins.ts";
-
-import { checkPack } from "#pack-gate";
-
 const REQUIRE_CALL = regex(
   "\\brequire\\(\\s*([\"'`])(?<id>[^\"'`]+)\\1\\s*\\)",
   "g",
@@ -41,26 +37,26 @@ function sizeLine(
     : { line };
 }
 
+/**
+ * Checks the production build of `plugin` in `appDir`, its host app's folder:
+ * the sizes of its built files, the modules its `main.js` requires, and the
+ * checks its profile adds.
+ */
 export async function checkBundle(
   name: string,
-  plugin: Pick<PublishedPlugin, "budget" | "allowedRequires">,
-  {
-    distDir,
-    packPins,
-  }: {
-    readonly distDir: string;
-    /** The pins of the Pack Entries, when `main.js` is a Resource Pack container. */
-    readonly packPins?: PackPins;
-  },
+  plugin: Pick<PublishedPlugin, "profile" | "budget" | "allowedRequires">,
+  appDir: string,
 ): Promise<BundleReport> {
+  const { profile } = plugin;
+  const distDir = join(appDir, "dist");
   const mainJs = await readFile(join(distDir, "main.js"), "utf8");
-  // A Resource Pack has no stylesheet.
-  const stylesBytes = packPins
-    ? 0
-    : (await stat(join(distDir, "styles.css"))).size;
-  const pack = packPins
-    ? await checkPack(mainJs, packPins)
-    : { lines: [], failures: [] };
+  const stylesBytes = profile.builtFiles.includes("styles.css")
+    ? (await stat(join(distDir, "styles.css"))).size
+    : 0;
+  const pack = await profile.checkMain(
+    mainJs,
+    JSON.parse(await readFile(join(appDir, "package.json"), "utf8")),
+  );
   const sizes = [
     sizeLine("main.js", Buffer.byteLength(mainJs), plugin.budget.mainJsBytes),
     sizeLine("styles.css", stylesBytes, plugin.budget.stylesCssBytes),

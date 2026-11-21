@@ -41,7 +41,6 @@ import type { Registry } from "./registry.ts";
 import { tarballDifferences } from "./tarball.ts";
 
 import {
-  builtFiles,
   compareBuilds,
   describeBuilds,
   installAndBuild,
@@ -184,12 +183,12 @@ export async function publishObsidian(
   const builds = await compareBuilds(
     join(appDir, "dist"),
     buildDir,
-    builtFiles(plugin),
+    plugin.profile.builtFiles,
   );
   say(describeBuilds(builds));
   if (builds.some(({ app, shell }) => app !== shell)) {
     throw new Error(
-      `The shell, installed from the registry, does not build the host app's ${builtFiles(plugin).join(" and ")}.`,
+      `The shell, installed from the registry, does not build the host app's ${plugin.profile.builtFiles.join(" and ")}.`,
     );
   }
 

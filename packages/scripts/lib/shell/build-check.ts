@@ -8,17 +8,7 @@ import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
-import type { PublishedPlugin } from "./plugins.ts";
-
-type BuiltFileName = "main.js" | "styles.css";
-
-/**
- * The files the shell's build writes and the release uploads. A Resource
- * Pack has no stylesheet.
- */
-export function builtFiles(plugin: PublishedPlugin): readonly BuiltFileName[] {
-  return plugin.container ? ["main.js"] : ["main.js", "styles.css"];
-}
+import type { BuiltFileName } from "./profiles.ts";
 
 export interface BuiltFile {
   file: BuiltFileName;

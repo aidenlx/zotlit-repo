@@ -22,7 +22,6 @@ import { $ } from "zx";
 
 import { getWorkspaceRoot } from "#package-roots";
 import {
-  builtFiles,
   compareBuilds,
   describeBuilds,
   installAndBuild,
@@ -99,7 +98,7 @@ async function checkShell(name: PublishedPluginName): Promise<boolean> {
   const builds = await compareBuilds(
     join(appDir, "dist"),
     shellDir,
-    builtFiles(plugin),
+    plugin.profile.builtFiles,
   );
   console.log(describeBuilds(builds));
   if (builds.some(({ app, shell }) => app !== shell)) {

@@ -286,7 +286,8 @@ bundle package `@zotlit/resources-plugin`. Its publish repository exists and
 its `publish` switch is on; the first npm publish (step 3) is open.
 
 1. Add the plugin to `PUBLISHED_PLUGINS`
-   (`packages/scripts/lib/shell/plugins.ts`), its product to `PRODUCTS`
+   (`packages/scripts/lib/shell/plugins.ts`) with the profile of its kind
+   (`profiles.ts` beside it), its product to `PRODUCTS`
    (`packages/scripts/lib/release/lines.ts`) with the `publish` switch off,
    and its publish job to `release.yml`. Create the publish repository and do
    the settings in
