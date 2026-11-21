@@ -2,16 +2,18 @@
 // the installed pack, and the engine it starts from the verified bytes.
 import {
   Cause,
+  Deferred,
   Duration,
   Effect,
   Layer,
   PubSub,
   RcRef,
   Schema,
+  Scope,
   Stream,
   SubscriptionRef,
 } from "effect";
-import type { Context, Scope } from "effect";
+import type { Context } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { PackFailure } from "@zotlit/resource-pack/format.ts";
@@ -79,8 +81,11 @@ export type PackBinaryStatus =
 /** Effect-native operations; the layer owns the reads and the shared engine. */
 export interface PackBinaryApi<Engine extends Disposable | AsyncDisposable> {
   /**
-   * Reads the pack and answers where the binary stands. Every call reads the
-   * pack file again, so it sees a pack installed since the last call.
+   * Reads the pack and answers where the binary stands. A call reads the
+   * pack file again, so it sees a pack installed since the last call; a call
+   * made while another one reads joins that read and gets its answer. A
+   * verified binary that did not start stays `failed` until the pack gives
+   * other bytes or a start of those bytes succeeds.
    */
   readonly check: Effect.Effect<PackBinaryStatus>;
   /**
@@ -154,7 +159,13 @@ const sameStatus = (a: PackBinaryStatus | null, b: PackBinaryStatus) =>
   (a.kind !== "failed" || (b.kind === "failed" && a.detail === b.detail));
 
 type Loaded =
-  | { ok: true; bytes: Uint8Array<ArrayBuffer>; version: string }
+  | {
+      ok: true;
+      bytes: Uint8Array<ArrayBuffer>;
+      version: string;
+      /** The SHA-256 of the entry text: the identity of `bytes`. */
+      sha256: string;
+    }
   | { ok: false; status: PackBinaryStatus };
 
 const makePackBinary = Effect.fn("PackBinary.make")(function* <
@@ -164,7 +175,16 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   const status = yield* SubscriptionRef.make<PackBinaryStatus | null>(null);
   /** The entry the last read verified, in the pack it read; `null` after a refusal. */
   let verified: (PackLocation & { readonly sha256: string }) | null = null;
+  /**
+   * The start that failed last, by the SHA-256 of the entry it started from:
+   * a status read of the same bytes states it, with no start.
+   */
+  let failedStart: { readonly sha256: string; readonly detail: string } | null =
+    null;
+  /** The status read that runs now; each `check` made meanwhile joins it. */
+  let reading: Deferred.Deferred<PackBinaryStatus> | null = null;
   let closed = false;
+  const scope = yield* Scope.Scope;
   const log = (
     message: string,
     fields: Record<string, unknown>,
@@ -217,16 +237,27 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       ok: true,
       bytes: read.bytes,
       version: location.version,
+      sha256: read.sha256,
     } satisfies Loaded;
   });
-  const start = (bytes: Uint8Array<ArrayBuffer>) =>
+  const start = ({ bytes, sha256 }: Extract<Loaded, { ok: true }>) =>
     Effect.acquireRelease(
       Effect.tryPromise({
         try: () => binary.createEngine(bytes),
         catch: managedBinaryError,
       }).pipe(
+        Effect.tap(() =>
+          Effect.sync(() => {
+            failedStart = null;
+          }),
+        ),
         Effect.tapError((error) =>
           log("The binary did not start", { error }, "error").pipe(
+            Effect.andThen(
+              Effect.sync(() => {
+                failedStart = { sha256, detail: error.message };
+              }),
+            ),
             Effect.andThen(publish({ kind: "failed", detail: error.message })),
           ),
         ),
@@ -249,12 +280,17 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
           ),
         ),
     );
-  const check = Effect.gen(function* () {
+  const readStatus = Effect.gen(function* () {
     const loaded = yield* load();
     if (!loaded.ok) return yield* publish(loaded.status);
     const ready = { kind: "ready", version: loaded.version } as const;
-    if (!binary.startOnCheck) return yield* publish(ready);
-    return yield* Effect.scoped(start(loaded.bytes)).pipe(
+    if (!binary.startOnCheck)
+      return yield* publish(
+        failedStart?.sha256 === loaded.sha256
+          ? { kind: "failed", detail: failedStart.detail }
+          : ready,
+      );
+    return yield* Effect.scoped(start(loaded)).pipe(
       Effect.andThen(publish(ready)),
       // The failed start set the status.
       Effect.catch((error) =>
@@ -264,7 +300,27 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
         }),
       ),
     );
+  });
+  // The read runs on the layer's Scope, so a caller that leaves does not end
+  // the read the others joined.
+  const check = Effect.suspend(() => {
+    if (reading) return Deferred.await(reading);
+    const answer = (reading = Deferred.makeUnsafe<PackBinaryStatus>());
+    return readStatus.pipe(
+      Effect.onExit((exit) => {
+        if (reading === answer) reading = null;
+        return Deferred.done(answer, exit);
+      }),
+      Effect.forkIn(scope),
+      Effect.andThen(Deferred.await(answer)),
+    );
   }).pipe(Effect.withSpan("PackBinary.check"));
+  /** A status read that starts after the pack changed. */
+  const checkChanged = Effect.suspend(() =>
+    reading
+      ? Deferred.await(reading).pipe(Effect.exit, Effect.andThen(check))
+      : check,
+  );
   // One engine shared by every borrower. It stays after its last borrower
   // leaves, until the layer closes.
   const sharedEngine = yield* RcRef.make({
@@ -276,7 +332,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
           message: `The Resource Pack gave no ${binary.label}: ${loaded.status.kind}`,
         });
       }
-      const engine = yield* start(loaded.bytes);
+      const engine = yield* start(loaded);
       yield* publish({ kind: "ready", version: loaded.version });
       return engine;
     }),
@@ -286,7 +342,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   // where the binary stands in the pack that is there now.
   yield* platform.changes.pipe(
     Stream.runForEach(() =>
-      Effect.andThen(RcRef.invalidate(sharedEngine), check),
+      Effect.andThen(RcRef.invalidate(sharedEngine), checkChanged),
     ),
     Effect.forkScoped({ startImmediately: true }),
   );

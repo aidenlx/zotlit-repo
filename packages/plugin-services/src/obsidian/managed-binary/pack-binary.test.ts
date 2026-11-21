@@ -174,6 +174,86 @@ describe("a Managed Binary of the Resource Pack", () => {
   );
 
   it.effect(
+    "keeps a failed start as the status of the same bytes in a later status read, until the pack gives other bytes",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+        const service = yield* packBinary(
+          {
+            ...SEGMENTER,
+            createEngine: (bytes) =>
+              bytes.length === BINARY.length
+                ? Promise.reject(new Error("Not a wasm module"))
+                : SEGMENTER.createEngine(bytes),
+          },
+          device,
+        );
+        const failed = { kind: "failed", detail: "Not a wasm module" };
+
+        yield* Effect.flip(service.getEngine);
+        // The settings row reads the status: the verified bytes still do not start.
+        expect(yield* service.check).toEqual(failed);
+        expect(yield* service.current).toEqual(failed);
+
+        device.install(
+          yield* pack({ "chinese-segmenter": new Uint8Array([1, 2, 3]) }),
+          "1.3.0",
+        );
+        expect(yield* service.check).toEqual({
+          kind: "ready",
+          version: "1.3.0",
+        });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "joins status reads that run at the same time into one read of the pack and one start",
+    () =>
+      Effect.gen(function* () {
+        const device = packDevice(yield* pack({ "chinese-segmenter": BINARY }));
+        let reads = 0;
+        let starts = 0;
+        const service = yield* packBinary(
+          {
+            ...SEGMENTER,
+            startOnCheck: true,
+            createEngine: (bytes) => {
+              starts += 1;
+              return SEGMENTER.createEngine(bytes);
+            },
+          },
+          {
+            ...device,
+            open: (url) => {
+              const range = device.open(url);
+              return (offset, length) => {
+                // One read of an entry reads the index first.
+                if (offset === 0) reads += 1;
+                return range(offset, length);
+              };
+            },
+          },
+        );
+
+        const statuses = yield* Effect.all(
+          [service.check, service.check, service.check],
+          { concurrency: "unbounded" },
+        );
+
+        expect(statuses).toEqual(
+          Array.from({ length: 3 }, () => ({
+            kind: "ready",
+            version: "1.0.0",
+          })),
+        );
+        expect({ reads, starts }).toEqual({ reads: 1, starts: 1 });
+        // A status read after those ended reads the pack again.
+        yield* service.check;
+        expect({ reads, starts }).toEqual({ reads: 2, starts: 2 });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
     "starts the engine in a status read when the binary asks for it",
     () =>
       Effect.gen(function* () {

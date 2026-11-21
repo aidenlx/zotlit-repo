@@ -1,3 +1,4 @@
+import type { ResourcePackHostPorts } from "#obsidian/managed-binary/pack-platform.ts";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import {
@@ -35,9 +36,18 @@ import {
 import { ItemLookup } from "./service.ts";
 import type { SearchHit } from "./service.ts";
 
-import { layerChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
+import {
+  ChineseSegmenter,
+  layerChineseSegmenter,
+} from "#obsidian/chinese-segmenter/service.ts";
 import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
 import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
+
+/** The smallest module that compiles: the magic number and the version. */
+const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
+
+/** A turn of the event loop, as between two keystrokes. */
+const nextTurn = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 const keys = (hits: readonly SearchHit[]) => hits.map((hit) => hit.item.key);
 
@@ -94,6 +104,77 @@ describe("ItemLookup", () => {
         );
       }),
   );
+
+  for (const [name, searches] of [
+    [
+      "one-shot searches started together",
+      (lookup: ItemLookup["Service"]) =>
+        Effect.all(
+          ["长", "长江", "长江流"].map((query) => lookup.search(query)),
+          { concurrency: "unbounded" },
+        ),
+    ],
+    [
+      "the keystrokes of one Search Session, each a turn after the one before",
+      (lookup: ItemLookup["Service"]) =>
+        Effect.gen(function* () {
+          const session = yield* lookup.openSession;
+          const typed = yield* Effect.forEach(
+            ["长", "长江", "长江流"],
+            (query) =>
+              Effect.forkChild(session.search(query)).pipe(
+                // The search before starts, and asks for the Segmenter, before
+                // the next keystroke interrupts it.
+                Effect.tap(() => Effect.promise(() => nextTurn())),
+              ),
+          );
+          yield* Fiber.joinAll(typed);
+        }).pipe(Effect.scoped),
+    ],
+  ] as const) {
+    it.effect(
+      `reads the installed pack once for ${name} while the Segmenter is unread`,
+      () =>
+        Effect.gen(function* () {
+          const reads = yield* readsOver(() => seed(perLibraryRows()));
+          const device = packDevice(
+            yield* Effect.promise(() =>
+              packFile({ "chinese-segmenter": EMPTY_MODULE }),
+            ),
+          );
+          /** Holds each read of the pack file until the searches are out. */
+          const held = Promise.withResolvers<void>();
+          let packReads = 0;
+          const { lookup, segmenter } = yield* lookupOver(
+            reads,
+            [library(USER_LIBRARY_ID)],
+            {
+              ...device,
+              open: (url) => {
+                const range = device.open(url);
+                return async (offset, length) => {
+                  // One read of an entry reads the index first.
+                  if (offset === 0) packReads += 1;
+                  await held.promise;
+                  return range(offset, length);
+                };
+              },
+            },
+          );
+
+          yield* searches(lookup);
+          held.resolve();
+
+          yield* eventually(() =>
+            expect(Effect.runSync(segmenter!.current)).toEqual({
+              kind: "ready",
+              version: "1.0.0",
+            }),
+          );
+          expect(packReads).toBe(1);
+        }),
+    );
+  }
 
   it.effect("answers through SearchItems with the Library Scope's ids", () =>
     Effect.gen(function* () {
@@ -527,20 +608,19 @@ describe("ItemLookup", () => {
 const lookupOver = Effect.fnUntraced(function* (
   reads: ObservedReads,
   libraries: readonly AvailableLibrary[] | null = [library(USER_LIBRARY_ID)],
-  pack?: ReturnType<typeof packDevice>,
+  pack?: ResourcePackHostPorts,
 ) {
   const state = yield* SubscriptionRef.make(scopeState(libraries));
   const notifier = testNotifier();
+  const segmenter = pack
+    ? yield* Layer.build(
+        layerChineseSegmenter.pipe(Layer.provide(layerPackDevice(pack))),
+      )
+    : undefined;
   const context = yield* Layer.build(
     layerTestItemLookup(reads.client, layerLibraryScopeOf(state), {
       notifier: notifier.layer,
-      ...(pack
-        ? {
-            segmenter: layerChineseSegmenter.pipe(
-              Layer.provide(layerPackDevice(pack)),
-            ),
-          }
-        : {}),
+      ...(segmenter ? { segmenter: Layer.succeedContext(segmenter) } : {}),
     }),
   );
   return {
@@ -550,6 +630,8 @@ const lookupOver = Effect.fnUntraced(function* (
         ({ messages }) => (messages[0] as DocumentFragment).textContent,
       ),
     lookup: Context.get(context, ItemLookup),
+    /** The Chinese Segmenter over `pack`. */
+    segmenter: segmenter && Context.get(segmenter, ChineseSegmenter),
     setLibraries: (next: readonly AvailableLibrary[]) =>
       Effect.gen(function* () {
         yield* SubscriptionRef.set(state, scopeState(next));
