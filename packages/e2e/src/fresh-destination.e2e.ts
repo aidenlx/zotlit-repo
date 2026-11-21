@@ -20,12 +20,14 @@ import {
 } from "./e2e-run-note-helpers.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { waitFor } from "./obsidian-cli.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import { clearVault, e2eVaultDir } from "./vault-script.ts";
 import { reloadWindow } from "./window-reload.ts";
 
 describe.skipIf(!reachable)("Fresh destination flow", () => {
   const vaultPath = e2eVaultDir(workspaceRoot, "destination-vault");
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
   let m: typeof import("@zotlit/plugin-messages/messages.ts");
 
   beforeAll(async () => {

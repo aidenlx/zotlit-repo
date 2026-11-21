@@ -21,6 +21,7 @@ import { revealQueryView } from "./note-query-view.ts";
 import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { QueryViewElement } from "./page-helpers.ts";
 import type { QueryPrintModal } from "./page-query-types.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import { dragScrollBar } from "./scroll-drag.ts";
 import type { DragHost } from "./scroll-drag.ts";
 import { expectEditorSide, openEditorAt } from "./vault-editor-side.ts";
@@ -50,6 +51,7 @@ const LISTED = 260;
 
 describe.skipIf(!reachable)("Library View long lists", () => {
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);

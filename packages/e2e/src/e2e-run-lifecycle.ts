@@ -1,11 +1,10 @@
-import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
+import { afterAll, beforeAll, beforeEach } from "vitest";
 
 // The End-to-end vault holds the Resource Pack installed and not enabled.
 import { RESOURCE_PACK_ID } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
 import { pluginsOption } from "@zotlit/scripts/vault-plugins";
 
 import { prepareRunWindow } from "./background-throttling.ts";
-import { expectNothingLeftOpen } from "./case-leftovers.ts";
 import {
   e2eVaultPath,
   runVaultScript,
@@ -13,6 +12,7 @@ import {
 } from "./e2e-run-fixture.ts";
 import { availableLoopbackPort } from "./e2e-run-helpers.ts";
 import { cli, obRun, obRunUntil } from "./obsidian-cli.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import { pluginStartupMs } from "./startup-record.ts";
 import {
   clearVault,
@@ -162,5 +162,5 @@ export function registerEndToEndRunHooks(): void {
     firstLoadStartupMs = undefined;
   });
 
-  afterEach(() => expectNothingLeftOpen(run.vaultId));
+  registerRunVaultGuard(() => run.vaultId);
 }

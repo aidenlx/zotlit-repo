@@ -9,7 +9,6 @@ import { discardFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { prepareRunWindow } from "./background-throttling.ts";
-import { expectNothingLeftOpen } from "./case-leftovers.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type {
   FileExplorerView,
@@ -23,6 +22,7 @@ import {
   removeReaderProbe,
   writeProbeData,
 } from "./reader-probe.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import {
   clearVault,
   e2eVaultDir,
@@ -108,6 +108,7 @@ interface Registries {
 
 describe.skipIf(!reachable)("ZotLit Reader alone", () => {
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);
@@ -1359,7 +1360,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
   });
 
   describe("the Reader's view, its toolbar, sidebar, find, input, links, reading position, theme variables, embeds and fonts", () => {
-    afterEach(() => expectNothingLeftOpen(vaultId));
+    registerRunVaultGuard(() => vaultId);
 
     it("keeps the focus that moves elsewhere while a PDF opened with focus still loads", async () => {
       const focus = await obRun(

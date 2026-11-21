@@ -17,6 +17,7 @@ import type {
   WalkthroughCitationSuggest,
   WalkthroughRemote,
 } from "./page-walkthrough-types.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import {
   clearVault,
   e2eVaultDir,
@@ -33,6 +34,7 @@ const reachable = await isObsidianReachable(root);
 
 describe.skipIf(!reachable)("Walkthrough regressions", () => {
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
   beforeAll(async () => {
     await clearVault(run, path);
     // The Resource Pack holds the Pandoc engine. It is installed and not

@@ -13,6 +13,7 @@ import {
 import { obRun } from "./obsidian-cli.ts";
 import type { ObsidianContext } from "./page-context.ts";
 import type { RenameListener } from "./page-host.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import { clearVault, e2eVaultDir } from "./vault-script.ts";
 import { reloadWindow } from "./window-reload.ts";
 
@@ -80,6 +81,7 @@ const recordRename = async (
 describe.skipIf(!reachable)("Window reload", () => {
   const vaultPath = e2eVaultDir(workspaceRoot, "window-reload-vault");
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);
@@ -335,6 +337,7 @@ describe.skipIf(!reachable)("Window reload", () => {
 describe.skipIf(!reachable)("Plugin start-up", () => {
   const vaultPath = e2eVaultDir(workspaceRoot, "plugin-startup-vault");
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);

@@ -16,6 +16,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { prepareRunWindow } from "./background-throttling.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import {
   clearVault,
   e2eVaultDir,
@@ -65,6 +66,7 @@ interface CancelAnswer {
 
 describe.skipIf(!reachable)("ZotLit Query cancel", () => {
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   const query = (args: Record<string, string>) =>
     cliCommand(vaultId, "zotlit:query", {

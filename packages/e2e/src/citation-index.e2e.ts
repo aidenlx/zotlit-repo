@@ -17,6 +17,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { prepareRunWindow } from "./background-throttling.ts";
 import { obRun } from "./obsidian-cli.ts";
 import { cli, waitFor } from "./obsidian-cli.ts";
+import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import {
   clearVault,
   e2eVaultDir,
@@ -105,6 +106,7 @@ async function preserveFixture(vaultId: string): Promise<AsyncDisposableStack> {
 
 describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
   let vaultId = "";
+  registerRunVaultGuard(() => vaultId, { leftovers: false });
 
   beforeAll(async () => {
     await clearVault(runVaultScript, vaultPath);
