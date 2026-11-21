@@ -7,7 +7,11 @@ import { tv } from "@zotlit/plugin-kernel/tw.ts";
 import { Icon } from "./icon.tsx";
 import type { IconSize } from "./icon.tsx";
 
-const iconButton = tv({
+/**
+ * The icon button's classes, for a control that keeps its own element and
+ * content, such as a `<button>` with a label beside its icon.
+ */
+export const iconButton = tv({
   base: "clickable-icon",
   variants: {
     active: { true: "is-active" },

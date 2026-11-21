@@ -12,6 +12,7 @@ import type { IconName } from "obsidian";
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -199,7 +200,10 @@ function SectionHeader({
         aria-disabled={onToggle ? undefined : true}
         onClick={onToggle}
         data-part="section-header"
-        className="clickable-icon zt:[--icon-size:var(--icon-xs)] zt:text-muted-foreground zt:focus-visible:shadow-(--input-box-shadow-focus)"
+        className={iconButton({
+          className:
+            "zt:[--icon-size:var(--icon-xs)] zt:text-muted-foreground zt:focus-visible:shadow-(--input-box-shadow-focus)",
+        })}
       >
         <span
           aria-hidden="true"
@@ -397,7 +401,10 @@ function Chevron({
       onKeyDown={activateOnEnterOrSpace(() => onClick())}
       data-expanded={expanded ? "" : undefined}
       data-part="chevron"
-      className="clickable-icon zt:w-6 zt:shrink-0 zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)"
+      className={iconButton({
+        className:
+          "zt:w-6 zt:shrink-0 zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)",
+      })}
     >
       <span data-part="chevron-icon" className={explorerTreeChevronIcon}>
         <Icon name="chevron-right" />
@@ -460,7 +467,10 @@ function ClusterButton({
         );
       })}
       data-part="action"
-      className="clickable-icon zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)"
+      className={iconButton({
+        className:
+          "zt:[--icon-size:var(--icon-xs)] zt:focus-visible:shadow-(--input-box-shadow-focus)",
+      })}
     >
       <Icon name={icon} />
     </span>

@@ -9,6 +9,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
@@ -498,7 +499,7 @@ export function DataExplorer({
       }
       {...sectionsTooltip}
       data-part="sections-toggle"
-      className="clickable-icon zt:shrink-0"
+      className={iconButton({ className: "zt:shrink-0" })}
     >
       <Icon name={allCollapsed ? "chevrons-up-down" : "chevrons-down-up"} />
     </button>
@@ -646,7 +647,7 @@ export function DataExplorer({
       {trigger && (
         <p
           data-part="hint"
-          className="setting-item-description zt:px-3 zt:pb-2"
+          className="zt:px-3 zt:pt-1 zt:pb-2 zt:text-xs zt:leading-(--line-height-tight) zt:text-muted-foreground"
         >
           {m.workbench_fields_trigger_hint({ trigger })}
         </p>

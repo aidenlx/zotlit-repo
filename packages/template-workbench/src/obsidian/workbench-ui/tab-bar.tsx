@@ -6,6 +6,7 @@ import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -136,7 +137,9 @@ export function TabBar({
             }}
             data-part="tab"
             data-state={active ? "active" : "inactive"}
-            className="clickable-icon zt:disabled:opacity-50 zt:shrink-0 zt:text-sm"
+            className={iconButton({
+              className: "zt:disabled:opacity-50 zt:shrink-0 zt:text-sm",
+            })}
           >
             {tabLabel(id)}
           </button>

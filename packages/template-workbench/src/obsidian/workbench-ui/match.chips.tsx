@@ -1,5 +1,6 @@
 import { useRef } from "react";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -60,7 +61,9 @@ export function ChipInput({
               />
               <TagsInput.ItemRemove
                 data-part="chip-remove"
-                className="multi-select-pill-remove-button clickable-icon"
+                className={iconButton({
+                  className: "multi-select-pill-remove-button",
+                })}
                 {...tooltipAttrs(m.workbench_match_chip_remove({ value }))}
               >
                 <Icon name="x" />

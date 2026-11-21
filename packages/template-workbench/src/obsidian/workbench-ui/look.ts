@@ -1,6 +1,7 @@
 // The class building blocks the Workbench UI shares: its buttons, panes,
 // boxes and drag rows, which the components compose with `zt:` utilities and
 // the Selection UI of the editor unit reads too.
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { selectionControl } from "@zotlit/obsidian-kit/components/obsidian/selection-control.ts";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { tv } from "@zotlit/plugin-kernel/tw.ts";
@@ -14,15 +15,8 @@ export const templateWorkbenchButton =
  * below it with the action. Template and note names come from the vault, so
  * each one wraps anywhere.
  */
-/**
- * The width each column's handle takes between the column and the editor,
- * in pixels: the line of Obsidian's `--divider-width` that the `edge` part's
- * pane divider shows; its strip overlaps the column. The placement counts it.
- */
-export const PANEL_HANDLE_WIDTH = 1;
-
 export const originatingNoteNotice = {
-  root: "zt:mx-3 zt:mb-2 zt:flex zt:min-w-0 zt:flex-col zt:gap-2 zt:border-s-2 zt:border-(--interactive-accent) zt:bg-(--background-secondary) zt:px-3 zt:py-2 zt:text-xs zt:leading-normal",
+  root: "zt:mx-3 zt:mb-2 zt:flex zt:min-w-0 zt:flex-col zt:gap-2 zt:border-s-2 zt:border-primary zt:bg-(--background-secondary) zt:px-3 zt:py-2 zt:text-xs zt:leading-normal",
   guidance: "zt:min-w-0 zt:space-y-0.5",
   scope:
     "zt:font-medium zt:text-pretty zt:text-foreground zt:[overflow-wrap:anywhere]",
@@ -110,7 +104,9 @@ export const editorBox =
 export const editorChip =
   "zt:rounded-sm zt:border zt:border-border zt:bg-card zt:font-sans zt:text-xs zt:font-medium zt:leading-tight zt:text-muted-foreground";
 /** An icon button small enough to sit inside a chip. */
-export const chipIcon = "clickable-icon zt:p-1 zt:[--icon-size:var(--icon-xs)]";
+export const chipIcon = iconButton({
+  className: "zt:p-1 zt:[--icon-size:var(--icon-xs)]",
+});
 /** A one-line bar of chrome: a heading, a hint, and an action at the end. */
 export const bar =
   "zt:flex zt:flex-wrap zt:items-center zt:gap-x-3 zt:gap-y-1 zt:rounded-md zt:border zt:border-border zt:bg-card zt:px-2.5 zt:py-1.5 zt:text-xs";
@@ -124,7 +120,7 @@ export const bar =
  */
 export const dragRow = [
   "zt:relative zt:data-dragging:opacity-50",
-  "zt:before:pointer-events-none zt:before:absolute zt:before:inset-x-0 zt:before:hidden zt:before:h-(--size-2-1) zt:before:rounded-full zt:before:bg-(--interactive-accent)",
+  "zt:before:pointer-events-none zt:before:absolute zt:before:inset-x-0 zt:before:hidden zt:before:h-(--size-2-1) zt:before:rounded-full zt:before:bg-primary",
   "zt:data-[drop=before]:before:block zt:data-[drop=before]:before:top-[calc(-0.5*(var(--zt-row-gap,0.5rem)+var(--size-2-1))-var(--zt-row-border,0px))]",
   "zt:data-[drop=after]:before:block zt:data-[drop=after]:before:bottom-[calc(-0.5*(var(--zt-row-gap,0.5rem)+var(--size-2-1))-var(--zt-row-border,0px))]",
 ];

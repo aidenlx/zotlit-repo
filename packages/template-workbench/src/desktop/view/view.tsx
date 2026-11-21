@@ -234,10 +234,10 @@ import {
 } from "#obsidian/workbench-ui/index.tsx";
 import {
   originatingNoteNotice,
-  PANEL_HANDLE_WIDTH,
   templateWorkbenchButton,
   selectionHint,
 } from "#obsidian/workbench-ui/look.ts";
+import { PANEL_HANDLE_WIDTH } from "#obsidian/workbench-ui/panel-layout.ts";
 
 // Show problem reads inside the sentence that reports the failure, so
 // it wears link text rather than the native button box; the box, font

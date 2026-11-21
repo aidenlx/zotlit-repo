@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { ReactNode, RefObject } from "react";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 // The Fields Panel, the chosen Item's fields in the host's non-modal Fields
@@ -29,8 +30,10 @@ const fieldsPanelPanel = cn(
 );
 // Pinned, the pin wears Obsidian's active icon (`theme.css`); with no
 // room to dock, it steps back and keeps its focus and its tooltip.
-const fieldsPanelPin =
-  "clickable-icon zt:shrink-0 zt:aria-disabled:cursor-not-allowed zt:aria-disabled:opacity-50";
+const fieldsPanelPin = iconButton({
+  className:
+    "zt:shrink-0 zt:aria-disabled:cursor-not-allowed zt:aria-disabled:opacity-50",
+});
 
 /** What the Fields Panel holds, and what names it. */
 interface FieldsPanelContent {
@@ -244,7 +247,7 @@ function FieldsPanelBody({
             onClick={() => setState("closed")}
             {...closeTooltip}
             data-part="close"
-            className="clickable-icon zt:shrink-0"
+            className={iconButton({ className: "zt:shrink-0" })}
           >
             <Icon name="x" />
           </button>

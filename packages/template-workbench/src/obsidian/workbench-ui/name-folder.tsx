@@ -11,6 +11,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { citationStyleLabel } from "@zotlit/citations/core/pandoc/citation-style.ts";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -787,7 +788,7 @@ function BindingRow({
           <button
             type="button"
             data-part="reset-button"
-            className="clickable-icon zt:ms-auto"
+            className={iconButton({ className: "zt:ms-auto" })}
             disabled={readOnly}
             {...tooltipAttrs(m.workbench_name_use_default())}
             onClick={() => onWrite(undefined)}
@@ -889,11 +890,7 @@ function StylePicker({
       id={id}
       disabled={readOnly}
       value={value ?? ""}
-      onInput={(event) =>
-        onWrite(
-          event.currentTarget.value === "" ? null : event.currentTarget.value,
-        )
-      }
+      onChange={(next) => onWrite(next === "" ? null : next)}
     >
       <WorkbenchOption value="">{citationStyleLabel()}</WorkbenchOption>
       {options.map((style) => (
@@ -930,7 +927,7 @@ function LanguageGroup({
           disabled={readOnly}
           id={fieldId(prefix, "language")}
           value={pending ?? language}
-          onInput={(event) => setPending(event.currentTarget.value)}
+          onChange={setPending}
         >
           <WorkbenchOption value="liquid">
             {m.workbench_name_language_liquid()}

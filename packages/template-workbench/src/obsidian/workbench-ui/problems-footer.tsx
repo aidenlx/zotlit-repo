@@ -641,7 +641,7 @@ export function ProblemsFooter({
                 <WorkbenchSelect
                   aria-label={m.workbench_problems_selected()}
                   value={selected.id}
-                  onInput={(event) => select(event.currentTarget.value)}
+                  onChange={select}
                 >
                   {diagnoses.map((diagnosis) => (
                     <WorkbenchOption key={diagnosis.id} value={diagnosis.id}>

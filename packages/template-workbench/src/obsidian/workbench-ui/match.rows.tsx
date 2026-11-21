@@ -56,11 +56,7 @@ export function MatchSelect({ searchable, ...props }: MatchSelectProps) {
           {current.icon}
         </span>
       )}
-      <WorkbenchSelect
-        {...rest}
-        value={value}
-        onInput={(event) => onChange(event.currentTarget.value)}
-      >
+      <WorkbenchSelect {...rest} value={value} onChange={onChange}>
         {current === undefined &&
           (value === "" ? (
             <option value="" disabled>

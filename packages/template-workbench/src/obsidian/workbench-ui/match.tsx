@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useState, useRef } from "react";
 import { composeFilterTree } from "@zotlit/filter-expression";
 import type { FilterPath } from "@zotlit/filter-expression";
 import { ITEMS } from "@zotlit/item-query";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -76,8 +77,10 @@ const matchGroup = cn(
   "zt:flex zt:w-full zt:min-w-0 zt:flex-1 zt:flex-col zt:gap-2 zt:data-[state=nested]:rounded-md zt:data-[state=nested]:border zt:data-[state=nested]:border-border zt:data-[state=nested]:bg-card zt:data-[state=nested]:p-2 zt:[&>[data-part=actions]:first-child]:justify-between",
   workbenchRows.group(),
 );
-const matchIconButton =
-  "clickable-icon zt:shrink-0 zt:aria-disabled:cursor-default zt:aria-disabled:opacity-50";
+const matchIconButton = iconButton({
+  className:
+    "zt:shrink-0 zt:aria-disabled:cursor-default zt:aria-disabled:opacity-50",
+});
 const matchRow = workbenchRows.row();
 const matchHandle = workbenchRows.handle();
 const matchConjunction =

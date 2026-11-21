@@ -166,19 +166,12 @@ export default defineConfig({
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
     {
-      // Code written before the rule; new code follows it, and a file moves
-      // off this list when it is next reworked.
+      // Rendered frontmatter and the Match's list values: the app's own
+      // Properties classes draw the property rows and the value pills, so
+      // they read as the note's Properties block does in the editor.
       files: [
-        "src/obsidian/workbench-ui/data-explorer.tsx",
-        "src/obsidian/workbench-ui/explorer-tree.tsx",
-        "src/obsidian/workbench-ui/field-details.tsx",
-        "src/obsidian/workbench-ui/fields-panel.tsx",
         "src/obsidian/workbench-ui/match.chips.tsx",
-        "src/obsidian/workbench-ui/match.tsx",
-        "src/obsidian/workbench-ui/name-folder.tsx",
-        "src/obsidian/workbench-ui/properties-tab.tsx",
         "src/obsidian/workbench-ui/property-list.tsx",
-        "src/obsidian/workbench-ui/tab-bar.tsx",
       ],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },

@@ -14,6 +14,7 @@ import type {
 } from "#core/render/result.ts";
 import { useEffect, useState, useRef, useMemo } from "react";
 
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -52,7 +53,7 @@ const propertiesRow = cn(
 const propertiesHandle = cn(dragHandle, "zt:self-stretch");
 const propertiesLabel =
   "zt:text-xs zt:font-medium zt:data-[state=problem]:text-(--text-error)";
-const propertiesRowAction = "clickable-icon";
+const propertiesRowAction = iconButton();
 const propertiesPrimaryAction = templateWorkbenchButton;
 const propertiesForm = cn(
   "zt:flex zt:min-w-0 zt:flex-col zt:gap-3",
@@ -378,7 +379,10 @@ export function PropertiesPane({
                   aria-controls={`${instanceId}-property-${entry.position}`}
                   onClick={() => onSelect(open ? null : entry.position)}
                   data-part="row-toggle"
-                  className="clickable-icon zt:min-w-0 zt:flex-1 zt:flex-wrap zt:justify-start zt:gap-x-3 zt:gap-y-1 zt:text-start"
+                  className={iconButton({
+                    className:
+                      "zt:min-w-0 zt:flex-1 zt:flex-wrap zt:justify-start zt:gap-x-3 zt:gap-y-1 zt:text-start",
+                  })}
                 >
                   <span
                     data-part="row-name"
@@ -424,7 +428,7 @@ export function PropertiesPane({
                   <button
                     type="button"
                     data-part="edit"
-                    className="clickable-icon"
+                    className={iconButton()}
                     {...tooltipAttrs(m.workbench_properties_edit())}
                     aria-pressed={open}
                     aria-expanded={open}
@@ -641,10 +645,8 @@ function EntryForm({
                 <WorkbenchSelect
                   disabled={locked}
                   value={pendingLanguage ?? format}
-                  onInput={(event) =>
-                    setPendingLanguage(
-                      event.currentTarget.value as "text" | "expr" | "value",
-                    )
+                  onChange={(next) =>
+                    setPendingLanguage(next as "text" | "expr" | "value")
                   }
                 >
                   <WorkbenchOption value="text">
@@ -771,12 +773,12 @@ function EntryForm({
           <WorkbenchSelect
             disabled={locked}
             value={entry.merge}
-            onInput={(event) =>
+            onChange={(next) =>
               controller.editManagedEntry({
                 action: "set",
                 position: entry.position,
                 field: "merge",
-                value: event.currentTarget.value,
+                value: next,
               })
             }
           >

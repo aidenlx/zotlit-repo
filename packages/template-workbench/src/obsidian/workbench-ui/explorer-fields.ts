@@ -4,7 +4,7 @@ import { COMMON_FIELDS } from "./completion-fields.ts";
 // Common field labels and values shared by the Explorer and its hosts.
 import type { TemplateRoot } from "./model.ts";
 
-import { fieldMatches, outputText } from "#core/data-tree/index.ts";
+import { outputText } from "#core/data-tree/index.ts";
 
 export interface FieldRow {
   readonly node: DisplayNode;
@@ -27,16 +27,6 @@ export function commonRows(
     return node
       ? [{ node, label: field.label(), value: fieldValueText(node) }]
       : [];
-  });
-}
-
-/** Matches a row by the field tree's one search rule, on this paper's value as the row shows it. */
-export function rowMatches(row: FieldRow, query: string): boolean {
-  return fieldMatches(query, {
-    label: row.node.label,
-    alias: row.label,
-    path: row.node.path,
-    values: [row.value],
   });
 }
 

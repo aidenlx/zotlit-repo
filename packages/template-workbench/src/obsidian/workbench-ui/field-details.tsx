@@ -2,6 +2,8 @@ import type { DisplayNode, SnippetKind } from "#core/data-tree/index.ts";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Ref } from "react";
 
+import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 // One field's details in the Fields Panel: its full value, its template path,
@@ -259,7 +261,7 @@ function DetailsBody({
           onClick={onClose}
           {...closeTooltip}
           data-part="close"
-          className="clickable-icon zt:shrink-0"
+          className={iconButton({ className: "zt:shrink-0" })}
         >
           <Icon name="x" />
         </button>
@@ -369,17 +371,17 @@ function DetailsBody({
         </p>
       </div>
       <div data-part="actions" className={fieldDetailsActions}>
-        <button
-          type="button"
+        <Button
+          variant="cta"
+          icon="text-cursor-input"
           disabled={!onInsert}
           aria-describedby={onInsert ? undefined : reasonId}
           onClick={(event) => onInsert?.(form, { keepOpen: event.shiftKey })}
           data-part="insert"
-          className="mod-cta zt:gap-1.5 zt:[&_svg]:size-(--icon-s)"
+          className="zt:[&_svg]:size-(--icon-s)"
         >
-          <Icon name="text-cursor-input" />
           {m.workbench_fields_insert()}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => onCopy(form)}

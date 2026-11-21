@@ -69,6 +69,13 @@ export const EDITOR_MIN = { width: 360, height: 320 } as const;
 /** The widths the docked Fields Panel takes, in pixels. */
 export const FIELDS_WIDTH = { min: 240, initial: 320, max: 480 } as const;
 
+/**
+ * The width each column's handle takes between the column and the editor,
+ * in pixels: the line of Obsidian's `--divider-width` that the `edge` part's
+ * pane divider shows; its strip overlaps the column. The placement counts it.
+ */
+export const PANEL_HANDLE_WIDTH = 1;
+
 /** A new editor shows no panel. */
 export const INITIAL_PANELS: WorkbenchPanels = {
   fields: { pinned: false, hidden: false, width: FIELDS_WIDTH.initial },

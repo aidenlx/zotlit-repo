@@ -1,20 +1,21 @@
 // Native selection semantics: Obsidian's dropdown surface and a chevron glyph.
 import type { ComponentProps } from "react";
 
+import { Dropdown } from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
+import type { DropdownProps } from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
-
-const SELECT = "dropdown zt:max-w-full";
+import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
 export function WorkbenchSelect({
   className,
   ...props
-}: Omit<ComponentProps<"select">, "style" | "size">) {
+}: Omit<DropdownProps, "style" | "size" | "ref">) {
   return (
     <div data-part="wrapper" className="zt:min-w-0 zt:max-w-full">
-      <select
+      <Dropdown
         data-part="select"
         {...props}
-        className={className ? `${SELECT} ${className}` : SELECT}
+        className={cn("zt:max-w-full", className)}
       />
       <span aria-hidden data-part="icon" className="zt:hidden">
         <Icon name="chevron-down" />
