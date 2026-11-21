@@ -238,6 +238,10 @@ import {
   selectionHint,
 } from "#obsidian/workbench-ui/look.ts";
 import { PANEL_HANDLE_WIDTH } from "#obsidian/workbench-ui/panel-layout.ts";
+import {
+  panelSizeMenus,
+  pickPanelSize,
+} from "#obsidian/workbench-ui/panel-menu.ts";
 
 // Show problem reads inside the sentence that reports the failure, so
 // it wears link text rather than the native button box; the box, font
@@ -332,6 +336,22 @@ export interface TemplateWorkbenchDeps {
   settings: ItemSearchDeps["settings"];
   bridge: ItemSearchDeps["bridge"];
 }
+
+/** The icons of a panel's size submenu and its entries, by the way its edge moves. */
+const PANEL_SIZE_ICONS = {
+  horizontal: {
+    menu: "move-horizontal",
+    grow: "unfold-horizontal",
+    shrink: "fold-horizontal",
+    reset: "rotate-ccw",
+  },
+  vertical: {
+    menu: "move-vertical",
+    grow: "unfold-vertical",
+    shrink: "fold-vertical",
+    reset: "rotate-ccw",
+  },
+} as const;
 
 export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   /** The editor hover popover now open, which the next one replaces. */
@@ -1845,6 +1865,7 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           .onClick(() => this.startAnnotationChoice()),
       );
     this.#addPreviewMenu(menu);
+    this.#addPanelSizeMenus(menu);
     // As the view action: only a Profile document has a Source to show.
     if (this.documentKind === "profile")
       menu.addItem((item) =>
@@ -1937,6 +1958,33 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         .setIcon("sliders-horizontal");
       this.#addPreviewSettings(item.setSubmenu());
     });
+  }
+  /**
+   * A submenu for each panel edge the view draws, with entries that grow,
+   * shrink and reset the panel: the path to each size for a reader who
+   * cannot drag the edge (WCAG 2.5.7). The panels announce the new size.
+   */
+  #addPanelSizeMenus(menu: Menu): void {
+    const { registry, workbench } = this;
+    const menus = panelSizeMenus(registry.get(workbench.panels), {
+      size: registry.get(this.viewSize),
+      defaults: workbench.panelDefaults,
+    });
+    for (const { axis, label, items } of menus) {
+      const icons = PANEL_SIZE_ICONS[axis];
+      menu.addItem((entry) => {
+        entry.setSection(MENU_SECTION.pane).setTitle(label).setIcon(icons.menu);
+        const submenu = entry.setSubmenu();
+        for (const size of items)
+          submenu.addItem((item) =>
+            item
+              .setTitle(size.label)
+              .setIcon(icons[size.resize])
+              .setDisabled(size.disabled)
+              .onClick(() => pickPanelSize(registry, workbench, size)),
+          );
+      });
+    }
   }
   /**
    * The Preview pane's More options, opened under `trigger`: the same

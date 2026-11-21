@@ -57,6 +57,8 @@ import { m } from "@/paraglide/messages.js";
 
 双击边框可将面板恢复为默认宽度。
 
+你也可以不拖动边框来调整面板大小。在视图的窗格菜单中选择 <UiLabel name={m.workbench_preview_resize()} />，然后选择 <UiLabel name={m.workbench_panel_wider()} />、<UiLabel name={m.workbench_panel_narrower()} /> 或 <UiLabel name={m.workbench_panel_reset_width()} />。每次调整将边框移动 64 像素。在窄视图中面板位于编辑器下方时，菜单项为 <UiLabel name={m.workbench_panel_taller()} />、<UiLabel name={m.workbench_panel_shorter()} /> 和 <UiLabel name={m.workbench_panel_reset_height()} />，每次调整改变视图高度的 10%。屏幕阅读器会播报调整后的大小。
+
 ### 窄视图下的面板布局 [#narrow-view]
 
 在宽度至少为 896 像素（56rem）的视图中，“预览”面板位于编辑器旁边，方便你在编辑时随时对照模板与输出结果。

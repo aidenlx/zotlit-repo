@@ -3491,6 +3491,7 @@ describe("the side panels of the Template Workbench View", () => {
       m.workbench_choose_item(),
       m.workbench_choose_annotation(),
       m.workbench_view_preview(),
+      m.workbench_preview_resize(),
       m.workbench_advanced(),
       m.workbench_undo(),
       m.workbench_redo(),
@@ -3499,7 +3500,6 @@ describe("the side panels of the Template Workbench View", () => {
       items
         .filter((item) => item.section === MENU_SECTION.action)
         .map((item) => item.title),
-      // The pane edges size the panels, so the menu holds no sizes.
     ).toEqual([
       m.template_data_explorer_menu_export_json(),
       m.workbench_help(),
@@ -3529,6 +3529,33 @@ describe("the side panels of the Template Workbench View", () => {
     await act(async () => entry(view, m.workbench_advanced())!.click());
     expect(viewState(view).advanced).toBe(true);
     expect(entry(view, m.workbench_advanced())?.checked).toBe(true);
+  });
+
+  // The menu path to each size, for a reader who cannot drag the edge.
+  it("sizes the Preview from the pane menu, and has the panels announce it", async () => {
+    await using cleanup = new AsyncDisposableStack();
+    const { view } = setup();
+    cleanup.defer(() => act(async () => view.close()));
+    await act(async () => view.open());
+    await act(async () => view.togglePreview());
+    await act(async () =>
+      view.registry.set(view.viewSize, { width: 1600, height: 800 }),
+    );
+    const resize = entry(view, m.workbench_preview_resize())!;
+    expect(
+      resize.submenu?.items.map((item) => [item.title, item.disabled]),
+    ).toEqual([
+      [m.workbench_panel_wider(), false],
+      [m.workbench_panel_narrower(), false],
+      [m.workbench_panel_reset_width(), true],
+    ]);
+    const before = view.registry.get(view.workbench.panels).preview.width;
+    await act(async () => entry(view, m.workbench_panel_wider())!.click());
+    expect(view.registry.get(view.workbench.panels).preview.width).toBe(
+      before + 64,
+    );
+    expect(view.registry.get(view.workbench.sizedFromMenu)).toBe("preview");
+    expect(entry(view, m.workbench_panel_reset_width())?.disabled).toBe(false);
   });
 
   it("offers the Preview's settings in the pane menu while the panel shows, and saves them", async () => {

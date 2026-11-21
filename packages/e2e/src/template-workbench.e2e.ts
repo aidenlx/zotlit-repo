@@ -887,6 +887,89 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       fields: { pinned: false, hidden: false, width: 320 },
       preview: { ...panels.preview, height: 40 },
     });
+
+    // The View's More options holds the path to each size, for a reader who
+    // cannot drag the edge: Resize preview → Make narrower.
+    const pickFromMenu = (title: string) =>
+      obRunUntil(
+        run.vaultId,
+        ({ page }, { title }) => {
+          const item = Array.from(
+            document.querySelectorAll<HTMLElement>("body > .menu .menu-item"),
+          ).find(
+            (element) =>
+              element.querySelector(".menu-item-title")?.textContent === title,
+          );
+          if (!item) return false;
+          page.press(item, title);
+          return true;
+        },
+        { title },
+        { what: `the ${title} menu entry` },
+      );
+    await obRunUntil(
+      run.vaultId,
+      ({ page }, { path }) => {
+        const trigger = page
+          .workbench({ path })
+          ?.containerEl.querySelector<HTMLElement>(
+            ".view-actions .view-action:has(svg.lucide-more-vertical)",
+          );
+        if (!trigger) return false;
+        page.press(trigger, "More options");
+        return true;
+      },
+      { path },
+      { what: "the View's More options" },
+    );
+    await pickFromMenu(run.m.workbench_preview_resize());
+    await pickFromMenu(run.m.workbench_panel_narrower());
+    const narrower = preview.drawn - 64;
+    const sized = JSON.parse(
+      (await obRunUntil(
+        run.vaultId,
+        ({ page }, { path, label }) => {
+          const view = page.workbench({ path });
+          const handle = Array.from(
+            view?.contentEl.querySelectorAll<HTMLElement>("[role=separator]") ??
+              [],
+          ).find((element) => element.getAttribute("aria-label") === label);
+          if (!view || !handle) return null;
+          return JSON.stringify({
+            now: handle.getAttribute("aria-valuenow"),
+            drawn: page.previewPanel(view)?.offsetWidth ?? null,
+            saved: (view.getState().panels as { preview: { width: number } })
+              .preview.width,
+            statuses: Array.from(
+              view.contentEl.querySelectorAll<HTMLElement>("[role=status]"),
+              (status) => status.textContent,
+            ),
+          });
+        },
+        { path, label: run.m.workbench_preview_resize() },
+        {
+          what: "the Preview narrower by one menu step",
+          ready: (value) =>
+            value !== null &&
+            (JSON.parse(value) as { now: string | null }).now ===
+              String(narrower),
+        },
+      ))!,
+    ) as {
+      now: string;
+      drawn: number | null;
+      saved: number;
+      statuses: string[];
+    };
+    expect(sized.drawn).toBe(narrower);
+    expect(sized.saved).toBe(narrower);
+    // The panels announce the size, as the menu moves no focus to the edge.
+    expect(sized.statuses).toContain(
+      run.m.workbench_panel_size_status({
+        panel: run.m.workbench_view_preview(),
+        size: run.m.workbench_panel_width_value({ width: narrower }),
+      }),
+    );
   });
 
   // The panel dividers look as Obsidian's own divider does, and take no room
