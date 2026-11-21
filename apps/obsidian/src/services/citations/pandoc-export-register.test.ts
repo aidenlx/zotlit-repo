@@ -155,7 +155,6 @@ function openVault({
   const frontmatter = note ?? {};
   // The export stub above still needs an available engine handle.
   const getEngine = vi.fn(() => Promise.resolve({}));
-  let borrowed = false;
   let command: Command | undefined;
   const {
     ["citation.references-style"]: referencesStyle,
@@ -239,17 +238,16 @@ function openVault({
             ? { kind: "pack-absent" }
             : engineStarts
               ? { kind: "ready", version: "test" }
-              : borrowed
-                ? { kind: "pack-damaged" }
-                : null,
+              : // Unread: the borrow alone states why it gave no engine.
+                null,
         ),
         getEngine: Effect.suspend(
           (): Effect.Effect<unknown, ManagedBinaryError> => {
             if (engineStarts) return Effect.promise(() => getEngine());
-            borrowed = true;
             return Effect.fail(
               new ManagedBinaryError({
                 message: "The Resource Pack gave no Pandoc engine",
+                status: { kind: "pack-damaged" },
               }),
             );
           },

@@ -18,8 +18,11 @@ export type PackBinaryStatus =
   /** The verified binary did not start. */
   | { readonly kind: "failed"; readonly detail: string };
 
+/** A status in which the pack gives no binary that runs. */
+export type PackBinaryRefusal = Exclude<PackBinaryStatus, { kind: "ready" }>;
+
 /** The status a refused pack read gives. */
-export function refusalStatus(failure: PackFailure): PackBinaryStatus {
+export function refusalStatus(failure: PackFailure): PackBinaryRefusal {
   switch (failure.kind) {
     case "pack-absent":
       return { kind: "pack-absent" };

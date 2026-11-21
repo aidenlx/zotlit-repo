@@ -9,6 +9,7 @@ import type {
   BibliographyRenderState,
   RenderPresentation,
 } from "#obsidian/pandoc/render-cache.ts";
+import type { PandocEngineRefusal } from "#obsidian/pandoc/service.ts";
 import { hashKey } from "@tanstack/query-core";
 import type { QueryFunction } from "@tanstack/query-core";
 import {
@@ -48,7 +49,11 @@ import {
   BibliographyRender,
   BibliographyRenderError,
 } from "#obsidian/pandoc/render-cache.ts";
-import { engineUsable, PandocEngine } from "#obsidian/pandoc/service.ts";
+import {
+  engineRefusal,
+  engineUsable,
+  PandocEngine,
+} from "#obsidian/pandoc/service.ts";
 
 const BIBLIOGRAPHY_RENDER = "bibliography-render";
 
@@ -80,13 +85,11 @@ export const layerBibliographyRender = Layer.effect(
      * A render that gets no engine tells the researcher once which plugin
      * gives it; the render itself answers without the notice.
      */
-    const noticeRefusal = Effect.suspend(() => engine.current).pipe(
-      Effect.flatMap((status) => packNotice(status)),
-      Effect.provide(noticeServices),
-    );
+    const noticeRefusal = (status: PandocEngineRefusal) =>
+      packNotice(status).pipe(Effect.provide(noticeServices));
     /** The engine for one render; a refused borrow shows the notice. */
     const borrowEngine = Effect.suspend(() => engine.getEngine).pipe(
-      Effect.tapError(() => noticeRefusal),
+      Effect.tapError((error) => noticeRefusal(error.status)),
     );
     const styles = new InstalledStyleCache();
     const fileSystem = yield* FileSystem.FileSystem;
@@ -204,8 +207,9 @@ export const layerBibliographyRender = Layer.effect(
 
     const prepare = Effect.fn("BibliographyRender.prepare")(
       function* (presentation: RenderPresentation | undefined) {
-        if (!engineUsable(yield* engine.current)) {
-          yield* noticeRefusal;
+        const refusal = engineRefusal(yield* engine.current);
+        if (refusal) {
+          yield* noticeRefusal(refusal);
           return { reason: "engine-absent" } as const;
         }
         const selected = (yield* SubscriptionRef.get(state)).vaultPresentation;

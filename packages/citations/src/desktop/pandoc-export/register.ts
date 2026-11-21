@@ -290,10 +290,8 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
       const conversion = yield* Effect.gen(function* () {
         // An unread pack states its refusal at this first borrow.
         const borrowed = yield* Effect.result(pandocEngine.getEngine);
-        if (borrowed._tag === "Failure") {
-          const missing = engineRefusal(yield* pandocEngine.current);
-          return missing ? { missing } : yield* borrowed.failure;
-        }
+        if (borrowed._tag === "Failure")
+          return { missing: borrowed.failure.status };
         const engine = borrowed.success;
         if (!engine) return yield* Effect.interrupt;
         const markdown = yield* Effect.promise(() =>

@@ -163,10 +163,31 @@ describe("a Managed Binary of the Resource Pack", () => {
 
       const error = yield* Effect.flip(service.getEngine);
       expect(error.message).toBe("Not a wasm module");
+      expect(error.status).toEqual({
+        kind: "failed",
+        detail: "Not a wasm module",
+      });
       expect(yield* Stream.runHead(service.changes)).toMatchObject({
         value: { kind: "failed", detail: "Not a wasm module" },
       });
     }).pipe(Effect.scoped),
+  );
+
+  it.effect.each([
+    ["no pack", null, { kind: "pack-absent" }],
+    [
+      "a file that is no pack",
+      new TextEncoder().encode("module.exports = {};\n"),
+      { kind: "pack-damaged" },
+    ],
+  ] as const)(
+    "fails a borrow with the status of the refusal for %s",
+    ([, file, status]) =>
+      Effect.gen(function* () {
+        const service = yield* packBinary(SEGMENTER, packDevice(file));
+
+        expect((yield* Effect.flip(service.getEngine)).status).toEqual(status);
+      }).pipe(Effect.scoped),
   );
 
   it.effect(

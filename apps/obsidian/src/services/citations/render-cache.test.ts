@@ -264,6 +264,32 @@ it.effect(
     }),
 );
 
+it.effect(
+  "names the plugin by the status the refused borrow carries, where the pack changes after that read",
+  () =>
+    Effect.gen(function* () {
+      const h = yield* harnessOf();
+      h.pandocEngine.setStatus(null);
+      h.pandocEngine.refuseFirstRead(
+        { kind: "pack-outdated" },
+        { kind: "pack-damaged" },
+      );
+
+      yield* Effect.promise(() =>
+        h.cache.bridge.runPromise(h.cache.render([item("alpha")])),
+      );
+
+      expect(
+        h.cache.notices.map(
+          ({ messages }) => (messages[0] as DocumentFragment).textContent,
+        ),
+      ).toEqual([
+        m.notice_resource_pack() +
+          m.settings_resource_pack_status_pack_outdated(),
+      ]);
+    }),
+);
+
 it.effect("released reads retain the engine-absent outcome", () =>
   Effect.gen(function* () {
     const h = yield* harnessOf();
@@ -502,9 +528,12 @@ class PandocEngineStub {
     getEngine: Effect.suspend(() => {
       const refusal = this.#refusal;
       if (!refusal) return Effect.promise(() => Promise.resolve(this.engine));
-      this.setStatus(refusal);
+      this.setStatus(this.#afterRefusal ?? refusal);
       return Effect.fail(
-        new ManagedBinaryError({ message: `No engine: ${refusal.kind}` }),
+        new ManagedBinaryError({
+          message: `No engine: ${refusal.kind}`,
+          status: refusal,
+        }),
       );
     }),
     changes: Stream.suspend(() =>
@@ -519,11 +548,19 @@ class PandocEngineStub {
   readonly runSync = Effect.runSync;
   readonly runPromise = Effect.runPromise;
 
-  #refusal: PackBinaryStatus | null = null;
+  #refusal: ManagedBinaryError["status"] | null = null;
+  #afterRefusal: PackBinaryStatus | null = null;
 
-  /** The installed pack is unread, and its first read will give `refusal`. */
-  refuseFirstRead(refusal: PackBinaryStatus): void {
+  /**
+   * The installed pack is unread, and its first read will give `refusal`.
+   * `after` is the status of a pack that changes as that read ends.
+   */
+  refuseFirstRead(
+    refusal: ManagedBinaryError["status"],
+    after: PackBinaryStatus | null = null,
+  ): void {
     this.#refusal = refusal;
+    this.#afterRefusal = after;
   }
 
   /** A read of the pack that gives another status wakes the subscribers. */

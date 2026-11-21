@@ -5,7 +5,10 @@ import type { Context, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { refusalStatus } from "@zotlit/resource-pack/status.ts";
-import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
+import type {
+  PackBinaryRefusal,
+  PackBinaryStatus,
+} from "@zotlit/resource-pack/status.ts";
 
 import { ResourcePackPlatform } from "./pack-platform.ts";
 import { makePackStatus } from "./pack-status.ts";
@@ -15,26 +18,38 @@ export type { PackBinaryStatus };
 
 /**
  * A Managed Binary gave no engine: the Resource Pack gave no binary, or the
- * engine did not start or did not release. `message` is the original's, which
- * the failure status and the logs show; `cause` holds the original where
- * there is one.
+ * engine did not start. `status` is where the binary stands by the read that
+ * refused, which is also the status the service states. `message` is the
+ * original's, which the logs show; `cause` holds the original where there is
+ * one.
  */
 export class ManagedBinaryError extends Schema.TaggedError<
   ManagedBinaryError,
   { readonly brand: unique symbol }
 >()("ManagedBinaryError", {
   message: Schema.String,
+  status: Schema.Union([
+    Schema.Struct({ kind: Schema.Literal("pack-absent") }),
+    Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
+    Schema.Struct({ kind: Schema.Literal("plugin-outdated") }),
+    Schema.Struct({ kind: Schema.Literal("pack-damaged") }),
+    Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
+  ]),
   cause: Schema.optional(Schema.Defect()),
 }) {}
+/** The error's status is each refusal, and no other status. */
+type _Status = Expect<Equals<ManagedBinaryError["status"], PackBinaryRefusal>>;
+type Expect<T extends true> = T;
+type Equals<A, B> = [A, B] extends [B, A] ? true : false;
 
-/** What an engine threw, as a {@link ManagedBinaryError} with its message. */
-function managedBinaryError(cause: unknown): ManagedBinaryError {
-  return cause instanceof ManagedBinaryError
-    ? cause
-    : new ManagedBinaryError({
-        message: Error.isError(cause) ? cause.message : String(cause),
-        cause,
-      });
+/** What a start of the engine threw, as the refusal `failed` with its message. */
+function startError(cause: unknown): ManagedBinaryError {
+  const message = Error.isError(cause) ? cause.message : String(cause);
+  return new ManagedBinaryError({
+    message,
+    status: { kind: "failed", detail: message },
+    cause,
+  });
 }
 
 /** One Managed Binary of the Resource Pack, and what it starts once verified. */
@@ -62,7 +77,8 @@ export interface PackBinaryApi<
   /**
    * Borrow the shared engine for the caller's Scope. The first borrower reads
    * the pack and starts the engine; a pack that gives no binary, or a binary
-   * that does not start, fails the borrow and sets the status. The first
+   * that does not start, fails the borrow with the status of the refusal and
+   * sets that status. The first
    * borrower after Obsidian installs, updates or removes the pack reads that
    * pack; an engine borrowed before then stays with its borrower.
    */
@@ -92,7 +108,7 @@ type Loaded =
       /** The SHA-256 of the entry text: the identity of `bytes`. */
       sha256: string;
     }
-  | { ok: false; status: PackBinaryStatus };
+  | { ok: false; status: PackBinaryRefusal };
 
 const makePackBinary = Effect.fn("PackBinary.make")(function* <
   Engine extends Disposable | AsyncDisposable,
@@ -155,7 +171,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
     Effect.acquireRelease(
       Effect.tryPromise({
         try: () => binary.createEngine(bytes),
-        catch: managedBinaryError,
+        catch: startError,
       }).pipe(
         Effect.tap(() =>
           Effect.sync(() => {
@@ -169,18 +185,16 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
                 failedStart = { sha256, detail: error.message };
               }),
             ),
-            Effect.andThen(publish({ kind: "failed", detail: error.message })),
+            Effect.andThen(publish(error.status)),
           ),
         ),
       ),
       (engine) =>
-        Effect.tryPromise({
-          try: async () => {
-            if (Symbol.asyncDispose in engine)
-              await engine[Symbol.asyncDispose]();
-            else engine[Symbol.dispose]();
-          },
-          catch: managedBinaryError,
+        // A release that throws is a defect, which the log below takes.
+        Effect.promise(async () => {
+          if (Symbol.asyncDispose in engine)
+            await engine[Symbol.asyncDispose]();
+          else engine[Symbol.dispose]();
         }).pipe(
           Effect.catchCause((cause) =>
             log(
@@ -210,6 +224,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
         yield* publish(loaded.status);
         return yield* new ManagedBinaryError({
           message: `The Resource Pack gave no ${binary.label}: ${loaded.status.kind}`,
+          status: loaded.status,
         });
       }
       const engine = yield* start(loaded);
