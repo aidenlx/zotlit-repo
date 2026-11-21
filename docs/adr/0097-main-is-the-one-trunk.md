@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: superseded in part by ADR-0102
 ---
 
 # main is the one trunk
+
+> **Superseded in part by [ADR 0102](0102-each-land-opens-a-record-pull-request.md).** A land pushes its task branch to `aidenlx/zotlit-repo` as the head of its record pull request, and deletes it once the PR shows as merged. `main` stays the one long-lived branch.
 
 Supersedes [ADR 0021](0021-next-is-the-primary-branch.md). Supersedes in part [ADR 0084](0084-changes-land-on-next-through-a-serial-queue.md) (the target branch, the graduation land) and [ADR 0096](0096-releases-land-without-pull-requests-and-publish-across-two-repositories.md) (the graduation, the hotfix land, the merge path of the Land Queue, and the branch that each line publishes from).
 

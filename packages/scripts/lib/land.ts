@@ -1,7 +1,7 @@
 // One land: the only path by which a change reaches `main`, the trunk
 // (ADR 0097).
 //
-//   land (from a task branch, clean tree, a record file)
+//   land (from a task branch, clean tree, a record file, a GitHub login)
 //     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
 //       fetch origin/main ─▶ rebase the branch onto it ─▶ gate
 //         ─▶ record: push the branch, open or update its record PR
@@ -31,7 +31,6 @@ import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
@@ -92,11 +91,6 @@ export const LAND_RECORD_SECTIONS = [
   "e2e",
 ] as const;
 
-/** How many times the land reads the PR state after it pushed `main`. */
-const MERGED_READS = 10;
-/** The interval between those reads, unless the land's `pollMs` sets one. */
-const MERGED_READ_MS = 3_000;
-
 export interface RecordPullRequest {
   number: number;
   url: string;
@@ -105,7 +99,7 @@ export interface RecordPullRequest {
 /** The GitHub side of a land: the record PR of its branch. */
 export interface LandGitHub {
   /** The open PR from `head` into `base`, if there is one. */
-  openPullRequest: (query: {
+  findOpenPullRequest: (query: {
     head: string;
     base: string;
   }) => Promise<RecordPullRequest | undefined>;
@@ -147,7 +141,6 @@ export interface LandOptions {
    * the turn ends. @default SILENCE_LIMIT_MS.childOutput
    */
   silenceMs?: number;
-  /** How often the land reads the Land Queue, and the state of its PR. */
   pollMs?: number;
   /** @default LAND_ATTEMPTS */
   attempts?: number;
@@ -310,6 +303,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
     const pre = await preflight(sh, remote);
     // A refused record, like the other preflight checks, writes no wait line.
     const record = options.github ? await readRecord(sh) : undefined;
+    if (options.github) await checkGitHub(options.github, pre.branch);
     source = pre.branch;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
     for (const signal of SIGNALS) process.on(signal, onSignal);
@@ -396,7 +390,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
             say,
           }),
         );
-        // The wait for CI on the record PR goes here, before main moves.
       }
       const pushed = await step("push", () => push(sh, remote, to));
       if (pushed) break;
@@ -413,11 +406,9 @@ export async function land(options: LandOptions): Promise<LandResult> {
     // Main has moved: from here, a GitHub error is a report, not a failure.
     const merged =
       pull && options.github
-        ? await readMerged(options.github, pull, {
-            intervalMs: options.pollMs ?? MERGED_READ_MS,
-            progress: (what) => turn.progress(what),
-            log: (line) => log.write(`${line}\n`),
-          })
+        ? await readMerged(options.github, pull, (line) =>
+            log.write(`${line}\n`),
+          )
         : true;
     if (merged) {
       await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
@@ -546,7 +537,7 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
   if (text === undefined) {
     throw new LandFailure(
       "preflight",
-      `The land has no record file at ${LAND_RECORD_PATH}. Write the record of the change there (the land skill names its sections), then land again.`,
+      `The land has no record file at ${LAND_RECORD_PATH}. Write the record of the change there: a first line "# <title>", the title of the PR, then the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}. Then land again.`,
     );
   }
   const [first = "", ...rest] = text.split("\n");
@@ -576,6 +567,21 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
 }
 
 /**
+ * A read through the GitHub client, before the turn: a land with a login that
+ * GitHub refuses fails before the gate, not after it.
+ */
+async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
+  try {
+    await github.findOpenPullRequest({ head: branch, base: TRUNK });
+  } catch (error) {
+    throw new LandFailure(
+      "preflight",
+      `GitHub refused a read of the record PR of ${branch}: ${(error as Error).message}\nFix the gh login (gh auth status), then land again.`,
+    );
+  }
+}
+
+/**
  * Push HEAD to the task branch on the remote, then open its record PR, or
  * update the PR that an earlier land of the branch opened.
  */
@@ -600,7 +606,7 @@ async function openRecord(
     `HEAD:refs/heads/${branch}`,
   );
   try {
-    const open = await github.openPullRequest({ head: branch, base });
+    const open = await github.findOpenPullRequest({ head: branch, base });
     if (open) {
       await github.editPullRequest(open.number, record);
       say(`Record PR updated: ${open.url}`);
@@ -622,33 +628,22 @@ async function openRecord(
 }
 
 /**
- * Whether GitHub shows `pull` as merged. The land reads the state up to
- * MERGED_READS times while GitHub takes in the push of `main`; a read that
- * fails counts as not merged.
+ * Whether GitHub shows `pull` as merged, read once after the push of `main`.
+ * A read that fails counts as not merged.
  */
 async function readMerged(
   github: LandGitHub,
   pull: RecordPullRequest,
-  options: {
-    intervalMs: number;
-    progress: (what: string) => void;
-    log: (line: string) => void;
-  },
+  log: (line: string) => void,
 ): Promise<boolean> {
-  for (let read = 1; read <= MERGED_READS; read++) {
-    options.progress("state of the record PR");
-    const state = await github
-      .pullRequestState(pull.number)
-      .catch((error: unknown) => {
-        options.log(`Reading ${pull.url} failed: ${(error as Error).message}`);
-        return undefined;
-      });
-    options.log(`${pull.url}: ${state ?? "unknown"} (read ${read})`);
-    if (state === "MERGED") return true;
-    if (state === "CLOSED") return false;
-    if (read < MERGED_READS) await delay(options.intervalMs);
-  }
-  return false;
+  const state = await github
+    .pullRequestState(pull.number)
+    .catch((error: unknown) => {
+      log(`Reading ${pull.url} failed: ${(error as Error).message}`);
+      return undefined;
+    });
+  log(`${pull.url}: ${state ?? "unknown"}`);
+  return state === "MERGED";
 }
 
 /** Fetch the trunk; returns its tip. */

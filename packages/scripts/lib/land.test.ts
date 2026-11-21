@@ -266,7 +266,7 @@ function fakeGitHub({ merges = true } = {}) {
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
   const github: LandGitHub = {
-    openPullRequest: async ({ head, base }) =>
+    findOpenPullRequest: async ({ head, base }) =>
       pulls.find(
         (pull) => pull.head === head && pull.base === base && !pull.merged,
       ),
@@ -443,17 +443,44 @@ describe("the record PR", () => {
       await writeRecord(cwd);
       const { github } = fakeGitHub();
       github.createPullRequest = async () => {
-        throw new Error("HTTP 401: Bad credentials");
+        throw new Error("HTTP 422: Validation Failed");
       };
 
       const result = await land({ ...quiet, cwd, gate: ["true"], github });
 
       expect(result).toMatchObject({ ok: false, step: "record" });
-      expect(result.ok || result.message).toContain("Bad credentials");
+      expect(result.ok || result.message).toContain("Validation Failed");
       expect(await subjects("main")).toEqual(["seed"]);
       expect(await git(repos.remote, "rev-parse", "feat/a")).toBe(
         await git(cwd, "rev-parse", "HEAD"),
       );
+    },
+    SLOW,
+  );
+
+  it(
+    "refuses a land whose GitHub login fails a read, before the gate runs",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github, pulls } = fakeGitHub();
+      github.findOpenPullRequest = async () => {
+        throw new Error("HTTP 401: Bad credentials");
+      };
+      const marker = join(repos.root, "gate-ran");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        gate: ["touch", marker],
+        github,
+      });
+
+      expect(result).toMatchObject({ ok: false, step: "preflight" });
+      expect(result.ok || result.message).toContain("Bad credentials");
+      expect(existsSync(marker)).toBe(false);
+      expect(pulls).toEqual([]);
+      expect(await git(repos.remote, "branch", "--list")).toBe("* main");
     },
     SLOW,
   );

@@ -119,15 +119,22 @@ _Avoid_: memory lock, memory slot
 
 **Trunk**:
 `main`, the one long-lived branch of the source repository. Every change and
-every Version Commit lands on it; no other branch is pushed to the source
-repository.
+every Version Commit lands on it. A task branch is on the source repository
+only while a land pushes it as the head of its Record PR.
 _Avoid_: next, primary branch, stable branch
 
 **Land**:
 The one way a change reaches the Trunk: rebase the task branch onto the newest
-`main`, pass the quality gate on the rebased tree, and push it as a
-fast-forward.
+`main`, pass the quality gate on the rebased tree, open or update the Record
+PR, and push the tree to `main` as a fast-forward. GitHub then shows the
+Record PR as merged; no one merges it.
 _Avoid_: merge, PR merge, graduation
+
+**Record PR**:
+The pull request that a land opens from the record file of the task branch,
+so that the maintainer reads the change and its evidence on GitHub. It is a
+record, not a review gate: the land pushes `main` to its head.
+_Avoid_: review PR, merge request
 
 **Land Queue**:
 The machine-wide, first-come-first-served line of lands onto the Trunk. It is

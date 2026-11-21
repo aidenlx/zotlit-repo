@@ -19,7 +19,7 @@ export function ghLandGitHub(repo: string): LandGitHub {
     return result.stdout.trim();
   };
   return {
-    async openPullRequest({ head, base }) {
+    async findOpenPullRequest({ head, base }) {
       const listed = JSON.parse(
         await run([
           "pr",
