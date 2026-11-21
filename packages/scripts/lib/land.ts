@@ -728,8 +728,8 @@ async function waitForCi(
   const name = LAND_CI_CHECK;
   const short = commit.slice(0, 12);
   const started = Temporal.Now.instant().epochMilliseconds;
-  /** A check that finished before this land and runs again. */
-  let rerun: number | undefined;
+  /** The failed check that this land runs again, as it read it. */
+  let rerun: CiCheck | undefined;
   for (;;) {
     const reason = options.leaseOver();
     if (reason) throw leaseEnded(reason);
@@ -742,7 +742,16 @@ async function waitForCi(
         `GitHub refused a read of the "${name}" check of ${short}: ${(error as Error).message}`,
       );
     }
-    if (check && check.id === rerun) check = undefined;
+    // Until the new run shows, a read can still return the old result.
+    if (
+      check &&
+      rerun &&
+      check.id === rerun.id &&
+      check.status === "completed" &&
+      check.completedAt === rerun.completedAt
+    ) {
+      check = undefined;
+    }
     const waited = Temporal.Now.instant().epochMilliseconds - started;
     if (
       check?.status === "completed" &&
@@ -761,7 +770,7 @@ async function waitForCi(
           `GitHub refused to run the "${name}" check of ${short} again: ${(error as Error).message}\n${check.url}`,
         );
       }
-      rerun = check.id;
+      rerun = check;
     } else if (check?.status === "completed") {
       options.runs.push(ciRun(check, commit, waited));
       say(

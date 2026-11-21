@@ -8,9 +8,9 @@ ZotLit has two repositories:
 | [`aidenlx/zotlit`](https://github.com/aidenlx/zotlit)           | The releases, and a tree generated at each release that builds the plugin from an npm package |
 
 - **Code changes** go to `aidenlx/zotlit-repo`, the one repository that takes
-  pull requests, against `main`. Run `pnpm verify` before you push: a pull
-  request runs its CI check only when a land opens it as a record pull
-  request. A maintainer lands an accepted change through the
+  pull requests, against `main`. Run `pnpm verify` before you push. A pull
+  request into `main` runs the tests and the bundle budget in CI
+  (`.github/workflows/record-pr.yml`). A maintainer lands an accepted change through the
   Land Queue (see [Landing a change](#landing-a-change)).
 - **Bug reports, feature requests and questions** go to the
   [ZotLit forum](https://zotlit-forum.aidenlx.site). GitHub Issues in

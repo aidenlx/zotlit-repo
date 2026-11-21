@@ -699,8 +699,17 @@ describe("the CI check of the record PR", () => {
       const cwd = await taskClone("a");
       await writeRecord(cwd);
       let rerun = false;
+      let readsAfterRerun = 0;
       const { github, reruns } = fakeGitHub({
-        ci: () => (rerun ? passed(2) : failed(1)),
+        // The first read after the re-run still shows the old result; the
+        // new run may keep the id of the job.
+        ci: () => {
+          if (!rerun) return failed(1);
+          readsAfterRerun += 1;
+          return readsAfterRerun === 1
+            ? failed(1)
+            : { ...passed(1), completedAt: "2026-11-22T11:00:00Z" };
+        },
       });
       const first = await land({ ...fast, cwd, gate: ["true"], github });
       expect(first).toMatchObject({ ok: false, step: "ci" });
