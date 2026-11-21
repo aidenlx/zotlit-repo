@@ -196,8 +196,10 @@ describe("the issue of End-to-end Run failures", () => {
       { c1: FAILED, c2: FAILED },
       [PAINTS],
       fakeIssues([
-        // Neither is the open issue of End-to-end Run failures.
+        // None is the open issue of End-to-end Run failures: one is closed,
+        // one is older than the newest open one, one has a longer title.
         { ...open, number: 3, url: "u3", state: "closed" },
+        { ...open, number: 5, url: "u5" },
         {
           ...open,
           number: 9,

@@ -189,13 +189,14 @@ async function run({
 
 const evidence: LandE2eDeps["evidence"] = async ({ run, range }) => {
   const { logPath, checkout } = run;
+  // Read the log before `git log` writes to it, so its end is the run's.
+  const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
   const sink = createWriteStream(logPath, { flags: "a" });
   const commits = await command(sink, {
     cwd: checkout,
     argv: ["git", "log", "--oneline", "--no-decorate", "-n", "50", range],
   });
   await new Promise((resolve) => sink.end(resolve));
-  const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
   return { commits: commits.stdout, log };
 };
 
