@@ -631,7 +631,7 @@ export function createPageHelpers(
     return view.reader!.container;
   }
   function x11WindowId(win: BackgroundWindow) {
-    return `0x${  win.getNativeWindowHandle().readUInt32LE(0).toString(16)}`;
+    return `0x${win.getNativeWindowHandle().readUInt32LE(0).toString(16)}`;
   }
   function herbstclient(...args: string[]) {
     const { execFileSync } =
