@@ -8,11 +8,8 @@ import { pinPdfSidebar } from "./pdf-sidebar-pin.ts";
 import { isObsidianReachable } from "./vault-script.ts";
 
 export default async function setup() {
+  if (process.env.ZOTLIT_RUN_CONTAINER) return;
   const cwd = await getWorkspaceRoot(import.meta.dirname);
-  if (process.env.ZOTLIT_RUN_CONTAINER) {
-    const sidebar = await pinPdfSidebar();
-    return () => sidebar[Symbol.asyncDispose]();
-  }
   const slot = await acquireDesktopSlotOrExit({
     cwd,
     command: "pnpm e2e",

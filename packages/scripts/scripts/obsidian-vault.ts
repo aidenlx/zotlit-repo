@@ -933,7 +933,7 @@ const vaultCli = yargs(hideBin(process.argv))
   })
   .option("inactive", {
     describe:
-      "Open vault windows behind the app that has the OS focus, as the End-to-end Run does",
+      "On the host, open vault windows behind the app that has OS focus",
     type: "boolean",
     global: true,
   })

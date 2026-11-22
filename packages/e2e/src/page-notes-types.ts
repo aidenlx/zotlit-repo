@@ -28,6 +28,7 @@ export type PagePdfReaderView =
 
 export interface BackgroundWindow {
   getNativeWindowHandle(): Buffer;
+  show(): void;
   showInactive(): void;
   isMinimized(): boolean;
   blur(): void;

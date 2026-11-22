@@ -95,7 +95,7 @@ export async function prepareRunWindow(vaultId: string): Promise<void> {
         apply();
         followFocus(win as RunWindow);
         const shown = (win as RunWindow).electronWindow;
-        if (shown)
+        if (shown && !process.env.ZOTLIT_RUN_CONTAINER)
           shown.show = () => {
             page.showBehind(shown);
           };

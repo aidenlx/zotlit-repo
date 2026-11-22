@@ -631,8 +631,8 @@ export function createPageHelpers(
     return view.reader!.container;
   }
   function showBehind(win: BackgroundWindow) {
-    if (process.platform !== "darwin") {
-      if (process.env.ZOTLIT_RUN_CONTAINER && win.isMinimized()) {
+    if (process.env.ZOTLIT_RUN_CONTAINER) {
+      if (win.isMinimized()) {
         const { execFileSync } =
           require("child_process") as typeof import("node:child_process");
         const id = win.getNativeWindowHandle().readUInt32LE(0).toString(16);
@@ -641,8 +641,12 @@ export function createPageHelpers(
           `clients.0x${id}.minimized`,
           "false",
         ]);
-        return;
+      } else {
+        win.show();
       }
+      return;
+    }
+    if (process.platform !== "darwin") {
       win.showInactive();
       return;
     }

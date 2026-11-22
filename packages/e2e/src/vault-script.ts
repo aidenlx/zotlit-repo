@@ -81,7 +81,7 @@ export function vaultScript(
         scriptPath(workspaceRoot),
         ...args,
         `--fixture-root=${fixtureRoot}`,
-        "--inactive",
+        ...(process.env.ZOTLIT_RUN_CONTAINER ? [] : ["--inactive"]),
       ],
       {
         windowsHide: true,
