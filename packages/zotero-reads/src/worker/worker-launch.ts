@@ -37,3 +37,7 @@ export function launchWorker<E>(
     scope.close();
   });
 }
+
+export function spawnWorker(url: string, name: string): Worker {
+  return new Worker(url, { name });
+}

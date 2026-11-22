@@ -30,7 +30,8 @@ import {
 } from "@zotlit/plugin-kernel/errno.ts";
 
 import { planReadParents } from "./read-parent.ts";
-import { verifySnapshot } from "./snapshot-integrity.ts";
+import { verifySnapshotInProcess } from "./snapshot-integrity-check.ts";
+import type { VerifySnapshot } from "./snapshot-integrity.ts";
 
 import { DbUnavailable } from "#contract/rpc.ts";
 
@@ -165,7 +166,10 @@ export function buildSqliteUri(
 export const prepareRead = Effect.fnUntraced(function* (
   configuredMode: ConfiguredReadMode,
   sourcePath: string,
-  owner?: string,
+  {
+    owner,
+    verifySnapshot = verifySnapshotInProcess,
+  }: { owner?: string; verifySnapshot?: VerifySnapshot } = {},
 ): Effect.fn.Return<
   PreparedRead,
   DbUnavailable,
@@ -174,7 +178,7 @@ export const prepareRead = Effect.fnUntraced(function* (
   const pending = yield* makePendingRead();
   yield* Effect.addFinalizer(() => pending.cancel);
   yield* Effect.forkDetach(
-    acquireRead(configuredMode, sourcePath, owner).pipe(
+    acquireRead(configuredMode, sourcePath, { owner, verifySnapshot }).pipe(
       Effect.matchEffect({
         onFailure: (error) => pending.fail(error),
         onSuccess: (acquired) => pending.complete(acquired),
@@ -219,15 +223,20 @@ const makePendingRead = Effect.fnUntraced(function* () {
   };
 });
 
+interface SnapshotOptions {
+  readonly owner: string | undefined;
+  readonly verifySnapshot: VerifySnapshot;
+}
+
 function acquireRead(
   configuredMode: ConfiguredReadMode,
   sourcePath: string,
-  owner?: string,
+  snapshot: SnapshotOptions,
 ): Effect.Effect<AcquiredRead, PrepareReadError, FileSystem.FileSystem> {
   return Effect.gen(function* () {
     if (configuredMode === "immutable") {
       const fallbackReason = yield* staleWalReason(sourcePath);
-      const acquired = yield* prepareImmutableRead(sourcePath, owner);
+      const acquired = yield* prepareImmutableRead(sourcePath, snapshot);
       return fallbackReason
         ? {
             ...acquired,
@@ -236,13 +245,13 @@ function acquireRead(
         : acquired;
     }
     if (configuredMode === "copy")
-      return yield* prepareTempRead("copy", sourcePath, { owner });
+      return yield* prepareTempRead("copy", sourcePath, snapshot);
 
-    return yield* prepareTempRead("reflink", sourcePath, { owner }).pipe(
+    return yield* prepareTempRead("reflink", sourcePath, snapshot).pipe(
       Effect.catchIf(
         (error) => error instanceof ReflinkUnsupportedError,
         () =>
-          prepareTempRead("copy", sourcePath, { owner }).pipe(
+          prepareTempRead("copy", sourcePath, snapshot).pipe(
             Effect.map((acquired) => ({
               ...acquired,
               read: {
@@ -268,20 +277,20 @@ export const staleWalReason = Effect.fnUntraced(
 
 const prepareImmutableRead = Effect.fnUntraced(function* (
   sourcePath: string,
-  owner: string | undefined,
+  snapshot: SnapshotOptions,
 ) {
   return yield* prepareTempRead("reflink", sourcePath, {
+    ...snapshot,
     includeWal: false,
     immutable: true,
-    owner,
   }).pipe(
     Effect.catchIf(
       (error) => error instanceof ReflinkUnsupportedError,
       () =>
         prepareTempRead("copy", sourcePath, {
+          ...snapshot,
           includeWal: false,
           immutable: true,
-          owner,
         }),
     ),
   );
@@ -290,7 +299,7 @@ const prepareImmutableRead = Effect.fnUntraced(function* (
 const prepareTempRead = Effect.fnUntraced(function* (
   mode: TempReadMode,
   sourcePath: string,
-  options: { includeWal?: boolean; immutable?: boolean; owner?: string } = {},
+  options: SnapshotOptions & { includeWal?: boolean; immutable?: boolean },
 ) {
   const plan = yield* planParents(sourcePath);
   const tryParent = (
@@ -375,12 +384,12 @@ const cloneInto = Effect.fnUntraced(function* (
     includeWal = true,
     immutable = false,
     owner,
-  }: {
+    verifySnapshot,
+  }: SnapshotOptions & {
     parent: string;
     mode: TempReadMode;
     includeWal?: boolean;
     immutable?: boolean;
-    owner?: string;
   },
 ) {
   const attempt = Effect.gen(function* () {
@@ -390,6 +399,7 @@ const cloneInto = Effect.fnUntraced(function* (
       mode,
       includeWal,
       immutable,
+      verifySnapshot,
     }).pipe(
       Effect.onError(() => removeAttemptDir(dir)),
       Effect.catch((error) =>
@@ -436,11 +446,13 @@ const cloneAttempt = Effect.fnUntraced(function* (
     mode,
     includeWal,
     immutable,
+    verifySnapshot,
   }: {
     dir: string;
     mode: TempReadMode;
     includeWal: boolean;
     immutable: boolean;
+    verifySnapshot: VerifySnapshot;
   },
 ) {
   const fs = yield* FileSystem.FileSystem;

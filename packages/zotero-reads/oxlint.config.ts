@@ -123,10 +123,6 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/desktop/snapshot-integrity.ts"],
-      rules: { "zotlit-services/worker-rpc": "off" },
-    },
-    {
       files: ["src/contract/instant-codec.ts"],
       rules: { "zotlit-services/temporal-in-effect": "off" },
     },

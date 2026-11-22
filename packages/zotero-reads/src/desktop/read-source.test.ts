@@ -126,7 +126,7 @@ describe("prepareRead placement", () => {
     plan(tmpdir());
 
     await inspectPrepared(
-      prepareRead("copy", source, "0123456789ab"),
+      prepareRead("copy", source, { owner: "0123456789ab" }),
       (prepared) =>
         expect(basename(dirname(prepared.path))).toMatch(
           new RegExp(`^zotlit-db-${process.pid}-0123456789ab-[^-]+$`),

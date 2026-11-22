@@ -1,34 +1,72 @@
 import { it } from "@effect/vitest";
-import { Deferred, Effect, Exit, Fiber } from "effect";
+import { Deferred, Effect, Exit, Fiber, Schema } from "effect";
+import type { RpcMessage } from "effect/rpc";
 import { TestClock } from "effect/testing";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, vi } from "vitest";
 
-import { verifySnapshot } from "./snapshot-integrity.ts";
+import { snapshotVerifier } from "./snapshot-integrity.ts";
 
-class FakeWorker {
+import { DbUnavailable } from "#contract/rpc.ts";
+import { SNAPSHOT_INTEGRITY_WORKER } from "#contract/worker-signal.ts";
+
+const path = "/owned/snapshot.sqlite";
+const workerUrl = "blob:interactive-worker";
+const encodeReply = Schema.encodeSync(
+  Schema.toCodecJson(Schema.Exit(Schema.Void, DbUnavailable, Schema.Defect())),
+);
+
+class FakeWorker extends EventTarget {
   static last: FakeWorker;
-  static ready = Deferred.makeUnsafe<void>();
-  onmessage: ((event: { data: unknown }) => void) | null = null;
-  onerror:
-    | ((event: { message: string; preventDefault(): void }) => void)
-    | null = null;
-  onmessageerror: (() => void) | null = null;
+  static request = Deferred.makeUnsafe<RpcMessage.RequestEncoded>();
+  readonly url: string;
+  readonly options: WorkerOptions;
   terminate = vi.fn();
-  postMessage = vi.fn(() => {
-    Deferred.doneUnsafe(FakeWorker.ready, Exit.void);
+  postMessage = vi.fn((message: [0, RpcMessage.FromClientEncoded] | [1]) => {
+    if (message[0] === 0 && message[1]._tag === "Request")
+      Deferred.doneUnsafe(FakeWorker.request, Exit.succeed(message[1]));
   });
-  constructor() {
+
+  constructor(url: string, options: WorkerOptions) {
+    super();
+    this.url = url;
+    this.options = options;
     FakeWorker.last = this;
+  }
+
+  override addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ) {
+    super.addEventListener(type, listener, options);
+    if (type === "message")
+      queueMicrotask(() =>
+        this.dispatchEvent(new MessageEvent("message", { data: [0] })),
+      );
+  }
+
+  reply(request: RpcMessage.RequestEncoded, exit: unknown) {
+    this.dispatchEvent(
+      new MessageEvent("message", {
+        data: [1, { _tag: "Exit", requestId: request.id, exit }],
+      }),
+    );
   }
 }
 
-function start() {
-  FakeWorker.ready = Deferred.makeUnsafe<void>();
-  vi.stubGlobal("Worker", FakeWorker);
-  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:owned-test");
-  const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
-  const result = verifySnapshot("/owned/snapshot.sqlite");
-  return { ready: FakeWorker.ready, result, revoke };
+function start(worker: typeof Worker | typeof FakeWorker = FakeWorker) {
+  FakeWorker.request = Deferred.makeUnsafe<RpcMessage.RequestEncoded>();
+  vi.stubGlobal("Worker", worker);
+  const createUrl = vi.spyOn(URL, "createObjectURL");
+  const revoke = vi.spyOn(URL, "revokeObjectURL");
+  const result = snapshotVerifier(workerUrl)(path);
+  const released = () => {
+    expect(FakeWorker.last.terminate).toHaveBeenCalledOnce();
+    expect(createUrl).not.toHaveBeenCalled();
+    expect(revoke).not.toHaveBeenCalled();
+  };
+  return { request: FakeWorker.request, result, released };
 }
 
 afterEach(() => {
@@ -37,149 +75,159 @@ afterEach(() => {
 });
 
 describe("snapshot integrity worker lifecycle", () => {
-  it.effect(
-    "accepts only a complete ok result and releases the worker and URL",
-    () =>
-      Effect.scoped(
-        Effect.gen(function* () {
-          const { ready, result, revoke } = start();
-          const fiber = yield* Effect.forkScoped(result, {
-            startImmediately: true,
-          });
-          yield* Deferred.await(ready);
-          const worker = FakeWorker.last;
-          expect(worker.postMessage).toHaveBeenCalledWith(
-            "/owned/snapshot.sqlite",
-          );
-          worker.onmessage!({ data: "ok" });
-          yield* Fiber.join(fiber);
-          expect(worker.terminate).toHaveBeenCalledOnce();
-          expect(revoke).toHaveBeenCalledWith("blob:owned-test");
-        }),
-      ),
-  );
-  for (const data of ["corrupt", null, { integrity_check: "ok" }]) {
-    it.effect(
-      `rejects an invalid result ${JSON.stringify(data)} and releases resources`,
-      () =>
-        Effect.scoped(
-          Effect.gen(function* () {
-            const { ready, result, revoke } = start();
-            const fiber = yield* Effect.forkScoped(result, {
-              startImmediately: true,
-            });
-            yield* Deferred.await(ready);
-            const worker = FakeWorker.last;
-            worker.onmessage!({ data });
-            const error = yield* Fiber.join(fiber).pipe(Effect.flip);
-            expect(error.message).toBe(
-              "SQLite rejected the database read snapshot",
-            );
-            expect(worker.terminate).toHaveBeenCalledOnce();
-            expect(revoke).toHaveBeenCalledOnce();
-          }),
-        ),
-    );
-  }
-  it.effect("propagates startup/query errors and releases resources", () =>
-    Effect.scoped(
-      Effect.gen(function* () {
-        const { ready, result, revoke } = start();
-        const fiber = yield* Effect.forkScoped(result, {
-          startImmediately: true,
-        });
-        yield* Deferred.await(ready);
-        const worker = FakeWorker.last;
-        worker.onerror!({
-          message: "SQLite unavailable",
-          preventDefault: vi.fn(),
-        });
-        const error = yield* Fiber.join(fiber).pipe(Effect.flip);
-        expect(error.message).toBe("SQLite unavailable");
-        expect(worker.terminate).toHaveBeenCalledOnce();
-        expect(revoke).toHaveBeenCalledOnce();
-      }),
-    ),
-  );
-  it.effect("rejects a reply decoding failure and releases resources", () =>
-    Effect.scoped(
-      Effect.gen(function* () {
-        const { ready, result, revoke } = start();
-        const fiber = yield* Effect.forkScoped(result, {
-          startImmediately: true,
-        });
-        yield* Deferred.await(ready);
-        const worker = FakeWorker.last;
-        worker.onmessageerror!();
-        const error = yield* Fiber.join(fiber).pipe(Effect.flip);
-        expect(error.message).toBe(
-          "Invalid database snapshot verification reply",
-        );
-        expect(worker.terminate).toHaveBeenCalledOnce();
-        expect(revoke).toHaveBeenCalledOnce();
-      }),
-    ),
-  );
-  it.effect("terminates a validator that never replies", () =>
-    Effect.scoped(
-      Effect.gen(function* () {
-        const { ready, result, revoke } = start();
-        const fiber = yield* Effect.forkScoped(result, {
-          startImmediately: true,
-        });
-        yield* Deferred.await(ready);
-        const worker = FakeWorker.last;
-        yield* TestClock.adjust("60 seconds");
-        const error = yield* Fiber.join(fiber).pipe(Effect.flip);
-        expect(error.message).toBe("Database snapshot verification timed out");
-        expect(worker.terminate).toHaveBeenCalledOnce();
-        expect(revoke).toHaveBeenCalledOnce();
-      }),
-    ),
-  );
-  it.effect(
-    "terminates the worker and revokes the URL when posting its path fails",
-    () =>
-      Effect.gen(function* () {
-        vi.stubGlobal(
-          "Worker",
-          class extends FakeWorker {
-            postMessage = vi.fn(() => {
-              throw Error("Cannot post path");
-            });
-          },
-        );
-        vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:owned-test");
-        const revoke = vi
-          .spyOn(URL, "revokeObjectURL")
-          .mockImplementation(() => {});
-        const error = yield* Effect.flip(
-          verifySnapshot("/owned/snapshot.sqlite"),
-        );
-        expect(error.message).toBe("Cannot post path");
-        expect(FakeWorker.last.terminate).toHaveBeenCalledOnce();
-        expect(revoke).toHaveBeenCalledOnce();
-      }),
-  );
-  it.effect("revokes the URL when Worker construction fails", () =>
+  it.effect("accepts a check in a dedicated worker using the parent URL", () =>
     Effect.gen(function* () {
-      vi.stubGlobal(
-        "Worker",
-        class {
-          constructor() {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      const call = yield* Deferred.await(request);
+      expect(FakeWorker.last.url).toBe(workerUrl);
+      expect(FakeWorker.last.options.name).toBe(SNAPSHOT_INTEGRITY_WORKER);
+      expect(call.tag).toBe("Check");
+      expect(call.payload).toEqual({ path });
+      FakeWorker.last.reply(call, encodeReply(Exit.void));
+      yield* Fiber.join(fiber);
+      released();
+    }),
+  );
+
+  it.effect("returns the SQLite failure and releases resources", () =>
+    Effect.gen(function* () {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      const call = yield* Deferred.await(request);
+      FakeWorker.last.reply(
+        call,
+        encodeReply(
+          Exit.fail(new DbUnavailable({ message: "SQLite unavailable" })),
+        ),
+      );
+      const error = yield* Fiber.join(fiber).pipe(Effect.flip);
+      expect(error).toBeInstanceOf(DbUnavailable);
+      expect(error.message).toBe("SQLite unavailable");
+      released();
+    }),
+  );
+
+  it.effect("rejects a malformed RPC reply and releases resources", () =>
+    Effect.gen(function* () {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      const call = yield* Deferred.await(request);
+      FakeWorker.last.reply(call, { _tag: "Success", value: "corrupt" });
+      const error = yield* Fiber.join(fiber).pipe(Effect.flip);
+      expect(error.message).toBe(
+        "Invalid database snapshot verification reply",
+      );
+      released();
+    }),
+  );
+
+  it.effect("propagates a worker startup error and releases resources", () =>
+    Effect.gen(function* () {
+      const { result, released } = start(
+        class extends FakeWorker {
+          constructor(url: string, options: WorkerOptions) {
+            super(url, options);
+            const event = new Event("error", { cancelable: true });
+            Object.assign(event, { message: "Could not start worker" });
+            queueMicrotask(() => this.dispatchEvent(event));
+          }
+        },
+      );
+      const error = yield* Effect.flip(result);
+      expect(error.message).toBe("Could not start worker");
+      released();
+    }),
+  );
+
+  it.effect("propagates a worker message error and releases resources", () =>
+    Effect.gen(function* () {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      yield* Deferred.await(request);
+      FakeWorker.last.dispatchEvent(new MessageEvent("messageerror"));
+      const error = yield* Fiber.join(fiber).pipe(Effect.flip);
+      expect(error.message).toBe(
+        "Invalid database snapshot verification reply",
+      );
+      released();
+    }),
+  );
+
+  it.effect("terminates a validator that never replies", () =>
+    Effect.gen(function* () {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      yield* Deferred.await(request);
+      yield* TestClock.adjust("60 seconds");
+      const error = yield* Fiber.join(fiber).pipe(Effect.flip);
+      expect(error.message).toBe("Database snapshot verification timed out");
+      released();
+    }),
+  );
+
+  it.effect("terminates a validator when its caller is interrupted", () =>
+    Effect.gen(function* () {
+      const { request, result, released } = start();
+      const fiber = yield* Effect.forkChild(result);
+      yield* Deferred.await(request);
+      yield* Fiber.interrupt(fiber);
+      released();
+    }),
+  );
+
+  it.effect("releases resources when sending the request fails", () =>
+    Effect.gen(function* () {
+      const { result, released } = start(
+        class extends FakeWorker {
+          override postMessage = vi.fn(
+            (message: [0, RpcMessage.FromClientEncoded] | [1]) => {
+              if (message[0] === 0 && message[1]._tag === "Request")
+                throw Error("Cannot post path");
+            },
+          );
+        },
+      );
+      const error = yield* Effect.flip(result);
+      expect(error.message).toBe("Cannot post path");
+      released();
+    }),
+  );
+
+  it.effect("reports a worker construction failure", () =>
+    Effect.gen(function* () {
+      const { result } = start(
+        class extends FakeWorker {
+          constructor(url: string, options: WorkerOptions) {
+            super(url, options);
             throw Error("Cannot create worker");
           }
         },
       );
-      vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:owned-test");
-      const revoke = vi
-        .spyOn(URL, "revokeObjectURL")
-        .mockImplementation(() => {});
-      const error = yield* Effect.flip(
-        verifySnapshot("/owned/snapshot.sqlite"),
-      );
+      const error = yield* Effect.flip(result);
       expect(error.message).toBe("Cannot create worker");
-      expect(revoke).toHaveBeenCalledOnce();
     }),
+  );
+});
+
+describe("snapshot integrity Node fallback", () => {
+  it.effect(
+    "disposes the SQLite connection after success and a query error",
+    () =>
+      Effect.gen(function* () {
+        vi.stubGlobal("Worker", undefined);
+        const dispose = vi.spyOn(DatabaseSync.prototype, Symbol.dispose);
+        const verify = snapshotVerifier("unused");
+        yield* verify(":memory:");
+        expect(dispose).toHaveBeenCalledOnce();
+        vi.spyOn(DatabaseSync.prototype, "prepare").mockImplementationOnce(
+          () => {
+            throw new Error("Cannot read snapshot");
+          },
+        );
+        const error = yield* Effect.flip(verify(":memory:"));
+        expect(error.message).toBe("Cannot read snapshot");
+        expect(dispose).toHaveBeenCalledTimes(2);
+      }),
   );
 });

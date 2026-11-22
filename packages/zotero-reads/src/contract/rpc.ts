@@ -39,6 +39,7 @@ import type {
   CitekeyResolution,
   SnapshotItem,
 } from "./citation-lookup.ts";
+import { DbUnavailable } from "./db-unavailable.ts";
 import { Instant } from "./instant-codec.ts";
 import type { ItemQueryAnswer, ItemQueryJob } from "./item-query.ts";
 import { libraryScopeWire } from "./library-scope.ts";
@@ -85,10 +86,7 @@ function codeRequest(
   return Effect.mapError(request, (error) => error.issue);
 }
 
-export class DbUnavailable extends Schema.TaggedError<
-  DbUnavailable,
-  { readonly brand: unique symbol }
->()("DbUnavailable", { message: Schema.String }) {}
+export { DbUnavailable };
 
 export class SnapshotExpired extends Schema.TaggedError<
   SnapshotExpired,

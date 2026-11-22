@@ -1,20 +1,12 @@
-import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
+import { SNAPSHOT_INTEGRITY_WORKER } from "@zotlit/zotero-reads/contract/worker-signal.ts";
 
-import { readSegmenterFromPack } from "@zotlit/plugin-services/core/chinese-segmenter/pack-reader.ts";
-import { queryJobRunner } from "@zotlit/query-views/desktop/item-query/job.ts";
-import { prepareRead } from "@zotlit/zotero-reads/desktop/read-source.ts";
-import { layerSource } from "@zotlit/zotero-reads/desktop/source.ts";
-import { serveZoteroReads } from "@zotlit/zotero-reads/worker/serve.ts";
+const entry =
+  self.name === SNAPSHOT_INTEGRITY_WORKER
+    ? import("./snapshot-integrity-worker.ts")
+    : import("./interactive-worker.ts");
 
-serveZoteroReads(self, {
-  connection: ({ config, snapshotOwner, deferOpen }) =>
-    layerSource({
-      initial: config,
-      deferOpen,
-      ports: {
-        prepareRead: (mode, path) => prepareRead(mode, path, snapshotOwner),
-      },
-    }),
-  handlers: { readSegmenter: readSegmenterFromPack, queryJobs: queryJobRunner },
-  fileSystem: NodeFileSystem.layer,
-});
+void entry.catch((error: unknown) =>
+  queueMicrotask(() => {
+    throw error;
+  }),
+);

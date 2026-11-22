@@ -791,15 +791,21 @@ describe("connectWorker close", () => {
   });
 
   it.effect(
-    "terminates a worker once it answers the close message, without waiting or warning",
+    "terminates the worker and revokes its URL when it answers close",
     () =>
       Effect.gen(function* () {
+        using createUrl = vi.spyOn(URL, "createObjectURL");
+        using revokeUrl = vi.spyOn(URL, "revokeObjectURL");
         const result = yield* Effect.gen(function* () {
           const { closing, worker } = yield* closeOnStillClock();
           return { closed: closing.pollUnsafe() !== undefined, worker };
         }).pipe(Effect.provide(Logger.layer([captureWarnings])));
         expect(result.closed).toBe(true);
         expect(result.worker.terminated).toBe(true);
+        expect(createUrl).toHaveBeenCalledOnce();
+        expect(revokeUrl).toHaveBeenCalledExactlyOnceWith(
+          createUrl.mock.results[0]!.value,
+        );
         expect(warnings).toEqual([]);
       }),
   );

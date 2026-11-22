@@ -1,123 +1,106 @@
-import { Effect } from "effect";
-import { DatabaseSync } from "node:sqlite";
+import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
+import { Effect, Schema } from "effect";
+import { RpcClient, RpcClientError } from "effect/rpc";
+import { WorkerError } from "effect/workers/WorkerError";
 
-import { DbUnavailable } from "#contract/rpc.ts";
+import {
+  SnapshotIntegrity,
+  snapshotFailure,
+  verifySnapshotInProcess,
+} from "./snapshot-integrity-check.ts";
 
-const workerSource = `
-  const { DatabaseSync } = require("node:sqlite");
-  self.onmessage = ({ data: path }) => {
-    using sqlite = new DatabaseSync(path, { readOnly: true, timeout: 1000 });
-    const result = sqlite.prepare("PRAGMA integrity_check").get();
-    self.postMessage(result?.integrity_check);
-  };
-`;
+import { DbUnavailable } from "#contract/db-unavailable.ts";
+import { SNAPSHOT_INTEGRITY_WORKER } from "#contract/worker-signal.ts";
+import { spawnWorker } from "#worker/worker-launch.ts";
 
-const timeoutFailure = () =>
+const invalidReply = () =>
   new DbUnavailable({
-    message: "Database snapshot verification timed out",
+    message: "Invalid database snapshot verification reply",
   });
 
-export const verifySnapshot = Effect.fnUntraced(function* (
+export type VerifySnapshot = (
   path: string,
-): Effect.fn.Return<void, DbUnavailable> {
-  const result =
-    typeof Worker === "undefined"
-      ? yield* verifyInProcess(path)
-      : yield* verifyInWorker(path);
-  if (result !== "ok")
-    return yield* new DbUnavailable({
-      message: "SQLite rejected the database read snapshot",
-    });
-});
+) => Effect.Effect<void, DbUnavailable>;
 
-function verifyInProcess(path: string) {
-  return Effect.try({
-    try: () => {
-      using sqlite = new DatabaseSync(path, {
-        readOnly: true,
-        timeout: 1_000,
-      });
-      return sqlite.prepare("PRAGMA integrity_check").get()?.integrity_check;
-    },
-    catch: (error) =>
-      new DbUnavailable({
-        message: error instanceof Error ? error.message : String(error),
-      }),
-  });
+export function snapshotVerifier(workerUrl: string): VerifySnapshot {
+  return typeof Worker === "undefined"
+    ? verifySnapshotInProcess
+    : (path) => verifySnapshotInWorker(path, workerUrl);
 }
 
-const verifyInWorker = Effect.fnUntraced(function* (
-  path: string,
-): Effect.fn.Return<unknown, DbUnavailable> {
-  return yield* Effect.scoped(
-    Effect.gen(function* () {
-      const url = yield* Effect.acquireRelease(
-        Effect.sync(() =>
-          URL.createObjectURL(
-            new Blob([workerSource], {
-              type: "text/javascript",
-            }),
+const verifySnapshotInWorker = Effect.fnUntraced(
+  function* (path: string, url: string): Effect.fn.Return<void, DbUnavailable> {
+    yield* Effect.scoped(
+      Effect.gen(function* () {
+        const worker = yield* Effect.acquireRelease(
+          Effect.try({
+            try: () => spawnWorker(url, SNAPSHOT_INTEGRITY_WORKER),
+            catch: snapshotFailure,
+          }),
+          (worker) => Effect.sync(() => worker.terminate()),
+        );
+        const check = Effect.gen(function* () {
+          const protocol = yield* RpcClient.makeProtocolWorker({ size: 1 });
+          const client = yield* RpcClient.make(SnapshotIntegrity, {
+            disableTracing: true,
+          }).pipe(Effect.provideService(RpcClient.Protocol, protocol));
+          yield* client.Check({ path });
+        }).pipe(
+          Effect.provide(BrowserWorker.layer(() => worker)),
+          Effect.mapError((error) => {
+            if (error instanceof DbUnavailable) return error;
+            if (
+              error instanceof RpcClientError.RpcClientError &&
+              "cause" in error.reason
+            )
+              return snapshotFailure(error.reason.cause ?? error);
+            return snapshotFailure(error);
+          }),
+        );
+        yield* Effect.raceFirst(workerFailure(worker), check).pipe(
+          Effect.timeoutOrElse({
+            duration: "60 seconds",
+            orElse: () =>
+              Effect.fail(
+                new DbUnavailable({
+                  message: "Database snapshot verification timed out",
+                }),
+              ),
+          }),
+        );
+      }),
+    );
+  },
+  Effect.catchDefect((error) =>
+    Effect.fail(
+      Schema.isSchemaError(error)
+        ? invalidReply()
+        : snapshotFailure(
+            error instanceof WorkerError
+              ? (error.reason.cause ?? error)
+              : error,
           ),
-        ),
-        (url) => Effect.sync(() => URL.revokeObjectURL(url)),
-      );
-      const worker = yield* Effect.acquireRelease(
-        Effect.try({
-          try: () => new Worker(url, { name: "zotlit-snapshot-integrity" }),
-          catch: (error) =>
-            new DbUnavailable({
-              message: error instanceof Error ? error.message : String(error),
-            }),
-        }),
-        (worker) => Effect.sync(() => worker.terminate()),
-      );
-      return yield* receiveWorkerReply(worker, path).pipe(
-        Effect.timeoutOrElse({
-          duration: "60 seconds",
-          orElse: () => Effect.fail(timeoutFailure()),
-        }),
-      );
-    }),
-  );
-});
+    ),
+  ),
+);
 
-function receiveWorkerReply(worker: Worker, path: string) {
-  const clearListeners = () => {
-    worker.onmessage = null;
-    worker.onerror = null;
-    worker.onmessageerror = null;
-  };
-  return Effect.callback<unknown, DbUnavailable>((resume) => {
-    worker.onmessage = (event) => resume(Effect.succeed(event.data as unknown));
-    worker.onerror = (event) => {
+function workerFailure(worker: Worker) {
+  return Effect.callback<never, DbUnavailable>((resume) => {
+    const onError = (event: ErrorEvent) => {
       event.preventDefault();
-      resume(
-        Effect.fail(
-          new DbUnavailable({
-            message: event.message,
-          }),
-        ),
-      );
+      fail(new DbUnavailable({ message: event.message }));
     };
-    worker.onmessageerror = () =>
-      resume(
-        Effect.fail(
-          new DbUnavailable({
-            message: "Invalid database snapshot verification reply",
-          }),
-        ),
-      );
-    try {
-      worker.postMessage(path);
-    } catch (error) {
-      resume(
-        Effect.fail(
-          new DbUnavailable({
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        ),
-      );
-    }
-    return Effect.sync(clearListeners);
-  }).pipe(Effect.ensuring(Effect.sync(clearListeners)));
+    const onMessageError = () => fail(invalidReply());
+    const clear = () => {
+      worker.removeEventListener("error", onError);
+      worker.removeEventListener("messageerror", onMessageError);
+    };
+    const fail = (error: DbUnavailable) => {
+      clear();
+      resume(Effect.fail(error));
+    };
+    worker.addEventListener("error", onError);
+    worker.addEventListener("messageerror", onMessageError);
+    return Effect.sync(clear);
+  });
 }
