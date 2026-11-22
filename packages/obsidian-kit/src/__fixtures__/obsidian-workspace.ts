@@ -3,6 +3,8 @@ import { MarkdownView, TFile } from "obsidian";
 import type {
   Constructor,
   Editor,
+  MarkdownFileInfo,
+  WorkspaceSidedock,
   EventRef,
   OpenViewState,
   PaneType,
@@ -20,6 +22,13 @@ type Callback = (...args: unknown[]) => unknown;
 
 export class MemoryWorkspace implements WorkspaceSource {
   activeFile: TFile | null = null;
+  activeEditor: MarkdownFileInfo | null = null;
+  readonly leftSplit = stubService<WorkspaceSidedock>("WorkspaceSidedock", {});
+  readonly rightSplit = stubService<WorkspaceSidedock>("WorkspaceSidedock", {});
+  lastOpenFiles: string[] = [];
+  layoutSaves = 0;
+  getLastOpenFiles(): string[] { return this.lastOpenFiles; }
+  requestSaveLayout(): void { this.layoutSaves += 1; }
   activeView: unknown = null;
   readonly leaves = new Map<string, WorkspaceLeaf[]>();
   readonly dispatched: string[] = [];

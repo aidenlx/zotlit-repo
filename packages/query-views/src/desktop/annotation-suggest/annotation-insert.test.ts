@@ -8,6 +8,7 @@ import { describe, expect, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
 import { setup as repositorySetup } from "@zotlit/annotations/__fixtures__/annotation-repository.ts";
+import { watchInsertionWorkspace } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import type { InsertRunner } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
 import { annotationAction } from "@zotlit/notes/__fixtures__/note-feature/annotation-actions.ts";
 import type { AnnotationInsert } from "@zotlit/notes/desktop/note-feature/insert-annotation.ts";
@@ -112,7 +113,12 @@ async function harness(
   const notify = vi.fn<(message: string | DocumentFragment) => void>();
   const start = (target: AnnotationHit, from: number, to: number) => {
     const fiber = insertAnnotation(
-      { app, workspace: app.workspace, runner, notify },
+      {
+        app,
+        watchChanges: watchInsertionWorkspace(app.workspace),
+        runner,
+        notify,
+      },
       { hit: target, info, isCurrent: () => true, range: { from, to } },
     );
     if (!fiber) throw new Error("The insert did not start.");

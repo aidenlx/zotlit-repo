@@ -11,6 +11,7 @@ import type {
 import { describe, expect, vi } from "vitest";
 
 import { stateEditor } from "@zotlit/annotations/__fixtures__/annot-view/editor.ts";
+import { watchInsertionWorkspace } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
 import { resolveCitationTrigger } from "@zotlit/citations/obsidian/citation-suggest/editor-suggest.ts";
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
@@ -333,13 +334,8 @@ describe("AnnotationEditorSuggest", () => {
                 offref: (ref) => workspace.offref(ref),
               }),
             }),
-            workspace: stubService<App["workspace"]>("Workspace", {
-              on: (name: string, callback: (...data: never[]) => unknown) =>
-                workspace.on(name, (...data: unknown[]) =>
-                  Reflect.apply(callback, undefined, data),
-                ),
-              offref: (ref) => workspace.offref(ref),
-            }),
+            activeEditor: () => info,
+            watchChanges: watchInsertionWorkspace(workspace),
             bridge: { runSync: Effect.runSync },
             runner: { execute: () => Effect.never, run },
             notify,

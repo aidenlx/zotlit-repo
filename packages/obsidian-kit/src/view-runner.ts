@@ -1,8 +1,10 @@
+import type { Stream } from "effect";
 import { Cause, Effect, Fiber, FiberSet, Scope } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { joinForked, observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 
 import { viewRuntime } from "./view-atoms.ts";
@@ -13,7 +15,12 @@ export type ViewRun = <A, E>(
 ) => Fiber.Fiber<A, E>;
 
 export interface ViewRunner extends Disposable, AsyncDisposable {
+  readonly subscribe: <A>(
+    stream: Stream.Stream<A, never, ViewServices>,
+    callback: (value: A) => void,
+  ) => () => void;
   readonly run: ViewRun;
+  readonly runSync: <A>(effect: Effect.Effect<A, never, ViewServices>) => A;
   readonly provide: <A, E>(
     effect: Effect.Effect<A, E, ViewServices>,
   ) => Effect.Effect<A, E>;
@@ -36,6 +43,9 @@ export function makeViewRunner(
   const dispose = () => (closing ??= close().finally(unmount));
   return {
     run,
+    runSync: Effect.runSyncWith(context),
+    subscribe: (stream, callback) =>
+      subscribe({ runFork: run, scope }, stream, callback),
     provide: Effect.provideContext(context),
     settled: () => Effect.runPromiseWith(context)(FiberSet.awaitEmpty(fibers)),
     [Symbol.dispose]: () => void dispose(),

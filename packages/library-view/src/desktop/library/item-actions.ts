@@ -1,5 +1,6 @@
 import type { Scope } from "effect";
 import { Effect, Exit } from "effect";
+import { MarkdownView } from "obsidian";
 import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
 
 import type { AttachmentOpenDeps } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
@@ -10,7 +11,6 @@ import {
 } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import { viewTargetOpener } from "@zotlit/annotations/desktop/attachment-open/view-opener.ts";
 import { captureInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
-import { getInsertionEditor } from "@zotlit/annotations/obsidian/annot-view/drag-insert.ts";
 import { literatureNoteAttachments } from "@zotlit/annotations/obsidian/attachment-open/literature-note.ts";
 import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
 import type { Item } from "@zotlit/db";
@@ -19,13 +19,16 @@ import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-featur
 import { openLiteratureNote } from "@zotlit/notes/desktop/note-feature/navigation.ts";
 import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/operations.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
   ViewRegistryHandle,
   ViewServices,
 } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { readActionItem } from "@zotlit/zotero-reads/client/read-item.ts";
@@ -137,7 +140,9 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
     insertCitation: (indexedKey, target) =>
       run(
         Effect.gen(function* () {
-          const into = target ?? editorTarget(deps);
+          const workspace = yield* Workspace;
+          const bridge = yield* scopedBridge;
+          const into = target ?? (yield* editorTarget(workspace));
           if (!into) {
             yield* Notifier.use((notifier) =>
               notifier.show(m.library_view_cite_no_note()),
@@ -154,7 +159,15 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
                 info,
                 ...(at !== undefined && { range: { from: at, to: at } }),
                 isCurrent: () => info.file === file && info.editor === editor,
-                workspace: deps.app.workspace,
+                watchChanges: (validate) =>
+                  bridge.subscribe(
+                    filterTag(
+                      workspace.changes,
+                      "active-leaf-change",
+                      "layout-change",
+                    ),
+                    validate,
+                  ),
               }),
             ),
           );
@@ -206,10 +219,28 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
   };
 }
 
-function editorTarget({
-  app,
-}: Pick<ItemActionsDeps, "app">): CitationTarget | null {
-  const info = getInsertionEditor(app) ?? lastEditor(app.workspace);
+const editorTarget = Effect.fnUntraced(function* (
+  workspace: Workspace["Service"],
+): Effect.fn.Return<CitationTarget | null> {
+  const active = yield* workspace.activeEditor;
+  const current =
+    active instanceof MarkdownView && active.getMode() !== "source"
+      ? null
+      : active;
+  if (current)
+    return current.file && current.editor
+      ? { editor: current.editor, info: current }
+      : null;
+  const views = yield* workspace.markdownViews;
+  const file = yield* workspace.getActiveFile;
+  const recent = yield* workspace.lastOpenFiles;
+  const info = lastEditor({
+    getActiveFile: () => file,
+    getLastOpenFiles: () => [...recent],
+    iterateAllLeaves: (visit) => {
+      for (const view of views) visit(view.leaf);
+    },
+  });
   if (!info?.file || !info.editor) return null;
   return { editor: info.editor, info };
-}
+});

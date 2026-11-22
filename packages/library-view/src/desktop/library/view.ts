@@ -8,7 +8,12 @@ import type { Component, Modifier, WorkspaceLeaf } from "obsidian";
 import { inTextEntry } from "@zotlit/annotations/obsidian/pdf-annotation-editor/capability-affordance.ts";
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
+import {
+  Workspace,
+  workspaceTrigger,
+} from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import {
   logServices,
   withLogCategory,
@@ -185,6 +190,9 @@ export class LibraryView extends ItemView {
     super(leaf);
     this.#deps = deps;
     this.#release = this.#hold();
+    const runner = makeViewRunner(deps.registry);
+    this.register(() => runner[Symbol.dispose]());
+    const workspace = runner.runSync(Workspace);
     this.scope = new Scope(deps.app.scope);
     this.contentEl.addClass("zt-root", "zt-library-view");
     this.contentEl.dataset.libraryView = "";
@@ -203,7 +211,7 @@ export class LibraryView extends ItemView {
         {
           actions: deps.items,
           literatureNotes: deps.literatureNotes,
-          workspace: deps.app.workspace,
+          workspace: workspaceTrigger(workspace, runner.runSync),
         },
         item,
       );
@@ -248,7 +256,7 @@ export class LibraryView extends ItemView {
     this.register(() => drag.cancel());
     this.#registerRowKeys();
     const onEscape = () => {
-      const { leftSplit, rightSplit } = deps.app.workspace;
+      const { leftSplit, rightSplit } = runner.runSync(workspace.sidebarRoots);
       const root = this.leaf.getRoot();
       if (root === leftSplit || root === rightSplit) return;
       return false as const;

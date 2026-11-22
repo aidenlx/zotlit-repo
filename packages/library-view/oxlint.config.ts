@@ -126,30 +126,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      files: ["src/desktop/welcome/banner.tsx"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: [
-        "src/desktop/library/item-actions.ts",
-        "src/desktop/library/view.ts",
-      ],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: ["src/desktop/library/welcome-register.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: [
-        "src/desktop/library/item-actions.ts",
-        "src/desktop/library/library-tree.tsx",
-        "src/desktop/library/view.ts",
-        "src/desktop/welcome/connection.ts",
-      ],
-      rules: { "zotlit-services/no-default-runtime": "off" },
-    },
-    {
       files: ["src/desktop/welcome/Welcome.test.ts"],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },

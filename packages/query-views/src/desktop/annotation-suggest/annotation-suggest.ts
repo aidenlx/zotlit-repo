@@ -28,6 +28,7 @@ import { resolveAnnotationTrigger } from "#core/annotation-suggest/annotation-tr
 
 export interface AnnotationSuggestDeps extends AnnotationInsertDeps {
   bridge: Pick<EffectBridge, "runSync">;
+  activeEditor: () => import("obsidian").MarkdownFileInfo | null;
   query: Pick<QueryHandle, "run">;
   settings: Pick<PluginSettings["Service"], "current">;
   commentRenderer: (owner: Component, sourcePath: string) => CommentRenderer;
@@ -151,13 +152,13 @@ export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
     const context = this.context;
     if (!context) return;
     const { editor, file, start, end } = context;
-    const info = this.#deps.app.workspace.activeEditor;
+    const info = this.#deps.activeEditor();
     if (!info || info.editor !== editor || info.file !== file) return;
     this.close();
     void insertAnnotation(this.#deps, {
       hit,
       info,
-      isCurrent: () => this.#deps.app.workspace.activeEditor?.editor === editor,
+      isCurrent: () => this.#deps.activeEditor()?.editor === editor,
       range: { from: editor.posToOffset(start), to: editor.posToOffset(end) },
     });
   }

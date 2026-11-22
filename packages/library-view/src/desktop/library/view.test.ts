@@ -612,7 +612,13 @@ async function pluginData(
   const welcomeHost = cleanup.use(
     await makeLibraryHost({
       services: Layer.mergeAll(
-        layerHost({ vault: app.vault }),
+        layerHost({
+          vault: app.vault,
+          workspace: Object.assign(new MemoryWorkspace(), {
+            trigger: (name: string, ...args: unknown[]) =>
+              app.workspace.trigger(name, ...args),
+          }),
+        }),
         Layer.succeed(PluginSettings, settings),
         Layer.mock(NoteIndex, {
           whenIndexed: Effect.void,

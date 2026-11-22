@@ -3,8 +3,11 @@ import { Effect } from "effect";
 import type { App, Plugin } from "obsidian";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
+import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { zoteroStateAtom } from "@zotlit/zotero-reads/client/atoms.ts";
 
@@ -33,6 +36,9 @@ export function registerWelcomeView(
   deps: WelcomeRegistrationDeps,
 ): void {
   const { registry } = deps;
+  const runner = makeViewRunner(registry);
+  plugin.register(() => runner[Symbol.dispose]());
+  const workspace = runner.runSync(Workspace);
   plugin.register(registry.mount(connectionLifecycleAtom));
   for (const command of [
     keepWelcomeCommand,
@@ -58,7 +64,7 @@ export function registerWelcomeView(
     const change = notFoundNoticeChange(signal, {
       shown: notice?.noticeEl.isConnected ?? false,
       libraryOpen:
-        plugin.app.workspace.getLeavesOfType(LIBRARY_VIEW_TYPE).length > 0,
+        runner.runSync(workspace.leavesOfType(LIBRARY_VIEW_TYPE)).length > 0,
     });
     if (change === "hide") hide();
     if (change === "show")
@@ -87,10 +93,14 @@ export function watchNotFound(
       { immediate: true },
     ),
   );
-  const layout = plugin.app.workspace.on("layout-change", () =>
-    apply("layout-change"),
+  const runner = makeViewRunner(registry);
+  plugin.register(() => runner[Symbol.dispose]());
+  const workspace = runner.runSync(Workspace);
+  plugin.register(
+    runner.subscribe(filterTag(workspace.changes, "layout-change"), () =>
+      apply("layout-change"),
+    ),
   );
-  plugin.register(() => plugin.app.workspace.offref(layout));
 }
 
 function notFoundNotice(locate: () => void): BaseNotice {

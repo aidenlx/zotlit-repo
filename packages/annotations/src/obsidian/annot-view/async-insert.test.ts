@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { captureInsertion } from "./async-insert.ts";
+import { captureInsertion, watchInsertionWorkspace } from "./async-insert.ts";
 
 import { stateEditor } from "#__fixtures__/annot-view/editor.ts";
 
@@ -62,7 +62,7 @@ function fixture() {
     editor,
     info,
     isCurrent: () => current,
-    workspace,
+    watchChanges: watchInsertionWorkspace(workspace),
   });
   return {
     cm,
@@ -99,7 +99,7 @@ function holdAt(
     info,
     isCurrent: () => true,
     range: { from, to },
-    workspace: fakeWorkspace(),
+    watchChanges: watchInsertionWorkspace(fakeWorkspace()),
   });
   return {
     cm,
@@ -178,7 +178,7 @@ describe("captured asynchronous insertion", () => {
       info: f.info,
       isCurrent: () => true,
       range: { from: 19, to: 19 },
-      workspace: f.workspace,
+      watchChanges: watchInsertionWorkspace(f.workspace),
     });
     f.cm.dispatch({ changes: { from: 0, insert: "prefix " } });
     expect(target.commit(" DROP")).toBe(true);
@@ -191,7 +191,7 @@ describe("captured asynchronous insertion", () => {
       info: f.info,
       isCurrent: () => true,
       range: { from: 7, to: 7 },
-      workspace: f.workspace,
+      watchChanges: watchInsertionWorkspace(f.workspace),
     });
     f.cm.dispatch({ changes: { from: 7, insert: "overlap" } });
     expect(target.commit(" DROP")).toBe(false);

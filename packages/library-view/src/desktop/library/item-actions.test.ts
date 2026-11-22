@@ -71,6 +71,8 @@ function workspaceFixture() {
       return file;
     },
     getLastOpenFiles: () => [...lastOpen],
+    getLeavesOfType: (type) =>
+      open.filter(({ view }) => view.getViewType() === type),
     get activeEditor() {
       return active?.view instanceof MarkdownView ? active.view : null;
     },
@@ -157,6 +159,7 @@ async function setup(
 
   const host = cleanup.use(
     await makeLibraryHost({
+      sources: { workspace: fixture.workspace },
       services: Layer.mergeAll(
         notifier.layer,
         Layer.mock(ZoteroReads, {

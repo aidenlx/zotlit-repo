@@ -14,7 +14,7 @@ import type {
 } from "./note-actions.ts";
 export type { AnnotationInsertOutcome } from "./note-actions.ts";
 
-import { captureInsertion } from "./async-insert.ts";
+import { captureInsertion, watchInsertionWorkspace } from "./async-insert.ts";
 import { startInsert } from "./insert-run.ts";
 import type { InsertFiber, InsertRunner } from "./insert-run.ts";
 
@@ -128,7 +128,7 @@ export function createInsertHandler<R>(deps: InsertDeps<R>) {
               const current = getInsertionEditor(deps.app);
               return current?.editor === editor && current.file === info.file;
             },
-            workspace: deps.app.workspace,
+            watchChanges: watchInsertionWorkspace(deps.app.workspace),
           }),
       }),
     );
@@ -256,7 +256,7 @@ function insertDrop<R>(
         info,
         range: { from: position, to: position },
         isCurrent: () => info.file === file && info.editor === editor,
-        workspace: deps.app.workspace,
+        watchChanges: watchInsertionWorkspace(deps.app.workspace),
       }),
   });
 }

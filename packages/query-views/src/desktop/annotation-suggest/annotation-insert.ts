@@ -13,7 +13,7 @@ import type { AnnotationHit } from "./annotation-search.ts";
 
 export interface AnnotationInsertDeps {
   app: App;
-  workspace: Pick<App["workspace"], "on" | "offref">;
+  watchChanges: (validate: () => void) => () => void;
   runner: InsertRunner<never>;
   notify: (message: string | DocumentFragment) => void;
 }
@@ -44,7 +44,7 @@ export function insertAnnotation(
         info,
         isCurrent,
         range,
-        workspace: deps.workspace,
+        watchChanges: deps.watchChanges,
       }),
   });
   observeExit(fiber, {

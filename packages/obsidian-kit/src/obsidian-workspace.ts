@@ -1,7 +1,7 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
 import { Context, Effect, Layer, Schema } from "effect";
 import type { Cause, Scope, Stream } from "effect";
-import { MarkdownView } from "obsidian";
+import { MarkdownView, View } from "obsidian";
 import type {
   Editor,
   MarkdownFileInfo,
@@ -37,6 +37,10 @@ export class OpenLinkFailed extends Schema.TaggedError<
 
 export type WorkspaceSource = Pick<
   ObsidianWorkspace,
+  | "activeEditor"
+  | "leftSplit"
+  | "rightSplit"
+  | "getLastOpenFiles"
   | "onLayoutReady"
   | "getActiveFile"
   | "getActiveViewOfType"
@@ -56,9 +60,14 @@ export type WorkspaceSource = Pick<
   | "requestActiveLeafEvents"
   | "readWorkspaceFile"
 > &
-  ObsidianEventEmitter;
+  ObsidianEventEmitter & { requestSaveLayout(): void };
 
 export type WorkspaceEvent =
+  | {
+      readonly _tag: "quick-preview";
+      readonly file: TFile;
+      readonly source: string;
+    }
   | { readonly _tag: "file-open"; readonly file: TFile | null }
   | { readonly _tag: "layout-change" }
   | {
@@ -73,6 +82,13 @@ export interface FileMenuOrigin {
 }
 
 export interface WorkspaceShape {
+  readonly activeView: Effect.Effect<View | null>;
+  readonly activeEditor: Effect.Effect<MarkdownFileInfo | null>;
+  readonly sidebarRoots: Effect.Effect<
+    Pick<WorkspaceSource, "leftSplit" | "rightSplit">
+  >;
+  readonly lastOpenFiles: Effect.Effect<readonly string[]>;
+  readonly requestSaveLayout: Effect.Effect<void>;
   readonly layoutReady: Effect.Effect<void>;
   readonly changes: Stream.Stream<WorkspaceEvent>;
   readonly getActiveFile: Effect.Effect<TFile | null>;
@@ -166,7 +182,33 @@ export const makeWorkspace = Effect.fnUntraced(function* (
       });
     });
 
+  yield* events.listen(
+    source,
+    "quick-preview",
+    (file: TFile, text: string) => ({
+      _tag: "quick-preview",
+      file,
+      source: text,
+    }),
+  );
+
   return Workspace.of({
+    activeView: Effect.sync(() => source.getActiveViewOfType(View)).pipe(
+      Effect.withSpan("Workspace.activeView"),
+    ),
+    activeEditor: Effect.sync(() => source.activeEditor).pipe(
+      Effect.withSpan("Workspace.activeEditor"),
+    ),
+    sidebarRoots: Effect.sync(() => ({
+      leftSplit: source.leftSplit,
+      rightSplit: source.rightSplit,
+    })).pipe(Effect.withSpan("Workspace.sidebarRoots")),
+    lastOpenFiles: Effect.sync(() => source.getLastOpenFiles()).pipe(
+      Effect.withSpan("Workspace.lastOpenFiles"),
+    ),
+    requestSaveLayout: Effect.sync(() => source.requestSaveLayout()).pipe(
+      Effect.withSpan("Workspace.requestSaveLayout"),
+    ),
     layoutReady: Effect.callback<void>((resume) => {
       source.onLayoutReady(() => resume(Effect.void));
     }),

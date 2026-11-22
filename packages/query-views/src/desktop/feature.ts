@@ -1,5 +1,4 @@
 import { Effect, FiberSet, FileSystem, Layer, Scope } from "effect";
-import { View } from "obsidian";
 
 import {
   PdfTargetReader,
@@ -18,9 +17,11 @@ import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matche
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { ANNOTATION_SUGGESTER_ENABLED } from "@zotlit/plugin-kernel/constants.ts";
+import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
@@ -156,11 +157,17 @@ export const queryViews = extendFeature(obsidianQueryViews, {
       queryViewDeps: deps,
     } = ctx.handlesOf(queryViews);
     const settings = read(PluginSettings);
+    const workspace = read(Workspace);
     const itemLookup = bindItemLookup(bridge, read(ItemLookup));
     if (ANNOTATION_SUGGESTER_ENABLED) {
       registerAnnotationSuggest(plugin, {
         app,
-        workspace: app.workspace,
+        activeEditor: () => bridge.runSync(workspace.activeEditor),
+        watchChanges: (validate) =>
+          bridge.subscribe(
+            filterTag(workspace.changes, "active-leaf-change", "layout-change"),
+            validate,
+          ),
         query,
         bridge,
         runner: annotationInsertRunner,
@@ -196,7 +203,7 @@ export const queryViews = extendFeature(obsidianQueryViews, {
       annotations: read(AnnotationRepository),
       bridge,
       activeSurface: (): HistorySurface | null => {
-        const view = app.workspace.getActiveViewOfType(View);
+        const view = bridge.runSync(workspace.activeView);
         if (view instanceof AnnotationView) return view;
         if (view instanceof QueryFileView) return view.query;
         return (

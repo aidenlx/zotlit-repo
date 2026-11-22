@@ -7,7 +7,9 @@ import {
 } from "@codemirror/state";
 import type { Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import type { Editor, MarkdownFileInfo, Workspace } from "obsidian";
+import type { Editor, MarkdownFileInfo } from "obsidian";
+
+import type { ObsidianEventEmitter } from "@zotlit/obsidian-kit/obsidian-event-source.ts";
 
 const trimLineBreaks = (text: string) => text.replaceAll(/^\n+|\n+$/g, "");
 
@@ -103,14 +105,26 @@ export function placeInsertion(
   return { insert, cursor: insert.length };
 }
 
+export function watchInsertionWorkspace(workspace: ObsidianEventEmitter) {
+  return (validate: () => void): (() => void) => {
+    const refs = [
+      workspace.on("active-leaf-change", validate),
+      workspace.on("layout-change", validate),
+    ];
+    return () => {
+      for (const ref of refs) workspace.offref(ref);
+    };
+  };
+}
+
 export function captureInsertion(options: {
   editor: Editor;
   info: MarkdownFileInfo;
   isCurrent: () => boolean;
   range?: { from: number; to: number };
-  workspace: Pick<Workspace, "on" | "offref">;
+  watchChanges: (validate: () => void) => () => void;
 }) {
-  const { editor, info, workspace } = options;
+  const { editor, info } = options;
   const cm = editor.cm;
   const file = info.file;
   const path = file?.path;
@@ -175,17 +189,14 @@ export function captureInsertion(options: {
   const validate = () => {
     if (!valid()) cancel();
   };
-  const workspaceRefs = [
-    workspace.on("active-leaf-change", validate),
-    workspace.on("layout-change", validate),
-  ];
+  const stopWatching = options.watchChanges(validate);
   const dispose = (completed = false) => {
     if (settled) return;
     settled = true;
     if (!completed) cancel();
     cancelListeners.clear();
     win?.removeEventListener("keydown", onKey);
-    for (const ref of workspaceRefs) workspace.offref(ref);
+    stopWatching();
     if (!completed && cm.dom.isConnected)
       cm.dispatch({ effects: compartment.reconfigure([]) });
   };
