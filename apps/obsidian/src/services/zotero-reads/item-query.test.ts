@@ -1,7 +1,8 @@
+import { it } from "@effect/vitest";
 import { Effect, Fiber, Layer } from "effect";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
 import { rowInstant } from "@zotlit/db-testing";
@@ -48,17 +49,15 @@ function resolverWith(
   paths: Parameters<typeof makeAttachmentFileResolver>[0],
   probe: (path: string) => void,
 ) {
-  return Effect.runPromise(
-    makeAttachmentFileResolver(paths).pipe(
-      Effect.provide(
-        layerNodeFileSystemWith((fs) => ({
-          exists: (path) =>
-            Effect.andThen(
-              Effect.sync(() => probe(path)),
-              fs.exists(path),
-            ),
-        })),
-      ),
+  return makeAttachmentFileResolver(paths).pipe(
+    Effect.provide(
+      layerNodeFileSystemWith((fs) => ({
+        exists: (path) =>
+          Effect.andThen(
+            Effect.sync(() => probe(path)),
+            fs.exists(path),
+          ),
+      })),
     ),
   );
 }
@@ -148,154 +147,171 @@ const writing = (job: QueryJob) =>
   );
 
 describe("ZoteroReads ItemQuery", () => {
-  it("answers the envelope of a job with its receipt", async () => {
-    using scenario = openScenarioDatabase(connectClient);
-    const { client, borrows } = clientOf(scenario);
+  it.effect("answers the envelope of a job with its receipt", () =>
+    Effect.gen(function* () {
+      using scenario = openScenarioDatabase(connectClient);
+      const { client, borrows } = clientOf(scenario);
 
-    const answer = await Effect.runPromise(
-      Effect.scoped(
+      const answer = yield* Effect.scoped(
         Effect.flatMap(client, (reads) =>
           reads.ItemQuery({ job: jobOf("plain", { limit: "3" }) }),
         ),
-      ),
-    );
+      );
 
-    expect(answer).toMatchObject({ receipt: { kind: "inline" } });
-    expect(answer).not.toHaveProperty("cancelled");
-    expect(JSON.parse(answer.answer)).toMatchObject({
-      ok: true,
-      identity: IDENTITY,
-      returnedCount: 3,
-    });
-    expect(borrows()).toBe(0);
-  });
+      expect(answer).toMatchObject({ receipt: { kind: "inline" } });
+      expect(answer).not.toHaveProperty("cancelled");
+      expect(JSON.parse(answer.answer)).toMatchObject({
+        ok: true,
+        identity: IDENTITY,
+        returnedCount: 3,
+      });
+      expect(borrows()).toBe(0);
+    }),
+  );
 
-  it("cancels a job while it waits for a slot, and then the running jobs", async () => {
-    using scenario = openScenarioDatabase(connectClient, {
-      storage: "temp-directory",
-    });
-    seedBulkLibrary(scenario.sqlite, 20000);
-    const { client, borrows } = clientOf(scenario);
-    const first = bulkExport(scenario, "first");
+  it.effect(
+    "cancels a job while it waits for a slot, and then the running jobs",
+    () =>
+      Effect.gen(function* () {
+        using scenario = openScenarioDatabase(connectClient, {
+          storage: "temp-directory",
+        });
+        seedBulkLibrary(scenario.sqlite, 20000);
+        const { client, borrows } = clientOf(scenario);
+        const first = bulkExport(scenario, "first");
 
-    const answers = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const reads = yield* client;
-          const running = yield* Effect.forkChild(
-            Effect.forEach(
-              [first, bulkExport(scenario, "second")],
-              (job) => reads.ItemQuery({ job }),
-              { concurrency: "unbounded" },
-            ),
-          );
-          yield* writing(first);
-          const waiting = yield* Effect.forkChild(
-            reads.ItemQuery({ job: jobOf("waiting", { limit: "1" }) }),
-          );
-          yield* Effect.sleep("10 millis");
-          expect(borrows()).toBe(2);
-          yield* reads.CancelItemQuery({ id: "waiting" });
-          const cancelled = yield* Fiber.join(waiting);
-          const stillRunning = running.pollUnsafe() === undefined;
-          yield* reads.CancelItemQuery({ id: "first" });
-          yield* reads.CancelItemQuery({ id: "second" });
-          return {
-            cancelled,
-            stillRunning,
-            running: yield* Fiber.join(running),
-          };
-        }),
-      ),
-    );
+        const answers = yield* Effect.scoped(
+          Effect.gen(function* () {
+            const reads = yield* client;
+            const running = yield* Effect.forkChild(
+              Effect.forEach(
+                [first, bulkExport(scenario, "second")],
+                (job) => reads.ItemQuery({ job }),
+                { concurrency: "unbounded" },
+              ),
+            );
+            yield* writing(first);
+            const waiting = yield* Effect.forkChild(
+              reads.ItemQuery({ job: jobOf("waiting", { limit: "1" }) }),
+            );
+            yield* Effect.yieldNow;
+            expect(borrows()).toBe(2);
+            yield* reads.CancelItemQuery({ id: "waiting" });
+            const cancelled = yield* Fiber.join(waiting);
+            const stillRunning = running.pollUnsafe() === undefined;
+            yield* reads.CancelItemQuery({ id: "first" });
+            yield* reads.CancelItemQuery({ id: "second" });
+            return {
+              cancelled,
+              stillRunning,
+              running: yield* Fiber.join(running),
+            };
+          }),
+        );
 
-    expect(answers.cancelled).toEqual({
-      command: "zotlit:query",
-      answer: "",
-      receipt: { kind: "inline" },
-      cancelled: true,
-    });
-    expect(answers.stillRunning).toBe(true);
-    for (const answer of answers.running)
-      expect(answer).toMatchObject({ cancelled: true });
-    expect(borrows()).toBe(0);
-  });
+        expect(answers.cancelled).toEqual({
+          command: "zotlit:query",
+          answer: "",
+          receipt: { kind: "inline" },
+          cancelled: true,
+        });
+        expect(answers.stillRunning).toBe(true);
+        for (const answer of answers.running)
+          expect(answer).toMatchObject({ cancelled: true });
+        expect(borrows()).toBe(0);
+      }),
+  );
 
-  it("ends the job of a request that the client interrupts, and releases its borrow", async () => {
-    using scenario = openScenarioDatabase(connectClient, {
-      storage: "temp-directory",
-    });
-    seedBulkLibrary(scenario.sqlite, 20000);
-    const { client, borrows } = clientOf(scenario);
-    const job = bulkExport(scenario, "abandoned");
+  it.effect(
+    "ends the job of a request that the client interrupts, and releases its borrow",
+    () =>
+      Effect.gen(function* () {
+        using scenario = openScenarioDatabase(connectClient, {
+          storage: "temp-directory",
+        });
+        seedBulkLibrary(scenario.sqlite, 20000);
+        const { client, borrows } = clientOf(scenario);
+        const job = bulkExport(scenario, "abandoned");
 
-    const next = await Effect.runPromise(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const reads = yield* client;
-          const request = yield* Effect.forkChild(reads.ItemQuery({ job }));
-          yield* writing(job);
-          yield* Fiber.interrupt(request);
-          yield* Effect.promise(() =>
-            vi.waitFor(() => expect(borrows()).toBe(0), {
-              timeout: 15000,
-              interval: 1,
-            }),
-          );
-          return yield* reads.ItemQuery({ job: jobOf("next", { limit: "1" }) });
-        }),
-      ),
-    );
+        const next = yield* Effect.scoped(
+          Effect.gen(function* () {
+            const reads = yield* client;
+            const request = yield* Effect.forkChild(reads.ItemQuery({ job }));
+            yield* writing(job);
+            yield* Fiber.interrupt(request);
+            yield* Effect.promise(() =>
+              vi.waitFor(() => expect(borrows()).toBe(0), {
+                timeout: 15000,
+                interval: 1,
+              }),
+            );
+            return yield* reads.ItemQuery({
+              job: jobOf("next", { limit: "1" }),
+            });
+          }),
+        );
 
-    const staged = await readFile(job.stagePath!, "utf8");
-    expect(() => JSON.parse(staged) as unknown).toThrow();
-    expect(await readdir(dirname(job.stagePath!))).not.toContain(
-      "abandoned.json",
-    );
-    expect(JSON.parse(next.answer)).toMatchObject({ ok: true });
-  });
+        const staged = yield* Effect.promise(() =>
+          readFile(job.stagePath!, "utf8"),
+        );
+        expect(() => JSON.parse(staged) as unknown).toThrow();
+        expect(
+          yield* Effect.promise(() => readdir(dirname(job.stagePath!))),
+        ).not.toContain("abandoned.json");
+        expect(JSON.parse(next.answer)).toMatchObject({ ok: true });
+      }),
+  );
 });
 
 describe("ZoteroReads Attachment files", () => {
-  it("resolves and probes each Attachment once within one query", async () => {
-    using scenario = openScenarioDatabase(connectClient, {
-      storage: "temp-directory",
-    });
-    const dataDir = dirname(scenario.path);
-    const baseAttachmentPath = join(dataDir, "linked");
-    const importedPath = join(dataDir, "storage", "IMPRT223", "paper.pdf");
-    const linkedPath = join(baseAttachmentPath, "papers", "linked.pdf");
-    await mkdir(dirname(importedPath), { recursive: true });
-    await mkdir(dirname(linkedPath), { recursive: true });
-    await Promise.all([
-      writeFile(importedPath, "imported"),
-      writeFile(linkedPath, "linked"),
-    ]);
-    const probe = vi.fn<(path: string) => void>();
-    const resolve = await resolverWith({ dataDir, baseAttachmentPath }, probe);
-    const imported = attachment(10, {
-      key: "IMPRT223",
-      path: "storage:paper.pdf",
-      linkMode: 0,
-    });
-    const linked = attachment(11, {
-      key: "LINKD223",
-      path: "attachments:papers/linked.pdf",
-      linkMode: 2,
-    });
-    const missing = attachment(12, {
-      key: "MISSI223",
-      path: "storage:missing.pdf",
-      linkMode: 0,
-    });
-    const linkedUrl = attachment(13, {
-      key: "LINKU223",
-      path: "https://example.com/paper.pdf",
-      linkMode: 3,
-    });
+  it.effect("resolves and probes each Attachment once within one query", () =>
+    Effect.gen(function* () {
+      using scenario = openScenarioDatabase(connectClient, {
+        storage: "temp-directory",
+      });
+      const dataDir = dirname(scenario.path);
+      const baseAttachmentPath = join(dataDir, "linked");
+      const importedPath = join(dataDir, "storage", "IMPRT223", "paper.pdf");
+      const linkedPath = join(baseAttachmentPath, "papers", "linked.pdf");
+      yield* Effect.promise(() =>
+        mkdir(dirname(importedPath), { recursive: true }),
+      );
+      yield* Effect.promise(() =>
+        mkdir(dirname(linkedPath), { recursive: true }),
+      );
+      yield* Effect.promise(() =>
+        Promise.all([
+          writeFile(importedPath, "imported"),
+          writeFile(linkedPath, "linked"),
+        ]),
+      );
+      const probe = vi.fn<(path: string) => void>();
+      const resolve = yield* resolverWith(
+        { dataDir, baseAttachmentPath },
+        probe,
+      );
+      const imported = attachment(10, {
+        key: "IMPRT223",
+        path: "storage:paper.pdf",
+        linkMode: 0,
+      });
+      const linked = attachment(11, {
+        key: "LINKD223",
+        path: "attachments:papers/linked.pdf",
+        linkMode: 2,
+      });
+      const missing = attachment(12, {
+        key: "MISSI223",
+        path: "storage:missing.pdf",
+        linkMode: 0,
+      });
+      const linkedUrl = attachment(13, {
+        key: "LINKU223",
+        path: "https://example.com/paper.pdf",
+        linkMode: 3,
+      });
 
-    const resolved = await Effect.runPromise(
-      Effect.all(
+      const resolved = yield* Effect.all(
         [
           resolve(imported),
           resolve({ ...imported }),
@@ -304,44 +320,46 @@ describe("ZoteroReads Attachment files", () => {
           resolve(linkedUrl),
         ],
         { concurrency: "unbounded" },
-      ),
-    );
+      );
 
-    expect(resolved).toEqual([
-      { path: importedPath, exists: true },
-      { path: importedPath, exists: true },
-      { path: linkedPath, exists: true },
-      {
-        path: join(dataDir, "storage", "MISSI223", "missing.pdf"),
-        exists: false,
-      },
-      { path: null, exists: false },
-    ]);
-    expect(probe.mock.calls.map(([path]) => path)).toEqual([
-      importedPath,
-      linkedPath,
-      join(dataDir, "storage", "MISSI223", "missing.pdf"),
-    ]);
-  });
+      expect(resolved).toEqual([
+        { path: importedPath, exists: true },
+        { path: importedPath, exists: true },
+        { path: linkedPath, exists: true },
+        {
+          path: join(dataDir, "storage", "MISSI223", "missing.pdf"),
+          exists: false,
+        },
+        { path: null, exists: false },
+      ]);
+      expect(probe.mock.calls.map(([path]) => path)).toEqual([
+        importedPath,
+        linkedPath,
+        join(dataDir, "storage", "MISSI223", "missing.pdf"),
+      ]);
+    }),
+  );
 
-  it("does not probe a linked file when its base directory is unset", async () => {
-    const probe = vi.fn<(path: string) => void>();
-    const resolve = await resolverWith(
-      { dataDir: "/zotero", baseAttachmentPath: null },
-      probe,
-    );
+  it.effect(
+    "does not probe a linked file when its base directory is unset",
+    () =>
+      Effect.gen(function* () {
+        const probe = vi.fn<(path: string) => void>();
+        const resolve = yield* resolverWith(
+          { dataDir: "/zotero", baseAttachmentPath: null },
+          probe,
+        );
 
-    await expect(
-      Effect.runPromise(
-        resolve(
-          attachment(20, {
-            key: "LINKD456",
-            path: "attachments:papers/linked.pdf",
-            linkMode: 2,
-          }),
-        ),
-      ),
-    ).resolves.toEqual({ path: null, exists: false });
-    expect(probe).not.toHaveBeenCalled();
-  });
+        expect(
+          yield* resolve(
+            attachment(20, {
+              key: "LINKD456",
+              path: "attachments:papers/linked.pdf",
+              linkMode: 2,
+            }),
+          ),
+        ).toEqual({ path: null, exists: false });
+        expect(probe).not.toHaveBeenCalled();
+      }),
+  );
 });

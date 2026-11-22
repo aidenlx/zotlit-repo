@@ -151,10 +151,6 @@ export default defineConfig({
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
     {
-      files: ["src/desktop/view/view.test.ts"],
-      rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
-    },
-    {
       files: ["src/obsidian/editor/host.test.ts"],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },

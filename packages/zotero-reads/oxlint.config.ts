@@ -134,14 +134,6 @@ export default defineConfig({
       files: ["src/worker/citekey-snapshot.ts"],
       rules: { "zotlit-services/clock-time": "off" },
     },
-    {
-      files: [
-        "src/worker/citation-lookup.test.ts",
-        "src/worker/connection.test.ts",
-        "src/desktop/source.test.ts",
-      ],
-      rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
-    },
     ...testBaselineOverrides("packages/zotero-reads"),
   ],
 });

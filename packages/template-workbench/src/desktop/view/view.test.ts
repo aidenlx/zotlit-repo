@@ -2,14 +2,16 @@ import type { WorkbenchHostDeps as TemplateWorkbenchDeps } from "#__fixtures__/v
 import type { DisplayNode } from "#core/data-tree/index.ts";
 import { forceParsing } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
-import { Cause, Effect, Exit } from "effect";
+import { it } from "@effect/vitest";
+import { Cause, Effect, Exit, Fiber } from "effect";
 import { Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
+import { TestClock } from "effect/testing";
 import { SuggestModal, TFile } from "obsidian";
 import type { App, ViewState, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";
 import { bindProfile } from "@zotlit/notes/obsidian/profile/bindings.ts";
@@ -120,7 +122,8 @@ A stable note.
 An annotation.
 `;
 
-const run = <A, E>(flow: Effect.Effect<A, E>) => Effect.runPromise(flow);
+const waitFor = (assertion: () => void) =>
+  Effect.promise(() => vi.waitFor(assertion));
 
 class TestTemplateWorkbenchView extends TemplateWorkbenchView {
   open() {
@@ -227,7 +230,7 @@ function setup(
 }
 
 describe("TemplateWorkbenchView", () => {
-  async function originHarness() {
+  const originHarness = Effect.fnUntraced(function* () {
     const updateNote = vi.fn<
       NonNullable<TemplateWorkbenchDeps["noteFeature"]>["updateNote"]
     >(async () => ({
@@ -276,7 +279,7 @@ describe("TemplateWorkbenchView", () => {
     Object.assign(h.app.vault, { getFileByPath, read });
     Object.assign(h.app, { metadataCache: { getFileCache } });
     h.view.file = template;
-    await run(h.view.setOriginatingNote(file));
+    yield* h.view.setOriginatingNote(file);
     return {
       ...h,
       file,
@@ -288,299 +291,374 @@ describe("TemplateWorkbenchView", () => {
       read,
       profileOf,
     };
-  }
-
-  it("keeps the later launch's note when an earlier Profile read finishes last", async () => {
-    const h = await originHarness();
-    const earlierRead = Promise.withResolvers<void>();
-    h.profileOf.mockImplementationOnce(() =>
-      Effect.promise(() => earlierRead.promise).pipe(
-        Effect.as({
-          ok: true as const,
-          profile: bindProfile(defaults, { selector: "default" }),
-        }),
-      ),
-    );
-    const later = Object.assign(new TFile(), {
-      path: "Literature/Later.md",
-      basename: "Later",
-    });
-    const earlier = run(h.view.setOriginatingNote(h.file));
-    await vi.waitFor(() => expect(h.profileOf).toHaveBeenCalledTimes(2));
-    await run(h.view.setOriginatingNote(later));
-    expect(h.view.originatingNote).toBe(later);
-    earlierRead.resolve();
-    expect(await earlier).toBeNull();
-    expect(h.view.originatingNote).toBe(later);
   });
 
-  it("updates the originating note after saving, independent of focus and preview selection", async () => {
-    const h = await originHarness();
-    const saved = Promise.withResolvers<void>();
-    using save = vi
-      .spyOn(MockTextFileView.prototype, "save")
-      .mockReturnValue(saved.promise);
-    const other = Object.assign(new TFile(), { path: "Other.md" });
-    using _activeFile = vi
-      .spyOn(h.app.workspace, "getActiveFile")
-      .mockReturnValue(other);
-    setViewItem(h.view, { id: "BBBBBBBB", title: "Other paper" });
-    const updating = run(h.view.updateOriginatingNote());
-    const again = run(h.view.updateOriginatingNote());
-    await vi.waitFor(() => expect(save).toHaveBeenCalledOnce());
-    expect(h.view.registry.get(h.view.model.updating)).toBe(true);
-    expect(h.updateNote).not.toHaveBeenCalled();
-    saved.resolve();
-    expect(await again).toBe(await updating);
-    expect(h.view.registry.get(h.view.model.updating)).toBe(false);
-    expect(await updating).toMatchObject({
-      outcome: "updated",
-      name: "Original",
-      result: { bodyUpdated: true },
-    });
-    expect(h.updateNote).toHaveBeenCalledExactlyOnceWith(h.file, {
-      indexedKey: "AAAAAAAA",
-      scope: "full",
-      profile: "default",
-      beforeWrite: expect.any(Function),
-    });
-  });
+  it.effect(
+    "keeps the later launch's note when an earlier Profile read finishes last",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        const earlierRead = Promise.withResolvers<void>();
+        h.profileOf.mockImplementationOnce(() =>
+          Effect.promise(() => earlierRead.promise).pipe(
+            Effect.as({
+              ok: true as const,
+              profile: bindProfile(defaults, { selector: "default" }),
+            }),
+          ),
+        );
+        const later = Object.assign(new TFile(), {
+          path: "Literature/Later.md",
+          basename: "Later",
+        });
+        const earlier = yield* Effect.forkChild(
+          h.view.setOriginatingNote(h.file),
+          { startImmediately: true },
+        );
+        yield* waitFor(() => expect(h.profileOf).toHaveBeenCalledTimes(2));
+        yield* h.view.setOriginatingNote(later);
+        expect(h.view.originatingNote).toBe(later);
+        earlierRead.resolve();
+        expect(yield* Fiber.join(earlier)).toBeNull();
+        expect(h.view.originatingNote).toBe(later);
+      }),
+  );
 
-  it("waits for an automatic save already in progress before applying the latest edit", async () => {
-    const h = await originHarness();
-    const pending = Promise.withResolvers<void>();
-    const started = Promise.withResolvers<void>();
-    using save = vi
-      .spyOn(MockTextFileView.prototype, "save")
-      .mockImplementationOnce(() => {
-        started.resolve();
-        return pending.promise;
-      });
-    const automatic = h.view.save();
-    await started.promise;
-    const updating = run(h.view.updateOriginatingNote());
-    expect(h.updateNote).not.toHaveBeenCalled();
-    pending.resolve();
-    await automatic;
-    await updating;
-    expect(save).toHaveBeenCalledTimes(2);
-    expect(h.updateNote).toHaveBeenCalledOnce();
-  });
+  it.effect(
+    "updates the originating note after saving, independent of focus and preview selection",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        const saved = Promise.withResolvers<void>();
+        using save = vi
+          .spyOn(MockTextFileView.prototype, "save")
+          .mockReturnValue(saved.promise);
+        const other = Object.assign(new TFile(), { path: "Other.md" });
+        using _activeFile = vi
+          .spyOn(h.app.workspace, "getActiveFile")
+          .mockReturnValue(other);
+        setViewItem(h.view, { id: "BBBBBBBB", title: "Other paper" });
+        const updating = yield* Effect.forkChild(
+          h.view.updateOriginatingNote(),
+          { startImmediately: true },
+        );
+        const again = yield* Effect.forkChild(h.view.updateOriginatingNote(), {
+          startImmediately: true,
+        });
+        yield* waitFor(() => expect(save).toHaveBeenCalledOnce());
+        expect(h.view.registry.get(h.view.model.updating)).toBe(true);
+        expect(h.updateNote).not.toHaveBeenCalled();
+        saved.resolve();
+        expect(yield* Fiber.join(again)).toBe(yield* Fiber.join(updating));
+        expect(h.view.registry.get(h.view.model.updating)).toBe(false);
+        expect(yield* Fiber.join(updating)).toMatchObject({
+          outcome: "updated",
+          name: "Original",
+          result: { bodyUpdated: true },
+        });
+        expect(h.updateNote).toHaveBeenCalledExactlyOnceWith(h.file, {
+          indexedKey: "AAAAAAAA",
+          scope: "full",
+          profile: "default",
+          beforeWrite: expect.any(Function),
+        });
+      }),
+  );
 
-  it.each(["rejected", "not-written"])(
+  it.effect(
+    "waits for an automatic save already in progress before applying the latest edit",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        const pending = Promise.withResolvers<void>();
+        const started = Promise.withResolvers<void>();
+        using save = vi
+          .spyOn(MockTextFileView.prototype, "save")
+          .mockImplementationOnce(() => {
+            started.resolve();
+            return pending.promise;
+          });
+        const automatic = h.view.save();
+        yield* Effect.promise(() => started.promise);
+        const updating = yield* Effect.forkChild(
+          h.view.updateOriginatingNote(),
+          { startImmediately: true },
+        );
+        expect(h.updateNote).not.toHaveBeenCalled();
+        pending.resolve();
+        yield* Effect.promise(() => automatic);
+        yield* Fiber.join(updating);
+        expect(save).toHaveBeenCalledTimes(2);
+        expect(h.updateNote).toHaveBeenCalledOnce();
+      }),
+  );
+
+  it.effect.each(["rejected", "not-written"])(
     "reports a %s save without updating the note",
-    async (failure) => {
-      const h = await originHarness();
-      using save = vi.spyOn(MockTextFileView.prototype, "save");
-      if (failure === "rejected")
-        save.mockRejectedValue(new Error("disk full"));
-      else h.read.mockResolvedValue("previously saved template");
-      expect(await run(h.view.updateOriginatingNote())).toEqual({
-        outcome: "save-failed",
-        name: "Original",
-      });
-      expect(h.updateNote).not.toHaveBeenCalled();
-    },
+    (failure) =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        using save = vi.spyOn(MockTextFileView.prototype, "save");
+        if (failure === "rejected")
+          save.mockRejectedValue(new Error("disk full"));
+        else h.read.mockResolvedValue("previously saved template");
+        expect(yield* h.view.updateOriginatingNote()).toEqual({
+          outcome: "save-failed",
+          name: "Original",
+        });
+        expect(h.updateNote).not.toHaveBeenCalled();
+      }),
   );
 
-  it.each(["deleted", "replaced"])(
+  it.effect.each(["deleted", "replaced"])(
     "refuses an origin that is %s while the template compiles",
-    async (change) => {
-      const h = await originHarness();
-      const compilation = Promise.withResolvers<"settled">();
-      h.waitUntilSettled.mockReturnValue(compilation.promise);
-      const updating = run(h.view.updateOriginatingNote());
-      await vi.waitFor(() => expect(h.waitUntilSettled).toHaveBeenCalledOnce());
-      h.getFileByPath.mockReturnValue(
-        change === "deleted"
-          ? null!
-          : Object.assign(new TFile(), { path: h.file.path }),
-      );
-      compilation.resolve("settled");
-      expect(await updating).toEqual({
-        outcome: "unavailable",
-        name: "Original",
-      });
-      expect(h.updateNote).not.toHaveBeenCalled();
-    },
+    (change) =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        const compilation = Promise.withResolvers<"settled">();
+        h.waitUntilSettled.mockReturnValue(compilation.promise);
+        const updating = yield* Effect.forkChild(
+          h.view.updateOriginatingNote(),
+          { startImmediately: true },
+        );
+        yield* waitFor(() => expect(h.waitUntilSettled).toHaveBeenCalledOnce());
+        h.getFileByPath.mockReturnValue(
+          change === "deleted"
+            ? null!
+            : Object.assign(new TFile(), { path: h.file.path }),
+        );
+        compilation.resolve("settled");
+        expect(yield* Fiber.join(updating)).toEqual({
+          outcome: "unavailable",
+          name: "Original",
+        });
+        expect(h.updateNote).not.toHaveBeenCalled();
+      }),
   );
 
-  it("names a successful metadata-only result and retains update failures", async () => {
-    const h = await originHarness();
-    h.updateNote.mockResolvedValueOnce({
-      bodyUpdated: false,
-      duplicateRegionCount: 0,
-      noManagedBlock: true,
-    });
-    const result = await run(h.view.updateOriginatingNote());
-    expect(result).toMatchObject({
-      outcome: "updated",
-      name: "Original",
-      result: { bodyUpdated: false, noManagedBlock: true },
-    });
-    expect(originatingNoteUpdateNotice(h.app, result)).toContain("Original");
-    expect(originatingNoteUpdateNotice(h.app, result)).toContain(
-      m.notice_updated_note_no_managed_block(),
-    );
-    const error = new Error("write failed");
-    h.updateNote.mockRejectedValueOnce(error);
-    await expect(run(h.view.updateOriginatingNote())).rejects.toMatchObject({
-      _tag: "OriginatingNoteUpdateError",
-      note: "Original",
-      cause: error,
-    });
-  });
+  it.effect(
+    "names a successful metadata-only result and retains update failures",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        h.updateNote.mockResolvedValueOnce({
+          bodyUpdated: false,
+          duplicateRegionCount: 0,
+          noManagedBlock: true,
+        });
+        const result = yield* h.view.updateOriginatingNote();
+        expect(result).toMatchObject({
+          outcome: "updated",
+          name: "Original",
+          result: { bodyUpdated: false, noManagedBlock: true },
+        });
+        expect(originatingNoteUpdateNotice(h.app, result)).toContain(
+          "Original",
+        );
+        expect(originatingNoteUpdateNotice(h.app, result)).toContain(
+          m.notice_updated_note_no_managed_block(),
+        );
+        const error = new Error("write failed");
+        h.updateNote.mockRejectedValueOnce(error);
+        expect(
+          yield* Effect.flip(h.view.updateOriginatingNote()),
+        ).toMatchObject({
+          _tag: "OriginatingNoteUpdateError",
+          note: "Original",
+          cause: error,
+        });
+      }),
+  );
 
-  it("stops quietly when the leaf closes before the note's write", async () => {
-    const h = await originHarness();
-    const waiting = Promise.withResolvers<"settled">();
-    h.waitUntilSettled.mockReturnValueOnce(waiting.promise);
-    const stopping = Effect.runPromiseExit(h.view.updateOriginatingNote());
-    await vi.waitFor(() => expect(h.waitUntilSettled).toHaveBeenCalledOnce());
-    await h.view.close();
-    const exit = await stopping;
-    expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
-      true,
-    );
-    expect(h.view.registry.get(h.view.model.updating)).toBe(false);
-    expect(h.updateNote).not.toHaveBeenCalled();
-  });
-
-  it("waits for the note's write when the leaf closes during it", async () => {
-    const h = await originHarness();
-    const write = Promise.withResolvers<{
-      bodyUpdated: boolean;
-      duplicateRegionCount: number;
-    }>();
-    h.updateNote.mockReturnValueOnce(write.promise);
-    const updating = Effect.runPromiseExit(h.view.updateOriginatingNote());
-    await vi.waitFor(() => expect(h.updateNote).toHaveBeenCalledOnce());
-    let closed = false;
-    const closing = h.view.close().then(() => {
-      closed = true;
-    });
-    await Effect.runPromise(Effect.sleep("10 millis"));
-    expect(closed).toBe(false);
-    write.resolve({ bodyUpdated: true, duplicateRegionCount: 0 });
-    await closing;
-    await updating;
-  });
-
-  it("waits for the template's save when the leaf closes during it", async () => {
-    const h = await originHarness();
-    const saved = Promise.withResolvers<void>();
-    using save = vi
-      .spyOn(MockTextFileView.prototype, "save")
-      .mockReturnValueOnce(saved.promise);
-    const updating = Effect.runPromiseExit(h.view.updateOriginatingNote());
-    await vi.waitFor(() => expect(save).toHaveBeenCalledOnce());
-    let closed = false;
-    const closing = h.view.close().then(() => {
-      closed = true;
-    });
-    await Effect.runPromise(Effect.sleep("10 millis"));
-    expect(closed).toBe(false);
-    saved.resolve();
-    await closing;
-    expect(Exit.isSuccess(await updating)).toBe(false);
-    expect(h.updateNote).not.toHaveBeenCalled();
-  });
-
-  it("keeps the existing template diagnostic on a refused update", async () => {
-    const h = await originHarness();
-    const result = {
-      bodyUpdated: false,
-      duplicateRegionCount: 0,
-      diagnostic: {
-        code: "missing-literature-note-template" as const,
-        document: "missing.md",
-        hint: "Restore the template",
-      },
-    };
-    h.updateNote.mockResolvedValueOnce(result);
-    const outcome = await run(h.view.updateOriginatingNote());
-    expect(outcome).toEqual({ outcome: "refused", name: "Original", result });
-    expect(originatingNoteUpdateNotice(h.app, outcome)).toBe(
-      m.notice_literature_note_template_missing({ document: "missing.md" }),
-    );
-  });
-
-  it("rejects an edit saved during the final disk read after compilation settled", async () => {
-    const h = await originHarness();
-    h.read
-      .mockImplementationOnce(async () => h.view.getViewData())
-      .mockImplementationOnce(async () => {
-        h.view.controller.setManifestKey("name", "New edit");
-        return h.view.getViewData();
+  it.effect("stops quietly when the leaf closes before the note's write", () =>
+    Effect.gen(function* () {
+      const h = yield* originHarness();
+      const waiting = Promise.withResolvers<"settled">();
+      h.waitUntilSettled.mockReturnValueOnce(waiting.promise);
+      const stopping = yield* Effect.forkChild(h.view.updateOriginatingNote(), {
+        startImmediately: true,
       });
-    expect(await run(h.view.updateOriginatingNote())).toEqual({
-      outcome: "not-ready",
-      name: "Original",
-    });
-    expect(h.updateNote).not.toHaveBeenCalled();
-  });
-
-  it("guards the originating target when the note operation reaches its write boundary", async () => {
-    const h = await originHarness();
-    h.updateNote.mockImplementationOnce(async (_file, options) => {
-      h.getFileByPath.mockReturnValue(
-        Object.assign(new TFile(), { path: h.file.path }),
+      yield* waitFor(() => expect(h.waitUntilSettled).toHaveBeenCalledOnce());
+      yield* Effect.promise(() => h.view.close());
+      const exit = yield* Fiber.await(stopping);
+      expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
+        true,
       );
-      options.beforeWrite?.();
-      return { bodyUpdated: true, duplicateRegionCount: 0 };
-    });
-    expect(await run(h.view.updateOriginatingNote())).toEqual({
-      outcome: "unavailable",
-      name: "Original",
-    });
-  });
+      expect(h.view.registry.get(h.view.model.updating)).toBe(false);
+      expect(h.updateNote).not.toHaveBeenCalled();
+    }),
+  );
 
-  it("sends the user back to Customize when the note's Zotero key changed", async () => {
-    const h = await originHarness();
-    h.updateNote.mockResolvedValueOnce({
-      bodyUpdated: false,
-      duplicateRegionCount: 0,
-      diagnostic: {
-        code: "literature-note-key-changed",
-        hint: "",
-        indexedKey: "AAAAAAAA",
-        path: h.file.path,
-      },
-    });
-    const outcome = await run(h.view.updateOriginatingNote());
-    expect(outcome).toEqual({ outcome: "unavailable", name: "Original" });
-    expect(originatingNoteUpdateNotice(h.app, outcome)).toBe(
-      m.template_workbench_update_unavailable({ name: "Original" }),
-    );
-  });
+  it.effect("waits for the note's write when the leaf closes during it", () =>
+    Effect.gen(function* () {
+      const h = yield* originHarness();
+      const write = Promise.withResolvers<{
+        bodyUpdated: boolean;
+        duplicateRegionCount: number;
+      }>();
+      h.updateNote.mockReturnValueOnce(write.promise);
+      const updating = yield* Effect.forkChild(h.view.updateOriginatingNote(), {
+        startImmediately: true,
+      });
+      yield* waitFor(() => expect(h.updateNote).toHaveBeenCalledOnce());
+      let closed = false;
+      const closing = h.view.close().then(() => {
+        closed = true;
+      });
+      yield* TestClock.adjust("10 millis");
+      expect(closed).toBe(false);
+      write.resolve({ bodyUpdated: true, duplicateRegionCount: 0 });
+      yield* Effect.promise(() => closing);
+      yield* Fiber.await(updating);
+    }),
+  );
 
-  it("updates while the note's metadata cache has not parsed its latest write", async () => {
-    const h = await originHarness();
-    h.updateNote.mockImplementationOnce(async (_file, options) => {
+  it.effect(
+    "waits for the template's save when the leaf closes during it",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        const saved = Promise.withResolvers<void>();
+        using save = vi
+          .spyOn(MockTextFileView.prototype, "save")
+          .mockReturnValueOnce(saved.promise);
+        const updating = yield* Effect.forkChild(
+          h.view.updateOriginatingNote(),
+          { startImmediately: true },
+        );
+        yield* waitFor(() => expect(save).toHaveBeenCalledOnce());
+        let closed = false;
+        const closing = h.view.close().then(() => {
+          closed = true;
+        });
+        yield* TestClock.adjust("10 millis");
+        expect(closed).toBe(false);
+        saved.resolve();
+        yield* Effect.promise(() => closing);
+        expect(Exit.isSuccess(yield* Fiber.await(updating))).toBe(false);
+        expect(h.updateNote).not.toHaveBeenCalled();
+      }),
+  );
+
+  it.effect("keeps the existing template diagnostic on a refused update", () =>
+    Effect.gen(function* () {
+      const h = yield* originHarness();
+      const result = {
+        bodyUpdated: false,
+        duplicateRegionCount: 0,
+        diagnostic: {
+          code: "missing-literature-note-template" as const,
+          document: "missing.md",
+          hint: "Restore the template",
+        },
+      };
+      h.updateNote.mockResolvedValueOnce(result);
+      const outcome = yield* h.view.updateOriginatingNote();
+      expect(outcome).toEqual({ outcome: "refused", name: "Original", result });
+      expect(originatingNoteUpdateNotice(h.app, outcome)).toBe(
+        m.notice_literature_note_template_missing({ document: "missing.md" }),
+      );
+    }),
+  );
+
+  it.effect(
+    "rejects an edit saved during the final disk read after compilation settled",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        h.read
+          .mockImplementationOnce(async () => h.view.getViewData())
+          .mockImplementationOnce(async () => {
+            h.view.controller.setManifestKey("name", "New edit");
+            return h.view.getViewData();
+          });
+        expect(yield* h.view.updateOriginatingNote()).toEqual({
+          outcome: "not-ready",
+          name: "Original",
+        });
+        expect(h.updateNote).not.toHaveBeenCalled();
+      }),
+  );
+
+  it.effect(
+    "guards the originating target when the note operation reaches its write boundary",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        h.updateNote.mockImplementationOnce(async (_file, options) => {
+          h.getFileByPath.mockReturnValue(
+            Object.assign(new TFile(), { path: h.file.path }),
+          );
+          options.beforeWrite?.();
+          return { bodyUpdated: true, duplicateRegionCount: 0 };
+        });
+        expect(yield* h.view.updateOriginatingNote()).toEqual({
+          outcome: "unavailable",
+          name: "Original",
+        });
+      }),
+  );
+
+  it.effect(
+    "sends the user back to Customize when the note's Zotero key changed",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        h.updateNote.mockResolvedValueOnce({
+          bodyUpdated: false,
+          duplicateRegionCount: 0,
+          diagnostic: {
+            code: "literature-note-key-changed",
+            hint: "",
+            indexedKey: "AAAAAAAA",
+            path: h.file.path,
+          },
+        });
+        const outcome = yield* h.view.updateOriginatingNote();
+        expect(outcome).toEqual({ outcome: "unavailable", name: "Original" });
+        expect(originatingNoteUpdateNotice(h.app, outcome)).toBe(
+          m.template_workbench_update_unavailable({ name: "Original" }),
+        );
+      }),
+  );
+
+  it.effect(
+    "updates while the note's metadata cache has not parsed its latest write",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        h.updateNote.mockImplementationOnce(async (_file, options) => {
+          h.getFileCache.mockReturnValue(null as never);
+          options.beforeWrite?.();
+          return { bodyUpdated: true, duplicateRegionCount: 0 };
+        });
+        expect(yield* h.view.updateOriginatingNote()).toMatchObject({
+          outcome: "updated",
+          name: "Original",
+        });
+      }),
+  );
+
+  it.effect("names a launch note this editor cannot update", () =>
+    Effect.gen(function* () {
+      const h = yield* originHarness();
       h.getFileCache.mockReturnValue(null as never);
-      options.beforeWrite?.();
-      return { bodyUpdated: true, duplicateRegionCount: 0 };
-    });
-    expect(await run(h.view.updateOriginatingNote())).toMatchObject({
-      outcome: "updated",
-      name: "Original",
-    });
-  });
+      expect(yield* h.view.setOriginatingNote(h.file)).toBe("Original");
+      expect(h.view.originatingNote).toBeNull();
+    }),
+  );
 
-  it("names a launch note this editor cannot update", async () => {
-    const h = await originHarness();
-    h.getFileCache.mockReturnValue(null as never);
-    expect(await run(h.view.setOriginatingNote(h.file))).toBe("Original");
-    expect(h.view.originatingNote).toBeNull();
-  });
-
-  it("clears the action when the editor is opened without an originating note", async () => {
-    const h = await originHarness();
-    await run(h.view.setOriginatingNote(null));
-    await run(h.view.updateOriginatingNote());
-    expect(h.view.originatingNote).toBeNull();
-    expect(h.updateNote).not.toHaveBeenCalled();
-  });
+  it.effect(
+    "clears the action when the editor is opened without an originating note",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* originHarness();
+        yield* h.view.setOriginatingNote(null);
+        yield* h.view.updateOriginatingNote();
+        expect(h.view.originatingNote).toBeNull();
+        expect(h.updateNote).not.toHaveBeenCalled();
+      }),
+  );
 
   it("clears an arrival after a fresh matching success and retains its report", async () => {
     await using cleanup = new AsyncDisposableStack();
@@ -1089,140 +1167,170 @@ An annotation.
     await act(async () => view.close());
   });
 
-  it("inspects Default without creation or edits, then binds before native save requests", async () => {
-    const file = new TFile();
-    file.path = "templates/zotlit-profile.default.md";
-    const pending = Promise.withResolvers<{ file: TFile; created: boolean }>();
-    const materializeDefault = vi.fn(() =>
-      Effect.promise(() => pending.promise),
-    );
-    const { view, requestSave } = setup({
-      runtime: testRuntime(),
-      profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
-        "Profile",
-        {
-          defaultDocumentPath: Effect.succeed(
-            "templates/zotlit-profile.default.md",
+  it.effect(
+    "inspects Default without creation or edits, then binds before native save requests",
+    () =>
+      Effect.gen(function* () {
+        const file = new TFile();
+        file.path = "templates/zotlit-profile.default.md";
+        const pending = Promise.withResolvers<{
+          file: TFile;
+          created: boolean;
+        }>();
+        const materializeDefault = vi.fn(() =>
+          Effect.promise(() => pending.promise),
+        );
+        const { view, requestSave } = setup({
+          runtime: testRuntime(),
+          profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
+            "Profile",
+            {
+              defaultDocumentPath: Effect.succeed(
+                "templates/zotlit-profile.default.md",
+              ),
+              getSource: () => Effect.succeed(SOURCE),
+              getBuiltInSource: Effect.succeed(SOURCE),
+              materializeDefault: Effect.suspend(materializeDefault),
+            },
           ),
-          getSource: () => Effect.succeed(SOURCE),
-          getBuiltInSource: Effect.succeed(SOURCE),
-          materializeDefault: Effect.suspend(materializeDefault),
-        },
-      ),
-    });
-    await view.setState({ defaultDraft: true, file: null }, { history: false });
-    const controller = view.controller;
-    controller.setManifestKey("name", "Typing attempt");
-    expect(controller.undo()).toBe(false);
-    expect(controller.redo()).toBe(false);
-    expect(view.getViewData()).toBe(SOURCE);
-    expect(materializeDefault).not.toHaveBeenCalled();
-    const creating = run(view.customizeDefault());
-    expect(view.registry.get(view.model.customization) === "pending").toBe(
-      true,
-    );
-    const again = run(view.customizeDefault());
-    await vi.waitFor(() =>
-      expect(materializeDefault).toHaveBeenCalledExactlyOnceWith(),
-    );
-    controller.setManifestKey("name", "Pending attempt");
-    pending.resolve({ file, created: true });
-    await creating;
-    await again;
-    expect(materializeDefault).toHaveBeenCalledOnce();
-    expect(view.controller).toBe(controller);
-    expect(controller.readOnly).toBe(false);
-    expect(requestSave).not.toHaveBeenCalled();
-    controller.dispatch({
-      changes: {
-        from: 0,
-        to: controller.source.length,
-        insert: "invalid source",
-      },
-    });
-    expect(view.getViewData()).toBe("invalid source");
-    expect(requestSave).toHaveBeenCalledOnce();
-    controller.undo();
-    expect(view.getViewData()).toBe(SOURCE);
-    controller.redo();
-    expect(view.getViewData()).toBe("invalid source");
-    expect(requestSave).toHaveBeenCalledTimes(3);
-  });
+        });
+        yield* Effect.promise(() =>
+          view.setState({ defaultDraft: true, file: null }, { history: false }),
+        );
+        const controller = view.controller;
+        controller.setManifestKey("name", "Typing attempt");
+        expect(controller.undo()).toBe(false);
+        expect(controller.redo()).toBe(false);
+        expect(view.getViewData()).toBe(SOURCE);
+        expect(materializeDefault).not.toHaveBeenCalled();
+        const creating = yield* Effect.forkChild(view.customizeDefault(), {
+          startImmediately: true,
+        });
+        expect(view.registry.get(view.model.customization) === "pending").toBe(
+          true,
+        );
+        const again = yield* Effect.forkChild(view.customizeDefault(), {
+          startImmediately: true,
+        });
+        yield* waitFor(() =>
+          expect(materializeDefault).toHaveBeenCalledExactlyOnceWith(),
+        );
+        controller.setManifestKey("name", "Pending attempt");
+        pending.resolve({ file, created: true });
+        yield* Fiber.join(creating);
+        yield* Fiber.join(again);
+        expect(materializeDefault).toHaveBeenCalledOnce();
+        expect(view.controller).toBe(controller);
+        expect(controller.readOnly).toBe(false);
+        expect(requestSave).not.toHaveBeenCalled();
+        controller.dispatch({
+          changes: {
+            from: 0,
+            to: controller.source.length,
+            insert: "invalid source",
+          },
+        });
+        expect(view.getViewData()).toBe("invalid source");
+        expect(requestSave).toHaveBeenCalledOnce();
+        controller.undo();
+        expect(view.getViewData()).toBe(SOURCE);
+        controller.redo();
+        expect(view.getViewData()).toBe("invalid source");
+        expect(requestSave).toHaveBeenCalledTimes(3);
+      }),
+  );
 
-  it("keeps values readable after creation failure and retries only at Customize", async () => {
-    const file = new TFile();
-    const materializeDefault = vi
-      .fn()
-      .mockReturnValueOnce(
-        Effect.fail(
-          new VaultError({
-            operation: "create",
-            path: "templates/zotlit-profile.default.md",
-            message: "Disk full",
-            cause: null,
-          }),
-        ),
-      )
-      .mockReturnValue(Effect.succeed({ file, created: true }));
-    const { view, requestSave } = setup({
-      runtime: testRuntime(),
-      profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
-        "Profile",
-        {
-          defaultDocumentPath: Effect.succeed(
-            "templates/zotlit-profile.default.md",
+  it.effect(
+    "keeps values readable after creation failure and retries only at Customize",
+    () =>
+      Effect.gen(function* () {
+        const file = new TFile();
+        const materializeDefault = vi
+          .fn()
+          .mockReturnValueOnce(
+            Effect.fail(
+              new VaultError({
+                operation: "create",
+                path: "templates/zotlit-profile.default.md",
+                message: "Disk full",
+                cause: null,
+              }),
+            ),
+          )
+          .mockReturnValue(Effect.succeed({ file, created: true }));
+        const { view, requestSave } = setup({
+          runtime: testRuntime(),
+          profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
+            "Profile",
+            {
+              defaultDocumentPath: Effect.succeed(
+                "templates/zotlit-profile.default.md",
+              ),
+              getSource: () => Effect.succeed(SOURCE),
+              getBuiltInSource: Effect.succeed(SOURCE),
+              materializeDefault: Effect.suspend(materializeDefault),
+            },
           ),
-          getSource: () => Effect.succeed(SOURCE),
-          getBuiltInSource: Effect.succeed(SOURCE),
-          materializeDefault: Effect.suspend(materializeDefault),
-        },
-      ),
-    });
-    await view.setState({ defaultDraft: true }, { history: false });
-    await run(view.customizeDefault());
-    expect(view.registry.get(view.model.customization) === "failed").toBe(true);
-    expect(view.registry.get(view.model.customization) === "pending").toBe(
-      false,
-    );
-    view.controller.setManifestKey("name", "Attempt after failure");
-    view.controller.undo();
-    expect(view.getViewData()).toBe(SOURCE);
-    expect(materializeDefault).toHaveBeenCalledOnce();
-    expect(requestSave).not.toHaveBeenCalled();
-    await run(view.customizeDefault());
-    expect(view.registry.get(view.model.customization) === "failed").toBe(
-      false,
-    );
-    expect(view.isDefaultDraft).toBe(false);
-  });
+        });
+        yield* Effect.promise(() =>
+          view.setState({ defaultDraft: true }, { history: false }),
+        );
+        yield* view.customizeDefault();
+        expect(view.registry.get(view.model.customization) === "failed").toBe(
+          true,
+        );
+        expect(view.registry.get(view.model.customization) === "pending").toBe(
+          false,
+        );
+        view.controller.setManifestKey("name", "Attempt after failure");
+        view.controller.undo();
+        expect(view.getViewData()).toBe(SOURCE);
+        expect(materializeDefault).toHaveBeenCalledOnce();
+        expect(requestSave).not.toHaveBeenCalled();
+        yield* view.customizeDefault();
+        expect(view.registry.get(view.model.customization) === "failed").toBe(
+          false,
+        );
+        expect(view.isDefaultDraft).toBe(false);
+      }),
+  );
 
-  it("opens competing Default bytes without adding built-in source to Undo", async () => {
-    const file = new TFile();
-    const { view, leaf, requestSave, modify } = setup({
-      runtime: testRuntime(),
-      profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
-        "Profile",
-        {
-          defaultDocumentPath: Effect.succeed(
-            "templates/zotlit-profile.default.md",
+  it.effect(
+    "opens competing Default bytes without adding built-in source to Undo",
+    () =>
+      Effect.gen(function* () {
+        const file = new TFile();
+        const { view, leaf, requestSave, modify } = setup({
+          runtime: testRuntime(),
+          profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
+            "Profile",
+            {
+              defaultDocumentPath: Effect.succeed(
+                "templates/zotlit-profile.default.md",
+              ),
+              getSource: () => Effect.succeed(SOURCE),
+              getBuiltInSource: Effect.succeed(SOURCE),
+              materializeDefault: Effect.succeed({ file, created: false }),
+            },
           ),
-          getSource: () => Effect.succeed(SOURCE),
-          getBuiltInSource: Effect.succeed(SOURCE),
-          materializeDefault: Effect.succeed({ file, created: false }),
-        },
-      ),
-    });
-    const existing = SOURCE.replace("name: Paper", "name: Existing Default");
-    vi.spyOn(leaf, "setViewState").mockImplementation(async () => {
-      view.setViewData(existing, true);
-    });
-    await view.setState({ defaultDraft: true }, { history: false });
-    await run(view.customizeDefault());
-    expect(view.getViewData()).toBe(existing);
-    expect(view.controller.undo()).toBe(false);
-    expect(requestSave).not.toHaveBeenCalled();
-    expect(modify).not.toHaveBeenCalled();
-  });
+        });
+        const existing = SOURCE.replace(
+          "name: Paper",
+          "name: Existing Default",
+        );
+        vi.spyOn(leaf, "setViewState").mockImplementation(async () => {
+          view.setViewData(existing, true);
+        });
+        yield* Effect.promise(() =>
+          view.setState({ defaultDraft: true }, { history: false }),
+        );
+        yield* view.customizeDefault();
+        expect(view.getViewData()).toBe(existing);
+        expect(view.controller.undo()).toBe(false);
+        expect(requestSave).not.toHaveBeenCalled();
+        expect(modify).not.toHaveBeenCalled();
+      }),
+  );
 
   it("shows read-only source and one inline retry after the Customize action fails", async () => {
     const materializeDefault = vi.fn().mockReturnValue(
@@ -1279,50 +1387,65 @@ An annotation.
     view.contentEl.remove();
   });
 
-  it("keeps a newly opened Profile when Default creation finishes", async () => {
-    const file = new TFile();
-    const pending = Promise.withResolvers<{ file: TFile; created: boolean }>();
-    const { view, modify } = setup({
-      runtime: testRuntime(),
-      profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
-        "Profile",
-        {
-          defaultDocumentPath: Effect.succeed(
-            "templates/zotlit-profile.default.md",
-          ),
-          getSource: () => Effect.succeed(SOURCE),
-          getBuiltInSource: Effect.succeed(SOURCE),
-          materializeDefault: Effect.promise(() => pending.promise),
-        },
-      ),
-    });
-    await view.setState({ defaultDraft: true }, { history: false });
-    const creating = run(view.customizeDefault());
-    await view.setState({ file: "other.md" }, { history: false });
-    view.setViewData(SOURCE.replace("name: Paper", "name: Other"), true);
-    const controller = view.controller;
-    pending.resolve({ file, created: true });
-    await creating;
-    expect(view.controller).toBe(controller);
-    expect(view.getViewData()).toContain("name: Other");
-    expect(modify).not.toHaveBeenCalled();
-  });
-  it("keeps an item selected while an older view restoration is loading", async () => {
-    const loaded = Promise.withResolvers<void>();
-    using _restore = vi
-      .spyOn(MockTextFileView.prototype, "setState")
-      .mockImplementationOnce(() => loaded.promise);
-    const { view } = setup();
-    const restoring = view.setState(
-      { itemIndexedKey: null },
-      { history: false },
-    );
-    const choice = SAMPLE_ITEM_CHOICES[0]!;
-    expect(await run(view.selectItem(choice))).toBe(true);
-    loaded.resolve();
-    await restoring;
-    expect(viewState(view).item).toMatchObject({ id: choice.id });
-  });
+  it.effect("keeps a newly opened Profile when Default creation finishes", () =>
+    Effect.gen(function* () {
+      const file = new TFile();
+      const pending = Promise.withResolvers<{
+        file: TFile;
+        created: boolean;
+      }>();
+      const { view, modify } = setup({
+        runtime: testRuntime(),
+        profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
+          "Profile",
+          {
+            defaultDocumentPath: Effect.succeed(
+              "templates/zotlit-profile.default.md",
+            ),
+            getSource: () => Effect.succeed(SOURCE),
+            getBuiltInSource: Effect.succeed(SOURCE),
+            materializeDefault: Effect.promise(() => pending.promise),
+          },
+        ),
+      });
+      yield* Effect.promise(() =>
+        view.setState({ defaultDraft: true }, { history: false }),
+      );
+      const creating = yield* Effect.forkChild(view.customizeDefault(), {
+        startImmediately: true,
+      });
+      yield* Effect.promise(() =>
+        view.setState({ file: "other.md" }, { history: false }),
+      );
+      view.setViewData(SOURCE.replace("name: Paper", "name: Other"), true);
+      const controller = view.controller;
+      pending.resolve({ file, created: true });
+      yield* Fiber.join(creating);
+      expect(view.controller).toBe(controller);
+      expect(view.getViewData()).toContain("name: Other");
+      expect(modify).not.toHaveBeenCalled();
+    }),
+  );
+  it.effect(
+    "keeps an item selected while an older view restoration is loading",
+    () =>
+      Effect.gen(function* () {
+        const loaded = Promise.withResolvers<void>();
+        using _restore = vi
+          .spyOn(MockTextFileView.prototype, "setState")
+          .mockImplementationOnce(() => loaded.promise);
+        const { view } = setup();
+        const restoring = view.setState(
+          { itemIndexedKey: null },
+          { history: false },
+        );
+        const choice = SAMPLE_ITEM_CHOICES[0]!;
+        expect(yield* view.selectItem(choice)).toBe(true);
+        loaded.resolve();
+        yield* Effect.promise(() => restoring);
+        expect(viewState(view).item).toMatchObject({ id: choice.id });
+      }),
+  );
 
   it("keeps authoring and restored state available when the database fails", async () => {
     const { view, requestSave } = setup({
@@ -1347,28 +1470,32 @@ An annotation.
     expect(requestSave).toHaveBeenCalledOnce();
   });
 
-  it("clears the unavailable citation styles status after recovery", async () => {
-    let failed = true;
-    const { view } = setup({
-      runtime: testRuntime(),
-      zoteroPref: stubService<TemplateWorkbenchDeps["zoteroPref"]>(
-        "ZoteroPref",
-        {
-          get dataDir() {
-            if (failed) throw new Error("Unavailable");
-            return "";
-          },
-        },
-      ),
-    });
-    await expect(run(view.refreshStyles())).resolves.toBeUndefined();
-    expect(view.registry.get(view.model.unavailable)).toHaveLength(1);
-    expect(view.getViewData()).toBe(SOURCE);
-    expect(view.registry.get(view.model.styles).list).toEqual([]);
-    failed = false;
-    await run(view.refreshStyles());
-    expect(view.registry.get(view.model.unavailable)).toEqual([]);
-  });
+  it.effect(
+    "clears the unavailable citation styles status after recovery",
+    () =>
+      Effect.gen(function* () {
+        let failed = true;
+        const { view } = setup({
+          runtime: testRuntime(),
+          zoteroPref: stubService<TemplateWorkbenchDeps["zoteroPref"]>(
+            "ZoteroPref",
+            {
+              get dataDir() {
+                if (failed) throw new Error("Unavailable");
+                return "";
+              },
+            },
+          ),
+        });
+        expect(yield* view.refreshStyles()).toBeUndefined();
+        expect(view.registry.get(view.model.unavailable)).toHaveLength(1);
+        expect(view.getViewData()).toBe(SOURCE);
+        expect(view.registry.get(view.model.styles).list).toEqual([]);
+        failed = false;
+        yield* view.refreshStyles();
+        expect(view.registry.get(view.model.unavailable)).toEqual([]);
+      }),
+  );
 
   it("routes the view shortcut to shared history while leaving text inputs their own shortcut", () => {
     const { view } = setup();
@@ -2464,109 +2591,119 @@ language: liquid
     ]);
   });
 
-  it("reports the partials a shared Profile still carries, and unpacks them", async () => {
-    const bundled = SOURCE.replace(
-      "filename: paper",
-      [
-        "filename: paper",
-        "partials:",
-        "  - name: authors",
-        "    language: liquid",
-        "    source: Authors",
-        "  - name: venue-line",
-        "    language: liquid",
-        "    source: Venue",
-      ].join("\n"),
-    );
-    const unpacked: string[] = [];
-    const { view } = setup({
-      runtime: testRuntime(),
-      templates: stubService<TemplateWorkbenchDeps["templates"]>("Templates", {
-        "compile-status-changed": Stream.empty,
-        loaded: true,
-        getPartialNames: () => [],
-        getPartialDocuments: () => [],
-        planPartialUnpack: (
-          partials: readonly { name: string; source: string }[],
-        ) =>
-          partials.map(({ name, source }) => ({
-            name,
-            verdict: name === "venue-line" ? "conflict" : "write",
-            document: source,
-          })),
-        unpackPartials: async (
-          plan: readonly { name: string; verdict: string }[],
-        ) => {
-          unpacked.push(...plan.map(({ name }) => name));
-          const written = plan
-            .filter(({ verdict }) => verdict === "write")
-            .map(({ name }) => name);
-          return {
-            written,
-            kept: ["venue-line"],
-            dropped: plan.map(({ name }) => name),
-            refused: [],
-            otherCase: [],
-          };
-        },
+  it.effect(
+    "reports the partials a shared Profile still carries, and unpacks them",
+    () =>
+      Effect.gen(function* () {
+        const bundled = SOURCE.replace(
+          "filename: paper",
+          [
+            "filename: paper",
+            "partials:",
+            "  - name: authors",
+            "    language: liquid",
+            "    source: Authors",
+            "  - name: venue-line",
+            "    language: liquid",
+            "    source: Venue",
+          ].join("\n"),
+        );
+        const unpacked: string[] = [];
+        const { view } = setup({
+          runtime: testRuntime(),
+          templates: stubService<TemplateWorkbenchDeps["templates"]>(
+            "Templates",
+            {
+              "compile-status-changed": Stream.empty,
+              loaded: true,
+              getPartialNames: () => [],
+              getPartialDocuments: () => [],
+              planPartialUnpack: (
+                partials: readonly { name: string; source: string }[],
+              ) =>
+                partials.map(({ name, source }) => ({
+                  name,
+                  verdict: name === "venue-line" ? "conflict" : "write",
+                  document: source,
+                })),
+              unpackPartials: async (
+                plan: readonly { name: string; verdict: string }[],
+              ) => {
+                unpacked.push(...plan.map(({ name }) => name));
+                const written = plan
+                  .filter(({ verdict }) => verdict === "write")
+                  .map(({ name }) => name);
+                return {
+                  written,
+                  kept: ["venue-line"],
+                  dropped: plan.map(({ name }) => name),
+                  refused: [],
+                  otherCase: [],
+                };
+              },
+            },
+          ),
+        });
+        view.setViewData(bundled, true);
+        expect(view.controller.problems[0]).toMatchObject({
+          code: "bundled-partial",
+          params: { names: "authors, venue-line" },
+        });
+
+        const menu = new Menu();
+        view.onPaneMenu(menu as never, "more-options");
+        const partials = menu.items.find(
+          (item) => item.title === m.template_workbench_partials(),
+        )!;
+        expect(partials.submenu?.items.map((item) => item.title)).toEqual([
+          m.workbench_partial_new(),
+          m.workbench_problem_bundled_partial_unpack(),
+        ]);
+
+        yield* view.unpackBundledPartials();
+        expect(unpacked).toEqual(["authors", "venue-line"]);
+        expect(view.getViewData()).not.toContain("partials:");
+        expect(view.getViewData()).toContain("filename: paper");
+        expect(view.controller.problems).toEqual([]);
+
+        const repaired = new Menu();
+        view.onPaneMenu(repaired as never, "more-options");
+        expect(
+          repaired.items
+            .find((item) => item.title === m.template_workbench_partials())!
+            .submenu?.items.map((item) => item.title),
+        ).toEqual([m.workbench_partial_new()]);
       }),
-    });
-    view.setViewData(bundled, true);
-    expect(view.controller.problems[0]).toMatchObject({
-      code: "bundled-partial",
-      params: { names: "authors, venue-line" },
-    });
+  );
 
-    const menu = new Menu();
-    view.onPaneMenu(menu as never, "more-options");
-    const partials = menu.items.find(
-      (item) => item.title === m.template_workbench_partials(),
-    )!;
-    expect(partials.submenu?.items.map((item) => item.title)).toEqual([
-      m.workbench_partial_new(),
-      m.workbench_problem_bundled_partial_unpack(),
-    ]);
-
-    await run(view.unpackBundledPartials());
-    expect(unpacked).toEqual(["authors", "venue-line"]);
-    expect(view.getViewData()).not.toContain("partials:");
-    expect(view.getViewData()).toContain("filename: paper");
-    expect(view.controller.problems).toEqual([]);
-
-    const repaired = new Menu();
-    view.onPaneMenu(repaired as never, "more-options");
-    expect(
-      repaired.items
-        .find((item) => item.title === m.template_workbench_partials())!
-        .submenu?.items.map((item) => item.title),
-    ).toEqual([m.workbench_partial_new()]);
-  });
-
-  it.each([true, false])(
+  it.effect.each([true, false])(
     "restores the built-in Default once the reader confirms: %s",
-    async (confirmed) => {
-      using _answer = answerConfirmation(confirmed);
-      const restoreDefault = vi.fn(() => Effect.void);
-      const { view, leaf } = setup({
-        runtime: testRuntime(),
-        profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
-          "Profile",
-          {
-            restoreDefault: Effect.suspend(restoreDefault),
-            getSource: () => Effect.succeed("Built-in Default"),
-          },
-        ),
-      });
+    (confirmed) =>
+      Effect.gen(function* () {
+        using _answer = answerConfirmation(confirmed);
+        const restoreDefault = vi.fn(() => Effect.void);
+        const { view, leaf } = setup({
+          runtime: testRuntime(),
+          profile: stubService<NonNullable<TemplateWorkbenchDeps["profile"]>>(
+            "Profile",
+            {
+              restoreDefault: Effect.suspend(restoreDefault),
+              getSource: () => Effect.succeed("Built-in Default"),
+            },
+          ),
+        });
 
-      const setViewState = vi.spyOn(leaf, "setViewState");
+        const setViewState = vi.spyOn(leaf, "setViewState");
 
-      await run(view.restoreDefault());
+        yield* view.restoreDefault();
 
-      expect(restoreDefault).toHaveBeenCalledTimes(confirmed ? 1 : 0);
-      expect(setViewState).toHaveBeenCalledTimes(confirmed ? 1 : 0);
-      expect(view.isDefaultDraft).toBe(confirmed);
-      expect(view.getViewData()).toBe(confirmed ? "Built-in Default" : SOURCE);
-    },
+        expect(restoreDefault).toHaveBeenCalledTimes(confirmed ? 1 : 0);
+        expect(setViewState).toHaveBeenCalledTimes(confirmed ? 1 : 0);
+        expect(view.isDefaultDraft).toBe(confirmed);
+        expect(view.getViewData()).toBe(
+          confirmed ? "Built-in Default" : SOURCE,
+        );
+      }),
   );
 
   it("names each kind of unpacked partial in a notice of its own", () => {
@@ -3155,174 +3292,206 @@ describe("Template Workbench Item choice", () => {
     return { zoteroReads, started, interrupted };
   }
 
-  it("interrupts the older Item read when a newer selection starts", async () => {
-    const reads = heldReads();
-    const { view } = setup({
-      runtime: testRuntime(),
-      zoteroReads: reads.zoteroReads,
-    });
-    const first = run(view.selectItem({ id: FIRST, title: "First" }));
-    await vi.waitFor(() => expect(reads.started).toEqual([FIRST]));
-    void Effect.runPromiseExit(view.selectItem({ id: LATER, title: "Later" }));
-    await vi.waitFor(() => expect(reads.started).toEqual([FIRST, LATER]));
-    await expect(first).resolves.toBe(false);
-    expect(reads.interrupted).toEqual([FIRST]);
-  });
+  it.effect(
+    "interrupts the older Item read when a newer selection starts",
+    () =>
+      Effect.gen(function* () {
+        const reads = heldReads();
+        const { view } = setup({
+          runtime: testRuntime(),
+          zoteroReads: reads.zoteroReads,
+        });
+        const first = yield* Effect.forkChild(
+          view.selectItem({ id: FIRST, title: "First" }),
+          { startImmediately: true },
+        );
+        yield* waitFor(() => expect(reads.started).toEqual([FIRST]));
+        yield* Effect.forkChild(
+          view.selectItem({ id: LATER, title: "Later" }),
+          { startImmediately: true },
+        );
+        yield* waitFor(() => expect(reads.started).toEqual([FIRST, LATER]));
+        expect(yield* Fiber.join(first)).toBe(false);
+        expect(reads.interrupted).toEqual([FIRST]);
+      }),
+  );
 
-  it("interrupts every pending command when the view closes", async () => {
-    const reads = heldReads();
-    const prompts: string[] = [];
-    vi.mocked(createSharedPartialEffect).mockReturnValueOnce(
-      Effect.never.pipe(
-        Effect.onInterrupt(() => Effect.sync(() => prompts.push("closed"))),
-      ),
-    );
-    const { view } = setup({
-      runtime: testRuntime(),
-      zoteroReads: reads.zoteroReads,
-    });
-    const selecting = Effect.runPromiseExit(
-      view.selectItem({ id: FIRST, title: "First" }),
-    );
-    const extracting = Effect.runPromiseExit(view.extractPartial("venue"));
-    await vi.waitFor(() => expect(reads.started).toEqual([FIRST]));
-    await view.close();
-    await vi.waitFor(() => expect(reads.interrupted).toEqual([FIRST]));
-    expect(prompts).toEqual(["closed"]);
-    const extracted = await extracting;
-    expect(
-      Exit.isFailure(extracted) && Cause.hasInterruptsOnly(extracted.cause),
-    ).toBe(true);
-    const exit = await selecting;
-    expect(
-      Exit.isSuccess(exit) ? exit.value : !Cause.hasInterruptsOnly(exit.cause),
-    ).toBe(false);
-  });
+  it.effect("interrupts every pending command when the view closes", () =>
+    Effect.gen(function* () {
+      const reads = heldReads();
+      const prompts: string[] = [];
+      vi.mocked(createSharedPartialEffect).mockReturnValueOnce(
+        Effect.never.pipe(
+          Effect.onInterrupt(() => Effect.sync(() => prompts.push("closed"))),
+        ),
+      );
+      const { view } = setup({
+        runtime: testRuntime(),
+        zoteroReads: reads.zoteroReads,
+      });
+      const selecting = yield* Effect.forkChild(
+        view.selectItem({ id: FIRST, title: "First" }),
+        { startImmediately: true },
+      );
+      const extracting = yield* Effect.forkChild(view.extractPartial("venue"), {
+        startImmediately: true,
+      });
+      yield* waitFor(() => expect(reads.started).toEqual([FIRST]));
+      yield* Effect.promise(() => view.close());
+      yield* waitFor(() => expect(reads.interrupted).toEqual([FIRST]));
+      expect(prompts).toEqual(["closed"]);
+      const extracted = yield* Fiber.await(extracting);
+      expect(
+        Exit.isFailure(extracted) && Cause.hasInterruptsOnly(extracted.cause),
+      ).toBe(true);
+      const exit = yield* Fiber.await(selecting);
+      expect(
+        Exit.isSuccess(exit)
+          ? exit.value
+          : !Cause.hasInterruptsOnly(exit.cause),
+      ).toBe(false);
+    }),
+  );
 
-  it("keeps a later selection over a chosen Item whose read still runs", async () => {
-    const firstRead = Promise.withResolvers<void>();
-    const firstReading = Promise.withResolvers<void>();
-    let gated = false;
-    await using zoteroReads = inProcessReadsService(
-      memoryOpener(() =>
-        seedWorksSql([
-          { itemID: 1, key: FIRST, title: "First paper" },
-          { itemID: 2, key: LATER, title: "Later paper" },
-        ]),
-      ).open,
-      {
-        wrap: (client) => ({
-          ...client,
-          ItemsByIndexedKeys: ((
-            payload: { readonly indexedKeys: readonly string[] },
-            options?: object,
-          ) => {
-            const read = (
-              client.ItemsByIndexedKeys as unknown as (
-                payload: object,
+  it.effect(
+    "keeps a later selection over a chosen Item whose read still runs",
+    () =>
+      Effect.gen(function* () {
+        const firstRead = Promise.withResolvers<void>();
+        const firstReading = Promise.withResolvers<void>();
+        let gated = false;
+        const zoteroReads = inProcessReadsService(
+          memoryOpener(() =>
+            seedWorksSql([
+              { itemID: 1, key: FIRST, title: "First paper" },
+              { itemID: 2, key: LATER, title: "Later paper" },
+            ]),
+          ).open,
+          {
+            wrap: (client) => ({
+              ...client,
+              ItemsByIndexedKeys: ((
+                payload: { readonly indexedKeys: readonly string[] },
                 options?: object,
-              ) => Effect.Effect<unknown>
-            )(payload, options);
-            return gated && payload.indexedKeys.includes(FIRST)
-              ? Effect.andThen(
-                  Effect.promise(() => {
-                    firstReading.resolve();
-                    return firstRead.promise;
-                  }),
-                  read,
-                )
-              : read;
-          }) as unknown as ZoteroReadsClient["ItemsByIndexedKeys"],
-        }),
-      },
-    );
-    const { reads } = zoteroReads;
-    const items = await Effect.runPromise(
-      reads.ItemsByIndexedKeys({ indexedKeys: [FIRST] }),
-    );
-    const first = items.get(FIRST)!;
-    gated = true;
-    const { view } = setup({
-      runtime: testRuntime(),
-      services: { zoteroReads },
-      itemLookup: stubService<TemplateWorkbenchDeps["itemLookup"]>(
-        "ItemLookup",
-        {
-          search: async () => [
+              ) => {
+                const read = (
+                  client.ItemsByIndexedKeys as unknown as (
+                    payload: object,
+                    options?: object,
+                  ) => Effect.Effect<unknown>
+                )(payload, options);
+                return gated && payload.indexedKeys.includes(FIRST)
+                  ? Effect.andThen(
+                      Effect.promise(() => {
+                        firstReading.resolve();
+                        return firstRead.promise;
+                      }),
+                      read,
+                    )
+                  : read;
+              }) as unknown as ZoteroReadsClient["ItemsByIndexedKeys"],
+            }),
+          },
+        );
+        yield* Effect.addFinalizer(() =>
+          Effect.promise(() => zoteroReads[Symbol.asyncDispose]()),
+        );
+        const { reads } = zoteroReads;
+        const items = yield* reads.ItemsByIndexedKeys({ indexedKeys: [FIRST] });
+        const first = items.get(FIRST)!;
+        gated = true;
+        const { view } = setup({
+          runtime: testRuntime(),
+          services: { zoteroReads },
+          itemLookup: stubService<TemplateWorkbenchDeps["itemLookup"]>(
+            "ItemLookup",
             {
-              item: first,
-              matches: [],
-              library: null,
-              cited: false,
+              search: async () => [
+                {
+                  item: first,
+                  matches: [],
+                  library: null,
+                  cited: false,
+                },
+              ],
+              openSession: () => ({
+                search: async () => [],
+                close: () => {},
+                [Symbol.dispose]() {},
+              }),
             },
-          ],
-          openSession: () => ({
-            search: async () => [],
-            close: () => {},
-            [Symbol.dispose]() {},
-          }),
-        },
-      ),
-    });
-    using open = vi.spyOn(SuggestModal.prototype, "open");
+          ),
+        });
+        using open = vi.spyOn(SuggestModal.prototype, "open");
 
-    const chosen = run(view.chooseItem());
-    await vi.waitFor(() => expect(open).toHaveBeenCalledOnce());
-    const modal = open.mock.contexts[0] as SuggestModal<{ id: string }>;
-    const rows = await modal.getSuggestions("");
-    modal.selectSuggestion(
-      rows.find((row) => row.id === FIRST)!,
-      new KeyboardEvent("keydown", { key: "Enter" }),
-    );
-    modal.close();
-    await firstReading.promise;
-    await expect(
-      run(view.selectItem({ id: LATER, title: "Later paper" })),
-    ).resolves.toBe(true);
-    firstRead.resolve();
+        const chosen = yield* Effect.forkChild(view.chooseItem(), {
+          startImmediately: true,
+        });
+        yield* waitFor(() => expect(open).toHaveBeenCalledOnce());
+        const modal = open.mock.contexts[0] as SuggestModal<{ id: string }>;
+        const rows = yield* Effect.promise(async () =>
+          modal.getSuggestions(""),
+        );
+        modal.selectSuggestion(
+          rows.find((row) => row.id === FIRST)!,
+          new KeyboardEvent("keydown", { key: "Enter" }),
+        );
+        modal.close();
+        yield* Effect.promise(() => firstReading.promise);
+        expect(
+          yield* view.selectItem({ id: LATER, title: "Later paper" }),
+        ).toBe(true);
+        firstRead.resolve();
 
-    await expect(chosen).resolves.toBe(true);
-    expect(viewState(view).item).toMatchObject({ id: LATER });
-    await vi.waitFor(() =>
-      expect(view.registry.get(view.model.read).status).toBe("ready"),
-    );
-    expect(view.registry.get(view.model.title)).toContain("Later paper");
-  });
-  it("closes the Zotero search when the view closes while it is open", async () => {
-    const { view } = setup({
-      runtime: testRuntime(),
-      itemLookup: stubService<TemplateWorkbenchDeps["itemLookup"]>(
-        "ItemLookup",
-        {
-          search: async () => [],
-          openSession: () => ({
-            search: async () => [],
-            close: () => {},
-            [Symbol.dispose]() {},
-          }),
-        },
-      ),
-    });
-    using open = vi.spyOn(SuggestModal.prototype, "open");
-    using close = vi.spyOn(SuggestModal.prototype, "close");
-    const chosen = Effect.runPromiseExit(view.chooseItem());
-    await vi.waitFor(() => expect(open).toHaveBeenCalledOnce());
-    const chooser = open.mock.contexts[0] as SuggestModal<{ id: string }>;
-    chooser.selectSuggestion(
-      (await chooser.getSuggestions("")).find(
-        (row) => row.id === "search-zotero",
-      )!,
-      new KeyboardEvent("keydown", { key: "Enter" }),
-    );
-    await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(2));
-    const picker = open.mock.contexts[1];
-    await view.close();
-    await vi.waitFor(() => expect(close.mock.contexts).toContain(picker));
-    const exit = await chosen;
-    expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
-      true,
-    );
-  });
+        expect(yield* Fiber.join(chosen)).toBe(true);
+        expect(viewState(view).item).toMatchObject({ id: LATER });
+        yield* waitFor(() =>
+          expect(view.registry.get(view.model.read).status).toBe("ready"),
+        );
+        expect(view.registry.get(view.model.title)).toContain("Later paper");
+      }),
+  );
+  it.effect(
+    "closes the Zotero search when the view closes while it is open",
+    () =>
+      Effect.gen(function* () {
+        const { view } = setup({
+          runtime: testRuntime(),
+          itemLookup: stubService<TemplateWorkbenchDeps["itemLookup"]>(
+            "ItemLookup",
+            {
+              search: async () => [],
+              openSession: () => ({
+                search: async () => [],
+                close: () => {},
+                [Symbol.dispose]() {},
+              }),
+            },
+          ),
+        });
+        using open = vi.spyOn(SuggestModal.prototype, "open");
+        using close = vi.spyOn(SuggestModal.prototype, "close");
+        const chosen = yield* Effect.forkChild(view.chooseItem(), {
+          startImmediately: true,
+        });
+        yield* waitFor(() => expect(open).toHaveBeenCalledOnce());
+        const chooser = open.mock.contexts[0] as SuggestModal<{ id: string }>;
+        chooser.selectSuggestion(
+          (yield* Effect.promise(async () => chooser.getSuggestions(""))).find(
+            (row) => row.id === "search-zotero",
+          )!,
+          new KeyboardEvent("keydown", { key: "Enter" }),
+        );
+        yield* waitFor(() => expect(open).toHaveBeenCalledTimes(2));
+        const picker = open.mock.contexts[1];
+        yield* Effect.promise(() => view.close());
+        yield* waitFor(() => expect(close.mock.contexts).toContain(picker));
+        const exit = yield* Fiber.await(chosen);
+        expect(
+          Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause),
+        ).toBe(true);
+      }),
+  );
 });
 
 describe("the side panels of the Template Workbench View", () => {

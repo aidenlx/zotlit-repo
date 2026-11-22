@@ -1,10 +1,12 @@
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
+import { it } from "@effect/vitest";
 import type { FileSystem } from "effect";
 import {
   Deferred,
   Effect,
   Exit,
+  Fiber,
   Layer,
   Option,
   PlatformError,
@@ -18,7 +20,7 @@ import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { layerNodeFileSystemWith } from "@zotlit/obsidian-desktop/__fixtures__/node-file-system.ts";
@@ -183,103 +185,72 @@ function testPorts() {
   return { ports, watchers, reads, releases, releaseGate };
 }
 
-async function startSource(
+const waitFor = (assertion: () => void) =>
+  Effect.promise(() => vi.waitFor(assertion));
+
+const startSource = Effect.fnUntraced(function* (
   initial: ReadsConfig | null,
   ports: Partial<SourcePorts>,
 ) {
-  const scope = Scope.makeUnsafe();
-  const context = await Effect.runPromise(
-    Layer.buildWithScope(
-      Layer.provideMerge(testSource({ ports }), TestClock.layer()),
-      scope,
-    ),
-  );
-  const run = <A, E>(
-    effect: Effect.Effect<
-      A,
-      E,
-      Layer.Success<ReturnType<typeof layerSource>> | TestClock.TestClock
-    >,
-  ) => Effect.runPromise(Effect.provideContext(effect, context));
-  const reads: ZoteroReadsClient = await Effect.runPromise(
-    makeInProcessClient().pipe(
-      Effect.provideContext(context),
-      Scope.provide(scope),
-    ),
+  const scope = yield* Scope.fork(yield* Effect.scope, "sequential");
+  const context = yield* Layer.buildWithScope(testSource({ ports }), scope);
+  const reads: ZoteroReadsClient = yield* makeInProcessClient().pipe(
+    Effect.provideContext(context),
+    Scope.provide(scope),
   );
   const events: ChangeEvent[] = [];
-  Effect.runFork(
-    Stream.runForEach(reads.Changes(), (event) =>
-      Effect.sync(() => events.push(event)),
-    ).pipe(Effect.ignore, Effect.forkIn(scope)),
-  );
-  await vi.waitFor(() => expect(events).toHaveLength(1));
-  if (initial) await run(reads.Configure(initial));
-  let closing: Promise<void> | undefined;
-  const close = () =>
-    (closing ??= Effect.runPromise(Scope.close(scope, Exit.void)));
+  yield* Stream.runForEach(reads.Changes(), (event) =>
+    Effect.sync(() => events.push(event)),
+  ).pipe(Effect.ignore, Effect.forkIn(scope));
+  yield* waitFor(() => expect(events).toHaveLength(1));
+  if (initial) yield* reads.Configure(initial);
   const tags = () => events.slice(1).map((event) => event._tag);
   return {
     reads,
     events,
     tags,
     sawTags: (expected: ChangeEvent["_tag"][], start = 1) =>
-      vi.waitFor(() =>
+      waitFor(() =>
         expect(events.slice(start).map((event) => event._tag)).toEqual(
           expected,
         ),
       ),
     idle: () =>
-      vi.waitFor(() => {
+      waitFor(() => {
         const lane = events.filter((event) => event._tag === "refreshing");
         expect(lane.at(-1)).toEqual({ _tag: "refreshing", active: false });
       }),
-    detach: <A, E>(
-      effect: Effect.Effect<
-        A,
-        E,
-        Layer.Success<ReturnType<typeof layerSource>>
-      >,
-    ) => {
-      void run(effect).catch(() => undefined);
-    },
-    elapse: () => run(TestClock.adjust("2 seconds")),
     version: () =>
-      run(
-        Effect.map(
-          reads.Libraries({}),
-          (libraries) => libraries.find((l) => l.libraryID === 1)!.version,
-        ),
+      Effect.map(
+        reads.Libraries({}),
+        (libraries) => libraries.find((l) => l.libraryID === 1)!.version,
       ),
-    run,
-    close,
-    [Symbol.asyncDispose]: close,
+    generation: Effect.scoped(
+      Effect.gen(function* () {
+        const connection = yield* Connection;
+        return connection.databaseGeneration(yield* connection.borrow);
+      }),
+    ).pipe(Effect.provideContext(context)),
+    close: () => Scope.close(scope, Exit.void),
   };
-}
+});
 
-async function gatesDecided(
-  _ports: ReturnType<typeof testPorts>["ports"],
-  source: { version: () => Promise<number> },
-): Promise<void> {
-  await source.version();
-}
-
-async function emitDirEvent(
+const emitDirEvent = Effect.fnUntraced(function* (
   watchers: FakeWatcher[],
   filename: string,
-): Promise<void> {
+) {
   const bound = watchers.filter((w) => w.path === dir && !w.closed).at(-1);
   expect(bound, "a bound directory watcher").toBeDefined();
   bound!.listener("change", filename);
-  await vi.waitFor(() => expect(bound!.pending()).toBe(0));
-}
+  yield* waitFor(() => expect(bound!.pending()).toBe(0));
+});
 
 function holdRead(ports: ReturnType<typeof testPorts>["ports"]) {
   const held = Deferred.makeUnsafe<void>();
   ports.prepareRead.mockImplementationOnce((mode, path) =>
     Effect.andThen(Deferred.await(held), prepareRead(mode, path)),
   );
-  return { release: () => Effect.runSync(Deferred.succeed(held, undefined)) };
+  return { release: () => Deferred.succeed(held, undefined) };
 }
 
 const tagsSince = (events: ChangeEvent[], start: number) =>
@@ -290,258 +261,312 @@ const awaitFingerprint = (
 ): Effect.Effect<SourceFingerprint, DbUnavailable> => Deferred.await(gate);
 
 describe("ZoteroReads source", () => {
-  it("opens the configured read source at startup", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await expect(source.version()).resolves.toBe(1);
-    await source.sawTags(["refreshing", "changed", "refreshing"]);
-    expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
-  });
+  it.effect("opens the configured read source at startup", () =>
+    Effect.gen(function* () {
+      const { ports } = testPorts();
+      const source = yield* startSource(config(), ports);
+      expect(yield* source.version()).toBe(1);
+      yield* source.sawTags(["refreshing", "changed", "refreshing"]);
+      expect(ports.prepareRead).toHaveBeenCalledExactlyOnceWith("copy", dbPath);
+    }),
+  );
 
-  it("opens the settings it starts with, before any Configure", async () => {
-    const { ports } = testPorts();
-    const version = await Effect.runPromise(
-      Effect.gen(function* () {
+  it.effect("opens the settings it starts with, before any Configure", () =>
+    Effect.gen(function* () {
+      const { ports } = testPorts();
+      const version = yield* Effect.gen(function* () {
         const reads = yield* makeInProcessClient();
         return yield* reads.Libraries({});
       }).pipe(
         Effect.scoped,
         Effect.provide(testSource({ ports, initial: config() })),
-      ),
-    );
-    expect(version.find((l) => l.libraryID === 1)?.version).toBe(1);
-  });
+      );
+      expect(version.find((l) => l.libraryID === 1)?.version).toBe(1);
+    }),
+  );
 
-  it("waits for Configure before it opens anything", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(null, ports);
-    expect(ports.prepareRead).not.toHaveBeenCalled();
-    expect(source.events).toEqual([
-      { _tag: "state", state: "loading", error: null },
-    ]);
-    await source.run(source.reads.Configure(config()));
-    await expect(source.version()).resolves.toBe(1);
-  });
+  it.effect("waits for Configure before it opens anything", () =>
+    Effect.gen(function* () {
+      const { ports } = testPorts();
+      const source = yield* startSource(null, ports);
+      expect(ports.prepareRead).not.toHaveBeenCalled();
+      expect(source.events).toEqual([
+        { _tag: "state", state: "loading", error: null },
+      ]);
+      yield* source.reads.Configure(config());
+      expect(yield* source.version()).toBe(1);
+    }),
+  );
 
-  it("reads committed WAL rows in a copy and skips them in an immutable read", async () => {
-    using live = new DatabaseSync(dbPath);
-    live.exec(`
+  it.effect(
+    "reads committed WAL rows in a copy and skips them in an immutable read",
+    () =>
+      Effect.gen(function* () {
+        using live = new DatabaseSync(dbPath);
+        live.exec(`
       PRAGMA journal_mode = WAL;
       PRAGMA wal_autocheckpoint = 0;
       update libraries set version = 2 where libraryID = 1;
     `);
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await expect(source.version()).resolves.toBe(2);
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        expect(yield* source.version()).toBe(2);
 
-    await source.run(source.reads.Configure(config({ readMode: "immutable" })));
-    await source.run(source.reads.Refresh());
-    await expect(source.version()).resolves.toBe(1);
-  });
-
-  it("names the effective Read Mode of each new connection on Changes", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await source.idle();
-    expect(source.events.filter((event) => event._tag === "changed")).toEqual([
-      { _tag: "changed", readMode: "copy" },
-    ]);
-
-    await source.run(source.reads.Configure(config({ readMode: "immutable" })));
-    await source.run(source.reads.Refresh());
-    await vi.waitFor(() =>
-      expect(
-        source.events.filter((event) => event._tag === "changed").at(-1),
-      ).toEqual({ _tag: "changed", readMode: "immutable" }),
-    );
-    const seed = await source.run(
-      Stream.runHead(source.reads.Changes()).pipe(
-        Effect.map((option) => Option.getOrThrow(option)),
-      ),
-    );
-    expect(seed).toEqual({
-      _tag: "state",
-      state: "ready",
-      error: null,
-      readMode: "immutable",
-    });
-  });
-
-  it("settles degraded when the startup open fails, and Refresh fails while degraded", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(
-      config({ databasePath: join(dir, "absent", "zotero.sqlite") }),
-      ports,
-    );
-    const error = await source.run(Effect.flip(source.reads.Libraries({})));
-    expect(error).toMatchObject({ _tag: "DbUnavailable" });
-    await source.sawTags([
-      "refreshing",
-      "refresh-failed",
-      "db-file-missing",
-      "degraded",
-      "refreshing",
-    ]);
-    await expect(
-      source.run(Effect.flip(source.reads.Refresh())),
-    ).resolves.toMatchObject({ _tag: "DbUnavailable" });
-  });
-
-  it("leaves degraded once a refresh opens the source", async () => {
-    const { ports } = testPorts();
-    ports.prepareRead.mockImplementationOnce(() =>
-      Effect.fail(new DbUnavailable({ message: "busy" })),
-    );
-    await using source = await startSource(config(), ports);
-    await source.run(Effect.ignore(source.reads.Libraries({})));
-    await source.sawTags([
-      "refreshing",
-      "refresh-failed",
-      "degraded",
-      "refreshing",
-    ]);
-
-    await source.run(source.reads.NotifyExternalChange());
-    await source.elapse();
-    await vi.waitFor(async () => expect(await source.version()).toBe(1));
-  });
-
-  it("keeps the active client when a refresh fails, and Refresh reports the failure", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await expect(source.version()).resolves.toBe(1);
-    await source.idle();
-    const before = source.events.length;
-
-    writeLibrary(dbPath, 2);
-    ports.prepareRead.mockImplementationOnce(() =>
-      Effect.fail(new DbUnavailable({ message: "busy" })),
-    );
-    await expect(
-      source.run(Effect.flip(source.reads.Refresh())),
-    ).resolves.toMatchObject({ _tag: "DbUnavailable", message: "busy" });
-
-    await expect(source.version()).resolves.toBe(1);
-    await source.sawTags(
-      ["refreshing", "refresh-failed", "refreshing"],
-      before,
-    );
-    expect(
-      source.events.find((e) => e._tag === "refresh-failed"),
-    ).toMatchObject({ moved: false });
-  });
-
-  it("keeps the active client when the new source is not a Zotero database", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await expect(source.version()).resolves.toBe(1);
-
-    await mkdir(join(dir, "other"));
-    const other = join(dir, "other", "zotero.sqlite");
-    new DatabaseSync(other).close();
-    await source.run(source.reads.Configure(config({ databasePath: other })));
-    await source.run(Effect.ignore(source.reads.Refresh()));
-
-    await expect(source.version()).resolves.toBe(1);
-    await vi.waitFor(() =>
-      expect(
-        source.events.find((e) => e._tag === "refresh-failed"),
-      ).toHaveProperty(
-        "error.message",
-        expect.stringContaining("This file is not a Zotero database."),
-      ),
-    );
-    expect(
-      source.events.find((e) => e._tag === "refresh-failed"),
-    ).toMatchObject({ moved: true });
-  });
-
-  it("refreshes when the read mode or database path changes, not on an auto-refresh change", async () => {
-    const { ports } = testPorts();
-    await mkdir(join(dir, "next"));
-    const next = join(dir, "next", "zotero.sqlite");
-    writeLibrary(next, 3);
-    await using source = await startSource(config(), ports);
-    await source.version();
-
-    const immutable = config({ readMode: "immutable" });
-    await source.run(source.reads.Configure(immutable));
-    await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledTimes(2));
-    await source.run(
-      source.reads.Configure({ ...immutable, databasePath: next }),
-    );
-    await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledTimes(3));
-    await source.run(
-      source.reads.Configure({
-        ...immutable,
-        databasePath: next,
-        autoRefresh: false,
+        yield* source.reads.Configure(config({ readMode: "immutable" }));
+        yield* source.reads.Refresh();
+        expect(yield* source.version()).toBe(1);
       }),
-    );
-    await source.run(source.reads.Refresh());
+  );
 
-    expect(ports.prepareRead.mock.calls.slice(0, 3)).toEqual([
-      ["copy", dbPath],
-      ["immutable", dbPath],
-      ["immutable", next],
-    ]);
-    await expect(source.version()).resolves.toBe(3);
-  });
+  it.effect(
+    "names the effective Read Mode of each new connection on Changes",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.idle();
+        expect(
+          source.events.filter((event) => event._tag === "changed"),
+        ).toEqual([{ _tag: "changed", readMode: "copy" }]);
 
-  it("sweeps read snapshots beside each database path it binds, once each", async () => {
-    const { ports } = testPorts();
-    await mkdir(join(dir, "next"));
-    const next = join(dir, "next", "zotero.sqlite");
-    writeLibrary(next, 3);
-    await using source = await startSource(config(), ports);
-    await source.version();
-    await source.run(source.reads.Refresh());
-    expect(ports.reapReadClones).toHaveBeenCalledExactlyOnceWith({
-      parent: join(dir, ZOTERO_DB_READ_PARENT_DIRNAME),
-    });
+        yield* source.reads.Configure(config({ readMode: "immutable" }));
+        yield* source.reads.Refresh();
+        yield* waitFor(() =>
+          expect(
+            source.events.filter((event) => event._tag === "changed").at(-1),
+          ).toEqual({ _tag: "changed", readMode: "immutable" }),
+        );
+        const seed = yield* Stream.runHead(source.reads.Changes()).pipe(
+          Effect.map((option) => Option.getOrThrow(option)),
+        );
+        expect(seed).toEqual({
+          _tag: "state",
+          state: "ready",
+          error: null,
+          readMode: "immutable",
+        });
+      }),
+  );
 
-    await source.run(source.reads.Configure(config({ databasePath: next })));
-    await source.run(source.reads.Refresh());
-    expect(ports.reapReadClones).toHaveBeenCalledTimes(2);
-    expect(ports.reapReadClones).toHaveBeenLastCalledWith({
-      parent: join(dir, "next", ZOTERO_DB_READ_PARENT_DIRNAME),
-    });
-  });
+  it.effect(
+    "settles degraded when the startup open fails, and Refresh fails while degraded",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(
+          config({ databasePath: join(dir, "absent", "zotero.sqlite") }),
+          ports,
+        );
+        const error = yield* Effect.flip(source.reads.Libraries({}));
+        expect(error).toMatchObject({ _tag: "DbUnavailable" });
+        yield* source.sawTags([
+          "refreshing",
+          "refresh-failed",
+          "db-file-missing",
+          "degraded",
+          "refreshing",
+        ]);
+        expect(yield* Effect.flip(source.reads.Refresh())).toMatchObject({
+          _tag: "DbUnavailable",
+        });
+      }),
+  );
 
-  it("keeps refreshing active across coalesced trailing reruns", async () => {
-    const { ports } = testPorts();
-    await using source = await startSource(config(), ports);
-    await source.idle();
-    const held = holdRead(ports);
+  it.effect("leaves degraded once a refresh opens the source", () =>
+    Effect.gen(function* () {
+      const { ports } = testPorts();
+      ports.prepareRead.mockImplementationOnce(() =>
+        Effect.fail(new DbUnavailable({ message: "busy" })),
+      );
+      const source = yield* startSource(config(), ports);
+      yield* Effect.ignore(source.reads.Libraries({}));
+      yield* source.sawTags([
+        "refreshing",
+        "refresh-failed",
+        "degraded",
+        "refreshing",
+      ]);
 
-    const before = source.events.length;
-    const first = source.run(source.reads.Refresh());
-    await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledTimes(2));
-    const second = source.run(source.reads.Refresh());
-    held.release();
-    await Promise.all([first, second]);
+      yield* source.reads.NotifyExternalChange();
+      yield* TestClock.adjust("2 seconds");
+      yield* waitFor(() =>
+        expect(source.tags().filter((tag) => tag === "changed")).toHaveLength(
+          1,
+        ),
+      );
+      expect(yield* source.version()).toBe(1);
+    }),
+  );
 
-    expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-    await source.sawTags(
-      ["refreshing", "changed", "changed", "refreshing"],
-      before,
-    );
-  });
+  it.effect(
+    "keeps the active client when a refresh fails, and Refresh reports the failure",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        expect(yield* source.version()).toBe(1);
+        yield* source.idle();
+        const before = source.events.length;
 
-  it("coalesces an external change during the initial open into the same lane", async () => {
-    const { ports } = testPorts();
-    const startup = holdRead(ports);
-    await using source = await startSource(config(), ports);
-    await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledOnce());
+        writeLibrary(dbPath, 2);
+        ports.prepareRead.mockImplementationOnce(() =>
+          Effect.fail(new DbUnavailable({ message: "busy" })),
+        );
+        expect(yield* Effect.flip(source.reads.Refresh())).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "busy",
+        });
 
-    await source.run(source.reads.NotifyExternalChange());
-    await source.elapse();
+        expect(yield* source.version()).toBe(1);
+        yield* source.sawTags(
+          ["refreshing", "refresh-failed", "refreshing"],
+          before,
+        );
+        expect(
+          source.events.find((e) => e._tag === "refresh-failed"),
+        ).toMatchObject({ moved: false });
+      }),
+  );
 
-    startup.release();
-    await source.sawTags(["refreshing", "changed", "changed", "refreshing"]);
-    expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-    await expect(source.version()).resolves.toBe(1);
-  });
+  it.effect(
+    "keeps the active client when the new source is not a Zotero database",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        expect(yield* source.version()).toBe(1);
+
+        yield* Effect.promise(() => mkdir(join(dir, "other")));
+        const other = join(dir, "other", "zotero.sqlite");
+        new DatabaseSync(other).close();
+        yield* source.reads.Configure(config({ databasePath: other }));
+        yield* Effect.ignore(source.reads.Refresh());
+
+        expect(yield* source.version()).toBe(1);
+        yield* waitFor(() =>
+          expect(
+            source.events.find((e) => e._tag === "refresh-failed"),
+          ).toHaveProperty(
+            "error.message",
+            expect.stringContaining("This file is not a Zotero database."),
+          ),
+        );
+        expect(
+          source.events.find((e) => e._tag === "refresh-failed"),
+        ).toMatchObject({ moved: true });
+      }),
+  );
+
+  it.effect(
+    "refreshes when the read mode or database path changes, not on an auto-refresh change",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        yield* Effect.promise(() => mkdir(join(dir, "next")));
+        const next = join(dir, "next", "zotero.sqlite");
+        writeLibrary(next, 3);
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+
+        const immutable = config({ readMode: "immutable" });
+        yield* source.reads.Configure(immutable);
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+        );
+        yield* source.reads.Configure({ ...immutable, databasePath: next });
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3),
+        );
+        yield* source.reads.Configure({
+          ...immutable,
+          databasePath: next,
+          autoRefresh: false,
+        });
+        yield* source.reads.Refresh();
+
+        expect(ports.prepareRead.mock.calls.slice(0, 3)).toEqual([
+          ["copy", dbPath],
+          ["immutable", dbPath],
+          ["immutable", next],
+        ]);
+        expect(yield* source.version()).toBe(3);
+      }),
+  );
+
+  it.effect(
+    "sweeps read snapshots beside each database path it binds, once each",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        yield* Effect.promise(() => mkdir(join(dir, "next")));
+        const next = join(dir, "next", "zotero.sqlite");
+        writeLibrary(next, 3);
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+        yield* source.reads.Refresh();
+        expect(ports.reapReadClones).toHaveBeenCalledExactlyOnceWith({
+          parent: join(dir, ZOTERO_DB_READ_PARENT_DIRNAME),
+        });
+
+        yield* source.reads.Configure(config({ databasePath: next }));
+        yield* source.reads.Refresh();
+        expect(ports.reapReadClones).toHaveBeenCalledTimes(2);
+        expect(ports.reapReadClones).toHaveBeenLastCalledWith({
+          parent: join(dir, "next", ZOTERO_DB_READ_PARENT_DIRNAME),
+        });
+      }),
+  );
+
+  it.effect("keeps refreshing active across coalesced trailing reruns", () =>
+    Effect.gen(function* () {
+      const { ports } = testPorts();
+      const source = yield* startSource(config(), ports);
+      yield* source.idle();
+      const held = holdRead(ports);
+
+      const before = source.events.length;
+      const first = yield* Effect.forkChild(source.reads.Refresh(), {
+        startImmediately: true,
+      });
+      yield* waitFor(() => expect(ports.prepareRead).toHaveBeenCalledTimes(2));
+      const second = yield* Effect.forkChild(source.reads.Refresh(), {
+        startImmediately: true,
+      });
+      yield* held.release();
+      yield* Fiber.join(first);
+      yield* Fiber.join(second);
+
+      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+      yield* source.sawTags(
+        ["refreshing", "changed", "changed", "refreshing"],
+        before,
+      );
+    }),
+  );
+
+  it.effect(
+    "coalesces an external change during the initial open into the same lane",
+    () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const startup = holdRead(ports);
+        const source = yield* startSource(config(), ports);
+        yield* waitFor(() => expect(ports.prepareRead).toHaveBeenCalledOnce());
+
+        yield* source.reads.NotifyExternalChange();
+        yield* TestClock.adjust("2 seconds");
+
+        yield* startup.release();
+        yield* source.sawTags([
+          "refreshing",
+          "changed",
+          "changed",
+          "refreshing",
+        ]);
+        expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+        expect(yield* source.version()).toBe(1);
+      }),
+  );
 
   describe("refresh lane coalescing", () => {
     function holdFailure(
@@ -556,788 +581,959 @@ describe("ZoteroReads source", () => {
         ),
       );
       return {
-        release: () => Effect.runSync(Deferred.succeed(held, undefined)),
+        release: () => Deferred.succeed(held, undefined),
       };
     }
 
-    function watchSettled<T>(promise: Promise<T>) {
-      let settled = false;
-      const outcome = promise.then(
-        (value) => ({ ok: true as const, value }),
-        (error: unknown) => ({ ok: false as const, error }),
-      );
-      void outcome.then(() => {
-        settled = true;
-      });
-      return { outcome, isSettled: () => settled };
-    }
+    it.effect(
+      "runs one trailing rerun for every request made during a refresh",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const held = holdRead(ports);
+          const before = source.events.length;
 
-    it("runs one trailing rerun for every request made during a refresh", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const held = holdRead(ports);
-      const before = source.events.length;
+          const first = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+          const during = [
+            yield* Effect.forkChild(source.reads.Refresh(), {
+              startImmediately: true,
+            }),
+            yield* Effect.forkChild(source.reads.Refresh(), {
+              startImmediately: true,
+            }),
+            yield* Effect.forkChild(source.reads.Refresh(), {
+              startImmediately: true,
+            }),
+          ];
+          yield* source.version();
+          yield* held.release();
+          yield* Effect.forEach([first, ...during], (fiber) =>
+            Fiber.join(fiber),
+          );
+          yield* source.idle();
 
-      const first = source.run(source.reads.Refresh());
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      const during = [
-        source.run(source.reads.Refresh()),
-        source.run(source.reads.Refresh()),
-        source.run(source.reads.Refresh()),
-      ];
-      await source.version();
-      held.release();
-      await Promise.all([first, ...during]);
-      await source.idle();
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+          yield* source.sawTags(
+            ["refreshing", "changed", "changed", "refreshing"],
+            before,
+          );
+        }),
+    );
 
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-      await source.sawTags(
-        ["refreshing", "changed", "changed", "refreshing"],
-        before,
-      );
-    });
-
-    it("keeps the first caller waiting for the trailing rerun", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const heldFirst = holdRead(ports);
-      const heldTrailing = holdRead(ports);
-
-      const first = watchSettled(source.run(source.reads.Refresh()));
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      const second = watchSettled(source.run(source.reads.Refresh()));
-      await source.version();
-      heldFirst.release();
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(3),
-      );
-
-      expect(first.isSettled()).toBe(false);
-      expect(second.isSettled()).toBe(false);
-      heldTrailing.release();
-      await Promise.all([first.outcome, second.outcome]);
-    });
-
-    it("settles every caller with the failure of the lane's last refresh", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const held = holdFailure(ports, "first");
-      ports.prepareRead.mockImplementationOnce(() =>
-        Effect.fail(new DbUnavailable({ message: "trailing" })),
-      );
-
-      const first = source.run(Effect.flip(source.reads.Refresh()));
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      const second = source.run(Effect.flip(source.reads.Refresh()));
-      await source.version();
-      held.release();
-
-      await expect(Promise.all([first, second])).resolves.toMatchObject([
-        { _tag: "DbUnavailable", message: "trailing" },
-        { _tag: "DbUnavailable", message: "trailing" },
-      ]);
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-    });
-
-    it("settles every caller successfully when the trailing rerun recovers", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const held = holdFailure(ports, "first");
-
-      const first = watchSettled(source.run(source.reads.Refresh()));
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      const second = watchSettled(source.run(source.reads.Refresh()));
-      await source.version();
-      held.release();
-
-      await expect(
-        Promise.all([first.outcome, second.outcome]),
-      ).resolves.toMatchObject([{ ok: true }, { ok: true }]);
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-    });
-
-    it("gives a push that arrives during a refresh its trailing read even when the source is unchanged", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const held = holdRead(ports);
-
-      const refresh = source.run(source.reads.Refresh());
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await gatesDecided(ports, source);
-      held.release();
-      await refresh;
-      await source.idle();
-
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  it("hands a borrower the newest client while an unread one is released", async () => {
-    const { ports, releaseGate } = testPorts();
-    await using source = await startSource(config(), ports);
-    await source.version();
-    await source.run(source.reads.Refresh());
-
-    const gate = {
-      entered: Deferred.makeUnsafe<void>(),
-      release: Deferred.makeUnsafe<void>(),
-    };
-    Effect.runSync(Ref.set(releaseGate, gate));
-    writeLibrary(dbPath, 3);
-    const refresh = source.run(source.reads.Refresh());
-    await Effect.runPromise(Deferred.await(gate.entered));
-    await expect(source.version()).resolves.toBe(3);
-    Effect.runSync(Deferred.succeed(gate.release, undefined));
-    await refresh;
-
-    await expect(source.version()).resolves.toBe(3);
-  });
-
-  describe("databaseGeneration", () => {
-    const generationNow = Effect.scoped(
+    it.effect("keeps the first caller waiting for the trailing rerun", () =>
       Effect.gen(function* () {
-        const connection = yield* Connection;
-        return connection.databaseGeneration(yield* connection.borrow);
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.idle();
+        const heldFirst = holdRead(ports);
+        const heldTrailing = holdRead(ports);
+
+        const first = yield* Effect.forkChild(source.reads.Refresh(), {
+          startImmediately: true,
+        });
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+        );
+        const second = yield* Effect.forkChild(source.reads.Refresh(), {
+          startImmediately: true,
+        });
+        yield* source.version();
+        yield* heldFirst.release();
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3),
+        );
+
+        expect(first.pollUnsafe() !== undefined).toBe(false);
+        expect(second.pollUnsafe() !== undefined).toBe(false);
+        yield* heldTrailing.release();
+        yield* Fiber.join(first);
+        yield* Fiber.join(second);
       }),
     );
 
-    it("keeps the generation when a refresh reopens the same database", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await expect(source.run(generationNow)).resolves.toBe(1);
-      writeLibrary(dbPath, 2);
-      await source.run(source.reads.Refresh());
-      await expect(source.version()).resolves.toBe(2);
-      await expect(source.run(generationNow)).resolves.toBe(1);
-    });
+    it.effect(
+      "settles every caller with the failure of the lane's last refresh",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const held = holdFailure(ports, "first");
+          ports.prepareRead.mockImplementationOnce(() =>
+            Effect.fail(new DbUnavailable({ message: "trailing" })),
+          );
 
-    it("gives a higher generation after a Configure to another database file", async () => {
-      const { ports } = testPorts();
-      await mkdir(join(dir, "next"));
-      const next = join(dir, "next", "zotero.sqlite");
-      writeLibrary(next, 3);
-      await using source = await startSource(config(), ports);
-      const before = await source.run(generationNow);
-      await source.run(source.reads.Configure(config({ databasePath: next })));
-      await source.run(source.reads.Refresh());
-      await expect(source.version()).resolves.toBe(3);
-      expect(await source.run(generationNow)).toBeGreaterThan(before);
-    });
+          const first = yield* Effect.forkChild(
+            Effect.flip(source.reads.Refresh()),
+            { startImmediately: true },
+          );
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+          const second = yield* Effect.forkChild(
+            Effect.flip(source.reads.Refresh()),
+            { startImmediately: true },
+          );
+          yield* source.version();
+          yield* held.release();
 
-    it("gives a higher generation to another database at the same path", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      const before = await source.run(generationNow);
-      {
-        using sqlite = new DatabaseSync(dbPath);
-        sqlite.exec(
-          "insert into settings (setting, key, value) values ('account', 'localUserKey', 'OTHERDB');",
-        );
-      }
-      writeLibrary(dbPath, 2);
-      await source.run(source.reads.Refresh());
-      await expect(source.version()).resolves.toBe(2);
-      expect(await source.run(generationNow)).toBeGreaterThan(before);
-    });
+          expect(
+            yield* Effect.forEach([first, second], (fiber) =>
+              Fiber.join(fiber),
+            ),
+          ).toMatchObject([
+            { _tag: "DbUnavailable", message: "trailing" },
+            { _tag: "DbUnavailable", message: "trailing" },
+          ]);
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+        }),
+    );
+
+    it.effect(
+      "settles every caller successfully when the trailing rerun recovers",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const held = holdFailure(ports, "first");
+
+          const first = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+          const second = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* source.version();
+          yield* held.release();
+
+          yield* Fiber.join(first);
+          yield* Fiber.join(second);
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+        }),
+    );
+
+    it.effect(
+      "gives a push that arrives during a refresh its trailing read even when the source is unchanged",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const held = holdRead(ports);
+
+          const refresh = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.version();
+          yield* held.release();
+          yield* Fiber.join(refresh);
+          yield* source.idle();
+
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+        }),
+    );
+  });
+
+  it.effect(
+    "hands a borrower the newest client while an unread one is released",
+    () =>
+      Effect.gen(function* () {
+        const { ports, releaseGate } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+        yield* source.reads.Refresh();
+
+        const gate = {
+          entered: Deferred.makeUnsafe<void>(),
+          release: Deferred.makeUnsafe<void>(),
+        };
+        yield* Ref.set(releaseGate, gate);
+        writeLibrary(dbPath, 3);
+        const refresh = yield* Effect.forkChild(source.reads.Refresh(), {
+          startImmediately: true,
+        });
+        yield* Deferred.await(gate.entered);
+        expect(yield* source.version()).toBe(3);
+        yield* Deferred.succeed(gate.release, undefined);
+        yield* Fiber.join(refresh);
+
+        expect(yield* source.version()).toBe(3);
+      }),
+  );
+
+  describe("databaseGeneration", () => {
+    it.effect(
+      "keeps the generation when a refresh reopens the same database",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          expect(yield* source.generation).toBe(1);
+          writeLibrary(dbPath, 2);
+          yield* source.reads.Refresh();
+          expect(yield* source.version()).toBe(2);
+          expect(yield* source.generation).toBe(1);
+        }),
+    );
+
+    it.effect(
+      "gives a higher generation after a Configure to another database file",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          yield* Effect.promise(() => mkdir(join(dir, "next")));
+          const next = join(dir, "next", "zotero.sqlite");
+          writeLibrary(next, 3);
+          const source = yield* startSource(config(), ports);
+          const before = yield* source.generation;
+          yield* source.reads.Configure(config({ databasePath: next }));
+          yield* source.reads.Refresh();
+          expect(yield* source.version()).toBe(3);
+          expect(yield* source.generation).toBeGreaterThan(before);
+        }),
+    );
+
+    it.effect(
+      "gives a higher generation to another database at the same path",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          const before = yield* source.generation;
+          {
+            using sqlite = new DatabaseSync(dbPath);
+            sqlite.exec(
+              "insert into settings (setting, key, value) values ('account', 'localUserKey', 'OTHERDB');",
+            );
+          }
+          writeLibrary(dbPath, 2);
+          yield* source.reads.Refresh();
+          expect(yield* source.version()).toBe(2);
+          expect(yield* source.generation).toBeGreaterThan(before);
+        }),
+    );
   });
 
   describe("watch start", () => {
-    it.each(["fail", "die"] as const)(
+    it.effect.each(["fail", "die"] as const)(
       "serves and closes the watches it bound when the database watch cannot start: %s",
-      async (how) => {
-        unwatchable.set(dbPath, how);
-        const { ports } = testPorts();
-        await using source = await startSource(config(), ports);
+      (how) =>
+        Effect.gen(function* () {
+          unwatchable.set(dbPath, how);
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
 
-        await expect(source.version()).resolves.toBe(1);
-        expect(watchers.map((w) => [w.path, w.closed])).toEqual([[dir, true]]);
-        writeLibrary(dbPath, 2);
-        await source.run(source.reads.Refresh());
-        await expect(source.version()).resolves.toBe(2);
-      },
+          expect(yield* source.version()).toBe(1);
+          expect(watchers.map((w) => [w.path, w.closed])).toEqual([
+            [dir, true],
+          ]);
+          writeLibrary(dbPath, 2);
+          yield* source.reads.Refresh();
+          expect(yield* source.version()).toBe(2);
+        }),
     );
   });
 
   describe("watch start interrupted", () => {
-    it.each(["zotero.sqlite", "zotero.sqlite-wal"])(
+    it.effect.each(["zotero.sqlite", "zotero.sqlite-wal"])(
       "closes a %s watch still starting when the source closes",
-      async (filename) => {
-        const path = join(dir, filename);
-        if (filename === "zotero.sqlite-wal") await writeFile(path, "");
-        unwatchable.set(path, "hang");
-        const { ports } = testPorts();
-        const source = await startSource(config(), ports);
-        await vi.waitFor(() =>
-          expect(watchers.map((w) => w.path)).toContain(path),
-        );
+      (filename) =>
+        Effect.gen(function* () {
+          const path = join(dir, filename);
+          if (filename === "zotero.sqlite-wal")
+            yield* Effect.promise(() => writeFile(path, ""));
+          unwatchable.set(path, "hang");
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* waitFor(() =>
+            expect(watchers.map((w) => w.path)).toContain(path),
+          );
 
-        await source.close();
+          yield* source.close();
 
-        expect(watchers.map((w) => [w.path, w.closed])).toEqual(
-          watchers.map((w) => [w.path, true]),
-        );
-      },
+          expect(watchers.map((w) => [w.path, w.closed])).toEqual(
+            watchers.map((w) => [w.path, true]),
+          );
+        }),
     );
   });
 
   describe("WAL watch start overlapping", () => {
-    it("keeps one WAL watch when a WAL event arrives while the lane starts it", async () => {
-      const walPath = join(dir, "zotero.sqlite-wal");
-      await writeFile(walPath, "");
-      unwatchable.set(walPath, "hang");
-      const { ports } = testPorts();
-      const source = await startSource(config(), ports);
-      await vi.waitFor(() =>
-        expect(watchers.map((w) => w.path)).toContain(walPath),
-      );
+    it.effect(
+      "keeps one WAL watch when a WAL event arrives while the lane starts it",
+      () =>
+        Effect.gen(function* () {
+          const walPath = join(dir, "zotero.sqlite-wal");
+          yield* Effect.promise(() => writeFile(walPath, ""));
+          unwatchable.set(walPath, "hang");
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* waitFor(() =>
+            expect(watchers.map((w) => w.path)).toContain(walPath),
+          );
 
-      await emitDirEvent(watchers, "zotero.sqlite-wal");
-      Effect.runSync(Deferred.succeed(hungStarts, undefined));
-      await source.version();
-      await vi.waitFor(async () => {
-        await source.elapse();
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
-      });
+          yield* emitDirEvent(watchers, "zotero.sqlite-wal");
+          yield* Deferred.succeed(hungStarts, undefined);
+          yield* source.version();
+          yield* TestClock.adjust("2 seconds").pipe(
+            Effect.repeat({
+              until: () => ports.snapshotSource.mock.calls.length >= 2,
+            }),
+          );
+          expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
 
-      expect(
-        watchers.filter((w) => w.path === walPath && !w.closed),
-      ).toHaveLength(1);
-      await source.close();
-      expect(watchers.map((w) => [w.path, w.closed])).toEqual(
-        watchers.map((w) => [w.path, true]),
-      );
-    });
+          expect(
+            watchers.filter((w) => w.path === walPath && !w.closed),
+          ).toHaveLength(1);
+          yield* source.close();
+          expect(watchers.map((w) => [w.path, w.closed])).toEqual(
+            watchers.map((w) => [w.path, true]),
+          );
+        }),
+    );
   });
 
   describe("watcher self-echo gate", () => {
-    it("ignores a watcher tick when the source is unchanged since the last read", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+    it.effect(
+      "ignores a watcher tick when the source is unchanged since the last read",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
 
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await emitDirEvent(watchers, "zotero.sqlite-wal");
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
-      );
-      await gatesDecided(ports, source);
-
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-    });
-
-    it("refreshes when the watcher tick follows a real Zotero write", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
-
-      writeLibrary(dbPath, 2);
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
-
-      await vi.waitFor(async () => expect(await source.version()).toBe(2));
-    });
-
-    it("refreshes an immutable read when the source fingerprint is unchanged", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(
-        config({ readMode: "immutable" }),
-        ports,
-      );
-      await source.version();
-
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
-
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-    });
-
-    it("keeps an immutable watcher tick cancelled when auto-refresh is off", async () => {
-      const { ports, watchers } = testPorts();
-      const immutable = config({ readMode: "immutable" });
-      await using source = await startSource(immutable, ports);
-      await source.version();
-
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.run(
-        source.reads.Configure({ ...immutable, autoRefresh: false }),
-      );
-      await source.elapse();
-      await gatesDecided(ports, source);
-
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-    });
-
-    it("retains the snapshot on an unchanged push, while manual refresh still reopens it", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const before = source.events.length;
-
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await source.sawTags(["refreshing", "refreshing"], before);
-
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-      expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
-      await expect(source.version()).resolves.toBe(1);
-
-      await source.run(source.reads.Refresh());
-      expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-    });
-
-    it("refreshes a changed push using one pre-read source fingerprint", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      writeLibrary(dbPath, 2);
-      const before = source.events.length;
-
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await source.sawTags(["refreshing", "changed", "refreshing"], before);
-
-      await expect(source.version()).resolves.toBe(2);
-      expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
-      expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-    });
-
-    it("retries an unchanged push after a failed refresh with held reads", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      ports.prepareRead.mockImplementationOnce(() =>
-        Effect.fail(new DbUnavailable({ message: "busy" })),
-      );
-      await source.run(Effect.flip(source.reads.Refresh()));
-      await source.idle();
-      const before = source.events.length;
-
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await source.sawTags(["refreshing", "changed", "refreshing"], before);
-
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-      await expect(source.version()).resolves.toBe(1);
-    });
-
-    it.each(["unreadable", "unstable"] as const)(
-      "refreshes a push when its fingerprint is %s",
-      async (observation) => {
-        const { ports } = testPorts();
-        await using source = await startSource(config(), ports);
-        await source.idle();
-        const before = source.events.length;
-        if (observation === "unreadable") {
-          ports.snapshotSource.mockImplementationOnce(() =>
-            Effect.fail(new DbUnavailable({ message: "EIO" })),
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* emitDirEvent(watchers, "zotero.sqlite-wal");
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
           );
-        } else {
-          ports.snapshotSource.mockImplementationOnce((path) =>
-            Effect.map(snapshotSource(path), (fingerprint) => ({
-              ...fingerprint,
-              wal: { state: "unstable" },
-            })),
-          );
-        }
+          yield* source.version();
 
-        await source.run(source.reads.NotifyExternalChange());
-        await source.elapse();
-        await source.sawTags(["refreshing", "changed", "refreshing"], before);
-
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-        await expect(source.version()).resolves.toBe(1);
-      },
+          expect(ports.prepareRead).toHaveBeenCalledOnce();
+        }),
     );
 
-    it("keeps an unchanged trusted signal in Immutable Source mode", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(
-        config({ readMode: "immutable" }),
-        ports,
-      );
-      await source.idle();
-      const before = source.events.length;
+    it.effect(
+      "refreshes when the watcher tick follows a real Zotero write",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
 
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await source.sawTags(["refreshing", "changed", "refreshing"], before);
+          writeLibrary(dbPath, 2);
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* TestClock.adjust("2 seconds");
 
-      expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-    });
+          yield* waitFor(() =>
+            expect(
+              source.tags().filter((tag) => tag === "changed"),
+            ).toHaveLength(2),
+          );
+          expect(yield* source.version()).toBe(2);
+        }),
+    );
 
-    it("preserves manual force queued during a trusted fingerprint read", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const fingerprint = await Effect.runPromise(snapshotSource(dbPath));
-      const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
-      using cleanup = new DisposableStack();
-      cleanup.defer(() => Effect.runSync(Deferred.succeed(gate, fingerprint)));
-      ports.snapshotSource.mockImplementationOnce(() => awaitFingerprint(gate));
-      const before = source.events.length;
+    it.effect(
+      "refreshes an immutable read when the source fingerprint is unchanged",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(
+            config({ readMode: "immutable" }),
+            ports,
+          );
+          yield* source.version();
 
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
-      );
-      const forced = source.run(source.reads.Refresh());
-      await source.version();
-      Effect.runSync(Deferred.succeed(gate, fingerprint));
-      await forced;
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* TestClock.adjust("2 seconds");
 
-      await source.sawTags(
-        ["refreshing", "changed", "changed", "refreshing"],
-        before,
-      );
-      expect(ports.prepareRead).toHaveBeenCalledTimes(3);
-    });
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+        }),
+    );
 
-    it("refreshes the new configuration when it changes during a trusted fingerprint read", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
-      const next = join(dir, "next.sqlite");
-      writeLibrary(next, 3);
-      const fingerprint = await Effect.runPromise(snapshotSource(dbPath));
-      const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
-      using cleanup = new DisposableStack();
-      cleanup.defer(() => Effect.runSync(Deferred.succeed(gate, fingerprint)));
-      ports.snapshotSource.mockImplementationOnce(() => awaitFingerprint(gate));
-      const before = source.events.length;
+    it.effect(
+      "keeps an immutable watcher tick cancelled when auto-refresh is off",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const immutable = config({ readMode: "immutable" });
+          const source = yield* startSource(immutable, ports);
+          yield* source.version();
 
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
-      );
-      await source.run(source.reads.Configure(config({ databasePath: next })));
-      Effect.runSync(Deferred.succeed(gate, fingerprint));
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* source.reads.Configure({ ...immutable, autoRefresh: false });
+          yield* TestClock.adjust("2 seconds");
+          yield* source.version();
 
-      await source.sawTags(
-        ["refreshing", "changed", "changed", "refreshing"],
-        before,
-      );
-      await expect(source.version()).resolves.toBe(3);
-    });
+          expect(ports.prepareRead).toHaveBeenCalledOnce();
+        }),
+    );
 
-    it("refreshes when the source fingerprint cannot be read", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+    it.effect(
+      "retains the snapshot on an unchanged push, while manual refresh still reopens it",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const before = source.events.length;
 
-      ports.snapshotSource.mockImplementationOnce(() =>
-        Effect.fail(new DbUnavailable({ message: "EIO" })),
-      );
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.sawTags(["refreshing", "refreshing"], before);
 
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-    });
+          expect(ports.prepareRead).toHaveBeenCalledOnce();
+          expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
+          expect(yield* source.version()).toBe(1);
 
-    it("keeps a watcher tick armed across the rebind that follows a refresh", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+          yield* source.reads.Refresh();
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+        }),
+    );
 
-      const held = holdRead(ports);
-      const refresh = source.run(source.reads.Refresh());
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
+    it.effect(
+      "refreshes a changed push using one pre-read source fingerprint",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          writeLibrary(dbPath, 2);
+          const before = source.events.length;
 
-      await emitDirEvent(watchers, "zotero.sqlite");
-      held.release();
-      await refresh;
-      writeLibrary(dbPath, 2);
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.sawTags(
+            ["refreshing", "changed", "refreshing"],
+            before,
+          );
 
-      await source.elapse();
-      await vi.waitFor(async () => expect(await source.version()).toBe(2));
-    });
+          expect(yield* source.version()).toBe(2);
+          expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+        }),
+    );
 
-    it("gates the next tick again once a trusted burst has fired", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.idle();
+    it.effect(
+      "retries an unchanged push after a failed refresh with held reads",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          ports.prepareRead.mockImplementationOnce(() =>
+            Effect.fail(new DbUnavailable({ message: "busy" })),
+          );
+          yield* Effect.flip(source.reads.Refresh());
+          yield* source.idle();
+          const before = source.events.length;
 
-      writeLibrary(dbPath, 2);
-      const before = source.events.length;
-      await source.run(source.reads.NotifyExternalChange());
-      await source.elapse();
-      await source.sawTags(["refreshing", "changed", "refreshing"], before);
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.sawTags(
+            ["refreshing", "changed", "refreshing"],
+            before,
+          );
 
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(3),
-      );
-      await gatesDecided(ports, source);
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+          expect(yield* source.version()).toBe(1);
+        }),
+    );
 
-      expect(ports.prepareRead).toHaveBeenCalledTimes(2);
-    });
+    it.effect.each(["unreadable", "unstable"] as const)(
+      "refreshes a push when its fingerprint is %s",
+      (observation) =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const before = source.events.length;
+          if (observation === "unreadable") {
+            ports.snapshotSource.mockImplementationOnce(() =>
+              Effect.fail(new DbUnavailable({ message: "EIO" })),
+            );
+          } else {
+            ports.snapshotSource.mockImplementationOnce((path) =>
+              Effect.map(snapshotSource(path), (fingerprint) => ({
+                ...fingerprint,
+                wal: { state: "unstable" },
+              })),
+            );
+          }
 
-    it("keeps a pending push when auto-refresh is switched off", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.sawTags(
+            ["refreshing", "changed", "refreshing"],
+            before,
+          );
 
-      writeLibrary(dbPath, 2);
-      await source.run(source.reads.NotifyExternalChange());
-      await source.run(source.reads.Configure(config({ autoRefresh: false })));
-      await source.elapse();
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+          expect(yield* source.version()).toBe(1);
+        }),
+    );
 
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-    });
+    it.effect(
+      "keeps an unchanged trusted signal in Immutable Source mode",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(
+            config({ readMode: "immutable" }),
+            ports,
+          );
+          yield* source.idle();
+          const before = source.events.length;
 
-    it("cancels an untrusted tick when auto-refresh is switched off", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* source.sawTags(
+            ["refreshing", "changed", "refreshing"],
+            before,
+          );
 
-      writeLibrary(dbPath, 2);
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.run(source.reads.Configure(config({ autoRefresh: false })));
-      await source.elapse();
-      await gatesDecided(ports, source);
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+        }),
+    );
 
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-      expect(watchers.every((w) => w.closed)).toBe(true);
-    });
+    it.effect(
+      "preserves manual force queued during a trusted fingerprint read",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const fingerprint = yield* snapshotSource(dbPath);
+          const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
+          yield* Effect.addFinalizer(() => Deferred.succeed(gate, fingerprint));
+          ports.snapshotSource.mockImplementationOnce(() =>
+            awaitFingerprint(gate),
+          );
+          const before = source.events.length;
 
-    it("drops a tick that outlives the auto-refresh switch inside the gate", async () => {
-      const { ports, watchers } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.version();
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
+          );
+          const forced = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* source.version();
+          yield* Deferred.succeed(gate, fingerprint);
+          yield* Fiber.join(forced);
 
-      const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
-      ports.snapshotSource.mockImplementationOnce(() => awaitFingerprint(gate));
-      writeLibrary(dbPath, 2);
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
-      );
+          yield* source.sawTags(
+            ["refreshing", "changed", "changed", "refreshing"],
+            before,
+          );
+          expect(ports.prepareRead).toHaveBeenCalledTimes(3);
+        }),
+    );
 
-      await source.run(source.reads.Configure(config({ autoRefresh: false })));
-      Effect.runSync(
-        Deferred.succeed(gate, await Effect.runPromise(snapshotSource(dbPath))),
-      );
-      await gatesDecided(ports, source);
+    it.effect(
+      "refreshes the new configuration when it changes during a trusted fingerprint read",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.idle();
+          const next = join(dir, "next.sqlite");
+          writeLibrary(next, 3);
+          const fingerprint = yield* snapshotSource(dbPath);
+          const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
+          yield* Effect.addFinalizer(() => Deferred.succeed(gate, fingerprint));
+          ports.snapshotSource.mockImplementationOnce(() =>
+            awaitFingerprint(gate),
+          );
+          const before = source.events.length;
 
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-    });
+          yield* source.reads.NotifyExternalChange();
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
+          );
+          yield* source.reads.Configure(config({ databasePath: next }));
+          yield* Deferred.succeed(gate, fingerprint);
+
+          yield* source.sawTags(
+            ["refreshing", "changed", "changed", "refreshing"],
+            before,
+          );
+          expect(yield* source.version()).toBe(3);
+        }),
+    );
+
+    it.effect("refreshes when the source fingerprint cannot be read", () =>
+      Effect.gen(function* () {
+        const { ports, watchers } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+
+        ports.snapshotSource.mockImplementationOnce(() =>
+          Effect.fail(new DbUnavailable({ message: "EIO" })),
+        );
+        yield* emitDirEvent(watchers, "zotero.sqlite");
+        yield* TestClock.adjust("2 seconds");
+
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+        );
+      }),
+    );
+
+    it.effect(
+      "keeps a watcher tick armed across the rebind that follows a refresh",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
+
+          const held = holdRead(ports);
+          const refresh = yield* Effect.forkChild(source.reads.Refresh(), {
+            startImmediately: true,
+          });
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* held.release();
+          yield* Fiber.join(refresh);
+          writeLibrary(dbPath, 2);
+
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(
+              source.tags().filter((tag) => tag === "changed"),
+            ).toHaveLength(3),
+          );
+          expect(yield* source.version()).toBe(2);
+        }),
+    );
+
+    it.effect("gates the next tick again once a trusted burst has fired", () =>
+      Effect.gen(function* () {
+        const { ports, watchers } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.idle();
+
+        writeLibrary(dbPath, 2);
+        const before = source.events.length;
+        yield* source.reads.NotifyExternalChange();
+        yield* TestClock.adjust("2 seconds");
+        yield* source.sawTags(["refreshing", "changed", "refreshing"], before);
+
+        yield* emitDirEvent(watchers, "zotero.sqlite");
+        yield* TestClock.adjust("2 seconds");
+        yield* waitFor(() =>
+          expect(ports.snapshotSource).toHaveBeenCalledTimes(3),
+        );
+        yield* source.version();
+
+        expect(ports.prepareRead).toHaveBeenCalledTimes(2);
+      }),
+    );
+
+    it.effect("keeps a pending push when auto-refresh is switched off", () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+
+        writeLibrary(dbPath, 2);
+        yield* source.reads.NotifyExternalChange();
+        yield* source.reads.Configure(config({ autoRefresh: false }));
+        yield* TestClock.adjust("2 seconds");
+
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+        );
+      }),
+    );
+
+    it.effect(
+      "cancels an untrusted tick when auto-refresh is switched off",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
+
+          writeLibrary(dbPath, 2);
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* source.reads.Configure(config({ autoRefresh: false }));
+          yield* TestClock.adjust("2 seconds");
+          yield* source.version();
+
+          expect(ports.prepareRead).toHaveBeenCalledOnce();
+          expect(watchers.every((w) => w.closed)).toBe(true);
+        }),
+    );
+
+    it.effect(
+      "drops a tick that outlives the auto-refresh switch inside the gate",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
+
+          const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
+          ports.snapshotSource.mockImplementationOnce(() =>
+            awaitFingerprint(gate),
+          );
+          writeLibrary(dbPath, 2);
+          yield* emitDirEvent(watchers, "zotero.sqlite");
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
+          );
+
+          yield* source.reads.Configure(config({ autoRefresh: false }));
+          yield* Deferred.succeed(gate, yield* snapshotSource(dbPath));
+          yield* source.version();
+
+          expect(ports.prepareRead).toHaveBeenCalledOnce();
+        }),
+    );
   });
 
   describe("lifetime guards", () => {
-    it("drops a tick whose gate check outlives teardown", async () => {
-      const { ports, watchers } = testPorts();
-      const source = await startSource(config(), ports);
-      await source.version();
+    it.effect("drops a tick whose gate check outlives teardown", () =>
+      Effect.gen(function* () {
+        const { ports, watchers } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
 
-      const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
-      ports.snapshotSource.mockImplementationOnce(() => awaitFingerprint(gate));
-      writeLibrary(dbPath, 2);
-      await emitDirEvent(watchers, "zotero.sqlite");
-      await source.elapse();
-      await vi.waitFor(() =>
-        expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
-      );
+        const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
+        ports.snapshotSource.mockImplementationOnce(() =>
+          awaitFingerprint(gate),
+        );
+        writeLibrary(dbPath, 2);
+        yield* emitDirEvent(watchers, "zotero.sqlite");
+        yield* TestClock.adjust("2 seconds");
+        yield* waitFor(() =>
+          expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
+        );
 
-      await source.close();
-      Effect.runSync(
-        Deferred.succeed(gate, await Effect.runPromise(snapshotSource(dbPath))),
-      );
+        yield* source.close();
+        yield* Deferred.succeed(gate, yield* snapshotSource(dbPath));
 
-      expect(ports.prepareRead).toHaveBeenCalledOnce();
-    });
+        expect(ports.prepareRead).toHaveBeenCalledOnce();
+      }),
+    );
 
-    it("releases a read that lands after teardown and opens nothing on it", async () => {
-      const { ports, watchers } = testPorts();
-      const source = await startSource(config(), ports);
-      await source.version();
-      const boundAtStartup = watchers.length;
-
-      const acquired = Deferred.makeUnsafe<PreparedRead>();
-      const late = Deferred.makeUnsafe<void>();
-      ports.prepareRead.mockImplementationOnce((mode, path) =>
+    it.effect(
+      "releases a read that lands after teardown and opens nothing on it",
+      () =>
         Effect.gen(function* () {
-          const read = yield* prepareRead(mode, path);
-          yield* Deferred.succeed(acquired, read);
-          yield* Deferred.await(late);
-          return read;
+          const { ports, watchers } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
+          const boundAtStartup = watchers.length;
+
+          const acquired = Deferred.makeUnsafe<PreparedRead>();
+          const late = Deferred.makeUnsafe<void>();
+          ports.prepareRead.mockImplementationOnce((mode, path) =>
+            Effect.gen(function* () {
+              const read = yield* prepareRead(mode, path);
+              yield* Deferred.succeed(acquired, read);
+              yield* Deferred.await(late);
+              return read;
+            }),
+          );
+          yield* source.idle();
+          const before = source.events.length;
+          yield* Effect.forkScoped(source.reads.Refresh());
+          yield* waitFor(() =>
+            expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+          );
+          yield* source.close();
+
+          const read = yield* Deferred.await(acquired);
+          yield* Deferred.succeed(late, undefined);
+          yield* Effect.promise(() =>
+            expect(readdir(dirname(read.path))).rejects.toMatchObject({
+              code: "ENOENT",
+            }),
+          );
+
+          expect(watchers).toHaveLength(boundAtStartup);
+          expect(watchers.every((w) => w.closed)).toBe(true);
+          expect(tagsSince(source.events, before)).not.toContain("changed");
         }),
-      );
-      await source.idle();
-      const before = source.events.length;
-      source.detach(source.reads.Refresh());
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      await source.close();
+    );
 
-      const read = await Effect.runPromise(Deferred.await(acquired));
-      Effect.runSync(Deferred.succeed(late, undefined));
-      await expect(readdir(dirname(read.path))).rejects.toMatchObject({
-        code: "ENOENT",
-      });
+    it.effect("reports nothing when a read fails after teardown", () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
 
-      expect(watchers).toHaveLength(boundAtStartup);
-      expect(watchers.every((w) => w.closed)).toBe(true);
-      expect(tagsSince(source.events, before)).not.toContain("changed");
-    });
+        const late = Deferred.makeUnsafe<PreparedRead, DbUnavailable>();
+        ports.prepareRead.mockImplementationOnce(() => Deferred.await(late));
+        yield* source.idle();
+        const before = source.events.length;
+        yield* Effect.forkScoped(source.reads.Refresh());
+        yield* waitFor(() =>
+          expect(ports.prepareRead).toHaveBeenCalledTimes(2),
+        );
+        yield* source.close();
+        yield* Deferred.fail(late, new DbUnavailable({ message: "gone" }));
 
-    it("reports nothing when a read fails after teardown", async () => {
-      const { ports } = testPorts();
-      const source = await startSource(config(), ports);
-      await source.version();
+        const tags = tagsSince(source.events, before);
+        expect(tags).not.toContain("refresh-failed");
+        expect(tags).not.toContain("degraded");
+      }),
+    );
 
-      const late = Deferred.makeUnsafe<PreparedRead, DbUnavailable>();
-      ports.prepareRead.mockImplementationOnce(() => Deferred.await(late));
-      await source.idle();
-      const before = source.events.length;
-      source.detach(source.reads.Refresh());
-      await vi.waitFor(() =>
-        expect(ports.prepareRead).toHaveBeenCalledTimes(2),
-      );
-      await source.close();
-      Effect.runSync(
-        Deferred.fail(late, new DbUnavailable({ message: "gone" })),
-      );
+    it.effect(
+      "leaves nothing open when teardown lands while the old read is released",
+      () =>
+        Effect.gen(function* () {
+          const { ports, watchers, reads, releases, releaseGate } = testPorts();
+          const source = yield* startSource(config(), ports);
+          yield* source.version();
 
-      const tags = tagsSince(source.events, before);
-      expect(tags).not.toContain("refresh-failed");
-      expect(tags).not.toContain("degraded");
-    });
+          const gate = {
+            entered: Deferred.makeUnsafe<void>(),
+            release: Deferred.makeUnsafe<void>(),
+          };
+          yield* Ref.set(releaseGate, gate);
+          yield* Effect.forkScoped(source.reads.Refresh());
+          yield* Deferred.await(gate.entered);
+          const closing = yield* Effect.forkChild(source.close(), {
+            startImmediately: true,
+          });
+          yield* Deferred.succeed(gate.release, undefined);
+          yield* Fiber.join(closing);
 
-    it("leaves nothing open when teardown lands while the old read is released", async () => {
-      const { ports, watchers, reads, releases, releaseGate } = testPorts();
-      const source = await startSource(config(), ports);
-      await source.version();
+          expect(releases).toHaveLength(2);
+          expect(releases).toEqual(expect.arrayContaining(reads));
+          expect(watchers.every((w) => w.closed)).toBe(true);
+        }),
+    );
 
-      const gate = {
-        entered: Deferred.makeUnsafe<void>(),
-        release: Deferred.makeUnsafe<void>(),
-      };
-      Effect.runSync(Ref.set(releaseGate, gate));
-      source.detach(source.reads.Refresh());
-      await Effect.runPromise(Deferred.await(gate.entered));
-      const closing = source.close();
-      Effect.runSync(Deferred.succeed(gate.release, undefined));
-      await closing;
-
-      expect(releases).toHaveLength(2);
-      expect(releases).toEqual(expect.arrayContaining(reads));
-      expect(watchers.every((w) => w.closed)).toBe(true);
-    });
-
-    it("closes every client and releases every read on teardown", async () => {
-      const { ports, reads, releases } = testPorts();
-      const source = await startSource(config(), ports);
-      await source.version();
-      await source.run(source.reads.Refresh());
-      expect(reads).toHaveLength(2);
-      await source.close();
-      expect(releases).toEqual(reads);
-    });
+    it.effect("closes every client and releases every read on teardown", () =>
+      Effect.gen(function* () {
+        const { ports, reads, releases } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.version();
+        yield* source.reads.Refresh();
+        expect(reads).toHaveLength(2);
+        yield* source.close();
+        expect(releases).toEqual(reads);
+      }),
+    );
   });
 
   describe("db-file-missing signal", () => {
     const missing = () => join(dir, "absent", "zotero.sqlite");
 
-    it("emits once when the database file is absent", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(
-        config({ databasePath: missing() }),
-        ports,
-      );
-      await source.sawTags([
-        "refreshing",
-        "refresh-failed",
-        "db-file-missing",
-        "degraded",
-        "refreshing",
-      ]);
-    });
+    it.effect("emits once when the database file is absent", () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(
+          config({ databasePath: missing() }),
+          ports,
+        );
+        yield* source.sawTags([
+          "refreshing",
+          "refresh-failed",
+          "db-file-missing",
+          "degraded",
+          "refreshing",
+        ]);
+      }),
+    );
 
-    it("reaches a subscriber that arrives after the first open failed", async () => {
-      const { ports } = testPorts();
-      const seed = await Effect.runPromise(
+    it.effect(
+      "reaches a subscriber that arrives after the first open failed",
+      () =>
         Effect.gen(function* () {
-          const reads = yield* makeInProcessClient();
-          yield* Effect.flip(reads.Libraries({}));
-          const pull = yield* Stream.toPull(reads.Changes());
-          return yield* pull;
-        }).pipe(
-          Effect.scoped,
-          Effect.provide(
-            testSource({
-              ports,
-              initial: config({ databasePath: missing() }),
-            }),
-          ),
-        ),
-      );
-      expect(seed.map((event) => event._tag)).toEqual([
-        "state",
-        "db-file-missing",
-      ]);
-    });
+          const { ports } = testPorts();
+          const seed = yield* Effect.gen(function* () {
+            const reads = yield* makeInProcessClient();
+            yield* Effect.flip(reads.Libraries({}));
+            const pull = yield* Stream.toPull(reads.Changes());
+            return yield* pull;
+          }).pipe(
+            Effect.scoped,
+            Effect.provide(
+              testSource({
+                ports,
+                initial: config({ databasePath: missing() }),
+              }),
+            ),
+          );
+          expect(seed.map((event) => event._tag)).toEqual([
+            "state",
+            "db-file-missing",
+          ]);
+        }),
+    );
 
-    it("does not emit a second time on a later failure in the same lifetime", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(
-        config({ databasePath: missing() }),
-        ports,
-      );
-      await source.idle();
-      const before = source.events.length;
-      await source.run(Effect.ignore(source.reads.Refresh()));
-      await source.sawTags(
-        ["refreshing", "refresh-failed", "degraded", "refreshing"],
-        before,
-      );
-    });
+    it.effect(
+      "does not emit a second time on a later failure in the same lifetime",
+      () =>
+        Effect.gen(function* () {
+          const { ports } = testPorts();
+          const source = yield* startSource(
+            config({ databasePath: missing() }),
+            ports,
+          );
+          yield* source.idle();
+          const before = source.events.length;
+          yield* Effect.ignore(source.reads.Refresh());
+          yield* source.sawTags(
+            ["refreshing", "refresh-failed", "degraded", "refreshing"],
+            before,
+          );
+        }),
+    );
 
-    it("does not emit when the file exists but cannot be read", async () => {
-      await writeFile(dbPath, "not a database");
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.sawTags([
-        "refreshing",
-        "refresh-failed",
-        "degraded",
-        "refreshing",
-      ]);
-    });
+    it.effect("does not emit when the file exists but cannot be read", () =>
+      Effect.gen(function* () {
+        yield* Effect.promise(() => writeFile(dbPath, "not a database"));
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.sawTags([
+          "refreshing",
+          "refresh-failed",
+          "degraded",
+          "refreshing",
+        ]);
+      }),
+    );
 
-    it("emits nothing on a healthy open", async () => {
-      const { ports } = testPorts();
-      await using source = await startSource(config(), ports);
-      await source.sawTags(["refreshing", "changed", "refreshing"]);
-    });
+    it.effect("emits nothing on a healthy open", () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(config(), ports);
+        yield* source.sawTags(["refreshing", "changed", "refreshing"]);
+      }),
+    );
   });
 });

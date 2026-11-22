@@ -33,10 +33,6 @@ export default defineConfig({
       },
     },
     {
-      files: ["src/services/zotero-reads/item-query.test.ts"],
-      rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
-    },
-    {
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": [

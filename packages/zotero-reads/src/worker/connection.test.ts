@@ -1,6 +1,7 @@
-import { Effect, Exit } from "effect";
+import { it } from "@effect/vitest";
+import { Effect } from "effect";
 import type { DatabaseSync } from "node:sqlite";
-import { describe, expect, it } from "vitest";
+import { describe, expect } from "vitest";
 
 import { getLibraries, getSchemaVersions } from "@zotlit/db";
 import { countStatements } from "@zotlit/db-testing";
@@ -84,16 +85,14 @@ function open({ options, alter, ddl }: Copy) {
   return copy;
 }
 
-function zoteroReadsValidates(copy: Copy): boolean {
+const zoteroReadsValidates = Effect.fnUntraced(function* (copy: Copy) {
   using scenario = open(copy);
-  return Exit.isSuccess(
-    Effect.runSyncExit(validateClient(nodeClient(scenario.db))),
-  );
-}
+  return yield* Effect.isSuccess(validateClient(nodeClient(scenario.db)));
+});
 
-async function itemQueryReads(copy: Copy): Promise<boolean> {
+const itemQueryReads = Effect.fnUntraced(function* (copy: Copy) {
   using scenario = open(copy);
-  const exit = await Effect.runPromiseExit(
+  return yield* Effect.isSuccess(
     Effect.provideService(
       Effect.gen(function* () {
         const libraries = yield* readLibraries();
@@ -110,61 +109,74 @@ async function itemQueryReads(copy: Copy): Promise<boolean> {
       { client: scenario.db },
     ),
   );
-  return Exit.isSuccess(exit);
-}
+});
 
 describe("validateClient and Item Query", () => {
-  it.each(READABLE)("both read $name", async (copy) => {
-    expect(zoteroReadsValidates(copy)).toBe(true);
-    expect(await itemQueryReads(copy)).toBe(true);
-  });
+  it.effect.each(READABLE)("both read $name", (copy) =>
+    Effect.gen(function* () {
+      expect(yield* zoteroReadsValidates(copy)).toBe(true);
+      expect(yield* itemQueryReads(copy)).toBe(true);
+    }),
+  );
 
-  it.each(UNREADABLE)("both refuse $name", async (copy) => {
-    expect(zoteroReadsValidates(copy)).toBe(false);
-    expect(await itemQueryReads(copy)).toBe(false);
-  });
+  it.effect.each(UNREADABLE)("both refuse $name", (copy) =>
+    Effect.gen(function* () {
+      expect(yield* zoteroReadsValidates(copy)).toBe(false);
+      expect(yield* itemQueryReads(copy)).toBe(false);
+    }),
+  );
 
-  it.each(NOT_ZOTERO)("both refuse $name", async (copy) => {
-    expect(zoteroReadsValidates(copy)).toBe(false);
-    expect(await itemQueryReads(copy)).toBe(false);
-  });
+  it.effect.each(NOT_ZOTERO)("both refuse $name", (copy) =>
+    Effect.gen(function* () {
+      expect(yield* zoteroReadsValidates(copy)).toBe(false);
+      expect(yield* itemQueryReads(copy)).toBe(false);
+    }),
+  );
 
-  it.each(NOT_ZOTERO)("refuses $name as not a Zotero database", (copy) => {
-    using plain = open(copy);
+  it.effect.each(NOT_ZOTERO)("refuses $name as not a Zotero database", (copy) =>
+    Effect.gen(function* () {
+      using plain = open(copy);
 
-    expect(() => Effect.runSync(validateClient(nodeClient(plain.db)))).toThrow(
-      "This file is not a Zotero database. Check the Zotero data directory in ZotLit settings.",
-    );
-  });
+      expect(
+        (yield* Effect.flip(validateClient(nodeClient(plain.db)))).message,
+      ).toBe(
+        "This file is not a Zotero database. Check the Zotero data directory in ZotLit settings.",
+      );
+    }),
+  );
 
-  it("refuses a copy the readers cannot read with the layout error", () => {
-    using scenario = open(UNREADABLE[0]!);
+  it.effect(
+    "refuses a copy the readers cannot read with the layout error",
+    () =>
+      Effect.gen(function* () {
+        using scenario = open(UNREADABLE[0]!);
 
-    expect(() =>
-      Effect.runSync(validateClient(nodeClient(scenario.db))),
-    ).toThrow(
-      expect.objectContaining({
-        _tag: "ItemQueryLayoutError",
-        missing: [{ table: "fieldsCombined", column: "custom" }],
+        expect(
+          yield* Effect.flip(validateClient(nodeClient(scenario.db))),
+        ).toMatchObject({
+          _tag: "ItemQueryLayoutError",
+          missing: [{ table: "fieldsCombined", column: "custom" }],
+        });
       }),
-    );
-  });
+  );
 
-  it("reads the layout of a copy once for validation, the stamps, and the Library readers", () => {
-    using scenario = openScenarioDatabase(connectClient);
-    const statements = countStatements(scenario.sqlite);
+  it.effect(
+    "reads the layout of a copy once for validation, the stamps, and the Library readers",
+    () =>
+      Effect.gen(function* () {
+        using scenario = openScenarioDatabase(connectClient);
+        const statements = countStatements(scenario.sqlite);
 
-    Effect.runSync(validateClient(nodeClient(scenario.db)));
-    const validated = statements();
-    getSchemaVersions(scenario.db);
-    getLibraries(scenario.db);
-    Effect.runSync(
-      Effect.provideService(readLibraries(), ItemQueryDatabase, {
-        client: scenario.db,
+        yield* validateClient(nodeClient(scenario.db));
+        const validated = statements();
+        getSchemaVersions(scenario.db);
+        getLibraries(scenario.db);
+        yield* Effect.provideService(readLibraries(), ItemQueryDatabase, {
+          client: scenario.db,
+        });
+
+        expect(validated).toBe(2);
+        expect(statements()).toBe(validated + 2);
       }),
-    );
-
-    expect(validated).toBe(2);
-    expect(statements()).toBe(validated + 2);
-  });
+  );
 });
