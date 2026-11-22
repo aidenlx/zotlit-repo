@@ -27,6 +27,7 @@ export type PagePdfReaderView =
   import("@zotlit/pdf-reader/obsidian").PdfReaderView;
 
 export interface BackgroundWindow {
+  getNativeWindowHandle(): Buffer;
   showInactive(): void;
   isMinimized(): boolean;
   blur(): void;

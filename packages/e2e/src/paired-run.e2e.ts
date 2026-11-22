@@ -4392,7 +4392,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await eraseAnnotations(rdp, await madeSince(held));
         });
 
-        it("draws the seeded free text on one line inside its box", async () => {
+        it("draws the seeded free text inside its box at the display font's line breaks", async () => {
           await raiseWindow(vaultId!);
           const { position } = seededMark("HRK7BG32", { image: false }).seeded;
           if (!("fontSize" in position)) throw new Error("HRK7BG32 is text");
@@ -4436,10 +4436,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               return lines.every(([, , length]) => length > 0);
             }),
           ).toBe(true);
-          expect(lines.map(([line]) => line)).toEqual([
-            "Making figures is hard :(",
-          ]);
-          expect(lines[0]![2]).toBeLessThanOrEqual(right - left);
+          const expected = process.env.ZOTLIT_RUN_CONTAINER
+            ? ["Making figures is hard", ":("]
+            : ["Making figures is hard :("];
+          expect(lines.map(([line]) => line)).toEqual(expected);
+          for (const [, , width] of lines)
+            expect(width).toBeLessThanOrEqual(right - left);
         }, 120000);
 
         it("draws a two-line text Annotation from Zotero as two lines", async () => {

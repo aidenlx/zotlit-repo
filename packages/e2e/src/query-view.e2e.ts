@@ -2913,24 +2913,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           popover.querySelector<HTMLElement>(
             `[data-filter-section="${name}"]`,
           )!;
-        const set = (
-          control: HTMLInputElement | HTMLSelectElement,
-          value: string,
-        ) => {
-          control.value = value;
-          control.dispatchEvent(new Event("input", { bubbles: true }));
-        };
-
-        set(
-          section("view")
-            .querySelector<HTMLElement>(
-              '[data-part="group"][data-state="nested"]',
-            )!
-            .querySelector<HTMLSelectElement>(
-              `select[aria-label="${matchLabel}"]`,
-            )!,
-          "none",
-        );
+        const match = section("view")
+          .querySelector<HTMLElement>(
+            '[data-part="group"][data-state="nested"]',
+          )!
+          .querySelector<HTMLSelectElement>(
+            `select[aria-label="${matchLabel}"]`,
+          )!;
+        await pageHelpers.pick(match, "none", "Nested group match");
       },
       { matchLabel: run.m.workbench_match_match() },
     );
