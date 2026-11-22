@@ -22,7 +22,6 @@ import type {
   ViewServices,
 } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { noteIndexSnapshotAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
-import { createNanoEvents } from "@zotlit/shared/nanoevents";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
@@ -143,15 +142,15 @@ interface VaultMemo {
 
 const freshMemo = (): VaultMemo => ({});
 
-interface VaultEvents {
-  changed: () => void;
-  "frontmatter-changed": () => void;
-}
-
 export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   const { registry } = deps;
   const memoAtom = Atom.map(noteIndexSnapshotAtom, () => freshMemo());
-  const events = createNanoEvents<VaultEvents>();
+  const revisions = {
+    changed: Atom.make(0),
+    "frontmatter-changed": Atom.make(0),
+  };
+  const notify = (event: keyof typeof revisions) =>
+    registry.update(revisions[event], (n) => n + 1);
   let listeners = 0;
   let offSources: (() => void) | null = null;
   const replacedSubscriptions = new Map<
@@ -163,7 +162,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
       const releases = [
         registry.mount(noteIndexSnapshotAtom),
         registry.subscribe(noteIndexSnapshotAtom, (snapshot) => {
-          events.emit(
+          notify(
             snapshot.change?.type === "frontmatter-changed"
               ? "frontmatter-changed"
               : "changed",
@@ -173,7 +172,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
       for (const atom of [profileRevisionAtom, templateRevisionAtom]) {
         releases.push(registry.mount(atom));
         releases.push(
-          registry.subscribe(atom, () => events.emit("frontmatter-changed")),
+          registry.subscribe(atom, () => notify("frontmatter-changed")),
         );
       }
       offSources = () => {
@@ -198,7 +197,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
       replacedSubscriptions.set(file, {
         path: file.path,
         release: registry.subscribe(atom, (result) => {
-          if (!result.waiting) events.emit("frontmatter-changed");
+          if (!result.waiting) notify("frontmatter-changed");
         }),
       });
     }
@@ -208,9 +207,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   let offTypes = () => {};
   const listenTypes = () => {
     if (typeListeners++ === 0)
-      offTypes = onTypesChanged(deps.app, () =>
-        events.emit("frontmatter-changed"),
-      );
+      offTypes = onTypesChanged(deps.app, () => notify("frontmatter-changed"));
     return () => {
       if (--typeListeners === 0) offTypes();
     };
@@ -256,7 +253,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   return {
     find: (itemKey) => firstNote(itemKey) ?? null,
     on: (event, listener) => {
-      const off = events.on(event, listener);
+      const off = registry.subscribe(revisions[event], listener);
       const offSource = listen();
       if (event !== "frontmatter-changed")
         return () => {

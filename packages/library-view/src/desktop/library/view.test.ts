@@ -41,6 +41,7 @@ import {
 } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { testRuntime } from "@zotlit/plugin-kernel/__fixtures__/runtime.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -73,7 +74,6 @@ import type {
   QueryViewValue,
 } from "@zotlit/query-views/desktop/item-query/query-view.ts";
 import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
-import { createNanoEvents } from "@zotlit/shared/nanoevents";
 import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import {
   zoteroRevisionAtom,
@@ -509,13 +509,15 @@ async function pluginData(
   };
   const notes = new Set(NOTED);
   const nativeNotes = testEvent<NoteIndexChange>();
-  const notesChanged = createNanoEvents<{ changed: () => void }>();
+  const notesChanged = testEvent<void>();
   const literatureNotes = {
     ...noLiteratureNotes(),
     find: (itemKey: string) =>
       notes.has(itemKey) ? { path: `${itemKey}.md`, basename: itemKey } : null,
     on: (event: "changed" | "frontmatter-changed", listener: () => void) =>
-      event === "changed" ? notesChanged.on("changed", listener) : () => {},
+      event === "changed"
+        ? subscribe(runtime, notesChanged.stream, listener)
+        : () => {},
     itemKeys: () => [...notes],
     open: vi.fn(),
   };
@@ -773,7 +775,7 @@ async function pluginData(
   };
   const addNote = async (itemKey: string) => {
     notes.add(itemKey);
-    notesChanged.emit("changed");
+    notesChanged.emit();
     nativeNotes.emit({ type: "indexed" });
     await waitFor(() =>
       expect(welcomeHost.registry.get(notedItemKeysAtom).has(itemKey)).toBe(

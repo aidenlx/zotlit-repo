@@ -143,10 +143,6 @@ export default defineConfig({
       rules: { "zotlit-services/no-default-runtime": "off" },
     },
     {
-      files: ["src/desktop/query-view/table-notes.ts"],
-      rules: { "zotlit-services/no-nanoevents": "off" },
-    },
-    {
       files: ["src/*/annot-view/*.{ts,tsx}"],
       excludeFiles: ["**/*.test.{ts,tsx}"],
       rules: { "zotlit-design/annotation-view": "error" },

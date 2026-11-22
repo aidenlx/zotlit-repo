@@ -3,8 +3,8 @@ import type { App } from "obsidian";
 import type { DragEvent as ReactDragEvent } from "react";
 import { expect, it, vi } from "vitest";
 
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
 import { createItemDrag, ITEM_DRAG_TYPE, refuseItemDrop } from "./item-drag.ts";
 
@@ -22,17 +22,10 @@ function transfer() {
 }
 
 function setup() {
-  const events = createNanoEvents<{
-    "editor-drop": (event: unknown, editor: unknown, info: unknown) => void;
-  }>();
+  const events = new MemoryWorkspace();
   const workspace = stubService<App["workspace"]>("Workspace", {
-    on: (name: string, callback: (...args: never[]) => unknown) => {
-      const off = events.on("editor-drop", (...args) =>
-        callback(...(args as unknown as never[])),
-      );
-      return { off };
-    },
-    offref: (ref: { off: () => void }) => ref.off(),
+    on: events.on.bind(events) as App["workspace"]["on"],
+    offref: events.offref.bind(events),
   });
   const insertCitation = vi.fn(() => undefined);
   const drag = createItemDrag({
@@ -58,7 +51,7 @@ function setup() {
       clientY: 2,
       preventDefault: vi.fn(),
     };
-    events.emit("editor-drop", event, editor, info);
+    events.trigger("editor-drop", event, editor, info);
     return { event, editor, info };
   };
   return { start, drop, insertCitation, row };

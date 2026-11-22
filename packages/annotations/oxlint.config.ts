@@ -172,10 +172,6 @@ export default defineConfig({
       excludeFiles: ["**/*.test.{ts,tsx}"],
       rules: { "zotlit-design/annotation-view": "error" },
     },
-    {
-      files: ["src/core/reader-session/session.ts"],
-      rules: { "zotlit-services/no-nanoevents": "off" },
-    },
     indexedDbYield("src/obsidian/excerpt-image/store.ts", obsidianImports),
     indexedDbYield(
       "src/obsidian/excerpt-image/store.browser-test.ts",

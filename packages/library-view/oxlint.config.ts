@@ -150,13 +150,6 @@ export default defineConfig({
       rules: { "zotlit-services/no-default-runtime": "off" },
     },
     {
-      files: [
-        "src/desktop/library/item-drag.test.ts",
-        "src/desktop/library/view.test.ts",
-      ],
-      rules: { "zotlit-services/no-nanoevents": "off" },
-    },
-    {
       files: ["src/desktop/welcome/Welcome.test.ts"],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },
