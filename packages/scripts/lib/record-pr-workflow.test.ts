@@ -111,6 +111,17 @@ describe("recordPrProblems", () => {
     },
   );
 
+  it.each([
+    ["the verify step", "      - name: verify\n"],
+    ["the check's step", "          RESULT: ${{ needs.shard.result }}\n"],
+  ])("reports an if on %s, which can skip it", (_, line) => {
+    const text = workflow().replace(line, `${line}        if: false\n`);
+
+    expect(recordPrProblems(text)).toEqual([
+      expect.stringContaining("must not set `if`"),
+    ]);
+  });
+
   it("accepts continue-on-error on a step beside the verify step", () => {
     const text = workflow().replace(
       "      - uses: ./.github/actions/setup-workspace\n",

@@ -22,6 +22,7 @@ interface WorkflowJob {
 interface WorkflowStep {
   env?: Record<string, string>;
   run?: string;
+  if?: unknown;
   "continue-on-error"?: unknown;
 }
 
@@ -87,6 +88,11 @@ export function recordPrProblems(text: string): string[] {
   ) {
     problems.push(
       "its jobs, their verify step and the check's step must not set `continue-on-error`, which hides a failed test",
+    );
+  }
+  if ([...verifySteps, ...steps].some((each) => each.if !== undefined)) {
+    problems.push(
+      "the verify step of its jobs and the check's step must not set `if`, which can skip them",
     );
   }
   const runs = verifySteps.map((step) => step.run!.trim());
