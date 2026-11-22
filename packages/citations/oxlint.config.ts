@@ -150,10 +150,6 @@ export default defineConfig({
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     {
-      files: ["src/desktop/references/view.tsx"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       files: ["src/obsidian/citation-index/sources.ts"],
       rules: { "zotlit-services/no-default-runtime": "off" },
     },
