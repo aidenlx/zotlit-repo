@@ -4,6 +4,7 @@ import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
 export function keepPlaces(root: HTMLElement): Disposable {
   const places = new Map<HTMLElement, { top: number; left: number }>();
   const onScroll = (event: Event) => {
+    if (!root.isConnected) return;
     const box = event.target as Node;
     if (!box.instanceOf(HTMLElement)) return;
     if (box.scrollTop === 0 && box.scrollLeft === 0) places.delete(box);
