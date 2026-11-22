@@ -32,8 +32,8 @@ import {
   parseFrontMatter,
   spliceFrontMatter,
 } from "@zotlit/obsidian-kit/live-text.ts";
-import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import {
@@ -41,7 +41,7 @@ import {
   isProfileId,
   PROFILE_ID_LENGTH,
   PROFILE_ID_RULE,
-  readProfileStamp,
+  profileStampOf,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type {
   ProfileId,
@@ -241,7 +241,7 @@ const makeProfileEngine = Effect.fnUntraced(function* (
   changed: () => Effect.Effect<void>,
   profileRevision: ProfileRevision,
 ) {
-  const app = yield* ObsidianApp;
+  const metadata = yield* MetadataCache;
   const vault = yield* Vault;
   const fileManager = yield* FileManager;
   const settings = yield* PluginSettings;
@@ -308,7 +308,7 @@ const makeProfileEngine = Effect.fnUntraced(function* (
   const profileOf = Effect.fn("Profile.profileOf")(function* (
     file?: TFile,
   ): Effect.fn.Return<NoteProfile, ProfileOperationError> {
-    const stamped = file && readProfileStamp(app.metadataCache, file);
+    const stamped = file && profileStampOf(yield* metadata.fileCache(file));
     const profile =
       stamped === undefined
         ? yield* resolveProfile(DEFAULT_PROFILE)

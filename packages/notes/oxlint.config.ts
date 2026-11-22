@@ -124,19 +124,8 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      files: [
-        "src/obsidian/profile/service.ts",
-        "src/desktop/template/migration.ts",
-        "src/obsidian/template/service.ts",
-      ],
+      files: ["src/desktop/template/migration.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: [
-        "src/obsidian/batch/batch-run.ts",
-        "src/obsidian/profile/service.ts",
-      ],
-      rules: { "zotlit-services/no-default-runtime": "off" },
     },
     {
       files: [
