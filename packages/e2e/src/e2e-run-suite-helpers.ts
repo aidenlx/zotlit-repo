@@ -15,7 +15,10 @@ import {
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { withWorkbenchSurfaces } from "./workbench-surfaces.ts";
 
-async function wideWindow(cleanup: AsyncDisposableStack): Promise<void> {
+async function wideWindow(
+  cleanup: AsyncDisposableStack,
+  height = 1000,
+): Promise<void> {
   const size = await obRun(
     run.vaultId,
     async (_context) => {
@@ -38,14 +41,14 @@ async function wideWindow(cleanup: AsyncDisposableStack): Promise<void> {
   });
   await obRun(
     run.vaultId,
-    async ({ app }) => {
+    async ({ app }, { height }) => {
       app.workspace.leftSplit.collapse();
       app.workspace.rightSplit.collapse();
       (require("@electron/remote") as typeof import("@electron/remote"))
         .getCurrentWindow()
-        .setSize(1600, 1000);
+        .setSize(1600, height);
     },
-    undefined,
+    { height },
   );
   await obRunUntil(
     run.vaultId,

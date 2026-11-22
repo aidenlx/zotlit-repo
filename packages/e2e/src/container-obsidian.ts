@@ -39,6 +39,7 @@ export default async function setup() {
       join(profile, "obsidian.json"),
       JSON.stringify({
         cli: true,
+        frame: "native",
         updateDisabled: true,
         vaults: { [HOST_VAULT]: { path: vault, ts: 0, open: true } },
       }),

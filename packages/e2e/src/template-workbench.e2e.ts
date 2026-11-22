@@ -2836,7 +2836,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     );
-    await suite.wideWindow(cleanup);
+    await suite.wideWindow(cleanup, 820);
     await obRun(
       run.vaultId,
       async ({ app }, { path, key }) => {
