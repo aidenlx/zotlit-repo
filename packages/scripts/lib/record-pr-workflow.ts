@@ -95,7 +95,7 @@ export function recordPrProblems(text: string): string[] {
       "the verify step of its jobs and the check's step must not set `if`, which can skip them",
     );
   }
-  const runs = verifySteps.map((step) => step.run!.trim());
+  const runs = verifySteps.map((step) => step.run?.trim());
   if (runs.length !== 1 || runs[0] !== SHARD_RUN) {
     problems.push(
       `each shard must run \`${SHARD_RUN}\` once (lib/gate-shards.ts); it runs ${runs.map((each) => `\`${each}\``).join(", ") || "no pnpm verify"}`,

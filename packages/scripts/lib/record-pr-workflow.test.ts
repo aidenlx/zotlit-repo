@@ -128,6 +128,7 @@ describe("recordPrProblems", () => {
       "      - uses: ./.github/actions/setup-workspace\n        continue-on-error: true\n",
     );
 
+    expect(text).toContain("continue-on-error: true");
     expect(recordPrProblems(text)).toEqual([]);
   });
 
