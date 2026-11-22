@@ -3,6 +3,7 @@ import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
 import { it } from "@effect/vitest";
 import type { FileSystem } from "effect";
 import {
+  Clock,
   Deferred,
   Effect,
   Exit,
@@ -888,15 +889,15 @@ describe("ZoteroReads source", () => {
             expect(watchers.map((w) => w.path)).toContain(walPath),
           );
 
+          using debounce = vi.spyOn(yield* Clock.Clock, "sleep");
           yield* emitDirEvent(watchers, "zotero.sqlite-wal");
           yield* Deferred.succeed(hungStarts, undefined);
           yield* source.version();
-          yield* TestClock.adjust("2 seconds").pipe(
-            Effect.repeat({
-              until: () => ports.snapshotSource.mock.calls.length >= 2,
-            }),
+          yield* waitFor(() => expect(debounce).toHaveBeenCalled());
+          yield* TestClock.adjust("2 seconds");
+          yield* waitFor(() =>
+            expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
           );
-          expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
 
           expect(
             watchers.filter((w) => w.path === walPath && !w.closed),

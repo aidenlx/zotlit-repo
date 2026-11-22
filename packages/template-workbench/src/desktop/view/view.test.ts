@@ -3360,41 +3360,42 @@ describe("Template Workbench Item choice", () => {
         const firstRead = Promise.withResolvers<void>();
         const firstReading = Promise.withResolvers<void>();
         let gated = false;
-        const zoteroReads = inProcessReadsService(
-          memoryOpener(() =>
-            seedWorksSql([
-              { itemID: 1, key: FIRST, title: "First paper" },
-              { itemID: 2, key: LATER, title: "Later paper" },
-            ]),
-          ).open,
-          {
-            wrap: (client) => ({
-              ...client,
-              ItemsByIndexedKeys: ((
-                payload: { readonly indexedKeys: readonly string[] },
-                options?: object,
-              ) => {
-                const read = (
-                  client.ItemsByIndexedKeys as unknown as (
-                    payload: object,
+        const zoteroReads = yield* Effect.acquireDisposable(
+          Effect.sync(() =>
+            inProcessReadsService(
+              memoryOpener(() =>
+                seedWorksSql([
+                  { itemID: 1, key: FIRST, title: "First paper" },
+                  { itemID: 2, key: LATER, title: "Later paper" },
+                ]),
+              ).open,
+              {
+                wrap: (client) => ({
+                  ...client,
+                  ItemsByIndexedKeys: ((
+                    payload: { readonly indexedKeys: readonly string[] },
                     options?: object,
-                  ) => Effect.Effect<unknown>
-                )(payload, options);
-                return gated && payload.indexedKeys.includes(FIRST)
-                  ? Effect.andThen(
-                      Effect.promise(() => {
-                        firstReading.resolve();
-                        return firstRead.promise;
-                      }),
-                      read,
-                    )
-                  : read;
-              }) as unknown as ZoteroReadsClient["ItemsByIndexedKeys"],
-            }),
-          },
-        );
-        yield* Effect.addFinalizer(() =>
-          Effect.promise(() => zoteroReads[Symbol.asyncDispose]()),
+                  ) => {
+                    const read = (
+                      client.ItemsByIndexedKeys as unknown as (
+                        payload: object,
+                        options?: object,
+                      ) => Effect.Effect<unknown>
+                    )(payload, options);
+                    return gated && payload.indexedKeys.includes(FIRST)
+                      ? Effect.andThen(
+                          Effect.promise(() => {
+                            firstReading.resolve();
+                            return firstRead.promise;
+                          }),
+                          read,
+                        )
+                      : read;
+                  }) as unknown as ZoteroReadsClient["ItemsByIndexedKeys"],
+                }),
+              },
+            ),
+          ),
         );
         const { reads } = zoteroReads;
         const items = yield* reads.ItemsByIndexedKeys({ indexedKeys: [FIRST] });
