@@ -2,6 +2,7 @@ import { Context, Effect, Layer, PubSub, Stream } from "effect";
 
 import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { showPluginPage } from "@zotlit/obsidian-kit/plugin-page.ts";
 import { fetchRange } from "@zotlit/resource-pack/fetch-range.ts";
 import { readPackEntry } from "@zotlit/resource-pack/reader.ts";
@@ -19,7 +20,7 @@ export interface PackLocation {
 }
 
 export interface ResourcePackHostPorts {
-  locate(): PackLocation | null;
+  readonly locate: Effect.Effect<PackLocation | null>;
   open(url: string): ReadRange;
   readonly changes: Stream.Stream<void>;
 }
@@ -39,7 +40,7 @@ export function resourcePackPorts(
   host: ResourcePackHostPorts,
 ): ResourcePackPorts {
   return {
-    locate: Effect.sync(() => host.locate()),
+    locate: host.locate,
     readEntry: Effect.fn("ResourcePackPlatform.readEntry")(
       (location: PackLocation, name: string) =>
         Effect.promise(() => readPackEntry(host.open(location.url), name)),
@@ -52,6 +53,7 @@ export const layerResourcePackPlatform = Layer.effect(
   ResourcePackPlatform,
   Effect.gen(function* () {
     const app = yield* ObsidianApp;
+    const vault = yield* Vault;
     const manifest = () => app.plugins.manifests[RESOURCE_PACK_ID];
     const events = yield* obsidianEvents<{ changed: [] }>();
     const changed = yield* Effect.acquireRelease(
@@ -72,18 +74,16 @@ export const layerResourcePackPlatform = Layer.effect(
       .pipe(Effect.forkScoped({ startImmediately: true }));
     return resourcePackPorts({
       changes: Stream.fromPubSub(changed),
-      locate: () => {
+      locate: Effect.gen(function* () {
         const installed = manifest();
         if (!installed?.dir) return null;
-        const url = app.vault.adapter.getResourcePath(
-          `${installed.dir}/main.js`,
-        );
+        const url = yield* vault.resourcePath(`${installed.dir}/main.js`);
         const query = url.lastIndexOf("?");
         return {
           version: installed.version,
           url: query < 0 ? url : url.slice(0, query),
         };
-      },
+      }),
       open: (url) => fetchRange(url),
     });
   }),

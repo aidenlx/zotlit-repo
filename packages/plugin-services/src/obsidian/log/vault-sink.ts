@@ -39,7 +39,7 @@ export const jsonLine = (record: LogRecord): string =>
   )}\n`;
 
 export const openVaultFileSink = (
-  adapter: DataAdapter,
+  adapter: Pick<DataAdapter, "write" | "append">,
   path: string,
 ): Effect.Effect<Logger.Logger<LogRecord, void>, unknown, Scope.Scope> =>
   Effect.gen(function* () {

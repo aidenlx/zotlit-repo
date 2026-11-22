@@ -63,7 +63,7 @@ async function logFileLines(
   const stack = new AsyncDisposableStack();
   const graph = buildRuntime(
     layerLogging.pipe(
-      Layer.provide(layerLogOutput(plugin)),
+      Layer.provide(layerLogOutput(plugin.manifest.dir, adapter)),
       Layer.provideMerge(
         layerPluginSettings(plugin, { definition: platformSettings }),
       ),

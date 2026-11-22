@@ -1,3 +1,5 @@
+import { Effect } from "effect";
+
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { bytesRange } from "@zotlit/resource-pack/reader.ts";
 import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
@@ -36,11 +38,13 @@ export function packDevice(
     announce: () => {
       reports.emit();
     },
-    locate: () =>
-      installed && {
-        version: installed.version,
-        url: "app://device/plugins/zotlit-resources/main.js",
-      },
+    locate: Effect.sync(
+      () =>
+        installed && {
+          version: installed.version,
+          url: "app://device/plugins/zotlit-resources/main.js",
+        },
+    ),
     open: () => (offset, length) => {
       if (!installed) throw new Error("No pack file");
       return bytesRange(installed.file)(offset, length);

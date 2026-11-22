@@ -3,6 +3,7 @@ import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
 import { FileSystemAdapter, TFolder } from "obsidian";
 import type {
+  App,
   DataAdapter,
   DataWriteOptions,
   TAbstractFile,
@@ -22,6 +23,15 @@ import { basename, dirname } from "@zotlit/plugin-kernel/vault-path.ts";
 import { joinFolderPath } from "#ensure-folder.ts";
 import { ObsidianApp } from "#obsidian-app.ts";
 import { obsidianEventSource } from "#obsidian-event-source.ts";
+
+export function vaultTextWriter({
+  vault,
+}: Pick<App, "vault">): Pick<DataAdapter, "write" | "append"> {
+  return {
+    write: (path, text, options) => vault.adapter.write(path, text, options),
+    append: (path, text, options) => vault.adapter.append(path, text, options),
+  };
+}
 
 export type VaultEvent =
   | { readonly _tag: "create"; readonly file: TAbstractFile }
@@ -47,12 +57,13 @@ export type VaultSource = Pick<
   | "getAbstractFileByPathInsensitive"
   | "getMarkdownFiles"
 > & {
-  readonly adapter: Pick<DataAdapter, "read">;
+  readonly adapter: Pick<DataAdapter, "read" | "getResourcePath">;
 } & ObsidianEventEmitter;
 
 export interface VaultShape {
   read(file: TFile): Effect.Effect<string, VaultError>;
   cachedRead(file: TFile): Effect.Effect<string, VaultError>;
+  resourcePath(path: string): Effect.Effect<string>;
   readPath(path: string): Effect.Effect<string, FileNotFound | VaultError>;
   process(
     file: TFile,
@@ -136,6 +147,9 @@ export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
     );
   };
   return Vault.of({
+    resourcePath: Effect.fn("Vault.resourcePath")((path) =>
+      Effect.sync(() => source.adapter.getResourcePath(path)),
+    ),
     read: Effect.fn("Vault.read")((file) =>
       call("read", file.path, () => source.read(file)),
     ),

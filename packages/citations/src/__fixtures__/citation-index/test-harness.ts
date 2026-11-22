@@ -212,6 +212,7 @@ export class MockVault implements VaultSource {
   }
 
   readonly adapter = {
+    getResourcePath: (path: string) => `app://test/${path}`,
     read: (path: string): Promise<string> =>
       Promise.reject(new Error(`The harness reads no path: ${path}`)),
   };

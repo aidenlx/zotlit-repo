@@ -21,7 +21,11 @@ import {
   layerMetadataCache,
   MetadataCache,
 } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
-import { layerVault, Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import {
+  layerVault,
+  Vault,
+  vaultTextWriter,
+} from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import {
   layerWorkspace,
   Workspace,
@@ -106,7 +110,9 @@ export function layerShellBase(
     Layer.provideMerge(obsidian),
     Layer.provideMerge(
       layerLogging.pipe(
-        Layer.provide(layerLogOutput(plugin)),
+        Layer.provide(
+          layerLogOutput(plugin.manifest.dir, vaultTextWriter(plugin.app)),
+        ),
         startingAs("Logging"),
       ),
     ),

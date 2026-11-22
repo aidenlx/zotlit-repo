@@ -105,13 +105,6 @@ export default defineConfig({
     ]),
     {
       files: [
-        "src/obsidian/log/service.ts",
-        "src/obsidian/managed-binary/pack-platform.ts",
-      ],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: [
         "src/core/note-index/frontmatter-date.ts",
         "src/core/note-index/frontmatter-date.test.ts",
       ],

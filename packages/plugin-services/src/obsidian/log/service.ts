@@ -1,7 +1,7 @@
 import type { Settings } from "#obsidian/settings/service.ts";
 import { Context, Effect, Exit, Layer, Scope, Stream } from "effect";
 import type { Logger } from "effect";
-import type { Plugin } from "obsidian";
+import type { DataAdapter } from "obsidian";
 
 import {
   releaseLogOutputs,
@@ -38,10 +38,10 @@ export class LogOutput extends Context.Service<
 >()("zotlit/log/LogOutput") {}
 
 export function layerLogOutput(
-  plugin: Pick<Plugin, "app" | "manifest">,
+  directory: string | undefined,
+  adapter: Pick<DataAdapter, "write" | "append">,
 ): Layer.Layer<LogOutput> {
-  const path = `${plugin.manifest.dir}/${LOG_FILENAME}`;
-  const { adapter } = plugin.app.vault;
+  const path = `${directory}/${LOG_FILENAME}`;
   return Layer.succeed(
     LogOutput,
     LogOutput.of({

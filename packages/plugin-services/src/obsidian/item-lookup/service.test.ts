@@ -77,7 +77,7 @@ describe("ItemLookup", () => {
           () => seed(perLibraryRows(), CHINESE_TITLE),
           {
             chineseSegmenter: {
-              ...device.locate()!,
+              ...(yield* device.locate)!,
               entry: "chinese-segmenter",
             },
             readSegmenter: () =>
