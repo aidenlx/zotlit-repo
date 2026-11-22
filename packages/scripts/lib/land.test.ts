@@ -286,7 +286,6 @@ function fakeGitHub({
   const pulls: FakePull[] = [];
   /** Each read of a check, in order. */
   const checkReads: { commit: string; name: string }[] = [];
-  const reruns: number[] = [];
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
   const github: LandGitHub = {
@@ -338,11 +337,8 @@ function fakeGitHub({
       const count = checkReads.filter((each) => each.commit === commit).length;
       return await ci({ commit, count });
     },
-    rerunCheck: async (id) => {
-      reruns.push(id);
-    },
   };
-  return { github, pulls, checkReads, reruns };
+  return { github, pulls, checkReads };
 }
 
 const SECTIONS = [
@@ -689,43 +685,6 @@ describe("the CI check of the record PR", () => {
         `no "${LAND_CI_CHECK}" check`,
       );
       expect(await subjects("main")).toEqual(["seed"]);
-    },
-    SLOW,
-  );
-
-  it(
-    "runs the failed check again when a land again pushes the same head",
-    async () => {
-      const cwd = await taskClone("a");
-      await writeRecord(cwd);
-      let rerun = false;
-      let readsAfterRerun = 0;
-      const { github, reruns } = fakeGitHub({
-        // The first read after the re-run still shows the old result; the
-        // new run may keep the id of the job.
-        ci: () => {
-          if (!rerun) return failed(1);
-          readsAfterRerun += 1;
-          return readsAfterRerun === 1
-            ? failed(1)
-            : { ...passed(1), completedAt: "2026-11-22T11:00:00Z" };
-        },
-      });
-      const first = await land({ ...fast, cwd, gate: ["true"], github });
-      expect(first).toMatchObject({ ok: false, step: "ci" });
-      const rerunCheck = github.rerunCheck;
-      github.rerunCheck = async (id) => {
-        await rerunCheck(id);
-        rerun = true;
-      };
-
-      const second = await land({ ...fast, cwd, gate: ["true"], github });
-
-      expect(second).toMatchObject({ ok: true });
-      expect(reruns).toEqual([1]);
-      expect(await git(repos.remote, "rev-parse", "main")).toBe(
-        await git(cwd, "rev-parse", "HEAD"),
-      );
     },
     SLOW,
   );

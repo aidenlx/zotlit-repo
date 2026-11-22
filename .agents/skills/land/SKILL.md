@@ -60,7 +60,7 @@ The worktree stays on its branch with a clean tree.
 | `rebase`    | as it was                                   | `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. |
 | `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
-| `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. Fix the failure on this branch, run the failed tests locally, commit, land again. A land again with no new commit runs the failed check again. When no check showed, check that the workflow ran on the PR. |
+| `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from that link, then land again: the land waits for the new run. When no check showed, check that the workflow ran on the PR. |
 | `push`      | rebased; `main` moved in each attempt       | Land again.                                                                                  |
 | `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
 

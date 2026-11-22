@@ -9,7 +9,7 @@ ZotLit has two repositories:
 
 - **Code changes** go to `aidenlx/zotlit-repo`, the one repository that takes
   pull requests, against `main`. Run `pnpm verify` before you push. A pull
-  request into `main` runs the tests and the bundle budget in CI
+  request into `main` runs `pnpm verify --pr` in CI
   (`.github/workflows/record-pr.yml`). A maintainer lands an accepted change through the
   Land Queue (see [Landing a change](#landing-a-change)).
 - **Bug reports, feature requests and questions** go to the
@@ -42,9 +42,9 @@ and agents alike:
 | Landing, the queue, failures | `AGENTS.md` "Landing a change"                                                                   |
 | Decisions and their reasons  | `docs/adr/`                                                                                      |
 
-The gate is `pnpm verify`. `pnpm land` runs its local half (`--local`) on the
-tree it pushes, and the record pull request of the land runs its other half,
-the tests and the bundle budget, in CI before `main` moves
+The gate is `pnpm verify`. `pnpm land` runs `pnpm verify --local` on the tree
+it pushes, and the record pull request of the land runs `pnpm verify --pr` in
+CI before `main` moves
 ([ADR 0076](docs/adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),
 [ADR 0084](docs/adr/0084-changes-land-on-next-through-a-serial-queue.md),
 [ADR 0102](docs/adr/0102-each-land-opens-a-record-pull-request.md)).
@@ -68,8 +68,8 @@ branch with a clean tree. Lands on one machine run one at a time, in a queue:
 each fetches `origin/main`, rebases the branch onto it, runs
 `pnpm verify --local` on the rebased tree, pushes the branch and opens or
 updates its record pull request from the record file, waits for the CI check
-of the PR (the tests and the bundle budget), and pushes the tree to `main` as
-a fast-forward. A failed check fails the land, and `main` stays as it was.
+of the PR (`pnpm verify --pr`), and pushes the tree to `main` as a
+fast-forward. A failed check fails the land, and `main` stays as it was.
 GitHub then shows the PR as merged. `pnpm land --help` names the record file
 and its sections. The gate cannot be skipped. The pre-push hook lets only
 `pnpm land` push `main`.

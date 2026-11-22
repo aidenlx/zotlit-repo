@@ -120,14 +120,6 @@ export function ghLandGitHub(repo: string): LandGitHub {
       ) as { created_at: string };
       return { ...check, queuedAt: job.created_at };
     },
-    async rerunCheck(id) {
-      await run([
-        "api",
-        "-X",
-        "POST",
-        `repos/${repo}/actions/jobs/${id}/rerun`,
-      ]);
-    },
   };
 }
 

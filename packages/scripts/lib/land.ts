@@ -15,9 +15,9 @@
 //
 // A change lands with `pnpm verify --local` as its gate and a record PR on
 // GitHub, whose body is the record file that the agent wrote
-// (LAND_RECORD_PATH). The other half of `pnpm verify`, the tests and the
-// bundle budget, runs on the PR in CI (.github/workflows/record-pr.yml), and
-// `main` moves only when that check passes.
+// (LAND_RECORD_PATH). The PR runs `pnpm verify --pr` in CI
+// (.github/workflows/record-pr.yml), and `main` moves only when that check
+// passes. scripts/verify.ts names the steps of each flag.
 // GitHub shows the PR as merged when `main` moves to its head. The version
 // commit of a release (`pnpm release`) lands with the release gate and no
 // record PR.
@@ -68,9 +68,8 @@ export const LAND_ATTEMPTS = 3;
 const TRUNK = SOURCE_BRANCH;
 
 /**
- * The quality gate of a change, and of the version commit of a release. A
- * change runs the local half of `pnpm verify`; its tests and bundle budget run
- * on the record PR in CI (LAND_CI_CHECK).
+ * The quality gate of a change, and of the version commit of a release. The
+ * record PR of a change runs the rest of `pnpm verify` (LAND_CI_CHECK).
  */
 export const LAND_GATES = {
   change: ["pnpm", "verify", "--local"],
@@ -108,9 +107,21 @@ export const LAND_RECORD_SECTIONS = [
  * .github/workflows/record-pr.yml. GitHub shows it as a check on the PR head.
  */
 export const LAND_CI_CHECK = "Record PR tests";
-/** How long a land waits for the check of its PR head by default. */
+/**
+ * How long a land waits for the check of its PR head by default. It is the
+ * `timeout-minutes: 40` of the job in record-pr.yml plus 5 min for the wait
+ * for a runner and for GitHub to show the check, so a job that hangs ends
+ * on GitHub's side first, and the land reports its failure with the link.
+ * Change the two together. While one land waits, the other lands wait in the
+ * Land Queue: a land that waits behind it can reach its own 1 h wait
+ * (LAND_WAIT_MS) and exit 75.
+ */
 export const LAND_CI_WAIT_MS = 45 * MINUTE;
-/** How often the land reads the check by default. */
+/**
+ * How often the land reads the check by default: two GitHub API reads a
+ * minute, well inside the rate limit, and each read renews the Lease of the
+ * Land Turn long before its silence limit (SILENCE_LIMIT_MS.childOutput).
+ */
 const LAND_CI_POLL_MS = 30_000;
 
 /** A run of a CI job, as GitHub shows it as a check of a commit. */
@@ -163,8 +174,6 @@ export interface LandGitHub {
     commit: string;
     name: string;
   }) => Promise<CiCheck | undefined>;
-  /** Run the job of a finished check again. */
-  rerunCheck: (id: number) => Promise<void>;
 }
 
 export interface LandOptions {
@@ -439,7 +448,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
       });
       const github = options.github;
       if (github && record) {
-        const opened = await step("record", () =>
+        pull = await step("record", () =>
           openRecord(sh, github, {
             remote,
             branch: pre.branch,
@@ -448,12 +457,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
             say,
           }),
         );
-        pull = opened.pull;
         const head = await sh.git("ci", "rev-parse", "HEAD");
         await step("ci", () =>
           waitForCi(github, {
             commit: head,
-            pushed: opened.pushed,
             waitMs: options.ciWaitMs ?? LAND_CI_WAIT_MS,
             pollMs: options.ciPollMs ?? LAND_CI_POLL_MS,
             say,
@@ -656,9 +663,7 @@ async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
 
 /**
  * Push HEAD to the task branch on the remote, then open its record PR, or
- * update the PR that an earlier land of the branch opened. `pushed` is false
- * when the branch on the remote was at HEAD already, so GitHub starts no new
- * CI run.
+ * update the PR that an earlier land of the branch opened.
  */
 async function openRecord(
   sh: Shell,
@@ -670,9 +675,9 @@ async function openRecord(
     record: LandRecord;
     say: (line: string) => void;
   },
-): Promise<{ pull: RecordPullRequest; pushed: boolean }> {
+): Promise<RecordPullRequest> {
   const { remote, branch, base, record, say } = options;
-  const printed = await sh.git(
+  await sh.git(
     "record",
     "push",
     "--force",
@@ -680,14 +685,12 @@ async function openRecord(
     remote,
     `HEAD:refs/heads/${branch}`,
   );
-  // `=` flags a ref that was up to date.
-  const pushed = !printed.split("\n").some((line) => line.startsWith("=\t"));
   try {
     const open = await github.findOpenPullRequest({ head: branch, base });
     if (open) {
       await github.editPullRequest(open.number, record);
       say(`Record PR updated: ${open.url}`);
-      return { pull: open, pushed };
+      return open;
     }
     const created = await github.createPullRequest({
       head: branch,
@@ -695,7 +698,7 @@ async function openRecord(
       ...record,
     });
     say(`Record PR opened: ${created.url}`);
-    return { pull: created, pushed };
+    return created;
   } catch (error) {
     throw new LandFailure(
       "record",
@@ -707,15 +710,13 @@ async function openRecord(
 /**
  * Wait for the LAND_CI_CHECK check of `commit` to finish, and fail unless it
  * passed. Each read prints the state of the check and renews the Lease of the
- * Land Turn. A check that failed before this land, on a head that this land
- * did not push again, runs once more: a land again after a failed check gets
- * a new result.
+ * Land Turn. A land again on a head whose check failed reads that failure,
+ * unless someone ran the job again from its link.
  */
 async function waitForCi(
   github: LandGitHub,
   options: {
     commit: string;
-    pushed: boolean;
     waitMs: number;
     pollMs: number;
     say: (line: string) => void;
@@ -728,8 +729,6 @@ async function waitForCi(
   const name = LAND_CI_CHECK;
   const short = commit.slice(0, 12);
   const started = Temporal.Now.instant().epochMilliseconds;
-  /** The failed check that this land runs again, as it read it. */
-  let rerun: CiCheck | undefined;
   for (;;) {
     const reason = options.leaseOver();
     if (reason) throw leaseEnded(reason);
@@ -742,36 +741,8 @@ async function waitForCi(
         `GitHub refused a read of the "${name}" check of ${short}: ${(error as Error).message}`,
       );
     }
-    // Until the new run shows, a read can still return the old result.
-    if (
-      check &&
-      rerun &&
-      check.id === rerun.id &&
-      check.status === "completed" &&
-      check.completedAt === rerun.completedAt
-    ) {
-      check = undefined;
-    }
     const waited = Temporal.Now.instant().epochMilliseconds - started;
-    if (
-      check?.status === "completed" &&
-      check.conclusion !== "success" &&
-      !options.pushed &&
-      rerun === undefined
-    ) {
-      say(
-        `CI "${name}" of ${short} ended ${check.conclusion} before this land, and the head is the same; running it again.`,
-      );
-      try {
-        await github.rerunCheck(check.id);
-      } catch (error) {
-        throw new LandFailure(
-          "ci",
-          `GitHub refused to run the "${name}" check of ${short} again: ${(error as Error).message}\n${check.url}`,
-        );
-      }
-      rerun = check;
-    } else if (check?.status === "completed") {
+    if (check?.status === "completed") {
       options.runs.push(ciRun(check, commit, waited));
       say(
         `CI "${name}" of ${short}: ${check.conclusion} after ${seconds(waited)}${queueNote(check)}.`,
@@ -779,7 +750,7 @@ async function waitForCi(
       if (check.conclusion === "success") return;
       throw new LandFailure(
         "ci",
-        `The CI job "${name}" ended ${check.conclusion} on ${short}. Its log: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again.`,
+        `The CI job "${name}" ended ${check.conclusion} on ${short}. Its log: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again; when the failure is not in the change, run the job again from its log page, then land again.`,
       );
     } else {
       const state = check ? check.status.replace("_", " ") : "not started";
