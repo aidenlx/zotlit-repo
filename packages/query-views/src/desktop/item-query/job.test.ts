@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, PlatformError } from "effect";
+import { Clock, Deferred, Effect, Fiber, PlatformError } from "effect";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CliData } from "obsidian";
@@ -234,10 +234,13 @@ describe("Query Job", () => {
           ),
         );
         const scenario = yield* scenarioOf();
+        const clock = yield* Clock.Clock;
         let now = 0;
         yield* Effect.acquireDisposable(
           Effect.sync(() =>
-            vi.spyOn(performance, "now").mockImplementation(() => now),
+            vi
+              .spyOn(clock, "monotonicTimeNanosUnsafe")
+              .mockImplementation(() => BigInt(now) * 1_000_000n),
           ),
         );
         const release = Promise.withResolvers<void>();

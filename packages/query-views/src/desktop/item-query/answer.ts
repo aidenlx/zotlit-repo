@@ -1,4 +1,4 @@
-import { Cause, Data, Effect } from "effect";
+import { Cause, Clock, Data, Effect } from "effect";
 import type { Scope } from "effect";
 
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
@@ -27,6 +27,7 @@ import type {
   ResolveAttachmentFile,
 } from "@zotlit/item-query";
 import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
+import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { delimitedLines, delimitedStart } from "@zotlit/shared/delimited";
 import type { DelimitedFormat } from "@zotlit/shared/delimited";
@@ -491,6 +492,7 @@ const createAnswer = Effect.fnUntraced(function* (
   result: QuerySummary,
   context: AnswerContext,
 ) {
+  const now = monotonicMillis(yield* Clock.Clock);
   const summary = {
     ok: true as const,
     identity: context.identity,
@@ -563,7 +565,7 @@ const createAnswer = Effect.fnUntraced(function* (
       }
       let stepMs = 0;
       for (let start = 0; start < rows.length;) {
-        const stepStart = performance.now();
+        const stepStart = now();
         const chunk = rows.slice(start, start + chunkRows);
         const part = encoder.rows(chunk, groupIndex);
         start += chunk.length;
@@ -571,7 +573,7 @@ const createAnswer = Effect.fnUntraced(function* (
           1,
           Math.ceil(CHUNK_TEXT_LENGTH / (part.length / chunk.length)),
         );
-        stepMs += performance.now() - stepStart;
+        stepMs += now() - stepStart;
         yield* append(part);
         if (stepMs < ANSWER_STEP_BUDGET_MS) continue;
         context.onAnswerStep?.(stepMs);

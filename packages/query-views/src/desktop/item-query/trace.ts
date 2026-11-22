@@ -6,7 +6,6 @@ import type { ItemQueryReader } from "@zotlit/db/item-query";
 import { ItemQuerySliceObserver } from "@zotlit/item-query";
 
 import type { QueryInstrument } from "./answer.ts";
-const now = (): number => performance.timeOrigin + performance.now();
 
 export interface CancellationEvent {
   phase:
@@ -35,6 +34,7 @@ interface ExecutionSlice {
 }
 
 export interface Trace {
+  now: () => number;
   instrument: QueryInstrument;
   engineStart: number | undefined;
   engineEnd: number | undefined;
@@ -45,20 +45,26 @@ export interface Trace {
 }
 
 const asyncJob = new AsyncLocalStorage<symbol>();
-const running = new Map<symbol, () => ExecutionSlice>();
+const running = new Map<
+  symbol,
+  { now: () => number; slice: () => ExecutionSlice }
+>();
 const hostCallbacks = new Set<number>();
 const callbacks: { id: number; previousJob: symbol | undefined }[] = [];
 let hostTurn = 0;
-let active: { job: symbol; start: number; slice: ExecutionSlice } | undefined;
+let active:
+  | { job: symbol; now: () => number; start: number; slice: ExecutionSlice }
+  | undefined;
 
 function switchJob(job: symbol | undefined): symbol | undefined {
   const previousJob = active?.job;
   if (previousJob === job) return previousJob;
-  const at = performance.now();
-  if (active) active.slice.ms += at - active.start;
-  const slice = job === undefined ? undefined : running.get(job);
+  if (active) active.slice.ms += active.now() - active.start;
+  const meter = job === undefined ? undefined : running.get(job);
   active =
-    job !== undefined && slice ? { job, start: at, slice: slice() } : undefined;
+    job !== undefined && meter
+      ? { job, now: meter.now, start: meter.now(), slice: meter.slice() }
+      : undefined;
   return previousJob;
 }
 
@@ -82,7 +88,7 @@ const hook = createHook({
   },
 });
 
-export function createTrace(sampleHeap: boolean): Trace {
+export function createTrace(sampleHeap: boolean, now: () => number): Trace {
   const job = Symbol();
   let currentSlice: ExecutionSlice | undefined;
   let sliceTurn = hostTurn;
@@ -98,6 +104,7 @@ export function createTrace(sampleHeap: boolean): Trace {
     ? () => trace.heapSamples.push(process.memoryUsage().heapUsed)
     : () => {};
   const trace: Trace = {
+    now,
     engineStart: undefined,
     engineEnd: undefined,
     paused: [],
@@ -109,7 +116,7 @@ export function createTrace(sampleHeap: boolean): Trace {
         trace.engineStart = now();
         sample();
         if (running.size === 0) hook.enable();
-        running.set(job, jobSlice);
+        running.set(job, { now, slice: jobSlice });
         const tracer = yield* Effect.tracer;
         return yield* Effect.withTracer(operation, {
           span: (options) => tracer.span(options),
@@ -143,12 +150,12 @@ export function createTrace(sampleHeap: boolean): Trace {
           }),
         ),
         Effect.provideService(ItemQuerySliceObserver, {
-          paused: (at) => {
-            trace.paused.push(performance.timeOrigin + at);
+          paused: () => {
+            trace.paused.push(now());
             sample();
           },
-          resumed: (at) => {
-            trace.resumed.push(performance.timeOrigin + at);
+          resumed: () => {
+            trace.resumed.push(now());
             const insideJob = active?.job === job;
             if (insideJob) switchJob(undefined);
             currentSlice = undefined;
@@ -198,7 +205,7 @@ export function finishTrace(
   trace: Trace,
   context: { startedAt: number; answerSteps: number[]; heapBefore?: number },
 ): WorkerMeasurement {
-  const finishedAt = now();
+  const finishedAt = trace.now();
   const { slices } = trace;
   let worstIndex = -1;
   const statements: WorkerMeasurement["statements"] = {};
@@ -250,6 +257,6 @@ export function finishTrace(
             samples: trace.heapSamples.length,
           },
   };
-  measured.workerMs = now() - context.startedAt;
+  measured.workerMs = trace.now() - context.startedAt;
   return measured;
 }

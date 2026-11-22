@@ -1,4 +1,12 @@
-import { Cause, Effect, Exit, FileSystem, PlatformError, Scope } from "effect";
+import {
+  Cause,
+  Clock,
+  Effect,
+  Exit,
+  FileSystem,
+  PlatformError,
+  Scope,
+} from "effect";
 // oxlint-disable-next-line no-restricted-imports -- ItemQueryScheduler uses MessageChannel and adds a per-query time budget.
 import { Scheduler } from "effect";
 
@@ -6,6 +14,7 @@ import type { ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
+import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
 import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/envelope.ts";
 import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
@@ -35,9 +44,10 @@ export function runQueryJob(
 ): Effect.Effect<QueryAnswer, never, FileSystem.FileSystem> {
   const stage: StageState = {};
   return Effect.gen(function* () {
+    const now = monotonicMillis(yield* Clock.Clock);
     const fs = yield* FileSystem.FileSystem;
-    const startedAt = performance.timeOrigin + performance.now();
-    const trace = job.measure ? createTrace(job.heap ?? false) : undefined;
+    const startedAt = now();
+    const trace = job.measure ? createTrace(job.heap ?? false, now) : undefined;
     const answerSteps: number[] = [];
     const heapBefore = job.heap ? process.memoryUsage().heapUsed : undefined;
     const reply =

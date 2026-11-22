@@ -15,6 +15,7 @@ import type {
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
 
 import { queryFlags } from "./contract.ts";
 import { decodeQuery } from "./decode.ts";
@@ -89,7 +90,6 @@ export interface QueryMeasureReport {
   startedAtEpochMs: number;
 }
 
-const now = (): number => performance.now();
 const errorText = (error: unknown): string =>
   Error.isError(error) ? error.message : String(error);
 const round = (ms: number): number => Math.round(ms * 100) / 100;
@@ -159,6 +159,7 @@ const measureRun = Effect.fn("QueryCli.measureRun")(function* ({
   query: CliData;
   measured: CliOutput<typeof measureParams>;
 }) {
+  const now = monotonicMillis(yield* Clock.Clock);
   let measurement: WorkerMeasurement | undefined;
   const cancellationEvents: CancellationEvent[] = [];
   const uiGaps: number[] = [];

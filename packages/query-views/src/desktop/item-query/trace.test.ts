@@ -1,7 +1,7 @@
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Scheduler } from "effect";
 import { createHook } from "node:async_hooks";
-import { describe, expect, vi } from "vitest";
+import { describe, expect } from "vitest";
 
 import { ItemQueryStatementObserver } from "@zotlit/db/item-query";
 import type { ItemQueryReader } from "@zotlit/db/item-query";
@@ -25,8 +25,9 @@ function clock() {
       waits.delete(id);
     },
   }).enable();
-  const spy = vi.spyOn(performance, "now").mockImplementation(() => now);
+
   return {
+    now: () => now,
     work: (ms: number) => {
       now += ms;
     },
@@ -38,17 +39,12 @@ function clock() {
     },
     [Symbol.dispose]: () => {
       hook.disable();
-      spy.mockRestore();
     },
   };
 }
 
 const onScheduler =
-  (
-    options: ConstructorParameters<typeof ItemQueryScheduler>[0] = {
-      budgetMs: 8,
-    },
-  ) =>
+  (options: ConstructorParameters<typeof ItemQueryScheduler>[0]) =>
   <A, E, R>(effect: Effect.Effect<A, E, R>) =>
     Effect.provideService(
       effect,
@@ -56,9 +52,9 @@ const onScheduler =
       new ItemQueryScheduler(options),
     );
 
-const reportOf = (trace: ReturnType<typeof createTrace>) =>
+const reportOf = (trace: ReturnType<typeof createTrace>, startedAt = 0) =>
   finishTrace(trace, {
-    startedAt: performance.timeOrigin,
+    startedAt,
     answerSteps: [],
   });
 
@@ -68,7 +64,7 @@ describe("Item Query execution slices", () => {
     (waitMs) =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false);
+        const trace = createTrace(false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -77,7 +73,7 @@ describe("Item Query execution slices", () => {
               yield* Effect.sync(() => time.work(3));
             }),
           )
-          .pipe(onScheduler());
+          .pipe(onScheduler({ budgetMs: 8, now: time.now }));
         const report = reportOf(trace);
         expect(report.engineMs).toBe(waitMs + 5);
         expect(report.slices.filter((ms) => ms > 0)).toEqual([2, 3]);
@@ -87,10 +83,10 @@ describe("Item Query execution slices", () => {
   it.live("keeps a synchronous stall in its execution slice", () =>
     Effect.gen(function* () {
       const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-      const trace = createTrace(false);
+      const trace = createTrace(false, time.now);
       yield* trace
         .instrument(Effect.sync(() => time.work(60)))
-        .pipe(onScheduler());
+        .pipe(onScheduler({ budgetMs: 8, now: time.now }));
       expect(Math.max(...reportOf(trace).slices)).toBe(60);
     }),
   );
@@ -100,7 +96,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false);
+        const trace = createTrace(false, time.now);
         yield* trace
           .instrument(
             Effect.promise(async () => {
@@ -108,7 +104,7 @@ describe("Item Query execution slices", () => {
               time.work(60);
             }),
           )
-          .pipe(onScheduler());
+          .pipe(onScheduler({ budgetMs: 8, now: time.now }));
         const report = reportOf(trace);
         expect(report.engineMs).toBe(660);
         expect(report.slices.filter((ms) => ms > 0)).toEqual([60]);
@@ -128,6 +124,7 @@ describe("Item Query execution slices", () => {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
         const gateA = Promise.withResolvers<void>();
         const gateB = Promise.withResolvers<void>();
+        const nowB = () => time.now() + 1_000;
         const start = (
           trace: ReturnType<typeof createTrace>,
           gate: Promise<void>,
@@ -154,11 +151,12 @@ describe("Item Query execution slices", () => {
               }),
             )
             .pipe(
-              onScheduler({ budgetMs: Infinity }),
+              onScheduler({ budgetMs: Infinity, now: time.now }),
               Effect.forkChild({ startImmediately: true }),
             );
-        const traceA = createTrace(false);
-        const traceB = createTrace(false);
+        const traceA = createTrace(false, time.now);
+        const startedB = nowB();
+        const traceB = createTrace(false, nowB);
         const jobA = yield* start(traceA, gateA.promise, {
           reader: "scan-page",
           beforeWait: 2,
@@ -188,7 +186,7 @@ describe("Item Query execution slices", () => {
         yield* Fiber.join(jobB);
 
         const reportA = reportOf(traceA);
-        const reportB = reportOf(traceB);
+        const reportB = reportOf(traceB, startedB);
         expect(reportA.slices.filter((ms) => ms > 0)).toEqual([2, 10]);
         expect(reportB.slices.filter((ms) => ms > 0)).toEqual([5, 21]);
         expect(reportA.worstSlice?.statements).toEqual([
@@ -216,7 +214,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false);
+        const trace = createTrace(false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -226,7 +224,7 @@ describe("Item Query execution slices", () => {
               }
             }),
           )
-          .pipe(onScheduler());
+          .pipe(onScheduler({ budgetMs: 8, now: time.now }));
         expect(reportOf(trace).slices.filter((ms) => ms > 0)).toEqual([9, 9]);
       }),
   );
@@ -236,7 +234,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false);
+        const trace = createTrace(false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -246,6 +244,7 @@ describe("Item Query execution slices", () => {
           )
           .pipe(
             onScheduler({
+              now: time.now,
               budgetMs: 8,
               pause: (resume) => {
                 queueMicrotask(resume);
@@ -264,7 +263,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false);
+        const trace = createTrace(false, time.now);
         const run: Fiber.Fiber<void> = yield* Effect.forkChild(
           trace
             .instrument(
@@ -276,7 +275,7 @@ describe("Item Query execution slices", () => {
                 });
               }),
             )
-            .pipe(onScheduler()),
+            .pipe(onScheduler({ budgetMs: 8, now: time.now })),
         );
         const exit = yield* Fiber.await(run);
         expect(Exit.hasInterrupts(exit)).toBe(true);
