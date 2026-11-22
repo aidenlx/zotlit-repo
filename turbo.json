@@ -179,6 +179,7 @@
         "packages/config/repositories.ts",
         "packages/scripts/lib/obsidian-manifest.ts",
         "packages/scripts/lib/package-roots.ts",
+        "packages/scripts/package.json",
         "packages/scripts/lib/shell/plugins.ts",
         "packages/scripts/scripts/check-manifest.ts"
       ]

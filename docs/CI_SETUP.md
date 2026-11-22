@@ -34,12 +34,16 @@ To set it up:
 1. On vercel.com, open the account's Settings → Build and Deployment → OIDC
    Policies for CLI Access, and add a Turborepo CLI policy for the GitHub
    repository `aidenlx/zotlit-repo`, restricted to the workflow
-   `.github/workflows/record-pr.yml`. Keep the default audience.
+   `.github/workflows/record-pr.yml`. Set no branch restriction, because the
+   job runs on the ref of each pull request. Keep the default audience.
 2. Set the repository variable `TURBO_TEAM` to the account's team slug (General
    settings on vercel.com):
    `gh variable set TURBO_TEAM --repo aidenlx/zotlit-repo --body <slug>`.
-3. On the Mac, run `pnpm exec turbo login`, then `pnpm exec turbo link` in the
-   main checkout and select the same team.
+3. On the Mac, run `pnpm exec turbo login` once; it keeps the token in the
+   user's Turborepo configuration. Then set `TURBO_TEAM` to the same slug in
+   the user's environment (for example `~/.zshenv`), so that each `wt`
+   worktree reads it. A turbo run in a worktree then logs
+   `Remote caching enabled`.
 
 A run with the Remote Cache logs `Remote caching enabled`. The `test` task
 hashes `GITHUB_ACTIONS` and `ZOTLIT_TEST_ELECTRON_PATH`, so a test result of the
