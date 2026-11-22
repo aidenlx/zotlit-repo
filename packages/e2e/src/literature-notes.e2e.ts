@@ -821,17 +821,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       `Citation key: ${booksProfileTargetItem.citationKey}`,
     );
     await waitForOneIndexedNote(run.vaultId, defaultResult.indexedKey);
-    const booksIndexedKey = await obRun(
+    const { indexedKey: booksIndexedKey } = await indexedNote(
       run.vaultId,
-      async ({ app }, { booksNotePath }) => {
-        return String(
-          await app.metadataCache.getFileCache(
-            app.vault.getFileByPath(booksNotePath)!,
-          )!.frontmatter!["zotero-key"],
-        );
-      },
-      { booksNotePath: run.booksNotePath },
+      booksProfileTargetItem.itemID,
     );
+    expect(booksContent).toContain(booksIndexedKey);
     await waitForOneIndexedNote(run.vaultId, booksIndexedKey);
   });
 
