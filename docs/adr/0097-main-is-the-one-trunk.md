@@ -1,5 +1,5 @@
 ---
-status: superseded in part by ADR-0102
+status: superseded in part by ADR-0102, ADR-0115
 ---
 
 # main is the one trunk

@@ -38,7 +38,6 @@ export interface E2eCase {
 
 export interface E2eFailure {
   introduction: readonly string[];
-  stage: string;
   evidence: string;
   log: string;
   cases: readonly E2eCase[];
@@ -166,7 +165,7 @@ function caseBody(failure: E2eFailure, { id, message }: E2eCase): string {
 }
 
 function runBody(failure: E2eFailure): string {
-  const { introduction, stage, cases } = failure;
+  const { introduction, cases } = failure;
   return [
     ...introduction,
     ...(cases.length > 0
@@ -184,9 +183,7 @@ function runBody(failure: E2eFailure): string {
             ? [`And ${cases.length - LISTED_CASES} more.`]
             : []),
         ]
-      : [
-          `The results name no failed case; the run failed at the ${stage} stage.`,
-        ]),
+      : ["The results name no failed case."]),
     "",
     ...logExcerpt(failure),
   ].join("\n");

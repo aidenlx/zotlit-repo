@@ -25,8 +25,7 @@ wt switch --create fix/<topic> --base origin/main   one worktree per change
   pnpm verify                                    format, lint (the typecheck), tests of the
                                                  changed packages and their dependents
 pnpm land                                        rebase, verify --local, record PR,
-                                                 wait for its CI tests, fast-forward main;
-                                                 then an End-to-end Run of the new tip
+                                                 wait for its CI tests, fast-forward main
 wt remove fix/<topic>
 ```
 

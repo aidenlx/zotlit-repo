@@ -1,5 +1,5 @@
 ---
-status: superseded in part by ADR-0097
+status: superseded in part by ADR-0097, ADR-0115
 ---
 
 # Changes land on next through a serial queue

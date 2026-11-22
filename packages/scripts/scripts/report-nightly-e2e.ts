@@ -25,7 +25,6 @@ try {
       `The nightly End-to-end Run failed on \`main\` at ${commit}.`,
       "",
     ],
-    stage: "End-to-end Run",
     evidence: `The [Actions run](${server}/${repository}/actions/runs/${run}) contains the log and evidence.`,
     log,
     cases: await readFailedE2eCases(join(directory, "evidence")),

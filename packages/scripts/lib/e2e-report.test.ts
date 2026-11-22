@@ -111,7 +111,6 @@ const report = (
 ) =>
   reportE2eFailure(issues.client, REPO, {
     introduction: ["The introduction.", ""],
-    stage: "named",
     evidence: "The evidence is there.",
     log,
     cases,
@@ -214,7 +213,7 @@ describe("reportE2eFailure", () => {
     const { body } = issues.comments[0]!;
     expect(body).toContain("The introduction.");
     expect(body).toContain("The evidence is there.");
-    expect(body).toContain("failed at the named stage");
+    expect(body).toContain("The results name no failed case.");
     expect(body).toContain("\nlast line\n");
     expect(body).not.toContain("first line");
     expect(urls).toEqual(["u7"]);

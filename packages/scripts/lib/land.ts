@@ -146,7 +146,6 @@ export interface LandOptions {
 export type LandResult =
   | {
       ok: true;
-      commit: string;
       attempts: number;
       waitMs: number;
       logPath: string;
@@ -411,7 +410,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
     say(`Landed ${source} into ${to} at ${commit.slice(0, 12)}.`);
     return {
       ok: true,
-      commit,
       attempts,
       waitMs,
       logPath,

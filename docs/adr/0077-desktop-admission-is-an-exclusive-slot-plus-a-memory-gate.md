@@ -115,9 +115,8 @@ measure that, so no hold states one now.
   now plus the silence limit of the holder's kind. For a Vitest run, progress
   is each test file, test case, and hook that starts or ends, and each stage
   of the Paired Run setup. A script such as `measure:query` reports progress
-  at its steps. A holder that wraps a child process, such as a Land Turn or
-  the End-to-end Run after a land, takes each output of the child as
-  progress. A healthy run is never ended. A silent run ends itself with exit
+  at its steps. A holder that wraps a child process, such as a Land Turn,
+  takes each output of the child as progress. A healthy run is never ended. A silent run ends itself with exit
   76 and says how long it was silent and what its last progress was. The
   silence limits are constants of the tools: 12 min for `pnpm e2e`,
   `e2e:worker`, and the desktop runs of `pnpm verify --release` (above the
@@ -168,11 +167,6 @@ need no window. Other platforms have no probe, and a probe that fails answers
 
 - `pnpm verify --release` and `pnpm release` run the check before their
   first step, so a release gate stops in seconds, not after its other steps.
-- The End-to-end Run after a land checks before its checkout and again after
-  a run that failed or was blocked. A tip that the desktop could not run is
-  recorded as `not-run` with the machine state, opens no issue, and leaves
-  the last run tip as it was, so the next land's run covers the newer tip.
-  `pnpm land status` lists the last runs with their outcomes.
 - A failed `pnpm e2e` run checks again at its end and prints one line after
   the summary when the desktop cannot paint then.
 - While a desktop holder holds its slot, `caffeinate -d -i -w <pid>` keeps
