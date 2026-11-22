@@ -70,6 +70,14 @@ tester.run("no-tacit", noTacit, {
     },
     { code: `${effect}Effect.forEach(items, save)`, errors: tacit },
     {
+      code: `${effect}Stream.mapAccum(stream, () => 0, step)`,
+      errors: [{ messageId: "tacit", column: 33, endColumn: 37 }],
+    },
+    {
+      code: `${effect}const opts = { discard: true } as const; Effect.forEach(save, opts)`,
+      errors: [{ messageId: "tacit", column: 56, endColumn: 60 }],
+    },
+    {
       code: `${effect}effect.pipe(Effect.catchTag("NotFound", recover))`,
       errors: tacit,
     },

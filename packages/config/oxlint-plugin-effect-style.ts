@@ -337,10 +337,12 @@ function callbackArgument(
 
   const last = args[index];
   const preceding = args[index - 1];
+  const precedingIsFunction =
+    preceding?.type === "ArrowFunctionExpression" ||
+    preceding?.type === "FunctionExpression";
   if (
     last?.type === "ObjectExpression" ||
-    preceding?.type === "ArrowFunctionExpression" ||
-    preceding?.type === "FunctionExpression"
+    (precedingIsFunction && !name.startsWith("Stream.mapAccum"))
   )
     return preceding;
   const parent = call.parent;
@@ -360,11 +362,16 @@ function callbackArgument(
       const variable = scope.set.get(last.name);
       if (!variable) continue;
       if (
-        variable.defs.some(
-          ({ node }) =>
-            node.type === "VariableDeclarator" &&
-            node.init?.type === "ObjectExpression",
-        )
+        variable.defs.some(({ node }) => {
+          if (node.type !== "VariableDeclarator") return false;
+          let value = node.init;
+          while (
+            value?.type === "TSAsExpression" ||
+            value?.type === "TSSatisfiesExpression"
+          )
+            value = value.expression;
+          return value?.type === "ObjectExpression";
+        })
       )
         return preceding;
       break;
