@@ -1,6 +1,6 @@
 # @zotlit/plugin-services
 
-The platform services that the features of every ZotLit Obsidian plugin (desktop, Reader, Mobile) stand on: the plugin settings, logging, the Language Pack, the Zotero preferences, the Local Server and the Zotero Local API, the database actions, the Held Read client (`QueryClients`), Library Scope, the item search (`ItemLookup`), the Note Index, the Use Ledger, the Managed Binaries and the Chinese Segmenter, and the attachment resolver and Attachment Import. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`).
+The platform services for ZotLit features and the shared services used by ZotLit Reader: the plugin settings, logging, the Language Pack, the Zotero preferences, the Local Server and the Zotero Local API, the database actions, the Held Read client (`QueryClients`), Library Scope, the item search (`ItemLookup`), the Note Index, the Use Ledger, the Managed Binaries and the Chinese Segmenter, and the attachment resolver and Attachment Import. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`).
 
 This package imports no feature: the features (`@zotlit/annotations`, `@zotlit/citations`, `@zotlit/notes`, `@zotlit/template-workbench`, `@zotlit/query-views`, `@zotlit/library-view`) build on it.
 
@@ -19,10 +19,6 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 The settings are one flat key→value map, built from slices. A slice (`settingsSlice` in `core/settings/slice.ts`) holds the keys one owner keeps, their schemas and their defaults, and lives beside its owner. The type of every key comes from `SettingsRegistry` (`core/settings/schema.ts`): its base holds the log slice, which every host keeps, and each other slice, this package's and each feature's, registers itself by declaration merging in its own file. A key exists only in a program that holds its slice, so a module that reads a key and imports nothing from its slice imports it as a type: `import type {} from "#core/attachment-import/settings.ts";`. The host composes the same slices into the `SettingsDefinition` that it gives `PluginSettings`, with the migrations of its `data.json` history (`apps/obsidian/src/services/settings/`). A feature adds a key to its own slice; it never adds one here.
 
-## Module resolution
-
-The package exports its TypeScript source as `@zotlit/plugin-services/<layer>/<service>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#core/settings/schema.ts`), with its extension.
-
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<service>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. A suite that needs the settings store takes `platformSettings` from `src/__fixtures__/platform-settings.ts`; a fixture that a host's tests also use takes the definition from its caller. `pnpm --filter @zotlit/plugin-services bench` runs the benchmarks.
+From this package directory, `pnpm exec vitest run src/<layer>/<service>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. A suite that needs the settings store takes `platformSettings` from `src/__fixtures__/platform-settings.ts`; a fixture that a host's tests also use takes the definition from its caller. `pnpm --filter @zotlit/plugin-services bench` runs the benchmarks.

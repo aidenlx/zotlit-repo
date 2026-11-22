@@ -2,7 +2,7 @@
 
 The Template Workbench in Obsidian: the Template Workbench View with its Preview and Fields Panel, the Template Data Explorer, the Template Workbench CLI and its guide, and Customize, which opens a Profile in the view. The desktop plugin composes it. The terms are defined in the Obsidian Plugin glossary (`apps/obsidian/GLOSSARY.md`, "Templates" and "Agent CLI").
 
-The package holds the Workbench core too (the Profile document, the editor language support and rendering in `core/`, and the Workbench UI in `obsidian/workbench-ui/`); [`README.md`](README.md) describes the core's units in detail. It builds on `@zotlit/notes` for the Profiles, the Templates and template data, and fills the notes' `TemplateWorkbenchLauncher` port (`desktop/view/open.ts`). It tests Profile Matches through the notes' `ItemMatchQuery` port, which the host fills. `@zotlit/query-views` imports the core's filter fields, expression language and Match editor for the Query View's Filter and Formula pages; no other package imports this one.
+The package holds the Workbench core too (the Profile document, the editor language support and rendering in `core/`, and the Workbench UI in `obsidian/workbench-ui/`); [`README.md`](README.md) describes the core's units in detail. It builds on `@zotlit/notes` for the Profiles, the Templates and template data, and fills the notes' `TemplateWorkbenchLauncher` port (`desktop/view/open.ts`). It tests Profile Matches through the notes' `ItemMatchQuery` port, which the host fills. `@zotlit/query-views` imports the core's filter fields, expression language and Match editor for the Query View's Filter and Formula pages; the Library View tests also consume its Customize service.
 
 ## Units
 
@@ -34,13 +34,9 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`); 
 - `desktop/` — Node and Electron: the CLI, the Data Explorer and the View, which read template data that links files on disk.
 - `__fixtures__/` — test support, one folder or file per unit.
 
-## Module resolution
-
-The package exports its TypeScript source as `@zotlit/template-workbench/<layer>/<unit>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#obsidian/editor/host.tsx`), with its extension. Each unit imports its own stylesheet; the host's bundler collects them.
-
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The Match test of a real Item over the host's ZotLit Query service stays in the app (`apps/obsidian/src/services/template-workbench/match-data.test.ts`).
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The Match test of a real Item over the host's ZotLit Query service stays in the app (`apps/obsidian/src/services/template-workbench/match-data.test.ts`).
 
 ## Feature
 

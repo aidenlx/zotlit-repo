@@ -21,13 +21,13 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 Each unit registers itself: a service tag adds itself to `ViewServiceRegistry`, the citation slice (`core/citation-index/settings.ts`) adds its keys to `SettingsRegistry`, and a file that raises a menu adds its event to `ZotLitMenuEvents` (`@zotlit/obsidian-kit/menu-events.ts`). The host composes the citation slice into its settings definition.
 
-## Module resolution
+## Build integration
 
-The package exports its TypeScript source as `@zotlit/citations/<layer>/<unit>/<file>.ts`, and the Vite plugin that serves the Lua filter variants as `@zotlit/citations/vite` (`scripts/lua-filter.ts`). Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#obsidian/citation-index/service.ts`), with its extension. Each unit imports its own stylesheet; the host's bundler collects them.
+The build-only `@zotlit/citations/vite` entry (`scripts/lua-filter.ts`) serves the Lua filter variants.
 
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
 
 `pnpm --filter @zotlit/citations test:lua-filter` drives a native Pandoc (3.1.1 or newer) over fixture Markdown to check both `zotlit-cite.lua` variants. It needs `pandoc` on PATH; set `PANDOC_BIN` to check another Pandoc version. `pnpm test` runs it too, and skips it where no `pandoc` is on PATH.
 

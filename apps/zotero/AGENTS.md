@@ -1,6 +1,6 @@
 # @zotlit/zotero
 
-Zotero 9 and Zotero 10 (both Firefox 140 ESR) companion plugin. `strict_min_version` is `9.0` and `strict_max_version` is `10.*`, both in `package.json` under `zotero`. No backward-compat with Zotero 8 or earlier.
+Companion plugin for Zotero 9 and 10 (Firefox 140 ESR). `package.json` under `zotero` owns the supported version range. Changes target that range; Zotero 8 is outside it.
 
 ## Commands
 
@@ -12,7 +12,7 @@ Debug live runtime state (notifiers, `Zotero.*` returns, pref reads, HTTP notify
 
 ## UI text (Derived Fluent Files)
 
-Author Companion copy under the `zotero` object in `messages/{locale}.json`; the build derives `addon/locale/{locale}/zotlit.ftl` from it and regenerates `src/types/fluent.ts`, which is committed. A production build fails when that file is stale — rerun it and commit. Format in TS through `formatValue` / `requireMessage` / `l10nArgs` from `@/lib/l10n`, typed over `FluentMessages`; reference XUL through `data-l10n-id`, checked at build.
+Author Companion copy under the `zotero` object in `messages/{locale}.json`; the build derives `addon/locale/{locale}/zotlit.ftl` from it and regenerates `src/types/fluent.ts`, which is committed. A production build fails when that file is stale — rerun it and commit. Format in TS through `formatValue` / `requireMessage` / `l10nArgs` from `@/lib/l10n.ts`, typed over `FluentMessages`; reference XUL through `data-l10n-id`, checked at build.
 
 Run `/i18n-ui-text` for wording style (menu labels are the Title Case exception); `/inlang-i18n` for JSON format. The generator in `scripts/vite-fluent-plugin.ts` owns ID mapping and attributes.
 

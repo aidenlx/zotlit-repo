@@ -4,11 +4,10 @@ Item Query over the top-level, non-trashed Items of one or more Target Libraries
 
 ## Commands
 
-Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests read `@zotlit/db` from its source, so a single-file Vitest run needs no build.
+Use the root commands for tests and repository-wide lint (root AGENTS.md → Commands). Tests read `@zotlit/db` from its source, so a single-file Vitest run needs no build.
 
 ## Effect
 
-- Effect v4 differs from v3. Read the installed source (`node_modules/effect/src`) for API facts.
 - The engine has no pause calls. Put each SQL statement and each in-memory chunk in one Effect; `ItemQueryScheduler` (`src/scheduler.ts`) ends a slice. Keep a page or a chunk in the Effect that reads it, so a limited query holds `limit + 1` rows, one page, and one hydrate chunk at most. Effect's default scheduler blocks the Obsidian window.
 - Failures: `ItemQueryError` for an invalid request, the tagged errors of `@zotlit/db/item-query` for the database (`ItemQueryLayoutError` for a layout the readers cannot read, `ItemQueryDatabaseError` for a failed statement), interruption for cancellation, a defect for an implementation failure.
 - The layout check needs no call: the first reader statement on a copy runs it. An operation that reads the database through the readers gets it. ZoteroReads runs the same check when it validates a client, so a copy it serves is a copy the readers read.
@@ -40,15 +39,7 @@ Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Tests read `@zo
 
 ## Obsidian adapter
 
-The adapter is `packages/query-views/src/*/item-query/` (`@zotlit/query-views`). `QueryService` is its only Promise edge: it runs each Query Job as a fiber and maps Obsidian's `AbortSignal` to fiber interruption there.
-
-- Command names, flags, and `DEFAULT_CLI_LIMIT`: `contract.ts`. The CLI Datasets (`datasets.ts`) and the guide (`guide.ts`) read them there; the guide also prints `defaultFields` and `defaultSort` of the `ITEMS` descriptor of this package.
-- The Target Libraries and the query run in one Effect (`answer` in `answer.ts`) inside the ZoteroReads connection scope. The Query Job (`job.ts`) provides the borrowed client as `ItemQueryDatabase` and gives the captured envelope identity to the answer. Every choice of Libraries is a `LibraryScope`: the one in force (`scope` of `AnswerJob`, a value of the `QueryJob`), All Libraries for `library=all`, or Selected Libraries for the selectors in `library`. `answer` resolves it with `resolveLibraryScope` on the rows of `readLibraries`, read on the borrowed client of the query. It is the one Library reader: `LibraryScopeService` gets the same rows through `getLibraries`. A named scope needs each of its Libraries (`requireEach`). A run without its Target Libraries fails with `TargetLibrariesUnavailable`; `answerFailure` in `answer.ts` maps its `reason` to `library-not-found`, `source-unavailable`, or `no-library-available`.
-- CLI argument decoding: `decodeQuery` in `decode.ts`. `QueryService` decodes once in the renderer, claims the query id from the decoded value, and sends the `DecodedQuery` in the `QueryJob`; the worker handlers take the `DecodedQuery`. Keep `DecodedQuery` plain JSON, with an omitted argument as an absent key: the RPC accepts only JSON values.
-- A diagnostic code of the adapter and its recovery text: `DIAGNOSTIC_HINTS` in `contract.ts`; the guide prints that list.
-- The production CLI query and schema run through `QueryService` and the ZoteroReads RPC handler. The worker holds one connection borrow through execution and file closure; Query Rows and Temporal values stay inside the worker. `consumeQuery` delivers projection chunks sequentially to the encoder, `createAnswer` in `answer.ts`; each write finishes before the next projection chunk is read. The package's `collectQuery` collects the same chunks into the complete result, for callers outside the adapter. Small responses return inline, bounded by `INLINE_MAX_BYTES`. The encoder receives only a writer.
-- One Query Job is one fiber in the worker: `runQueryJob` in `job.ts` runs it on `ItemQueryScheduler` with the database of the job. The ZoteroReads handler keeps the fiber in a `FiberMap` by job id, from the wait for a slot to the answer; `CancelItemQuery` and an interrupted request both interrupt it. The staging writer is an `acquireRelease` in the scope of the job, so it closes before the borrow ends; an interrupt lands between two chunks, and the open, each write, and the close of the file run to their end. The answer carries a `QueryReceipt`: `QueryService` publishes a `file` receipt and removes the staging file when the job ends. Its job fiber is uninterruptible outside the wait for startup and the wait for the worker, so publication wins a late cancel. An interrupt in the wait for the worker sends `CancelItemQuery` and waits for the answer, so the request settles after the worker closes its writer and ends its borrow. Keep a JSON file byte-identical to `JSON.stringify(envelope, null, 2)`. A `format=csv` or `format=tsv` file holds one line for each row in its place: `delimitedRows` in `answer.ts` writes it through `@zotlit/shared/delimited`, with each value as `valueText` gives it.
-- Responsiveness measurement checks renderer timer gaps across execution, response transfer, and file publication. Execution slices and encoding steps retain the spec's limits in the worker. Keep bulk values in the worker: both a large result graph and a large transferred string can block the renderer through allocation and garbage collection.
+The adapter belongs to `@zotlit/query-views`. When changing Query Job transport, cancellation or file publication, read its [adapter reference](../query-views/README.md). Engine operations remain host-free.
 
 ## Tests
 

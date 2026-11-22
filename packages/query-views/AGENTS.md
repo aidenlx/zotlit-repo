@@ -8,7 +8,7 @@ The package fills ports of the features it shows:
 
 - `ItemMatchQuery` of `@zotlit/notes`: `desktop/item-query/item-matches.ts` tests Profile Matches through `QueryService`.
 
-It imports `@zotlit/annotations` for the annotation cards and Annotations Layout, `@zotlit/notes` for Literature Notes and note creation, and `@zotlit/template-workbench` for the Template Workbench CLI envelope and the Data Explorer. No feature package imports this one; `@zotlit/library-view` builds on it.
+It imports `@zotlit/annotations` for the annotation cards and Annotations Layout, `@zotlit/notes` for Literature Notes and note creation, and `@zotlit/template-workbench` for the Template Workbench CLI envelope and the Data Explorer. `@zotlit/library-view` builds on this package.
 
 ## Layers
 
@@ -21,13 +21,13 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 Each unit registers itself: `QueryService` adds itself to `ViewServiceRegistry` (`desktop/item-query/service.ts`), and `desktop/item-query/worker-protocol.ts` adds the Item Query requests to the ZoteroReads Worker contract.
 
-## Module resolution
+## Query Job lifecycle
 
-The package exports its TypeScript source as `@zotlit/query-views/<layer>/<unit>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#desktop/item-query/service.ts`), with its extension.
+When changing CLI decoding, Worker execution, cancellation or result publication, read the [adapter reference](README.md). It names the owners and the lifetime of the database borrow and staging file.
 
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest` and `@chenglou/pretext` resolved to `__mocks__/pretext.ts`. `pnpm bench` runs the Query View benchmarks (`vitest.bench.config.ts`); `desktop/query-view/mixed-query.bench.ts` reads a local Zotero database.
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest` and `@chenglou/pretext` resolved to `__mocks__/pretext.ts`. `pnpm bench` runs the Query View benchmarks (`vitest.bench.config.ts`); `desktop/query-view/mixed-query.bench.ts` reads a local Zotero database.
 
 ## Feature
 

@@ -2,76 +2,37 @@
 
 ## Repo shape
 
-Turborepo + pnpm monorepo for **ZotLit**, an Obsidian plugin that integrates Zotero. Workspaces are `apps/*` and `packages/*` (declared in `pnpm-workspace.yaml`).
+ZotLit integrates Obsidian and Zotero. Start in the workspace that owns the behavior.
 
-- `apps/obsidian` — the desktop Obsidian plugin (`@zotlit/obsidian`): a thin host that composes the feature packages on `@zotlit/plugin-shell`.
-- `apps/reader` — ZotLit Reader (`@zotlit/reader`, plugin id `zotlit-reader`), the second Obsidian plugin: a thin host on `@zotlit/plugin-shell` that opens vault PDFs in the ZotLit PDF Reader, with no ZotLit and no Zotero. ZotLit adds its Zotero features to the Reader's view through `@zotlit/reader-api`, and opens PDFs in Obsidian's own PDF view when the Reader is absent.
-- `apps/resources` — the Resource Pack (`@zotlit/resources`, plugin id `zotlit-resources`), the third Obsidian plugin: its `main.js` is a container of Pack Entries (the Pandoc Engine and the Chinese Segmenter) that ZotLit reads through `@zotlit/resource-pack`. Its build is a Node script, with no bundler.
-- `apps/zotero` — Zotero-side companion.
-- `apps/docs` — documentation and landing sites.
-- `packages/annotations`, `packages/citations`, `packages/notes`, `packages/template-workbench`, `packages/query-views`, `packages/library-view` — the plugin's features, one package each, in layers (`core/` host-free, `obsidian/` without Node, `desktop/` with Node and Electron) that lint enforces. Each package's `AGENTS.md` names what it owns.
-- `packages/config` — consumed via `@zotlit/config` exports map.
-- `packages/db` — Drizzle ORM client for Zotero database.
-- `packages/db-testing` — test fixtures for `@zotlit/db` and its consumers: the Node fixture schema, statement counters, and scenario database, and the driver conformance suite (`./conformance`) that each client adapter runs. Tests depend on it as a dev dependency.
-- `packages/e2e` — the End-to-end Run suite against a running desktop Obsidian.
-- `packages/filter-expression` — the expression language of filters and formulas.
-- `packages/item-lookup` — fuzzy item-search over `@zotlit/db`.
-- `packages/item-query` — Item Query over the Items of the Target Libraries; its SQL lives in `@zotlit/db/item-query`.
-- `packages/obsidian-i18n`, `packages/paraglide-vite` — the Message compiler and Language Pack runtime, and the Vite plugin that compiles the messages.
-- `packages/pdf-structure` — pinned port of Zotero's PDF text structure, with the Sort Index and Page Label.
-- `packages/pdf-reader`, `packages/pdfjs` — the ZotLit PDF Reader (the engine, the view and its Obsidian host layer, free of Zotero, ZotLit and the shell) and the vendored build of ZotLit's pdf.js fork that it runs on. ZotLit Reader bundles both; ZotLit's packages take both as dev dependencies, for types and tests only.
-- `packages/plugin-kernel`, `packages/obsidian-kit`, `packages/obsidian-desktop` — the shared base of the Obsidian plugin, in three layers by what the host provides: host-free code (no `obsidian`, `electron` or `node:*`), code over the Obsidian API that loads on Obsidian Mobile, and desktop-only code over Node and Electron. A layer imports only the layers below it. See each package's `AGENTS.md`.
-- `packages/plugin-services` — the platform services the plugin's features stand on (settings, logging, the Language Pack, the Zotero preferences and connections, the database and query clients, item search, the Note Index, attachments), in three layers with their own lint boundaries: host-free, Obsidian, desktop (see its `AGENTS.md`).
-- `packages/plugin-shell` — the plugin shell: `defineFeature`, `defineHost`, `shellPlugin`, the lifecycle, the runtime, and the setting tab shell. A host gives it a feature list.
-- `packages/plugin-messages` — the generated Message facade and Language Packs of the Obsidian plugin (`@zotlit/plugin-messages/messages.ts`).
-- `packages/pdfjs-dist` — type definitions of Zotero's pdf.js fork, an upstream copy that `zotero-types` reads through an override (see its `README.md`).
-- `packages/protocol` — wire format (valibot schemas) for ZotLit ↔ Zotero.
-- `packages/reader-api`, `packages/reader-feature`, `packages/reader-messages` — the Reader API (the versioned contract between ZotLit Reader and a client plugin, which both plugins build against), the `reader` feature of ZotLit Reader, and the Reader's generated Message facade and Language Packs. See each package's `AGENTS.md`.
-- `packages/resource-pack` — the Resource Pack container: its format, the writer that the pack build runs, and the reader that every host loads (web APIs only, with the pack file as one `ReadRange` capability).
-- `packages/scripts` — the repository's tooling: `verify`, `land`, the Desktop Slot, the Fixture, and the release and shell generator scripts.
-- `packages/shared`, `packages/ui` — app-agnostic utilities and UI components that several packages use.
-- `packages/templates` — Eta-based template rendering.
-- `packages/zotero-reads` — ZoteroReads, the RPC between the Obsidian plugin and the Web Worker that owns the Zotero database: its contract, the Worker's handlers, the renderer's client, and the desktop database source, each a layer with its own lint boundary (see its `AGENTS.md`).
-- `packages/zotero-types` — generated item-field shapes from Zotero's upstream schema, plus the Zotero key grammar (`./keys`) and key-only `zotero://` links (`./uri`).
-- `video/` — **private, opt-in nested clone** of `aidenlx/zotlit-video`: the workbench for product videos. Git ignores the folder. Clone it with `mise run video:clone`, then follow `video/AGENTS.md`. Commit and push video work inside `video/`; removing the worktree deletes the clone.
+- **Plugin features.** `apps/obsidian` composes features from `packages/annotations`, `citations`, `notes`, `template-workbench`, `query-views`, and `library-view`. The package guides describe their host-free, Obsidian, and desktop layers.
+- **Shared plugin code.** `plugin-shell` owns composition and lifecycle. `plugin-services` owns shared platform services. Put lower-level code in `plugin-kernel`, `obsidian-kit`, or `obsidian-desktop` according to the host capabilities it needs.
+- **Reader and resources.** `apps/reader` opens vault PDFs independently. ZotLit integrates through `packages/reader-api`. `apps/resources` builds the Resource Pack that hosts read through `packages/resource-pack`.
+- **Data.** `packages/db` owns SQL, including Item Query statements. `item-query` and `item-lookup` consume it. `zotero-reads` connects the renderer and the database worker. Engine code must also run in a mobile Web Worker. See the [database guide](packages/db/AGENTS.md) for the Node adapter.
+- **Companion and docs.** `apps/zotero` owns the Zotero plugin, `packages/protocol` the wire format, and `apps/docs` the public site. For domain terms and their owners, use the [glossary map](GLOSSARY-MAP.md).
+- **Tooling.** `packages/scripts` owns the Fixture, verification, landing, and release tools. `packages/e2e` owns the desktop and paired journeys.
+- **Video.** `mise run video:clone` installs the optional private workbench. Follow `video/AGENTS.md` and commit inside its nested clone before removing the worktree.
 
 ## Bootstrap & toolchain
 
-- `mise` pins to Node 26 version (see `mise.toml`). Its `idiomatic_version_file_enable_tools = ["pnpm"]` setting also activates pnpm at the version declared in root `package.json`'s `packageManager` field.
-- A plain `git clone` plus `mise run init` gives a complete workspace: `init` installs dependencies and generates the message types that the editor reads. Upstream copies (`packages/zotero-types/zotero-schema`, `packages/pdfjs-dist`) are committed files; `node packages/scripts/scripts/vendor-upstream.ts <source> [ref]` refreshes one and records the upstream commit in its `provenance.json`.
-- Resolve tool availability from the current workspace environment. Use `pnpm exec` for workspace binaries; use the Mise-managed toolchain defined by `mise.toml`.
-- `agent-browser` (>= 0.31.1) — browser automation via CDP. Run `agent-browser skills get core` once per session for the version-matched usage guide. Session conventions and gotchas: [`docs/agents/agent-browser.md`](docs/agents/agent-browser.md).
+Run `mise run init` after cloning to install dependencies and generate editor types. Use Mise’s Node and pnpm, and `pnpm exec` for workspace binaries. Shared dependency versions and install settings belong in `pnpm-workspace.yaml`. Keep the minimum release age when updating dependencies.
+
+Workspace packages export TypeScript source. Use relative imports with file extensions, erasable TypeScript syntax, and the owning package’s `#` subpath imports. Keep workspace dependencies out of the root manifest because Turbo includes their source in every task hash.
+
+To refresh a vendored Zotero schema or pdf.js type definition, use `node packages/scripts/scripts/vendor-upstream.ts <source> [ref]` so its provenance changes with the files. For CDP browser automation, read the [agent-browser guide](docs/agents/agent-browser.md) and run `agent-browser skills get core` for the installed version.
 
 ## Commands
 
-Run these from the repo root. Each workspace package exports its TypeScript source, so `typecheck`, `test` and `lint` read the source of every dependency and no package builds first; only the apps (`apps/obsidian`, `apps/zotero`, `apps/docs`) build, and their bundlers compile that source. `build` / `test` / `lint` go through turbo, which caches each task on its inputs and the source of the packages it depends on. Scope `build` or `test` to one package with `turbo run <task> --filter=@zotlit/obsidian`; lint is the root task `//#lint:repo` and always covers the whole tree through `pnpm lint`. For an inner loop (single-file Vitest, `db:pull`), call the package tool directly — see each package's `AGENTS.md`. Run `typecheck` through turbo (`turbo run typecheck --filter=<package>`): turbo first runs the `generate:*` tasks whose files it reads, such as the message types and language packs.
+Run commands from the repository root.
 
-| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm dev`                        | `turbo run dev` (persistent, no cache).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `pnpm test`                       | `turbo run test` behind the Memory Gate: Vitest in each package that defines a `test` script.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm lint` / `pnpm lint:fix`     | Type-aware `oxlint` over the whole tree after dependencies build. **A clean run is the typecheck.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `pnpm lint:unused`                | Part of `pnpm lint`: knip fails on an export, type or enum member with no reader. Older findings sit in `packages/scripts/unused-code.json` until their code goes; a reader knip cannot see gets an entry in `knip.config.ts`.                                                                                                                                                                                                                                                                                                                                                                               |
-| `pnpm format` / `pnpm format:fix` | Root-level `oxfmt` over the whole tree, run directly. A full pass takes under a second.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `pnpm review` / `pnpm review:fix` | The community directory scanner's ESLint run over `apps/obsidian`, release-time only, reporting error-level findings (see below). It also checks the manifest built from `apps/obsidian/package.json` against `obsidianmd/validate-manifest`.                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm check:bundle`               | Part of `pnpm verify` (step "Bundle"): builds the production bundle of each published plugin (`PUBLISHED_PLUGINS` in `packages/scripts/lib/shell/plugins.ts`) and fails when its `main.js` or `styles.css` is above its `budget`, or when its `main.js` requires a module outside its `allowedRequires`.                                                                                                                                                                                                                                                                                                     |
-| `pnpm release:check-shell`        | Release-time only, after `pnpm review` in `pnpm verify --release`: packs the bundle package that `apps/obsidian`'s production build writes into `dist/package/`, generates the publish repository's shell (`pnpm release:shell`, `packages/scripts/lib/shell/`) under `.scratch/shell-check/`, builds it, and fails unless its `main.js` and `styles.css` match the app's build byte for byte and it passes the scanner's ESLint config.                                                                                                                                                                     |
-| `pnpm quality:fix`                | Fixes lint, then format. `pnpm verify` is the check.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `pnpm verify`                     | The quality gate: format, generated artifacts, lint, typecheck and tests for the packages the branch changed and their dependents, and the bundle budgets (`pnpm check:bundle`). `pnpm land` runs `--local`; its record PR runs `--pr` (tests and bundles) and gates `main`. `--release` checks every package and adds `pnpm review`; locally it also runs the full End-to-end Run with timing evidence in a Run Container, then runs the host start-up gate (`measure:startup --check`, see `packages/e2e/AGENTS.md`) under its own Exclusive Hold. A branch that changes only agent docs runs format only. |
-| `pnpm land`                       | Lands the task branch on `main`, the trunk and the only way a change reaches it: waits in the machine-wide Land Queue, rebases onto `origin/main`, runs `pnpm verify --local`, waits for the CI check of its record PR, and pushes. The gate cannot be skipped. See [Landing a change](#landing-a-change).                                                                                                                                                                                                                                                                                                   |
-| `pnpm release`                    | The version commit of a release (maintainer only), on `main`: bumps the app versions and lands the commit through the Land Queue with the release gate. The version picks the line, beta or stable. `release.yml` publishes what lands. See `CONTRIBUTING.md` "Releasing".                                                                                                                                                                                                                                                                                                                                   |
-| `pnpm release:publish`            | `release.yml`'s publish of one product (`obsidian` or `zotero`) to npm and the publish repository, from `packages/scripts/lib/release/`. It builds a commit of `origin/main`, or a stable hotfix (`CONTRIBUTING.md` "Stable hotfix"). `--dry-run [--version <v>]` publishes nothing and prints the commands a real run executes.                                                                                                                                                                                                                                                                             |
-| `pnpm fixture`                    | Builds the Fixture — the disposable multi-Library test environment — under `.scratch/acceptance-fixture/`. See the [Fixture guide](docs/fixture.md); run `pnpm fixture --help` for live Fixture Spec details.                                                                                                                                                                                                                                                                                                                                                                                                |
-| `pnpm e2e`                        | Runs the End-to-end Run suite (`packages/e2e`) in a Run Container with pinned Obsidian and Zotero. Pass a file and `-t` to iterate on one journey.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-
-oxlint and oxfmt own linting and formatting; each package's `oxlint.config.ts` / `oxfmt.config.ts` extends `@zotlit/config/oxlint` / `@zotlit/config/oxfmt`, and the root configs import `./packages/config/oxlint.base.ts` / `./packages/config/oxfmt.base.ts` by path. The root `package.json` has no workspace dependencies, because turbo puts the source of each workspace package that the root reaches in its global hash, and a change to that package then misses the cache of every task (`turbo-root-deps.test.ts` holds this). ESLint serves `pnpm review` alone: `eslint.config.js` mirrors the scanner in `obsidianmd/obsidian-workflows`, and `--quiet` reports its errors. `pnpm verify --release` runs it, in the Land Turn of `pnpm release` and in `release.yml` before publishing. oxlint runs the type-free `obsidianmd/*` rules on every lint through `packages/config/oxlint-plugin-obsidian.ts`. The scanner rejects `eslint-disable` of those rules, so suppress them with `oxlint-disable-next-line <rule> -- <reason>`. typescript-eslint needs TypeScript 6, so root `typescript` is aliased to `@typescript/typescript6` while workspace packages keep TypeScript 7 through the catalog. Keep `eslint.config.js` and that alias ([ADR 0020](docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md)).
+- **Iterate.** Run a package’s single test file with its own Vitest config. Use `pnpm exec turbo run typecheck --filter=<package>` so prerequisite generators run. Use the same filter for package builds and tests. `pnpm lint` covers the whole repository.
+- **Verify.** `pnpm verify` checks the changed packages and dependents, generated artifacts, formatting, types, tests, and bundle budgets. `pnpm quality:fix` applies lint and formatting fixes.
+- **Release.** `pnpm verify --release` adds the release checks, full local End-to-end Run, and host start-up measurement. For publishing or a stable hotfix, follow [CONTRIBUTING.md](CONTRIBUTING.md). The release ESLint config and root TypeScript alias belong to the Obsidian scanner. See [ADR 0020](docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md).
 
 ### Testing
 
-- **One e2e journey per spec:** Package integration tests prove behavior below the user interface. Each spec has one e2e journey in `packages/e2e` that proves its user workflow. During development, iterate on typecheck and single test files, and walk the change through the running app (`/obsidian-debug`). When the walkthrough passes, encode the workflow in the spec's journey.
-- **Final gate:** Run the affected End-to-end Run cases when the work is complete: once per spec, in the final round of `implement-spec`. `pnpm verify --release` runs the full suite for releases; run it yourself for changes to shared startup or lifecycle behavior across features, or an explicit full-run request. ZotLit Query CLI changes use `pnpm e2e:query`; other focused selections are described in `packages/e2e/AGENTS.md`. The Run Container takes a Memory Gate admission. For a manual host app session, run `pnpm desktop-slot run -- <command>`. The host tools share one Exclusive Hold. It keeps the display awake and yields with exit 76 when another run waits. Exit 75 means blocked at admission (see `packages/e2e/AGENTS.md`).
-- **Consumer suites:** A production change runs its package's full suite and the suites of the packages that consume it, not only the tests named for the change. A test elsewhere can read what the change touched, such as statement parameters.
-- **Writing a test:** Read [Testing strategy](policies/testing-strategy.md) before adding or changing a test: which tier, which mocks, and what earns a regression test.
+Prove behavior below the UI in the package that owns it. Run its suite and its consumers after a production change. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
+
+Iterate with a focused Run Container journey. Run the affected cases in the final round of the spec. Run the full suite for shared start-up or lifecycle changes, releases, or an explicit full-run request. See [Edit a journey](packages/e2e/AGENTS.md#edit-a-journey) for commands and evidence.
 
 ## Truth-first
 
@@ -101,73 +62,31 @@ Every changed line traces to the user's request. Leave adjacent code, comments, 
 
 Spend complexity on failures that happen. Before you add a guard, retry, lock or check for a race or security edge case that is speculative or very unlikely, tell the user the concrete failure, how likely it is and what the guard costs in complexity, and build it once they agree. A guard of this kind that is already in code you touch stays in place: report where it is, its failure, likelihood and cost, and the user decides. Keep the task's scope to what was asked.
 
-## i18n
+## User-facing content
 
-User-facing strings are sourced from `messages/{locale}.json` and consumed through the generated Language Pack facade; ZotLit Companion copy lives in the same catalogs under the `zotero` object and compiles to Fluent at Companion build time. Run `/inlang-i18n` for message-format and runtime mechanics. Wording follows Obsidian's developer-guideline style (sentence case, terminology, phrasing) — run `/i18n-ui-text` before authoring or editing a string.
-
-User- and agent-facing copy has three sources: MDX under `apps/docs/content/`, i18n messages under `messages/` (Obsidian, Companion, and docs alike), and the Template Workbench CLI guide at `packages/template-workbench/src/desktop/cli/guide.ts`.
-
-## Conventions worth knowing
-
-- Dependency versions shared by multiple packages go in the **catalog** in `pnpm-workspace.yaml`; package-local dependencies stay in that package's `package.json`. Catalog users reference shared entries as `"oxlint": "catalog:"`.
-- pnpm settings (`allowBuilds`, `minimumReleaseAge`, `catalog`) belong in `pnpm-workspace.yaml`, not under a `"pnpm"` key in `package.json`.
-- `minimumReleaseAge` in `pnpm-workspace.yaml` is intentional, a supply-chain hardening measure.
-- `__DEV__` is replaced at build time (`true` in dev mode, `false` in production).
-- Node runs workspace TypeScript directly by stripping its types. Write each relative import with its file extension (`./client.ts`, `./view.tsx`), and write erasable syntax only: a const object in place of an `enum`, a field plus an assignment in place of a constructor parameter property. Inside a package, reach `src/` through the package's `#` subpath imports (`#lib/zt-key.ts`) in place of TypeScript `paths`, because each consumer type-checks the package source under its own tsconfig. The `import/extensions` lint rule and `erasableSyntaxOnly` in the base tsconfig enforce this.
-- Use `pnpm exec` instead of `npx`.
-- The engine packages (`db`, `item-query`, `item-lookup`, `filter-expression`, `zotero-types`, `shared`, `protocol`, `templates`, `resource-pack`) run on every host, also in a mobile Web Worker. Their source takes each host capability as a value and loads no Node built-in, `obsidian`, `electron` or `@zotlit/db/client/node`; tests, configuration and scripts may. `engineBoundaryRules` in `@zotlit/config/oxlint` enforces it, and `packages/db/AGENTS.md` names the one Node file of `@zotlit/db`.
-- Brand identity — logo geometry, palette, and wordmark (Archivo SemiBold) — is specified in [`docs/brand.md`](docs/brand.md); canonical SVGs live in `assets/logo/`. Consume those assets and follow that spec rather than redrawing the mark.
+Write UI messages in `messages/{locale}.json`. Use `/i18n-ui-text` for wording and `/inlang-i18n` for the message format and generated language facades. Companion messages compile to Fluent. Public docs live in `apps/docs/content/` and the Workbench CLI guide in `packages/template-workbench/src/desktop/cli/guide.ts`. For brand assets, follow [the brand specification](docs/brand.md).
 
 ## Working files
 
-Choose the destination by purpose:
-
-- **Session material** — `.scratch/`, under the workspace root or the package you are working in: probe scripts, experiment output, research notes at `.scratch/notes/`, draft specs and tickets, intermediate output. Git-ignored and inside the tree, so a script there resolves `node_modules` like any other file, and the artifacts stay visible and cleanable — `/tmp` and a session scratchpad give neither. Remove them when the work is done.
-- **Planned work** — the issue tracker: agreed specs and tickets, with progress, findings, and handoffs as comments on the owning ticket. See `docs/agents/issue-tracker.md`.
-- **Maintained reference** — `docs/`: architecture, runbooks, ADRs, research reports, process config. Create a new file there only with explicit user permission, skill output included; keep the draft in `.scratch/` until then.
+Keep probes, logs, drafts, and intermediate output in the relevant workspace’s ignored `.scratch/` directory. Record accepted specs, progress, and handoffs on the owning [GitHub issue](docs/agents/issue-tracker.md). Create a maintained file under `docs/` only with explicit user permission.
 
 ## Worktrees
 
-Worktrunk (`wt`) creates and removes every worktree. Its hooks place the worktree at the user's path template and bootstrap it through the `pre-start` hook in `.config/wt.toml`.
-
-- **Create:** `wt switch --create <branch> --base origin/main`; add `--no-cd` when the worktree is for another agent, and name the printed path in that agent's prompt. Name the branch by its change type, such as `feat/<topic>` or `fix/<topic>`.
-- **Remove:** `wt remove <branch>`.
-
-A plain `git worktree add` runs none of these hooks: the worktree has no dependencies and sits outside the path template.
+Use Worktrunk so the repository hooks bootstrap dependencies. Create with `wt switch --create <branch> --base origin/main`. Use `--no-cd` for an agent worktree and give the agent the printed path. Name branches by change type. Remove a finished worktree with `wt remove <branch>`.
 
 ## Landing a change
 
-A change reaches `main`, the one long-lived branch, only through `pnpm land`. Run `/land` for the full procedure.
-
-- **Run:** commit every change, write the record file that `/land` describes, then run `pnpm land` from the task worktree, on its branch. The gate takes minutes, so run it in the background and wait for it to exit.
-- **Queue:** lands on this machine run one at a time, in the order they started. A land waits up to 1 h for its turn and exits 75 when the turn does not come: blocked, not a failure. `pnpm land status` shows the holder and the waiters.
-- **Failure:** a non-zero exit names the failed step and prints the path of the full log. The worktree stays on its branch with a clean tree. After a rebase conflict the branch is as it was: rebase onto `origin/main`, resolve, and land again. After a failed gate the branch is rebased onto `origin/main`: fix it there, commit, and land again. After a failure at the `record` or `ci` step, `main` is unchanged and the branch is on origin: follow the row of that step in `/land` "A failed land".
-- **Pushes:** the pre-push hook lets only `pnpm land` push `main`, and in an agent session it refuses every other push. A person can push a task branch to share it; that push runs no gate.
-- **Full End-to-end Run:** the nightly workflow runs it on `main` in GitHub Actions, and `pnpm verify --release` runs it before a release. Each case that fails in the nightly has one open issue in `aidenlx/zotlit-repo` with the `needs-triage` label; a failure of the run as a whole goes to the issue `End-to-end Run fails on main` (see `/land`).
+Land through `pnpm land`. It serializes changes, rebases, verifies, and waits for record PR CI before pushing main. Commit changes and use the [land procedure](.agents/skills/land/SKILL.md) for the record, queue status, and recovery after a failed gate.
 
 ## Agent skills
 
-### Issue tracker
+Keep instructions in `AGENTS.md` and preserve the matching `CLAUDE.md` import for Claude sessions.
 
-Issues, specs, and tickets are tracked in GitHub Issues at `aidenlx/zotlit-repo`; external pull requests are not a triage surface. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Default label vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Multi-context layout — `GLOSSARY-MAP.md` at the repo root points to per-workspace `GLOSSARY.md` files under `apps/*` and `packages/*`. See `docs/agents/domain.md`. Context names there (e.g. "Zotero Data Model") are heading labels for that map; code, comments, and user-facing copy keep the casing their own convention calls for (see i18n above for UI text).
+For issue triage, use the [repository labels](docs/agents/triage-labels.md). For changes to domain terminology or glossary ownership, use the [domain guide](docs/agents/domain.md).
 
 ## Effect
 
-Build a new Obsidian service as an Effect service: a `Context.Service` tag and a scoped `Layer` that joins the plugin's Layer graph. Run `/obsidian-services` before creating or wiring a service.
-
-### This is NOT the Effect you know
-
-This repo runs Effect v4. Its modules, names, and signatures differ from the Effect v2/v3 that most training data covers. Take every Effect API from the installed package, not from memory.
-
-Resolve the `effect` package from the workspace you change; for example, run `node -p "require.resolve('effect/package.json')"` from `apps/obsidian`. Read `AGENTS.md` inside that package first, then the topic folder of its `ai-docs/src/` for the area being changed, and confirm each signature in its `dist/**/*.d.ts`. Search the installed source before adding helpers. These docs match the installed version and are available without network access.
+Use `/obsidian-services` when creating or wiring a service. Build it as a `Context.Service` with a scoped `Layer` in the plugin’s Layer graph. Resolve the installed Effect v4 package from the workspace being changed. Read its `AGENTS.md` and relevant `ai-docs/src/` topic, then check signatures in `dist/**/*.d.ts`.
 
 <!-- BEGIN:turborepo-agent-rules -->
 

@@ -4,7 +4,7 @@ Zotero database layer — Drizzle schema, typed queries, and domain helpers for 
 
 ## Commands
 
-Run `test` / `lint` via turbo (see root AGENTS.md → Commands). Package-specific tools:
+Use the root commands for tests and repository-wide lint (root AGENTS.md → Commands). Package-specific tools:
 
 - `pnpm --filter @zotlit/db db:pull` — drizzle-kit pull.
 
@@ -55,7 +55,3 @@ Every table and column a reader statement reads belongs in `ITEM_QUERY_LAYOUT` (
 ## Layout of a copy
 
 `src/layout/` is the Layout module. `readDatabaseLayout` reads the columns of each table and view and the `userdata` and `compatibility` stamps of a copy once for each client, logs the stamps, and gives the gaps against the manifest. A reader that selects a column some copies lack asks `layout.has(table, column)`; the stamps are for logging and `getSchemaVersions` only. The core is synchronous and loads no `effect`. `src/item-query/database.ts` runs the same two statements through the reader seam (`readLayout`, `checkLayout`), and `src/item-query/layout.ts` gives `ItemQueryLayoutError` and `checkDatabaseLayout`, the synchronous check that ZoteroReads runs when it validates a client. A copy keeps its first layout for the life of its client: a test that changes the layout of a copy reads it again through a new client.
-
-## Logging
-
-Log through Effect in files that import it, with the category from `withLogCategory` in `@zotlit/shared/logging`. Effect-free files use `logLibrary` from the same entry point. The consuming app installs the library log sink and configures the sinks.

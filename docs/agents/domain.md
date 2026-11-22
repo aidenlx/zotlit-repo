@@ -1,45 +1,7 @@
-# Domain Docs
+# Domain documentation
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+Use the [context map](../../GLOSSARY-MAP.md) to find the glossary for the concept you are changing. Several feature packages share the Obsidian Plugin glossary. Use its terms in issues, tests and design proposals. When a concept spans contexts, check each glossary and the relationships in the map.
 
-## Before exploring, read these
+For design decisions, check [the repository ADRs](../adr/) and any ADRs under the affected workspace’s `docs/adr/`. If a proposal changes an accepted decision, cite the ADR and explain what warrants reopening it.
 
-- **`GLOSSARY-MAP.md`** at the repo root — it points at one `GLOSSARY.md` per workspace (`apps/*`, `packages/*`). Read each one relevant to the topic.
-- **`docs/adr/`** at the repo root — system-wide decisions. Also check `apps/<name>/docs/adr/` and `packages/<name>/docs/adr/` for workspace-scoped decisions.
-
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
-
-## File structure
-
-```
-/
-├── GLOSSARY-MAP.md
-├── docs/adr/                          ← system-wide decisions
-├── apps/
-│   ├── obsidian/
-│   │   ├── GLOSSARY.md
-│   │   └── docs/adr/                  ← workspace-scoped decisions
-│   ├── zotero/
-│   │   ├── GLOSSARY.md
-│   │   └── docs/adr/
-│   └── docs/
-│       ├── GLOSSARY.md
-│       └── docs/adr/
-└── packages/
-    ├── db/
-    │   ├── GLOSSARY.md
-    │   └── docs/adr/
-    └── ...
-```
-
-## Use the glossary's vocabulary
-
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in the relevant workspace's `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
-
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders) — but worth reopening because…_
+Use `/domain-modeling` when a term needs a definition or a decision needs a record.

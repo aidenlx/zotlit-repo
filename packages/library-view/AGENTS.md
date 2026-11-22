@@ -15,13 +15,13 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 Each unit registers itself: the settings slices (`core/library/settings.ts`, `core/welcome/settings.ts`, `core/release/settings.ts`) add their keys to `SettingsRegistry`, `Release` (`obsidian/release/service.ts`) and `QueryClients` (`desktop/welcome/connection.ts`) add themselves to `ViewServiceRegistry`, and `desktop/library/row-menu.ts` declares the `zotlit:item-menu` menu event. The host composes the slices into its settings definition.
 
-## Module resolution
+## Build integration
 
-The package exports its TypeScript source as `@zotlit/library-view/<layer>/<unit>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#desktop/library/view.tsx`), with its extension. The brand logo comes from `assets/logo/` through the `@brand/*` path.
+The brand logo comes from `assets/logo/` through the `@brand/*` alias.
 
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
 
 ## Feature
 

@@ -1,27 +1,5 @@
 # @zotlit/shared
 
-Shared utilities consumed by multiple packages — app-agnostic.
+App-agnostic utilities consumed by several packages. `package.json` owns the public entry points; exports such as `@zotlit/shared/logging` name their entry without a file extension.
 
-## Module resolution
-
-The package exports its TypeScript source, which Node loads by stripping its types and the app bundlers compile. Relative imports name their file with its extension:
-
-```ts
-import { createNanoEvents } from "./nanoevents.ts";
-```
-
-## Logging
-
-Log through Effect in files that import it, with `withLogCategory` from `src/logging.ts`; use `logLibrary` from that module only in Effect-free files. Categories start at `["zotlit", "shared", ...]`. The consuming app installs the log sink and configures the sinks.
-
-```ts
-import { Effect } from "effect";
-
-import { withLogCategory } from "./logging.ts";
-
-Effect.logDebug("Event emitted").pipe(
-  withLogCategory("zotlit", "shared", "nanoevents"),
-);
-```
-
-Never call `configure()` here — that belongs to the consuming app.
+When changing library logging, read `src/logging.ts`: the module holds the sink for one JavaScript realm. The consuming app installs that sink, including in each Worker realm that uses it. The library does not configure app sinks.

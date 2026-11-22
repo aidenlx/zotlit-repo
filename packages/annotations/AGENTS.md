@@ -15,13 +15,13 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 Each unit registers itself: a service tag adds itself to `ViewServiceRegistry`, the reader slice (`obsidian/pdf-annotation-editor/settings.ts`) adds its keys to `SettingsRegistry`, and a file that raises a menu adds its event to `ZotLitMenuEvents` (`@zotlit/obsidian-kit/menu-events.ts`). The host composes the reader slice into its settings definition.
 
-## Module resolution
+## Build integration
 
-The package exports its TypeScript source as `@zotlit/annotations/<layer>/<unit>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#obsidian/annotation-repository/service.ts`), with its extension. The stylesheet of the Annotation View's cards (`desktop/annot-view/style.css`) is imported by the host that registers the view.
+The Annotation View card stylesheet (`src/desktop/annot-view/style.css`) is imported by the host that registers the view.
 
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The browser trials of the excerpt images (`*.browser-test.ts`) run in an Electron renderer when `ZOTLIT_TEST_ELECTRON_PATH` names one, and skip otherwise. The minimized-window queue trial (`queue-chromium.test.ts`) also asks the Paint Check (`@zotlit/scripts/desktop-paint`, `packages/e2e/AGENTS.md`) and skips, naming the cause, while the desktop cannot paint a window, such as a locked screen.
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. The browser trials of the excerpt images (`*.browser-test.ts`) run in an Electron renderer when `ZOTLIT_TEST_ELECTRON_PATH` names one, and skip otherwise. The minimized-window queue trial (`queue-chromium.test.ts`) also asks the Paint Check (`@zotlit/scripts/desktop-paint`, `packages/e2e/AGENTS.md`) and skips, naming the cause, while the desktop cannot paint a window, such as a locked screen.
 
 ## Feature
 

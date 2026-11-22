@@ -34,9 +34,13 @@ or a direct edit. State the expected behavior and what the reviewer must check.
 - [UI testing](policies/ui-testing.md)
 - [Vocabulary](policies/vocabulary.md)
 
+## Obsidian integration
+
+For an Obsidian host or feature package that uses views, vault state, services, settings, or UI, apply the corresponding [Obsidian policies](apps/obsidian/CODING_STANDARDS.md). The host can compose code whose implementation lives under `packages/`.
+
 ## Shared desktop app
 
-- A diff that changes how desktop runs share the Obsidian app — its windows, focus, the vault registry, the clipboard, or admission — updates `packages/e2e/AGENTS.md`, `packages/e2e/policies/os-focus.md`, and ADRs 0077 and 0078 (`docs/adr/`) in the same diff, so each still agrees with the code.
+- For changes to desktop admission, windows, clipboard, or vault ownership, check the [e2e standards](packages/e2e/CODING_STANDARDS.md). Verify that the guest uses isolated app state and that host tools preserve the developer’s desktop. Update the guide when the operating procedure changes and the relevant ADR when the decision changes.
 
 ## Internal state
 

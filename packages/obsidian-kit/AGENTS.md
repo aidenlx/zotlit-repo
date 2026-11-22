@@ -6,10 +6,6 @@ The Obsidian layer of the plugin's base: code over the `obsidian` API and nothin
 
 Lint refuses `node:*`, `electron` and `@zotlit/obsidian-desktop`. The package imports `@zotlit/plugin-kernel` and no service or view of the app. `ViewServiceRegistry` (`view-atoms.ts`) is open: a host lists its view services by declaration merging.
 
-## Module resolution
-
-The package exports its TypeScript source as `@zotlit/obsidian-kit/<file>.ts`. Inside the package, import a file through the `#` subpath (`#notice.ts`) or a relative path, with its extension.
-
 ## Test support
 
 - `src/__mocks__/obsidian.ts` is the Vitest stand-in for `obsidian`, and `vitest.setup.js` adds the Obsidian globals. A consumer's Vitest config takes both from `@zotlit/obsidian-kit/vitest` (`obsidianMock`, `obsidianSetupFile`). Extend the mock when code touches a new `obsidian` export.

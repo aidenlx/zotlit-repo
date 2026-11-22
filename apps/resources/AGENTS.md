@@ -4,7 +4,7 @@ The Resource Pack (plugin id `zotlit-resources`): the third Obsidian plugin. A r
 
 The container format, its writer and its reader are in `@zotlit/resource-pack` (`packages/resource-pack/AGENTS.md`). This app holds the content of the pack and its build.
 
-## Files
+## Navigation
 
 - `package.json` — the version and the manifest fields (`obsidian`), and `packEntries`: the pin of each Pack Entry, the version of its upstream package and the SHA-256 of its binary. `pnpm check:bundle` reads the same pins.
 - `scripts/pack.ts` — `buildResourcePack`: takes each binary from its installed upstream package (`jieba-wasm` for `chinese-segmenter`, `pandoc-wasm` for `pandoc-engine`), refuses a package of another version or bytes of another hash than the pin, and writes the licence text and the source link of each binary into the pack. It gives the writer `node:zlib` gzip at level 9, the smallest that Node writes.
@@ -15,7 +15,7 @@ The container format, its writer and its reader are in `@zotlit/resource-pack` (
 
 ## Build
 
-- `turbo run build --filter=@zotlit/resources` — the production build: the pack writer's `main.js` goes into `dist/package/`, and the publish repository's own build script (`packages/scripts/lib/shell/templates/scripts/build-container.mjs`) copies it into `dist/`.
+- `pnpm exec turbo run build --filter=@zotlit/resources` — the production build: the pack writer's `main.js` goes into `dist/package/`, and the publish repository's own build script (`packages/scripts/lib/shell/templates/scripts/build-container.mjs`) copies it into `dist/`.
 - `pnpm --filter @zotlit/resources build:dev` — a development build into `dist-dev/`, copied into this worktree's Development Vault at `.obsidian/plugins/zotlit-resources/`; prefix `ZT_VAULT_CASE=<case>` for a Vault Case vault.
 - `main.js` ships byte for byte: each offset in its index counts bytes from the start of the file. Keep every later step a plain copy.
 
@@ -25,7 +25,7 @@ The pack is the product `resources` (`PRODUCTS`, `packages/scripts/lib/release/l
 
 - **Version line.** `version` in `package.json` is the pack's own line, apart from ZotLit's. The version picks the release line: a pre-release version is a beta. The line follows the ZotLit release that builds the pack: `pnpm release --obsidian <v> --resources <v>` takes both versions on one line and refuses two.
 - **Compatibility integer.** `PACK_COMPAT` in `packages/resource-pack/src/format.ts` changes only when the container format or the meaning of an entry changes. A new version of a binary with the same interface keeps the integer, and so does a new pack version.
-- **Shell.** The `scripts/build.mjs` of the pack's generated shell copies `main.js` from the bundle package, and the shell holds that script alone: it has no bundler and no source file. `pnpm release:check-shell --plugin resources` proves that the copy equals `dist/main.js` byte for byte. `pnpm release:publish resources --dry-run` prints the commands of a release.
+- **Shell.** The generated publish repository's `scripts/build.mjs` comes from `packages/scripts/lib/shell/templates/scripts/build-container.mjs` (mapped by `packages/scripts/lib/shell/profiles.ts`). It copies `main.js` from the bundle package, and the shell holds that script alone: it has no bundler and no source file. `pnpm release:check-shell --plugin resources` proves that the copy equals `dist/main.js` byte for byte. `pnpm release:publish resources --dry-run` prints the commands of a release.
 
 ## Update a binary
 

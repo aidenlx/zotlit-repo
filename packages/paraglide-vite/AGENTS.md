@@ -2,7 +2,7 @@
 
 ## Commands
 
-Run `test` / `lint` through Turbo (see root AGENTS.md).
+Use the root commands for tests and repository-wide lint (root AGENTS.md → Commands).
 
 ## Compilation lifecycle
 

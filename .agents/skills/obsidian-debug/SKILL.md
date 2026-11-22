@@ -164,15 +164,14 @@ A `Menu` binds its keys a timer after it shows
 ([keyboard-scope.md](../../../apps/obsidian/policies/keyboard-scope.md) has why that orders
 its Scope). A menu closed before that timer fires leaves its keys bound, and they swallow
 the next Enter. Between seeing a menu and pressing one of its items, wait one
-timer; E2E cases evaluate `MENU_READY` from `packages/e2e/src/page-gestures.ts`.
+timer; E2E cases await `page.menuReady()` from `packages/e2e/src/page-helpers.ts`.
 
 ### CodeMirror editors
 
 Reach an editor's `EditorView` from its content element: `el.querySelector('.cm-content').cmTile.root.view`.
 Drive it with `view.dispatch({changes, userEvent: 'input.type'})` and read `view.state.doc.toString()`.
 A pane mounts its editor after the click that opens it, and a row that holds fixed text has no editor —
-poll until the editor exists before you drive it, as `annotationEditor` in
-`packages/e2e/src/end-to-end.e2e.ts` does.
+poll until the editor exists before you drive it.
 
 ### Stale screenshots
 

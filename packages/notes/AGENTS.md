@@ -14,7 +14,7 @@ A capability of a unit outside the package comes in as a port that the host fill
 - `TemplateWorkbenchLauncher` (`obsidian/template/workbench-launcher.ts`) opens a Template Document in the Template Workbench View; `@zotlit/template-workbench` fills it (`desktop/view/open.ts`).
 - `layerProfile` takes the Profile document revision (`ProfileRevision`, a hash of the source) as a parameter; the desktop host passes `@zotlit/obsidian-desktop/profile-revision.ts`.
 
-No feature package imports this one; `@zotlit/template-workbench`, with its Workbench core, builds on it.
+The Template Workbench, Query Views and Library View build on this package. Cross-feature services that notes consumes stay behind the ports above.
 
 ## Layers
 
@@ -27,13 +27,9 @@ Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). 
 
 Each unit registers itself: a service tag adds itself to `ViewServiceRegistry`, each settings slice (`core/template/settings.ts`, `core/note-import/settings.ts`, `obsidian/profile/settings.ts`) adds its keys to `SettingsRegistry`, and `obsidian/template/workbench-recovery.ts` declares the `zotlit:open-template-workbench` workspace event it raises. The host composes the slices into its settings definition.
 
-## Module resolution
-
-The package exports its TypeScript source as `@zotlit/notes/<layer>/<unit>/<file>.ts`. Inside the package, import a file of the same folder by a relative path and any other file through the `#` subpath (`#obsidian/profile/service.ts`), with its extension.
-
 ## Tests
 
-`pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. A test that runs Profile selection over the host's ZotLit Query service, or the citations over the host's settings, stays in the app (`apps/obsidian/src/services/notes/`, `src/services/citations/`).
+From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`. A test that runs Profile selection over the host's ZotLit Query service, or the citations over the host's settings, stays in the app (`apps/obsidian/src/services/notes/`, `src/services/citations/`).
 
 ## Feature
 

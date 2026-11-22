@@ -19,14 +19,7 @@ Settings tabs describe their UI as data — an array of definition objects retur
 
 ## Type definitions
 
-The canonical source is `packages/obsidian-api/obsidian.d.ts`. Read the relevant types there when
-you need precise signatures — the guide below covers usage patterns, not exhaustive type docs.
-
-Quick lookup commands:
-- `rg 'SettingControl<' packages/obsidian-api/obsidian.d.ts` — all control types
-- `rg 'SettingDefinition' packages/obsidian-api/obsidian.d.ts` — all definition types
-- `rg 'class PluginSettingTab' packages/obsidian-api/obsidian.d.ts` — tab class
-- `rg 'class SettingPage' packages/obsidian-api/obsidian.d.ts` — imperative sub-page class
+From `apps/obsidian`, search the installed `node_modules/obsidian/obsidian.d.ts` for `SettingControl`, `SettingDefinition`, `PluginSettingTab`, or `SettingPage`. The installed declarations match the workspace dependency.
 
 ## How it works
 
@@ -358,7 +351,7 @@ the row.
 ## Navigating to settings from code
 
 `app.setting` is the settings modal. It is internal API — declared in
-`apps/obsidian/src/typings/obsidian-ex.d.ts`, verified against Obsidian 1.13. Reach for it when a
+`packages/obsidian-kit/src/typings/obsidian-ex.d.ts`, verified against Obsidian 1.13. Reach for it when a
 notice, ribbon action, or command sends the user to a specific place in settings.
 
 There is no setting **id**. Definitions carry `name`, `desc`, `aliases`, and (for controls) a storage
@@ -579,5 +572,3 @@ When adding a settings page:
 
 - `references/settings-guide.md` — full developer docs with all patterns and examples
 - `references/migration-guide.md` — migrating from imperative `display()` to declarative
-- `packages/obsidian-api/obsidian.d.ts` — canonical type definitions (grep for `SettingDefinition`,
-  `SettingControl`, `PluginSettingTab`, `SettingPage`)
