@@ -322,10 +322,71 @@ function combinator(
   return module && `${module}.${callee.property.name as string}`;
 }
 
+type RuleContext = Parameters<NonNullable<Rule["create"]>>[0];
+
+function argumentShape(node: AstNode | undefined, context: RuleContext) {
+  const expressionShape = (expression: AstNode | undefined) => {
+    switch (expression?.type) {
+      case "ArrowFunctionExpression":
+      case "FunctionExpression":
+        return "callback";
+      case "ObjectExpression":
+        return "object";
+      case "ArrayExpression":
+        return "array";
+    }
+  };
+  const direct = expressionShape(node);
+  if (direct) return direct;
+  if (node?.type !== "Identifier" || typeof node.name !== "string")
+    return undefined;
+
+  for (
+    let scope = context.sourceCode.getScope(node as never);
+    scope;
+    scope = scope.upper!
+  ) {
+    const variable = scope.set.get(node.name);
+    if (!variable) continue;
+    for (const { name, node: declaration, type } of variable.defs) {
+      if (type === "FunctionName") return "callback";
+      const annotation =
+        "typeAnnotation" in name ? name.typeAnnotation?.typeAnnotation : null;
+      if (annotation?.type === "TSFunctionType") return "callback";
+      if (annotation?.type === "TSTypeLiteral")
+        return annotation.members.some(
+          (member) => member.type === "TSCallSignatureDeclaration",
+        )
+          ? "callback"
+          : "object";
+      if (
+        annotation?.type === "TSArrayType" ||
+        annotation?.type === "TSTupleType"
+      )
+        return "array";
+      if (
+        declaration.type !== "VariableDeclarator" ||
+        declaration.id.type !== "Identifier"
+      )
+        continue;
+      let value = declaration.init;
+      while (
+        value?.type === "TSAsExpression" ||
+        value?.type === "TSSatisfiesExpression"
+      )
+        value = value.expression;
+      const shape = expressionShape(value ?? undefined);
+      if (shape) return shape;
+    }
+    break;
+  }
+  return undefined;
+}
+
 function callbackArgument(
   name: string,
   call: AstNode,
-  context: Parameters<NonNullable<Rule["create"]>>[0],
+  context: RuleContext,
 ): AstNode | undefined {
   const args = call.arguments ?? [];
   if (name === "Effect.acquireRelease") return args[1];
@@ -337,14 +398,10 @@ function callbackArgument(
 
   const last = args[index];
   const preceding = args[index - 1];
-  const precedingIsFunction =
-    preceding?.type === "ArrowFunctionExpression" ||
-    preceding?.type === "FunctionExpression";
-  if (
-    last?.type === "ObjectExpression" ||
-    (precedingIsFunction && !name.startsWith("Stream.mapAccum"))
-  )
-    return preceding;
+  const lastShape = argumentShape(last, context);
+  if (lastShape === "object") return preceding;
+  if (lastShape === "callback") return last;
+
   const parent = call.parent;
   if (
     parent?.type === "CallExpression" &&
@@ -353,31 +410,17 @@ function callbackArgument(
       (parent.callee?.name === "pipe" && parent.arguments?.[0] !== call))
   )
     return preceding;
-  if (last?.type === "Identifier" && typeof last.name === "string") {
-    for (
-      let scope = context.sourceCode.getScope(last as never);
-      scope;
-      scope = scope.upper!
-    ) {
-      const variable = scope.set.get(last.name);
-      if (!variable) continue;
-      if (
-        variable.defs.some(({ node }) => {
-          if (node.type !== "VariableDeclarator") return false;
-          let value = node.init;
-          while (
-            value?.type === "TSAsExpression" ||
-            value?.type === "TSSatisfiesExpression"
-          )
-            value = value.expression;
-          return value?.type === "ObjectExpression";
-        })
-      )
-        return preceding;
-      break;
-    }
-  }
-  return last;
+
+  const firstShape = argumentShape(args[0], context);
+  if (firstShape === "array") return last;
+  if (firstShape === "callback") return preceding;
+  if (
+    index > 1 &&
+    !name.startsWith("Stream.mapAccum") &&
+    argumentShape(preceding, context) === "callback"
+  )
+    return preceding;
+  return undefined;
 }
 
 function isReference(node: AstNode | undefined): boolean {

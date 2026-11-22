@@ -21,6 +21,9 @@ tester.run("no-tacit", noTacit, {
     `${effect}Effect.forEach(items, (item, i) => save(item, i), { concurrency: 2 })`,
     `${effect}const options = { concurrency: 2 }; Effect.forEach(items, (item) => save(item), options)`,
     `${effect}const options = { concurrency: 2 }; Effect.forEach((item) => save(item), options)`,
+    `${effect}import { options, save } from "./tasks"; Effect.forEach((item) => save(item), options)`,
+    `${effect}import { makeOptions, save } from "./tasks"; Effect.forEach((item) => save(item), makeOptions())`,
+    `${effect}import { makeOptions, save } from "./tasks"; const opts = makeOptions(); Effect.forEach(save, opts)`,
     `${effect}Stream.filter(service.changes, (event) => isReady(event))`,
     `${effect}effect.pipe(Effect.andThen(next))`,
     `${effect}effect.pipe(Effect.tap(log))`,
@@ -68,10 +71,37 @@ tester.run("no-tacit", noTacit, {
       code: `${effect}Effect.forEach(items, save, opts)`,
       errors: [{ messageId: "tacit", column: 22, endColumn: 26 }],
     },
-    { code: `${effect}Effect.forEach(items, save)`, errors: tacit },
     {
-      code: `${effect}Stream.mapAccum(stream, () => 0, step)`,
-      errors: [{ messageId: "tacit", column: 33, endColumn: 37 }],
+      code: `${effect}const save = (item) => Effect.succeed(item);\nEffect.forEach(items, save)`,
+      errors: [{ messageId: "tacit", line: 3, column: 22, endColumn: 26 }],
+    },
+    {
+      code: `${effect}import { save } from "./tasks";\nEffect.forEach([1, 2], save)`,
+      errors: [{ messageId: "tacit", line: 3, column: 23, endColumn: 27 }],
+    },
+    {
+      code: `${effect}import { save } from "./tasks";\nfunction each(options: { concurrency: number }) {\n  return Effect.forEach(save, options);\n}`,
+      errors: [{ messageId: "tacit", line: 4, column: 24, endColumn: 28 }],
+    },
+    {
+      code: `${effect}import { options } from "./options";\nfunction save(item) { return Effect.succeed(item); }\nEffect.forEach(save, options)`,
+      errors: [{ messageId: "tacit", line: 4, column: 15, endColumn: 19 }],
+    },
+    {
+      code: `${effect}import { makeOptions } from "./options";\nconst opts = makeOptions();\nfunction each(save: (item: number) => Effect.Effect<number>) {\n  return Effect.forEach(save, opts);\n}`,
+      errors: [{ messageId: "tacit", line: 5, column: 24, endColumn: 28 }],
+    },
+    {
+      code: `${effect}import { options, save } from "./tasks";\npipe(items, Effect.forEach(save, options))`,
+      errors: [{ messageId: "tacit", line: 3, column: 27, endColumn: 31 }],
+    },
+    {
+      code: `${effect}const options = (item) => Effect.succeed(item);\nEffect.forEach(items, options)`,
+      errors: [{ messageId: "tacit", line: 3, column: 22, endColumn: 29 }],
+    },
+    {
+      code: `${effect}const step = (total, next) => [total + next, [next]];\nStream.mapAccum(stream, () => 0, step)`,
+      errors: [{ messageId: "tacit", line: 3, column: 33, endColumn: 37 }],
     },
     {
       code: `${effect}const opts = { discard: true } as const; Effect.forEach(save, opts)`,
