@@ -299,9 +299,7 @@ async function reportToIssue(
     !(result.outcome === "passed" && lastFailed)
   )
     return undefined;
-  const open = (await issues.listOpen(repository, E2E_ISSUE_TITLE))
-    .filter(({ title }) => title === E2E_ISSUE_TITLE)
-    .toSorted((a, b) => b.number - a.number)[0];
+  const open = await findOpenE2eIssue(issues, repository);
   if (result.outcome !== "failed") {
     if (!open) return undefined;
     await issues.comment(
@@ -312,27 +310,61 @@ async function reportToIssue(
     return open.url;
   }
   const { commits, log } = await evidence({ run, range });
-  const lines = log.trimEnd().split("\n");
+  const body = formatE2eFailure(
+    log,
+    [
+      `The End-to-end Run after a land failed at the ${result.stage} stage, on \`main\` at ${request.commit}.`,
+      "",
+      `Commit range: \`${range}\` (from the last tip that passed).`,
+      "",
+      "```text",
+      commits.trim() || request.commit,
+      "```",
+      "",
+    ],
+    {
+      stage: result.stage,
+      evidence: `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it).`,
+    },
+  );
+  return publishE2eFailure(issues, repository, { body, open });
+}
+
+export async function findOpenE2eIssue(
+  issues: LandE2eIssues,
+  repository: string,
+): Promise<LandE2eIssue | undefined> {
+  return (await issues.listOpen(repository, E2E_ISSUE_TITLE))
+    .filter(({ title }) => title === E2E_ISSUE_TITLE)
+    .toSorted((a, b) => b.number - a.number)[0];
+}
+
+export function formatE2eFailure(
+  log: string,
+  introduction: readonly string[],
+  { stage, evidence }: { stage: string; evidence: string },
+): string {
+  const lines = stripVTControlCharacters(log).trimEnd().split("\n");
   const cases = failedCases(lines);
-  const body = [
-    `The End-to-end Run after a land failed at the ${result.stage} stage, on \`main\` at ${request.commit}.`,
-    "",
-    `Commit range: \`${range}\` (from the last tip that passed).`,
-    "",
-    "```text",
-    commits.trim() || request.commit,
-    "```",
-    "",
+  return [
+    ...introduction,
     cases.length > 0
       ? `Failed cases:\n\n${cases.map((name) => `- \`${name}\``).join("\n")}`
-      : `The log names no failed case; the run failed at the ${result.stage} stage.`,
+      : `The log names no failed case; the run failed at the ${stage} stage.`,
     "",
-    `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it). The last ${EXCERPT_LINES} lines:`,
+    `${evidence} The last ${EXCERPT_LINES} lines:`,
     "",
     "```text",
     lines.slice(-EXCERPT_LINES).join("\n"),
     "```",
   ].join("\n");
+}
+
+export async function publishE2eFailure(
+  issues: LandE2eIssues,
+  repository: string,
+  { body, open }: { body: string; open: LandE2eIssue | undefined },
+): Promise<string> {
   if (open) {
     await issues.comment(repository, open.number, body);
     return open.url;

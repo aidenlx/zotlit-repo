@@ -29,7 +29,7 @@ export function startContainerObsidian(): Promise<void> {
 
 async function launchObsidian(): Promise<void> {
   const root = await getWorkspaceRoot(import.meta.dirname);
-  const profile = join(process.env.HOME!, "obsidian");
+  const profile = join(process.env.XDG_CONFIG_HOME!, "obsidian");
   const vault = join(profile, "bootstrap-vault");
   const log = join(e2eResultsDir(), "obsidian.log");
   const call = createObsidianCall({

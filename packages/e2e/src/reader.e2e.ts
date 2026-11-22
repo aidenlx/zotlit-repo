@@ -1799,10 +1799,15 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
             ),
             "Reveal page in table of contents",
           );
-          await page.until("the revealed section", () =>
-            rows().some((row) => row.active),
+          const revealed = await page.until(
+            "the revealed section and its page label",
+            () => {
+              const outline = rows();
+              return outline.some((row) => row.active && row.label !== null)
+                ? outline
+                : null;
+            },
           );
-          const revealed = rows();
           const introduction = [
             ...reader.root.querySelectorAll<HTMLElement>(
               '[data-zpr-part="outline-item"]',
@@ -2988,12 +2993,12 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
             await reader.settled();
             return { view, reader };
           };
-          const storedTop = () =>
+          const storedPosition = () =>
             (
               app.loadLocalStorage(`${page.reader.viewType}:positions`) as
-                | { readonly top: number }[]
+                | { readonly pageIndex: number; readonly top: number }[]
                 | null
-            )?.[0]?.top ?? null;
+            )?.[0];
           const topOf = (reader: NonNullable<typeof first.reader>) => {
             const div = reader.pageAt(4)!.div;
             return (
@@ -3004,6 +3009,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
           };
 
           const first = await open(navigation);
+          first.reader.set({ sidebar: { open: true, panel: "thumbnails" } });
           await first.reader.navigate({ pageIndex: 4 });
           await first.reader.settled();
           const scrolled = new Promise<void>((resolve) =>
@@ -3013,9 +3019,18 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
           );
           first.reader.container.scrollTop += 40;
           await scrolled;
-          await page.until("the stored scroll", () => storedTop() !== 792);
-          first.reader.set({ sidebar: { open: true, panel: "thumbnails" } });
-          await first.reader.settled();
+          const pdfPage = first.reader.pageAt(4)!;
+          const offset =
+            first.reader.container.getBoundingClientRect().top -
+            pdfPage.div.getBoundingClientRect().top -
+            pdfPage.div.clientTop;
+          const [, pdfTop] = pdfPage.viewport.convertToPdfPoint(0, offset);
+          await page.until("the stored scroll", () => {
+            const position = storedPosition();
+            return (
+              position?.pageIndex === 4 && Math.abs(position.top - pdfTop!) < 2
+            );
+          });
           const before = {
             pageIndex: first.reader.state.get().pageIndex,
             top: topOf(first.reader),
@@ -3110,12 +3125,17 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
           ).webFrame.getZoomFactor();
           const dragAcross = async (span: HTMLElement) => {
             const box = span.getBoundingClientRect();
+            const horizontal = box.width >= box.height;
+            const x = box.left + box.width / 2;
             const y = box.top + box.height / 2;
-            const from = box.left + 2;
-            const to = box.right - 2;
-            const at = (x: number) => ({
-              x: Math.round(x * zoom),
-              y: Math.round(y * zoom),
+            const spanLength = (horizontal ? box.width : box.height) - 4;
+            const at = (fraction: number) => ({
+              x: Math.round(
+                (x + (horizontal ? spanLength * fraction : 0)) * zoom,
+              ),
+              y: Math.round(
+                (y + (horizontal ? 0 : spanLength * fraction)) * zoom,
+              ),
             });
             const up = new Promise<void>((resolve) =>
               win.addEventListener("mouseup", () => resolve(), {
@@ -3126,20 +3146,20 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
             win.getSelection()?.removeAllRanges();
             contents.sendInputEvent({
               type: "mouseDown",
-              ...at(from),
+              ...at(-0.5),
               button: "left",
               clickCount: 1,
             });
             for (let step = 1; step <= 10; step++)
               contents.sendInputEvent({
                 type: "mouseMove",
-                ...at(from + ((to - from) * step) / 10),
+                ...at(step / 10 - 0.5),
                 button: "left",
                 modifiers: ["leftButtonDown"],
               });
             contents.sendInputEvent({
               type: "mouseUp",
-              ...at(to),
+              ...at(0.5),
               button: "left",
               clickCount: 1,
             });
@@ -3156,7 +3176,7 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
                       return false;
                     const box = span.getBoundingClientRect();
                     return (
-                      box.width > 20 &&
+                      Math.max(box.width, box.height) > 20 &&
                       span.ownerDocument.elementFromPoint(
                         box.left + box.width / 2,
                         box.top + box.height / 2,
@@ -3350,7 +3370,22 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
               ),
             10000,
           );
-          await textOf(popover);
+          await page.until("page 3 rendered in the hover preview", () => {
+            const page3 = popover.querySelector('.page[data-page-number="3"]');
+            const paint = page3
+              ?.querySelector("canvas")
+              ?.getBoundingClientRect();
+            const clip = popover.getBoundingClientRect();
+            return (
+              paint &&
+              paint.height > 0 &&
+              paint.top < clip.bottom &&
+              paint.bottom > clip.top &&
+              page3
+                ?.querySelector(".textLayer")
+                ?.textContent?.includes("rotation 180")
+            );
+          });
           const hover = {
             toolbar: popover.querySelector<HTMLElement>(
               '[data-zpr-part="toolbar"]',
@@ -3707,13 +3742,11 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
                 value ?? null,
               );
           });
-          cleanup.defer(() => {
-            for (const type of [page.reader.viewType, "pdf"])
-              for (const leaf of app.workspace.getLeavesOfType(type))
-                leaf.detach();
-          });
           const file = app.vault.getFileByPath(path)!;
-          const obsidianLeaf = app.workspace.getLeaf("split");
+          const obsidianLeaf = cleanup.adopt(
+            app.workspace.getLeaf("split"),
+            (leaf) => leaf.detach(),
+          );
           await obsidianLeaf.setViewState({
             type: "pdf",
             state: { file: path },
@@ -3727,10 +3760,12 @@ describe.skipIf(!reachable)("ZotLit Reader alone", () => {
               ),
             10000,
           );
-          await page.reader.open(file, { pane: "tab" });
-          const view = page.reader.views().find((v) => v.file === file)!;
+          const view = await page.reader.openNew(cleanup, file, {
+            pane: "split",
+          });
           const reader = await page.until("the reader", () => view.reader);
           await reader.whenReady();
+          await reader.navigate({ pageIndex: 0 });
           await reader.settled();
           const ours = (await reader.whenRendered(0))!;
           const families = [

@@ -1,0 +1,82 @@
+name: Nightly End-to-end Run
+
+on:
+  schedule:
+    - cron: "20 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-e2e-main
+
+jobs:
+  desktop:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          bootstrap: "false"
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/cache/restore@v5
+        id: image-cache
+        with:
+          path: ${{ runner.temp }}/zotlit-e2e-image.tar
+          key: run-container-image-${{ runner.arch }}-${{ hashFiles('packages/e2e/container/*', 'packages/e2e/src/obsidian-version.ts', 'packages/scripts/lib/fixture/paired-zotero.ts', 'package.json') }}
+
+      - uses: actions/cache/restore@v5
+        id: store-cache
+        with:
+          path: ${{ runner.temp }}/zotlit-e2e-pnpm
+          key: run-container-store-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: run-container-store-${{ runner.arch }}-
+
+      - name: Run desktop project
+        id: e2e
+        env:
+          ZOTLIT_E2E_IMAGE_ARCHIVE: ${{ runner.temp }}/zotlit-e2e-image.tar
+          ZOTLIT_E2E_RESULTS: ${{ runner.temp }}/nightly-e2e/evidence
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/nightly-e2e"
+          {
+            mkdir -p "$RUNNER_TEMP/zotlit-e2e-pnpm" &&
+            docker volume create zotlit-e2e-pnpm-arm64 --opt type=none --opt o=bind --opt "device=$RUNNER_TEMP/zotlit-e2e-pnpm" &&
+            pnpm e2e:container --project=desktop
+          } 2>&1 | tee "$RUNNER_TEMP/nightly-e2e/console.log"
+
+      - uses: actions/cache/save@v5
+        if: "!cancelled() && steps.e2e.outcome != 'skipped' && steps.image-cache.outputs.cache-hit != 'true'"
+        with:
+          path: ${{ runner.temp }}/zotlit-e2e-image.tar
+          key: ${{ steps.image-cache.outputs.cache-primary-key }}
+
+      - uses: actions/cache/save@v5
+        if: "!cancelled() && steps.e2e.outcome != 'skipped' && steps.store-cache.outputs.cache-hit != 'true'"
+        with:
+          path: ${{ runner.temp }}/zotlit-e2e-pnpm
+          key: ${{ steps.store-cache.outputs.cache-primary-key }}
+
+      - uses: actions/upload-artifact@v7
+        if: "!cancelled() && steps.e2e.outcome != 'skipped'"
+        with:
+          name: e2e-evidence
+          path: ${{ runner.temp }}/nightly-e2e
+
+      - name: Report failures
+        if: failure() && steps.e2e.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node packages/scripts/scripts/report-nightly-e2e.ts

@@ -140,15 +140,42 @@ export function getManagedZoteroLayout({
       downloadUrl: `${DOWNLOAD_ROOT}/${archiveName}`,
     };
   }
+  if (platform === "linux") {
+    const target =
+      arch === "arm64"
+        ? "linux-arm64"
+        : arch === "x64"
+          ? "linux-x86_64"
+          : undefined;
+    if (!target)
+      throw new Error(`unsupported Linux architecture for Zotero: ${arch}.`);
+    const cacheDir = join(
+      env.XDG_CACHE_HOME ?? join(home, ".cache"),
+      "zotlit",
+      "zotero",
+      PINNED_ZOTERO_VERSION,
+      target,
+    );
+    const archiveName = `Zotero-${PINNED_ZOTERO_VERSION}_${target}.tar.xz`;
+    return {
+      applicationDir: join(cacheDir, `Zotero_${target}`),
+      archiveName,
+      cacheDir,
+      downloadUrl: `${DOWNLOAD_ROOT}/${archiveName}`,
+    };
+  }
   throw new Error(
-    `the Paired Zotero runs on macOS and Windows; this host reports ${platform}.`,
+    `the Paired Zotero runs on macOS, Linux and Windows; this host reports ${platform}.`,
   );
 }
 
-export function getZoteroBinary(applicationDir: string): string {
-  return process.platform === "win32"
-    ? join(applicationDir, "zotero.exe")
-    : join(applicationDir, "Contents", "MacOS", "zotero");
+export function getZoteroBinary(
+  applicationDir: string,
+  platform = process.platform,
+): string {
+  if (platform === "win32") return join(applicationDir, "zotero.exe");
+  if (platform === "linux") return join(applicationDir, "zotero");
+  return join(applicationDir, "Contents", "MacOS", "zotero");
 }
 
 function isApplicationDir(applicationDir: string): Promise<boolean> {
@@ -292,6 +319,10 @@ async function extractApplication(
   archivePath: string,
   destination: string,
 ): Promise<void> {
+  if (process.platform === "linux") {
+    await execFileAsync("tar", ["-xJf", archivePath, "-C", destination]);
+    return;
+  }
   if (process.platform === "win32") {
     await execFileAsync("tar.exe", ["-xf", archivePath, "-C", destination]);
     return;

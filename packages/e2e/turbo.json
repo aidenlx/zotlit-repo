@@ -22,6 +22,7 @@
         "ZOTLIT_E2E_REQUIRED",
         "ZOTLIT_RUN_CONTAINER",
         "DISPLAY",
+        "XDG_CONFIG_HOME",
         "XDG_RUNTIME_DIR",
         "LIBGL_ALWAYS_SOFTWARE",
         "ZOTERO_APP"

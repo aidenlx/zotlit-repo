@@ -1,18 +1,13 @@
 #!/usr/bin/env node
 
-import type {
-  LandE2eDeps,
-  LandE2eIssue,
-  LandE2eOutcome,
-  LandE2eRun,
-} from "#land-e2e";
+import type { LandE2eOutcome, LandE2eRun } from "#land-e2e";
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { readDesktopPaint } from "#desktop-paint";
 import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
+import { githubE2eIssues } from "#e2e-issues";
 import { landE2eDir, readLandE2eEvidence, runLandE2e } from "#land-e2e";
 
 const DESKTOP_WAIT = "1h";
@@ -173,72 +168,9 @@ async function run({
   }
 }
 
-async function gh(...args: [string, ...string[]]): Promise<string> {
-  const { code, stdout } = await command(process.stderr, {
-    cwd: landE2eDir(),
-    argv: ["gh", ...args],
-  });
-  if (code !== 0) {
-    throw new Error(`gh ${args.slice(0, 2).join(" ")} exited ${code}`);
-  }
-  return stdout;
-}
-
-async function bodyFile(body: string): Promise<string> {
-  const path = join(landE2eDir(), "issue-body.md");
-  await writeFile(path, body);
-  return path;
-}
-
-const issues: LandE2eDeps["issues"] = {
-  listOpen: async (repository, title) =>
-    JSON.parse(
-      await gh(
-        "issue",
-        "list",
-        "--repo",
-        repository,
-        "--state",
-        "open",
-        "--search",
-        `"${title}" in:title`,
-        "--json",
-        "number,title,url",
-        "--limit",
-        "100",
-      ),
-    ) as LandE2eIssue[],
-  create: async (repository, { title, body, label }) =>
-    (
-      await gh(
-        "issue",
-        "create",
-        "--repo",
-        repository,
-        "--label",
-        label,
-        "--title",
-        title,
-        "--body-file",
-        await bodyFile(body),
-      )
-    ).trim(),
-  comment: async (repository, number, body) => {
-    await gh(
-      "issue",
-      "comment",
-      String(number),
-      "--repo",
-      repository,
-      "--body-file",
-      await bodyFile(body),
-    );
-  },
-};
-
 await runLandE2e({
   run,
   evidence: readLandE2eEvidence,
-  issues,
+  issues: githubE2eIssues(landE2eDir()),
   paint: readDesktopPaint,
 });

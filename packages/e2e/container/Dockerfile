@@ -27,6 +27,19 @@ RUN set -eu; \
 # The installer carries this release's app. Verify the app separately.
 RUN echo '42bf7f34782752f159d63c17ac6bac4ad01dd55709578f9879f76f8295abb2eb  /opt/obsidian/resources/obsidian.asar' | sha256sum -c -
 
+ARG ZOTERO_VERSION
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      arm64) target=arm64; sha=3ef4eece2d4ee8db82e44cc203e41638824d3e8587b99f0b509efd2053e97c3a ;; \
+      amd64) target=x86_64; sha=fad10b2bee0b6178248a0ffb7b4add0bc2b1e71088f47d5549423e1cc80034b8 ;; \
+    esac; \
+    curl --fail --silent --show-error --location --retry 3 "https://download.zotero.org/client/release/${ZOTERO_VERSION}/Zotero-${ZOTERO_VERSION}_linux-${target}.tar.xz" -o /tmp/zotero.tar.xz; \
+    echo "$sha  /tmp/zotero.tar.xz" | sha256sum -c -; \
+    mkdir /opt/zotero; \
+    tar -xJf /tmp/zotero.tar.xz -C /opt/zotero --strip-components=1; \
+    rm /tmp/zotero.tar.xz
+ENV ZOTERO_APP=/opt/zotero
+
 WORKDIR /workspace
 COPY --chmod=755 entry.sh /opt/run-e2e
 ENTRYPOINT ["/opt/run-e2e"]

@@ -100,3 +100,36 @@ describe.skipIf(process.platform !== "win32")(
     });
   },
 );
+
+describe("Paired Zotero on Linux", () => {
+  it.each([
+    ["arm64", "linux-arm64"],
+    ["x64", "linux-x86_64"],
+  ] as const)("selects the %s tar archive and binary", (arch, target) => {
+    const cacheDir = join(
+      "/fixture/cache",
+      "zotlit",
+      "zotero",
+      PINNED_ZOTERO_VERSION,
+      target,
+    );
+    const applicationDir = join(cacheDir, `Zotero_${target}`);
+    const archiveName = `Zotero-${PINNED_ZOTERO_VERSION}_${target}.tar.xz`;
+    expect(
+      getManagedZoteroLayout({
+        arch,
+        platform: "linux",
+        home: "/fixture/home",
+        env: { XDG_CACHE_HOME: "/fixture/cache" },
+      }),
+    ).toEqual({
+      applicationDir,
+      archiveName,
+      cacheDir,
+      downloadUrl: `https://download.zotero.org/client/release/${PINNED_ZOTERO_VERSION}/${archiveName}`,
+    });
+    expect(getZoteroBinary(applicationDir, "linux")).toBe(
+      join(applicationDir, "zotero"),
+    );
+  });
+});

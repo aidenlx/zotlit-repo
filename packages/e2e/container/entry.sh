@@ -19,6 +19,7 @@ pnpm install --frozen-lockfile --prefer-offline --store-dir=/pnpm-store 2>&1 |
 
 step=display
 export HOME=/tmp/run-home DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/run-runtime
+export XDG_CONFIG_HOME="$HOME/.config"
 export LIBGL_ALWAYS_SOFTWARE=1
 mkdir -m 700 "$HOME" "$XDG_RUNTIME_DIR"
 Xvfb "$DISPLAY" -screen 0 1280x1024x24 -noreset >"$ZOTLIT_E2E_RESULTS/display.log" 2>&1 &
@@ -33,6 +34,8 @@ for ((attempt=0; attempt<100; attempt++)); do
   sleep 0.1
 done
 herbstclient version >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1
+# Keep the vault's viewport stable when Obsidian opens a pop-out.
+herbstclient floating on >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1
 if [[ "${ZOTLIT_E2E_VNC:-}" ]]; then
   x11vnc -display "$DISPLAY" -rfbport 5900 -nopw -forever -shared >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1 &
 fi

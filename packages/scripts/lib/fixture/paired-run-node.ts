@@ -252,7 +252,7 @@ async function findLivePairedZotero(
   }
 
   const result = await runCaptured(
-    "/usr/sbin/lsof",
+    "lsof",
     ["-Fpc", "--", layout.databasePath],
     { acceptExitCodes: [0, 1], cwd },
   );

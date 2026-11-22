@@ -1,11 +1,12 @@
 import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { constants, hostname } from "node:os";
 import { resolve } from "node:path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { PINNED_ZOTERO_VERSION } from "@zotlit/scripts/fixture/paired-zotero";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { runImageTag } from "./container-image.ts";
@@ -70,11 +71,20 @@ function image(): string {
     platform,
     pnpm,
     OBSIDIAN_VERSION,
+    PINNED_ZOTERO_VERSION,
     readFileSync(resolve(context, "Dockerfile"), "utf8"),
     readFileSync(resolve(context, "entry.sh"), "utf8"),
   ]);
-  const available = docker(["image", "ls", "--quiet", tag]);
-  if (!available)
+  const archive = process.env.ZOTLIT_E2E_IMAGE_ARCHIVE;
+  const hasImage = () => docker(["image", "ls", "--quiet", tag]) !== "";
+  let available = hasImage();
+  let archived = archive !== undefined && existsSync(archive);
+  if (!available && archive && archived) {
+    execFileSync("docker", ["load", "--input", archive], { stdio: "inherit" });
+    available = hasImage();
+    archived = available;
+  }
+  if (!available) {
     execFileSync(
       "docker",
       [
@@ -87,10 +97,18 @@ function image(): string {
         `PNPM_VERSION=${pnpm}`,
         "--build-arg",
         `OBSIDIAN_VERSION=${OBSIDIAN_VERSION}`,
+        "--build-arg",
+        `ZOTERO_VERSION=${PINNED_ZOTERO_VERSION}`,
         context,
       ],
       { stdio: "inherit" },
     );
+  }
+  if (archive && !archived) {
+    execFileSync("docker", ["save", "--output", archive, tag], {
+      stdio: "inherit",
+    });
+  }
   return tag;
 }
 
