@@ -28,6 +28,24 @@ export async function prepareRunWindow(vaultId: string): Promise<void> {
       for (const contents of vaultContents())
         contents.setBackgroundThrottling(false);
     };
+    const unthrottled = () =>
+      vaultContents().every((contents) => !contents.getBackgroundThrottling());
+    const restore = () => {
+      for (const contents of vaultContents())
+        contents.setBackgroundThrottling(true);
+      main.setBackgroundThrottling(previous);
+      delete window.__ztRestoreBackgroundThrottling;
+    };
+    if (process.env.ZOTLIT_RUN_CONTAINER) {
+      const ref = app.workspace.on("window-open", apply);
+      apply();
+      window.__ztRestoreBackgroundThrottling = () => {
+        app.workspace.offref(ref);
+        restore();
+      };
+      return String(unthrottled());
+    }
+
     let focused: import("electron").WebContents | undefined;
     let focusedWin: RunWindow | undefined;
     let appliedWin: RunWindow | undefined;
@@ -95,7 +113,7 @@ export async function prepareRunWindow(vaultId: string): Promise<void> {
         apply();
         followFocus(win as RunWindow);
         const shown = (win as RunWindow).electronWindow;
-        if (shown && !process.env.ZOTLIT_RUN_CONTAINER)
+        if (shown)
           shown.show = () => {
             page.showBehind(shown);
           };
@@ -126,16 +144,12 @@ export async function prepareRunWindow(vaultId: string): Promise<void> {
         Reflect.deleteProperty(win.document, "hasFocus");
       }
       for (const contents of vaultContents()) {
-        contents.setBackgroundThrottling(true);
         if (contents.debugger.isAttached()) contents.debugger.detach();
       }
-      main.setBackgroundThrottling(previous);
-      delete window.__ztRestoreBackgroundThrottling;
+      restore();
     };
     return String(
-      vaultContents().every(
-        (contents) => !contents.getBackgroundThrottling(),
-      ) &&
+      unthrottled() &&
         focusedWin!.document.hasFocus() &&
         activeWindow === focusedWin,
     );

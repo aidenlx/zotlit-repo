@@ -42,6 +42,7 @@ done
 herbstclient version >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1
 # Keep the vault's viewport stable when Obsidian opens a pop-out.
 herbstclient floating on >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1
+herbstclient rule focus=on >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1
 if [[ "${ZOTLIT_E2E_VNC:-}" ]]; then
   x11vnc -display "$DISPLAY" -rfbport 5900 -nopw -forever -shared >>"$ZOTLIT_E2E_RESULTS/display.log" 2>&1 &
 fi

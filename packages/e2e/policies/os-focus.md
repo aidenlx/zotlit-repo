@@ -7,4 +7,4 @@ Each host-desktop run takes an Exclusive Hold and passes the Memory Gate. It lea
 - Move focus between a vault's windows through the calls `prepareRunWindow` hooks (`window.focus()`, `electronWindow.focus()`); a hook moves only the emulation.
 - Read the focused window from Obsidian's `activeWindow` / `activeDocument`: a modal opens there, which can be a popout rather than the main `document`.
 
-The Run Container uses its own Xvfb display and Obsidian process. The window manager places vault windows in the guest. The suite keeps CDP focus emulation for keyboard journeys. See [ADR 0115](../../../docs/adr/0115-the-end-to-end-run-runs-in-a-container-of-its-own.md).
+The Run Container uses its own Xvfb display and Obsidian process. The window manager places and focuses newly opened windows. Keyboard journeys use native focus. `prepareRunWindow` keeps background throttling off. See [ADR 0115](../../../docs/adr/0115-the-end-to-end-run-runs-in-a-container-of-its-own.md).
