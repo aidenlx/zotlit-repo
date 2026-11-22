@@ -1,6 +1,6 @@
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import { it } from "@effect/vitest";
-import { Deferred, Effect, Exit, Fiber, Layer } from "effect";
+import { Clock, Deferred, Effect, Exit, Fiber, Layer } from "effect";
 import { expect, vi } from "vitest";
 
 import * as db from "@zotlit/db";
@@ -425,11 +425,13 @@ it.effect.each(["construction", "comparison"] as const)(
             const fiber = Fiber.getCurrent();
             if (fiber) Deferred.doneUnsafe(reached, Effect.succeed(fiber));
           };
-          let now = 0;
-          using clock = vi.spyOn(performance, "now").mockImplementation(() => {
-            now += 5;
-            return now;
-          });
+          let now = 0n;
+          using clock = vi
+            .spyOn(yield* Clock.Clock, "monotonicTimeNanosUnsafe")
+            .mockImplementation(() => {
+              now += 5_000_000n;
+              return now;
+            });
           const getWindow = db.getCitekeyWindow;
           using pages = vi
             .spyOn(db, "getCitekeyWindow")

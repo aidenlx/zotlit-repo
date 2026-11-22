@@ -2,24 +2,30 @@ import type {
   CitekeyResolution,
   SnapshotItem,
 } from "#contract/citation-lookup.ts";
-import { Effect, Stream } from "effect";
+import { Clock, Effect, Stream } from "effect";
 
 import type { LibraryCitekey } from "@zotlit/db";
+import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 const SNAPSHOT_SLICE_MS = 4;
 
 class SnapshotWork {
-  #deadline = performance.now() + SNAPSHOT_SLICE_MS;
+  readonly #now;
+  #deadline: number;
+  constructor(now: () => number) {
+    this.#now = now;
+    this.#deadline = now() + SNAPSHOT_SLICE_MS;
+  }
   #steps = 0;
 
   step(): Effect.Effect<void> | undefined {
     if (++this.#steps % 128 !== 0) return;
-    if (performance.now() >= this.#deadline) return this.#pause;
+    if (this.#now() >= this.#deadline) return this.#pause;
   }
 
   readonly #pause = Effect.map(Effect.yieldNow, () => {
-    this.#deadline = performance.now() + SNAPSHOT_SLICE_MS;
+    this.#deadline = this.#now() + SNAPSHOT_SLICE_MS;
   });
 }
 
@@ -33,7 +39,7 @@ export class CitekeySnapshot {
     { previous }: { previous?: CitekeySnapshot } = {},
   ): Effect.fn.Return<CitekeySnapshot, E, R> {
     const libraryOrder = new Map([...inScope].map((id, index) => [id, index]));
-    const work = new SnapshotWork();
+    const work = new SnapshotWork(monotonicMillis(yield* Clock.Clock));
     const snapshot = new CitekeySnapshot();
     const byCitekey = snapshot.#byCitekey;
     const citekeyByIndexedKey = snapshot.#citekeyByIndexedKey;

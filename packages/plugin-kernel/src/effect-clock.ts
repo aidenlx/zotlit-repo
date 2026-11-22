@@ -1,6 +1,10 @@
 import { DateTime, Option } from "effect";
 import type { Clock } from "effect";
 
+export function monotonicMillis(clock: Clock.Clock): () => number {
+  return () => Number(clock.monotonicTimeNanosUnsafe()) / 1_000_000;
+}
+
 export function instantClock(clock: Clock.Clock): () => Temporal.Instant {
   return () =>
     Temporal.Instant.fromEpochMilliseconds(clock.currentTimeMillisUnsafe());

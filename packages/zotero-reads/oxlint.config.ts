@@ -130,10 +130,6 @@ export default defineConfig({
       files: ["src/contract/instant-codec.ts"],
       rules: { "zotlit-services/temporal-in-effect": "off" },
     },
-    {
-      files: ["src/worker/citekey-snapshot.ts"],
-      rules: { "zotlit-services/clock-time": "off" },
-    },
     ...testBaselineOverrides("packages/zotero-reads"),
   ],
 });
