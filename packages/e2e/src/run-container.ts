@@ -12,6 +12,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { runImageTag } from "./container-image.ts";
 import { OBSIDIAN_VERSION } from "./obsidian-version.ts";
+import { E2E_PERFORMANCE_ENV } from "./performance-mode.ts";
 import {
   E2E_RESULTS_ENV,
   e2eResultsDir,
@@ -181,6 +182,8 @@ const child = spawn(
     "ZOTLIT_E2E_RESULTS=/results",
     "--env",
     "ANNOTATION_SUGGESTER_ENABLED",
+    "--env",
+    E2E_PERFORMANCE_ENV,
     ...(vnc ? ["--publish", `127.0.0.1:${vnc}:5900`, "--env", VNC_ENV] : []),
     tag,
     ...vitestArgs,

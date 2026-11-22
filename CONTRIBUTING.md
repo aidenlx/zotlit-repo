@@ -49,6 +49,8 @@ CI before `main` moves
 [ADR 0084](docs/adr/0084-changes-land-on-next-through-a-serial-queue.md),
 [ADR 0102](docs/adr/0102-each-land-opens-a-record-pull-request.md)).
 
+Use `pnpm e2e` for functional checks. Read timing measurements in the run evidence or the GitHub artifact. For a performance change or a timing regression, use the optional `pnpm e2e:performance` command on the reference MacBook. [Reference machine and run conditions](docs/adr/0116-e2e-timing-limits-use-a-reference-machine.md#reference-baseline)
+
 ### Branching model
 
 `main` is the one long-lived branch of `aidenlx/zotlit-repo`. Every change

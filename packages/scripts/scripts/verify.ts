@@ -175,7 +175,6 @@ async function releaseRuns(): Promise<void> {
       return;
     }
     await sh`pnpm e2e`;
-    await sh`pnpm e2e:worker`;
   });
   await step("Start-up", async () => {
     if (ci) {

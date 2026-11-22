@@ -14,6 +14,7 @@ import type {
   DebugListener,
   PageDebugger,
 } from "./page-citation-types.ts";
+import { checkPerformanceBudgets } from "./performance-mode.ts";
 
 describe.skipIf(!reachable)("Citation scan pipeline", () => {
   registerEndToEndRunHooks();
@@ -415,9 +416,11 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
           "Citation scan renderer CPU, 100k characters",
           measurement,
         );
-        expect
-          .soft(measurement.medianMs, measurement.density)
-          .toBeLessThan(measurement.density === "dense" ? 7 : 3.5);
+        checkPerformanceBudgets(() => {
+          expect
+            .soft(measurement.medianMs, measurement.density)
+            .toBeLessThan(measurement.density === "dense" ? 7 : 3.5);
+        });
       }
     } finally {
       await obRun(

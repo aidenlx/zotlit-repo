@@ -53,6 +53,7 @@ import type {
 import { obRun } from "./obsidian-cli.ts";
 import { obRunUntil } from "./obsidian-cli.ts";
 import { cli, cliCommand, waitFor } from "./obsidian-cli.ts";
+import { checkPerformanceBudgets } from "./performance-mode.ts";
 import {
   downloadedBinaries,
   keepRunPack,
@@ -1813,7 +1814,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(rebuild.polls).toBeGreaterThan(0);
     expect(rebuild.staleMisses).toBe(0);
     expect(painted.frames).toBeGreaterThan(1);
-    expect(painted.longestTaskMs).toBeLessThanOrEqual(100);
+    checkPerformanceBudgets(() => {
+      expect(painted.longestTaskMs).toBeLessThanOrEqual(100);
+    });
     expect(heapGrowth).toBeLessThan((corpus.length * 1000) / 4);
 
     const words = corpus[123]!.split(" ");

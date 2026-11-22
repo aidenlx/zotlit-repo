@@ -52,7 +52,7 @@ The in-process adapter on the main thread blocked 614 ms for the 10,000-item ind
 
 - Chromium's task queue is the default scheduler throughout Obsidian. The `@/lib/effect` entry point supplies a cancellable `MessageChannel` scheduler to renderer and worker Effects, including synchronous factories that capture runtimes for later work. The RPC server, refresh work, and Item Index fibers inherit it. The Obsidian import lint rule enforces this boundary. Electron exposes Node's `setImmediate` inside the worker; Effect's automatic selection of that API can starve browser messages and timers even between yielded slices.
 - Each new read clone passes the full `PRAGMA integrity_check` in a temporary nested Web Worker before publication. This synchronous SQLite operation keeps the interactive worker free to serve its held state. The verifier closes its handle, and the caller terminates the worker and revokes its URL on success, failure, or a 60-second timeout. The pure Node adapter performs the same check in process. Source equality and WAL commit markers still establish the captured state; integrity validation establishes its structural validity.
-- `pnpm e2e:worker` checks unchanged refreshes, three changed-Item rebuilds in a 100,000-Item library, and rejection of an invalid clone while held search results remain available. It measures maximum search latency and an independent worker timer, and requires all cases to execute in desktop Obsidian. The affected-path commit hook runs this gate. In the red-check run, the old runtime blocked searches for 590 ms on an unchanged refresh and 3,999 ms during a rebuild; both failed the 100 ms limit. The worker timer limit is 250 ms. These are regression budgets on the test host, not latency guarantees on every computer.
+- The original `pnpm e2e:worker` command checked unchanged refreshes, three changed-Item rebuilds in a 100,000-Item library, and rejection of an invalid clone while held search results remain available. It measured maximum search latency and an independent worker timer in desktop Obsidian. The gate ran during the affected-path commit hook. [ADR 0116](0116-e2e-timing-limits-use-a-reference-machine.md) now puts timing enforcement in `pnpm e2e:performance` on the designated MacBook. In the red-check run, the old runtime blocked searches for 590 ms on an unchanged refresh and 3,999 ms during a rebuild; both failed the 100 ms limit. The worker timer limit is 250 ms. These are regression budgets on the test host, not latency guarantees on every computer.
 - Every database read is asynchronous. Reads that need one database state share a Snapshot.
 - The worker posts its log records at the plugin's log level to a `MessagePort` it gets with its spawn, and the renderer emits them into the plugin's logger. The port queues records until the renderer reads it; an RPC stream drops records sent before its subscription, and a raw `postMessage` on the worker breaks the RPC protocol.
 - A worker crash can leave a read clone on disk. The renderer sweeps clones by owner after the worker connection closes. The startup sweep removes residue from dead processes.
@@ -179,11 +179,10 @@ Register measurements only in development builds. Measure the normal query path,
 
 Measure the real worker's task queue independently of sequential RPC
 latency. A heap sample uses an available CDP session without enabling
-one. The desktop worker gate passes its Desktop Slot and result path to
-the nested citation-index run. Case progress renews the Lease and the
-gate checks the nested results for execution of every required case.
+one. The optional performance run checks the worker timer on the
+reference machine.
 
-[Worker gate](../../packages/e2e/src/verify-worker.ts) ·
+[Performance run](0116-e2e-timing-limits-use-a-reference-machine.md) ·
 [Worker responsiveness](../../packages/e2e/src/worker-responsiveness.ts)
 
 ### CLI cancellation, worker lifecycle, and performance proof

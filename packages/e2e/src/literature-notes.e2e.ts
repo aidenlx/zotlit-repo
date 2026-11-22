@@ -52,6 +52,7 @@ import { useListingProfile } from "./listing-profile.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { clearNotices, cli, waitFor } from "./obsidian-cli.ts";
 import type { CodeMirrorElement } from "./page-notes-types.ts";
+import { checkPerformanceBudgets } from "./performance-mode.ts";
 import { clearVault, e2eVaultDir } from "./vault-script.ts";
 
 describe.skipIf(!reachable)("End-to-end Run", () => {
@@ -1121,8 +1122,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const painted = await frames.read();
     console.info("update-all frame gaps", painted);
     expect(painted.frames).toBeGreaterThan(1);
-    expect(painted.maxFrameGapMs).toBeLessThan(250);
-    expect(painted.longestTaskMs).toBeLessThan(250);
+    checkPerformanceBudgets(() => {
+      expect(painted.maxFrameGapMs).toBeLessThan(250);
+      expect(painted.longestTaskMs).toBeLessThan(250);
+    });
 
     let content = "";
     const rendered = await waitFor(async () => {

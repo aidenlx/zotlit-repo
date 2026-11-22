@@ -85,7 +85,7 @@ When adding or changing a CLI schema or downloadable resource, inspect `packages
 
 ## Effect
 
-Import Effect from `effect`. The `effectEntry` Vite plugin (`packages/plugin-kernel/scripts/effect-entry.ts`) resolves `effect` and `effect/Effect`, imported from plugin code, to the wrappers in `packages/plugin-kernel/src`, so the runtime entry points default to Chromium scheduling in the renderer and workers. Worker bundles resolve them to `packages/plugin-kernel/src/effect-worker.ts` and carry no plugin logger; renderer entry points log through the plugin logger. `effectEntryCheck` fails a build whose entry chunk misses its wrapper, `no-restricted-imports` bans the wrapper paths, and `pnpm e2e:worker` checks real worker responsiveness.
+Import Effect from `effect`. The `effectEntry` Vite plugin (`packages/plugin-kernel/scripts/effect-entry.ts`) resolves `effect` and `effect/Effect`, imported from plugin code, to the wrappers in `packages/plugin-kernel/src`, so the runtime entry points default to Chromium scheduling in the renderer and workers. Worker bundles resolve them to `packages/plugin-kernel/src/effect-worker.ts` and carry no plugin logger; renderer entry points log through the plugin logger. `effectEntryCheck` fails a build whose entry chunk misses its wrapper, `no-restricted-imports` bans the wrapper paths, and `pnpm e2e:performance` checks real worker responsiveness on the designated MacBook.
 
 ## Views
 

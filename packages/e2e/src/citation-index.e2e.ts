@@ -15,6 +15,7 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { prepareRunWindow } from "./background-throttling.ts";
 import { obRun } from "./obsidian-cli.ts";
 import { cli, waitFor } from "./obsidian-cli.ts";
+import { checkPerformanceBudgets } from "./performance-mode.ts";
 import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import {
   clearVault,
@@ -360,7 +361,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
     });
     expect(gaps.length).toBeGreaterThan(0);
     expect(readMs.length).toBeGreaterThan(0);
-    expect(readMaximum).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
     expect(evidence.every(({ readsCorrect }) => readsCorrect)).toBe(true);
     expect(
       evidence.every(({ readsDuringRefresh }) => readsDuringRefresh > 0),
@@ -375,8 +375,11 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
       item.citationKey!,
       item.citationKey!,
     ]);
-    expect(p99).toBeLessThanOrEqual(RENDERER_BUDGET.p99Ms);
-    expect(maximum).toBeLessThanOrEqual(RENDERER_BUDGET.maxMs);
+    checkPerformanceBudgets(() => {
+      expect(readMaximum).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
+      expect(p99).toBeLessThanOrEqual(RENDERER_BUDGET.p99Ms);
+      expect(maximum).toBeLessThanOrEqual(RENDERER_BUDGET.maxMs);
+    });
   }, 120_000);
 
   it("serves searches and worker tasks while changed Items rebuild the 100,000-Item index", async () => {
@@ -483,11 +486,13 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
         ({ correct, fresh, samples }) => correct && fresh && samples > 1,
       ),
     ).toBe(true);
-    expect(
-      Math.max(...rounds.map(({ maximum }) => maximum)),
-    ).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
     expect(gaps.length).toBeGreaterThan(0);
-    expect(Math.max(...gaps)).toBeLessThanOrEqual(WORKER_TIMER_MAX_MS);
+    checkPerformanceBudgets(() => {
+      expect(
+        Math.max(...rounds.map(({ maximum }) => maximum)),
+      ).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
+      expect(Math.max(...gaps)).toBeLessThanOrEqual(WORKER_TIMER_MAX_MS);
+    });
   }, 240_000);
 
   it("serves searches while counting and selecting all Items for batch actions", async () => {
@@ -584,14 +589,16 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
     expect(value.map(({ count }) => count.itemCount)).toEqual([
       100000, 100000, 100000,
     ]);
-    expect(
-      Math.max(...value.map(({ maximum }) => maximum)),
-    ).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
-    expect(Math.max(...value.map(({ count }) => count.ms))).toBeLessThanOrEqual(
-      INTERACTIVE_MAX_MS,
-    );
     expect(gaps.length).toBeGreaterThan(0);
-    expect(Math.max(...gaps)).toBeLessThanOrEqual(WORKER_TIMER_MAX_MS);
+    checkPerformanceBudgets(() => {
+      expect(
+        Math.max(...value.map(({ maximum }) => maximum)),
+      ).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
+      expect(
+        Math.max(...value.map(({ count }) => count.ms)),
+      ).toBeLessThanOrEqual(INTERACTIVE_MAX_MS);
+      expect(Math.max(...gaps)).toBeLessThanOrEqual(WORKER_TIMER_MAX_MS);
+    });
   }, 120_000);
 
   it("keeps the held search index when snapshot integrity validation fails", async () => {
