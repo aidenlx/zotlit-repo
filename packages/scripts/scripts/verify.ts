@@ -21,6 +21,7 @@ import { EXIT_LEASE_ENDED } from "#desktop-slot";
 import { gateSteps, halfOf } from "#gate-halves";
 import {
   GATE_SHARD_FLAG,
+  GATE_SHARD_TAG,
   isLastShard,
   parseGateShard,
   shardTestArgs,
@@ -54,16 +55,18 @@ const { release, local, pr, shard } = await yargs(hideBin(process.argv))
   })
   .option("release", {
     type: "boolean",
-    describe: "Every package, and the release checks",
+    describe:
+      "Every package, then the End-to-end Run, Start-up, Obsidian guideline review and Publish shell",
   })
   .conflicts("local", ["pr", "release"])
   .conflicts("pr", "release")
   .implies("shard", "pr")
   .strict()
+  .demandCommand(0, 0)
   .epilogue(
     `Without --release, the gate covers the packages that differ from the merge base with origin/main, and their dependents. A branch that changes only agent docs runs Format only.
 
-A package's test task joins a shard before the last through the task tag ci-shard-<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle.
+A package's test task joins a shard before the last through the task tag ${GATE_SHARD_TAG}<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle.
 
 Exit codes:
   0    passed

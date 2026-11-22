@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.github/workflows/record-pr.yml",
+        "$TURBO_ROOT$/apps/*/turbo.json",
+        "$TURBO_ROOT$/packages/*/turbo.json"
+      ]
+    }
+  }
+}

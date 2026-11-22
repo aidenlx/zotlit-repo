@@ -6,6 +6,7 @@ export interface GateShard {
 }
 
 export const GATE_SHARD_FLAG = "--shard";
+export const GATE_SHARD_TAG = "ci-shard-";
 
 const SHARD = regex("^(?<index>[1-9]\\d*)/(?<total>[1-9]\\d*)$");
 
@@ -34,5 +35,5 @@ export function shardTestArgs(shard: GateShard): string[] {
 }
 
 function shardTag(index: number): string {
-  return `tag:ci-shard-${index}`;
+  return `tag:${GATE_SHARD_TAG}${index}`;
 }
