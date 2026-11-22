@@ -89,6 +89,7 @@
     "//#test:eval-runtime": {
       "dependsOn": [
         "@zotlit/db#transit",
+        "@zotlit/item-query#generate:schema",
         "@zotlit/item-query#transit",
         "@zotlit/scripts#transit",
         "@zotlit/zotero-types#transit"
