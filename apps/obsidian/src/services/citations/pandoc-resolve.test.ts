@@ -112,6 +112,10 @@ async function cslVault({
       }),
       metadataCache,
     }),
+    metadata: {
+      fileCache: (file) => Effect.sync(() => metadataCache.getFileCache(file)),
+      firstLinkpathDest: () => Effect.succeed(null),
+    },
     basePath: "/vault",
     reads: stubService<PandocResolveDeps["reads"]>("ZoteroReads", {}),
     zoteroPref: stubService<PandocResolveDeps["zoteroPref"]>("ZoteroPref", {

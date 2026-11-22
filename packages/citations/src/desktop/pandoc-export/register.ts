@@ -12,6 +12,7 @@ import type { Library } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
@@ -21,7 +22,7 @@ import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { packReaderId } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
-import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import type { PackBinaryRefusal } from "@zotlit/resource-pack/status.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -55,6 +56,7 @@ export type PandocExportServices =
   | CitationLookup
   | CitationParse
   | FileSystem.FileSystem
+  | MetadataCache
   | Notifier
   | PandocEngine
   | PluginHost
@@ -185,8 +187,10 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
       run: Effect.succeed({ kind: "engine-missing", status: refusal }),
     };
   const profiles = yield* ProfileStyles;
+  const metadata = yield* MetadataCache;
+  const cache = yield* metadata.fileCache(file);
   const declared = documentPresentation(
-    app.metadataCache,
+    { getFileCache: () => cache },
     file,
     profileReaderOf(
       profiles,
@@ -274,13 +278,13 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
           {
             document: {
               sourcePath: file.path,
-              links: app.metadataCache.getFileCache(file)?.links ?? [],
+              links: (yield* metadata.fileCache(file))?.links ?? [],
             },
             markdown,
             format: choices.format,
             ...engineStyle,
           },
-          exportPorts(deps, engine, {
+          exportPorts(metadata, engine, {
             ...pref,
             localApiEnabled,
             citationLookup,
@@ -345,7 +349,7 @@ const exportPresentation = Effect.fn("PandocExport.exportPresentation")(
 );
 
 function exportPorts(
-  deps: PandocExportDeps,
+  metadata: MetadataCache["Service"],
   engine: CitationEngine,
   pref: {
     dataDir: string;
@@ -356,13 +360,15 @@ function exportPorts(
     zoteroHttp: ZoteroHttp["Service"];
   },
 ): ExportPorts {
-  const { app } = deps;
   const { citationLookup, db } = pref;
   return {
     engine,
     dataDir: () => pref.dataDir,
     resolveIndexedKey: (linkpath, sourcePath) =>
-      resolveIndexedKey(linkpath, sourcePath, app),
+      Effect.map(
+        resolveLiteratureNoteIn(metadata, linkpath, sourcePath),
+        (note) => note?.indexedKey ?? null,
+      ),
     readLookup: (request) => citationLookup.read(request),
     readItemRefs: (indexedKeys) => readItemRefs(db, indexedKeys),
     fetchBibliography: (refs) =>

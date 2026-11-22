@@ -22,11 +22,12 @@ import {
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import type { CliParamName } from "@zotlit/obsidian-kit/cli-params.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import { resolveIndexedKey } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -63,6 +64,7 @@ export { CSL_COMMAND };
 export interface PandocResolveDeps {
   fileSystem: FileSystem.FileSystem;
   app: App;
+  metadata: Pick<MetadataCache["Service"], "fileCache" | "firstLinkpathDest">;
   basePath: string;
   reads: Pick<ZoteroReads["Service"], "current" | "reads">;
   zoteroPref: Pick<ZoteroPref["Service"], "current">;
@@ -78,6 +80,7 @@ export const layerPandocResolve: Layer.Layer<
   never,
   | PluginHost
   | ObsidianEnv
+  | MetadataCache
   | ZoteroReads
   | ZoteroPref
   | PluginSettings
@@ -89,6 +92,7 @@ export const layerPandocResolve: Layer.Layer<
     const host = yield* PluginHost;
     registerPandocResolve(host, {
       app: host.app,
+      metadata: yield* MetadataCache,
       basePath: (yield* ObsidianEnv).basePath,
       fileSystem: yield* FileSystem.FileSystem,
       reads: yield* ZoteroReads,
@@ -165,7 +169,10 @@ export function registerPandocResolve(
         const response = yield* resolveCitations(file, {
           readDocument: (absolutePath) => readDocument(deps, absolutePath),
           resolveIndexedKey: (linkpath, sourcePath) =>
-            resolveIndexedKey(linkpath, sourcePath, deps.app),
+            Effect.map(
+              resolveLiteratureNoteIn(deps.metadata, linkpath, sourcePath),
+              (note) => note?.indexedKey ?? null,
+            ),
           database: {
             describe: () =>
               Effect.zipWith(
@@ -230,6 +237,7 @@ export function registerPandocResolve(
                 readDocumentStyle(
                   {
                     app: deps.app,
+                    metadata: deps.metadata,
                     basePath: deps.basePath,
                     settings,
                     profile,
@@ -257,14 +265,16 @@ export function registerPandocResolve(
   });
 }
 
-function readDocumentStyle(
+const readDocumentStyle = Effect.fn("PandocCli.readDocumentStyle")(function* (
   {
     app,
+    metadata,
     basePath,
     settings,
     profile,
     profiles,
   }: {
+    metadata: Pick<MetadataCache["Service"], "fileCache">;
     app: App;
     basePath: string;
     settings: Readonly<Settings>;
@@ -272,29 +282,38 @@ function readDocumentStyle(
     profiles: Pick<ProfileStyles["Service"], "vaultStyleId">;
   },
   absolutePath: string,
-): DocumentStyleRead {
+): Effect.fn.Return<DocumentStyleRead> {
   const file = vaultFile(app, basePath, absolutePath);
   if (!file) return { kind: "file-not-found" };
-  const declared = documentPresentation(app.metadataCache, file, profile);
+  const cache = yield* metadata.fileCache(file);
+  const declared = documentPresentation(
+    { getFileCache: () => cache },
+    file,
+    profile,
+  );
   if (declared.kind === "unusable") return declared;
   const { styleId } = effectivePresentation(
     declared.presentation,
     vaultPresentation(settings, profiles),
   );
   return { kind: "read", styleId, source: styleSourceOf(declared) };
-}
+});
 
-function readDocument(
-  { app, basePath }: Pick<PandocResolveDeps, "app" | "basePath">,
+const readDocument = Effect.fn("PandocCli.readDocument")(function* (
+  {
+    app,
+    basePath,
+    metadata,
+  }: Pick<PandocResolveDeps, "app" | "basePath" | "metadata">,
   absolutePath: string,
-): ResolveDocument | null {
+): Effect.fn.Return<ResolveDocument | null> {
   const file = vaultFile(app, basePath, absolutePath);
   if (!file) return null;
   return {
     sourcePath: file.path,
-    links: app.metadataCache.getFileCache(file)?.links ?? [],
+    links: (yield* metadata.fileCache(file))?.links ?? [],
   };
-}
+});
 
 function vaultFile(
   app: App,

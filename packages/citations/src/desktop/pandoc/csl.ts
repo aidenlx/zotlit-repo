@@ -103,7 +103,7 @@ export interface CslPorts {
 }
 
 export interface DocumentCslPorts extends CslPorts {
-  readStyle: (absolutePath: string) => DocumentStyleRead;
+  readStyle: (absolutePath: string) => Effect.Effect<DocumentStyleRead>;
 }
 
 export const resolveDocumentCslStyle = Effect.fn("Csl.resolveDocument")(
@@ -111,7 +111,7 @@ export const resolveDocumentCslStyle = Effect.fn("Csl.resolveDocument")(
     absolutePath: string,
     ports: DocumentCslPorts,
   ): Effect.fn.Return<CslResponse, CslWriteError, FileSystem.FileSystem> {
-    const read = ports.readStyle(absolutePath);
+    const read = yield* ports.readStyle(absolutePath);
     if (read.kind === "file-not-found")
       return errorResponse([
         {

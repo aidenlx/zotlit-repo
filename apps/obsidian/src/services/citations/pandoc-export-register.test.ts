@@ -44,6 +44,7 @@ import {
   settingsOf,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -164,9 +165,6 @@ function openVault({
   };
 
   const app = stubService<App>("App", {
-    metadataCache: stubService<App["metadataCache"]>("MetadataCache", {
-      getFileCache: () => ({ frontmatter }),
-    }),
     vault: stubService<App["vault"]>("Vault", {
       adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
         getBasePath: () => basePath,
@@ -214,6 +212,12 @@ function openVault({
       }),
     ),
     Context.add(FileSystem.FileSystem, fileSystem),
+    Context.add(
+      MetadataCache,
+      stubService<MetadataCache["Service"]>("MetadataCache", {
+        fileCache: () => Effect.succeed({ frontmatter }),
+      }),
+    ),
     Context.add(
       PandocEngine,
       stubService<PandocEngine["Service"]>("PandocEngine", {

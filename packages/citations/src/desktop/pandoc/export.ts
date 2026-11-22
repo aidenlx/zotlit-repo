@@ -7,7 +7,10 @@ import type {
   CitationEngine,
   DocumentFormat,
 } from "#obsidian/pandoc/engine.ts";
-import type { ResolveDocument } from "#obsidian/pandoc/resolve.ts";
+import type {
+  ResolveDocument,
+  ResolvePorts,
+} from "#obsidian/pandoc/resolve.ts";
 import { Effect, Result } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
@@ -38,7 +41,7 @@ export interface ExportRequest {
 }
 
 export interface ExportPorts {
-  resolveIndexedKey: (linkpath: string, sourcePath: string) => string | null;
+  resolveIndexedKey: ResolvePorts["resolveIndexedKey"];
   readLookup: (request: {
     citekeys: readonly string[];
   }) => ReturnType<CitationLookup["Service"]["read"]>;
@@ -82,7 +85,7 @@ export const exportCitedDocument = Effect.fn("exportCitedDocument")(function* (
     generation: 0,
     text: request.markdown,
   });
-  const { links, errors } = collectCitationLinks(
+  const { links, errors } = yield* collectCitationLinks(
     {
       sourcePath: request.document.sourcePath,
       links: record.links

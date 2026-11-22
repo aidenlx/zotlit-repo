@@ -516,11 +516,12 @@ describe.skipIf(noPandoc)("zotlit-cite.lua under native Pandoc", () => {
       JSON.stringify(
         await resolveDocumentCslStyle(join(notes, "input.md"), {
           resolve: () => Effect.die(new Error("Default resolves nothing")),
-          readStyle: () => ({
-            kind: "read",
-            styleId: null,
-            source: { kind: "vault" },
-          }),
+          readStyle: () =>
+            Effect.succeed({
+              kind: "read",
+              styleId: null,
+              source: { kind: "vault" },
+            }),
         }),
       ),
     );
@@ -644,11 +645,12 @@ describe.skipIf(noPandoc)("zotlit-cite.lua under native Pandoc", () => {
             resolve: (requested) =>
               resolveInstalledStyle(cli.dataDir, { styleId: requested }),
             materialize: (xml) => materializeCslStyle(xml, cli.store),
-            readStyle: () => ({
-              kind: "read",
-              styleId: CSL_DEPENDENT,
-              source: { kind: "vault" },
-            }),
+            readStyle: () =>
+              Effect.succeed({
+                kind: "read",
+                styleId: CSL_DEPENDENT,
+                source: { kind: "vault" },
+              }),
           }),
         ),
       );

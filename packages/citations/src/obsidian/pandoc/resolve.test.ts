@@ -49,10 +49,13 @@ function ports(
   return {
     read,
     readDocument: (absolutePath) =>
-      fixture.missingFile || absolutePath !== FILE
-        ? null
-        : { sourcePath: SOURCE, links: fixture.links ?? [] },
-    resolveIndexedKey: (linkpath) => fixture.notes?.[linkpath] ?? null,
+      Effect.succeed(
+        fixture.missingFile || absolutePath !== FILE
+          ? null
+          : { sourcePath: SOURCE, links: fixture.links ?? [] },
+      ),
+    resolveIndexedKey: (linkpath) =>
+      Effect.succeed(fixture.notes?.[linkpath] ?? null),
     database: {
       describe: () =>
         Effect.succeed({ dataDir: "/Zotero", readMode: "immutable" }),

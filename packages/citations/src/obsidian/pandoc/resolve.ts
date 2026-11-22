@@ -42,8 +42,11 @@ export interface DatabaseDescription {
 }
 
 export interface ResolvePorts {
-  readDocument: (absolutePath: string) => ResolveDocument | null;
-  resolveIndexedKey: (linkpath: string, sourcePath: string) => string | null;
+  readDocument: (absolutePath: string) => Effect.Effect<ResolveDocument | null>;
+  resolveIndexedKey: (
+    linkpath: string,
+    sourcePath: string,
+  ) => Effect.Effect<string | null>;
   database: {
     describe: () => Effect.Effect<DatabaseDescription>;
     read: (
@@ -61,7 +64,7 @@ export const resolveCitations = Effect.fn("Pandoc.resolveCitations")(function* (
   absolutePath: string,
   ports: ResolvePorts,
 ): Effect.fn.Return<ResolveResponse> {
-  const document = ports.readDocument(absolutePath);
+  const document = yield* ports.readDocument(absolutePath);
   if (!document) {
     return {
       errors: [
@@ -73,7 +76,7 @@ export const resolveCitations = Effect.fn("Pandoc.resolveCitations")(function* (
     };
   }
 
-  const { links, errors } = collectCitationLinks(
+  const { links, errors } = yield* collectCitationLinks(
     document,
     ports.resolveIndexedKey,
   );
@@ -133,40 +136,42 @@ export const resolveCitations = Effect.fn("Pandoc.resolveCitations")(function* (
   return errors.length > 0 ? { errors } : { citations };
 });
 
-export function collectCitationLinks(
-  document: ResolveDocument,
-  resolveIndexedKey: ResolvePorts["resolveIndexedKey"],
-): { links: CitationLink[]; errors: ResolveError[] } {
-  const links: CitationLink[] = [];
-  const errors: ResolveError[] = [];
-  const resolved = new Map<string, string | null>();
-  const reported = new Set<string>();
+export const collectCitationLinks = Effect.fn("Pandoc.collectCitationLinks")(
+  function* (
+    document: ResolveDocument,
+    resolveIndexedKey: ResolvePorts["resolveIndexedKey"],
+  ): Effect.fn.Return<{ links: CitationLink[]; errors: ResolveError[] }> {
+    const links: CitationLink[] = [];
+    const errors: ResolveError[] = [];
+    const resolved = new Map<string, string | null>();
+    const reported = new Set<string>();
 
-  for (const link of document.links) {
-    const { path, subpath } = parseLinktext(link.link);
-    if (path === "") continue;
-    const linkpath = decodeLinkpath(path);
+    for (const link of document.links) {
+      const { path, subpath } = parseLinktext(link.link);
+      if (path === "") continue;
+      const linkpath = decodeLinkpath(path);
 
-    let indexedKey = resolved.get(linkpath);
-    if (indexedKey === undefined) {
-      indexedKey = resolveIndexedKey(linkpath, document.sourcePath);
-      resolved.set(linkpath, indexedKey);
-      if (indexedKey !== null) links.push({ linkpath, indexedKey });
+      let indexedKey = resolved.get(linkpath);
+      if (indexedKey === undefined) {
+        indexedKey = yield* resolveIndexedKey(linkpath, document.sourcePath);
+        resolved.set(linkpath, indexedKey);
+        if (indexedKey !== null) links.push({ linkpath, indexedKey });
+      }
+      if (indexedKey !== null) continue;
+
+      if (!subpath.startsWith(CITE_FRAGMENT_PREFIX)) continue;
+      if (reported.has(linkpath)) continue;
+      reported.add(linkpath);
+      errors.push({
+        code: "unresolved-citation-intent",
+        linkpath,
+        message: `The "${subpath}" fragment declares a Citation, but "${linkpath}" does not resolve to a Literature Note.`,
+      });
     }
-    if (indexedKey !== null) continue;
 
-    if (!subpath.startsWith(CITE_FRAGMENT_PREFIX)) continue;
-    if (reported.has(linkpath)) continue;
-    reported.add(linkpath);
-    errors.push({
-      code: "unresolved-citation-intent",
-      linkpath,
-      message: `The "${subpath}" fragment declares a Citation, but "${linkpath}" does not resolve to a Literature Note.`,
-    });
-  }
-
-  return { links, errors };
-}
+    return { links, errors };
+  },
+);
 
 function decodeLinkpath(path: string): string {
   return path.replaceAll(PERCENT_RUN, (run) => {

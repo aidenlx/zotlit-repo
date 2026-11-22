@@ -124,7 +124,8 @@ function ports(fixture: Fixture): ExportPorts & {
     fetchBibliography,
     engine: { prepareDocument, renderPrepared },
     dataDir: () => "/Zotero",
-    resolveIndexedKey: (linkpath) => fixture.notes?.[linkpath] ?? null,
+    resolveIndexedKey: (linkpath) =>
+      Effect.succeed(fixture.notes?.[linkpath] ?? null),
     readLookup: ({ citekeys }) =>
       Effect.gen(function* () {
         if (fixture.snapshotUnavailable)

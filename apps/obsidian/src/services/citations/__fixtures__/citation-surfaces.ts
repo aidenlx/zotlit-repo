@@ -18,7 +18,6 @@ import type {
   FileSystemAdapter,
   HoverParent,
   LinkCache,
-  MetadataCache,
   TFile,
   Vault,
   Workspace,
@@ -31,6 +30,7 @@ import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
@@ -656,7 +656,6 @@ function exportAdapter({
 }): PandocExportDeps {
   return {
     app: stubService<App>("App", {
-      metadataCache: harness.metadataCache as unknown as MetadataCache,
       vault: stubService<Vault>("Vault", {
         adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
           getBasePath: () => dataDir,
@@ -689,6 +688,14 @@ function exportAdapter({
         Effect.runSync(FileSystem.FileSystem.pipe(Effect.provide(NodeFileSystem.layer))),
       ),
       Context.add(Notifier, notifier),
+      Context.add(
+        MetadataCache,
+        stubService<MetadataCache["Service"]>("MetadataCache", {
+          fileCache: (file) => Effect.sync(() => harness.metadataCache.getFileCache(file)),
+          firstLinkpathDest: (linkpath, sourcePath) =>
+            Effect.sync(() => harness.metadataCache.getFirstLinkpathDest(linkpath, sourcePath)),
+        }),
+      ),
       Context.add(PandocEngine, pandocEngineHandle(engine).binary),
       Context.add(PluginSettings, settings),
       Context.add(
