@@ -29,6 +29,8 @@ export type PageApp = App & {
     typeByExtension: Record<string, string>;
   };
   plugins: App["plugins"] & {
+    enabledPlugins: Set<string>;
+    saveConfig(): Promise<void>;
     plugins: App["plugins"]["plugins"] & {
       zotlit?: import("obsidian").Plugin & {
         _loaded: boolean;

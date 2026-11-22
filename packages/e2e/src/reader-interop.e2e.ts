@@ -245,25 +245,21 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             app.loadLocalStorage("zotlit-use-ledger") ?? null,
           ),
           known: page.reader.views().map((view) => view.leaf.id),
-          original: await app.vault.adapter.read(
-            `${app.vault.configDir}/community-plugins.json`,
-          ),
+          original: [...app.plugins.enabledPlugins],
         }),
       );
-      const writeOrder = (text: string) =>
+      const setOrder = (ids: string[]) =>
         obRun(
           run.vaultId,
-          async ({ app }, { text }) => {
-            await app.vault.adapter.write(
-              `${app.vault.configDir}/community-plugins.json`,
-              text,
-            );
+          async ({ app }, { ids }) => {
+            app.plugins.enabledPlugins.clear();
+            for (const id of ids) app.plugins.enabledPlugins.add(id);
+            await app.plugins.saveConfig();
           },
-          { text },
+          { ids },
         );
-      const ids = JSON.parse(original) as string[];
-      const reversed = [
-        ...ids.filter((id) => id !== "zotlit-reader"),
+      const zotlitFirst = [
+        ...original.filter((id) => id !== "zotlit-reader"),
         "zotlit-reader",
       ];
       try {
@@ -279,7 +275,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           },
           { path },
         );
-        await writeOrder(JSON.stringify(reversed));
+        await setOrder(zotlitFirst);
         await cli([`vault=${run.vaultId}`, "dev:errors", "clear"]);
         await reloadWindow(run.vaultId);
         const restored = await obRun(
@@ -335,7 +331,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "No errors captured.",
         );
       } finally {
-        await writeOrder(original);
+        await setOrder(original);
         await reloadWindow(run.vaultId);
         await obRun(
           run.vaultId,
