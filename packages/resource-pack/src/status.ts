@@ -1,32 +1,29 @@
+// Where a binary of the Resource Pack stands for the plugin that reads it. The
+// ZoteroReads contract holds the Schema of these types, where the status
+// crosses the wire.
 import type { PackFailure } from "#format.ts";
-// Where a binary of the Resource Pack stands for the plugin that reads it, as one Schema that each realm and each wire format reads.
-import { Schema } from "effect";
 
 /** A status in which the pack gives no binary that runs. Each arm names the one step that mends it. */
-export const PackBinaryRefusalSchema = Schema.Union([
+export type PackBinaryRefusal =
   /** Obsidian lists no Resource Pack: install it. */
-  Schema.Struct({ kind: Schema.Literal("pack-absent") }),
+  | { readonly kind: "pack-absent" }
   /** The pack is older than this plugin reads, or lacks the entry: update the pack. */
-  Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
+  | { readonly kind: "pack-outdated" }
   /** The pack is newer than this plugin reads: update the plugin. */
-  Schema.Struct({ kind: Schema.Literal("plugin-outdated") }),
+  | { readonly kind: "plugin-outdated" }
   /** The pack file is not what its index states: install the pack again. */
-  Schema.Struct({ kind: Schema.Literal("pack-damaged") }),
+  | { readonly kind: "pack-damaged" }
   /** The verified binary did not start. */
-  Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
-]);
-export type PackBinaryRefusal = typeof PackBinaryRefusalSchema.Type;
+  | { readonly kind: "failed"; readonly detail: string };
 
 /**
  * Where a binary stands: a refusal, or `ready` with the version of the pack
  * whose verified binary runs or starts at the next use. The realm that reads
  * the Pack Entry and starts the binary states it.
  */
-export const PackBinaryStatusSchema = Schema.Union([
-  ...PackBinaryRefusalSchema.members,
-  Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
-]);
-export type PackBinaryStatus = typeof PackBinaryStatusSchema.Type;
+export type PackBinaryStatus =
+  | PackBinaryRefusal
+  | { readonly kind: "ready"; readonly version: string };
 
 /** The status a refused pack read gives. */
 export function refusalStatus(failure: PackFailure): PackBinaryRefusal {

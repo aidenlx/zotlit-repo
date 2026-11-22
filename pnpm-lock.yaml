@@ -2721,10 +2721,6 @@ importers:
         version: 7.0.2
 
   packages/resource-pack:
-    dependencies:
-      effect:
-        specifier: 'catalog:'
-        version: 4.1.2
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

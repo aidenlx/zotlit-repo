@@ -29,7 +29,10 @@ import type {
   SearchHit as ItemIndexHit,
   SegmenterBinary as ItemIndexSegmenterBinary,
 } from "@zotlit/item-lookup";
-import { PackBinaryStatusSchema } from "@zotlit/resource-pack/status.ts";
+import type {
+  PackBinaryRefusal,
+  PackBinaryStatus,
+} from "@zotlit/resource-pack/status.ts";
 import type { ItemFields } from "@zotlit/zotero-types";
 
 import type {
@@ -401,6 +404,34 @@ export const SegmenterBinarySchema = Schema.Struct({
   version: Schema.String,
 });
 export type SegmenterBinary = typeof SegmenterBinarySchema.Type;
+
+/**
+ * A status in which the Resource Pack gives no binary that runs: the Schema of
+ * `PackBinaryRefusal`, which `ManagedBinaryError` carries.
+ */
+export const PackBinaryRefusalSchema = Schema.Union([
+  Schema.Struct({ kind: Schema.Literal("pack-absent") }),
+  Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
+  Schema.Struct({ kind: Schema.Literal("plugin-outdated") }),
+  Schema.Struct({ kind: Schema.Literal("pack-damaged") }),
+  Schema.Struct({ kind: Schema.Literal("failed"), detail: Schema.String }),
+]);
+type _PackBinaryRefusal = Expect<
+  Equals<typeof PackBinaryRefusalSchema.Type, PackBinaryRefusal>
+>;
+
+/**
+ * Where a binary of the Resource Pack stands: the one Schema of
+ * `PackBinaryStatus`, a refusal or `ready`. `@zotlit/resource-pack/status.ts`
+ * states the type and what each arm means.
+ */
+export const PackBinaryStatusSchema = Schema.Union([
+  ...PackBinaryRefusalSchema.members,
+  Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
+]);
+type _PackBinaryStatus = Expect<
+  Equals<typeof PackBinaryStatusSchema.Type, PackBinaryStatus>
+>;
 type _SegmenterBinary = Expect<
   Equals<SegmenterBinary, ItemIndexSegmenterBinary>
 >;

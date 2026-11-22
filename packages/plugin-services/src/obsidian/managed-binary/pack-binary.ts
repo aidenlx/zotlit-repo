@@ -4,14 +4,12 @@ import { Cause, Duration, Effect, Layer, RcRef, Schema, Stream } from "effect";
 import type { Context, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-import {
-  PackBinaryRefusalSchema,
-  refusalStatus,
-} from "@zotlit/resource-pack/status.ts";
+import { refusalStatus } from "@zotlit/resource-pack/status.ts";
 import type {
   PackBinaryRefusal,
   PackBinaryStatus,
 } from "@zotlit/resource-pack/status.ts";
+import { PackBinaryRefusalSchema } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { ResourcePackPlatform } from "./pack-platform.ts";
 import { makePackStatus } from "./pack-status.ts";
